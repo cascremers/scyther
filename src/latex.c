@@ -651,7 +651,7 @@ knowledgePrintLatex (Knowledge know)
   else
     {
       tl = knowledgeSet (know);
-      termlistPrint (tl);
+      latexTermlistPrint (tl,NULL);
       termlistDelete (tl);
     }
 }
