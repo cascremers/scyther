@@ -23,6 +23,12 @@ extern Protocol INTRUDER;	// The intruder protocol
 extern Role I_M;		// special role; precedes all other events always
 
 /*
+ * Forward declarations
+ */
+
+void goal_graph_destroy ();
+
+/*
  *
  * Assist stuff
  *

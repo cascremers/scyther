@@ -11,6 +11,7 @@ void memDone ();
 #define memFree(p,t) free(p)
 #define memRealloc(p,t) realloc(p,t);
 
+#ifdef DEBUG
 #define findLoserBegin(ign)	int mem_before; \
 				int mem_diff; \
 				static int mem_errorcount = 0; \
@@ -26,5 +27,9 @@ void memDone ();
 					if (mem_errorcount >= 1) \
 						error ("More than enough leaks."); \
 				  }
+#else
+#define findLoserBegin(ign)	;
+#define findLoserEnd(ign,t)	;
+#endif
 
 #endif
