@@ -151,6 +151,12 @@ void strings_cleanup(void)
 	}
 }
 
+int yywrap (void)
+{
+  return 0;
+}
+
+
 /*
 void mkval(void);
 void mktext(void);
