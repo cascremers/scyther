@@ -27,6 +27,8 @@ struct term
   //! Data Type termlist (e.g. agent or nonce)
   /** Only for leaves. */
   void *stype;
+  int roleVar;			// only for leaf, arachne engine: role variable flag
+
   //! Substitution term.
   /**
    * If this is non-NULL, this leaf term is apparently substituted by

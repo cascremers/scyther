@@ -704,7 +704,12 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 
 	  if (isTermVariable (newt))
 	    {
-	      // It is a protocol role name, maybe add choose?
+	      // It is a protocol role name
+	      
+	      // Flag this
+	      newt->roleVar = 1;
+
+	      // maybe add choose?
 	      // Note that for anything but full type flaws, this is not an issue.
 	      // In the POR reduction, force choose was the default. Here it is not.
 	      if (not_read_first (rd, oldt) && sys->match == 2)

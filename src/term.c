@@ -111,6 +111,7 @@ makeTermTuple (Term t1, Term t2)
   tt = makeTerm ();
   tt->type = TUPLE;
   tt->stype = NULL;
+  tt->roleVar = 0;
   TermOp1 (tt) = t1;
   TermOp2 (tt) = t2;
   return tt;
@@ -127,6 +128,7 @@ makeTermType (const int type, const Symbol symb, const int runid)
   Term term = makeTerm ();
   term->type = type;
   term->stype = NULL;
+  term->roleVar = 0;
   term->subst = NULL;
   TermSymb (term) = symb;
   TermRunid (term) = runid;

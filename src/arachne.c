@@ -1291,6 +1291,7 @@ termBindConsequences (Term t)
  *	1:	constrain level of term
  * 	2:	key or not
  * 	4:	consequences determination
+ * 	8:	select also single variables (that are not role variables)
  */
 Binding
 select_goal ()
@@ -1319,47 +1320,74 @@ select_goal ()
       b = (Binding) bl->data;
 
       // Ignore singular variables
-      if (!b->done && !realTermVariable (deVar (b->term)))
-	//if (!b->done)
+      if (!b->done)
 	{
-	  float buf_constrain;
-	  int buf_weight;
+	  int allow;
+	  Term gterm;
 
-	  void adapt (int w, float fl)
+	  allow = 0;
+	  gterm = deVar (b->term);
+	  if (mode & 8)
 	    {
-	      buf_constrain = buf_constrain + w * fl;
-	      buf_weight = buf_weight + w;
-	    }
-
-	  // buf_constrain is the addition of the factors before division by weight
-	  buf_constrain = 0;
-	  buf_weight = 0;
-
-	  if (sys->output == PROOF && best != NULL)
-	    eprintf (", ");
-
-	  // Determine buf_constrain levels
-	  // Bit 0: 1 constrain level
-	  if (mode & 1) adapt (1, term_constrain_level (b->term));
-	  // Bit 1: 2 key level (inverted)
-	  if (mode & 2) adapt (1, 0.5 * (1 - b->level));
-	  // Bit 2: 4 consequence level
-	  if (mode & 4) adapt (1, termBindConsequences (b->term));
-
-	  // Weigh result
-	  if (buf_weight == 0 || buf_constrain <= min_constrain)
-	    {
-	      min_constrain = buf_constrain;
-	      best = b;
-	      if (sys->output == PROOF)
-		eprintf ("*");
-	    }
-	  if (sys->output == PROOF)
-	    {
-	      termPrint (b->term);
-	      if (mode & 2)
+	      // check for singular variable
+	      if (realTermVariable (gterm))
 		{
-	      	  eprintf ("[%i]", b->level);
+		  // singular variable only if it is not a role name variable
+		  allow = !gterm->roleVar;
+		}
+	      else
+		{
+		  // not a singular variable, allow
+		  allow = 1;
+		}
+	    }
+	  else
+	    {
+	      // Normally (mode & 8 == 0) we ignore any singular variables
+	      allow = !realTermVariable (gterm);
+	    }
+
+	  if (allow)
+	    {
+	      float buf_constrain;
+	      int buf_weight;
+
+	      void adapt (int w, float fl)
+		{
+		  buf_constrain = buf_constrain + w * fl;
+		  buf_weight = buf_weight + w;
+		}
+
+	      // buf_constrain is the addition of the factors before division by weight
+	      buf_constrain = 0;
+	      buf_weight = 0;
+
+	      if (sys->output == PROOF && best != NULL)
+		eprintf (", ");
+
+	      // Determine buf_constrain levels
+	      // Bit 0: 1 constrain level
+	      if (mode & 1) adapt (1, term_constrain_level (b->term));
+	      // Bit 1: 2 key level (inverted)
+	      if (mode & 2) adapt (1, 0.5 * (1 - b->level));
+	      // Bit 2: 4 consequence level
+	      if (mode & 4) adapt (1, termBindConsequences (b->term));
+
+	      // Weigh result
+	      if (buf_weight == 0 || buf_constrain <= min_constrain)
+		{
+		  min_constrain = buf_constrain;
+		  best = b;
+		  if (sys->output == PROOF)
+		    eprintf ("*");
+		}
+	      if (sys->output == PROOF)
+		{
+		  termPrint (b->term);
+		  if (mode & 2)
+		    {
+		      eprintf ("[%i]", b->level);
+		    }
 		}
 	    }
 	}
