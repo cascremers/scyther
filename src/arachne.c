@@ -211,6 +211,67 @@ getTermFunction (Term t)
   return NULL;
 }
 
+//! Keylevel tester: can this term ever be sent at this keylevel?
+int
+isKeylevelRight (Term t, const int kl)
+{
+  t = deVar (t);
+  if (realTermLeaf (t))
+    {
+      // Leaf
+      if (isTermVariable (t))
+	{
+	  // Variables are okay
+	  return 1;
+	}
+      else
+	{
+	  // Constant, does it have a keylevel?
+	  int mykl;
+
+	  mykl = TermSymb (t)->keylevel;
+	  if (mykl < INT_MAX)
+	    {
+	      // Sensible keylevel, so it must be possible
+	      return (mykl <= kl);
+	    }
+	  else
+	    {
+	      // Never sent?
+	      // So we can not expect it to come from that
+	      return 0;
+	    }
+	}
+    }
+  else
+    {
+      // Node
+      if (realTermTuple (t))
+	{
+	  // Tuple
+	  return isKeylevelRight (TermOp1 (t), kl)
+	    && isKeylevelRight (TermOp2 (t), kl);
+	}
+      else
+	{
+	  // Crypt
+	  return isKeylevelRight (TermOp1 (t), kl)
+	    && isKeylevelRight (TermOp2 (t), kl + 1);
+	}
+    }
+}
+
+//! Keylevel tester: can this term ever be sent at this keylevel?
+/**
+ * Depends on the keylevel lemma (TODO) and the keylevel constructors in symbol.c
+ * The idea is that certain terms will never be sent.
+ */
+int
+isPossiblySent (Term t)
+{
+  return isKeylevelRight (t, 0);
+}
+
 //! Wrapper for roleInstance
 /**
  *@return Returns the run number
@@ -246,6 +307,39 @@ semiRunDestroy ()
 	num_regular_runs--;
     }
 }
+
+//! Fix the keylevels of any agents
+/**
+ * We simply extract the agent names from m0 (ugly hack)
+ */
+void
+fixAgentKeylevels (void)
+{
+  Termlist tl, m0tl;
+
+  m0tl = knowledgeSet (sys->know);
+  tl = m0tl;
+  while (tl != NULL)
+    {
+      Term t;
+
+      t = deVar (tl->term);
+      if (realTermLeaf (t))
+	{
+	  {
+	    // a real agent type thing
+	    if (TermSymb (t)->keylevel == INT_MAX)
+	      {
+		// Fix the keylevel
+		TermSymb (t)->keylevel = 0;
+	      }
+	  }
+	}
+      tl = tl->next;
+    }
+  termlistDelete (m0tl);
+}
+
 
 //! After a role instance, or an extension of a run, we might need to add some goals
 /**
@@ -689,18 +783,19 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
  *
  * Returns the baseline of the highest number + 1; thus the number of lines.
  */
-int ranks_to_lines(int *ranks, const int nodes)
+int
+ranks_to_lines (int *ranks, const int nodes)
 {
   int ranksdone, baseline;
 
-  ranksdone = 0;	// All values lower than this have been done, so it is the next value
-  baseline = 0;		// The line numbers that get assigned
+  ranksdone = 0;		// All values lower than this have been done, so it is the next value
+  baseline = 0;			// The line numbers that get assigned
   while (1)
     {
       int newlow;
       int run;
       int i;
-      
+
       // Determine lowest rank for non-intruder events, that has not been done
       newlow = INT_MAX;
       run = 0;
@@ -741,7 +836,7 @@ int ranks_to_lines(int *ranks, const int nodes)
 	  i++;
 	}
       baseline++;
-      ranksdone = newlow+1;
+      ranksdone = newlow + 1;
     }
 }
 
@@ -856,7 +951,7 @@ iterate_outgoing_arrows (void (*func) (), const int run, const int ev)
 		}
 	      else
 		{
-	          ev2++;
+		  ev2++;
 		}
 	    }
 
@@ -947,7 +1042,7 @@ latexSemiState ()
   maxrank = graph_ranks (graph, ranks, nodes);	// determine ranks
 
   // Convert ranks to lines
-  maxline = ranks_to_lines(ranks, nodes);
+  maxline = ranks_to_lines (ranks, nodes);
 
   // Draw headings (boxes)
   run = 0;
@@ -1025,10 +1120,10 @@ latexSemiState ()
 			     }
 			   */
 			  /*
-			  roledefPrint (rd);
-			  eprintf (" $\\longrightarrow$ ");
-			  roledefPrint (rd2);
-			  */
+			     roledefPrint (rd);
+			     eprintf (" $\\longrightarrow$ ");
+			     roledefPrint (rd2);
+			   */
 
 			  eprintf ("}{r%i}{r%i}", run, run2);
 			  delta = ranks[node_number (run2, ev2)] - myline;
@@ -1044,9 +1139,9 @@ latexSemiState ()
 			// We only need to consider reads and claims, but for fun we just consider everything.
 			rd = roledef_shift (sys->runs[run].start, ev);
 			iterate_outgoing_arrows (outgoing_arrow, run, ev);
-			eprintf("\\action{");
+			eprintf ("\\action{");
 			roledefPrint (rd);
-			eprintf("}{r%i}\n", run);
+			eprintf ("}{r%i}\n", run);
 		      }
 		    ev++;
 		  }
@@ -1748,6 +1843,36 @@ select_goal ()
   return best;
 }
 
+//! Check if a binding duplicates an old one: if so, simply connect
+int
+bind_old_goal (const Binding b_new)
+{
+  if (!b_new->done)
+    {
+      List bl;
+
+      bl = sys->bindings;
+      while (bl != NULL)
+	{
+	  Binding b_old;
+
+	  b_old = (Binding) bl->data;
+	  if (b_old->done && isTermEqual (b_new->term, b_old->term))
+	    {
+	      // Old is done and has the same term!
+	      // So we copy this binding, and fix it.
+	      b_new->run_from = b_old->run_from;
+	      b_new->ev_from = b_old->ev_from;
+	      b_new->done = 1;
+	      return 1;
+	    }
+	  bl = bl->next;
+	}
+    }
+  // No old binding to connect to
+  return 0;
+}
+
 //! Create a new intruder run to generate knowledge from m0
 
 int
@@ -1913,7 +2038,8 @@ bind_goal_new_encrypt (const Binding b)
 
 //! Bind an intruder goal by intruder construction
 /**
- * Handles the case where the intruder constructs a composed term himself.
+ * Handles the case where the intruder constructs a composed term himself, or retrieves it from m0.
+ * However, it must not already have been created in an intruder run; then it gets bound to that.
  */
 int
 bind_goal_new_intruder_run (const Binding b)
@@ -2097,49 +2223,105 @@ bind_goal (const Binding b)
       proof_select_goal (b);
       indentDepth++;
 
-      // Prune: if it is an SK type construct, ready
-      // No regular run will apply SK for you.
-      //!@todo This still needs a lemma, and a more generic (correct) algorithm!!
-
-      know_only = 0;
-      function = getTermFunction (b->term);
-      if (function != NULL)
+      // Consider a duplicate goal that we already bound before (C-minimality)
+      // if (1 == 0)
+      if (bind_old_goal (b))
 	{
-	  if (!inKnowledge (sys->know, function))
+	  if (sys->output == PROOF)
 	    {
-	      // Prune because we didn't know it before, and it is never subterm-sent
-	      if (sys->output == PROOF)
-		{
-		  indentPrint ();
-		  eprintf ("* Because ");
-		  termPrint (b->term);
-		  eprintf
-		    (" is never sent from a regular run (STILL NEEDS LEMMA!), we only intruder construct it.\n");
-		}
-	      know_only = 1;
+	      indentPrint ();
+	      eprintf ("Goal for term ");
+	      termPrint (b->term);
+	      eprintf (" was bound once before, linking up to #%i, %i.\n",
+		       b->run_from, b->ev_from);
 	    }
-	}
 
-      proofDepth++;
-      if (know_only)
-	{
-	  // Special case: only from intruder
-	  flag = flag && bind_goal_old_intruder_run (b);
-	  flag = flag && bind_goal_new_intruder_run (b);
+	  flag = flag && iterate ();
+
+	  // Unbind again
+	  b->done = 0;
+	  indentDepth--;
+	  return flag;
 	}
       else
 	{
-	  // Normal case
-	  {
-	    flag = bind_goal_regular_run (b);
-	  }
-	  flag = flag && bind_goal_old_intruder_run (b);
-	  flag = flag && bind_goal_new_intruder_run (b);
-	}
-      proofDepth--;
+	  // Prune: if it is an SK type construct, ready
+	  // No regular run will apply SK for you.
+	  //!@todo This still needs a lemma, and a more generic (correct) algorithm!!
 
-      indentDepth--;
-      return flag;
+	  know_only = 0;
+	  function = getTermFunction (b->term);
+	  if (function != NULL)
+	    {
+	      if (!inKnowledge (sys->know, function))
+		{
+		  // Prune because we didn't know it before, and it is never subterm-sent
+		  if (sys->output == PROOF)
+		    {
+		      indentPrint ();
+		      eprintf ("* Because ");
+		      termPrint (b->term);
+		      eprintf
+			(" is never sent from a regular run (STILL NEEDS LEMMA!), we only intruder construct it.\n");
+		    }
+		  know_only = 1;
+		}
+	    }
+
+	  // Keylevel lemmas: improves on the previous one
+	  if (!isPossiblySent (b->term))
+	    {
+	      if (sys->output == PROOF)
+		{
+		  eprintf
+		    ("Rejecting a term as a regular bind because key levels are off: ");
+		  termPrint (b->term);
+		  if (know_only)
+		    {
+		      eprintf (" [in accordance with function lemma]");
+		    }
+		  else
+		    {
+		      eprintf (" [stronger than function lemma]");
+		    }
+		  eprintf ("\n");
+		}
+	      know_only = 1;
+	    }
+#ifdef DEBUG
+	  else
+	    {
+	      if (DEBUGL (5) && know_only == 1)
+		{
+		  eprintf
+		    ("Keylevel lemma is weaker than function lemma for term ");
+		  termPrint (b->term);
+		  eprintf ("\n");
+		}
+	    }
+#endif
+
+	  proofDepth++;
+	  if (know_only)
+	    {
+	      // Special case: only from intruder
+	      flag = flag && bind_goal_old_intruder_run (b);
+	      flag = flag && bind_goal_new_intruder_run (b);
+	    }
+	  else
+	    {
+	      // Normal case
+	      {
+		flag = bind_goal_regular_run (b);
+	      }
+	      flag = flag && bind_goal_old_intruder_run (b);
+	      flag = flag && bind_goal_new_intruder_run (b);
+	    }
+	  proofDepth--;
+
+	  indentDepth--;
+	  return flag;
+	}
     }
   else
     {
@@ -2734,6 +2916,8 @@ arachne ()
 
   max_encryption_level = 0;
   iterate_role_sends (determine_encrypt_max);
+
+  fixAgentKeylevels ();
 
 #ifdef DEBUG
   if (DEBUGL (1))
