@@ -937,12 +937,6 @@ attackDisplayLatex (System sys)
 	  switch (tb->event[i]->type)
 	    {
 	    case SEND:
-
-	      /* TODO issue: this causes the knowledge learning to be printed
-	       * before the actual read arrow is drawn, which is not what we
-	       * want.  We would like to see the learning after it.
-	       */
-	       
 	      newtl = knowledgeNew (tb->know[i], tb->know[i + 1]);
 	      highlights = NULL;
 	      /* Build a Termlist of terms that from the claimViolationDetails,
@@ -959,13 +953,6 @@ attackDisplayLatex (System sys)
 		      tl = tl->next;
 		    }
 
-		  /* print what was learned */
-
-		  printf ("\\action{learns $");
-		  cKnowledge++;
-		  latexTermlistPrint (newtl, highlights);
-		  printf ("$}{eve}\n");
-		  printf ("\\nextlevel[2]\n");
 		}
 
 	      if (tb->link[i] != -1 && i < tb->length)
@@ -976,6 +963,20 @@ attackDisplayLatex (System sys)
 		{
 		  latexMessagePrintHighlight (tb, i, -1, highlights);	//lost message
 		}
+
+	      /* maybe extra knowledge? */
+	      if (newtl != NULL)
+		{
+		  /* print what was learned */
+
+		  printf ("\\nextlevel[1]\n");
+		  printf ("\\action{learns $");
+		  cKnowledge++;
+		  latexTermlistPrint (newtl, highlights);
+		  printf ("$}{eve}\n");
+		  printf ("\\nextlevel[1]\n");
+		}
+	      
 	      termlistDelete (highlights);
 
 	      break;
