@@ -88,7 +88,7 @@ def main():
 	(options, args) = parser.parse_args()
 	scythertest.process_default_options(options)
 
-	print "G-sel\tAttack\tBound\tProof\tClaims\tScore1\tScore2"
+	print "G-sel\tAttack\tBound\tProof\tClaims\tScore1\tScore2\tStates\tBnd*Sts"
 	print 
 
 	ramax = maxor(1)
@@ -97,6 +97,7 @@ def main():
 	score1max = maxor(1)
 	score2max = maxor(1)
 	statesmax = maxor(2)
+	boundstatesmax = maxor(2)
 
 	for g in range(1,31):
 		if (g & 8) == 0:
@@ -105,6 +106,7 @@ def main():
 			# Scores: bounds are negative
 			score1 = ra + rp - rb
 			score2 = ra + (3 * rp) - (2 * rb)
+			boundstates = rb * st
 
 			res = str(g)
 
@@ -118,6 +120,7 @@ def main():
 			res = shows (res, score1max, score1)
 			res = shows (res, score2max, score2)
 			res = shows (res, statesmax, st)
+			res = shows (res, boundstatesmax, boundstates)
 
 			print res
 	print
