@@ -4,6 +4,8 @@
   problem with branching. We should not look for PK(X), even if X is a
   variable. Priority should go to keys of which the constructor is not in M_0,
   maybe that heuristic works.
+  However, there seems to be an infinite loop for this in the algorithm, which
+  I did not anticipate. Investigate!
 - Make different error codes for compilation error/ other error. This can be
   useful for scripts. However, it might shift some constants for the Elegast
   scripts.
