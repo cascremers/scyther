@@ -319,7 +319,7 @@ def RequiresAllProtocols (protocols, claim):
 			simplercase.remove(redundantfile)
 			# now test the validity of the claim
 			simplerresults = ScytherEval (simplercase)
-			if simplerresults[claim] == 0:
+			if claim in simplerresults.keys() and simplerresults[claim] == 0:
 				# Redundant protocol was not necessary for attack!
 				return 0
 	return 1

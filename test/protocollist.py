@@ -13,7 +13,6 @@ def from_literature():
 	list = [ \
 	"andrew-ban.spdl",
 	"andrew-lowe-ban.spdl",
-	"bkepk.spdl",
 	"bke.spdl",
 	"boyd.spdl",
 	"ccitt509-ban.spdl",
@@ -25,6 +24,7 @@ def from_literature():
 	"kaochow.spdl",
 	"kaochow-v2.spdl",
 	"kaochow-v3.spdl",
+	"ksl.spdl",
 	"ns3.spdl",
 	"nsl3.spdl",
 	"nsl7.spdl",
