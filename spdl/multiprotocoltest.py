@@ -25,33 +25,35 @@
 # 	PARAMETERS
 # ***********************
 
+# Temporary files
 TempFileList = "scyther-blap.tmp"
 TempFileTuples = "scyther-blip.tmp"
 
+# External programs
 TupleProgram = "./tuples.py"
-
 ScytherProgram = "../src/scyther"
+
+# Scyther parameters
 ScytherDefaults	= "--summary"
 ScytherMethods	= "-m1 -a"
 ScytherBounds	= "-r4 -l40"
 
-ReportInterval = 10
-
+# Build a large part of the command line (for Scyther) already
 ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
 CommandPrefix = ScytherProgram + " " + ScytherArgs
+
+# Some default settings for Agents, untrusted e with sk(e) and k(a,e) etc.
 IncludeProtocols = 'spdl-defaults.inc'
 
-ProtocolClaims = {}	# maps protocol claims to correctness in singular tests (0,1)
-ProtocolFiles = {}	# maps protocol names to file names
-ProtocolStatus = {}	# maps protocol names to status: 0 all false, 1 all correct, otherwise (2) mixed
-FlawHelpers = {}	# maps protocols that help create multiple flaws, to the protocol names of the flaws they caused
+# Some protocols are causing troubles: this is a hard-coded filter to exclude
+# the problem children. Unfair, yes. Practical, yes.
+SkipList = [ 'gong-nonce.spdl', 'gong-nonce-b.spdl', 'splice-as-hc.spdl', 'kaochow-palm.spdl' ]
 
-SkipList = [
-	'gong-nonce.spdl',
-	'gong-nonce-b.spdl',
-	'splice-as-hc.spdl',
-	'kaochow-palm.spdl'
-	]
+ClaimToResultMap = {}		# maps protocol claims to correctness in singular tests (0,1)
+ProtocolToFileMap = {}		# maps protocol names to file names
+ProtocolToStatusMap = {}	# maps protocol names to status: 0 all false, 1 all correct, otherwise (2) mixed
+ProtocolToEffectsMap = {}	# maps protocols that help create multiple flaws, to the protocol names of the flaws they caused
+
 
 # ***********************
 # 	MODULES
@@ -101,9 +103,9 @@ def CommandLine (plist):
 # pretty-print the status of a protocol
 def PrintProtStatus (file, prname):
 	file.write (prname + ": ")
-	if ProtocolStatus[prname] == 0:
+	if ProtocolToStatusMap[prname] == 0:
 		file.write ("All-Flawed")
-	elif ProtocolStatus[prname] == 1:
+	elif ProtocolToStatusMap[prname] == 1:
 		file.write ("All-Correct")
 	else:
 		file.write ("Mixed")
@@ -150,32 +152,32 @@ def ScytherEval (plist):
 def ScytherEval1 (protocol):
 	results = ScytherEval ([protocol])
 
-	# Add the claim to the list of ProtocolClaims
+	# Add the claim to the list of ClaimToResultMap
 	for claim in results.keys():
-		if ProtocolClaims.has_key(claim):
+		if ClaimToResultMap.has_key(claim):
 			# Claim occurs in two protocols; determine the
 			# files
-			file1 = ProtocolFiles[claim.split()[0]]
+			file1 = ProtocolToFileMap[claim.split()[0]]
 			file2 = protocol
 			raise IOError, 'Claim occurs in two protocols: ' + claim + ", in files (" + file1 + ") and (" + file2 + ")"
 
 		# Add the filename to the protocol mappings
 		prname = claim.split()[0]
-		if ProtocolFiles.has_key(prname):
+		if ProtocolToFileMap.has_key(prname):
 			# We already wrote this down
 			#
 			# TODO The mapping should not conflict, but we don't
 			# check that now (covered by claim duplication # in a sense)
 			#
 			# Compare previous result, maybe mixed
-			if ProtocolStatus[prname] <> results[claim]:
-				ProtocolStatus[prname] = 2
+			if ProtocolToStatusMap[prname] <> results[claim]:
+				ProtocolToStatusMap[prname] = 2
 		else:
 			# New one, store the first result
-			ProtocolFiles[prname] = protocol
-			ProtocolStatus[prname] = results[claim]
+			ProtocolToFileMap[prname] = protocol
+			ProtocolToStatusMap[prname] = results[claim]
 
-	ProtocolClaims.update (results)
+	ClaimToResultMap.update (results)
 
 # Show progress of i (0..n)
 # 
@@ -231,10 +233,10 @@ def DescribeContext (filep, protocols, claim):
 	filep.write ("Involving the protocols:\n")
 
 	for prfile in protocols:
-		prnames = GetKeys (ProtocolFiles, prfile)
+		prnames = GetKeys (ProtocolToFileMap, prfile)
 		filep.write ("- " + prfile + ": " + ",".join(prnames) + "\n")
 	newprname = claim.split()[0]
-	newprfile = ProtocolFiles[newprname]
+	newprfile = ProtocolToFileMap[newprname]
 	filep.write ("The new attack occurs in " + newprfile + ": " + newprname)
 
 	filep.write ("\n\n")
@@ -245,18 +247,18 @@ def DescribeContext (filep, protocols, claim):
 	# Determine, for each protocol name within the list of files,
 	# which claims fall under it, and show their previous status
 	
-	for prname in ProtocolFiles:
+	for prname in ProtocolToFileMap:
 		# Protocol name
-		if ProtocolFiles[prname] in protocols:
+		if ProtocolToFileMap[prname] in protocols:
 			# prname is a protocol name within the scope
 			# first print isolation correct files (skipping
 			# the claim one, because that is obvious)
 			
 			# construct list of claims for this protocol
 			cllist = []
-			for cl in ProtocolClaims.keys():
+			for cl in ClaimToResultMap.keys():
 				if cl.split()[0] == prname:
-					cllist.append( (cl,ProtocolClaims[cl]) )
+					cllist.append( (cl,ClaimToResultMap[cl]) )
 
 			# We want to show some details, in any case of
 			# the protocol of the claim. However, if the
@@ -343,9 +345,9 @@ print "Evaluated single results."
 # Show classification
 #----------------------------------------------------------------------
 #
-print "Correct protocols: ", GetKeys (ProtocolStatus, 1)
-print "Partly flawed protocols: ", GetKeys (ProtocolStatus, 2)
-print "Completely flawed protocols: ", GetKeys (ProtocolStatus, 0)
+print "Correct protocols: ", GetKeys (ProtocolToStatusMap, 1)
+print "Partly flawed protocols: ", GetKeys (ProtocolToStatusMap, 2)
+print "Completely flawed protocols: ", GetKeys (ProtocolToStatusMap, 0)
 
 # Computation of combined list.
 #----------------------------------------------------------------------
@@ -389,23 +391,23 @@ for tline in inp:
 		if value == 0:
 			# Apparently this claim is false now (there is
 			# an attack)
-			if ProtocolClaims[claim] == 1:
+			if ClaimToResultMap[claim] == 1:
 				# Wooh! It was correct before
 				ClearProgress (TupleCount, safetxt)
 				newattacks = newattacks + 1
 				print "-" * 40
 				print "New attack [[", newattacks, "]] at", processed, "/", TupleCount, ":", claim, " using",CommandLine( protocols)
-				for helper in GetListKeys (ProtocolFiles, protocols):
+				for helper in GetListKeys (ProtocolToFileMap, protocols):
 					clprname = claim.split()[0]
 					if helper <> clprname:
-						if helper not in FlawHelpers.keys():
+						if helper not in ProtocolToEffectsMap.keys():
 							# new
-							FlawHelpers[helper] = [clprname]
+							ProtocolToEffectsMap[helper] = [clprname]
 							print "% Detected a new flaw helper:", helper
 						else:
 							# already noted as helper, add destruction now
-							if clprname not in FlawHelpers[helper]:
-								FlawHelpers[helper].append(clprname)
+							if clprname not in ProtocolToEffectsMap[helper]:
+								ProtocolToEffectsMap[helper].append(clprname)
 				#
 				# TODO
 				#
@@ -425,10 +427,10 @@ print "Processed", processed,"tuple combinations in total."
 print "Found", newattacks, "new attacks."
 if newattacks > 0:
 	print "  These were helped by:"
-	for helper in FlawHelpers.keys():
+	for helper in ProtocolToEffectsMap.keys():
 		sys.stdout.write ("  ")
 		PrintProtStatus (sys.stdout, helper)
-		sys.stdout.write (". This possibly breaks " + str(FlawHelpers[helper]) + "\n")
+		sys.stdout.write (". This possibly breaks " + str(ProtocolToEffectsMap[helper]) + "\n")
 
 sys.stdout.flush()
 sys.stderr.flush()
