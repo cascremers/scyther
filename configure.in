@@ -19,7 +19,7 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
                
 AC_CHECK_LIB(argtable2, arg_parse,,AC_MSG_ERROR(Scyther requires the argtable2 package (LGPL).
-Get it from http://argtable.sourceforge.net/,
+Get it from http://argtable.sourceforge.net/
 or make sure that Scyther can find the libraries by setting
 LD_LIBRARY_PATH correctly.))
 AC_PROG_YACC
