@@ -28,7 +28,7 @@ void label_destroy (Labelinfo linfo)
 }
 
 //! Given a list of label infos, yield the correct one or NULL
-Labelinfo label_find (List labellist, Term label)
+Labelinfo label_find (List labellist, const Term label)
 {
   Labelinfo linfo;
 
