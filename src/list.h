@@ -12,7 +12,7 @@ typedef struct list_struct *List;
 
 List list_create (const void *data);
 List list_rewind (List list);
-List list_forward (List  list);
+List list_forward (List list);
 List list_insert (List list, const void *data);
 List list_add (List list, const void *data);
 List list_append (List list, const void *data);

@@ -142,19 +142,6 @@ termMguTerm (Term t1, Term t2)
     }
 
   /* symmetrical tests for single variable */
-  if (realTermVariable (t1))
-    {
-      if (termOccurs (t2, t1) || !goodsubst (t1, t2))
-	return MGUFAIL;
-      else
-	{
-	  t1->subst = t2;
-#ifdef DEBUG
-	  showSubst (t1);
-#endif
-	  return termlistAdd (NULL, t1);
-	}
-    }
   if (realTermVariable (t2))
     {
       if (termOccurs (t1, t2) || !goodsubst (t2, t1))
@@ -166,6 +153,19 @@ termMguTerm (Term t1, Term t2)
 	  showSubst (t2);
 #endif
 	  return termlistAdd (NULL, t2);
+	}
+    }
+  if (realTermVariable (t1))
+    {
+      if (termOccurs (t2, t1) || !goodsubst (t1, t2))
+	return MGUFAIL;
+      else
+	{
+	  t1->subst = t2;
+#ifdef DEBUG
+	  showSubst (t1);
+#endif
+	  return termlistAdd (NULL, t1);
 	}
     }
 

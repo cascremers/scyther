@@ -299,13 +299,96 @@ add_intruder_goal_iterate (Goal goal)
   return flag;
 }
 
-//! Bind a goal to an existing regular run, if possible
+//! Try to bind a specific existing run to a goal.
 /**
- *@todo Currently we don't use subterm. This interm binds, which is much different from subterm binding.
+ * The key goals are bound to the goal.
+ *@param subterm determines whether it is a subterm unification or not.
  */
 int
+bind_existing_to_goal (const Goal goal, const int index, const int run,
+		       const int subterm)
+{
+  Roledef rd;
+  int flag;
+
+  int subterm_iterate (Termlist substlist, Termlist keylist)
+  {
+    int keycount;
+    int flag;
+    int old_length;
+
+    old_length = sys->runs[run].length;
+    if (index >= old_length)
+      sys->runs[run].length = index + 1;
+
+    flag = 1;
+    keycount = 0;
+    while (flag && keylist != NULL)
+      {
+	create_intruder_goal (keylist->term);
+	if (!binding_add (sys->maxruns - 1, 0, goal.run, goal.index))
+	  flag = 0;
+	keylist = keylist->next;
+	keycount++;
+      }
+    flag = flag && iterate ();
+    while (keycount > 0)
+      {
+	roleInstanceDestroy (sys);
+	binding_remove_last ();
+	keycount--;
+      }
+    sys->runs[run].length = old_length;
+    return flag;
+  }
+
+  int interm_iterate (Termlist substlist)
+  {
+    iterate ();
+  }
+
+  // Roledef entry
+  rd = roledef_shift (sys->runs[run].start, index);
+
+#ifdef DEBUG
+  if (DEBUGL (3))
+    {
+      explanation = "Bind existing run (generic) ";
+      e_run = run;
+      e_term1 = goal.rd->message;
+      e_term2 = rd->message;
+    }
+#endif
+  if (binding_add (run, index, goal.run, goal.index))
+    {
+      if (subterm)
+	{
+	  return termMguSubTerm (goal.rd->message, rd->message,
+				 subterm_iterate, sys->know->inverses, NULL);
+	}
+      else
+	{
+	  return termMguInTerm (goal.rd->message, rd->message,
+				interm_iterate);
+	}
+    }
+  else
+    {
+#ifdef DEBUG
+      if (DEBUGL (5))
+	{
+	  indentPrint ();
+	  eprintf ("Aborted binding existing run because of cycle.\n");
+	}
+#endif
+      return 1;
+    }
+}
+
+//! Bind a goal to an existing regular run, if possible
+int
 bind_existing_run (const Goal goal, const Protocol p, const Role r,
-		   const int index, const int forced_run, const int subterm)
+		   const int index, const int subterm)
 {
   int run, flag;
 
@@ -319,53 +402,13 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
       termPrint (p->nameterm);
       eprintf (", ");
       termPrint (r->nameterm);
-      eprintf (", forced run %i\n", forced_run);
+      eprintf ("\n");
     }
 #endif
   flag = 1;
   for (run = 0; run < sys->maxruns; run++)
     {
-      if (forced_run == -2 || forced_run == run)
-	{
-	  if (sys->runs[run].protocol == p && sys->runs[run].role == r)
-	    {
-	      int old_length;
-	      Roledef rd;
-
-	      // Roledef entry
-	      rd = roledef_shift (sys->runs[run].start, index);
-
-	      // mgu and iterate
-	      old_length = sys->runs[run].length;
-	      if (index >= old_length)
-		sys->runs[run].length = index + 1;
-#ifdef DEBUG
-	      if (DEBUGL (3))
-		{
-		  explanation = "Bind existing run";
-		  e_run = run;
-		  e_term1 = goal.rd->message;
-		  e_term2 = rd->message;
-		}
-#endif
-	      if (binding_add (run, index, goal.run, goal.index))
-		{
-		  {
-		    flag = (flag
-			    && termMguInTerm (goal.rd->message, rd->message,
-					      mgu_iterate));
-		  }
-		}
-	      else
-		{
-		  indentPrint ();
-		  eprintf
-		    ("Aborted binding existing run because of cycle.\n");
-		}
-	      binding_remove_last ();
-	      sys->runs[run].length = old_length;
-	    }
-	}
+      flag = flag && bind_existing_to_goal (goal, index, run, subterm);
     }
   return flag;
 }
@@ -373,38 +416,13 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 //! Bind a goal to a new run
 int
 bind_new_run (const Goal goal, const Protocol p, const Role r,
-	      const int index, Termlist substlist)
+	      const int index, const int subterm)
 {
   int run;
   int flag;
-  Roledef rd;
 
-  roleInstance (sys, p, r, NULL, substlist);
-  run = sys->maxruns - 1;
-  sys->runs[run].length = index + 1;
-  if (binding_add (run, index, goal.run, goal.index))
-    {
-#ifdef DEBUG
-      if (DEBUGL (3))
-	{
-	  explanation = "Bind new run";
-	  e_run = run;
-	  e_term1 = r->nameterm;
-	  rd = roledef_shift (sys->runs[run].start, index);
-	  e_term2 = rd->message;
-	  e_term3 = goal.rd->message;
-	}
-#endif
-
-      flag = iterate ();
-    }
-  else
-    {
-      indentPrint ();
-      eprintf ("Aborted binding new run because of cycle.\n");
-      flag = 1;
-    }
-  binding_remove_last ();
+  roleInstance (sys, p, r, NULL, NULL);
+  flag = bind_existing_to_goal (goal, index, sys->maxruns - 1, subterm);
   roleInstanceDestroy (sys);
   return flag;
 }
@@ -529,34 +547,12 @@ bind_goal_regular (const Goal goal)
    */
   int bind_this_role_send (Protocol p, Role r, Roledef rd, int index)
   {
-    int bind_this_unification (Termlist substlist)
-    {
-      int run, flag;
+    int cannotUnify;
 
-      run = determine_unification_run (substlist);
-      if (run == -1)
-	return 1;
-#ifdef DEBUG
-      if (DEBUGL (5))
-	{
-	  indentPrint ();
-	  eprintf ("Term ");
-	  termPrint (goal.rd->message);
-	  eprintf (" can possibly be bound by role ");
-	  termPrint (r->nameterm);
-	  eprintf (", index %i, forced_run %i\n", index, run);
-	}
-#endif
-      /**
-       * Two options; as this, it is from an existing run,
-       * or from a new one.
-       */
-      flag = 1;
-      if (run == -2)
-	{
-	  flag = flag && bind_new_run (goal, p, r, index, substlist);
-	}
-      return (flag && bind_existing_run (goal, p, r, index, run, 0));
+    int test_unification (Termlist substlist)
+    {
+      // A unification exists; return the signal
+      return 0;
     }
 
     if (p == INTRUDER)
@@ -580,8 +576,33 @@ bind_goal_regular (const Goal goal)
 	    eprintf (", index %i\n", index);
 	  }
 #endif
-	return termMguInTerm (goal.rd->message, rd->message,
-			      bind_this_unification);
+	cannotUnify =
+	  termMguInTerm (goal.rd->message, rd->message, test_unification);
+	if (!cannotUnify)
+	  {
+	    int flag;
+
+	    // A good candidate
+#ifdef DEBUG
+	    if (DEBUGL (5))
+	      {
+		indentPrint ();
+		eprintf ("Term ");
+		termPrint (goal.rd->message);
+		eprintf (" can possibly be bound by role ");
+		termPrint (r->nameterm);
+		eprintf (", index %i\n", index);
+	      }
+#endif
+	    flag = flag && bind_new_run (goal, p, r, index, 0);
+	    flag = flag && bind_existing_run (goal, p, r, index, 0);
+	    return flag;
+	  }
+	else
+	  {
+	    // Cannot unify: no attacks
+	    return 1;
+	  }
       }
   }
 
@@ -610,52 +631,12 @@ bind_intruder_to_regular (Goal goal)
 {
   int bind_this_roleevent (Protocol p, Role r, Roledef rd, int index)
   {
-    int bind_this_unification (Termlist substlist, Termlist keylist)
+    int cannotUnify;
+
+    int test_unification (Termlist substlist, Termlist keylist)
     {
-      int flag;
-      int keygoals;
-      Termlist tl;
-      int run;
-
-      run = determine_unification_run (substlist);
-      if (run == -1)
-	return 1;
-
-      /**
-       * the list of keys is added as a new goal.
-       */
-      keygoals = 0;
-      tl = keylist;
-      while (tl != NULL)
-	{
-	  keygoals++;
-	  create_intruder_goal (tl->term);
-	  //!@todo This needs a mapping Pi relation as well.
-
-	  tl = tl->next;
-	}
-      /**
-       * Two options; as this, it is from an existing run,
-       * or from a new one.
-       */
-
-      flag = 1;
-      if (run == -2)
-	{
-	  flag = flag && bind_new_run (goal, p, r, index, substlist);
-	}
-      flag = flag && bind_existing_run (goal, p, r, index, run, 1);
-
-      /**
-       * deconstruct key list goals
-       */
-      while (keygoals > 0)
-	{
-	  roleInstanceDestroy (sys);
-	  keygoals--;
-	}
-
-      return flag;
+      // Signal that unification is possible.
+      return 0;
     }
 
   /**
@@ -667,9 +648,24 @@ bind_intruder_to_regular (Goal goal)
       }
     else
       {				// Test for subterm unification
-	return termMguSubTerm (goal.rd->message, rd->message,
-			       bind_this_unification, sys->know->inverses,
-			       NULL);
+	if (termMguSubTerm
+	    (goal.rd->message, rd->message, test_unification,
+	     sys->know->inverses, NULL))
+	  {
+	    // cannot unify
+	    return 1;
+	  }
+	else
+	  {
+	    int flag;
+
+	      /**
+	       * Either from an existing, or from a new run.
+	       */
+	    flag = flag && bind_new_run (goal, p, r, index, 1);
+	    flag = flag && bind_existing_run (goal, p, r, index, 1);
+	    return flag;
+	  }
       }
   }
 
@@ -1015,11 +1011,13 @@ arachne ()
       if (sys->switchClaimToCheck == NULL
 	  || sys->switchClaimToCheck == cl->type)
 	{
+#ifdef DEBUG
 	  explanation = NULL;
 	  e_run = INVALID;
 	  e_term1 = NULL;
 	  e_term2 = NULL;
 	  e_term3 = NULL;
+#endif
 
 	  p = (Protocol) cl->protocol;
 	  r = (Role) cl->role;

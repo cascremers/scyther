@@ -37,7 +37,7 @@ list_rewind (List list)
 
 //! Forward list
 List
-list_forward (List  list)
+list_forward (List list)
 {
   if (list == NULL)
     {
