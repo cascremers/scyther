@@ -496,8 +496,15 @@ void graphInit (System sys)
 {
   Termlist tl;
 
-  /* drawing state space. start with initial node 0 */
+  /* drawing state space. */
   printf ("digraph Statespace {\n");
+
+  /* fit stuff onto the page */
+  printf ("\trankdir=LR;\n");
+  printf ("\tsize=\"11,17\";\n");
+  printf ("\torientation=landscape;\n");
+
+  /* start with initial node 0 */
   printf ("\tn0 [shape=box,label=\"M0: ");
   tl = knowledgeSet (sys->know);
   termlistPrint (tl);
