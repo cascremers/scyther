@@ -229,6 +229,8 @@ def ShowProgress (i,n,txt):
 	def IntegerPart (x):
 		return int (( x * i ) / n)
 	
+	if not options.progressbar:
+		return
 	percentage = IntegerPart (100)
 	factor = IntegerPart (ProgressBarWidth)
 
@@ -253,6 +255,8 @@ def ShowProgress (i,n,txt):
 	LastProgress[n] = (factor, txt)
 
 def ClearProgress (n,txt):
+	if not options.progressbar:
+		return
 	bar = " " * (1 + ProgressBarWidth + 2 + 5 + len(txt))
 	sys.stderr.write("\r" + bar + "\r")
 	sys.stderr.flush()
@@ -454,6 +458,10 @@ parser.add_option("-b","--bounds", dest="bounds",
 parser.add_option("-s","--start", dest="startpercentage",
 		default = 0,
 		help = "start test at a certain percentage")
+parser.add_option("-B","--disable-progressbar", dest="progressbar",
+		default = "True",
+		action = "store_false",
+		help = "suppress a progress bar")
 
 (options, args) = parser.parse_args()
 
