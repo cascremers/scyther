@@ -485,7 +485,7 @@ firstNonAgentRead (const System sys, int rid)
 
 void
 roleInstance (const System sys, const Protocol protocol, const Role role,
-	      const Termlist paramlist)
+	      const Termlist paramlist, Termlist substlist)
 {
   int rid;
   Run runs;
@@ -671,6 +671,20 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
       rd->message = termLocal (rd->message, fromlist, tolist, rid);
       rd = rd->next;
     }
+
+  runs[rid].substitutions = NULL;
+  while (substlist != NULL)
+    {
+      Term t;
+
+      t = substlist->term;
+      if (t->subst != NULL)
+	{
+	  t->subst = termLocal (t->subst, fromlist, tolist, rid);
+	  runs[rid].substitutions = termlistAdd (runs[rid].substitutions, t);
+	}
+      substlist = substlist->next;
+    }
   termlistDelete (fromlist);
   runs[rid].locals = tolist;
   runs[rid].artefacts = artefacts;
@@ -700,6 +714,7 @@ roleInstanceDestroy (const System sys)
     {
       int runid;
       struct run myrun;
+      Termlist substlist;
 
       runid = sys->maxruns - 1;
       myrun = sys->runs[runid];
@@ -722,6 +737,24 @@ roleInstanceDestroy (const System sys)
 	      memFree (artefacts->term, sizeof (struct term));
 	      artefacts = artefacts->next;
 	    }
+	}
+
+      /**
+       * Undo the local copies of the substitutions. We cannot restore them however, so this might
+       * prove a problem. We assume that the substlist fixes this at roleInstance time; it should be exact.
+       */
+      substlist = myrun.substitutions;
+      while (substlist != NULL)
+	{
+	  Term t;
+
+	  t = substlist->term;
+	  if (t->subst != NULL)
+	    {
+	      termDelete (t->subst);
+	      t->subst = NULL;
+	    }
+	  substlist = substlist->next;
 	}
       termlistDelete (myrun.artefacts);
       termlistDelete (myrun.locals);

@@ -258,7 +258,7 @@ create_intruder_goal (Term t)
   int run;
   Roledef rd;
 
-  roleInstance (sys, INTRUDER, I_GOAL, NULL);
+  roleInstance (sys, INTRUDER, I_GOAL, NULL, NULL);
   run = sys->maxruns - 1;
   rd = sys->runs[run].start;
   sys->runs[run].length = 1;
@@ -300,9 +300,12 @@ add_intruder_goal_iterate (Goal goal)
 }
 
 //! Bind a goal to an existing regular run, if possible
+/**
+ *@todo Currently we don't use subterm. This interm binds, which is much different from subterm binding.
+ */
 int
 bind_existing_run (const Goal goal, const Protocol p, const Role r,
-		   const int index, const int forced_run)
+		   const int index, const int forced_run, const int subterm)
 {
   int run, flag;
 
@@ -342,13 +345,16 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 		  explanation = "Bind existing run";
 		  e_run = run;
 		  e_term1 = goal.rd->message;
+		  e_term2 = rd->message;
 		}
 #endif
 	      if (binding_add (run, index, goal.run, goal.index))
 		{
-		  flag = (flag
-			  && termMguInTerm (goal.rd->message, rd->message,
-					    mgu_iterate));
+		  {
+		    flag = (flag
+			    && termMguInTerm (goal.rd->message, rd->message,
+					      mgu_iterate));
+		  }
 		}
 	      else
 		{
@@ -367,13 +373,13 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 //! Bind a goal to a new run
 int
 bind_new_run (const Goal goal, const Protocol p, const Role r,
-	      const int index)
+	      const int index, Termlist substlist)
 {
   int run;
   int flag;
   Roledef rd;
 
-  roleInstance (sys, p, r, NULL);
+  roleInstance (sys, p, r, NULL, substlist);
   run = sys->maxruns - 1;
   sys->runs[run].length = index + 1;
   if (binding_add (run, index, goal.run, goal.index))
@@ -386,6 +392,7 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
 	  e_term1 = r->nameterm;
 	  rd = roledef_shift (sys->runs[run].start, index);
 	  e_term2 = rd->message;
+	  e_term3 = goal.rd->message;
 	}
 #endif
 
@@ -411,12 +418,12 @@ printSemiState ()
   List bl;
 
   int binding_indent_print (void *data)
-    {
-      indentPrint ();
-      eprintf ("!! ");
-      binding_print (data);
-      return 1;
-    }
+  {
+    indentPrint ();
+    eprintf ("!! ");
+    binding_print (data);
+    return 1;
+  }
 
   indentPrint ();
   eprintf ("!! --=[ Semistate ]=--\n");
@@ -547,9 +554,9 @@ bind_goal_regular (const Goal goal)
       flag = 1;
       if (run == -2)
 	{
-	  flag = flag && bind_new_run (goal, p, r, index);
+	  flag = flag && bind_new_run (goal, p, r, index, substlist);
 	}
-      return (flag && bind_existing_run (goal, p, r, index, run));
+      return (flag && bind_existing_run (goal, p, r, index, run, 0));
     }
 
     if (p == INTRUDER)
@@ -635,9 +642,9 @@ bind_intruder_to_regular (Goal goal)
       flag = 1;
       if (run == -2)
 	{
-	  flag = flag && bind_new_run (goal, p, r, index);
+	  flag = flag && bind_new_run (goal, p, r, index, substlist);
 	}
-      flag = flag && bind_existing_run (goal, p, r, index, run);
+      flag = flag && bind_existing_run (goal, p, r, index, run, 1);
 
       /**
        * deconstruct key list goals
@@ -1030,7 +1037,7 @@ arachne ()
 	    }
 #endif
 
-	  roleInstance (sys, p, r, NULL);
+	  roleInstance (sys, p, r, NULL, NULL);
 	  sys->runs[0].length = cl->ev + 1;
 
 	  /**

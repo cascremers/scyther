@@ -652,7 +652,7 @@ runInstanceCreate (Tac tc)
     }
 
   /* equal numbers, so it seems to be safe */
-  roleInstance (sys, p, r, instParams);	// technically, we don't need to do this for Arachne [fix later]
+  roleInstance (sys, p, r, instParams, NULL);	// technically, we don't need to do this for Arachne [fix later]
 
   /* after creation analysis */
   /* AC1: untrusted agents */

@@ -49,6 +49,7 @@ struct run
   Knowledge know;		//!< Current knowledge of the run.
   Termlist locals;		//!< Locals of the run.
   Termlist artefacts;		//!< Stuff created especially for this run.
+  Termlist substitutions;	//!< The substitutions as they came from the roledef unifier
   int prevSymmRun;		//!< Used for symmetry reduction. Either -1, or the previous run with the same role def and at least a single parameter.
   int firstNonAgentRead;	//!< Used for symmetry reductions for equal agents runs; -1 if there is no candidate.
   int firstReal;		//!< 1 if a choose was inserted, otherwise 0
@@ -214,7 +215,7 @@ void runsPrint (const System sys);
 Term agentOfRunRole (const System sys, const int run, const Term role);
 Term agentOfRun (const System sys, const int run);
 void roleInstance (const System sys, const Protocol protocol, const Role role,
-		   const Termlist tolist);
+		   const Termlist paramlist, Termlist substlist);
 void roleInstanceDestroy (const System sys);
 void systemStart (const System sys);
 void indentActivate ();
