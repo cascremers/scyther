@@ -160,9 +160,6 @@ iterate_role_sends (int (*func) ())
 	    {
 	      if (rd->type == SEND)
 		{
-		  int x;
-
-		  x = 1;
 		  if (!func (p, r, rd, index))
 		    return 0;
 		}
