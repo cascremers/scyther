@@ -190,6 +190,43 @@ executeStep (const System sys, const int run)
   return 1;
 }
 
+/**
+ * remove from a roledef that is instantiated, the uninteresting ends bits
+ */
+void removeIrrelevant (const System sys, const int run, Roledef rd)
+{
+  Roledef rdkill;
+  int killclaims;
+  
+  if (untrustedAgent (sys, sys->runs[run].agents))
+      killclaims = 1;
+  else
+      killclaims = 0;
+
+  rdkill = rd;
+  while (rd != NULL)
+    {
+      if (rd->type == SEND || (!killclaims && rd->type == CLAIM))
+	  rdkill = rd;
+      rd = rd->next;
+    }
+  /* report part */
+  /*
+  rd = rdkill;
+  killclaims = 0;
+  while (rd != NULL)
+    {
+      killclaims++;
+      rd = rd->next;
+    }
+  warning ("%i events stripped from run %i.", killclaims, run);
+  */
+
+  /* remove after rdkill */
+  roledefDelete (rdkill->next);
+  rdkill->next = NULL;
+}
+
 //! Explores the system state given by the next step of a run.
 /**
  * grandiose naming scheme (c) sjors dubya.
@@ -227,7 +264,8 @@ explorify (const System sys, const int run)
 	}
       /* executed by trusted agent */
 
-      /* Special check 1: if agents have been instantiated in such a way that no more claims need to be evaluated, then we can skip
+      /* Special check 1: if agents have been instantiated in such a way that no more claims in any run
+       * need to be evaluated, then we can skip
        * further traversal.
        */
       if (sys->secrets == NULL)
@@ -296,7 +334,12 @@ explorify (const System sys, const int run)
 	    }
 	}
 
-      /* Special check 3: if all agents in each run send only encrypted stuff, and all agents are trusted,
+      /* Special check 3: if after choosing, this run ends on (read|skippedclaim)*, we can remove that part already.
+       */
+
+      removeIrrelevant (sys, run, rd);
+
+      /* Special check x: if all agents in each run send only encrypted stuff, and all agents are trusted,
        * there is no way for the intruder to learn anything else than encrypted terms, so secrecy claims will not
        * be violated anymore if they contain no terms that are encrypted with such keys */
 
