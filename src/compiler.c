@@ -306,9 +306,11 @@ defineUsertype (Tac tcdu)
 	  if (inTermlist (tfind->stype, TERM_Type))
 	    {
 	      /* phew. warn anyway */
-	      printf ("WARNING: double declaration of usertype ");
+	      globalError++;
+	      eprintf ("WARNING: double declaration of usertype ");
 	      termPrint (tfind);
-	      printf ("\n");
+	      eprintf ("\n");
+	      globalError--;
 	    }
 	  else
 	    {
@@ -1403,9 +1405,10 @@ compute_prec_sets (const System sys)
       //@todo This is for debugging, mainly.
       if (cl->prec == NULL)
 	{
-	  fprintf (stderr,
-		   "Warning: claim with empty prec() set at r:%i, ev:%i\n",
+	  globalError++;
+	  eprintf ("Warning: claim with empty prec() set at r:%i, ev:%i\n",
 		   r1, ev1);
+	  globalError--;
 	}
       else
 	{
