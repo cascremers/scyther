@@ -1,7 +1,5 @@
-- I have no good explanation for it, but any of -O2, -O3, 
-  -finline-functions causes ni-synch claims of nsl-nisynch to fail, 
-  which is incorrect. This must be investigated later, but for now I 
-  disabled it.
+- Exit code is less than 314; so reporting scenario count must
+  be done through stdout.
 - Constraint logic now also has no checks for when a run is done by the
   intruder (which should be excluded).
 - Fix constants in intruder knowledge. Auto add single one of each type,
@@ -11,12 +9,8 @@
 - Intruder should at least have one copy of each type that an agent can
   construct, I think in any case. Proof needed for single identifier need.
   Furthermore reduction if type flaw testing; only one constant needed.
-- State counter is off by one. Should start at 1, or should add 1 at printing.
 - Make filter switch, allowing maybe for some claims only to be evaluated.
   --check=Secret, --check-all as default.
-- Some compiler errors are still sent to stdout. This must be fixed
-  ASAP! because it means people get an invisible error using the
-  scripts.
 - Make --with-argtabledir= something switch, replacing
   README/galious-configure.sh constructs.
 - Move initial intruder knowledge maybe into the title of the MSC.
@@ -31,9 +25,6 @@
 - Remove any remaining global variables, if any.
 - Introduce 'Ticket' default type in the compiler, along with some
   handling for that.
-- Make a shell script 'test $filename $commandline'
-  Generates a $test-$date.out and $test-$date.err. Useful for storing
-  test data.
 - How should claims behave (trusted/untrusted) wrt uninstantiated
   agents? Branch again? That's what is causing the nsl3-var problem.
 - The 'choose' operator must always be typed, I think.
@@ -56,13 +47,7 @@
 - Issue: how do untrusted claims work in the context of an intruder?
   Claim must be checked if it can be solved such that at least one of 
   the agents is trusted.
-- Fix the first environment read with a special (hidden) label.
-  1. Hide it or print differently in output.
-  2. Ensure typed matching for it, even when using -m1 switch.
 - Woolam-ce gives nothing. But then again, it's a wrong impl.
-- consider option -finline-functions for gcc, test.
-- Currently, match_basic unrolls substitutions to compare message with
-  the forbidden list, but I don't think that it is required. Test.
 - -m2 is much better with a lot of variables. Compare this to unfolding
   of the runs with -t4 -m0/1.
 - Global/protocol variables should not exist in the current system.
@@ -78,10 +63,7 @@
   solveable as well.
 - Maybe function application ought to be a different basic term type.
 - After role construction, msc consistency can be checked.
-- Make sure module knowledge has an interface instead of reference to
-  internals (i.e. no ref to basic/encr)
 - Reduce knowledge to a simple term list? That would simplify a number
   of things, and also allow for easier addition of stuff.
 - How is % notation handled in Casper?
 - Vernam encryption?
-- Count number of illegal injections rejected for statistics.
