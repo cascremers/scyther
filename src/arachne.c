@@ -1342,9 +1342,9 @@ select_goal ()
 	  // Bit 0: 1 constrain level
 	  if (mode & 1) adapt (1, term_constrain_level (b->term));
 	  // Bit 1: 2 key level (inverted)
-	  if (mode & 2) adapt (2, 0.5 * (1 - b->level));
+	  if (mode & 2) adapt (1, 0.5 * (1 - b->level));
 	  // Bit 2: 4 consequence level
-	  if (mode & 4) adapt (2, termBindConsequences (b->term));
+	  if (mode & 4) adapt (1, termBindConsequences (b->term));
 
 	  // Weigh result
 	  if (buf_weight == 0 || buf_constrain <= min_constrain)
