@@ -635,21 +635,24 @@ roleInstanceArachne (const System sys, const Protocol protocol,
   Run runs;
   Roledef rd;
   Termlist scanfrom, scanto;
-  Termlist fromlist = NULL;
-  Termlist tolist = NULL;
-  Termlist artefacts = NULL;
-  Term extterm = NULL;
+  Termlist fromlist = NULL;		// deleted at the end
+  Termlist tolist = NULL;		// -> .locals
+  Termlist artefacts = NULL;		// -> .artefacts
+  Term extterm = NULL;			// construction thing (will go to artefacts)
 
   /* claim runid, allocate space */
   rid = sys->maxruns;
-  ensureValidRun (sys, rid);
-  runs = sys->runs;
+  ensureValidRun (sys, rid);		// creates a new block
+  runs = sys->runs;			// simple structure pointer transfer (shortcut)
 
   /* duplicate roledef in buffer rd */
+  /* Notice that it is not stored (yet) in the run structure,
+   * and that termDuplicate is used internally
+   */
   rd = roledefDuplicate (role->roledef);
 
   /* set parameters */
-  /* generic setup */
+  /* generic setup of inherited stuff */
   runs[rid].protocol = protocol;
   runs[rid].role = role;
   runs[rid].step = 0;
@@ -668,22 +671,28 @@ roleInstanceArachne (const System sys, const Protocol protocol,
     {
       Term newt, oldt;
 
+      /* Some care has to be taken: after we use this instantiation, we might reset it.
+       * That is not strictly necessary: whoever set it first, is responsible for getting rid
+       * of it again.
+       */
       oldt = scanfrom->term;
-      newt = oldt;
+      newt = deVar(oldt);
       if (realTermVariable (newt))
 	{
-	  // Make new var for this run
+	  /* This is a variable of the role, that is not instantiated yet.
+	   * Thus, it needs a local copy.
+	   */
 	  newt = makeTermType (VARIABLE, TermSymb (newt), rid);
 	  artefacts = termlistAddNew (artefacts, newt);
 	  newt->stype = oldt->stype;
-	  // Copy substitution
-	  newt->subst = oldt->subst;
-	  // Remove any old substitution! It is now propagated!
-	  oldt->subst = NULL;
 	}
-      // Add to agent list, possibly
+      /* Now we add any role names to the agent list. Note that instantiations do not matter:
+       * because if the variable is instantiated, the rolename will be as well, and thus they will
+       * be equal anyway.
+       */
       if (inTermlist (protocol->rolenames, oldt))
 	{
+	  /* Add the agent name or role variable... */
 	  runs[rid].agents = termlistAppend (runs[rid].agents, newt);
 
 	  if (isTermVariable (newt))
