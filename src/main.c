@@ -83,32 +83,32 @@ main (int argc, char **argv)
   struct arg_int *match =
     arg_int0 ("m", "match", NULL, "matching method (default is 0)");
   struct arg_lit *clp =
-    arg_lit0 ("c", "cl", "use constraint logic, non-associative.");
+    arg_lit0 ("c", "cl", "use constraint logic, non-associative");
   struct arg_int *prune = arg_int0 ("p", "prune", NULL,
 				    "pruning method (default is 2)");
   struct arg_int *maxlength = arg_int0 ("l", "max-length", NULL,
-					"prune traces longer than <int> events.");
+					"prune traces longer than <int> events");
   struct arg_lit *incTraces = arg_lit0 (NULL, "increment-traces",
 					"incremental search using the length of the traces.");
   struct arg_int *maxruns =
-    arg_int0 ("r", "max-runs", NULL, "create at most <int> runs.");
+    arg_int0 ("r", "max-runs", NULL, "create at most <int> runs");
   struct arg_lit *incRuns = arg_lit0 (NULL, "increment-runs",
-				      "incremental search using the number of runs.");
-  struct arg_lit *latex = arg_lit0 (NULL, "latex", "output in LaTeX format.");
+				      "incremental search using the number of runs");
+  struct arg_lit *latex = arg_lit0 (NULL, "latex", "output in LaTeX format");
   struct arg_lit *noreport =
-    arg_lit0 ("d", "disable-report", "don't report violations.");
-  struct arg_lit *switchS = arg_lit0 (NULL, "no-progress", "suppress progress bar.");
-  struct arg_lit *switchSS = arg_lit0 (NULL, "state-space", "output state space graph.");
-  struct arg_lit *switchFC = arg_lit0 (NULL, "force-choose", "force only explicit choose events.");
-  struct arg_lit *switchRS = arg_lit0 (NULL, "read-symm", "enable read symmetry reductions.");
-  struct arg_lit *switchAS = arg_lit0 (NULL, "no-agent-symm", "disable agent symmetry reductions.");
-  struct arg_lit *switchSO = arg_lit0 (NULL, "symm-order", "enable ordering symmetry reductions.");
-  struct arg_lit *switchNC = arg_lit0 (NULL, "no-noclaims-red", "disable no more claims reductions.");
-  struct arg_lit *switchRE = arg_lit0 (NULL, "no-endgame-red", "disable endgame reductions.");
+    arg_lit0 ("d", "disable-report", "don't report violations");
+  struct arg_lit *switchS = arg_lit0 (NULL, "no-progress", "suppress progress bar");
+  struct arg_lit *switchSS = arg_lit0 (NULL, "state-space", "output state space graph");
+  struct arg_lit *switchIC = arg_lit0 (NULL, "implicit-choose", "allow implicit choose events (useful for few runs)");
+  struct arg_lit *switchRS = arg_lit0 (NULL, "read-symm", "enable read symmetry reductions");
+  struct arg_lit *switchAS = arg_lit0 (NULL, "no-agent-symm", "disable agent symmetry reductions");
+  struct arg_lit *switchSO = arg_lit0 (NULL, "symm-order", "enable ordering symmetry reductions");
+  struct arg_lit *switchNC = arg_lit0 (NULL, "no-noclaims-red", "disable no more claims reductions");
+  struct arg_lit *switchRE = arg_lit0 (NULL, "no-endgame-red", "disable endgame reductions");
 #ifdef DEBUG
-  struct arg_int *porparam = arg_int0 (NULL, "pp", NULL, "POR parameter.");
+  struct arg_int *porparam = arg_int0 (NULL, "pp", NULL, "POR parameter");
   struct arg_lit *switchI = arg_lit0 ("I", "debug-indent",
-				      "indent the debug output using trace length.");
+				      "indent the debug output using trace length");
   struct arg_int *debugl =
     arg_int0 ("D", "debug", NULL, "set debug level (default is 0)");
 #endif
@@ -129,7 +129,7 @@ main (int argc, char **argv)
     noreport,
     switchS, 
     switchSS,
-    switchFC,
+    switchIC,
     switchRS,
     switchAS,
     switchSO,
@@ -283,9 +283,9 @@ main (int argc, char **argv)
 
   /* generate system */
   sys = systemInit ();
-  if (switchFC->count > 0)
-      /* force explicit chooses */
-      sys->switchForceChoose = 1;
+  if (switchIC->count > 0)
+      /* allow implicit chooses */
+      sys->switchForceChoose = 0;
   if (switchRS->count > 0)
     {
       if (switchSO->count > 0)
