@@ -95,7 +95,7 @@ main (int argc, char **argv)
   if (arg_nullcheck (argtable) != 0)
     {
       /* NULL entries were detected, some allocations must have failed */
-      printf ("%s: insufficient memory\n", progname);
+      fprintf (stderr, "%s: insufficient memory\n", progname);
       exitcode = 1;
       goto exit;
     }
@@ -168,10 +168,10 @@ main (int argc, char **argv)
   /* Lutger-tries-to-test-with-broken-methods detector */
   if (clp->count > 0)
     {
-      printf ("For the time being, this method is not supported, \n");
-      printf ("as too many changes have been made to the normal \n");
-      printf ("matching logic, and CL simply isn't reliable in \nmany ");
-      printf ("ways. Try again in a few weeks.\n");
+      fprintf (stderr, "For the time being, this method is not supported, \n");
+      fprintf (stderr, "as too many changes have been made to the normal \n");
+      fprintf (stderr, "matching logic, and CL simply isn't reliable in \nmany ");
+      fprintf (stderr, "ways. Try again in a few weeks.\n");
       exit(0);
     }
 
@@ -182,7 +182,7 @@ main (int argc, char **argv)
       /* try to open */
       if (!freopen (outfile->filename[0], "w", stdout))
         {
-          printf("Could not create output file '%s'.\n", outfile->filename[0]);
+          fprintf(stderr, "Could not create output file '%s'.\n", outfile->filename[0]);
           exit(1);
         }
     }
@@ -194,7 +194,7 @@ main (int argc, char **argv)
 	{
           if (!freopen (infile->filename[0], "r", stdin))
 	    {
-	      printf("Could not open input file '%s'.\n", infile->filename[0]);
+	      fprintf(stderr, "Could not open input file '%s'.\n", infile->filename[0]);
 	      exit(1);
 	    }
 	}

@@ -194,7 +194,7 @@ explorify (const System sys, const int run)
   rd = runPointerGet (sys, run);
   if (rd == NULL)
     {
-      printf ("ERROR: trying to progress completed run!\n");
+      fprintf (stderr, "ERROR: trying to progress completed run!\n");
       exit (1);
     }
 
@@ -354,7 +354,7 @@ traversePOR (const System sys)
 		  flag = block_clp (sys, phase);
 		  break;
 		default:
-		  printf ("Non existing clp switch.\n");
+		  fprintf (stderr, "Non existing clp switch.\n");
 		  exit (1);
 		}
 	    }
@@ -646,7 +646,7 @@ traversePOR2 (const System sys)
 		  flag = block_clp (sys, phase);
 		  break;
 		default:
-		  printf ("Non existing clp switch.\n");
+		  fprintf (stderr, "Non existing clp switch.\n");
 		  exit (1);
 		}
 	    }
@@ -829,7 +829,7 @@ traversePOR4 (const System sys)
 	      break;
 
 	    default:
-	      printf ("Encountered unknown event type %i.\n", rd->type);
+	      fprintf (stderr, "Encountered unknown event type %i.\n", rd->type);
 	      exit (1);
 	    }
 	}
@@ -877,6 +877,7 @@ propertyCheck (const System sys)
 	      if (claimev == -1)
 		{
 		  /* weird, should not occur */
+		  fprintf(stderr, "Violation, but cannot locate claim.\n");
 		  printf("A secrecy claim was supposed to be violated on term ");
 		  termPrint(scan->term);
 		  printf(" but we couldn't find the corresponding claim.\n");
@@ -988,7 +989,7 @@ claimViolationDetails (const System sys, const int run, const Roledef rd, const 
 {
   if (rd->type != CLAIM)
     {
-      printf("Trying to determine details of something other than a claim!\n");
+      fprintf(stderr, "Trying to determine details of something other than a claim!\n");
       exit(-1);
     }
 

@@ -24,7 +24,7 @@ debug (int level, char *string)
   if (debugCond (level))
     {
       indent ();
-      printf ("DEBUG [%i]: %s\n", level, string);
+      fprintf (stderr, "DEBUG [%i]: %s\n", level, string);
     }
 #endif
 }
