@@ -175,7 +175,7 @@ int
 isTermFunctionName (Term t)
 {
   t = deVar (t);
-  if (t != NULL && inTermlist (t->stype, TERM_Function))
+  if (t != NULL && isTermLeaf(t) && inTermlist (t->stype, TERM_Function))
     return 1;
   return 0;
 }
@@ -1259,17 +1259,16 @@ bind_goal_regular_run (const Binding b)
   int flag;
   int found;
 
+  int test_sub_unification (Termlist substlist, Termlist keylist)
+  {
+    // A unification exists; return the signal
+    return 0;
+  }
   /*
    * This is a local function so we have access to goal
    */
   int bind_this_role_send (Protocol p, Role r, Roledef rd, int index)
   {
-    int test_unification (Termlist substlist)
-    {
-      // A unification exists; return the signal
-      return 0;
-    }
-
     if (p == INTRUDER)
       {
 	// No intruder roles here
@@ -1291,7 +1290,7 @@ bind_goal_regular_run (const Binding b)
       }
 #endif
     if (!termMguSubTerm
-	(b->term, rd->message, test_unification, sys->know->inverses, NULL))
+	(b->term, rd->message, test_sub_unification, sys->know->inverses, NULL))
       {
 	int flag;
 

@@ -239,7 +239,7 @@ termMguTerm (Term t1, Term t2)
  *@returns Nothing. Iteration gets termlist of substitutions.
  */
 int
-termMguInTerm (Term t1, Term t2, int (*iterator) ())
+termMguInTerm (Term t1, Term t2, int (*iterator) (Termlist))
 {
   Termlist tl;
   int flag;
@@ -282,16 +282,18 @@ termMguInTerm (Term t1, Term t2, int (*iterator) ())
  *@returns Nothing. Iteration gets termlist of subst, and list of keys needed to decrypt.
  */
 int
-termMguSubTerm (Term t1, Term t2, int (*iterator) (),
+termMguSubTerm (Term t1, Term t2, int (*iterator) (Termlist, Termlist),
 		Termlist inverses, Termlist keylist)
 {
   int flag;
-  Termlist tl;
 
   flag = 1;
+  t1 = deVar (t1);
   t2 = deVar (t2);
   if (t2 != NULL)
     {
+      Termlist tl;
+
       if (!realTermLeaf (t2))
 	{
 	  if (realTermTuple (t2))
@@ -308,14 +310,14 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (),
 	    {
 	      // Must be encryption
 	      // So, we need the key, and try to get the rest
-	      Termlist keylist_new;
 	      Term newkey;
 
 	      newkey = inverseKey (inverses, t2->right.key);
-
 	      // We can never produce the TERM_Hidden key, thus, this is not a valid iteration.
 	      if (!isTermEqual (newkey, TERM_Hidden))
 		{
+	          Termlist keylist_new;
+
 		  keylist_new = termlistShallow (keylist);
 		  keylist_new = termlistAdd (keylist_new, newkey);
 
@@ -343,7 +345,7 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (),
     }
   else
     {
-      if (deVar (t1) != NULL)
+      if (t1 != NULL)
 	{
 	  flag = 0;
 	}
