@@ -57,6 +57,7 @@ Term CLAIM_Nisynch;
  * Global stuff
  */
 
+//! Levels of scope: global, protocol, role
 #define MAXLEVELS 3
 static Termlist leveltl[MAXLEVELS];
 static int level;
@@ -66,10 +67,11 @@ static Role thisRole;
 
 /* ------------------------------------------------------------------- */
 
-/*
-   Compile the tac into the system
-*/
-
+//! Compile the tac into the system
+/**
+ *@todo Currently, the semantics assume all labels are globally unique, but this is not enforced yet. There should be some automatic renaming when compositing protocols.
+ *\sa oki_nisynch
+ */
 void
 compile (System mysys, Tac tc, int maxrunsset)
 {
@@ -108,6 +110,10 @@ compile (System mysys, Tac tc, int maxrunsset)
   levelDone ();
 }
 
+//! Print error line number.
+/**
+ *@todo This is obsolete, and should all go to stderr
+ */
 void
 errorTac (int lineno)
 {
@@ -115,6 +121,7 @@ errorTac (int lineno)
   exit (1);
 }
 
+//! Enter nested scope.
 void
 levelInit (void)
 {
@@ -126,6 +133,7 @@ levelInit (void)
   leveltl[level] = NULL;
 }
 
+//! Leave nested scope.
 void
 levelDone (void)
 {

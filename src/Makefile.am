@@ -9,10 +9,12 @@ scyther_SOURCES = main.c \
 		 scanner.l parser.y \
 		 memory.c memory.h \
 		 terms.c terms.h \
+		 termmaps.c termmaps.h \
 		 termlists.c termlists.h \
 		 symbols.c symbols.h \
 		 knowledge.c knowledge.h \
 		 runs.c runs.h \
+		 claims.c claims.h \
 		 modelchecker.c modelchecker.h \
 		 report.c report.h \
 		 error.c error.h \

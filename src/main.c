@@ -261,6 +261,7 @@ main (int argc, char **argv)
 
   /* initialize symbols */
   termsInit ();
+  termmapsInit ();
   termlistsInit ();
   knowledgeInit ();
   symbolsInit ();
@@ -404,6 +405,7 @@ main (int argc, char **argv)
   symbolsDone ();
   knowledgeDone ();
   termlistsDone ();
+  termmapsDone ();
   termsDone ();
 
   /* memory clean up? */
