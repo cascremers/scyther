@@ -6,7 +6,13 @@
 #
 import sys
 from optparse import OptionParser
-from scythercache import evaluate
+from scythercache import evaluate, scytheroverride
+
+
+#----------------------------------------------------------------------------
+# Globals
+#----------------------------------------------------------------------------
+g_extra = ""
 
 #----------------------------------------------------------------------------
 # Parsing Output
@@ -47,6 +53,26 @@ def default_protocols(plist):
 	plist.sort()
 	return ['../spdl/spdl-defaults.inc'] + plist
 
+# Get the extra parameters
+def get_extra_parameters():
+	global g_extra
+
+	return g_extra
+
+# Set the extra parameters
+def set_extra_parameters(args):
+	global g_extra
+
+	g_extra = args
+
+# Add the extra parameters
+def add_extra_parameters(args):
+	global g_extra
+
+	if args != "":
+		if g_extra != "":
+			g_extra = g_extra + " "
+		g_extra = g_extra + args
 
 # Yield arguments, given a bound type:
 # 	0: fast
@@ -78,6 +104,10 @@ def default_arguments(plist,match,bounds):
 	args = "--arachne --timer=%i --max-runs=%i --max-length=%i" % (timer, maxruns, maxlength)
 	matching = "--match=" + str(match)
 	allargs = "--summary " + matching + " " + args
+
+	extra = get_extra_parameters()
+	if extra != "":
+		allargs = extra + " " + allargs
 	return allargs
 
 # Yield test results
@@ -115,6 +145,23 @@ def default_options(parser):
 	parser.add_option("-b","--bounds", dest="bounds",
 			default = 0,
 			help = "bound type selection (0: quickscan, 1:thorough)")
+	parser.add_option("-x","--extra", dest="extra",
+			default = "",
+			help = "add arguments to pass to Scyther")
+	parser.add_option("-P","--program", dest="program",
+			default = "",
+			help = "define alternative scyther executable")
+
+# Process the default options
+def process_default_options(options):
+	if options.program != "":
+		scytheroverride(options.program)
+		print "Using", options.program, "as Scyther executable."
+	if options.extra != "":
+		add_extra_parameters(options.extra)
+		print "Added extra options, now:", get_extra_parameters(options.extra)
+
+
 
 #----------------------------------------------------------------------------
 # Some default testing stuff
@@ -129,6 +176,18 @@ def all_unless_given(plist):
 		return plist
 
 #	Scan for compilation errors or stuff like that
+
+def scan_for_results(options,args):
+	# Select specific list
+	plist = all_unless_given(args)
+	# Now check all things in the list
+	for p in plist:
+		# Test and gather output
+		(status,scout) = default_test([p], 0, 0)
+		print scout
+
+	print
+	print "Scan complete."
 
 def scan_for_errors(options,args):
 	# Select specific list
@@ -205,15 +264,24 @@ def main():
 			default = "False",
 			action = "store_true",
 			help = "detect compilation errors for all protocols [in list_all]")
+	parser.add_option("-r","--results", dest="results",
+			default = "False",
+			action = "store_true",
+			help = "scan for results for all protocols [in list_all]")
 	parser.add_option("-t","--timeouts", dest="timeouts",
 			default = "False",
 			action = "store_true",
 			help = "scan for timeout errors for all protocols [in list_all]")
 	(options, args) = parser.parse_args()
 
+	# Globals
+	process_default_options(options)
+
 	# Subcases
 	if options.errors != "False":
 		scan_for_errors(options,args)
+	elif options.results != "False":
+		scan_for_results(options,args)
 	elif options.timeouts != "False":
 		scan_for_timeouts(options,args)
 	else:

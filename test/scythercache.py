@@ -21,6 +21,19 @@ from tempfile import NamedTemporaryFile, gettempdir
 
 # Minimum duration for a test to get into the cache (in seconds)
 CacheTimer = 0.1
+ScytherProgram = "scyther"
+
+#----------------------------------------------------------------------------
+# How to override Scyther program setting
+#----------------------------------------------------------------------------
+
+def scytheroverride (newprg):
+	global ScytherProgram
+
+	ScytherProgram = newprg
+	if not os.path.exists(ScytherProgram):
+		print "Cannot find any file at", ScytherProgram, " and it cannot be used as a Scyther executable."
+		sys.exit()
 
 #----------------------------------------------------------------------------
 # How to call Scyther
@@ -28,7 +41,9 @@ CacheTimer = 0.1
 
 #	scyther should reside in $PATH
 def scythercall (argumentstring, inputfile):
-	clstring = "scyther " + argumentstring + " " + inputfile
+	global ScytherProgram
+
+	clstring = ScytherProgram + " " + argumentstring + " " + inputfile
 	(status,scout) = commands.getstatusoutput(clstring)
 	return (status,scout)
 

@@ -537,6 +537,7 @@ def main():
 			help = "suppress a progress bar")
 
 	(options, args) = parser.parse_args()
+	scythertest.process_default_options(options)
 
 	the_great_houdini(args, int(options.tuplewidth), int(options.match))
 
