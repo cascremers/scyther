@@ -138,7 +138,12 @@ LastProgress = {}
 ProgressBarWidth = 50
 
 def ShowProgress (i,n,txt):
-	factor = int((ProgressBarWidth * i) / n)
+	def IntegerPart (x):
+		return int (( x * i ) / n)
+	
+	percentage = IntegerPart (100)
+	factor = IntegerPart (ProgressBarWidth)
+
 	showme = 0
 	if LastProgress.has_key(n):
 		if LastProgress[n]<>(factor,txt):
@@ -154,13 +159,13 @@ def ShowProgress (i,n,txt):
 			else:
 				bar = bar + "."
 			i = i+1
-		bar = bar + "] " + txt
+		bar = bar + "] %3d%% " % percentage + txt
 		sys.stderr.write(bar)
 		sys.stderr.flush()
 	LastProgress[n] = (factor, txt)
 
 def ClearProgress (n,txt):
-	bar = " " * (1 + ProgressBarWidth + 2 + len(txt))
+	bar = " " * (1 + ProgressBarWidth + 2 + 5 + len(txt))
 	sys.stderr.write("\r" + bar + "\r")
 	sys.stderr.flush()
 
