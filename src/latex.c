@@ -65,6 +65,17 @@ latexDone (const System sys)
   /* closing of the document */
 }
 
+/*
+ * latexTermPrint
+ *
+ * basically a recode of termPrint, now specific using latex codes and with a
+ * highlighting feature.
+ *
+ * In:
+ * - a term to be printed.
+ * - a list of terms to be highlighted.
+ */
+
 void
 latexTermPrint (Term term, Termlist highlight)
 {
@@ -138,6 +149,11 @@ latexTermPrint (Term term, Termlist highlight)
     }
 }
 
+/*
+ * extending LaTeX term printing to term list printing, again with highlight
+ * list parameter.
+ */
+
 void
 latexTermlistPrint (Termlist tl, Termlist highlight)
 {
@@ -156,6 +172,10 @@ latexTermlistPrint (Termlist tl, Termlist highlight)
     }
   printf ("]");
 }
+
+/*
+ * Display the timers and states traversed, LaTeX version.
+ */
 
 void
 latexTimers (const System sys)
@@ -227,6 +247,12 @@ latexTimers (const System sys)
   printf ("\\end{tabular}\n\n");
 }
 
+/*
+ * Start drawing MSC environment.
+ *
+ * Includes printing title
+ */
+
 void
 latexMSCStart (Termlist protocolnames)
 {
@@ -238,6 +264,10 @@ latexMSCStart (Termlist protocolnames)
   printf ("$}\n");
 }
 
+/*
+ * Close drawing MSC
+ */
+
 void
 latexMSCEnd ()
 {
@@ -247,6 +277,11 @@ latexMSCEnd ()
     printf ("\\end{landscape}\n");
 
 }
+
+/*
+ * Declare the MSC stick for a single instance of a run participating in an
+ * attack.
+ */
 
 void
 latexDeclInst (const System sys, int run)
@@ -261,6 +296,12 @@ latexDeclInst (const System sys, int run)
   printf ("$}\n");
 }
 
+/*
+ * Make some space in the diagram by nextlevels.
+ *
+ * TODO: can be incorporated in nextlevel[param] without loop.
+ */
+
 void
 latexEventSpace (int amount)
 {
@@ -270,6 +311,10 @@ latexEventSpace (int amount)
     printf ("\\nextlevel\n");
 }
 
+/*
+ * Print an arrow with message from event i to event j, as defined in the
+ * tracebuffer. If either i or j are -1, the intruder is meant.
+ */
 
 void
 latexMessagePrint (struct tracebuf *tb, int from, int to)
@@ -292,18 +337,21 @@ latexMessagePrint (struct tracebuf *tb, int from, int to)
     }
   if (from == -1 && to != -1)
     {
+      /* message from intruder into system */
       printf ("\\found{$");
       termPrint (readTerm);
       printf ("$}{}{run%d}\n", tb->run[to]);
     }
   else if (from != -1 && to == -1)
     {
+      /* message from system to intruder */
       printf ("\\lost{$");
       termPrint (sendTerm);
       printf ("$}{}{run%d}\n", tb->run[from]);
     }
   else if (from != -1 && to != -1)
     {
+      /* message from one agent to another, possibly transformed */
 
       printf ("\\mess{$");
 
@@ -322,6 +370,11 @@ latexMessagePrint (struct tracebuf *tb, int from, int to)
       printf ("\n");
     }
 }
+
+/*
+ * hmm? TODO
+ */
+
 void
 latexMessagePrintHighlight (struct tracebuf *tb, int from, int to,
 			    Termlist highlight)
@@ -374,14 +427,23 @@ latexMessagePrintHighlight (struct tracebuf *tb, int from, int to,
       printf ("\n");
     }
 }
+
+/*
+ * Display the fact that an intruder learns some facts.
+ */
+
 void
 latexLearnComment (struct tracebuf *tb, int index, Termlist tl)
 {
-
+  /* currently implemented as a comment */
   printf ("\\msccomment[4ex]{$I_%d=I_%d\\oplus ", index + 1, index);
   termlistPrint (tl);
   printf ("$}{envright}\n");
 }
+
+/*
+ * ?? TODO
+ */
 
 void
 latexAction (struct tracebuf *tb, int te)
@@ -392,6 +454,12 @@ latexAction (struct tracebuf *tb, int te)
   //printf("\\nextlevel\n");
 }
 
+/*
+ * display claim violation.
+ *
+ * for now, only secrecy: TODO
+ */
+
 void
 latexClaim (struct tracebuf *tb, int run, Termlist tl)
 {
@@ -400,6 +468,11 @@ latexClaim (struct tracebuf *tb, int run, Termlist tl)
   termlistPrint (tl);
   printf ("$}{run%d}\n", run);
 }
+
+/*
+ * Given a read event, tries to find a corresponding send event in the trace
+ * buffer.
+ */
 
 int
 latexCorrespondingSend (struct tracebuf *tb, int rd)
@@ -506,6 +579,12 @@ latexCorrespondingSend (struct tracebuf *tb, int rd)
   return bestSendEvent;
 }
 
+/*
+ * VERY broken. Mindwipe and recursion using inKnowledge, so this can't work.
+ *
+ * Apparently, it's supposed to find any subterm and was added in revision 526
+ * by Lutger.
+ */
 
 int
 newInKnowledge (const Knowledge know, Term term)
@@ -537,6 +616,13 @@ newInKnowledge (const Knowledge know, Term term)
     }
   return 0;			/* unrecognized term type, weird */
 }
+
+/*
+ * Simplified variant of finding the matching send event.
+ *
+ * However, if it is introduced at a non-send event, things start to break
+ * done. REVIEW later.
+ */
 
 int
 latexCorrespondingSend2 (struct tracebuf *tb, int readEvent)
@@ -583,6 +669,10 @@ knowledgePrintLatex (Knowledge know)
       termlistDelete (tl);
     }
 }
+
+/*
+ * Display an attack
+ */
 
 void
 attackDisplayLatex (System sys)
@@ -667,12 +757,21 @@ attackDisplayLatex (System sys)
     (struct traceinfo *) memAlloc ((tb->length + 1) *
 				   sizeof (struct traceinfo));
 
+  /* 
+   * Determine width, which is the 1+max(runid involved in the attack)
+   */
+
   width = 1;
   for (i = 0; i < tb->length; i++)
     {
+      // TODO: I would expect here a redundancy test
       if (tb->run[i] >= width)
 	width = tb->run[i] + 1;
     }
+
+  /*
+   * Initialise tinfo arrays.
+   */
 
   for (i = 0; i < tb->length; i++)
     {
@@ -683,11 +782,20 @@ attackDisplayLatex (System sys)
   tinfo[i].match = -1;
   tinfo[i].position = i;
 
+  /*
+   * Init array of positions (ordering) of the MSC lines.
+   */
+
   runPosition = (int *) memAlloc (width * sizeof (int));
   for (i = 0; i < width; i++)
     {
       runPosition[i] = 0;
     }
+
+  /*
+   * Determine corresponding sends and thus links
+   */
+
   for (i = tb->length - 1; i >= 0; i--)
     {
       if (tb->status[i] != S_RED)
@@ -697,7 +805,7 @@ attackDisplayLatex (System sys)
 	      bestSend = latexCorrespondingSend2 (tb, i);
 	      printf ("%% match: %d <-> %d\n", i, bestSend);
 	      if (bestSend == -1)
-		continue;
+		continue;	// TODO major ugliness
 
 	      tb->link[i] = bestSend;
 	      tb->link[bestSend] = i;
@@ -715,6 +823,10 @@ attackDisplayLatex (System sys)
   printf ("\n}\n");
 
   // landscape = (width > 4);         // not for the time being
+
+  /*
+   * Apparently unlinks things that do not meet the threshold.
+   */
 
   position = 0;
   currRun = 0;
@@ -789,7 +901,7 @@ attackDisplayLatex (System sys)
 	}
     }
 
-  /* create title */
+  /* create MSC title, involving protocol names and such. */
 
   Termlist protocolnames = NULL;
   Term pname;
@@ -814,6 +926,9 @@ attackDisplayLatex (System sys)
       if (runPosition[i] > 0)
 	latexDeclInst (sys, i);
     }
+  /* Add the intruder instance */
+  printf("\\declinst{eve}{Intruder}{Eve}\n");
+  printf("\n\n");
 
   /* print the events in the attack */
 
