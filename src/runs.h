@@ -133,6 +133,7 @@ struct run
   Roledef start;	//!< Head of the run definition.
   Knowledge know;	//!< Current knowledge of the run.
   Termlist locals;	//!< Locals of the run.
+  int prevSymmRun;	//!< Used for symmetry reduction. Either -1, or the previous run with the same role def and at least a single parameter.
 };
 
 //! Shorthand for run pointer.

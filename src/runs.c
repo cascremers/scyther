@@ -253,6 +253,7 @@ ensureValidRun (System sys, int run)
       myrun.index = NULL;
       myrun.start = NULL;
       myrun.know = knowledgeDuplicate (sys->know);
+      myrun.prevSymmRun = -1;
     }
 }
 
@@ -441,6 +442,85 @@ roledefDestroy (Roledef rd)
   return;
 }
 
+/**
+ * A new run is created; now we want to know if it depends on any previous run.
+ * This occurs when there is a smaller runid with an identical protocol role, with the 
+ * same agent pattern. However, there must be at least a variable in the pattern or no
+ * symmetry gains are to be made.
+ *
+ * Return -1 if there is no such symmetry.
+ */
+int staticRunSymmetry (const System sys,const int rid)
+{
+  int ridSymm;		// previous symmetrical run
+  Termlist agents;	// list of agents for rid
+  Run runs;		// shortcut usage
+
+  ridSymm = -1;
+  runs = sys->runs;
+  agents = runs[rid].agents;
+  while (agents != NULL)
+    {
+      if (isTermVariable(agents->term))
+          ridSymm = rid - 1;
+      agents = agents->next;
+    }
+  /* there is no variable in this roledef, abort */
+  if (ridSymm == -1)
+      return -1;
+
+  agents = runs[rid].agents;
+  while (ridSymm >= 0)
+    {
+      /* compare protocol name, role name */
+      if (runs[ridSymm].protocol == runs[rid].protocol &&
+	  runs[ridSymm].role     == runs[rid].role)
+	{
+	  /* same stuff */
+	  int isEqual;
+	  Termlist al, alSymm;	// agent lists
+
+	  isEqual = 1;
+	  al = agents;
+	  alSymm = runs[ridSymm].agents;
+	  while (isEqual && al != NULL)
+	    {
+	      /* determine equality */
+	      if (isTermVariable (al->term))
+		{
+		  /* case 1: variable, should match type */
+		  if (isTermVariable (alSymm->term))
+		    {
+		      if (!isTermlistEqual (al->term->stype, alSymm->term->stype))
+			  isEqual = 0;
+		    }
+		  else
+		    {
+		      isEqual = 0;
+		    }
+		}
+	      else
+		{
+		  /* case 2: constant, should match */
+		  if (!isTermEqual (al->term, alSymm->term))
+		      isEqual = 0;
+		}
+	      alSymm = alSymm->next;
+	      al = al->next;
+	    }
+	  if (al == NULL && isEqual)
+	    {
+	      /* this candidate is allright */
+  	      warning ("Symmetry detection. #%i can depend on #%i.",rid,ridSymm);
+	      return ridSymm;
+	    }
+	}
+      ridSymm--;
+    }
+  return -1;	// signal that no symmetrical run was found
+}
+
+
 //! Instantiate a role by making a new run.
 /**
  * This involves creation of a new run(id).
@@ -565,6 +645,8 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
     }
   termlistDelete (fromlist);
   runs[rid].locals = tolist;
+
+  runs[rid].prevSymmRun = staticRunSymmetry (sys, rid);		// symmetry reduction static analysis
 }
 
 //! Make a new role event with the specified parameters.

@@ -54,3 +54,19 @@ error (char *fmt, ... )
   va_end (args);
   error_die ();
 }
+
+//! Print warning
+/**
+ * Input is comparable to printf, only end of line is not required.
+ */
+void
+warning (char *fmt, ... )
+{
+  va_list args;
+
+  va_start (args, fmt);
+  fprintf (stderr, "warning: ");
+  vfprintf (stderr, fmt, args);
+  fprintf (stderr, "\n");
+  va_end (args);
+}
