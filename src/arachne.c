@@ -24,13 +24,14 @@ Role I_TUPLE;
 Role I_ENCRYPT;
 Role I_DECRYPT;
 
+static int indentDepth;
+
 #ifdef DEBUG
 static char *explanation;	// Pointer to a string that describes what we just tried to do
 static int e_run;
 static Term e_term1;
 static Term e_term2;
 static Term e_term3;
-static int indentDepth;
 #endif
 
 struct goalstruct
@@ -522,9 +523,7 @@ iterate ()
   Goal goal;
 
   flag = 1;
-#ifdef DEBUG
   indentDepth++;
-#endif
   if (!prune ())
     {
       /**
@@ -592,9 +591,7 @@ iterate ()
 	  flag = bind_goal (goal);
 	}
     }
-#ifdef DEBUG
   indentDepth--;
-#endif
   return flag;
 }
 
@@ -622,8 +619,8 @@ arachne ()
   e_term1 = NULL;
   e_term2 = NULL;
   e_term3 = NULL;
-  indentDepth = 0;
 #endif
+  indentDepth = 0;
   printSemiState ();
 
   /*
