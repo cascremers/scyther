@@ -2,6 +2,10 @@
 #
 # Multi-protocol test using Scyther
 #
+# Typical big test: './multiprotocoltest.py -a -s -B' , go and drink some
+# coffee. Drink some more. Go on holiday. Break leg. Return. Heal.
+# Return to computer to find great results and/or system crash.
+#
 # (c)2004 Cas Cremers
 #
 # ***********************
@@ -138,7 +142,7 @@ def ScytherEval1 (protocol):
 # Show progress of i (0..n)
 # 
 LastProgress = {}
-ProgressBarWidth = 50
+ProgressBarWidth = 38
 
 def ShowProgress (i,n,txt):
 	global options
@@ -359,46 +363,21 @@ def SignalAttack (protocols, claim):
 #
 # Furthermore, TempFileList is created.
 
-def main():
+def multiprotocol_test(ProtocolFileList, width, match):
 	global options
-	global processed, newattacks, StartSkip
+	global processed, newattacks
 	global TupleWidth, TupleCount
+	global ClaimToResultMap, ProtocolToFileMap, ProtocolToStatusMap, ProtocolToEffectsMap
 
-	parser = OptionParser()
-	scythertest.default_options(parser)
-	parser.add_option("-t","--tuplewidth", dest="tuplewidth",
-			default = 2,
-			help = "number of concurrent protocols to test, >=2")
-	parser.add_option("-p","--protocols", dest="protocols",
-			default = 0,
-			help = "protocol selection (0: all, 1:literature only)")
-	parser.add_option("-s","--start", dest="startpercentage",
-			default = 0,
-			help = "start test at a certain percentage")
-	parser.add_option("-B","--disable-progressbar", dest="progressbar",
-			default = "True",
-			action = "store_false",
-			help = "suppress a progress bar")
-
-	(options, args) = parser.parse_args()
-
-	# Where should we start (if this is a number)
-	StartPercentage = int (options.startpercentage)
-	if StartPercentage < 0 or StartPercentage > 100:
-		print "Illegal range for starting percentage (0-100):", StartPercentage
-		sys.exit()
-
-	# Send protocollist to temp file (is this necessary?)
-	ProtocolFileList = protocollist.select(options.protocols)
+	TupleWidth = width
 	ProtocolCount = len(ProtocolFileList)
+	ScytherMethods = "--match=" + str(match)
 
-	# Determine arguments
-	TupleWidth = int(options.tuplewidth)
-
-	# Match
-	ScytherMethods = "--match=" + str(options.match)
-
-	# Method of bounding will be determined in ScytherEval
+	# Reset mem
+	ClaimToResultMap = {}		
+	ProtocolToFileMap = {}		
+	ProtocolToStatusMap = {}	
+	ProtocolToEffectsMap = {}	
 
 	# Caching of single-protocol results for speed gain.
 	#----------------------------------------------------------------------
@@ -430,47 +409,40 @@ def main():
 
 	processed = 0
 	newattacks = 0
-	StartSkip = 0
-
-	# Possibly skip some
-	if StartPercentage > 0:
-		StartSkip = int ((TupleCount * StartPercentage) / 100)
-		print "Resuming. Skipping the first", StartSkip,"tuples."
 
 	#
 	# Check all these protocols
 	#
 	def process(protocols):
-		global processed, newattacks, StartSkip
+		global processed, newattacks
 
-		if (processed >= StartSkip):
+		#
+		# Get the next tuple
+		#
+		ShowProgress (processed, TupleCount, " ".join(protocols) + safetxt)
+		#
+		# Determine whether there are valid claims at all in
+		# this set of file names
+		#
+		has_valid_claims = False
+		for prname in GetListKeys (ProtocolToFileMap, protocols):
+			if ProtocolToStatusMap[prname] != 0:
+				has_valid_claims = True
+		if has_valid_claims:
 			#
-			# Get the next tuple
+			# Use Scyther to verify the claims
 			#
-			ShowProgress (processed, TupleCount, " ".join(protocols) + safetxt)
+			results = ScytherEval ( protocols )
 			#
-			# Determine whether there are valid claims at all in
-			# this set of file names
+			# Now we have the results for this combination.
+			# Check whether any of these claims is 'newly false'
 			#
-			has_valid_claims = False
-			for prname in GetListKeys (ProtocolToFileMap, protocols):
-				if ProtocolToStatusMap[prname] != 0:
-					has_valid_claims = True
-			if has_valid_claims:
-				#
-				# Use Scyther to verify the claims
-				#
-				results = ScytherEval ( protocols )
-				#
-				# Now we have the results for this combination.
-				# Check whether any of these claims is 'newly false'
-				#
-				for claim,value in results.items():
-					if value == 0:
-						# Apparently this claim is false now (there is
-						# an attack)
-						newattacks = newattacks + SignalAttack (protocols, claim)
-				
+			for claim,value in results.items():
+				if value == 0:
+					# Apparently this claim is false now (there is
+					# an attack)
+					newattacks = newattacks + SignalAttack (protocols, claim)
+			
 		# Next!
 		processed = processed + 1
 
@@ -478,8 +450,6 @@ def main():
 
 	ClearProgress (TupleCount, safetxt)
 	print "Processed", processed,"tuple combinations in total."
-	if StartSkip > 0:
-		print "In this session, checked the last",(processed - StartSkip),"tuples. "
 	print "Found", newattacks, "new attacks."
 	if newattacks > 0:
 		print "  These were helped by:"
@@ -490,6 +460,76 @@ def main():
 
 	sys.stdout.flush()
 	sys.stderr.flush()
+
+#	Yell some stuff
+
+def banner(str):
+	print
+	print "*" * 40
+	print "\t" + str
+	print "*" * 40
+	print
+
+#	Magical recursive unfolding of tests
+
+def the_great_houdini(list,width,match):
+	global options
+
+	if list == []:
+		list = protocollist.select(int(options.protocols))
+		the_great_houdini(list,width,match)
+		return
+
+	if options.sequence:
+		options.sequence = False
+		banner ("Testing multiple tuple widths")
+		for n in range(2,4):
+			banner ("Testing tuple width %i" % n)
+			the_great_houdini(list,n,match)
+		options.sequence = True
+		return 
+
+	if options.allmatch:
+		options.allmatch = False
+		banner ("Testing multiple match methods")
+		for m in range(0,3):
+			banner ("Testing match %i" % m)
+			the_great_houdini(list,width,m)
+		options.allmatch = True
+		return
+
+	multiprotocol_test(list,width,match)
+	
+
+def main():
+	global options
+	global processed, newattacks
+	global TestCount
+
+	parser = OptionParser()
+	scythertest.default_options(parser)
+	parser.add_option("-t","--tuplewidth", dest="tuplewidth",
+			default = 2,
+			help = "number of concurrent protocols to test, >=2")
+	parser.add_option("-s","--sequence", dest="sequence",
+			default = False,
+			action = "store_true",
+			help = "test for two and three tuples")
+	parser.add_option("-a","--allmatch", dest="allmatch",
+			default = False,
+			action = "store_true",
+			help = "test for all matching methods")
+	parser.add_option("-p","--protocols", dest="protocols",
+			default = 0,
+			help = "protocol selection (0: all, 1:literature only)")
+	parser.add_option("-B","--disable-progressbar", dest="progressbar",
+			default = "True",
+			action = "store_false",
+			help = "suppress a progress bar")
+
+	(options, args) = parser.parse_args()
+
+	the_great_houdini(args, int(options.tuplewidth), int(options.match))
 
 
 if __name__ == '__main__':
