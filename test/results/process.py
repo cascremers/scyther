@@ -7,19 +7,19 @@ import sys
 class buffer:
 
 	def __init__(self, name="unnamed", prefix=">>>"):
-		self.list = []
+		self.claims = {}
 		self.count = 0
 		self.name = name
 		self.prefix = prefix
 	
 	def reset(self):
 		self.count = 0
-		self.list = []
+		self.claims = {}
 
 	def size(self):
 		return self.count
 
-	def add(self,(cl, hl)):
+	def add(self,(cl, hl), match=-1):
 		# cleanup cl
 	 	usloc = cl.rfind("_")
 		if usloc != -1:
@@ -27,9 +27,14 @@ class buffer:
 			cl = cl[:usloc]
 
 		# possibly add
-		if not (cl,hl) in self.list:
-			self.list.append((cl,hl))
+		if not (cl,hl) in self.claims.keys():
+			if match >= 0:
+				self.claims[(cl,hl)] = [match]
+			else:
+				self.claims[(cl,hl)] = []
 			self.count = self.count + 1
+		elif match >= 0 and match not in self.claims[(cl,hl)]:
+			self.claims[(cl,hl)].append(match)
 
 	def dump(self):
 		if self.size() == 0:
@@ -38,7 +43,7 @@ class buffer:
 		print "Dumping buffer " + self.name
 		print
 		counted = 0
-		for (cl,hl) in self.list:
+		for (cl,hl) in self.claims.keys():
 			# Determine whether to print
 			#
 			toprint = True
@@ -47,12 +52,14 @@ class buffer:
 				# Construct comparable Niagree claim
 				newcl = cl.replace("Nisynch","Niagree")
 				# Now check whether this one occurs
-				if (newcl,hl) in self.list:
+				if (newcl,hl) in self.claims.keys():
 					toprint = False
 
 			if toprint:
-				res = self.prefix + "\t"
-				res = res + cl + "\t" + str(hl)
+				res = self.prefix
+				res = res + "\t" + cl
+				res = res + "\t" + str(self.claims[(cl,hl)])
+				res = res + "\t" + str(hl)
 				print res
 				counted = counted + 1
 		print
@@ -65,6 +72,7 @@ def main():
 
 	buf_big = buffer("[Global]",">>>G")
 	buf_small = buffer("[Local]", ">>>L")
+	match = -1
 
 	line = sys.stdin.readline()
 	while line != "":
@@ -77,12 +85,18 @@ def main():
 			# Nope
 			buf_small.dump()
 			print line
+			# Maybe it reports the match type?
+			matchprefix = "Testing match "
+			loc = line.rfind(matchprefix)
+			if loc != -1:
+				match = int(line[loc + len(matchprefix)])
+				print "Detected match type", match
 		else:
 			# Yes!
 			claim = data[3]
 			helpers = "\t".join(data[4:])
-			buf_big.add((claim,helpers))
-			buf_small.add((claim,helpers))
+			buf_big.add((claim,helpers), match)
+			buf_small.add((claim,helpers), match)
 
 		# Proceed to next line
 		line = sys.stdin.readline()
