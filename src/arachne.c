@@ -415,11 +415,26 @@ printSemiState ()
   for (run = 0; run < sys->maxruns; run++)
     {
       int index;
+      Role r;
       Roledef rd;
+      Term oldagent;
 
       indentPrint ();
+      eprintf ("!!\n");
+      indentPrint ();
       eprintf ("!! [ Run %i, ", run);
-      termPrint (sys->runs[run].role->nameterm);
+      termPrint (sys->runs[run].protocol->nameterm);
+      eprintf (", ");
+      r = sys->runs[run].role;
+      oldagent = r->nameterm->subst;
+      r->nameterm->subst = NULL;
+      termPrint (r->nameterm);
+      r->nameterm->subst = oldagent;
+      if (oldagent != NULL)
+	{
+	  eprintf (": ");
+	  termPrint (oldagent);
+	}
       eprintf (" ]\n");
 
       index = 0;
@@ -436,6 +451,8 @@ printSemiState ()
 	  rd = rd->next;
 	}
     }
+  indentPrint ();
+  eprintf ("!!\n");
   indentPrint ();
   eprintf ("!! - open: %i -\n", open);
 }
@@ -706,7 +723,7 @@ bind_goal_intruder (const Goal goal)
 	{
 	  // This seems to work
 	  flag = flag && iterate ();
-          termlistSubstReset (substlist);
+	  termlistSubstReset (substlist);
 	}
       tl = tl->next;
     }
