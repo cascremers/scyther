@@ -138,14 +138,14 @@ def ShowProgress (i,n,txt):
 				bar = bar + "."
 			i = i+1
 		bar = bar + "] " + txt
-		sys.stdout.write(bar)
-		sys.stdout.flush()
+		sys.stderr.write(bar)
+		sys.stderr.flush()
 	LastProgress[n] = (factor, txt)
 
 def ClearProgress (n,txt):
 	bar = " " * (1 + ProgressBarWidth + 2 + len(txt))
-	sys.stdout.write("\r" + bar + "\r")
-	sys.stdout.flush()
+	sys.stderr.write("\r" + bar + "\r")
+	sys.stderr.flush()
 
 
 def DescribeContext (filep, protocols, claim):
