@@ -157,6 +157,8 @@ roledefInit (int type, Term label, Term from, Term to, Term msg, Claimlist cl)
   newEvent->forbidden = NULL;	// no forbidden stuff
   newEvent->knowPhase = -1;	// we haven't explored any knowledge yet
   newEvent->claiminfo = cl;	// only for claims
+  newEvent->bind_run = -1;	// unbound goal
+  newEvent->bind_index = -1;	// unbound goal
   newEvent->next = NULL;
   return newEvent;
 }

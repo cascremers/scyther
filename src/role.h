@@ -80,6 +80,12 @@ struct roledef
   //! Pointer to claim type info
   Claimlist claiminfo;
 
+  /*
+   * Bindings for Arachne engine
+   */
+  int bind_run;		//!< -1 for unbound
+  int bind_index;
+
   /* evt runid for synchronisation, but that is implied in the
      base array */
 };
