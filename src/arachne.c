@@ -688,7 +688,30 @@ bind_intruder_to_construct (const Goal goal)
 int
 bind_goal_intruder (const Goal goal)
 {
-  return (bind_intruder_to_regular (goal) &&
+  /**
+   * Special case: when the intruder can bind it to the initial knowledge.
+   */
+  Termlist tl;
+  int flag;
+
+  flag = 1;
+  tl = knowledgeSet (sys->know);
+  while (flag && tl != NULL)
+    {
+      int hasvars;
+      Termlist substlist;
+
+      substlist = termMguTerm (tl->term, goal.rd->message);
+      if (substlist != MGUFAIL)
+	{
+	  // This seems to work
+	  flag = flag && iterate ();
+          termlistSubstReset (substlist);
+	}
+      tl = tl->next;
+    }
+  termlistDelete (tl);
+  return (flag && bind_intruder_to_regular (goal) &&
 	  bind_intruder_to_construct (goal));
 }
 
