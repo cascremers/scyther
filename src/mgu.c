@@ -14,6 +14,85 @@
    New version yields a termlist with substituted variables, which can later be reset to NULL.
 */
 
+//! Global constant. If true, typed checking
+int welltyped = 1;
+
+void
+showSubst (Term t)
+{
+#ifdef DEBUG
+  if (!DEBUGL (5))
+    return;
+
+  indent ();
+  printf ("Substituting ");
+  termPrint (t);
+  printf (", typed ");
+  termlistPrint (t->stype);
+  if (realTermLeaf (t->subst))
+    {
+      printf ("->");
+      termlistPrint (t->subst->stype);
+    }
+  else
+    {
+      printf (", composite term");
+    }
+  if (t->type != VARIABLE)
+    {
+      printf (" (bound roleconstant)");
+    }
+  printf ("\n");
+#endif
+}
+
+//! See if a substitution is valid
+__inline__ int
+goodsubst (Term tvar, Term tsubst)
+{
+  if (tvar->stype == NULL || (!welltyped))
+    {
+      return 1;
+    }
+  else
+    {
+      /**
+       * Check if each type of the substitution is allowed in the variable
+       */
+      if (!realTermLeaf (tsubst))
+	{
+	  // Typed var cannot match with non-leaf
+	  return 0;
+	}
+      else
+	{
+	  // It's a leaf, but what type?
+	  if (termlistContained (tvar->stype, tsubst->stype))
+	    {
+	      return 1;
+	    }
+	  else
+	    {
+#ifdef DEBUG
+	      if (DEBUGL (5))
+		{
+		  eprintf ("Substitution fails on ");
+		  termPrint (tvar);
+		  eprintf (" -/-> ");
+		  termPrint (tsubst);
+		  eprintf (", because type: \n");
+		  termlistPrint (tvar->stype);
+		  eprintf (" does not contain ");
+		  termlistPrint (tsubst->stype);
+		  eprintf ("\n");
+		}
+#endif
+	      return 0;
+	    }
+	}
+    }
+}
+
 //! Undo all substitutions in a list of variables.
 /**
  * The termlist should contain only variables.
@@ -43,34 +122,6 @@ termMguTerm (Term t1, Term t2)
   if (t1 == t2)
     return NULL;
 
-#ifdef DEBUG
-  void showSubst (Term t)
-  {
-    if (!DEBUGL (5))
-      return;
-
-    indent ();
-    printf ("Substituting ");
-    termPrint (t);
-    printf (", typed ");
-    termlistPrint (t->stype);
-    if (realTermLeaf (t->subst))
-      {
-	printf ("->");
-	termlistPrint (t->subst->stype);
-      }
-    else
-      {
-	printf (", composite term");
-      }
-    if (t->type != VARIABLE)
-      {
-	printf (" (bound roleconstant)");
-      }
-    printf ("\n");
-  }
-#endif
-
   if (!(hasTermVariable (t1) || hasTermVariable (t2)))
     {
       if (isTermEqual (t1, t2))
@@ -86,7 +137,7 @@ termMguTerm (Term t1, Term t2)
   /* symmetrical tests for single variable */
   if (realTermVariable (t1))
     {
-      if (termOccurs (t2, t1))
+      if (termOccurs (t2, t1) || !goodsubst (t1, t2))
 	return MGUFAIL;
       else
 	{
@@ -99,7 +150,7 @@ termMguTerm (Term t1, Term t2)
     }
   if (realTermVariable (t2))
     {
-      if (termOccurs (t1, t2))
+      if (termOccurs (t1, t2) || !goodsubst (t2, t1))
 	return MGUFAIL;
       else
 	{
@@ -265,4 +316,3 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (),
     }
   return flag;
 }
-

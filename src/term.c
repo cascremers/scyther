@@ -297,7 +297,7 @@ termPrint (Term term)
       return;
     }
 #ifdef DEBUG
-  if (!DEBUGL (1))
+  if (!DEBUGL (4))
     {
       term = deVar (term);
     }

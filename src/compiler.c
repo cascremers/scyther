@@ -701,8 +701,11 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
     {
       if (sys->engine == ARACHNE_ENGINE)
 	{
-	  pr->rolenames =
-	    termlistAppend (pr->rolenames, levelVar (tcroles->t1.sym));
+	  Term rolename;
+
+	  rolename = levelVar (tcroles->t1.sym);
+	  rolename->stype = termlistAdd (NULL, TERM_Agent);
+	  pr->rolenames = termlistAppend (pr->rolenames, rolename);
 	}
       else
 	{

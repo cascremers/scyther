@@ -7,6 +7,7 @@
 #include "binding.h"
 #include "warshall.h"
 #include "memory.h"
+#include "debug.h"
 
 /*
  * Idea is the ev_from *has to* precede the ev_to
@@ -203,7 +204,13 @@ binding_add (int run_from, int ev_from, int run_to, int ev_to)
   Binding b;
 
   b = binding_create (run_from, ev_from, run_to, ev_to);
-  eprintf ("Adding binding (%i,%i) --->> (%i,%i)\n",run_from, ev_from, run_to, ev_to);
+#ifdef DEBUG
+  if (DEBUGL (5))
+    {
+      eprintf ("Adding binding (%i,%i) --->> (%i,%i)\n", run_from, ev_from,
+	       run_to, ev_to);
+    }
+#endif
   sys->bindings = list_insert (sys->bindings, b);
 
   /*

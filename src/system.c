@@ -597,6 +597,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	      // Make new var for this run
 	      newt = makeTermType (VARIABLE, newt->left.symb, rid);
 	      artefacts = termlistAdd (artefacts, newt);
+	      newt->stype = oldt->stype;
 	      // Copy substitution
 	      newt->subst = oldt->subst;
 	      // Remove any old substitution! It is now propagated!
@@ -604,7 +605,9 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	    }
 	  // Add to agent list, possibly
 	  if (inTermlist (protocol->rolenames, oldt))
-	    runs[rid].agents = termlistAdd (runs[rid].agents, newt);
+	    {
+	      runs[rid].agents = termlistAdd (runs[rid].agents, newt);
+	    }
 	  fromlist = termlistAdd (fromlist, oldt);
 	  tolist = termlistAdd (tolist, newt);
 
