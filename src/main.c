@@ -493,12 +493,20 @@ main (int argc, char **argv)
     }
   else
     {
-      /* check for no claims */
-      if (sys->failed == STATES0)
+      /* check if there is a claim type that was never reached */
+      Claimlist cl_scan;
+
+      cl_scan = sys->claimlist;
+      while (cl_scan != NULL)
 	{
-          /* mark exit code */
-	  exitcode = 2;
+          if (cl_scan->failed == STATES0)
+	    {
+              /* mark exit code */
+	      exitcode = 2;
+	    }
+	  cl_scan = cl_scan->next;
 	}
+
     }
 
   /* latex closeup */
@@ -546,6 +554,9 @@ exit:
 void
 timersPrint (const System sys)
 {
+  Claimlist cl_scan;
+  int anyclaims;
+
 // #define NOTIMERS
 
   /* display stats, header first */
@@ -601,6 +612,32 @@ timersPrint (const System sys)
 
   fprintf (stderr, "\n");
 #endif
+
+  /* print also individual claims */
+  cl_scan = sys->claimlist;
+  anyclaims = 0;
+  while (cl_scan != NULL)
+    {
+      /**
+       * for now, we don't print the actual claim label.
+       *@todo When termPrint can also go to stderr, fix this.
+       */
+      if (!anyclaims)
+	{
+	  fprintf (stderr, "Claim\tCount\tFailed\n");
+	  anyclaims = 1;
+	}
+      fprintf (stderr, "-\t");
+      statesFormat (stderr, cl_scan->count);
+      fprintf (stderr, "\t");
+      statesFormat (stderr, cl_scan->failed);
+      fprintf (stderr, "\n");
+      cl_scan = cl_scan->next;
+    }
+  if (!anyclaims)
+    {
+      warning ("No claims in system.");
+    }
 }
 
 //! Analyse the model by incremental runs.
