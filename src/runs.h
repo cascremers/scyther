@@ -23,9 +23,9 @@ struct claimlist
   //! The name of the role in which it occurs.
   Term rolename;
   //! Number of occurrences in system exploration.
-  int count;
+  states_t count;
   //! Number of occurrences that failed.
-  int failed;
+  states_t failed;
   int r;	//!< role number for mapping
   int ev;	//!< event index in role
   //! Preceding label list

@@ -25,10 +25,10 @@ events_match (const System sys, const int i, const int j)
 
   rdi = sys->traceEvent[i];
   rdj = sys->traceEvent[j];
-  if (isTermEqual (rdi->message, rdj->message) && 
-      isTermEqual (rdi->from, rdj->from) &&
-      isTermEqual (rdi->to, rdj->to) && 
-      isTermEqual (rdi->label, rdj->label) &&
+  if ((isTermEqual (rdi->message, rdj->message)) && 
+      (isTermEqual (rdi->from, rdj->from)) &&
+      (isTermEqual (rdi->to, rdj->to)) && 
+      (isTermEqual (rdi->label, rdj->label)) &&
       !(rdi->internal || rdj->internal))
     {
       if (rdi->type == SEND && rdj->type == READ)
@@ -61,7 +61,7 @@ int
 oki_nisynch (const System sys, const int i, const Termmap f, const Termmap g)
 {
   // Check for completed trace
-  if (i == -1)
+  if (i < 0)
     {
       // Are all labels well linked?
       Termmap gscan;
@@ -130,7 +130,6 @@ oki_nisynch (const System sys, const int i, const Termmap f, const Termmap g)
 	      int result;
 	      int rid2;
 	      Term rolename;
-	      Termmap gscan;
 
 	      /*
 	       * Two options: it is either involved or not
@@ -142,6 +141,7 @@ oki_nisynch (const System sys, const int i, const Termmap f, const Termmap g)
 	      rid2 = termmapGet (f, rolename);
 	      if (rid2 == -1 || rid2 == rid)
 		{
+	          Termmap gscan;
 		  // Was not involved yet in a registerd way, or was the correct rid
 		  gscan = g;
 		  while (!result && gscan != NULL)
@@ -159,7 +159,7 @@ oki_nisynch (const System sys, const int i, const Termmap f, const Termmap g)
 			  fbuf = termmapSet (fbuf, rolename, rid);
 			  gbuf = termmapDuplicate (g);
 			  gbuf = termmapSet (gbuf, rd->label, -3);
-			  result = oki_nisynch (sys, i-1, fbuf, gbuf) || result;
+			  result = oki_nisynch (sys, i-1, fbuf, gbuf);
 			  termmapDelete (gbuf);
 			  termmapDelete (fbuf);
 			}
@@ -198,7 +198,7 @@ check_claim_nisynch (const System sys, const int i)
   rid = sys->traceRun[i];
   rd = sys->traceEvent[i];
   cl = rd->claiminfo;
-  cl->count++;
+  cl->count = statesIncrease (cl->count);
   f = termmapSet (NULL, sys->runs[rid].role->nameterm, rid);
 
   // map all labels in prec to LABEL_TODO
@@ -217,7 +217,22 @@ check_claim_nisynch (const System sys, const int i)
   result = oki_nisynch(sys, i, f, g);
   if (!result)
     {
-      cl->failed++;
+      cl->failed = statesIncrease (cl->failed);
+
+//#ifdef DEBUG 
+      warning ("Claim has failed!");
+      printf ("To be exact, claim label ");
+      termPrint (cl->label);
+      printf (" with prec set ");
+      termlistPrint (cl->prec);
+      printf ("\n");
+      printf ("i: %i\nf: ",i);
+      termmapPrint (f);
+      printf ("\ng: ");
+      termmapPrint (g);
+      printf ("\n");
+//#endif
+
     }
   termmapDelete (f);
   termmapDelete (g);

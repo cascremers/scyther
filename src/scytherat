@@ -5,7 +5,7 @@
 #
 # Usage example:
 #
-#	./testl ns3
+#	./scytherat ns3
 #
 
 file=../spdl/$1.spdl
@@ -19,10 +19,10 @@ then
         latex $template.tex
     
         mv $template.dvi attack.dvi
-        dvips attack.dvi -o attack.ps
+        #dvips attack.dvi -o attack.ps
     
         # also eps output now
-        ps2eps -f attack.ps
+        #ps2eps -f attack.ps
     
         xdvi attack.dvi		# for Xdvi
         #    kdvi attack.dvi		# for KDE environment

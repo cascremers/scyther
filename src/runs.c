@@ -113,16 +113,16 @@ systemReset (const System sys)
   Claimlist cl;
 
   /* some initial counters */
-  sys->states = STATES0;
-  sys->interval = STATES0;
+  sys->states = statesIncrease (STATES0);	//!< Initial state is not explored, so start counting at 1
+  sys->interval = statesIncrease (STATES0);	//!< To keep in line with the states
   sys->claims = STATES0;
   sys->failed = STATES0;
   sys->explore = 1;		// do explore the space
   cl = sys->claimlist;
   while (cl != NULL)
     {
-      cl->count = 0;
-      cl->failed = 0;
+      cl->count = STATES0;
+      cl->failed = STATES0;
       cl = cl->next;
     }
   

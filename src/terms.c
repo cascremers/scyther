@@ -166,7 +166,8 @@ hasTermVariable (Term term)
     }
 }
 
-#ifdef DEBUG
+//! Safe wrapper for isTermEqual
+
 int isTermEqualDebug (Term t1, Term t2)
 {
   int test1, test2;
@@ -187,7 +188,6 @@ int isTermEqualDebug (Term t1, Term t2)
     }
   return test1;
 }
-#endif
 
 //!Tests whether two terms are completely identical.
 /**

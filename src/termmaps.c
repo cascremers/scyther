@@ -105,3 +105,19 @@ termmapDelete (const Termmap f)
       memFree (f, sizeof (struct termmap));
     }
 }
+
+//! Print a function
+void termmapPrint (Termmap f)
+{
+  if (f != NULL)
+    {
+      printf ("\"");
+      termPrint (f->term);
+      printf ("\" -> %i", f->result);
+      if (f->next != NULL)
+	{
+	  printf (", ");
+	  termmapPrint (f->next);
+	}
+    }
+}

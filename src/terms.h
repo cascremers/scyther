@@ -102,7 +102,7 @@ int isTermEqualDebug (Term t1, Term t2);
 				)
 
 #define isTermEqual2(t1,t2)	((substVar(t1) || substVar(t2)) \
-				?	isTermEqual1(t1,t2) \
+				?	isTermEqualFn(t1,t2) \
 				:	( \
 					(t1 == t2) \
 					?	1 \
@@ -125,7 +125,7 @@ int isTermEqualDebug (Term t1, Term t2);
 				)
 
 #define isTermEqual3(t1,t2)	((substVar(t1) || substVar(t2)) \
-				?	isTermEqual2(t1,t2) \
+				?	isTermEqualFn(t1,t2) \
 				:	( \
 					(t1 == t2) \
 					?	1 \

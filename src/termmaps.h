@@ -26,5 +26,6 @@ int termmapGet (Termmap f, const Term x);
 Termmap termmapSet (const Termmap f, const Term x, const int y);
 Termmap termmapDuplicate (const Termmap f);
 void termmapDelete (const Termmap f);
+void termmapPrint (Termmap f);
 
 #endif
