@@ -132,17 +132,19 @@ def ScytherEval (plist):
 	# These bounds assume at least two protocols, otherwise
 	# stuff breaks.
 	if n < 2:
-		n = 2
+		nmin = 2
+	else:
+		nmin = n
 	timer = 1
 	maxruns = 2
 	maxlength = 10
 	if options.bounds == 0:
-		timer = n**2
-		maxruns = 2*n
+		timer = nmin**2
+		maxruns = 2*nmin
 		maxlength = 2 + maxruns * 3
 	elif options.bounds == 1:
-		timer = n**3
-		maxruns = 3*n
+		timer = nmin**3
+		maxruns = 3*nmin
 		maxlength = 2 + maxruns * 4
 	else:
 		print "Don't know bounds method", options.bounds
@@ -155,9 +157,9 @@ def ScytherEval (plist):
 	CommandPrefix = "scyther " + ScytherArgs
 
 	# If these arguments had not been shown before, do so now
-	if not ScytherArgs in ArgumentsList:
-		ArgumentsList.append(ScytherArgs)
-		print "\nArguments for", len(plist), "protocols:", ScytherArgs
+	if not (n,ScytherArgs) in ArgumentsList:
+		ArgumentsList.append((n,ScytherArgs))
+		print "\nArguments for", n, "protocols:", ScytherArgs
 
 	# Combine protocol list to an input
 	input = ""
