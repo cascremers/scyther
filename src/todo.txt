@@ -1,3 +1,5 @@
+- Problem with goal bindings: instantiation of variable with a tuple might
+  introduce a tuple goal, which is forbidden. We must find a way to deal with this.
 - For secrecy, one trusted agent and one untrusted agent suffices.
   Implement this in the modelchecker.
 - Rewrite for untrusted roles, redesign this.
