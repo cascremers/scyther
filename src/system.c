@@ -688,8 +688,8 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 	   * Thus, it needs a local copy.
 	   */
 	  newt = makeTermType (VARIABLE, TermSymb (newt), rid);
-	  artefacts = termlistAddNew (artefacts, newt);
 	  newt->stype = oldt->stype;
+	  artefacts = termlistAddNew (artefacts, newt);
 	}
       /* Now we add any role names to the agent list. Note that
        * instantiations do not matter: because if the variable is
@@ -757,7 +757,7 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 	      artefacts = termlistAddNew (artefacts, newt);
 	      if (realTermVariable (newt))
 		{
-		  sys->variables = termlistAddNew (sys->variables, newt);
+		  sys->variables = termlistAdd (sys->variables, newt);
 		}
 	      fromlist = termlistAdd (fromlist, t);
 	      tolist = termlistAdd (tolist, newt);
