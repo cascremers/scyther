@@ -14,6 +14,7 @@ def from_good_literature():
 	"bke.spdl",
 	"boyd.spdl",
 	"ccitt509-ban.spdl",
+	"denning-sacco-shared.spdl",
 	"gong-nonce-b.spdl",
 	"gong-nonce.spdl",
 	"isoiec11770-2-13.spdl",
@@ -34,7 +35,6 @@ def from_bad_literature():
 	list = [ \
 	"andrew-ban.spdl",
 	"andrew-lowe-ban.spdl",
-	"denning-sacco-shared.spdl",
 	"kaochow.spdl",
 	"ns3.spdl",
 	"ns-symmetric-amended.spdl",
