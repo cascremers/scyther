@@ -8,6 +8,10 @@
 #
 # 	- A number on the commandline of stuff to test
 # 	- A list of files on stdin to be used
+#
+# Use e.g.
+#	$ ulimit -v 100000
+# to counteract memory problems
 
 # ***********************
 # 	PARAMETERS
@@ -20,7 +24,7 @@ TupleProgram = "./tuples.py"
 
 ScytherProgram = "../src/scyther"
 ScytherDefaults	= "--summary"
-ScytherMethods	= "-m0 -a"
+ScytherMethods	= "-m1 -a"
 ScytherBounds	= "-r4 -l40"
 
 ReportInterval = 10
@@ -76,9 +80,21 @@ def CommandLine (plist):
 # Returns a dictionary of claim -> bool; where 1 means that it is
 # correct, and 0 means that it is false (i.e. there exists an attack)
 def ScytherEval (plist):
-	scout = commands.getoutput(CommandLine (plist))
-	lines = scout.splitlines()
 	results = {}
+
+	# Flush before trying (possibly fatal) external commands
+	sys.stdout.flush()
+	sys.stderr.flush()
+
+	# Use Scyther
+	(status,scout) = commands.getstatusoutput(CommandLine (plist))
+
+	if status == 1 or status < 0:
+		# Something went wrong
+		print "*** Error when checking [" + CommandLine (plist) + "]\n"
+		return results
+
+	lines = scout.splitlines()
 	for line in lines:
 		data = line.split()
 		if len(data) > 6 and data[0] == 'claim':
