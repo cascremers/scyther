@@ -144,7 +144,7 @@ termMguTerm (Term t1, Term t2)
   /* symmetrical tests for single variable */
   if (realTermVariable (t2))
     {
-      if (termOccurs (t1, t2) || !goodsubst (t2, t1))
+      if (termSubTerm (t1, t2) || !goodsubst (t2, t1))
 	return MGUFAIL;
       else
 	{
@@ -157,7 +157,7 @@ termMguTerm (Term t1, Term t2)
     }
   if (realTermVariable (t1))
     {
-      if (termOccurs (t2, t1) || !goodsubst (t1, t2))
+      if (termSubTerm (t2, t1) || !goodsubst (t1, t2))
 	return MGUFAIL;
       else
 	{

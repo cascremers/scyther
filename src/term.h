@@ -153,7 +153,8 @@ int isTermEqualDebug (Term t1, Term t2);
 
 int hasTermVariable (Term term);
 int isTermEqualFn (Term term1, Term term2);
-int termOccurs (Term t, Term tsub);
+int termSubTerm (Term t, Term tsub);
+int termInTerm (Term t, Term tsub);
 void termPrint (Term term);
 void termTuplePrint (Term term);
 Term termDuplicate (const Term term);

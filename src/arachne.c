@@ -254,7 +254,7 @@ create_intruder_goal (Term t)
   int run;
   Roledef rd;
 
-  roleInstance (sys, INTRUDER, I_GOAL, NULL, NULL);
+  roleInstance (sys, INTRUDER, NULL, NULL, NULL);
   run = sys->maxruns - 1;
   rd = sys->runs[run].start;
   sys->runs[run].length = 1;

@@ -265,7 +265,7 @@ isTermEqualFn (Term term1, Term term2)
  *@return True iff tsub is a subterm of t.
  */
 int
-termOccurs (Term t, Term tsub)
+termSubTerm (Term t, Term tsub)
 {
   t = deVar (t);
   tsub = deVar (tsub);
@@ -275,10 +275,33 @@ termOccurs (Term t, Term tsub)
   if (realTermLeaf (t))
     return 0;
   if (realTermTuple (t))
-    return (termOccurs (t->left.op1, tsub)
-	    || termOccurs (t->right.op2, tsub));
+    return (termSubTerm (t->left.op1, tsub)
+	    || termSubTerm (t->right.op2, tsub));
   else
-    return (termOccurs (t->left.op, tsub) || termOccurs (t->right.key, tsub));
+    return (termSubTerm (t->left.op, tsub) || termSubTerm (t->right.key, tsub));
+}
+
+//! See if a term is an interm of another.
+/**
+ *@param t Term to be checked for a subterm.
+ *@param tsub interm.
+ *@return True iff tsub is an interm of t.
+ */
+int
+termInTerm (Term t, Term tsub)
+{
+  t = deVar (t);
+  tsub = deVar (tsub);
+
+  if (isTermEqual (t, tsub))
+    return 1;
+  if (realTermLeaf (t))
+    return 0;
+  if (realTermTuple (t))
+    return (termInTerm (t->left.op1, tsub)
+	    || termInTerm (t->right.op2, tsub));
+  else
+    return 0;
 }
 
 //! Print a term to stdout.
@@ -772,11 +795,11 @@ termDistance (Term t1, Term t2)
   if (t1->type != t2->type)
     {
       /* unequal type, maybe one is a subterm of the other? */
-      if (t1s > t2s && termOccurs (t1, t2))
+      if (t1s > t2s && termSubTerm (t1, t2))
 	{
 	  return (float) t2s / t1s;
 	}
-      if (t2s > t1s && termOccurs (t2, t1))
+      if (t2s > t1s && termSubTerm (t2, t1))
 	{
 	  return (float) t1s / t2s;
 	}

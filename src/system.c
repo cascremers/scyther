@@ -539,7 +539,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	       * case we forget it */
 	      if (sys->switchForceChoose
 		  || !(rd->type == READ
-		       && termOccurs (rd->message, scanfrom->term)))
+		       && termSubTerm (rd->message, scanfrom->term)))
 		{
 		  /* this term is forced as a choose, or it does not occur in the (first) read event */
 		  /* TODO scan might be more complex, but
