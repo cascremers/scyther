@@ -60,6 +60,24 @@ def evaluate (argumentstring, inputstring):
 		# Return a readable ID (good for a filename)
 		return m.hexdigest()
 
+	# slashcutter
+	# Takes 'str': cuts of the first 'depth' strings of length
+	# 'width' and puts 'substr' in between
+	def slashcutter(str,substr,width,depth):
+		res = ""
+		while len(str)>width and depth>0:
+			res = res + str[0:width] + substr
+			str = str[width:]
+			depth = depth-1
+		return res + str
+
+	# Determine name
+	def cachefilename(id):
+		fn = gettempdir() + "/scyther/"
+		fn = fn + slashcutter(id,"/",2,4)
+		fn = fn + ".txt"
+		return fn
+
 	# Ensure directory
 	def ensureDirectory (path):
 		if not os.path.exists(path):
@@ -73,9 +91,7 @@ def evaluate (argumentstring, inputstring):
 				ensureDirectory(filename[:np])
 
 	# Determine the unique filename for this test
-	id = cacheid()
-	filename = "scyther/cache-" + id[:3] + "/res-" + id[3:] + ".txt"
-	cachefile = gettempdir() + "/" + filename
+	cachefile = cachefilename(cacheid())
 	ensureDirectories(cachefile)
 
 	# Does it already exist?
@@ -129,7 +145,9 @@ def parse(scout):
 
 # Yield default protocol list (from any other one)
 def default_protocols(plist):
+	plist.sort()
 	return ['../spdl/spdl-defaults.inc'] + plist
+
 
 # Yield arguments, given a bound type:
 # 	0: fast
