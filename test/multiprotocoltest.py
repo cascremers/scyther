@@ -35,7 +35,7 @@ from tempfile import NamedTemporaryFile
 from optparse import OptionParser
 
 import tuplesdo
-import scythercache
+import scyther
 import protocollist
 
 
@@ -126,13 +126,13 @@ def ScytherEval (plist):
 	sys.stdout.flush()
 	sys.stderr.flush()
 
-	args = scythercache.default_arguments(plist, options.match, options.bounds)
+	args = scyther.default_arguments(plist, options.match, options.bounds)
 	n = len(plist)
 	if not (n,args) in ArgumentsList:
 		ArgumentsList.append((n,args))
 		print "Testing",n,"tuples using",args
 
-	return scythercache.default_parsed(plist, options.match, options.bounds)
+	return scyther.default_parsed(plist, options.match, options.bounds)
 
 # ScytherEval1
 #
