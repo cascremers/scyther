@@ -23,7 +23,7 @@ protocol ns3brutus(I,R)
 		read_1(I,R, {I,ni}pk(R) );
 		send_2(R,I, {ni,nr}pk(I) );
 		read_3(I,R, {nr}pk(R) );
-		claim_5(I,Secret,ni);
+		claim_5(R,Secret,ni);
 	}
 }
 

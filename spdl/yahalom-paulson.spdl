@@ -13,7 +13,7 @@ compromised k(Eve,Simon);
 const ne: Nonce;
 const kee: Sessionkey;
 
-protocol yahalomlowe(I,R,S)
+protocol yahalompaulson(I,R,S)
 {
 	role I
 	{
@@ -54,10 +54,10 @@ protocol yahalomlowe(I,R,S)
 	}
 }
 
-run yahalomlowe.I(Agent,Agent,Simon);
-run yahalomlowe.R(Agent,Agent,Simon);
-run yahalomlowe.S(Agent,Agent,Simon);
+run yahalompaulson.I(Agent,Agent,Simon);
+run yahalompaulson.R(Agent,Agent,Simon);
+run yahalompaulson.S(Agent,Agent,Simon);
 
-run yahalomlowe.I(Agent,Agent,Simon);
-run yahalomlowe.R(Agent,Agent,Simon);
+run yahalompaulson.I(Agent,Agent,Simon);
+run yahalompaulson.R(Agent,Agent,Simon);
 
