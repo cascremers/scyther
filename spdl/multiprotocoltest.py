@@ -22,6 +22,8 @@ ScytherDefaults	= "--summary"
 ScytherMethods	= "-m1 -a"
 ScytherBounds	= "-r4 -l40"
 
+ReportInterval = 10
+
 ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
 CommandPrefix = ScytherProgram + " " + ScytherArgs
 
@@ -63,7 +65,8 @@ def ScytherEval (plist):
 #
 # The above, but do the preprocessing for a single protocol
 def ScytherEval1 (protocol):
-	ProtocolClaims[protocol] = ScytherEval ([protocol])
+	results = ScytherEval ([protocol])
+	ProtocolClaims.update (results)
 
 
 
@@ -103,6 +106,7 @@ while loop:
 		# end of the input
 		loop = 0
 outp.close()
+print "Evaluating tuples of", TupleWidth, "for", ProtocolCount, "protocols."
 
 # Caching of single-protocol results for speed gain.
 #----------------------------------------------------------------------
@@ -114,8 +118,7 @@ i = 0
 while i < ProtocolCount:
 	ScytherEval1 ( Protocol[i] )
 	i = i + 1
-
-print ProtocolClaims
+print "Evaluated single results."
 
 # Computation of combined list.
 #----------------------------------------------------------------------
@@ -131,4 +134,35 @@ lstatus=os.system(TupleProgram + ' ' + TupleWidth + ' <' + TempFileList + ' >' +
 #
 # We take the list of tuples and test each combination.
 
+print
+inp = open(TempFileTuples, 'r')
+processed = 0
+newattacks = 0
+for tline in inp:
+	#
+	# Get the next tuple
+	#
+	protocols = tline.split()
+	results = ScytherEval ( protocols )
+	#
+	# Now we have the results for this combination.
+	# Check whether any of these claims is 'newly false'
+	#
+	for claim,value in results.items():
+		if value == 0:
+			# Apparently this claim is false now (there is
+			# an attack)
+			if ProtocolClaims[claim] == 1:
+				# Wooh! It was correct before
+				newattacks = newattacks + 1
+				print claim
+	
+	# Next!
+	processed = processed + 1
+	if (processed % ReportInterval) == 0:
+		print "Checked", processed, "sofar."
 
+print
+print "Processed", processed,"tuple combinations in total."
+
+inp.close()
