@@ -736,11 +736,6 @@ attackDisplayLatex (System sys)
     }
   printf ("}\n\n");
 
-  /* display initial knowledge */
-  printf ("$I_0 = \\emptyset \\oplus ");
-  knowledgePrintLatex (tb->know[0]);
-  printf ("$\n\n");
-
   tinfo =
     (struct traceinfo *) memAlloc ((tb->length + 1) *
 				   sizeof (struct traceinfo));
@@ -918,6 +913,13 @@ attackDisplayLatex (System sys)
   printf("\\declinst{eve}{Eve}{Intruder}\n");
   printf("\n\n");
 
+  /* Print the initial intruder knowledge */
+
+  printf ("\\action{knows $");
+  knowledgePrintLatex (tb->know[0]);
+  printf ("$}{eve}\n");
+  printf ("\\nextlevel[2]\n\n");
+
   /* print the events in the attack */
 
   //for (j=-1; j<=sys->step; j++)
@@ -935,6 +937,12 @@ attackDisplayLatex (System sys)
 	  switch (tb->event[i]->type)
 	    {
 	    case SEND:
+
+	      /* TODO issue: this causes the knowledge learning to be printed
+	       * before the actual read arrow is drawn, which is not what we
+	       * want.  We would like to see the learning after it.
+	       */
+	       
 	      newtl = knowledgeNew (tb->know[i], tb->know[i + 1]);
 	      highlights = NULL;
 	      /* Build a Termlist of terms that from the claimViolationDetails,
