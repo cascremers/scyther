@@ -16,6 +16,7 @@
 #include "arachne.h"
 #include "error.h"
 #include "claim.h"
+#include "debug.h"
 
 static System sys;
 Protocol INTRUDER;		// Pointers, to be set by the Init
@@ -245,8 +246,11 @@ create_intruder_goal (Term t)
   sys->runs[run].length = 1;
   rd->message = termDuplicate (t);
 #ifdef DEBUG
-  explanation = "Adding intruder goal for message ";
-  e_term1 = t;
+  if (DEBUGL (3))
+    {
+      explanation = "Adding intruder goal for message ";
+      e_term1 = t;
+    }
 #endif
   return run;
 }
@@ -284,14 +288,17 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
   int run, flag;
 
 #ifdef DEBUG
-  indentPrint ();
-  eprintf ("Trying to bind ");
-  termPrint (goal.rd->message);
-  eprintf (" to an existing instance of ");
-  termPrint (p->nameterm);
-  eprintf (", ");
-  termPrint (r->nameterm);
-  eprintf ("\n");
+  if (DEBUGL (4))
+    {
+      indentPrint ();
+      eprintf ("Trying to bind ");
+      termPrint (goal.rd->message);
+      eprintf (" to an existing instance of ");
+      termPrint (p->nameterm);
+      eprintf (", ");
+      termPrint (r->nameterm);
+      eprintf ("\n");
+    }
 #endif
   flag = 1;
   goal.rd->bind_index = index;
@@ -312,9 +319,12 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 	      if (index >= old_length)
 		sys->runs[run].length = index + 1;
 #ifdef DEBUG
-	      explanation = "Bind existing run";
-	      e_run = run;
-	      e_term1 = goal.rd->message;
+	      if (DEBUGL (3))
+		{
+		  explanation = "Bind existing run";
+		  e_run = run;
+		  e_term1 = goal.rd->message;
+		}
 #endif
 	      goal.rd->bind_run = run;
 
@@ -348,11 +358,14 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
   goal.rd->bind_run = run;
   goal.rd->bind_index = index;
 #ifdef DEBUG
-  explanation = "Bind new run";
-  e_run = run;
-  e_term1 = r->nameterm;
-  rd = roledef_shift (sys->runs[run].start, index);
-  e_term2 = rd->message;
+  if (DEBUGL (3))
+    {
+      explanation = "Bind new run";
+      e_run = run;
+      e_term1 = r->nameterm;
+      rd = roledef_shift (sys->runs[run].start, index);
+      e_term2 = rd->message;
+    }
 #endif
 
   flag = iterate ();
@@ -393,7 +406,7 @@ printSemiState ()
 	  roledefPrint (rd);
 	  eprintf ("\n");
 	  if (isGoal (rd) && !isBound (rd))
-	      open++;
+	    open++;
 	  index++;
 	  rd = rd->next;
 	}
@@ -460,12 +473,15 @@ bind_goal_regular (const Goal goal)
       if (run == -1)
 	return 1;
 #ifdef DEBUG
-      indentPrint ();
-      eprintf ("Term ");
-      termPrint (goal.rd->message);
-      eprintf (" can possibly be bound by role ");
-      termPrint (r->nameterm);
-      eprintf (", index %i, forced_run %i\n", index, run);
+      if (DEBUGL (5))
+	{
+	  indentPrint ();
+	  eprintf ("Term ");
+	  termPrint (goal.rd->message);
+	  eprintf (" can possibly be bound by role ");
+	  termPrint (r->nameterm);
+	  eprintf (", index %i, forced_run %i\n", index, run);
+	}
 #endif
       /**
        * Two options; as this, it is from an existing run,
@@ -488,14 +504,17 @@ bind_goal_regular (const Goal goal)
       {
 	// Test for interm unification
 #ifdef DEBUG
-	indentPrint ();
-	eprintf ("Checking send candidate with message ");
-	termPrint (rd->message);
-	eprintf (" from ");
-	termPrint (p->nameterm);
-	eprintf (", ");
-	termPrint (r->nameterm);
-	eprintf (", index %i\n", index);
+	if (DEBUGL (5))
+	  {
+	    indentPrint ();
+	    eprintf ("Checking send candidate with message ");
+	    termPrint (rd->message);
+	    eprintf (" from ");
+	    termPrint (p->nameterm);
+	    eprintf (", ");
+	    termPrint (r->nameterm);
+	    eprintf (", index %i\n", index);
+	  }
 #endif
 	return termMguInTerm (goal.rd->message, rd->message,
 			      bind_this_unification);
@@ -504,13 +523,19 @@ bind_goal_regular (const Goal goal)
 
   // Bind to all possible sends or intruder node;
 #ifdef DEBUG
-  indentPrint ();
-  eprintf ("Try regular role send.\n");
+  if (DEBUGL (5))
+    {
+      indentPrint ();
+      eprintf ("Try regular role send.\n");
+    }
 #endif
   flag = iterate_role_sends (bind_this_role_send);
 #ifdef DEBUG
-  indentPrint ();
-  eprintf ("Try intruder send.\n");
+  if (DEBUGL (5))
+    {
+      indentPrint ();
+      eprintf ("Try intruder send.\n");
+    }
 #endif
   return (flag && add_intruder_goal_iterate (goal));
 }
@@ -667,8 +692,11 @@ prune ()
     {
       // Hardcoded limit on iterations
 #ifdef DEBUG
-      indentPrint ();
-      eprintf ("Pruned because too many iteration levels.\n");
+      if (DEBUGL (3))
+	{
+	  indentPrint ();
+	  eprintf ("Pruned because too many iteration levels.\n");
+	}
 #endif
       return 1;
     }
@@ -676,8 +704,11 @@ prune ()
     {
       // Hardcoded limit on runs
 #ifdef DEBUG
-      indentPrint ();
-      eprintf ("Pruned because too many runs.\n");
+      if (DEBUGL (3))
+	{
+	  indentPrint ();
+	  eprintf ("Pruned because too many runs.\n");
+	}
 #endif
       return 1;
     }
@@ -705,7 +736,7 @@ iterate ()
 
       sys->states = statesIncrease (sys->states);
 #ifdef DEBUG
-      if (explanation != NULL)
+      if (DEBUGL (3) && explanation != NULL)
 	{
 	  indentPrint ();
 	  eprintf ("%s ", explanation);
@@ -742,16 +773,24 @@ iterate ()
 	   * all goals bound, check for property
 	   */
 	  sys->claims = statesIncrease (sys->claims);
-	  printSemiState ();
+#ifdef DEBUG
+	  if (DEBUGL (3))
+	    {
+	      printSemiState ();
+	    }
+#endif
 	  //!@todo Property check in Arachne.
 	}
       else
 	{
 #ifdef DEBUG
-	  indentPrint ();
-	  eprintf ("Trying to bind goal ");
-	  termPrint (goal.rd->message);
-	  eprintf (" from run %i, index %i.\n", goal.run, goal.index);
+	  if (DEBUGL (4))
+	    {
+	      indentPrint ();
+	      eprintf ("Trying to bind goal ");
+	      termPrint (goal.rd->message);
+	      eprintf (" from run %i, index %i.\n", goal.run, goal.index);
+	    }
 #endif
 	  /*
 	   * bind this goal in all possible ways and iterate
@@ -800,7 +839,12 @@ arachne ()
     eprintf ("\n");
   }
 
-  iterate_role_sends (print_send);
+#ifdef DEBUG
+  if (DEBUGL (1))
+    {
+      iterate_role_sends (print_send);
+    }
+#endif
 
   indentDepth = 0;
   cl = sys->claimlist;
@@ -817,21 +861,29 @@ arachne ()
 
       p = (Protocol) cl->protocol;
       r = (Role) cl->role;
-      indentPrint ();
-      eprintf ("Testing Claim ");
-      termPrint (cl->type);
-      eprintf (" in protocol ");
-      termPrint (p->nameterm);
-      eprintf (", role ");
-      termPrint (r->nameterm);
-      eprintf (" at index %i.\n", cl->ev);
+#ifdef DEBUG
+      if (DEBUGL (2))
+	{
+	  indentPrint ();
+	  eprintf ("Testing Claim ");
+	  termPrint (cl->type);
+	  eprintf (" in protocol ");
+	  termPrint (p->nameterm);
+	  eprintf (", role ");
+	  termPrint (r->nameterm);
+	  eprintf (" at index %i.\n", cl->ev);
+	}
+#endif
 
       indentDepth++;
 
       roleInstance (sys, p, r, NULL);
-      sys->runs[0].length = cl->ev+1;
+      sys->runs[0].length = cl->ev + 1;
 #ifdef DEBUG
-      printSemiState ();
+      if (DEBUGL (5))
+	{
+	  printSemiState ();
+	}
 #endif
 
       /*
