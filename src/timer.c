@@ -22,7 +22,6 @@ void set_time_limit (int seconds)
       time_max_seconds = 0;
       endwait = 0;
     }
-  printf ("Timer: %i\n", time_max_seconds);
 }
 
 //! Retrieve time limit
