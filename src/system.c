@@ -823,6 +823,17 @@ int attackLength(struct tracebuf* tb)
     return len;
 }
 
+void
+commandlinePrint (FILE *stream, const System sys)
+{
+  /* print command line */
+  int i;
+
+  fprintf (stream, "$");
+  for (i = 0; i < sys->argc; i++)
+    fprintf (stream, " %s", sys->argv[i]);
+}
+
 //! Get the number of roles in the system.
 int compute_rolecount (const System sys)
 {

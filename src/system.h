@@ -171,6 +171,10 @@ struct system
 
   //! Shortest attack storage.
   struct tracebuf* attack;
+
+  //! Command line arguments
+  int argc;
+  char **argv;
 };
 
 typedef struct system *System;
@@ -203,6 +207,7 @@ int getMaxTraceLength (const System sys);
 void agentsOfRunPrint (const System sys, const int run);
 void violatedClaimPrint (const System sys, int i);
 int attackLength(struct tracebuf* tb);
+void commandlinePrint (FILE *stream, const System sys);
 
 int compute_rolecount (const System sys);
 int compute_roleeventmax (const System sys);

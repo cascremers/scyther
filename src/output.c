@@ -507,15 +507,32 @@ void graphInit (const System sys)
   /* drawing state space. */
   printf ("digraph Statespace {\n");
 
+  /* label */
+  printf ("\tcomment = \"");
+  commandlinePrint (stdout, sys);
+  printf ("\";\n");
+
   /* fit stuff onto the page */
   printf ("\trankdir=LR;\n");
-  printf ("\tsize=\"11,17\";\n");
+  printf ("\tpage=\"8.5,11\";\n");
+  printf ("\tfontsize=\"6\";\n");
+  printf ("\tfontname=\"Helvetica\";\n");
+  printf ("\tmargin=0.5;\n");
+  printf ("\tnodesep=0.06;\n");
+  printf ("\tranksep=0.01;\n");
   printf ("\torientation=landscape;\n");
+  printf ("\tcenter=true;\n");
+  // printf ("\tlabeljust=\"r\";\n");
+  printf ("\tconcentrate=true;\n");
+
+  /* node/edge defaults */
+  printf ("\tnode [shape=\"point\",fontsize=\"4\",fontname=\"Helvetica\"];\n");
+  printf ("\tedge [fontsize=\"4\",fontname=\"Helvetica\"];\n");
 
   /* start with initial node 0 */
   printf ("\tn");
   statesFormat (stdout, STATES0);
-  printf (" [shape=box,label=\"M0: ");
+  printf (" [shape=box,height=0.2,label=\"M0: ");
   tl = knowledgeSet (sys->know);
   termlistPrint (tl);
   termlistDelete (tl);
@@ -544,13 +561,13 @@ void graphNode (const System sys)
   /* add node */
   printf ("\tn");
   statesFormat (stdout, thisNode);
-  printf (" [shape=");
+  printf (" [");
   
   newtl = knowledgeNew (sys->traceKnow[index], sys->traceKnow[index+1]);
   if (newtl != NULL)
     {
       /* knowledge added */
-      printf ("box,label=\"M + ");
+      printf ("shape=box,height=0.2,label=\"M + ");
       termlistPrint (newtl);
       termlistDelete (newtl);
       printf ("\"");
@@ -558,7 +575,7 @@ void graphNode (const System sys)
   else
     {
       /* no added knowledge */
-      printf ("point,label=\"\"");
+      printf ("label=\"\"");
     }
   printf ("];\n");
 
@@ -626,7 +643,7 @@ void graphEdgePath (const System sys, const int length, const char* edgepar)
       /* color edge */
       printf ("\tn");
       statesFormat (stdout, prevNode);
-      printf (" -> ");
+      printf (" -> n");
       statesFormat (stdout, thisNode);
       printf (" [%s];\n", edgepar);
       prevNode = thisNode;
@@ -636,6 +653,6 @@ void graphEdgePath (const System sys, const int length, const char* edgepar)
 
 void graphPath (const System sys, int length)
 {
-  graphNodePath (sys,length,"shape=parallelogram,style=bold,color=red");
+  graphNodePath (sys,length,"style=bold,color=red");
   graphEdgePath (sys,length-1,"style=bold,color=red");
 }

@@ -258,15 +258,6 @@ main (int argc, char **argv)
   /* handle debug level */
 #ifdef DEBUG
   debugSet (switch_debug_level->ival[0]);
-  if (DEBUGL (1))
-    {
-      /* print command line */
-      int i;
-      printf ("$");
-      for (i = 0; i < argc; i++)
-	printf (" %s", argv[i]);
-      printf ("\n");
-    }
 #else
   debugSet (0);
 #endif
@@ -283,6 +274,18 @@ main (int argc, char **argv)
 
   /* generate system */
   sys = systemInit ();
+
+  /* transfer command line */
+  sys->argc = argc;
+  sys->argv = argv;
+#ifdef DEBUG
+  /* print command line */
+  commandlinePrint (stderr, sys);
+  fprintf (stderr, "\n");
+#endif
+
+  /* handle switches */
+
   if (switch_implicit_choose->count > 0)
       /* allow implicit chooses */
       sys->switchForceChoose = 0;

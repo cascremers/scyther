@@ -347,19 +347,19 @@ check_claim_nisynch (const System sys, const int i)
     {
       cl->failed = statesIncrease (cl->failed);
 
-//#ifdef DEBUG 
+#ifdef DEBUG 
       warning ("Claim has failed!");
-      printf ("To be exact, claim label ");
+      printf ("// To be exact, claim label ");
       termPrint (cl->label);
       printf (" with prec set ");
       termlistPrint (cl->prec);
       printf ("\n");
-      printf ("i: %i\nf: ",i);
+      printf ("// i: %i\n// f: ",i);
       termmapPrint (f);
-      printf ("\ng: ");
+      printf ("\n// g: ");
       termmapPrint (g);
       printf ("\n");
-//#endif
+#endif
 
     }
   termmapDelete (f);
