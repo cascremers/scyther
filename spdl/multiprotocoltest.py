@@ -9,9 +9,17 @@
 # 	- A number on the commandline of stuff to test
 # 	- A list of files on stdin to be used
 #
+#
+# Tips and tricks:
+#
 # Use e.g.
 #	$ ulimit -v 100000
 # to counteract memory problems
+# 
+# If you know where to look, use
+#	$ ls s*.spdl t*.spdl -1 | ./multiprotocoltest.py 2
+# To verify combos of protocols starting with s and t
+#
 
 # ***********************
 # 	PARAMETERS
@@ -33,8 +41,10 @@ ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
 CommandPrefix = ScytherProgram + " " + ScytherArgs
 IncludeProtocols = 'spdl-defaults.inc'
 
-ProtocolClaims = {}
-ProtocolFiles = {}
+ProtocolClaims = {}	# maps protocol claims to correctness in singular tests (0,1)
+ProtocolFiles = {}	# maps protocol names to file names
+ProtocolStatus = {}	# maps protocol names to status: 0 all false, 1 all correct, otherwise (2) mixed
+FlawHelpers = {}	# maps protocols that help create multiple flaws, to the protocol names of the flaws they caused
 
 SkipList = [
 	'gong-nonce.spdl',
@@ -67,6 +77,18 @@ def GetKeys (f, x):
 			res.append(k)
 	return res
 
+# GetListKeys
+#
+# Given a mapping f and a list l, returns a list of keys 
+# k for which f(k) = x, x in l
+def GetListKeys (f, l):
+	res = []
+	for x in l:
+		for y in GetKeys (f, x):
+			if y not in res:
+				res.append(y)
+	return res
+
 # CommandLine
 #
 # Yield the commandline to test, given a list of protocols
@@ -74,6 +96,17 @@ def CommandLine (plist):
 	linelist = " ".join(plist)
 	return "cat " + IncludeProtocols + " " + linelist + " | " + CommandPrefix
 
+# PrintProtStatus
+#
+# pretty-print the status of a protocol
+def PrintProtStatus (file, prname):
+	file.write (prname + ": ")
+	if ProtocolStatus[prname] == 0:
+		file.write ("All-Flawed")
+	elif ProtocolStatus[prname] == 1:
+		file.write ("All-Correct")
+	else:
+		file.write ("Mixed")
 
 # ScytherEval
 #
@@ -128,7 +161,19 @@ def ScytherEval1 (protocol):
 
 		# Add the filename to the protocol mappings
 		prname = claim.split()[0]
-		ProtocolFiles[prname] = protocol
+		if ProtocolFiles.has_key(prname):
+			# We already wrote this down
+			#
+			# TODO The mapping should not conflict, but we don't
+			# check that now (covered by claim duplication # in a sense)
+			#
+			# Compare previous result, maybe mixed
+			if ProtocolStatus[prname] <> results[claim]:
+				ProtocolStatus[prname] = 2
+		else:
+			# New one, store the first result
+			ProtocolFiles[prname] = protocol
+			ProtocolStatus[prname] = results[claim]
 
 	ProtocolClaims.update (results)
 
@@ -173,9 +218,9 @@ def ClearProgress (n,txt):
 def DescribeContext (filep, protocols, claim):
 	def DC_Claim(cl,v):
 		if v == 0:
-			filep.write ("- " + cl + " : false in isolation")
+			filep.write ("- " + cl + " : false in both cases")
 		elif v == 1:
-			filep.write ("+ " + cl + " : correct in isolation")
+			filep.write ("+ " + cl + " : correct in both cases")
 		elif v == 2:
 			filep.write ("* " + cl + " : newly false in multi-protocol test")
 		else:
@@ -206,18 +251,39 @@ def DescribeContext (filep, protocols, claim):
 			# prname is a protocol name within the scope
 			# first print isolation correct files (skipping
 			# the claim one, because that is obvious)
-
+			
+			# construct list of claims for this protocol
 			cllist = []
 			for cl in ProtocolClaims.keys():
 				if cl.split()[0] == prname:
 					cllist.append( (cl,ProtocolClaims[cl]) )
 
-			for cl,v in cllist:
-				if v == 1 and cl <> claim:
-					DC_Claim(cl,1)
-			for cl,v in cllist:
-				if v == 0 and cl <> claim:
-					DC_Claim(cl,0)
+			# We want to show some details, in any case of
+			# the protocol of the claim. However, if the
+			# partner protocol is completely correct or
+			# completely false, we summarize.
+			summary = 0
+			all = 0
+			if claim.split()[0] <> prname:
+				count = [0,0]
+				for cl,v in cllist:
+					count[v] = count[v]+1
+				if count[0] == 0 and count[1] > 0:
+					all = 1
+					summary = 1
+				if count[1] == 0 and count[0] > 0:
+					all = 0
+					summary = 1
+				
+			if summary == 1:
+				DC_Claim (cl.split()[0] + " *ALL*", all)
+			else:
+				for cl,v in cllist:
+					if v == 1 and cl <> claim:
+						DC_Claim(cl,1)
+				for cl,v in cllist:
+					if v == 0 and cl <> claim:
+						DC_Claim(cl,0)
 	filep.write ("\n")
 
 
@@ -266,13 +332,20 @@ outp.close()
 
 print "Evaluating tuples of", TupleWidth, "for", ProtocolCount, "protocols, using the command '" + CommandPrefix + "'"
 i = 0
-safetxt = '                                '
+safetxt = " " * 20
 while i < ProtocolCount:
 	ShowProgress (i, ProtocolCount,Protocol[i]+safetxt)
 	ScytherEval1 ( Protocol[i] )
 	i = i + 1
 ClearProgress(ProtocolCount, safetxt)
 print "Evaluated single results."
+
+# Show classification
+#----------------------------------------------------------------------
+#
+print "Correct protocols: ", GetKeys (ProtocolStatus, 1)
+print "Partly flawed protocols: ", GetKeys (ProtocolStatus, 2)
+print "Completely flawed protocols: ", GetKeys (ProtocolStatus, 0)
 
 # Computation of combined list.
 #----------------------------------------------------------------------
@@ -320,7 +393,19 @@ for tline in inp:
 				# Wooh! It was correct before
 				ClearProgress (TupleCount, safetxt)
 				newattacks = newattacks + 1
-				print "New attack", newattacks, ":", claim, " using",CommandLine( protocols)
+				print "-" * 40
+				print "New attack [[", newattacks, "]] at", processed, "/", TupleCount, ":", claim, " using",CommandLine( protocols)
+				for helper in GetListKeys (ProtocolFiles, protocols):
+					clprname = claim.split()[0]
+					if helper <> clprname:
+						if helper not in FlawHelpers.keys():
+							# new
+							FlawHelpers[helper] = [clprname]
+							print "% Detected a new flaw helper:", helper
+						else:
+							# already noted as helper, add destruction now
+							if clprname not in FlawHelpers[helper]:
+								FlawHelpers[helper].append(clprname)
 				#
 				# TODO
 				#
@@ -333,9 +418,17 @@ for tline in inp:
 	
 	# Next!
 	processed = processed + 1
+inp.close()
 
 ClearProgress (TupleCount, safetxt)
 print "Processed", processed,"tuple combinations in total."
 print "Found", newattacks, "new attacks."
+if newattacks > 0:
+	print "  These were helped by:"
+	for helper in FlawHelpers.keys():
+		sys.stdout.write ("  ")
+		PrintProtStatus (sys.stdout, helper)
+		sys.stdout.write (". This possibly breaks " + str(FlawHelpers[helper]) + "\n")
 
-inp.close()
+sys.stdout.flush()
+sys.stderr.flush()
