@@ -1,14 +1,22 @@
 AC_INIT(main.c)
-AM_INIT_AUTOMAKE(Scyther, 0.2)
+AM_INIT_AUTOMAKE(Scyther, 0.2, ccremers@win.tue.nl)
+AC_CONFIG_SRCDIR([src/modelchecker.c])
             
 dnl find and test the C compiler
 AC_PROG_CC
 AC_LANG_C
+AC_PROG_INSTALL
         
 AC_PROG_MAKE_SET
-               
+
+# Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_FUNC(atol,,AC_MSG_ERROR(oops! no atol ?!?))
+AC_CHECK_HEADERS([limits.h malloc.h stddef.h stdlib.h strings.h unistd.h])
+
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+               
 AC_CHECK_LIB(argtable2, arg_parse,,AC_MSG_ERROR(Scyther requires the argtable2 package (LGPL). Get it from http://argtable.sourceforge.net/))
 AC_PROG_YACC
 AM_PROG_LEX
