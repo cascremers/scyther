@@ -6,7 +6,7 @@
 #
 import sys
 from optparse import OptionParser
-from scythercache import evaluate, scytheroverride
+from scythercache import evaluate, scytheroverride, cacheoverride
 
 
 #----------------------------------------------------------------------------
@@ -151,6 +151,10 @@ def default_options(parser):
 	parser.add_option("-P","--program", dest="program",
 			default = "",
 			help = "define alternative scyther executable")
+	parser.add_option("-N","--no-cache", dest="nocache",
+			default = False,
+			action = "store_true",
+			help = "do not use cache mechanism")
 
 # Process the default options
 def process_default_options(options):
@@ -160,7 +164,10 @@ def process_default_options(options):
 	if options.extra != "":
 		add_extra_parameters(options.extra)
 		print "Added extra options, now:", get_extra_parameters(options.extra)
-
+	if options.nocache:
+		# Do not use cache
+		print "Warning: Disabling cache"
+		cacheoverride ()
 
 
 #----------------------------------------------------------------------------
@@ -261,15 +268,15 @@ def main():
 	parser = OptionParser()
 	default_options(parser)
 	parser.add_option("-e","--errors", dest="errors",
-			default = "False",
+			default = False,
 			action = "store_true",
 			help = "detect compilation errors for all protocols [in list_all]")
 	parser.add_option("-r","--results", dest="results",
-			default = "False",
+			default = False,
 			action = "store_true",
 			help = "scan for results for all protocols [in list_all]")
 	parser.add_option("-t","--timeouts", dest="timeouts",
-			default = "False",
+			default = False,
 			action = "store_true",
 			help = "scan for timeout errors for all protocols [in list_all]")
 	(options, args) = parser.parse_args()
@@ -278,11 +285,11 @@ def main():
 	process_default_options(options)
 
 	# Subcases
-	if options.errors != "False":
+	if options.errors:
 		scan_for_errors(options,args)
-	elif options.results != "False":
+	elif options.results:
 		scan_for_results(options,args)
-	elif options.timeouts != "False":
+	elif options.timeouts:
 		scan_for_timeouts(options,args)
 	else:
 		# Not any other switch: just test the list then

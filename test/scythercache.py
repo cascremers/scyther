@@ -22,6 +22,7 @@ from tempfile import NamedTemporaryFile, gettempdir
 # Minimum duration for a test to get into the cache (in seconds)
 CacheTimer = 0.1
 ScytherProgram = "scyther"
+RetrieveFromCache = True
 
 #----------------------------------------------------------------------------
 # How to override Scyther program setting
@@ -34,6 +35,11 @@ def scytheroverride (newprg):
 	if not os.path.exists(ScytherProgram):
 		print "Cannot find any file at", ScytherProgram, " and it cannot be used as a Scyther executable."
 		sys.exit()
+
+def cacheoverride ():
+	global RetrieveFromCache
+
+	RetrieveFromCache = False
 
 #----------------------------------------------------------------------------
 # How to call Scyther
@@ -138,7 +144,7 @@ def evaluate (argumentstring, inputstring):
 
 	# Determine the unique filename for this test
 	cachefile = cachefilename(cacheid())
-	if os.path.exists(cachefile):
+	if os.path.exists(cachefile) and RetrieveFromCache:
 		return retrieve_from_cache(cachefile)
 	else:
 		return compute_and_cache(cachefile)

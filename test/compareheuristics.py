@@ -30,7 +30,7 @@ def parse(scout):
 
 
 # Test with a goal selector
-def test_goal_selector(goalselector):
+def test_goal_selector(goalselector, options):
 	import protocollist
 
 	scythertest.set_extra_parameters("--goal-select=" + str(goalselector))
@@ -43,7 +43,9 @@ def test_goal_selector(goalselector):
 	proofs = 0
 	claims = 0
 	for p in plist:
-		(status,scout) = scythertest.default_test([p],0,0)
+		(status,scout) = scythertest.default_test([p], \
+				int(options.match), \
+				int(options.bounds))
 		(ra,rb,rp,nc) = parse(scout)
 		attacks = attacks + ra
 		bounds = bounds + rb
@@ -60,18 +62,29 @@ def main():
 	(options, args) = parser.parse_args()
 	scythertest.process_default_options(options)
 
-	print "G-sel\tAttack\tBound\tProof\tClaims\tScore"
+	print "G-sel\tAttack\tBound\tProof\tClaims\tScore1\tScore2"
 	print 
-	for g in range(1,31):
-		(ra,rb,rp,nc,np) = test_goal_selector(g)
+	score1max = 0
+	score2max = 0
 
-		# Score: bounds are negative
-		score = ra + rp - rb
+	for g in range(1,31):
+		(ra,rb,rp,nc,np) = test_goal_selector(g, options)
+
+		# Scores: bounds are negative
+		score1 = ra + rp - rb
+		score2 = ra + rp - (2 * rb)
 
 		res = str(g)
 		res = res + "\t" + str(ra) + "\t" + str(rb)
 		res = res + "\t" + str(rp) + "\t" + str(nc)
-		res = res + "\t" + str(score)
+		res = res + "\t" + str(score1)
+		if score1 >= score1max:
+			score1max = score1
+			res = res + "*"
+		res = res + "\t" + str(score2)
+		if score2 >= score2max:
+			score2max = score2
+			res = res + "*"
 		print res
 	print
 	print "Goal selector scan completed."
