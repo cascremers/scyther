@@ -658,6 +658,108 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
   return flag;
 }
 
+//! Display the current semistate using dot output format.
+void
+dotSemiState ()
+{
+  static int attack_number = 0;
+  int run;
+  Protocol p;
+
+  void node (int run, int index)
+  {
+    eprintf ("r%ii%i", run, index);
+  }
+
+  int binder (void *data)
+  {
+    Binding b;
+
+    b = (Binding) data;
+    if (b->done)
+      {
+	eprintf ("\t");
+	node (b->run_from, b->ev_from);
+	eprintf (" -> ");
+	node (b->run_to, b->ev_to);
+	eprintf (" [label=\"");
+	termPrint (b->term);
+	eprintf ("\"]");
+	eprintf (";\n");
+      }
+    return 1;
+  }
+
+  // Open graph
+  attack_number++;
+  eprintf ("digraph semiState%i {\n", attack_number);
+  eprintf ("\tcomment = \"Protocol ");
+  p = (Protocol) current_claim->protocol;
+  termPrint (p->nameterm);
+  eprintf (", role ");
+  termPrint (current_claim->rolename);
+  eprintf (", claim type ");
+  termPrint (current_claim->type);
+  eprintf ("\";\n");
+
+  // Draw graph
+  // First, all simple runs
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      Roledef rd;
+      int index;
+
+      index = 0;
+      rd = sys->runs[run].start;
+      eprintf ("\tsubgraph cluster_run%i {\n", run);
+      eprintf ("\t\tlabel = \"");
+      if (sys->runs[run].protocol != INTRUDER)
+	{
+	  eprintf ("run #%i, protocol ", run);
+	  termPrint (sys->runs[run].protocol->nameterm);
+	  eprintf (", role ");
+	  termPrint (sys->runs[run].role->nameterm);
+	}
+      else
+	{
+	  eprintf ("(intruder)");
+	}
+      eprintf ("\";\n", run);
+      eprintf ("\t\tcolor = blue;\n");
+      while (index < sys->runs[run].length)
+	{
+	  // Print node itself
+	  eprintf ("\t\t");
+	  node (run, index);
+	  eprintf (" [shape=box,label=\"");
+	  roledefPrint (rd);
+	  eprintf ("\"]");
+	  eprintf (";\n");
+
+	  // Print binding to previous node
+	  if (index > 0)
+	    {
+	      eprintf ("\t\t");
+	      node (run, index - 1);
+	      eprintf (" -> ");
+	      node (run, index);
+	      eprintf (";\n");
+	    }
+	  index++;
+	  rd = rd->next;
+	}
+      eprintf ("\t}\n");
+      run++;
+    }
+
+  // Second, all bindings
+  list_iterate (sys->bindings, binder);
+
+  // close graph
+  eprintf ("};\n\n");
+}
+
 //! Print the current semistate
 void
 printSemiState ()
@@ -1455,7 +1557,7 @@ property_check ()
    */
   count_false ();
   if (sys->output == ATTACK)
-    printSemiState ();
+    dotSemiState ();
   // Store attack length if shorter
   attack_this = get_trace_length ();
   if (attack_this < attack_length)

@@ -77,12 +77,15 @@ roledefPrint (Roledef rd)
   if (globalLatex)
     eprintf ("$");
   eprintf ("(");
-  termPrint (rd->from);
-  eprintf (",");
-  if (rd->type == CLAIM)
-    eprintf (" ");
-  termPrint (rd->to);
-  eprintf (", ");
+  if (!(rd->from == NULL && rd->to == NULL))
+    {
+      termPrint (rd->from);
+      eprintf (",");
+      if (rd->type == CLAIM)
+	eprintf (" ");
+      termPrint (rd->to);
+      eprintf (", ");
+    }
   termPrint (rd->message);
   eprintf (" )");
   if (globalLatex)
