@@ -26,6 +26,7 @@ extern Term CLAIM_Nisynch;
 extern Term CLAIM_Niagree;
 extern Term TERM_Agent;
 extern Term TERM_Hidden;
+extern Term TERM_Function;
 
 static System sys;
 static Claimlist current_claim;
@@ -154,13 +155,38 @@ indentPrint ()
 
 //! Print indented binding
 void
-binding_indent_print (Binding b, int flag)
+binding_indent_print (const Binding b, const int flag)
 {
   indentPrint ();
   if (flag)
     eprintf ("!! ");
   binding_print (b);
   eprintf ("\n");
+}
+
+//! Determine whether a term is a functor
+int
+isTermFunctionName (Term t)
+{
+  t = deVar (t);
+  if (t != NULL && inTermlist (t->stype, TERM_Function))
+      return 1;
+  return 0;
+}
+
+//! Determine whether a term is a function application. Returns the function term.
+Term
+getTermFunction (Term t)
+{
+  t = deVar (t);
+  if (t != NULL)
+    {
+      if (realTermEncrypt (t) && isTermFunctionName (t->right.key))
+	{
+	  return t->right.key;
+	}
+    }
+  return NULL;
 }
 
 //! Wrapper for roleInstance
@@ -1009,6 +1035,7 @@ bind_goal_regular_run (const Binding b)
       }
   }
 
+ 
   // Bind to all possible sends of regular runs
   found = 0;
   flag = iterate_role_sends (bind_this_role_send);
@@ -1077,12 +1104,48 @@ bind_goal (const Binding b)
   if (!b->done)
     {
       int flag;
+      int know_only;
+      Term function;
 
       proof_select_goal (b);
       indentDepth++;
-      flag = bind_goal_regular_run (b);
-      flag = flag && bind_goal_old_intruder_run (b);
-      flag = flag && bind_goal_new_intruder_run (b);
+
+      // Prune: if it is an SK type construct, ready
+      // No regular run will apply SK for you.
+      //!@todo This still needs a lemma, and a more generic (correct) algorithm!!
+      
+      know_only = 0;
+      function = getTermFunction (b->term);
+      if (function != NULL)
+	{
+	  if (!inKnowledge (sys->know, function))
+	    {
+	      // Prune because we didn't know it before, and it is never subterm-sent
+	      if (sys->output == PROOF)
+		{
+		  indentPrint ();
+		  eprintf ("* Because ");
+		  termPrint (b->term);
+		  eprintf (" is never sent from a regular run (STILL NEEDS LEMMA!), we only intruder construct it.\n");
+		}
+	      know_only = 1;
+	    }
+	}
+      
+      if (know_only)
+	{
+	  // Special case: only from intruder
+          flag = flag && bind_goal_old_intruder_run (b);
+          flag = flag && bind_goal_new_intruder_run (b);
+	}
+      else
+	{
+	  // Normal case
+	  flag = bind_goal_regular_run (b);
+	  flag = flag && bind_goal_old_intruder_run (b);
+	  flag = flag && bind_goal_new_intruder_run (b);
+	}
+
       indentDepth--;
       return flag;
     }
@@ -1151,13 +1214,17 @@ prune_theorems ()
       return 1;
     }
 
-  // Check for "Hidden" interm goals
+  /**
+   * Check whether the bindings are valid
+   */
   bl = sys->bindings;
   while (bl != NULL)
     {
       Binding b;
 
       b = bl->data;
+
+      // Check for "Hidden" interm goals
       if (termInTerm (b->term, TERM_Hidden))
 	{
 	  // Prune the state: we can never meet this
@@ -1170,6 +1237,8 @@ prune_theorems ()
 	    }
 	  return 1;
 	}
+
+      // Check for encryption levels
       if (sys->match < 2
 	  && (term_encryption_level (b->term) > max_encryption_level))
 	{
@@ -1183,6 +1252,7 @@ prune_theorems ()
 	    }
 	  return 1;
 	}
+
       bl = bl->next;
     }
 
