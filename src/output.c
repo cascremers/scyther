@@ -530,15 +530,19 @@ void graphNode (const System sys)
 {
   Termlist newtl;
   unsigned long int thisNode, parentNode;
+  int index;
+  Roledef rd;
 
   /* determine node numbers */
-  parentNode = sys->traceNode[sys->step - 1];
+  index = sys->step - 1;
+  parentNode = sys->traceNode[index];
   thisNode = sys->statesLow;
+  rd = sys->traceEvent[index];
 
   /* add node */
   printf ("\tn%li [shape=", thisNode);
   
-  newtl = knowledgeNew (sys->traceKnow[sys->step-1], sys->traceKnow[sys->step]);
+  newtl = knowledgeNew (sys->traceKnow[index], sys->traceKnow[index+1]);
   if (newtl != NULL)
     {
       /* knowledge added */
@@ -558,11 +562,21 @@ void graphNode (const System sys)
   printf ("\tn%li -> n%li ", parentNode, thisNode);
   /* add label */
   printf ("[label=\"");
-  roledefPrint (sys->traceEvent[sys->step - 1]);
-  printf ("\#%i", sys->traceRun[sys->step -1]);
-  printf ("\"");
+  if (rd->type == CLAIM && untrustedAgent (sys, sys->runs[sys->traceRun[index]].agents))
+    {
+      printf ("Skip claim in #%i\"", sys->traceRun[index]);
+    }
+  else
+    {
+      roledefPrint (rd);
+      printf ("#%i\"", sys->traceRun[index]);
+      if (rd->type == CLAIM)
+	{
+          printf (",color=green");
+	}
+    }
   /* a choose? */
-  if (sys->traceEvent[sys->step -1]->type == READ && sys->traceEvent[sys->step -1]->internal)
+  if (rd->type == READ && rd->internal)
     {
       printf (",color=blue");
       //printf (",style=dotted");
