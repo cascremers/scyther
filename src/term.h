@@ -53,6 +53,9 @@ struct term
   } right;
 };
 
+//! Flag for term status
+extern int rolelocal_variable;
+
 //! Pointer shorthand.
 typedef struct term *Term;
 
@@ -62,12 +65,12 @@ Term makeTermEncrypt (Term t1, Term t2);
 Term makeTermTuple (Term t1, Term t2);
 Term makeTermType (const int type, const Symbol symb, const int runid);
 __inline__ Term deVarScan (Term t);
-#define substVar(t)		((t != NULL && t->type == VARIABLE && t->subst != NULL) ? 1 : 0)
-#define deVar(t)		( substVar(t) ? deVarScan(t->subst) : t)
 #define realTermLeaf(t)		(t != NULL && t->type <= LEAF)
 #define realTermTuple(t)	(t != NULL && t->type == TUPLE)
 #define realTermEncrypt(t)	(t != NULL && t->type == ENCRYPT)
-#define realTermVariable(t)	(t != NULL && t->type == VARIABLE)
+#define realTermVariable(t)	(t != NULL && (t->type == VARIABLE || (rolelocal_variable && t->right.runid == -3)))
+#define substVar(t)		((realTermVariable (t) && t->subst != NULL) ? 1 : 0)
+#define deVar(t)		( substVar(t) ? deVarScan(t->subst) : t)
 #define isTermLeaf(t)		realTermLeaf(deVar(t))
 #define isTermTuple(t)		realTermTuple(deVar(t))
 #define isTermEncrypt(t)	realTermEncrypt(deVar(t))
@@ -166,5 +169,6 @@ float termDistance (Term t1, Term t2);
 int termOrder (Term t1, Term t2);
 int term_iterate_leaves (const Term t, int (*func) ());
 int term_iterate_open_leaves (const Term term, int (*func) ());
+void term_rolelocals_are_variables ();
 
 #endif

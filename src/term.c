@@ -19,6 +19,9 @@
 #include "memory.h"
 #include "ctype.h"
 
+/* public flag */
+int rolelocal_variable;
+
 /* external definitions */
 
 extern Term TERM_Function;
@@ -41,6 +44,7 @@ void indent (void);
 void
 termsInit (void)
 {
+  rolelocal_variable = 0;
   return;
 }
 
@@ -930,4 +934,11 @@ term_iterate_open_leaves (const Term term, int (*func) ())
   }
 
   return term_iterate_leaves (term, testleaf);
+}
+
+//! Turn all rolelocals into variables
+void
+term_rolelocals_are_variables ()
+{
+  rolelocal_variable = 1;
 }

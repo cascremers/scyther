@@ -79,6 +79,12 @@ arachneInit (const System mysys)
   }
 
   sys = mysys;			// make sys available for this module as a global
+
+  /**
+   * Very important: turn role terms that are local to a run, into variables.
+   */
+  term_rolelocals_are_variables ();
+
   /*
    * Add intruder protocol roles
    */
@@ -130,6 +136,54 @@ int
 mgu_iterate (const Termlist tl)
 {
   return iterate ();
+}
+
+//! Determine the run that follows from a substitution.
+/**
+ * After an Arachne unification, stuff might go wrong w.r.t. nonce instantiation.
+ * This function determines the run that is implied by a substitution list.
+ * @returns >= 0: a run, -1 for invalid, -2 for any run.
+ */
+int
+determine_unification_run (Termlist tl)
+{
+  int run;
+
+  run = -2;
+  while (tl != NULL)
+    {
+      //! Again, hardcoded reference to compiler.c. Level -3 means a local constant for a role.
+      if (tl->term->type != VARIABLE && tl->term->right.runid == -3)
+	{
+	  Term t;
+
+	  t = tl->term->subst;
+
+	  // It is required that it is actually a leaf, because we construct it.
+	  if (!realTermLeaf (t))
+	    {
+	      return -1;
+	    }
+	  else
+	    {
+	      if (run == -2)
+		{
+		  // Any run
+		  run = t->right.runid;
+		}
+	      else
+		{
+		  // Specific run: compare
+		  if (run != t->right.runid)
+		    {
+		      return -1;
+		    }
+		}
+	    }
+	}
+      tl = tl->next;
+    }
+  return run;
 }
 
 //------------------------------------------------------------------------
@@ -238,6 +292,7 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
   eprintf ("\n");
 #endif
   flag = 1;
+  goal.rd->bind_index = index;
   for (run = 0; run < sys->maxruns; run++)
     {
       if (sys->runs[run].protocol == p && sys->runs[run].role == r)
@@ -257,12 +312,15 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 	  e_run = run;
 	  e_term1 = goal.rd->message;
 #endif
+	  goal.rd->bind_run = run;
+
 	  flag = (flag
 		  && termMguInTerm (goal.rd->message, rd->message,
 				    mgu_iterate));
 	  sys->runs[run].length = old_length;
 	}
     }
+  goal.rd->bind_run = -1;
   return flag;
 }
 
@@ -383,20 +441,29 @@ bind_goal_regular (const Goal goal)
   {
     int bind_this_unification (Termlist substlist)
     {
+      int run, flag;
+
+      run = determine_unification_run (substlist);
+      if (run == -1)
+	return 1;
 #ifdef DEBUG
       indentPrint ();
       eprintf ("Term ");
       termPrint (goal.rd->message);
       eprintf (" can possibly be bound by role ");
       termPrint (r->nameterm);
-      eprintf (", index %i.\n", index);
+      eprintf (", index %i, forced_run %i\n", index, run);
 #endif
       /**
        * Two options; as this, it is from an existing run,
        * or from a new one.
        */
-      return (bind_existing_run (goal, p, r, index)
-	      && bind_new_run (goal, p, r, index));
+      flag = 1;
+      if (run == -2)
+	{
+	  flag = flag && bind_new_run (goal, p, r, index);
+	}
+      return (flag && bind_existing_run (goal, p, r, index));
     }
 
     if (p == INTRUDER)
@@ -446,6 +513,11 @@ bind_intruder_to_regular (Goal goal)
       int flag;
       int keygoals;
       Termlist tl;
+      int run;
+
+      run = determine_unification_run (substlist);
+      if (run == -1)
+	return 1;
 
       /**
        * the list of keys is added as a new goal.
@@ -465,8 +537,12 @@ bind_intruder_to_regular (Goal goal)
        * or from a new one.
        */
 
-      flag = (bind_existing_run (goal, p, r, index)
-	      && bind_new_run (goal, p, r, index));
+      flag = 1;
+      if (run == -2)
+	{
+	  flag = flag && bind_new_run (goal, p, r, index);
+	}
+      flag = flag && bind_existing_run (goal, p, r, index);
 
       /**
        * deconstruct key list goals
