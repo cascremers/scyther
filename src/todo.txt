@@ -1,3 +1,4 @@
+- Fix term encryption level pruning for arachne, depending on the match type.
 - Constraint logic now also has no checks for when a run is done by the
   intruder (which should be excluded).
 - Fix constants in intruder knowledge. Auto add single one of each type,
