@@ -28,6 +28,7 @@ protocol yahalompaulson(I,R,S)
 
 		claim_8(I, Secret,kir);
 		claim_9(I, Nisynch);
+		claim_10(I, Niagree);
 	}
 
 	role R
@@ -40,8 +41,9 @@ protocol yahalompaulson(I,R,S)
 		send_2(R,S, R,nr,{I,ni}k(R,S) );
 		read_4(I,R, {I,R,kir,nr}k(R,S), {nr}kir );
 
-		claim_10(R, Secret,kir);
-		claim_11(R, Nisynch);
+		claim_11(R, Secret,kir);
+		claim_12(R, Nisynch);
+		claim_13(R, Niagree);
 	}
 
 	role S

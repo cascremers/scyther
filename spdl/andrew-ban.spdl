@@ -14,6 +14,7 @@ protocol andrewBan(I,R)
 		send_3(I,R, {nr}k(I,R) );
 		read_4(R,I, {kir,nr2,ni}k(I,R) );
 		claim_5(I,Nisynch);
+		claim_5b(I,Niagree);
 		claim_6(I,Secret, kir);
 		claim_7(I,Secret, k(I,R));
 	}	
@@ -29,6 +30,7 @@ protocol andrewBan(I,R)
 		read_3(I,R, {nr}k(I,R) );
 		send_4(R,I, {kir,nr2,ni}k(I,R) );
 		claim_8(R,Nisynch);
+		claim_8b(R,Niagree);
 		claim_9(R,Secret, kir);
 		claim_10(R,Secret, k(I,R));
 	}

@@ -19,6 +19,7 @@ protocol ccitt509(I,R)
 		claim_4(I,Secret,yi);
 		claim_5(I,Secret,yr);
 		claim_6(I,Nisynch);
+		claim_7(I,Niagree);
 	}	
 	
 	role R
@@ -32,9 +33,10 @@ protocol ccitt509(I,R)
 		send_2(R,I, R,{nr, I, ni, xr, {yr}pk(I) }sk(R) );
 		read_3(I,R, I,{R,nr}sk(I) );
 
-		claim_7(R,Secret,yi);
-		claim_8(R,Secret,yr);
-		claim_9(R,Nisynch);
+		claim_8(R,Secret,yi);
+		claim_9(R,Secret,yr);
+		claim_10(R,Nisynch);
+		claim_11(R,Niagree);
 	}
 }
 

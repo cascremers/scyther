@@ -24,7 +24,10 @@ protocol yahalomlowe(I,R,S)
 		send_1(I,R, I,ni);
 		read_3(S,I, {R,kir,ni,nr}k(I,S) );
 		send_5(I,R, {I,R,S,nr}kir );
+
 		claim_8(I, Secret,kir);
+		claim_9(I, Niagree);
+		claim_10(I, Nisynch);
 	}
 
 	role R
@@ -37,8 +40,9 @@ protocol yahalomlowe(I,R,S)
 		send_2(R,S, {I,ni,nr}k(R,S) );
 		read_4(S,R, {I,kir}k(R,S) );
 		read_5(I,R, {I,R,S,nr}kir );
-		claim_9(R, Secret,kir);
-		claim_10(R, Nisynch);
+		claim_11(R, Secret,kir);
+		claim_12(R, Nisynch);
+		claim_13(R, Niagree);
 	}
 
 	role S

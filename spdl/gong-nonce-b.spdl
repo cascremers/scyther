@@ -26,6 +26,7 @@ protocol gongnonceb(I,R,S)
 		claim_6 (I, Secret, ki);
 		claim_7 (I, Secret, kr);
 		claim_8 (I, Nisynch);
+		claim_9 (I, Niagree);
 	}	
 	
 	role R
@@ -39,9 +40,10 @@ protocol gongnonceb(I,R,S)
 		send_3 (R,S, { R,S,R,kr,I }k(R,S), { R,I, ni }f(ki,kr), nr );
 		read_5 (I,R, { I,R,nr }f(ki,kr) );
 
-		claim_9 (R, Secret, ki);
-		claim_10 (R, Secret, kr);
-		claim_11 (R, Nisynch);
+		claim_10 (R, Secret, ki);
+		claim_11 (R, Secret, kr);
+		claim_12 (R, Nisynch);
+		claim_13 (R, Niagree);
 	}
 
 	role S

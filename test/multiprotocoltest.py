@@ -64,6 +64,9 @@ ProtocolToFileMap = {}		# maps protocol names to file names
 ProtocolToStatusMap = {}	# maps protocol names to status: 0 all false, 1 all correct, otherwise (2) mixed
 ProtocolToEffectsMap = {}	# maps protocols that help create multiple flaws, to the protocol names of the flaws they caused
 
+CommandPrefix = "not yet initialised."
+BoundsList = []			# bounds that have been displayed onscreen
+
 # Ugly hack. Works.
 safetxt = " " * 20
 
@@ -124,6 +127,33 @@ def ScytherEval (plist):
 	# Flush before trying (possibly fatal) external commands
 	sys.stdout.flush()
 	sys.stderr.flush()
+
+	n = len(plist)
+	timer = 1
+	maxruns = 2
+	maxlength = 10
+	if options.bounds == 0:
+		timer = n**2
+		maxruns = 2*n
+		maxlength = 2 + maxruns * 3
+	elif options.bounds == 1:
+		timer = n**3
+		maxruns = 3*n
+		maxlength = 2 + maxruns * 4
+	else:
+		print "Don't know bounds method", options.bounds
+		sys.exit()
+
+	ScytherBounds = "--arachne --timer=%i --max-runs=%i --max-length=%i" % (timer, maxruns, maxlength)
+
+	# If these bounds had not been shown before, do so now
+	if not ScytherBounds in BoundsList:
+		BoundsList.append(ScytherBounds)
+		print "\nBounds for", n, "protocols:", ScytherBounds
+
+	# Combine it all
+	ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
+	CommandPrefix = "scyther " + ScytherArgs
 
 	# Combine protocol list to an input
 	input = ""
@@ -447,21 +477,7 @@ TupleWidth = str(options.tuplewidth)
 # Match
 ScytherMethods = "--match=" + str(options.match)
 
-# Method of bounding
-if options.bounds == 0:
-	ScytherBounds = "--arachne --timer=4 --max-runs=5 --max-length=20"
-elif options.bounds == 1:
-	ScytherBounds = "--arachne --timer=15 --max-runs=6 --max-length=30"
-else:
-	print "Don't know bounds method", options.bounds
-	sys.exit()
-
-
-# Combine it all
-ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
-CommandPrefix = "scyther " + ScytherArgs
-
-
+# Method of bounding will be determined in ScytherEval
 
 # Caching of single-protocol results for speed gain.
 #----------------------------------------------------------------------

@@ -22,6 +22,7 @@ protocol bke(I,R)
 		read_2 (R,I, { hash(ni),nr,R,kir }pk(I) );
 		send_3 (I,R, { hash(nr) }kir );
 		claim_4 (I, Secret, kir );
+		claim_5 (I, Niagree );
 		claim_6 (I, Nisynch );
 	}
 
@@ -34,8 +35,9 @@ protocol bke(I,R)
 		read_1 (I,R, { ni,I }pk(R) );
 		send_2 (R,I, { hash(ni),nr,R,kir }pk(I) );
 		read_3 (I,R, { hash(nr) }kir );
-		claim_5 (R, Secret, kir );
-		claim_7 (R, Nisynch );
+		claim_7 (R, Secret, kir );
+		claim_8 (R, Niagree );
+		claim_9 (R, Nisynch );
 	}
 }
 

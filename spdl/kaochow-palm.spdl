@@ -13,6 +13,10 @@ protocol kaochowPalm(I,R,S)
 		send_1 (I,S, I,R,ni);
 		read_3 (R,I, {I,R,ni,kir}k(I,S), {ni}kir, nr );
 		send_4 (I,R, {nr}kir );
+
+		claim_5 (I, Nisynch);
+		claim_6 (I, Niagree);
+		claim_7 (I, Secret, kir);
 	}	
 	
 	role R
@@ -26,8 +30,9 @@ protocol kaochowPalm(I,R,S)
 		send_3 (R,I, T, {ni}kir, nr );
 		read_4 (I,R, {nr}kir );
 
-		claim_5 (R, Nisynch);
-		claim_6 (R, Secret, kir);
+		claim_8 (R, Nisynch);
+		claim_9 (R, Niagree);
+		claim_10 (R, Secret, kir);
 	}
 
 	role S
