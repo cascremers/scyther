@@ -28,6 +28,7 @@
 
 extern Term CLAIM_Secret;
 extern Term CLAIM_Nisynch;
+extern Term CLAIM_Niagree;
 
 /*
    Some forward declarations.
@@ -1258,9 +1259,25 @@ executeTry (const System sys, int run)
 	      /*
 	       * NISYNCH
 	       */
-	      //!@todo TODO nisynch implementation
-
               flag = check_claim_nisynch (sys, sys->step);
+	      if (!flag)
+		{
+		  /* violation */
+		  if (violateClaim (sys,sys->step+1, sys->step, NULL ))
+		      flag = explorify (sys, run);
+		}
+	      else
+		{
+		  /* no violation */
+		  flag = explorify (sys, run);
+		}
+	    }
+	  if (runPoint->to == CLAIM_Niagree)
+	    {
+	      /*
+	       * NIAGREE
+	       */
+              flag = check_claim_niagree (sys, sys->step);
 	      if (!flag)
 		{
 		  /* violation */

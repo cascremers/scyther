@@ -53,6 +53,7 @@ Term TERM_Agent;
 Term TERM_Claim;
 Term CLAIM_Secret;
 Term CLAIM_Nisynch;
+Term CLAIM_Niagree;
 
 /*
  * Global stuff
@@ -103,6 +104,7 @@ compile (const System mysys, Tac tc, int maxrunsset)
 
   langcons (CLAIM_Secret, "Secret", TERM_Claim);
   langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);
+  langcons (CLAIM_Niagree, "Niagree", TERM_Claim);
 
   /* process the tac */
   tacProcess (tc);
@@ -440,6 +442,14 @@ commEvent (int event, Tac tc)
 	  if (n != 0)
 	    {
 	      error ("NISYNCH claim requires no parameters at line %i.", trip->next->lineno);
+	    }
+	  break;
+	}
+      if (claim == CLAIM_Niagree)
+	{
+	  if (n != 0)
+	    {
+	      error ("NIAGREE claim requires no parameters at line %i.", trip->next->lineno);
 	    }
 	  break;
 	}
@@ -985,6 +995,7 @@ compute_prec_sets (const System sys)
       Term t;
       Roledef rd;
       Term label;
+      int claim_index;
 
       label = cl->label;
       // Locate r,lev from label, requires (TODO) unique labeling of claims!
@@ -1017,7 +1028,7 @@ compute_prec_sets (const System sys)
        * Now we compute the preceding label set
        */
       cl->prec = NULL;		// clear first
-      i = index (r1,ev1);
+      claim_index = index (r1,ev1);
       r2 = 0;
       while (r2 < sys->rolecount)
 	{
@@ -1027,7 +1038,7 @@ compute_prec_sets (const System sys)
 	  rd = roledef_re (r2,ev2);
 	  while (rd != NULL)
 	    {
-	      if (prec[index2 (index (r2,ev2),i)] == 1)
+	      if (prec[index2 (index (r2,ev2),claim_index)] == 1)
 		{
 		  // This event precedes the claim
 		  
@@ -1042,6 +1053,12 @@ compute_prec_sets (const System sys)
 	    }
 	  r2++;
 	}
+      /**
+       * ---------------------------
+       * Distinguish types of claims
+       * ---------------------------
+       */
+
       // For ni-synch, the preceding label sets are added to the synchronising_labels sets.
       if (cl->type == CLAIM_Nisynch)
 	{
@@ -1050,13 +1067,57 @@ compute_prec_sets (const System sys)
 	  tl_scan = cl->prec;
 	  while (tl_scan != NULL)
 	    {
-	      if (!inTermlist (sys->synchronising_labels, tl_scan->term))
-		{
-		  sys->synchronising_labels = termlistAdd (sys->synchronising_labels, tl_scan->term);
-		}
+	      sys->synchronising_labels = termlistAddNew (sys->synchronising_labels, tl_scan->term);
 	      tl_scan = tl_scan->next;
 	    }
 	}
+
+      // For ni-agree, the preceding set is also important, but we furthermore need a restricted
+      // synchronising_labels set
+
+      //@todo Fix ni-agree synchronising label sets
+      if (cl->type == CLAIM_Niagree)
+	{
+	  int r_scan;
+
+	  // Scan each role (except the current one) and pick out the last prec events.
+	  r_scan = 0;
+	  while (r_scan < sys->rolecount)
+	    {
+	      // Only other roles
+	      if (r_scan != r1)
+		{
+		  // Scan fully
+		  int ev_scan;
+		  Term t_buf;
+
+		  t_buf = NULL;
+		  ev_scan = 0;
+		  while (ev_scan < sys->roleeventmax)
+		    {
+		      // if this event preceds the claim, replace the label term
+		      if (prec[index2 (index (r_scan, ev_scan), claim_index)] == 1)
+			{
+			  Roledef rd;
+
+	  		  rd = roledef_re (r_scan,ev_scan);
+			  if (rd->label != NULL)
+			    {
+			      t_buf = rd->label;
+			    }
+			}
+		      ev_scan++;
+		    }
+		  // Store only the last label
+		  if (t_buf != NULL)
+		    {
+		      sys->synchronising_labels = termlistAddNew(sys->synchronising_labels, t_buf);
+		    }
+		}
+	      r_scan++;
+	    }
+	}
+
 #ifdef DEBUG
       // Porparam = 100 (weirdness) [x][cc][debug] can turn of the synchronising label sets (override).
       if (sys->porparam == 100)

@@ -220,7 +220,7 @@ termlistAppend (const Termlist tl, const Term term)
  * Mimics a basic set type behaviour.
  */
 Termlist
-termlistAddNew (const Termlist tl, const term t)
+termlistAddNew (const Termlist tl, const Term t)
 {
   if (inTermlist (tl, t))
       return tl;

@@ -367,3 +367,63 @@ check_claim_nisynch (const System sys, const int i)
   return result;
 }
 
+//! Check validity of ni-agree claim at event i.
+/**
+ *@returns 1 iff claim is true.
+ *@todo This is now just a copy of ni-synch, should be fixed asap.
+ */
+int
+check_claim_niagree (const System sys, const int i)
+{
+  Roledef rd;
+  int result;
+  int rid;
+  Termmap f,g;
+  Term label;
+  Claimlist cl;
+  Termlist tl;
+
+  rid = sys->traceRun[i];
+  rd = sys->traceEvent[i];
+  cl = rd->claiminfo;
+  cl->count = statesIncrease (cl->count);
+  f = termmapSet (NULL, sys->runs[rid].role->nameterm, rid);
+
+  // map all labels in prec to LABEL_TODO
+  g = NULL;
+  label = rd->label;
+
+  tl = cl->prec;
+  while (tl != NULL)
+    {
+      g = termmapSet (g, tl->term, LABEL_TODO);
+      tl = tl->next;
+    }
+  /*
+   * Check claim
+   */
+  result = oki_nisynch(sys, i, f, g);
+  if (!result)
+    {
+      cl->failed = statesIncrease (cl->failed);
+
+//#ifdef DEBUG 
+      warning ("Claim has failed!");
+      printf ("To be exact, claim label ");
+      termPrint (cl->label);
+      printf (" with prec set ");
+      termlistPrint (cl->prec);
+      printf ("\n");
+      printf ("i: %i\nf: ",i);
+      termmapPrint (f);
+      printf ("\ng: ");
+      termmapPrint (g);
+      printf ("\n");
+//#endif
+
+    }
+  termmapDelete (f);
+  termmapDelete (g);
+  return result;
+}
+
