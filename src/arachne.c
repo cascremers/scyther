@@ -718,7 +718,10 @@ dotSemiState ()
 
   // Needed for the bindings later on: create graph
   goal_graph_create ();		// create graph
-  warshall (graph, nodes);	// determine closure
+  if (warshall (graph, nodes) == 0)	// determine closure
+    {
+      eprintf ("// This graph was not completely closed transitively because it contains a cycle!\n");
+    }
 
   ranks = memAlloc (nodes * sizeof(int));
   maxrank = graph_ranks (graph, ranks, nodes);	// determine ranks
@@ -726,6 +729,59 @@ dotSemiState ()
 #ifdef DEBUG
   // For debugging purposes, we also display an ASCII version of some stuff in the comments
   printSemiState ();
+  // Even draw all dependencies for non-intruder runs
+  // Real nice debugging :(
+    {
+      int run;
+
+      run = 0;
+      while (run < sys->maxruns)
+	{
+	  int ev;
+
+	  ev = 0;
+	  while (ev < sys->runs[run].length)
+	    {
+	      int run2;
+	      int notfirstrun;
+
+	      eprintf ("// precedence: r%ii%i <- ", run,ev);
+	      run2 = 0;
+	      notfirstrun = 0;
+	      while (run2 < sys->maxruns)
+		{
+		  int notfirstev;
+		  int ev2;
+
+		  notfirstev = 0;
+		  ev2 = 0;
+		  while (ev2 < sys->runs[run2].length)
+		    {
+		      if (graph[graph_nodes (nodes, run2, ev2, run, ev)]
+			  != 0)
+			{
+			  if (notfirstev)
+			      eprintf (",");
+			  else
+			    {
+			      if (notfirstrun)
+				  eprintf (" ");
+			      eprintf ("r%i:", run2);
+			    }
+			  eprintf ("%i", ev2);
+			  notfirstrun = 1;
+			  notfirstev = 1;
+			}
+		      ev2++;
+		    }
+		  run2++;
+		}
+	      eprintf ("\n");
+	      ev++;
+	    }
+	  run++;
+	}
+    }
 #endif
 
   // Draw graph
@@ -870,23 +926,19 @@ dotSemiState ()
 		    {
 		      // Is this run before the event?
 		      int ev2;
-		      int ev2_found;
 		      int found;
 
 		      found = 0;
-		      ev2 = 0;
-		      ev2_found = 0;
-		      while (ev2 < sys->runs[run2].length)
+		      ev2 = sys->runs[run2].length;
+		      while (found == 0 && ev2 > 0)
 			{
+			  ev2--;
 			  if (graph[graph_nodes (nodes, run2, ev2, run, ev)]
 			      != 0)
 			    {
 			      found = 1;
-			      ev2_found = ev2;
 			    }
-			  ev2++;
 			}
-		      ev2 = ev2_found;
 
 		      if (found == 1)
 			{
@@ -898,17 +950,17 @@ dotSemiState ()
 			   * so we can simplify stuff a bit.
 			   * Nevertheless, using Floyd first would probably be faster.
 			   */
-			  int run3;
 			  int other_route;
+			  int run3;
+			  int ev3;
 
 			  other_route = 0;
 			  run3 = 0;
+			  ev3 = 0;
 			  while (other_route == 0 && run3 < sys->maxruns)
 			    {
 			      if (sys->runs[run3].protocol != INTRUDER)
 				{
-				  int ev3;
-
 				  ev3 = 0;
 				  while (other_route == 0
 					 && ev3 < sys->runs[run3].length)
@@ -980,6 +1032,18 @@ dotSemiState ()
 			      // close up
 			      eprintf (";\n");
 			    }
+#ifdef DEBUG
+			  else
+			    {
+			      // for debugging: show other route
+			      run3--;
+			      ev3--;
+
+			      eprintf ("\t// HIDDEN r%ii%i -> r%ii%i because route through r%ii%i\n",
+				       run2, ev2, run, ev, run3, ev3);
+			      
+			    }
+#endif
 			}
 		    }
 		  run2++;

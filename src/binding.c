@@ -511,7 +511,10 @@ int
 labels_ordered (Termmap runs, Termlist labels)
 {
   goal_graph_create ();
-  warshall (graph, nodes);
+  if (warshall (graph, nodes) == 0)
+    {
+      error ("Testing ordering of label set for a graph with a cycle.");
+    }
 
   while (labels != NULL)
     {
