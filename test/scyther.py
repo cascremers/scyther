@@ -138,6 +138,13 @@ def evaluate (argumentstring, inputstring):
 # Parsing Output
 #----------------------------------------------------------------------------
 
+# status
+def error_status(status):
+	if status == 1 or status < 0:
+		return True
+	else:
+		return False
+
 # Parse output
 def parse(scout):
 	results = {}
@@ -218,13 +225,14 @@ def default_test(plist, match, bounds):
 # Test, check for status, yield parsed results
 def default_parsed(plist, match, bounds):
 	(status,scout) = default_test(plist, match, bounds)
-	if status == 1 or status < 0:
+	if error_status(status):
 		# Something went wrong
 		print "*** Error when checking [", plist, match, bounds, "]"
 		print
 		sys.exit()
 	return parse(scout)
 
+# Some default options for the scyther wrapper
 def default_options(parser):
 	parser.add_option("-m","--match", dest="match",
 			default = 0,
@@ -234,6 +242,83 @@ def default_options(parser):
 			default = 0,
 			help = "bound type selection (0: quickscan, 1:thorough)")
 
+#----------------------------------------------------------------------------
+# Some default testing stuff
+#----------------------------------------------------------------------------
+
+def all_unless_given(plist):
+	if plist == []:
+		# Get the list
+		import protocollist
+		return protocollist.from_all()
+	else:
+		return plist
+
+#	Scan for compilation errors or stuff like that
+
+def scan_for_errors(options,args):
+	# Select specific list
+	plist = all_unless_given(args)
+	# Now check all things in the list
+	errorcount = 0
+	for p in plist:
+		# Test and gather output
+		(status,scout) = default_test([p], 0, 0)
+		error = False
+		if error_status(status):
+			error = True
+		else:
+			if scout.rfind("ERROR") != -1:
+				error = True
+			if scout.rfind("error") != -1:
+				error = True
+		if error:
+			print "There is an error in the output for", p
+			errorcount = errorcount + 1
+
+	if errorcount > 0:
+		print
+	print "Scan complete. Found", errorcount, "error(s) in", len(plist), "files."
+
+#	Scan for timeout protocols
+#
+#	The idea is that some things will generate a timeout, and we would like
+#	to know which ones. However, this can just be a problem of the time
+#	limit, and might not be caused by a loop at all. Therefore, some
+#	scanning is needed.
+
+def scan_for_timeouts(options,args):
+
+	def parse_timeout(status,scout):
+		if not error_status(status):
+			if scout.rfind("time=") != -1:
+				return True
+		return False
+
+	def check_for_timeout(p):
+		# First a simple test
+		(status,scout) = default_test([p], 0, 1)
+		if not parse_timeout(status,scout):
+			# Well if there is no timeout here...
+			return False
+
+		# More testing...
+		
+		return True
+
+	# Select specific list
+	plist = all_unless_given(args)
+	# Now check all things in the list
+	errorcount = 0
+	for p in plist:
+		# Test and gather output
+		if check_for_timeout(p):
+			print "There is a timeout for", p
+			errorcount = errorcount + 1
+
+	if errorcount > 0:
+		print
+	print "Scan complete. Found", errorcount, "timeout(s) in", len(plist), "files."
 
 #----------------------------------------------------------------------------
 # Standalone usage
@@ -246,42 +331,17 @@ def main():
 			default = "False",
 			action = "store_true",
 			help = "detect compilation errors for all protocols [in list_all]")
+	parser.add_option("-t","--timeouts", dest="timeouts",
+			default = "False",
+			action = "store_true",
+			help = "scan for timeout errors for all protocols [in list_all]")
 	(options, args) = parser.parse_args()
 
 	# Subcases
 	if options.errors != "False":
-		# Detect errors in list
-		
-		# Select specific list
-		if args == []:
-			# Get the list
-			import protocollist
-			plist = protocollist.from_all()
-		else:
-			plist = args
-
-		# Now check all things in the list
-		errorcount = 0
-		for p in plist:
-			# Test and gather output
-			(status,scout) = default_test([p], 0, 0)
-			error = 0
-			if status < 0 or status == 1:
-				error = 1
-			else:
-				if scout.rfind("ERROR") != -1:
-					error = 1
-				if scout.rfind("error") != -1:
-					error = 1
-			if error == 1:
-				print "There is an error in the output for", p
-				errorcount = errorcount + 1
-
-		if errorcount > 0:
-			print
-		print "Scan complete. Found", errorcount, "error(s) in", len(plist), "files."
-
-
+		scan_for_errors(options,args)
+	elif options.timeouts != "False":
+		scan_for_timeouts(options,args)
 	else:
 		# Not any other switch: just test the list then
 		if args == []:
