@@ -2,7 +2,7 @@ const pk: Function;
 secret sk: Function;
 inversekeys (pk,sk);
 
-protocol carkeyni(I,R)
+protocol carkeyni2(I,R)
 {
 	role I
 	{
@@ -28,7 +28,7 @@ untrusted Eve;
 const nc: Nonce;
 compromised sk(Eve);
 
-run carkeyni.I(Agent,Agent);
-run carkeyni.R(Agent,Agent);
-run carkeyni.I(Agent,Agent);
-run carkeyni.R(Agent,Agent);
+run carkeyni2.I(Agent,Agent);
+run carkeyni2.R(Agent,Agent);
+run carkeyni2.I(Agent,Agent);
+run carkeyni2.R(Agent,Agent);

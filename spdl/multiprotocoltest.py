@@ -19,7 +19,7 @@ TupleProgram = "./tuples.py"
 
 ScytherProgram = "../src/scyther"
 ScytherDefaults	= "--summary"
-ScytherMethods	= "-m1 -a"
+ScytherMethods	= "-m0 -a"
 ScytherBounds	= "-r4 -l40"
 
 ReportInterval = 10
@@ -28,6 +28,13 @@ ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
 CommandPrefix = ScytherProgram + " " + ScytherArgs
 
 ProtocolClaims = {}
+
+SkipList = [
+	'gong-nonce.spdl',
+	'gong-nonce-b.spdl',
+	'splice-as-hc.spdl',
+	'kaochow-palm.spdl'
+	]
 
 # ***********************
 # 	LIBS
@@ -47,7 +54,7 @@ def ScytherEval (plist):
 	results = {}
 	for line in lines:
 		data = line.split()
-		if data[0] == 'claim':
+		if len(data) > 6 and data[0] == 'claim':
 			claim = " ".join(data[1:4])
 			tag = data[6]
 			value = -1
@@ -67,6 +74,43 @@ def ScytherEval (plist):
 def ScytherEval1 (protocol):
 	results = ScytherEval ([protocol])
 	ProtocolClaims.update (results)
+
+
+
+# Show progress of i (0..n)
+# 
+LastProgress = {}
+ProgressBarWidth = 50
+
+def ShowProgress (i,n,txt):
+	factor = int((ProgressBarWidth * i) / n)
+	showme = 0
+	if LastProgress.has_key(n):
+		if LastProgress[n]<>(factor,txt):
+			showme = 1
+	else:
+		showme = 1
+	if showme == 1:
+		bar = "\r["
+		i = 0
+		while i < ProgressBarWidth:
+			if i <= factor:
+				bar = bar + "*"
+			else:
+				bar = bar + "."
+			i = i+1
+		bar = bar + "] " + txt
+		sys.stdout.write(bar)
+		sys.stdout.flush()
+	LastProgress[n] = (factor, txt)
+
+def ClearProgress (n,txt):
+	bar = " " * (1 + ProgressBarWidth + 2 + len(txt))
+	sys.stdout.write("\r" + bar + "\r")
+	sys.stdout.flush()
+
+
+
 
 
 
@@ -97,8 +141,8 @@ while loop:
 	if line != '':
 		# not the end of the input
 		cleanline = string.strip(line)
-		if cleanline != '':
-			# not a blank line
+		if cleanline != '' and cleanline not in SkipList:
+			# not a blank line, not forbidden
 			Protocol.append(cleanline)
 			ProtocolCount = ProtocolCount + 1
 			outp.write(line)
@@ -106,7 +150,6 @@ while loop:
 		# end of the input
 		loop = 0
 outp.close()
-print "Evaluating tuples of", TupleWidth, "for", ProtocolCount, "protocols."
 
 # Caching of single-protocol results for speed gain.
 #----------------------------------------------------------------------
@@ -114,11 +157,15 @@ print "Evaluating tuples of", TupleWidth, "for", ProtocolCount, "protocols."
 # The script first computes the singular results for all the protocols
 # and stores this in an array, or something like that.
 
+print "Evaluating tuples of", TupleWidth, "for", ProtocolCount, "protocols, using the command '" + CommandPrefix + "'"
 i = 0
+safetxt = '                                '
 while i < ProtocolCount:
+	ShowProgress (i, ProtocolCount,Protocol[i]+safetxt)
 	ScytherEval1 ( Protocol[i] )
 	i = i + 1
-print "Evaluated single results."
+ClearProgress(ProtocolCount, safetxt)
+print "Evaluated single results, proceeding to test tuples."
 
 # Computation of combined list.
 #----------------------------------------------------------------------
@@ -129,12 +176,17 @@ print "Evaluated single results."
 
 lstatus=os.system(TupleProgram + ' ' + TupleWidth + ' <' + TempFileList + ' >' + TempFileTuples)
 
+inp = open(TempFileTuples, 'r')
+TupleCount = 0
+for x in inp:
+	TupleCount = TupleCount + 1
+inp.close()
+
 # Testing of protocol tuples
 #----------------------------------------------------------------------
 #
 # We take the list of tuples and test each combination.
 
-print
 inp = open(TempFileTuples, 'r')
 processed = 0
 newattacks = 0
@@ -143,6 +195,10 @@ for tline in inp:
 	# Get the next tuple
 	#
 	protocols = tline.split()
+	ShowProgress (processed, TupleCount, " ".join(protocols) + safetxt)
+	#
+	# Process it
+	#
 	results = ScytherEval ( protocols )
 	#
 	# Now we have the results for this combination.
@@ -154,15 +210,14 @@ for tline in inp:
 			# an attack)
 			if ProtocolClaims[claim] == 1:
 				# Wooh! It was correct before
+				ClearProgress (TupleCount, safetxt)
 				newattacks = newattacks + 1
-				print claim
+				print "We found a new flaw:", claim
 	
 	# Next!
 	processed = processed + 1
-	if (processed % ReportInterval) == 0:
-		print "Checked", processed, "sofar."
 
-print
+ClearProgress (TupleCount, safetxt)
 print "Processed", processed,"tuple combinations in total."
 
 inp.close()
