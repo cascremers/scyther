@@ -25,6 +25,7 @@ extern Term CLAIM_Secret;
 extern Term CLAIM_Nisynch;
 extern Term CLAIM_Niagree;
 extern Term TERM_Agent;
+extern Term TERM_Hidden;
 
 static System sys;
 Protocol INTRUDER;		// Pointers, to be set by the Init
@@ -303,8 +304,7 @@ iterate_role_sends (int (*func) ())
  *@param subterm determines whether it is a subterm unification or not.
  */
 int
-bind_existing_to_goal (const Binding b, const int index, const int run,
-		       const int subterm)
+bind_existing_to_goal (const Binding b, const int run, const int index)
 {
   Roledef rd;
   int flag;
@@ -395,7 +395,7 @@ bind_existing_to_goal (const Binding b, const int index, const int run,
 //! Bind a goal to an existing regular run, if possible
 int
 bind_existing_run (const Binding b, const Protocol p, const Role r,
-		   const int index, const int subterm)
+		   const int index)
 {
   int run, flag;
 
@@ -409,7 +409,7 @@ bind_existing_run (const Binding b, const Protocol p, const Role r,
       termPrint (p->nameterm);
       eprintf (", ");
       termPrint (r->nameterm);
-      eprintf (" (%i)\n", subterm);
+      eprintf ("\n");
     }
 #endif
   flag = 1;
@@ -417,7 +417,7 @@ bind_existing_run (const Binding b, const Protocol p, const Role r,
     {
       if (sys->runs[run].protocol == p && sys->runs[run].role == r)
 	{
-	  flag = flag && bind_existing_to_goal (b, index, run, subterm);
+	  flag = flag && bind_existing_to_goal (b, run, index);
 	}
     }
   return flag;
@@ -426,7 +426,7 @@ bind_existing_run (const Binding b, const Protocol p, const Role r,
 //! Bind a goal to a new run
 int
 bind_new_run (const Binding b, const Protocol p, const Role r,
-	      const int index, const int subterm)
+	      const int index)
 {
   int run;
   int flag;
@@ -445,10 +445,10 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
       termPrint (p->nameterm);
       eprintf (", ");
       termPrint (r->nameterm);
-      eprintf (", run %i (subterm:%i)\n", run, subterm);
+      eprintf (", run %i\n", run);
     }
 #endif
-  flag = bind_existing_to_goal (b, index, run, 1);
+  flag = bind_existing_to_goal (b, run, index);
   remove_read_goals (newgoals);
   roleInstanceDestroy (sys);
   return flag;
@@ -548,7 +548,9 @@ select_goal ()
       if (!b->done)
 	{
 	  // We don't care about singular agent variables, so...
-	  if (! (isTermVariable (b->term) && inTermlist (b->term->stype, TERM_Agent)))
+	  if (!
+	      (isTermVariable (b->term)
+	       && inTermlist (b->term->stype, TERM_Agent)))
 	    {
 	      float cons;
 
@@ -657,7 +659,7 @@ bind_goal_new_encrypt (const Binding b)
       rd->next->message = termDuplicate (t2);
       rd->next->next->message = termDuplicate (term);
       index = 2;
-      newgoals = add_read_goals (run, 0, index+1);
+      newgoals = add_read_goals (run, 0, index + 1);
 #ifdef DEBUG
       if (DEBUGL (3))
 	{
@@ -673,7 +675,7 @@ bind_goal_new_encrypt (const Binding b)
 #endif
       if (goal_bind (b, run, index))
 	{
-          flag = flag && iterate ();
+	  flag = flag && iterate ();
 	}
       goal_unbind (b);
       remove_read_goals (newgoals);
@@ -689,7 +691,7 @@ bind_goal_new_encrypt (const Binding b)
 int
 bind_goal_new_intruder_run (const Binding b)
 {
-  return (bind_goal_new_m0(b) && bind_goal_new_encrypt(b));
+  return (bind_goal_new_m0 (b) && bind_goal_new_encrypt (b));
 }
 
 //! Bind a regular goal
@@ -747,9 +749,9 @@ bind_goal_regular_run (const Binding b)
 	  }
 #endif
 	// Bind to existing run
-	flag = bind_existing_run (b, p, r, index, 1);
+	flag = bind_existing_run (b, p, r, index);
 	// bind to new run
-	flag = flag && bind_new_run (b, p, r, index, 1);
+	flag = flag && bind_new_run (b, p, r, index);
 	return flag;
       }
     else
@@ -772,7 +774,8 @@ bind_goal_regular_run (const Binding b)
 
 
 // Bind to all possible sends of intruder runs
-int bind_goal_old_intruder_run (Binding b)
+int
+bind_goal_old_intruder_run (Binding b)
 {
   int run;
   int flag;
@@ -781,7 +784,7 @@ int bind_goal_old_intruder_run (Binding b)
   if (DEBUGL (5))
     {
       indentPrint ();
-      eprintf ("Try regular intruder send.\n");
+      eprintf ("Try existing intruder send.\n");
     }
 #endif
 
@@ -793,13 +796,13 @@ int bind_goal_old_intruder_run (Binding b)
 	  int ev;
 	  Roledef rd;
 
-          rd = sys->runs[run].start;
+	  rd = sys->runs[run].start;
 	  ev = 0;
 	  while (ev < sys->runs[run].length)
 	    {
 	      if (rd->type == SEND)
 		{
-                  flag = flag && bind_existing_to_goal (b, ev, run, 1);
+		  flag = flag && bind_existing_to_goal (b, run, ev);
 		}
 	      rd = rd->next;
 	      ev++;
@@ -836,6 +839,7 @@ int
 prune ()
 {
   Termlist tl;
+  List bl;
 
   if (indentDepth > 20)
     {
@@ -917,6 +921,21 @@ prune ()
 	}
 #endif
       return 1;
+    }
+
+  // Check for "Hidden" interm goals
+  bl = sys->bindings;
+  while (bl != NULL)
+    {
+      Binding b;
+
+      b = bl->data;
+      if (termInTerm (b->term, TERM_Hidden))
+	{
+	  // Prune the state: we can never meet this
+	  return 1;
+	}
+      bl = bl->next;
     }
 
   return 0;

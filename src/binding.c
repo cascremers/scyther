@@ -3,6 +3,7 @@
  */
 
 #include "list.h"
+#include "role.h"
 #include "system.h"
 #include "binding.h"
 #include "warshall.h"
@@ -13,6 +14,9 @@
 static System sys;
 static int *graph;
 static int nodes;
+
+extern Protocol INTRUDER;	// The intruder protocol
+extern Role I_M;		// special role; precedes all other events always
 
 /*
  *
@@ -93,6 +97,7 @@ void
 goal_graph_create ()
 {
   int run, ev;
+  int last_m;
   List bl;
 
   goal_graph_destroy ();
@@ -104,6 +109,7 @@ goal_graph_create ()
 
   // Setup run order
   run = 0;
+  last_m = -1;			// last I_M run
   while (run < sys->maxruns)
     {
       ev = 1;
@@ -113,6 +119,16 @@ goal_graph_create ()
 	  graph[graph_nodes (nodes, run, ev - 1, run, ev)] = 1;
 	  ev++;
 	}
+      // Enforce I_M ordering
+      if (sys->runs[run].protocol == INTRUDER && sys->runs[run].role == I_M)
+	{
+	  if (last_m != -1)
+	    {
+	      graph[graph_nodes (nodes, last_m, 0, run, 0)] = 1;
+	    }
+	  last_m = run;
+	}
+      // Next
       run++;
     }
   // Setup bindings order
@@ -228,11 +244,12 @@ goal_add (Term term, const int run, const int ev)
   term = deVar (term);
 #ifdef DEBUG
   if (term == NULL)
-      error ("Trying to add an emtpy goal term");
+    error ("Trying to add an emtpy goal term");
   if (run >= sys->maxruns)
-      error ("Trying to add a goal for a run that does not exist.");
+    error ("Trying to add a goal for a run that does not exist.");
   if (ev >= sys->runs[run].step)
-      error ("Trying to add a goal for an event that is not in the semistate yet.");
+    error
+      ("Trying to add a goal for an event that is not in the semistate yet.");
 #endif
   if (realTermTuple (term))
     {
