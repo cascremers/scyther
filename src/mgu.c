@@ -198,7 +198,7 @@ termMguInTerm (Term t1, Term t2, int (*iterator) ())
  */
 int
 termMguSubTerm (Term t1, Term t2, int (*iterator) (),
-		const Termlist inverses, Termlist keylist)
+		Termlist inverses, Termlist keylist)
 {
   int flag;
   Termlist tl;
@@ -230,8 +230,8 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (),
 
 	  // Recurse
 	  flag =
-	    flag & termMguSubTerm (t1, t2->left.op, iterator, inverses,
-				   keylist_new);
+	    flag && termMguSubTerm (t1, t2->left.op, iterator, inverses,
+				    keylist_new);
 
 	  termlistDelete (keylist_new);
 	  termDelete (newkey);
@@ -242,7 +242,7 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (),
   if (tl != MGUFAIL)
     {
       // Iterate
-      flag = flag & iterator (tl, keylist);
+      flag = flag && iterator (tl, keylist);
       // Reset variables
       termlistSubstReset (tl);
     }

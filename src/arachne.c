@@ -110,17 +110,19 @@ arachneDone ()
 #define isBound(rd)	(rd->bind_run != INVALID)
 #define length		step
 
-#ifdef DEBUG
 //! Indent print
 void
 indentPrint ()
 {
+#ifdef DEBUG
   int i;
 
   for (i = 0; i < indentDepth; i++)
     eprintf ("|   ");
-}
+#else
+  eprintf (">> ");
 #endif
+}
 
 //! Iterate but discard the info of the termlist
 int
@@ -384,15 +386,14 @@ bind_goal_regular (const Goal goal)
   }
 
   // Bind to all possible sends or intruder node;
-  return (iterate_role_sends (bind_this) &&
-          add_intruder_goal_iterate (goal));
+  return (iterate_role_sends (bind_this) && add_intruder_goal_iterate (goal));
 }
 
 //! Bind an intruder goal to a regular run
 int
 bind_intruder_to_regular (const Goal goal)
 {
-  int bind_this (Protocol p, Role r, Roledef rd, int index)
+  int bind_this_f2 (Protocol p, Role r, Roledef rd, int index)
   {
     int element_f2 (Termlist substlist, Termlist keylist)
     {
@@ -413,12 +414,12 @@ bind_intruder_to_regular (const Goal goal)
 	   * In any case, the list of keys is added as a new goal.
 	   */
 	  int add_key_goal (Term t)
-	    {
-	      keygoals++;
-	      create_intruder_goal (t);
-	      //!@todo This needs a mapping Pi relation as well.
-	      return 1;
-	    }
+	  {
+	    keygoals++;
+	    create_intruder_goal (t);
+	    //!@todo This needs a mapping Pi relation as well.
+	    return 1;
+	  }
 
 	  keygoals = 0;
 	  termlist_iterate (keylist, add_key_goal);
@@ -427,8 +428,13 @@ bind_intruder_to_regular (const Goal goal)
 	   * or from a new one.
 	   */
 
-	  flag = bind_existing_run (goal, p, r, index) &&
-		 bind_new_run (goal, p, r, index);
+	  /**
+	   * This code has a major bug (memory destruction)
+	   * in both branches
+	   *@todo FIX!!
+	   */
+	  flag = bind_existing_run (goal, p, r, index)
+	    && bind_new_run (goal, p, r, index);
 
 	  /**
 	   * deconstruct key list goals
@@ -438,17 +444,18 @@ bind_intruder_to_regular (const Goal goal)
 	      roleInstanceDestroy (sys);
 	      keygoals--;
 	    }
-	  
+
 	  return flag;
 	}
     }
 
     // Test for subterm unification
-    return termMguSubTerm (goal.rd->message, rd->message, element_f2, sys->traceKnow[0]->inverses, NULL);
+    return termMguSubTerm (goal.rd->message, rd->message, element_f2,
+			   sys->traceKnow[0]->inverses, NULL);
   }
 
   // Bind to all possible sends?
-  return iterate_role_sends (bind_this);
+  return iterate_role_sends (bind_this_f2);
 }
 
 //! Bind an intruder goal by intruder construction

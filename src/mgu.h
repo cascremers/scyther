@@ -17,7 +17,7 @@
 Termlist termMguTerm (Term t1, Term t2);
 int termMguInTerm (Term t1, Term t2, int (*iterator) ());
 int termMguSubTerm (Term t1, Term t2, int (*iterator) (),
-		    const Termlist inverses, Termlist keylist);
+		    Termlist inverses, Termlist keylist);
 void termlistSubstReset (Termlist tl);
 
 #endif
