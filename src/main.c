@@ -85,6 +85,8 @@ main (int argc, char **argv)
   struct arg_file *outfile = arg_file0("o","output","FILE", "output file (default is stdout)");
   struct arg_int *switch_scenario =
       arg_int0 ("s", "scenario", NULL, "select a scenario instance 1-n (-1 to count)");
+  struct arg_int *switch_scenario_size =
+      arg_int0 ("S", "scenario-size", NULL, "scenario size (fixed trace prefix length)");
   struct arg_int *switch_traversal_method = arg_int0 ("t", "traverse", NULL,
 					"set traversal method, partial order reduction (default is 12)");
   struct arg_int *switch_match_method =
@@ -113,7 +115,7 @@ main (int argc, char **argv)
   struct arg_lit *switch_enable_symmetry_order = arg_lit0 (NULL, "symm-order", "enable ordering symmetry reductions");
   struct arg_lit *switch_disable_noclaims_reductions = arg_lit0 (NULL, "no-noclaims-red", "disable no more claims reductions");
   struct arg_lit *switch_disable_endgame_reductions = arg_lit0 (NULL, "no-endgame-red", "disable endgame reductions");
-  struct arg_lit *switch_summary = arg_lit0 ("S", "summary", "show summary on stdout instead of stderr");
+  struct arg_lit *switch_summary = arg_lit0 (NULL, "summary", "show summary on stdout instead of stderr");
   struct arg_lit *switch_echo = arg_lit0 ("E", "echo", "echo command line to stdout");
 #ifdef DEBUG
   struct arg_int *switch_por_parameter = arg_int0 (NULL, "pp", NULL, "POR parameter");
@@ -132,6 +134,7 @@ main (int argc, char **argv)
     switch_empty,
     switch_state_space_graph,
     switch_scenario,
+    switch_scenario_size,
     switch_latex_output,
     switch_summary,
     switch_echo,
@@ -178,6 +181,7 @@ main (int argc, char **argv)
   switch_por_parameter->ival[0] = 0;
 #endif
   switch_scenario->ival[0] = 0;
+  switch_scenario_size->ival[0] = 0;
   switch_traversal_method->ival[0] = 12;
   switch_match_method->ival[0] = 0;
   switch_prune_trace_length->ival[0] = -1;
@@ -337,15 +341,24 @@ main (int argc, char **argv)
    * The scenario selector has an important side effect; when it is non-null,
    * any scenario traversing selects chooses first.
    */
-  sys->switchScenario = switch_scenario->ival[0];	/* scenario selector */
+  sys->switchScenario = switch_scenario->ival[0];		/* scenario selector */
+  sys->switchScenarioSize = switch_scenario_size->ival[0];	/* scenario size */
+  if (sys->switchScenario == 0 && sys->switchScenarioSize > 0)
+    {
+      /* no scenario, but a size is set. so override */
+#ifdef DEBUG
+      warning ("Scanning scenarios.");
+#endif
+      sys->switchScenario = -1;
+    }
   if (sys->switchScenario < 0)
     {
       sys->output = SCENARIOS;
     }
-  if (sys->switchScenario != 0)
+  if (sys->switchScenario != 0 && sys->switchScenarioSize == 0)
     {
 #ifdef DEBUG
-      warning ("Scenario selection implies --choose-first.");
+      warning ("Scenario selection without trace prefix length implies --choose-first.");
 #endif
       sys->switchChooseFirst = 1;
     }

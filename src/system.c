@@ -58,6 +58,7 @@ systemInit ()
   sys->porparam = 0;		// multi-purpose parameter
   sys->latex = 0;		// latex output?
   sys->switchScenario = 0;
+  sys->switchScenarioSize = 0;
   sys->switchForceChoose = 1;	// force explicit chooses by default
   sys->switchChooseFirst = 0;	// no priority to chooses by default
   sys->switchReadSymm = 0;	// don't force read symmetries by default

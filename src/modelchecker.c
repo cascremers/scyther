@@ -554,46 +554,82 @@ explorify (const System sys, const int run)
    */
   if (sys->switchScenario != 0)
     {
-      /* only after chooses */
-      if (myStep == 0 &&
-	  rd->type == READ)
+      /* two variants. If scenario size is 0, we operate on the old method involving chooses */
+      if (sys->switchScenarioSize == 0)
 	{
-	  if (run == sys->lastChooseRun)
+	  /* only after chooses */
+	  if (myStep == 0 &&
+	      rd->type == READ)
 	    {
-	      /* We are just after the last choose instance */
-	      /* count this instance */
-	      if (sys->countScenario < INT_MAX)
+	      if (run == sys->lastChooseRun)
 		{
-      	          sys->countScenario++;
+		  /* We are just after the last choose instance */
+		  /* count this instance */
+		  if (sys->countScenario < INT_MAX)
+		    {
+		      sys->countScenario++;
+		    }
+		  /* If we are displaying scenarios, print it */
+		  if (sys->output == SCENARIOS)
+		    {
+		      printf ("%i\t", sys->countScenario);
+		      scenarioPrint (sys);
+		      printf ("\n");
+		    }
+		  /* If it is not the selected one, abort */
+		  if (sys->switchScenario != sys->countScenario)
+		    {
+		      /* this branch is not interesting */
+		      /* unfortunately, it is also not drawn in the state graph because of this */
+		      if (sys->output == STATESPACE)
+			{
+			  graphScenario (sys, run, rd);
+			}
+		      /* act as if executed, but don't really explore it. */
+		      return 1;
+		    }
 		}
-	      /* If we are displaying scenarios, print it */
+	    }
+	}
+      else
+	{
+	  /* scenario size is not zero */
+
+	  //!@todo Optimization: if the good scenario is already traversed, other trace prefixes need not be explored any further.
+	  if (sys->step+1 == sys->switchScenarioSize)
+	    {
+	      /* Now, the prefix has been set. Count it */
+    	      if (sys->countScenario < INT_MAX)
+		{
+		  sys->countScenario++;
+		}
 	      if (sys->output == SCENARIOS)
 		{
-		  printf ("%i\t", sys->countScenario);
-		  scenarioPrint (sys);
-		  printf ("\n");
+		  /* apparently we want the output */
+		  int index;
+		  eprintf ("%i\t", sys->countScenario);
+		  index = 0;
+		  while (index < sys->switchScenarioSize)
+		    {
+		      roledefPrint (sys->traceEvent[index]);
+		      eprintf ("#%i; ", sys->traceRun[index]);
+		      index++;
+		    }
+		  eprintf ("\n");
 		}
-	      /* If it is not the selected one, abort */
+	      /* Is this the selected one? */
 	      if (sys->switchScenario != sys->countScenario)
 		{
-		  /* this branch is not interesting */
 		  /* unfortunately, it is also not drawn in the state graph because of this */
 		  if (sys->output == STATESPACE)
 		    {
 		      graphScenario (sys, run, rd);
 		    }
-		  return 0;
+		  /* act as if executed, but don't really explore it. */
+		  return 1;
 		}
 	    }
 	}
-    }
-
-  /* if there are chooses, and they are to go first, we must always wait for them */
-  if (myStep == 1 && sys->switchChooseFirst && sys->lastChooseRun >= 0)
-    {
-      /* we only explore this if all chooses have been done, and will be doing stuff */
-      if (sys->runs[sys->lastChooseRun].step == 0)
-	  return 0;
     }
 
   /**

@@ -25,56 +25,56 @@ makeRoledef ()
   return (Roledef) memAlloc (sizeof (struct roledef));
 }
 
-//! Print a role event list.
+//! Print a role event.
 void
 roledefPrint (Roledef rd)
 {
   if (rd == NULL)
     {
-      printf ("[Empty roledef]\n");
+      eprintf ("[Empty roledef]");
       return;
     }
   if (rd->type == READ && rd->internal)
     {
       /* special case: internal read == choose ! */
-      printf ("CHOOSE(");
+      eprintf ("CHOOSE(");
       termPrint (rd->message);
-      printf (")");
+      eprintf (")");
       return;
     }
   if (rd->type == READ)
-    printf ("READ");
+    eprintf ("READ");
   if (rd->type == SEND)
-    printf ("SEND");
+    eprintf ("SEND");
   if (rd->type == CLAIM)
-    printf ("CLAIM");
+    eprintf ("CLAIM");
   if (rd->label != NULL)
     {
       if (globalLatex)
 	{
-	  printf ("$_{");
+	  eprintf ("$_{");
 	  termPrint (rd->label);
-	  printf ("}$");
+	  eprintf ("}$");
 	}
       else
 	{
-	  printf ("_");
+	  eprintf ("_");
 	  termPrint (rd->label);
 	}
     }
   if (globalLatex)
-    printf ("$");
-  printf ("(");
+    eprintf ("$");
+  eprintf ("(");
   termPrint (rd->from);
-  printf (",");
+  eprintf (",");
   if (rd->type == CLAIM)
-    printf (" ");
+    eprintf (" ");
   termPrint (rd->to);
-  printf (", ");
+  eprintf (", ");
   termPrint (rd->message);
-  printf (" )");
+  eprintf (" )");
   if (globalLatex)
-    printf ("$");
+    eprintf ("$");
 }
 
 //! Duplicate a single role event node.
@@ -204,16 +204,16 @@ rolePrint (Role r)
     return;
 
   indent ();
-  printf ("[[Role : ");
+  eprintf ("[[Role : ");
   termPrint (r->nameterm);
-  printf ("]]\n");
+  eprintf ("]]\n");
   locVarPrint (r->locals);
 
   rd = r->roledef;
   while (rd != NULL)
     {
       roledefPrint (rd);
-      printf ("\n");
+      eprintf ("\n");
       rd = rd->next;
     }
 }
@@ -224,7 +224,7 @@ rolesPrint (Role r)
 {
   if (r == NULL)
     {
-      printf ("Empty role.");
+      eprintf ("Empty role.");
     }
   else
     {
