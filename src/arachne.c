@@ -1292,6 +1292,7 @@ termBindConsequences (Term t)
  * 	2:	key or not
  * 	4:	consequences determination
  * 	8:	select also single variables (that are not role variables)
+ * 	16:	single variables are better
  */
 Binding
 select_goal ()
@@ -1372,6 +1373,8 @@ select_goal ()
 	      if (mode & 2) adapt (1, 0.5 * (1 - b->level));
 	      // Bit 2: 4 consequence level
 	      if (mode & 4) adapt (1, termBindConsequences (b->term));
+	      // Bit 4: 16 single variables first
+	      if (mode & 16) adapt (4, 1-isTermVariable (b->term));
 
 	      // Weigh result
 	      if (buf_weight == 0 || buf_constrain <= min_constrain)
@@ -1388,6 +1391,7 @@ select_goal ()
 		    {
 		      eprintf ("[%i]", b->level);
 		    }
+		  eprintf ("<%.2f>", buf_constrain);
 		}
 	    }
 	}
