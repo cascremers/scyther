@@ -338,16 +338,16 @@ latexMessagePrint (struct tracebuf *tb, int from, int to)
   if (from == -1 && to != -1)
     {
       /* message from intruder into system */
-      printf ("\\found{$");
+      printf ("\\mess{$");
       termPrint (readTerm);
-      printf ("$}{}{run%d}\n", tb->run[to]);
+      printf ("$}{eve}{run%d}\n", tb->run[to]);
     }
   else if (from != -1 && to == -1)
     {
       /* message from system to intruder */
-      printf ("\\lost{$");
+      printf ("\\mess{$");
       termPrint (sendTerm);
-      printf ("$}{}{run%d}\n", tb->run[from]);
+      printf ("$}{run%d}{eve}\n", tb->run[from]);
     }
   else if (from != -1 && to != -1)
     {
@@ -372,7 +372,8 @@ latexMessagePrint (struct tracebuf *tb, int from, int to)
 }
 
 /*
- * hmm? TODO
+ * hmm? TODO apparently, some other variant used, with duplicate handling of
+ * lost and found ??? But only using lost...  weirdness.
  */
 
 void
@@ -403,9 +404,9 @@ latexMessagePrintHighlight (struct tracebuf *tb, int from, int to,
     }
   else if (from != -1 && to == -1)
     {
-      printf ("\\lost{$");
+      printf ("\\mess{$");
       latexTermPrint (sendTerm, highlight);
-      printf ("$}{}{run%d}\n", tb->run[from]);
+      printf ("$}{run%d}{eve}\n", tb->run[from]);
     }
   else if (from != -1 && to != -1)
     {
@@ -426,19 +427,6 @@ latexMessagePrintHighlight (struct tracebuf *tb, int from, int to,
 
       printf ("\n");
     }
-}
-
-/*
- * Display the fact that an intruder learns some facts.
- */
-
-void
-latexLearnComment (struct tracebuf *tb, int index, Termlist tl)
-{
-  /* currently implemented as a comment */
-  printf ("\\msccomment[4ex]{$I_%d=I_%d\\oplus ", index + 1, index);
-  termlistPrint (tl);
-  printf ("$}{envright}\n");
 }
 
 /*
@@ -927,7 +915,7 @@ attackDisplayLatex (System sys)
 	latexDeclInst (sys, i);
     }
   /* Add the intruder instance */
-  printf("\\declinst{eve}{Intruder}{Eve}\n");
+  printf("\\declinst{eve}{Eve}{Intruder}\n");
   printf("\n\n");
 
   /* print the events in the attack */
@@ -962,11 +950,14 @@ attackDisplayLatex (System sys)
 			}
 		      tl = tl->next;
 		    }
-		  printf ("\\msccomment[4ex]{$I_%d=I_%d\\oplus ",
-			  cKnowledge + 1, cKnowledge);
+
+		  /* print what was learned */
+
+		  printf ("\\action{learns $");
 		  cKnowledge++;
 		  latexTermlistPrint (newtl, highlights);
-		  printf ("$}{envright}\n");
+		  printf ("$}{eve}\n");
+		  printf ("\\nextlevel[2]\n");
 		}
 
 	      if (tb->link[i] != -1 && i < tb->length)
