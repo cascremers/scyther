@@ -11,29 +11,29 @@ const PlainSight: String;
 secret HelloWorld, HelloServer: String;
 secret k: Key;
 
-protocol broken1(aap,noot,mies)
+protocol broken1(I,R,S)
 {
-	role aap
+	role I
 	{
-		send_1(aap, noot, PlainSight, {HelloWorld, aap, noot}k );
-		send_2(aap, mies, {HelloServer, aap, mies}k );
+		send_1(I, R, PlainSight, {HelloWorld, I, R}k );
+		send_2(I, S, {HelloServer, I, S}k );
 	}	
-	role noot
+	role R
 	{
-		read_3(mies, noot, {HelloWorld, mies, aap, noot}k );
-		read_1(aap, noot, PlainSight, {HelloWorld, aap, noot}k );
-		claim(noot, Secret, PlainSight);
+		read_3(S, R, {HelloWorld, S, I, R}k );
+		read_1(I, R, PlainSight, {HelloWorld, I, R}k );
+		claim(R, Secret, PlainSight);
 	}
-	role mies
+	role S
 	{
-		read_2(aap, mies, {HelloServer, aap, mies}k );
-		send_3(mies, noot, {HelloWorld, mies, aap, noot}k );
+		read_2(I, S, {HelloServer, I, S}k );
+		send_3(S, R, {HelloWorld, S, I, R}k );
 	}
 }
 
-const Bonobo, Pinda, Mies: Agent;
+const a, b, S: Agent;
 
-run broken1.aap(Bonobo, Pinda, Mies);
-run broken1.noot(Bonobo, Pinda, Mies);
-run broken1.mies(Bonobo, Pinda, Mies);
+run broken1.I(a, b, S);
+run broken1.R(a, b, S);
+run broken1.S(a, b, S);
 
