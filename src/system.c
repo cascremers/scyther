@@ -66,6 +66,7 @@ systemInit ()
   sys->switchSymmOrder = 0;	// don't force symmetry order reduction by default
   sys->switchNomoreClaims = 1;	// default cutter when there are no more claims
   sys->switchReduceEndgame = 1;	// default cutter of last events in a trace
+  sys->switchReduceClaims = 1;	// default remove claims from duplicate instance choosers
   sys->switchClaims = 0;	// default don't report on claims
   sys->switchClaimToCheck = NULL;	// default check all claims
 
@@ -647,10 +648,10 @@ roleInstanceDestroy (const System sys)
       if (sys->engine == ARACHNE_ENGINE)
 	{
 	  // Remove artefacts
-          artefacts = myrun.artefacts;
+	  artefacts = myrun.artefacts;
 	  while (artefacts != NULL)
 	    {
-	      memFree(artefacts->term, sizeof (struct term));
+	      memFree (artefacts->term, sizeof (struct term));
 	      artefacts = artefacts->next;
 	    }
 	}

@@ -237,21 +237,11 @@ executeStep (const System sys, const int run)
   return 1;
 }
 
-/**
- * Determine for a roledef that is instantiated, the uninteresting ends bits.
- *
- *@todo "What is interesting" relies on the fact that there are only secrecy, sychnr and agreement properties.
- */
+//! Determine end of run after removing end reads, and optionally claims.
 Roledef
-removeIrrelevant (const System sys, const int run, Roledef rd)
+removeDangling (Roledef rd, const int killclaims)
 {
   Roledef rdkill;
-  int killclaims;
-
-  if (untrustedAgent (sys, sys->runs[run].agents))
-    killclaims = 1;
-  else
-    killclaims = 0;
 
   rdkill = rd;
   while (rd != NULL)
@@ -260,24 +250,28 @@ removeIrrelevant (const System sys, const int run, Roledef rd)
 	rdkill = rd;
       rd = rd->next;
     }
-  /* report part */
-  /*
-     rd = rdkill->next;
-     killclaims = 0;
-     while (rd != NULL)
-     {
-     killclaims++;
-     rd = rd->next;
-     }
-     if (killclaims > 1)
-     {
-     warning ("%i events stripped from run %i.", killclaims, run);
-     runPrint (rdkill->next);
-     }
-   */
-
   /* remove after rdkill */
   return rdkill;
+}
+
+/**
+ * Determine for a roledef that is instantiated, the uninteresting ends bits.
+ *
+ *@todo "What is interesting" relies on the fact that there are only secrecy, sychnr and agreement properties.
+ */
+Roledef
+removeIrrelevant (const System sys, const int run, Roledef rd)
+{
+  if (untrustedAgent (sys, sys->runs[run].agents))
+    {
+      // untrusted, so also remove claims
+      return removeDangling (rd, 1);
+    }
+  else
+    {
+      // trusted, so only remove reads
+      return removeDangling (rd, 0);
+    }
 }
 
 
@@ -438,11 +432,21 @@ explorify (const System sys, const int run)
 	  else
 	    {
 	      /* dependent run has chosen, so we can compare */
-	      if (termlistOrder (sys->runs[run].agents,
-				 sys->runs[ridSymm].agents) < 0)
+	      int order;
+
+	      order =
+		termlistOrder (sys->runs[run].agents,
+			       sys->runs[ridSymm].agents);
+	      if (order < 0)
 		{
 		  /* we only explore the other half */
 		  return 0;
+		}
+	      if (order == 0 && sys->switchReduceClaims)
+		{
+		  /* identical run; only the first would be checked for a claim */
+		  /* so we cut off this run, including claims, turning it into a dummy run */
+		  roleCap = removeDangling (rd, 1);
 		}
 	    }
 	}
@@ -450,7 +454,7 @@ explorify (const System sys, const int run)
       /* Special check 3: if after choosing, this run ends on (read|skippedclaim)*, we can remove that part already.
        */
 
-      if (sys->switchReduceEndgame)
+      if (sys->switchReduceEndgame && roleCap == NULL)
 	roleCap = removeIrrelevant (sys, run, rd);
 
       /* Special check x: if all agents in each run send only encrypted stuff, and all agents are trusted,

@@ -135,6 +135,9 @@ main (int argc, char **argv)
 	      "disable no more claims reductions");
   struct arg_lit *switch_disable_endgame_reductions =
     arg_lit0 (NULL, "no-endgame-red", "disable endgame reductions");
+  struct arg_lit *switch_disable_claim_symmetry =
+    arg_lit0 (NULL, "no-claimsymmetry-red",
+	      "disable claim symmetry reductions");
   struct arg_lit *switch_summary = arg_lit0 (NULL, "summary",
 					     "show summary on stdout instead of stderr");
   struct arg_lit *switch_echo =
@@ -178,6 +181,7 @@ main (int argc, char **argv)
     switch_disable_agent_symmetries,
     switch_disable_noclaims_reductions,
     switch_disable_endgame_reductions,
+    switch_disable_claim_symmetry,
 #ifdef DEBUG
     switch_por_parameter,
     switch_debug_indent,
@@ -368,6 +372,8 @@ main (int argc, char **argv)
     sys->switchNomoreClaims = 0;	/* disable no more claims cutter */
   if (switch_disable_endgame_reductions->count > 0)
     sys->switchReduceEndgame = 0;	/* disable endgame cutter */
+  if (switch_disable_claim_symmetry->count > 0)
+    sys->switchReduceClaims = 0;	/* disable claim symmetry cutter */
   if (switch_summary->count > 0)
     sys->output = SUMMARY;	/* report summary on stdout */
 

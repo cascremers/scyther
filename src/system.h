@@ -135,6 +135,7 @@ struct system
   int switchSymmOrder;		//!< Enable symmetry order reduction
   int switchNomoreClaims;	//!< Enable no more claims cutter
   int switchReduceEndgame;	//!< Enable endgame cutter
+  int switchReduceClaims;	//!< Symmetry reduction on claims (only works when switchAgentSymm is true)
   int switchClaims;		//!< Enable clails report
   Term switchClaimToCheck;	//!< Which claim should be checked?
 
