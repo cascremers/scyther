@@ -467,8 +467,9 @@ main (int argc, char **argv)
   if (sys->latex)
     latexDone (sys);
 
-  /* transfer any scenario counting to the exit code */
-  if (sys->switchScenario < 0)
+  /* Transfer any scenario counting to the exit code,
+   * assuming that there is no error. */
+  if (exitcode != 1 && sys->switchScenario < 0)
     {
       exitcode = sys->countScenario;
     }
