@@ -19,9 +19,14 @@
  * \section exit Exit codes
  *
  * 0  Okay	No attack found, claims encountered
+ *
  * 1  Error	Something went wrong (error) E.g. switch error, or scenario ran out.
+ *
  * 2  Okay	No attack found (because) no claims encountered
+ *
  * 3  Okay	Attack found
+ *
+ * However, if the --scenario=-1 switch is used, the exit code is used to return the number of scenarios.
  *
  * \section coding Coding conventions
  *
@@ -461,6 +466,12 @@ main (int argc, char **argv)
   /* latex closeup */
   if (sys->latex)
     latexDone (sys);
+
+  /* transfer any scenario counting to the exit code */
+  if (sys->switchScenario < 0)
+    {
+      exitcode = sys->countScenario;
+    }
 
   /*
    * Now we clean up any memory that was allocated.
