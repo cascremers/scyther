@@ -84,11 +84,7 @@ const char *progname = "scyther";
  * Note that this is only referenced in the help output of the commandline program.
  * \todo Come up with a useful solution for release names.
  */
-#ifdef SVNCHANGED
-const char *releasetag = SVNVERSION " [modified]";
-#else
 const char *releasetag = SVNVERSION;
-#endif
 
 //! The number of seconds a test is allowed to run
 static int time_limit_seconds;
@@ -270,9 +266,9 @@ main (int argc, char **argv)
     {
       printf ("'%s' model checker for security protocols.\n", progname);
 #ifdef DEBUG
-      printf ("%s, compiled with debugging support.\n", releasetag);
+      printf ("Revision %s, compiled with debugging support.\n", releasetag);
 #else
-      printf ("%s\n", releasetag);
+      printf ("Revision %s\n", releasetag);
 #endif
       printf ("December 2003--, Cas Cremers\n");
       exitcode = 0;
