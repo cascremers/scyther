@@ -1,3 +1,5 @@
+- HIGH PRIORITY: Fix -t11 to be left-oriented. This is more consistent with
+  ensuring that the other symmetry reductions work as advertised.
 - Figure out how static building works. Might even involve switching to
   automake alternative (Cons, SCons,..)
 - Constraint logic now also has no checks for when a run is done by the
