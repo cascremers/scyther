@@ -28,11 +28,25 @@ import scythercache
 from tempfile import NamedTemporaryFile
 
 # ***********************
-# 	PARAMETERS
+# 	EXPERIMENTS
 # ***********************
 
-# Tuple width (number of concurrent protocols)
-TupleWidth = "2"
+### Test 0-2
+###------------------------------------------------------------------
+TupleWidth 	= "2"
+ScytherMethods	= "--match=0 --arachne"
+ScytherBounds	= "--timer=5 --max-runs=5 --max-length=20"
+
+### Test 1-2
+###------------------------------------------------------------------
+#TupleWidth 	= "2"
+#ScytherMethods	= "--match=1 --arachne"
+#ScytherBounds	= "--timer=5 --max-runs=5 --max-length=20"
+
+
+# ***********************
+# 	PARAMETERS
+# ***********************
 
 # Temporary files
 TempFileList = "scyther-blap.tmp"
@@ -43,8 +57,6 @@ TupleProgram = "./tuples.py"
 
 # Scyther parameters
 ScytherDefaults	= "--summary"
-ScytherMethods	= "--match=1 --arachne"
-ScytherBounds	= "--timer=5 --max-runs=5 --max-length=20"
 
 # Build a large part of the command line (for Scyther) already
 ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
