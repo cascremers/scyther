@@ -27,13 +27,13 @@ extern Term TERM_Agent;
 
 static System sys;
 Protocol INTRUDER;		// Pointers, to be set by the Init
-Role I_GOAL;			// Same here.
-Role I_TEE;
-Role I_SPLIT;
-Role I_TUPLE;
-Role I_ENCRYPT;
-Role I_DECRYPT;
-Role I_M0;
+Role I_M;			// Same here.
+Role I_F;
+Role I_T;
+Role I_V;
+Role I_R;
+Role I_E;
+Role I_D;
 
 static int indentDepth;
 
@@ -103,11 +103,13 @@ arachneInit (const System mysys)
 
   INTRUDER = protocolCreate (makeGlobalConstant (" INTRUDER "));
 
-  add_event (READ, NULL);
-  I_GOAL = add_role (" I_GOAL ");
-
   add_event (SEND, NULL);
-  I_M0 = add_role (" I_M0 ");
+  I_M = add_role ("I_M: Atomic message");
+
+  add_event (READ, NULL);
+  add_event (READ, NULL);
+  add_event (SEND, NULL);
+  I_D = add_role ("I_D: Decrypt");
 
   return;
 }
@@ -732,7 +734,7 @@ bind_intruder_to_construct (const Goal goal)
       if (binding_add (run, 0, goal.run, goal.index, t1))
 	{
 	  run = create_intruder_goal (t2);
-          if (binding_add (run, 0, goal.run, goal.index, t2))
+	  if (binding_add (run, 0, goal.run, goal.index, t2))
 	    {
 	      flag = flag && iterate ();
 	    }
@@ -757,11 +759,11 @@ bind_intruder_to_construct (const Goal goal)
 	{
 	  int run;
 
-	  roleInstance (sys, INTRUDER, I_M0, NULL, NULL);
+	  roleInstance (sys, INTRUDER, I_M, NULL, NULL);
 	  run = sys->maxruns - 1;
-	  sys->runs[run].start->message = termDuplicate(term);
+	  sys->runs[run].start->message = termDuplicate (term);
 	  sys->runs[run].length = 1;
-          if (binding_add (run, 0, goal.run, goal.index, term))
+	  if (binding_add (run, 0, goal.run, goal.index, term))
 	    {
 #ifdef DEBUG
 	      if (DEBUGL (3))
@@ -777,7 +779,7 @@ bind_intruder_to_construct (const Goal goal)
 	  binding_remove_last ();
 	  roleInstanceDestroy (sys);
 	  termlistSubstReset (subst);
-          termlistDelete (subst);
+	  termlistDelete (subst);
 	}
 
       m0tl = m0tl->next;
@@ -919,7 +921,8 @@ prune ()
 	  if (DEBUGL (3))
 	    {
 	      indentPrint ();
-	      eprintf ("Pruned because all agents of the claim run must be trusted.\n");
+	      eprintf
+		("Pruned because all agents of the claim run must be trusted.\n");
 	    }
 #endif
 	  return 1;
@@ -965,9 +968,9 @@ iterate ()
 #ifdef DEBUG
       if (DEBUGL (3) && explanation != NULL)
 	{
-          indentDepth--;
+	  indentDepth--;
 	  indentPrint ();
-          indentDepth++;
+	  indentDepth++;
 	  eprintf ("ITERATE: %s", explanation);
 
 	  if (e_run != INVALID)
