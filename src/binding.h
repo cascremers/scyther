@@ -11,7 +11,6 @@
 struct binding
 {
   int done;			//!< Iff true, it is bound
-  int child;			//!< Signifies some tuple unfolding, to remove created bindings.
 
   int run_from;
   int ev_from;

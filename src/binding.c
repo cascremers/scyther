@@ -34,7 +34,6 @@ binding_create (Term term, int run_to, int ev_to)
 
   b = memAlloc (sizeof (struct binding));
   b->done = 0;
-  b->child = 0;
   b->run_from = -1;
   b->ev_from = -1;
   b->run_to = run_to;
@@ -412,7 +411,6 @@ goal_add (Term term, const int run, const int ev, const int level)
 	      Binding b;
 
 	      b = (Binding) sys->bindings->data;
-	      b->child = 1;
 	    }
 	  i++;
 	}
