@@ -1,5 +1,3 @@
-- Exit code is less than 314; so reporting scenario count must
-  be done through stdout.
 - Constraint logic now also has no checks for when a run is done by the
   intruder (which should be excluded).
 - Fix constants in intruder knowledge. Auto add single one of each type,
