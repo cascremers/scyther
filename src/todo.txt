@@ -1,0 +1,3 @@
+- Add something of a 'history list of bound goals', through the arachne
+  engine. Then, put a limit on the amount of times some goal occurs: the
+  goal selection might ignore that goal then, for further selection.
