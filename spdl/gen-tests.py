@@ -28,15 +28,14 @@ print "#"
 def getline (inputfile):
 	return string.strip(inputfile.readline())
 
+def removespdl (str):
+	return string.replace(str,".spdl","")
+
 def makefilepart (tuple):
 	rt = count + "-"
 	namelist = string.split (tuple)
-	tocome = len (namelist)
 	for name in namelist:
-		rt = rt + name
-		tocome = tocome - 1
-		if tocome > 0:
-			rt = rt + "-"
+		rt = rt + "[" + removespdl(name) + "]"
 	return rt
 
 def makefileline (tuple):
@@ -68,3 +67,5 @@ while line:
 inp.close()
 print "#"
 print "# ", lines, " lines processed."
+
+# TODO Add code to clean up the mess: delete all files of zero length.
