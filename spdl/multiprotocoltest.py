@@ -167,7 +167,7 @@ while i < ProtocolCount:
 	ScytherEval1 ( Protocol[i] )
 	i = i + 1
 ClearProgress(ProtocolCount, safetxt)
-print "Evaluated single results, proceeding to test tuples."
+print "Evaluated single results."
 
 # Computation of combined list.
 #----------------------------------------------------------------------
@@ -183,6 +183,7 @@ TupleCount = 0
 for x in inp:
 	TupleCount = TupleCount + 1
 inp.close()
+print "Commencing test for", TupleCount, "protocol combinations."
 
 # Testing of protocol tuples
 #----------------------------------------------------------------------
@@ -214,7 +215,15 @@ for tline in inp:
 				# Wooh! It was correct before
 				ClearProgress (TupleCount, safetxt)
 				newattacks = newattacks + 1
-				print "We found a new flaw:", claim
+				print "We found a new flaw:", claim, " using",CommandPrefix,"and",protocols
+				#
+				# TODO
+				#
+				# Generate output to recreate/draw the
+				# attack, and maybe add this to a big
+				# error log thingy. Furthermore,
+				# explicitly recreate the commandline
+				# and the claim that is newly violated
 	
 	# Next!
 	processed = processed + 1
