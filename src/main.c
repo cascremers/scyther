@@ -539,6 +539,11 @@ main (int argc, char **argv)
 #ifdef DEBUG
   warning ("Selected output method is %i", sys->output);
 #endif
+
+  if (sys->engine == ARACHNE_ENGINE)
+    {
+      arachneInit ();
+    }
   /*
    * ---------------------------------------
    *  Start real stuff
@@ -620,6 +625,10 @@ main (int argc, char **argv)
    * Now we clean up any memory that was allocated.
    */
 
+  if (sys->engine == ARACHNE_ENGINE)
+    {
+      arachneDone ();
+    }
   knowledgeDestroy (sys->know);
   systemDone (sys);
   compilerDone ();
