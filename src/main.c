@@ -556,6 +556,12 @@ main (int argc, char **argv)
 	}
     }
 
+  /*
+   * ---------------------------------------
+   *  After checking the system, results
+   * ---------------------------------------
+   */
+
   /* Display shortest attack, if any */
 
   if (sys->attack != NULL && sys->attack->length != 0)
@@ -711,18 +717,20 @@ timersPrint (const System sys)
       anyclaims = 1;
 
       eprintf ("claim\t");
-      termPrint (cl_scan->rolename);
-      eprintf (":");
-      termPrint (cl_scan->label);
+      termPrint (cl_scan->type);
       eprintf ("\t");
+      termPrint (cl_scan->rolename);
+      eprintf (" (");
+      termPrint (cl_scan->label);
+      eprintf (")\tfound:\t");
       statesFormat (cl_scan->count);
       if (cl_scan->count > 0)
 	{
-	  eprintf ("\t");
 	  if (cl_scan->failed > 0)
 	    {
+	      eprintf ("\t");
+	      eprintf ("failed:\t");
 	      statesFormat (cl_scan->failed);
-	      eprintf (" failed");
 	    }
 	}
       eprintf ("\n");
