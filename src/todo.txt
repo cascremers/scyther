@@ -1,3 +1,9 @@
+- Maybe a singular, preset M_0 sending node. Test for performance issues.
+- Create dot output for arachne attacks
+- To store attacks for arachne, maybe the following is needed:
+  - The roles for each run
+  - The variable bindings for all (local) variables
+  - The goal bindings
 - Agent terms must have keylevel 0; enforce this!
 - './scyther -a ../spdl/nsl3.spdl --increment-runs' segfaults.
 - Select_goal should consider, for singular variables, whether their
