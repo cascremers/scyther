@@ -215,6 +215,19 @@ termlistAppend (const Termlist tl, const Term term)
   return tl;
 }
 
+//! Add a term only to a list if it wasn't in it before.
+/**
+ * Mimics a basic set type behaviour.
+ */
+Termlist
+termlistAddNew (const Termlist tl, const term t)
+{
+  if (inTermlist (tl, t))
+      return tl;
+  else
+      return termlistAdd (tl, t);
+}
+
 //! Concatenates two termlists.
 /**
  * The last pointer of the first list is made to point to the second list.
@@ -762,3 +775,5 @@ int termlistOrder (Termlist tl1, Termlist tl2)
   else
       return 1;
 }
+
+
