@@ -13,6 +13,7 @@ protocol ns3(I,R)
 		read_2(R,I, {ni,nr}pk(I) );
 		send_3(I,R, {nr}pk(R) );
 		claim_4(I,Secret,ni,nr);
+		claim_6(I,Nisynch);
 	}	
 	
 	role R
@@ -24,6 +25,7 @@ protocol ns3(I,R)
 		send_2(R,I, {ni,nr}pk(I) );
 		read_3(I,R, {nr}pk(R) );
 		claim_5(R,Secret,ni,nr);
+		claim_7(R,Nisynch);
 	}
 }
 
