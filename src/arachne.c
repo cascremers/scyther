@@ -73,6 +73,18 @@ arachneDone ()
 #define isBound(rd)	(rd->bind_run != INVALID)
 #define length		step
 
+#ifdef DEBUG
+//! Indent print
+void
+indentPrint ()
+{
+  int i;
+
+  for (i = 0; i < indentDepth; i++)
+    eprintf ("|   ");
+}
+#endif
+
 //! Iterate but discard the info of the termlist
 int
 mgu_iterate (const Termlist tl)
@@ -333,6 +345,15 @@ bind_goal (const Goal goal)
 int
 prune ()
 {
+  if (sys->maxruns > 5)
+    {
+      // Hardcoded limit on runs
+#ifdef DEBUG
+      indentPrint ();
+      eprintf ("Pruned because too many runs.\n");
+#endif
+      return 1;
+    }
   return 0;
 }
 
@@ -351,7 +372,7 @@ iterate ()
 #ifdef DEBUG
   indentDepth++;
 #endif
-  if (prune ())
+  if (!prune ())
     {
       /**
        * Not pruned: count
@@ -361,10 +382,7 @@ iterate ()
 #ifdef DEBUG
       if (explanation != NULL)
 	{
-	  int i;
-
-	  for (i = 0; i < indentDepth; i++)
-	    eprintf ("   ");
+	  indentPrint ();
 	  eprintf ("%s\n", explanation);
 	  explanation = NULL;
 	}
@@ -384,6 +402,12 @@ iterate ()
 	}
       else
 	{
+#ifdef DEBUG
+	  indentPrint ();
+	  eprintf ("Trying to bind goal ");
+	  termPrint (goal.rd->message);
+	  eprintf (" from run %i, index %i.\n", goal.run, goal.index);
+#endif
 	  /*
 	   * bind this goal in all possible ways and iterate
 	   */
@@ -399,6 +423,8 @@ iterate ()
 //! Main code for Arachne
 /**
  * For this test, we manually set up some stuff.
+ *
+ * But later, this will just iterate over all claims.
  */
 int
 arachne ()
@@ -406,9 +432,15 @@ arachne ()
   /*
    * set up claim role(s)
    */
+
+  if (sys->maxruns > 0)
+    {
+      sys->runs[0].length = roledef_length (sys->runs[0].start);
+    }
+
 #ifdef DEBUG
   explanation = NULL;
-  indentDepth = -1;
+  indentDepth = 0;
 #endif
 
   /*
