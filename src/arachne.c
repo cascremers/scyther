@@ -1461,7 +1461,7 @@ prune_theorems ()
   Termlist tl;
   List bl;
 
-  // Check if all agents are valid
+  // Check if all agents of the main run are valid
   tl = sys->runs[0].agents;
   while (tl != NULL)
     {
@@ -1497,6 +1497,26 @@ prune_theorems ()
 	  return 1;
 	}
       tl = tl->next;
+    }
+
+  // Check if the actors of all other runs are not untrusted
+  if (sys->untrusted != NULL)
+    {
+      int run;
+
+      run = 1;
+      while (run < sys->maxruns)
+	{
+	  if (inTermlist (sys->untrusted, agentOfRun (sys, run)))
+	    {
+	      if (sys->output == PROOF)
+		{
+		  indentPrint ();
+		  eprintf ("Pruned because the actor of run %i is untrusted.\n", run);
+		}
+	    }
+	  run++;
+	}
     }
 
   // Check for c-minimality
