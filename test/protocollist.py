@@ -40,6 +40,7 @@ def from_literature():
 	"wmf-brutus.spdl",
 	"woolam-ce.spdl",
 	"woolam-cmv.spdl",
+	"woolam-pi-f.spdl",
 	"yahalom-ban.spdl",
 	"yahalom-lowe.spdl",
 	"yahalom-paulson.spdl",
