@@ -34,6 +34,7 @@ int traversePOR2 (const System oldsys);
 int traversePOR2b (const System oldsys);
 int traversePOR3 (const System oldsys);
 int traversePOR4 (const System oldsys);
+int traversePOR5 (const System oldsys);
 int propertyCheck (const System sys);
 int executeTry (const System sys, int run);
 int claimSecrecy (const System sys, const Term t);
@@ -88,6 +89,8 @@ traverse (const System sys)
       return traversePOR2b (sys);
     case 8:
       return traversePOR4 (sys);
+    case 9:
+      return traversePOR5 (sys);
     default:
       debug (2, "This is NOT an existing traversal method !");
       exit (1);
@@ -855,6 +858,133 @@ traversePOR4 (const System sys)
     {
       /* there was a previous action, start scan from there */
       offset = sys->traceRun[sys->step - 1] + sys->porparam;
+    }
+
+  /* Try all events (implicitly we only handle enabled ones) starting with our
+   * first choice.  If one was chosen, flag is set, and the loop aborts. */
+  for (i = 0; i < sys->maxruns && !flag; i++)
+    {
+      run = (i + offset) % sys->maxruns;
+      rd = runPointerGet (sys, run);
+
+      if (rd != NULL)
+	{
+	  switch (rd->type)
+	    {
+	    case CLAIM:
+	    case SEND:
+	      executeTry (sys, run);
+	      flag = 1;
+	      break;
+
+	    case READ:
+	      /* the sendsdone check only prevent
+	       * some unneccessary inKnowledge tests,
+	       * and branch tests, still improves
+	       * about 15% */
+	      if (sys->knowPhase > rd->knowPhase)
+		{
+		  /* apparently there has been a new knowledge item since the
+		   * previous check */
+
+		  /* implicit check for enabledness */
+		  flag = executeTry (sys, run);
+
+		  /* if it was enabled (flag) we postpone it if it makes sense
+		   * to do so (hasVariable, non internal) */
+		  if (flag && hasTermVariable (rd->message) && !rd->internal)
+		    {
+		      int stackKnowPhase = rd->knowPhase;
+
+		      rd->knowPhase = sys->knowPhase;
+		      if (sys->clp)
+			{
+			  block_clp (sys, run);
+			}
+		      else
+			{
+			  block_basic (sys, run);
+			}
+		      rd->knowPhase = stackKnowPhase;
+		    }
+		}
+	      break;
+
+	    default:
+	      fprintf (stderr, "Encountered unknown event type %i.\n", rd->type);
+	      exit (1);
+	    }
+	}
+    }
+  return flag;
+}
+
+/*
+ * POR5
+ *
+ * POR4 but does chooses first.
+ */
+
+int
+traversePOR5 (const System sys)
+{
+  Roledef rd;
+  int flag = 0;
+  int run;
+  int i;
+  int offset;
+
+  /* Previously we did the sends first. This does not always improve things,
+   * depending on the protocol.
+   */
+  // if (nonReads (sys)) return 1;
+
+  /* a choice for choose */
+
+  /* The 'choose' implemented here is the following:
+   *
+   * choose ev#rid
+   * where rid = min(r: ev#r in enabled(sys): (r-lastrun) mod maxruns)
+   * and where lastrun is the runid of the previous event 
+   * in the trace, or 0 if there was none.
+   */
+  if (sys->step == 0)
+    {
+      /* first step, start at 0 */
+      offset = 0;
+    }
+  else
+    {
+      /* there was a previous action, start scan from there */
+      offset = sys->traceRun[sys->step - 1] + sys->porparam;
+    }
+
+  /* First pick out any choose events */
+  for (i = 0; i < sys->maxruns && !flag; i++)
+    {
+      run = (i + offset) % sys->maxruns;
+      rd = runPointerGet (sys, run);
+
+      if (rd != NULL)
+	{
+	  switch (rd->type)
+	    {
+	    case CLAIM:
+	    case SEND:
+	      break;
+
+	    case READ:
+	      if (rd->internal)
+		{
+		  flag = executeTry (sys, run);
+		}
+	      break;
+
+	    default:
+	      fprintf (stderr, "Encountered unknown event type %i.\n", rd->type);
+	      exit (1);
+	    }
+	}
     }
 
   /* Try all events (implicitly we only handle enabled ones) starting with our
