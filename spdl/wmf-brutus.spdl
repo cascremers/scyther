@@ -19,7 +19,7 @@ protocol wmfbrutus(A,B,S)
 
 		read_2(S,B, { A, kab }k(B,S) );
 
-		claim(B, Secret,kab);
+		claim_3(B, Secret,kab);
 	}
 
 	role S
