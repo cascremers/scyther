@@ -250,6 +250,7 @@ struct system
   Roledef *traceEvent;		//!< Trace roledefs: MaxRuns * maxRoledef
   int *traceRun;		//!< Trace run ids: MaxRuns * maxRoledef
   Knowledge *traceKnow;		//!< Trace intruder knowledge: Maxruns * maxRoledef
+  unsigned long int *traceNode;	//!< Trace node traversal
 
   /* POR reduction assistance */
   int PORphase;			//!< -1: init (all sends), 0...: recurse reads

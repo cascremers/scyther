@@ -491,8 +491,13 @@ attackDisplay (System sys)
     }
 }
 
-/* state space graph section */
-void graphInit (System sys)
+/* 
+ *-------------------------------------------
+ * state space graph section
+ *-------------------------------------------
+ */
+
+void graphInit (const System sys)
 {
   Termlist tl;
 
@@ -512,18 +517,23 @@ void graphInit (System sys)
   printf ("\"];\n");
 }
 
-void graphDone (System sys)
+void graphDone (const System sys)
 {
   /* drawing state space. close up. */
   printf ("}\n");
 }
 
-void graphNode (System sys)
+void graphNode (const System sys)
 {
   Termlist newtl;
+  unsigned long int thisNode, parentNode;
+
+  /* determine node numbers */
+  parentNode = sys->traceNode[sys->step - 1];
+  thisNode = sys->statesLow;
 
   /* add node */
-  printf ("\tn%li [shape=", sys->statesLow);
+  printf ("\tn%li [shape=", thisNode);
   
   newtl = knowledgeNew (sys->traceKnow[sys->step-1], sys->traceKnow[sys->step]);
   if (newtl != NULL)
@@ -542,7 +552,7 @@ void graphNode (System sys)
   printf ("];\n");
 
   /* add edge */
-  printf ("\tn%li -> n%li ", sys->parentState, sys->statesLow);
+  printf ("\tn%li -> n%li ", parentNode, thisNode);
   /* add label */
   printf ("[label=\"");
   roledefPrint (sys->traceEvent[sys->step - 1]);
@@ -556,4 +566,16 @@ void graphNode (System sys)
     }
   printf ("]");
   printf (";\n");
+}
+
+void graphPath (const System sys, const char* params)
+{
+  int i;
+
+  i = 0;
+  while (i < sys->step)
+    {
+      printf ("\tn%i [%s]\n", sys->traceNode[i], params);
+      i++;
+    }
 }

@@ -3,10 +3,11 @@
 
 #include "runs.h"
 
-void tracePrint(System sys);
-void attackDisplay(System sys);
-void graphInit (System sys);
-void graphDone (System sys);
-void graphNode (System sys);
+void tracePrint(const System sys);
+void attackDisplay(const System sys);
+void graphInit (const System sys);
+void graphDone (const System sys);
+void graphNode (const System sys);
+void graphPath (const System sys, const char* params);
 
 #endif

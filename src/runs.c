@@ -156,6 +156,7 @@ systemDone (System sys)
   memFree (sys->traceEvent, s * sizeof (Roledef));
   memFree (sys->traceRun, s * sizeof (int));
   memFree (sys->traceKnow, s * sizeof (Knowledge));
+  memFree (sys->traceNode, s * sizeof (unsigned long int));
 
   /* clear roledefs */
   for (run = 0; run < sys->maxruns; run++)
@@ -644,6 +645,7 @@ systemStart (System sys)
   sys->traceEvent = memAlloc (s * sizeof (Roledef));
   sys->traceRun = memAlloc (s * sizeof (int));
   sys->traceKnow = memAlloc (s * sizeof (Knowledge));
+  sys->traceNode = memAlloc (s * sizeof (unsigned long int));
 
   /* clear, for niceties */
   for (i = 0; i < s; i++)
@@ -651,6 +653,7 @@ systemStart (System sys)
       sys->traceEvent[i] = NULL;
       sys->traceRun[i] = 0;
       sys->traceKnow[i] = NULL;
+      sys->traceNode[i] = 0;
     }
 }
 
