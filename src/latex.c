@@ -13,7 +13,9 @@
 #include "varbuf.h"
 #include "output.h"
 
+//! Multiplication factor for distance between events in an MSC diagram.
 #define EVENTSPACE 1
+//! Similarity factor required for connecting arrows. Ranges from 0 to 1.
 #define LINKTHRESHOLD 0.95
 
 extern const char *progname;
@@ -21,8 +23,7 @@ extern const char *releasetag;
 extern int globalLatex;
 extern Term TERM_Function;
 
-/* struct for additional info */
-
+/*! Additional information for an events. */
 struct traceinfo
 {
   int match;
@@ -31,13 +32,29 @@ struct traceinfo
 
 /* global variables for this module */
 
+//! Additional information for each event in the trace.
 struct traceinfo *tinfo;
+//! The maximum run number involved, plus 1.
 int width;
+//! Landscape/portrait switch. Currently not used.
 int landscape = 0;
-int *runPerm;
+
+//! Phase of MSC production.
+/**
+ * In pass 1, the widths of the boxes are determined.
+ * In pass 2 the actual MSC is constructed.
+ */
 int pass;
 
 /* code */
+
+//! Start the latex output. 
+/** Prints some headers, and 
+ * the command line that was used, as comments.
+ *@param sys The system buffer.
+ *@param argv The command line arguments as they were passed to the tool.
+ *@param argc The number of arguments.
+ */
 
 void
 latexInit (const System sys, int argc, char **argv)
@@ -60,21 +77,23 @@ latexInit (const System sys, int argc, char **argv)
   printf ("\\newcommand{\\comment}[1]{}\n");
 }
 
+//! Close up any LaTeX output.
+/**
+ *@param sys The system state.
+ */
+
 void
 latexDone (const System sys)
 {
   /* closing of the document */
 }
 
-/*
- * latexTermPrint
- *
- * basically a recode of termPrint, now specific using latex codes and with a
+//! Print a term using LaTeX and highlighting.
+/**
+ * Basically a recode of termPrint, now specific using latex codes and with a
  * highlighting feature.
- *
- * In:
- * - a term to be printed.
- * - a list of terms to be highlighted.
+ *@param term a term to be printed.
+ *@param highlight a list of terms to be highlighted.
  */
 
 void
@@ -150,9 +169,12 @@ latexTermPrint (Term term, Termlist highlight)
     }
 }
 
-/*
- * extending LaTeX term printing to term list printing, again with highlight
+//! Print a termlist in LaTeX using highlighting.
+/**
+ * Extending LaTeX term printing to term list printing, again with highlight
  * list parameter.
+ *@param tl A term list to print.
+ *@param highlight Any terms to be highlighted.
  */
 
 void
@@ -172,9 +194,7 @@ latexTermlistPrint (Termlist tl, Termlist highlight)
     }
 }
 
-/*
- * Display the timers and states traversed, LaTeX version.
- */
+//! Display the timers and states traversed using LaTeX.
 
 void
 latexTimers (const System sys)
@@ -246,10 +266,10 @@ latexTimers (const System sys)
   printf ("\\end{tabular}\n\n");
 }
 
-/*
- * Start drawing MSC environment.
- *
- * Includes printing title
+//! Start drawing MSC environment.
+/**
+ * Includes printing title.
+ *@param protocolnames A termlist with protocol name terms.
  */
 
 void
@@ -263,9 +283,7 @@ latexMSCStart (Termlist protocolnames)
   printf ("$}\n");
 }
 
-/*
- * Close drawing MSC
- */
+//! Close drawing MSC
 
 void
 latexMSCEnd ()
@@ -277,11 +295,12 @@ latexMSCEnd ()
 
 }
 
-/*
+/**
  * Declare the MSC stick for a single instance of a run participating in an
  * attack.
- *
  * This involves layout of the partners roles, and the agent etc.
+ *@param sys System state.
+ *@param run The run to be declared.
  */
 
 void
@@ -338,10 +357,11 @@ latexDeclInst (const System sys, int run)
   termDelete (myAgent);
 }
 
-/*
+//! Add vertical space in MSC diagrams.
+/**
  * Make some space in the diagram by nextlevels.
- *
  * TODO: can be incorporated in nextlevel[param] without loop.
+ *@param amount the line integer.
  */
 
 void
@@ -359,7 +379,8 @@ latexEventSpace (int amount)
     printf ("\\nextlevel\n");
 }
 
-/*
+//! MSC message print.
+/**
  * Print an arrow with message from event i to event j, as defined in the
  * tracebuffer. If either i or j are -1, the intruder is meant.
  */
@@ -425,7 +446,7 @@ latexMessagePrint (struct tracebuf *tb, int from, int to)
     }
 }
 
-/*
+/**
  * hmm? TODO apparently, some other variant used, with duplicate handling of
  * lost and found ??? But only using lost...  weirdness.
  */
@@ -490,23 +511,9 @@ latexMessagePrintHighlight (struct tracebuf *tb, int from, int to,
     }
 }
 
-/*
- * ?? TODO
- */
-
-void
-latexAction (struct tracebuf *tb, int te)
-{
-  printf ("\\action{$");
-  termPrint (tb->event[te]->message);
-  printf ("$}{run%d}\n", tb->run[te]);
-  //printf("\\nextlevel\n");
-}
-
-/*
- * display claim violation.
- *
- * for now, only secrecy: TODO
+//! Display claim violation.
+/**
+ * For now, only secrecy: TODO
  */
 
 void
@@ -533,9 +540,10 @@ latexClaim (struct tracebuf *tb, int run, Termlist tl)
     }
 }
 
-/*
+//! Determine matching send event.
+/**
  * Given a read event, tries to find a corresponding send event in the trace
- * buffer.
+ * buffer. Currently unused.
  */
 
 int
@@ -643,47 +651,9 @@ latexCorrespondingSend (struct tracebuf *tb, int rd)
   return bestSendEvent;
 }
 
-/*
- * VERY broken. Mindwipe and recursion using inKnowledge, so this can't work.
- *
- * Apparently, it's supposed to find any subterm and was added in revision 526
- * by Lutger.
- */
-
-int
-newInKnowledge (const Knowledge know, Term term)
-{
-  /* if there is no term, then it's okay 'fur sure' */
-  if (term == NULL)
-    return 1;
-  /* if there is a term, but no knowledge, we're in trouble */
-  if (know == NULL)
-    return 0;
-
-  mindwipe (know, inKnowledge (know, term));
-
-  term = deVar (term);
-  if (isTermLeaf (term))
-    {
-      return inTermlist (know->basic, term);
-    }
-  if (term->type == ENCRYPT)
-    {
-      return inTermlist (know->encrypt, term) ||
-	(inKnowledge (know, term->key) || inKnowledge (know, term->op));
-    }
-  if (term->type == TUPLE)
-    {
-      return (inTermlist (know->encrypt, term) ||
-	      (inKnowledge (know, term->op1) ||
-	       inKnowledge (know, term->op2)));
-    }
-  return 0;			/* unrecognized term type, weird */
-}
-
-/*
+//! Determine matching send event.
+/**
  * Simplified variant of finding the matching send event.
- *
  * However, if it is introduced at a non-send event, things start to break
  * done. REVIEW later.
  */
@@ -713,9 +683,7 @@ latexCorrespondingSend2 (struct tracebuf *tb, int readEvent)
 
 }
 
-/*
- * Display knowledge in LaTeX format.
- */
+//! Display knowledge in LaTeX.
 
 void
 knowledgePrintLatex (Knowledge know)
@@ -734,9 +702,7 @@ knowledgePrintLatex (Knowledge know)
     }
 }
 
-/*
- * Display an attack
- */
+//! Display the attack in the systems attack buffer using LaTeX.
 
 void
 attackDisplayLatex (System sys)

@@ -27,9 +27,12 @@ void MC_incTraces (const System sys);
 void MC_single (const System sys);
 int modelCheck (const System sys);
 
+//! The name of this program.
 const char *progname = "scyther";
+//! Release tag name.
 const char *releasetag = "alpha2-devel";
 
+//! The main body, as called by the environment.
 int
 main (int argc, char **argv)
 {
@@ -365,6 +368,11 @@ exit:
   return exitcode;
 }
 
+//! Display time and state space size information using ASCII.
+/**
+ * Displays also whether an attack was found or not.
+ */
+
 void
 timersPrint (const System sys)
 {
@@ -425,9 +433,8 @@ timersPrint (const System sys)
   printf ("\n");
 }
 
+//! Analyse the model by incremental runs.
 /*
- * Analyse the model.
- *
  * This procedure considers mainly incremental searches, and settings
  * parameters for that. The real work is handled by modelCheck.
  */
@@ -467,6 +474,12 @@ MC_incRuns (const System sys)
     }
   while (flag && runs <= maxruns);
 }
+
+//! Analyse the model by incremental trace lengths.
+/*
+ * This procedure considers mainly incremental searches, and settings
+ * parameters for that. The real work is handled by modelCheck.
+ */
 
 void
 MC_incTraces (const System sys)
@@ -513,8 +526,9 @@ MC_incTraces (const System sys)
   while (flag && tracelen <= maxtracelen);
 }
 
-/*
- * Traditional handywork
+//! Analyse the model with a fixed scenario.
+/**
+ * Traditional handywork.
  */
 
 void
@@ -528,9 +542,8 @@ MC_single (const System sys)
   modelCheck (sys);
 }
 
+//! Model check the system, given all parameters.
 /*
- * Model check the system, given all parameters.
- * 
  * Precondition: the system was reset with the corresponding parameters.
  * This also reports on time and states traversed.
  */
