@@ -12,6 +12,9 @@ inversekeys (m, unm);
  *
  * Boyd & Mathuria: Protocols for authentication and key establishment
  * (2003) p. 101
+ *
+ * Note that MAC_ks(x) has been interpreted as MAC(x,ks); this
+ * assumption causes some possible false attacks.
  */
 
 protocol boyd(I,R,S)
