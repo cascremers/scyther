@@ -5,6 +5,14 @@
 # argv[1]	tuple width
 # stdin		list of protocol file names
 #
+#TODO:
+# The tests should be more confined: testing a three-tuple multiprotocol
+# should clean up after itself, and only leave stuff that is actually
+# _new_. As a base, we can (first compute and then leave the results)
+# have the single-protocol results as a reference to speed things up.
+# However, in general, the three-tuple stuff just generates too much
+# crap in the current setup.
+#
 import sys
 import os
 import time
