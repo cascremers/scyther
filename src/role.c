@@ -27,8 +27,11 @@ makeRoledef ()
 }
 
 //! Print a role event.
+/**
+ * If print_actor is true, the actor is included (OS version), otherwise it is left out (short stuff)
+ */
 void
-roledefPrint (Roledef rd)
+roledefPrintGeneric (Roledef rd, int print_actor)
 {
   if (rd == NULL)
     {
@@ -79,18 +82,37 @@ roledefPrint (Roledef rd)
   eprintf ("(");
   if (!(rd->from == NULL && rd->to == NULL))
     {
-      termPrint (rd->from);
-      eprintf (",");
+      if (print_actor || rd->type == READ)
+	{
+          termPrint (rd->from);
+          eprintf (",");
+	}
       if (rd->type == CLAIM)
 	eprintf (" ");
-      termPrint (rd->to);
-      eprintf (", ");
+      if (print_actor || rd->type != READ)
+	{
+	  termPrint (rd->to);
+	  eprintf (", ");
+	}
     }
   termPrint (rd->message);
   eprintf (" )");
   if (globalLatex)
     eprintf ("$");
 }
+
+void
+roledefPrint (Roledef rd)
+{
+  roledefPrintGeneric (rd, 1);
+}
+
+void
+roledefPrintShort (Roledef rd)
+{
+  roledefPrintGeneric (rd, 0);
+}
+
 
 //! Duplicate a single role event node.
 /**

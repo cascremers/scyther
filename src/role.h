@@ -126,6 +126,7 @@ struct role
 typedef struct role *Role;
 
 void roledefPrint (Roledef rd);
+void roledefPrintShort (Roledef rd);
 Roledef roledefDuplicate1 (const Roledef rd);
 Roledef roledefDuplicate (Roledef rd);
 void roledefDelete (Roledef rd);
