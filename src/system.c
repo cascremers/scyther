@@ -326,6 +326,29 @@ runsPrint (const System sys)
     }
 }
 
+//! Determine whether a term is sent or claimed, but not read first in a roledef
+int not_read_first (const Roledef rdstart, const Term t)
+{
+  Roledef rd;
+
+  rd = rdstart;
+  while (rd != NULL)
+    {
+      if (termSubTerm (rd->message, t))
+	{
+	  return (rd->type != READ);
+	}
+      rd = rd->next;
+    }
+  globalError++;
+  eprintf ("The term ");
+  termPrint (t);
+  eprintf (" is not read or sent in some roledef.\n");
+  error ("Aborting.");
+  globalError--;
+  return 0;
+}
+
 //! Yield the agent name term in a role, for a run in the system.
 /**
  *@param sys The system.
@@ -550,16 +573,18 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	      /* newvar is apparently new, but it might occur
 	       * in the first event if it's a read, in which
 	       * case we forget it */
-	      if (sys->switchForceChoose
-		  || !(rd->type == READ
-		       && termSubTerm (rd->message, scanfrom->term)))
+	      if (sys->switchForceChoose || not_read_first (rd, scanfrom->term))
 		{
 		  /* this term is forced as a choose, or it does not occur in the (first) read event */
-		  /* TODO scan might be more complex, but
-		   * this will do for now. I.e. occurring
-		   * first in a read will do */
-		  extterm = makeTermTuple (newvar, extterm);
-		  artefacts = termlistAdd (artefacts, extterm);
+		  if (extterm == NULL)
+		    {
+		      extterm = newvar;
+		    }
+		  else
+		    {
+		      extterm = makeTermTuple (newvar, extterm);
+		      artefacts = termlistAdd (artefacts, extterm);
+		    }
 		}
 	    }
 	  else
@@ -574,19 +599,6 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
       /* set agent list */
       runs[rid].agents = termlistDuplicate (tolist);
 
-      /* prefix a read for such reads. TODO: this should also cover any external stuff */
-      if (extterm != NULL)
-	{
-	  Roledef rdnew;
-
-	  rdnew = roledefInit (READ, NULL, NULL, NULL, extterm, NULL);
-	  /* this is an internal action! */
-	  rdnew->internal = 1;
-	  rdnew->next = rd;
-	  rd = rdnew;
-	  /* mark the first real action */
-	  runs[rid].firstReal++;
-	}
     }
   else
     {
@@ -621,6 +633,26 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	  if (inTermlist (protocol->rolenames, oldt))
 	    {
 	      runs[rid].agents = termlistAdd (runs[rid].agents, newt);
+
+	      if (isTermVariable (newt))
+        	{
+		  // It is a protocol role name, maybe add choose?
+		  // Note that for anything but full type flaws, this is not an issue.
+		  // In the POR reduction, force choose was the default. Here it is not.
+		  if (not_read_first(rd, oldt) && sys->match == 2 )
+		    {
+		      /* this term is forced as a choose, or it does not occur in the (first) read event */
+		      if (extterm == NULL)
+			{
+			  extterm = newt;
+			}
+		      else
+			{
+			  extterm = makeTermTuple (newt, extterm);
+			  artefacts = termlistAdd (artefacts, extterm);
+			}
+		    }
+		}
 	    }
 	  fromlist = termlistAdd (fromlist, oldt);
 	  tolist = termlistAdd (tolist, newt);
@@ -635,6 +667,20 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 
 	  scanfrom = scanfrom->next;
 	}
+    }
+
+  /* prefix a read for such reads. TODO: this should also cover any external stuff */
+  if (extterm != NULL)
+    {
+      Roledef rdnew;
+
+      rdnew = roledefInit (READ, NULL, NULL, NULL, extterm, NULL);
+      /* this is an internal action! */
+      rdnew->internal = 1;
+      rdnew->next = rd;
+      rd = rdnew;
+      /* mark the first real action */
+      runs[rid].firstReal++;
     }
 
   /* possibly shifted rd */

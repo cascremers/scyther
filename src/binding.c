@@ -248,15 +248,25 @@ goal_graph_create ()
 #endif
 							  done = 1;
 							}
-#ifdef DEBUG
 						      else
 							{
 							  // It doesn't occur first in a READ, which shouldn't be happening
-							  error
-							    ("Term from run %i occurs in run %i before it is read?",
-							     run2, run);
+							  if (sys->output == PROOF)
+							    {
+							      eprintf ("Term ");
+							      termPrint (t2);
+							      eprintf (" from run %i occurs in run %i, term ",
+								 run2, run);
+							      termPrint (t);
+							      eprintf (" before it is read?\n");
+							    }
+							  // Thus, we create an artificial loop
+							  if (sys->runs[0].step > 1)
+							    {
+							      // This forces a loop, and thus prunes
+							      graph[graph_nodes (nodes, 0,1, 0,0)] = 1;
+							    }
 							}
-#endif
 						    }
 						  rd = rd->next;
 						  ev++;

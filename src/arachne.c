@@ -1022,6 +1022,7 @@ select_goal ()
   float min_constrain;
   int max_level;
 
+  // Find the most constrained goal
   if (sys->output == PROOF)
     {
       indentPrint ();
@@ -1462,6 +1463,39 @@ prune_theorems ()
 {
   Termlist tl;
   List bl;
+  int run;
+
+  // Check if all agents are agents (!)
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      Termlist agl;
+
+      agl = sys->runs[run].agents;
+      while (agl != NULL)
+	{
+	  Term agent;
+
+	  agent = deVar(agl->term);
+	  if (agent == NULL)
+	    {
+	      error ("Agent of run %i is NULL", run);
+	    }
+	  if (!realTermLeaf (agent) || (agent->stype != NULL && !inTermlist (agent->stype, TERM_Agent)))
+	    {
+	      if (sys->output == PROOF)
+		{
+		  indentPrint ();
+		  eprintf ("Pruned because the agent ");
+		  termPrint (agent);
+		  eprintf (" of run %i is not of a compatible type.\n", run);
+		}
+	      return 1;
+	    }
+	  agl = agl->next;
+	}
+      run++;
+    }
 
   // Check if all agents of the main run are valid
   tl = sys->runs[0].agents;
@@ -1470,28 +1504,6 @@ prune_theorems ()
       Term agent;
 
       agent = deVar (tl->term);
-      if (agent == NULL)
-	{
-	  error ("Agent of run 0 is NULL");
-	}
-      if (!realTermLeaf (agent))
-	{
-	  if (sys->output == PROOF)
-	    {
-	      indentPrint ();
-	      eprintf ("Pruned because agent cannot be compound term.\n");
-	    }
-	  return 1;
-	}
-      if (!inTermlist (agent->stype, TERM_Agent))
-	{
-	  if (sys->output == PROOF)
-	    {
-	      indentPrint ();
-	      eprintf ("Pruned because agent must contain agent type.\n");
-	    }
-	  return 1;
-	}
       if (!realTermVariable (agent) && inTermlist (sys->untrusted, agent))
 	{
 	  if (sys->output == PROOF)
