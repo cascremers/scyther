@@ -444,7 +444,6 @@ check_claim_niagree (const System sys, const int i)
   return result;
 }
 
-
 //! Check arachne agreement claim
 /**
  * Per default, occurs in run 0, but for generality we have left the run parameter in.
@@ -452,5 +451,14 @@ check_claim_niagree (const System sys, const int i)
  */
 int arachne_claim_agree (const System sys, const int claim_run, const int claim_index)
 {
+  Claimlist cl;
+  Roledef rd;
+
+  rd = roledef_shift (sys->runs[claim_run].start, claim_index);
+#ifdef DEBUG
+  if (rd == NULL)
+      error ("Retrieving claim info for NULL node??");
+#endif
+  cl = rd->claiminfo;
 }
 

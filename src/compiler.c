@@ -438,6 +438,8 @@ commEvent (int event, Tac tc)
       if (event == SEND)
 	{
 	  /* set sendrole */
+	  if (!isTermEqual (fromrole, thisRole->nameterm))
+	      error ("Send role does not correspond to execution role at line %i.", tc->lineno);
 	  if (linfo->sendrole != NULL)
 	      error ("Label defined twice for sendrole!");
 	  linfo->sendrole = fromrole;
@@ -451,6 +453,8 @@ commEvent (int event, Tac tc)
 	{
 	  // READ
 	  /* set readrole */
+	  if (!isTermEqual (torole, thisRole->nameterm))
+	      error ("Read role does not correspond to execution role at line %i.", tc->lineno);
 	  if (linfo->readrole != NULL)
 	      error ("Label defined twice for readrole!");
 	  linfo->readrole = torole;
@@ -529,6 +533,8 @@ commEvent (int event, Tac tc)
       cl->protocol = thisProtocol;
       cl->rolename = fromrole;
       cl->role = thisRole;
+      if (!isTermEqual (fromrole, thisRole->nameterm))
+	  error ("Claim role does not correspond to execution role at line %i.", tc->lineno);
       cl->roledef = NULL;
       cl->count = 0;
       cl->complete = 0;
@@ -946,6 +952,85 @@ compute_label_roles (Termlist labels)
   return roles;
 }
 
+//! Order the label roles for a given claim
+void
+order_label_roles (const Claimlist cl)
+{
+  Termlist roles_remaining;
+  Termlist roles_ordered;
+  int distance;
+
+#ifdef DEBUG
+  if (DEBUGL (4))
+    {
+      eprintf ("Ordering label roles for claim ");
+      termPrint (cl->label);
+      eprintf ("; 0: ");
+      termPrint (cl->rolename);
+    }
+#endif
+  roles_remaining = termlistShallow (cl->roles);
+  roles_ordered = termlistAdd (NULL, cl->rolename);
+  roles_remaining = termlistDelTerm (termlistFind (roles_remaining, cl->rolename));
+
+  distance = 0;
+  while (roles_remaining != NULL)
+    {
+      distance++;
+#ifdef DEBUG
+      if (DEBUGL (4))
+	{
+	  eprintf (" %i:", distance);
+	}
+#endif
+
+      int scan_label (void *data)
+	{
+	  Labelinfo linfo;
+
+	  linfo = (Labelinfo) data;
+	  if (inTermlist (cl->prec, linfo->label ))
+	    {
+	      if (linfo->protocol == cl->protocol)
+		{
+		  // If it's not the same protocol, the labels can't match
+
+		  // This function checks whether the newrole can connect to the connectedrole, and whether they fulfil their requirements.
+		  void roles_test (const Term connectedrole, const Term newrole)
+		    {
+		      if (inTermlist (roles_ordered, connectedrole) &&
+			  inTermlist (roles_remaining, newrole))
+			{
+#ifdef DEBUG
+			  if (DEBUGL (4))
+			    {
+			      eprintf (" ");
+			      termPrint (newrole);
+			    }
+#endif
+			  roles_ordered = termlistAppend (roles_ordered, newrole);
+			  roles_remaining = termlistDelTerm (termlistFind (roles_remaining, newrole));
+			}
+		    }
+
+		  roles_test (linfo->sendrole, linfo->readrole);
+		  roles_test (linfo->readrole, linfo->sendrole);
+		}
+	    }
+	  return 1;
+	}
+
+      list_iterate (sys->labellist, scan_label);
+    }
+  cl->roles = roles_ordered;
+#ifdef DEBUG
+  if (DEBUGL (4))
+    {
+      eprintf ("\n");
+    }
+#endif
+}
+
 //! Compute prec() sets for each claim.
 /**
  * Generates two auxiliary structures. First, a table that contains
@@ -1221,11 +1306,16 @@ compute_prec_sets (const System sys)
 	    }
 	  r2++;
 	}
+
       /**
+       * ----------------------------------------
        * cl->prec is done, now we infer cl->roles
+       * Next, we nicely order them
+       * ----------------------------------------
        */
 
       cl->roles = compute_label_roles (cl->prec);
+      order_label_roles (cl);
 
       /**
        * ---------------------------
