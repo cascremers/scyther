@@ -13,6 +13,7 @@ def parse(scout):
 	rb = 0
 	rp = 0
 	nc = 0
+	st = 0
 	for l in scout.splitlines():
 		data = l.split()
 		if len(data) > 6 and data[0] == 'claim':
@@ -26,7 +27,9 @@ def parse(scout):
 					rp = rp + 1
 				else:
 					rb = rb + 1
-	return (ra,rb,rp,nc)
+		elif data[0] == 'states':
+			st = int(data[1])
+	return (ra,rb,rp,nc,st)
 
 
 # Test with a goal selector
@@ -42,21 +45,23 @@ def test_goal_selector(goalselector, options):
 	bounds = 0
 	proofs = 0
 	claims = 0
+	states = 0
 	for p in plist:
 		(status,scout) = scythertest.default_test([p], \
 				int(options.match), \
 				int(options.bounds))
-		(ra,rb,rp,nc) = parse(scout)
+		(ra,rb,rp,nc,st) = parse(scout)
 		attacks = attacks + ra
 		bounds = bounds + rb
 		proofs = proofs + rp
 		claims = claims + nc
+		states = states + st
 	
-	return (attacks,bounds,proofs,claims,np)
+	return (attacks,bounds,proofs,claims,np,states)
 
 # Max
 class maxor:
-	def __init__(self,dir=0,mymin=9999, mymax=-9999):
+	def __init__(self,dir=0,mymin=99999999, mymax=-99999999):
 		self.dir = dir
 		self.min = mymin
 		self.max = mymax
@@ -91,10 +96,11 @@ def main():
 	rpmax = maxor(1)
 	score1max = maxor(1)
 	score2max = maxor(1)
+	statesmax = maxor(2)
 
 	for g in range(1,31):
 		if (g & 8) == 0:
-			(ra,rb,rp,nc,np) = test_goal_selector(g, options)
+			(ra,rb,rp,nc,np,st) = test_goal_selector(g, options)
 
 			# Scores: bounds are negative
 			score1 = ra + rp - rb
@@ -111,6 +117,7 @@ def main():
 			res = res + "\t" + str(nc)
 			res = shows (res, score1max, score1)
 			res = shows (res, score2max, score2)
+			res = shows (res, statesmax, st)
 
 			print res
 	print
