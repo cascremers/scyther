@@ -91,7 +91,7 @@ latexDone (const System sys)
 //! Print a term using LaTeX and highlighting.
 /**
  * Basically a recode of termPrint, now specific using latex codes and with a
- * highlighting feature.
+ * highlighting feature. There is still some obsolete code to show variable mappings in a term.
  *@param term a term to be printed.
  *@param highlight a list of terms to be highlighted.
  */
@@ -134,15 +134,7 @@ latexTermPrint (Term term, Termlist highlight)
   if (realTermTuple (term))
     {
       printf ("(");
-      while (realTermTuple (term))
-	{
-	  latexTermPrint (term->op1, highlight);
-	  printf (",");
-	  term = term->op2;
-	  if (!realTermTuple (term))
-	    latexTermPrint (term, highlight);
-
-	}
+      latexTermTuplePrint (term);
       printf (")");
       return;
     }
@@ -154,19 +146,45 @@ latexTermPrint (Term term, Termlist highlight)
 	  /* function application */
 	  latexTermPrint (term->key, highlight);
 	  printf ("(");
-	  latexTermPrint (term->op, highlight);
+	  latexTermTuplePrint (term->op, highlight);
 	  printf (")");
 	}
       else
 	{
 	  /* normal encryption */
 	  printf ("\\{");
-	  latexTermPrint (term->op, highlight);
+	  latexTermTuplePrint (term->op, highlight);
 	  printf ("\\}_{");
 	  latexTermPrint (term->key, highlight);
 	  printf ("}");
 	}
     }
+}
+
+//! Print an inner (tuple) term using LaTeX, without brackets.
+/**
+ * The tuple printing only works correctly for normalized terms.
+ * If not, they might are displayed as "((x,y),z)". Maybe that is even
+ * desirable to distinguish them.
+ */
+void
+latexTermTuplePrint (Term term, Termlist hl)
+{
+  if (term == NULL)
+    {
+      printf ("Empty term");
+      return;
+    }
+  term = deVar(term);
+  while (realTermTuple (term))
+    {
+      // To remove any brackets, change this into latexTermTuplePrint.
+      latexTermPrint (term->op1, hl);
+      printf (",");
+      term = deVar(term->op2);
+    }
+  latexTermPrint(term, hl);
+  return;
 }
 
 //! Print a termlist in LaTeX using highlighting.

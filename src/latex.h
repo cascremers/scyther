@@ -17,5 +17,7 @@ void latexMessagePrint(const System sys, int from, int to);
 void latexLearnComment(const System sys, Termlist tl);
 void latexTracePrint(System sys);
 void attackDisplayLatex(System sys);
+void latexTermPrint (Term term, Termlist hl);
+void latexTermTuplePrint (Term term, Termlist hl);
 
 #endif

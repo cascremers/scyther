@@ -231,6 +231,12 @@ termOccurs (Term t, Term tsub)
 }
 
 //! Print a term to stdout.
+/**
+ * The tuple printing only works correctly for normalized terms.
+ * If not, they might are displayed as "((x,y),z)". Maybe that is even
+ * desirable to distinguish them.
+ *\sa termTuplePrint()
+ */
 void
 termPrint (Term term)
 {
@@ -271,15 +277,7 @@ termPrint (Term term)
   if (realTermTuple (term))
     {
       printf ("(");
-      while (realTermTuple (term))
-	{
-	  termPrint (term->op1);
-	  printf (",");
-	  term = term->op2;
-	  if (!realTermTuple (term))
-	    termPrint (term);
-
-	}
+      termTuplePrint(term);
       printf (")");
       return;
     }
@@ -291,7 +289,7 @@ termPrint (Term term)
 	  /* function application */
 	  termPrint (term->key);
 	  printf ("(");
-	  termPrint (term->op);
+	  termTuplePrint (term->op);
 	  printf (")");
 	}
       else
@@ -300,7 +298,7 @@ termPrint (Term term)
 	  if (globalLatex)
 	    {
 	      printf ("\\{");
-	      termPrint (term->op);
+	      termTuplePrint (term->op);
 	      printf ("\\}_{");
 	      termPrint (term->key);
 	      printf ("}");
@@ -308,7 +306,7 @@ termPrint (Term term)
 	  else
 	    {
 	      printf ("{");
-	      termPrint (term->op);
+	      termTuplePrint (term->op);
 	      printf ("}");
 	      termPrint (term->key);
 	    }
@@ -316,6 +314,31 @@ termPrint (Term term)
     }
 }
 
+//! Print an inner (tuple) term to stdout, without brackets.
+/**
+ * The tuple printing only works correctly for normalized terms.
+ * If not, they might are displayed as "((x,y),z)". Maybe that is even
+ * desirable to distinguish them.
+ */
+void
+termTuplePrint (Term term)
+{
+  if (term == NULL)
+    {
+      printf ("Empty term");
+      return;
+    }
+  term = deVar(term);
+  while (realTermTuple (term))
+    {
+      // To remove any brackets, change this into termTuplePrint.
+      termPrint (term->op1);
+      printf (",");
+      term = deVar(term->op2);
+    }
+  termPrint(term);
+  return;
+}
 
 //! Make a deep copy of a term.
 /**

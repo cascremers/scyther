@@ -101,6 +101,7 @@ int hasTermVariable (Term term);
 int isTermEqualFn (Term term1, Term term2);
 int termOccurs (Term t, Term tsub);
 void termPrint (Term term);
+void termTuplePrint (Term term);
 Term termDuplicate (const Term term);
 Term termDuplicateDeep (const Term term);
 Term termDuplicateUV (Term term);
