@@ -105,11 +105,13 @@ solve (const struct solvepass sp, Constraintlist solvecons)
 
 		if (tlres != NULL)
 		  {
+		    Constraintlist cl;
+
 		    copied = 1;
 		    /* sometimes not needed, when no substitutions took place */
 		    oldcl = solvecons;
 		    solvecons = constraintlistDuplicate (solvecons);
-		    Constraintlist cl = solvecons;
+		    cl = solvecons;
 		    while (cl != NULL)
 		      {
 			cl->constraint->know =
@@ -220,6 +222,38 @@ matchRead_clp (const System sys, const int run, int (*proceed) (System, int))
   Constraint co;
   Roledef runPoint;
   int flag;
+  struct solvepass sp;
+
+  /* check solvability */
+  int solution (const struct solvepass sp, const Constraintlist cl)
+  {
+    Knowledge oldknow;
+    int flag;
+    int copied;
+    Constraintlist oldcl;
+
+    oldknow = NULL;
+    flag = 0;
+    copied = 0;
+    oldcl = sys->constraints;
+
+    sys->constraints = cl;
+    if (knowledgeSubstNeeded (sys->know))
+      {
+	copied = 1;
+	oldknow = sys->know;
+	sys->know = knowledgeSubstDo (sys->know);
+      }
+    flag = sp.proceed (sys, run);
+    if (copied)
+      {
+	knowledgeDelete (sys->know);
+	sys->know = oldknow;
+	knowledgeSubstUndo (sys->know);
+      }
+    sys->constraints = oldcl;
+    return flag;
+  }
 
 
   /* save old state */
@@ -241,33 +275,6 @@ matchRead_clp (const System sys, const int run, int (*proceed) (System, int))
     }
 #endif
 
-  /* check solvability */
-  int solution (const struct solvepass sp, const Constraintlist cl)
-  {
-    Knowledge oldknow = NULL;
-    Constraintlist oldcl = sys->constraints;
-    int flag = 0;
-    int copied = 0;
-
-    sys->constraints = cl;
-    if (knowledgeSubstNeeded (sys->know))
-      {
-	copied = 1;
-	oldknow = sys->know;
-	sys->know = knowledgeSubstDo (sys->know);
-      }
-    flag = sp.proceed (sys, run);
-    if (copied)
-      {
-	knowledgeDelete (sys->know);
-	sys->know = oldknow;
-	knowledgeSubstUndo (sys->know);
-      }
-    sys->constraints = oldcl;
-    return flag;
-  }
-
-  struct solvepass sp;
   sp.solution = solution;
   sp.sys = sys;
   sp.run = run;
@@ -300,6 +307,7 @@ secret_clp (const System sys, const Term t)
   Constraintlist oldcl, newcl;
   Constraint co;
   int flag;
+  struct solvepass sp;
 
   /* save old state */
   oldcl = sys->constraints;
@@ -312,7 +320,6 @@ secret_clp (const System sys, const Term t)
 
   /* check solvability */
 
-  struct solvepass sp;
   sp.solution = NULL;
   sp.sys = sys;
   flag = !solve (sp, sys->constraints);
@@ -377,10 +384,13 @@ sendAdd_clp (const System sys, const int run, const Termlist tl)
 	    {
 	      /* difficult case: variable in inverse
 	       * key. We have to branch. */
+	      Knowledge oldknow;
+	      Constraint co;
+	      Constraintlist clold, clbuf;
 
 	      /* branch 1 : invkey not in knowledge */
 	      /* TODO this yields a negative constraint, which we omit for the time being */
-	      Knowledge oldknow = knowledgeDuplicate (sys->know);
+	      oldknow = knowledgeDuplicate (sys->know);
 
 	      knowledgeAddTerm (sys->know, t);
 	      sendAdd_clp (sys, run, tl->next);
@@ -390,11 +400,11 @@ sendAdd_clp (const System sys, const int run, const Termlist tl)
 
 	      /* branch 2 : invkey in knowledge */
 	      oldknow = knowledgeDuplicate (sys->know);
-	      Constraintlist clold = sys->constraints;
-	      Constraintlist clbuf = constraintlistShallow (clold);
+	      clold = sys->constraints;
+	      clbuf = constraintlistShallow (clold);
 	      tl2 = termlistShallow (tl->next);
 
-	      Constraint co = makeConstraint (invkey, sys->know);
+	      co = makeConstraint (invkey, sys->know);
 	      sys->constraints = constraintlistAdd (clbuf, co);
 	      /* we _could_ explore first if this is solveable */
 	      knowledgeAddTerm (sys->know, t);
@@ -426,10 +436,12 @@ send_clp (const System sys, const int run)
     {
       /* new knowledge, must store old state */
       Knowledge oldknow;
+      Termlist tl;
+
       oldknow = sys->know;
       sys->know = knowledgeDuplicate (sys->know);
 
-      Termlist tl = termlistAdd (NULL, rd->message);
+      tl = termlistAdd (NULL, rd->message);
       sendAdd_clp (sys, run, tl);
       termlistDelete (tl);
 
@@ -447,26 +459,20 @@ isPossible_clp (const System sys, const int run, int
   Constraint co;
   Roledef runPoint;
   int flag;
-
-  /* save old state */
-  oldcl = sys->constraints;
-  newcl = constraintlistShallow (oldcl);
-
-  /* creat new state */
-  runPoint = runPointerGet (sys, run);
-
-  /* add the new constraint */
-  co = makeConstraint (t, k);
-  newcl = constraintlistAdd (newcl, co);
-  sys->constraints = newcl;
+  struct solvepass sp;
 
   /* check solvability */
   int solution (const struct solvepass sp, const Constraintlist cl)
   {
-    Knowledge oldknow = NULL;
-    Constraintlist oldcl = sys->constraints;
-    int flag = 0;
-    int copied = 0;
+    Knowledge oldknow;
+    Constraintlist oldcl;
+    int flag;
+    int copied;
+
+    oldknow = NULL;
+    oldcl = sys->constraints;
+    flag = 0;
+    copied = 0;
 
     sys->constraints = cl;
     if (knowledgeSubstNeeded (sys->know))
@@ -486,7 +492,19 @@ isPossible_clp (const System sys, const int run, int
     return flag;
   }
 
-  struct solvepass sp;
+
+  /* save old state */
+  oldcl = sys->constraints;
+  newcl = constraintlistShallow (oldcl);
+
+  /* creat new state */
+  runPoint = runPointerGet (sys, run);
+
+  /* add the new constraint */
+  co = makeConstraint (t, k);
+  newcl = constraintlistAdd (newcl, co);
+  sys->constraints = newcl;
+
   sp.solution = solution;
   sp.sys = sys;
   sp.run = run;

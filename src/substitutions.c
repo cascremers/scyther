@@ -209,11 +209,13 @@ substitutionlistConcat (Substitutionlist sl1, Substitutionlist sl2)
 Termlist
 substitutionBatch (Termlist tl, Substitutionlist sl)
 {
+  Termlist newtl;
+
   if (tl == NULL)
     return NULL;
   if (sl == NULL)
     return termlistDuplicate (tl);
-  Termlist newtl = NULL;
+  newtl = NULL;
   while (tl != NULL)
     {
       newtl = termlistAdd (newtl, termSubstituteList (tl->term, sl));

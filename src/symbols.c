@@ -104,10 +104,12 @@ hash (char *s)
 void
 insert (Symbol s)
 {
+  int hv;
+
   if (s == NULL)
     return;			/* illegal insertion of empty stuff */
 
-  int hv = hash (s->text);
+  hv = hash (s->text);
   s->next = symbtab[hv];
   symbtab[hv] = s;
 }
@@ -116,11 +118,14 @@ insert (Symbol s)
 Symbol
 lookup (char *s)
 {
+  int hv;
+  Symbol t;
+
   if (s == NULL)
     return NULL;
 
-  int hv = hash (s);
-  Symbol t = symbtab[hv];
+  hv = hash (s);
+  t = symbtab[hv];
 
   while (t != NULL)
     {

@@ -90,7 +90,9 @@ makeTermTuple (Term t1, Term t2)
 	  return NULL;
 	}
       else
-	return t2;
+	{
+	  return t2;
+	}
     }
   if (t2 == NULL)
     {

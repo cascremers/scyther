@@ -104,12 +104,12 @@ tracebufInit (void)
 void
 tracebufDone (struct tracebuf *tb)
 {
+  Roledef rd;
+
   if (tb == NULL)
     {
       return;
     }
-
-  Roledef rd;
 
   varbufDone (tb->variables);
   if (tb->length > 0)

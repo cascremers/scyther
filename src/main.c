@@ -407,8 +407,12 @@ exit:
 void
 timersPrint (const System sys)
 {
-  /* display stats, header first */
+#define NOTIMERS
 
+  /* display stats, header first */
+#ifdef NOTIMERS
+  fprintf (stderr, "States\t\tAttack\n");
+#else
   fprintf (stderr, "Time\t\tStates\t\tAttack\t\tst/sec\n");
 
   /* print time */
@@ -416,6 +420,7 @@ timersPrint (const System sys)
   double seconds;
   seconds = (double) clock () / CLOCKS_PER_SEC;
   fprintf (stderr, "%.3e\t", seconds);
+#endif
 
   /* states traversed */
 
@@ -441,13 +446,9 @@ timersPrint (const System sys)
 	fprintf (stderr, "None\t\t");
     }
 
-  /*
-     printf("%.3e (%li) claims encountered.\n",(double)
-     sys->claims, sys->claims);
-     printf("%.3e (%li) claims failed.\n",(double)
-     sys->failed, sys->failed);
-   */
-
+#ifdef NOTIMERS
+  fprintf (stderr, "\n");
+#else
   /* states per second */
 
   if (seconds > 0)
@@ -462,6 +463,7 @@ timersPrint (const System sys)
     }
 
   fprintf (stderr, "\n");
+#endif
 }
 
 //! Analyse the model by incremental runs.
@@ -527,6 +529,8 @@ MC_incTraces (const System sys)
   int res;
 
   tracestep = 3;		/* what is a sensible stepping size? */
+  flag = 1;
+
   maxtracelen = getMaxTraceLength (sys);
   tracelen = maxtracelen - tracestep;
   while (tracelen > 6)		/* what is a reasonable minimum? */
@@ -589,3 +593,5 @@ modelCheck (const System sys)
   timersPrint (sys);
   return (sys->failed);
 }
+
+

@@ -267,14 +267,14 @@ knowledgeSetInverses (Knowledge know, Termlist tl)
 int
 inKnowledge (const Knowledge know, Term term)
 {
+  mindwipe (know, inKnowledge (know, term));
+
   /* if there is no term, then it's okay 'fur sure' */
   if (term == NULL)
     return 1;
   /* if there is a term, but no knowledge, we're in trouble */
   if (know == NULL)
     return 0;
-
-  mindwipe (know, inKnowledge (know, term));
 
   term = deVar (term);
   if (isTermLeaf (term))
@@ -489,8 +489,6 @@ knowledgeNew (const Knowledge oldk, const Knowledge newk)
 {
   Termlist newtl;
 
-  newtl = NULL;
-
   void addNewStuff (Termlist tl)
   {
     while (tl != NULL)
@@ -502,6 +500,8 @@ knowledgeNew (const Knowledge oldk, const Knowledge newk)
 	tl = tl->next;
       }
   }
+  
+  newtl = NULL;
   addNewStuff (newk->basic);
   addNewStuff (newk->encrypt);
   return newtl;

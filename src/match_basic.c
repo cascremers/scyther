@@ -180,6 +180,7 @@ matchRead_basic (const System sys, const int run,
   Roledef rd;
   int flag = 0;
   struct fvpass fp;
+  Termlist varlist;
 
   int solution (struct fvpass fp, Knowledge know)
   {
@@ -222,7 +223,7 @@ matchRead_basic (const System sys, const int run,
   }
 
   rd = runPointerGet (sys, run);
-  Termlist varlist = termlistAddVariables (NULL, rd->message);
+  varlist = termlistAddVariables (NULL, rd->message);
 
   fp.sys = sys;
   fp.run = run;
@@ -237,8 +238,10 @@ matchRead_basic (const System sys, const int run,
       printf ("{\n");
     }
 #endif
+
   flag = fixVariablelist (fp, sys->know, varlist, rd->message);
   termlistDelete (varlist);
+
 #ifdef DEBUG
   if (DEBUGL (5))
     {

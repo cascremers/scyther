@@ -404,9 +404,11 @@ agentOfRun (const System sys, const int run)
 Roledef
 roledefDuplicate1 (const Roledef rd)
 {
+  Roledef newrd;
+
   if (rd == NULL)
     return NULL;
-  Roledef newrd = makeRoledef ();
+  newrd = makeRoledef ();
   memcpy (newrd, rd, sizeof (struct roledef));
   newrd->next = NULL;
   return newrd;
@@ -419,9 +421,11 @@ roledefDuplicate1 (const Roledef rd)
 Roledef
 roledefDuplicate (Roledef rd)
 {
+  Roledef newrd;
+
   if (rd == NULL)
     return NULL;
-  Roledef newrd = roledefDuplicate1 (rd);
+  newrd = roledefDuplicate1 (rd);
   newrd->next = roledefDuplicate (rd->next);
   return newrd;
 }
@@ -472,6 +476,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
   Termlist fromlist = NULL;
   Termlist tolist = NULL;
   Term extterm = NULL;
+  Term newvar;
 
   /* claim runid, allocate space */
   rid = sys->maxruns;
@@ -493,7 +498,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	{
 	  /* There is a TYPE constant in the parameter list.
 	   * Generate a new local variable for this run, with this type */
-	  Term newvar = makeTermType (VARIABLE, scanfrom->term->left.symb, rid);
+	  newvar = makeTermType (VARIABLE, scanfrom->term->left.symb, rid);
 	  sys->variables = termlistAdd (sys->variables, newvar);
 	  newvar->stype = termlistAdd (NULL, scanto->term);
 	  tolist = termlistAdd (tolist, newvar);
@@ -785,6 +790,8 @@ protocolsPrint (Protocol p)
 void
 rolePrint (Role r)
 {
+  Roledef rd;
+
   if (r == NULL)
     return;
 
@@ -794,7 +801,7 @@ rolePrint (Role r)
   printf ("]]\n");
   locVarPrint (r->locals);
 
-  Roledef rd = r->roledef;
+  rd = r->roledef;
   while (rd != NULL)
     {
       roledefPrint (rd);

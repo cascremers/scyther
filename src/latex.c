@@ -324,13 +324,14 @@ latexDeclInst (const System sys, int run)
 void
 latexEventSpace (int amount)
 {
+  int i;
+
   if (pass < 2)
     {
       /* not printing */
       return;
     }
 
-  int i;
   //printf("%% number of newlines: %d\n",amount);
   for (i = 0; i < EVENTSPACE * amount; i++)
     printf ("\\nextlevel\n");
@@ -904,6 +905,9 @@ attackDisplayLatex (System sys)
 	}
       else
 	{
+	  Termlist protocolnames;
+	  Term pname;
+
 	  /* slightly stretch measurements */
 	  printf ("\\addtolength{\\maxmscall}{2\\mscspacer}\n");
 	  printf ("\\addtolength{\\maxmscaction}{\\mscspacer}\n");
@@ -920,8 +924,7 @@ attackDisplayLatex (System sys)
 
 	  /* create MSC title, involving protocol names and such. */
 
-	  Termlist protocolnames = NULL;
-	  Term pname;
+	  protocolnames = NULL;
 	  for (i = 0; i < width; i++)
 	    {
 	      if (runPosition[i] > 0)

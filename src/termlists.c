@@ -220,12 +220,14 @@ termlistAppend (const Termlist tl, const Term term)
 Termlist
 termlistConcat (Termlist tl1, Termlist tl2)
 {
+  Termlist scan;
+
   if (tl1 == NULL)
     return tl2;
   if (tl2 == NULL)
     return tl1;
 
-  Termlist scan = tl1;
+  scan = tl1;
   while (scan->next != NULL)
     scan = scan->next;
   scan->next = tl2;

@@ -200,16 +200,31 @@ correspondingSend (System sys, int rd)
 void
 tracePrint (System sys)
 {
+  int i, j;
+  int lastrid;
+  int width;
+  Termlist newtl;
+
+  void sticks (int i)
+  {
+    while (i > 0)
+      {
+	printf ("|\t");
+	i--;
+      }
+  }
+
+  void sticksLine (void)
+  {
+    sticks (width);
+    printf ("\n");
+  }
+
   if (sys->latex)
     {
       //latexTracePrint(sys);
       return;
     }
-
-  int i, j;
-  int lastrid;
-  int width;
-  Termlist newtl;
 
   /* fix the 'next' knowledge, this is required because sometimes
    * when calling this function, the next knowledge is not stored
@@ -269,21 +284,6 @@ tracePrint (System sys)
   printf ("\n");
 
   /* now we print the actual trace */
-
-  void sticks (int i)
-  {
-    while (i > 0)
-      {
-	printf ("|\t");
-	i--;
-      }
-  }
-
-  void sticksLine (void)
-  {
-    sticks (width);
-    printf ("\n");
-  }
 
   linePrint (width);
   lastrid = -1;
@@ -356,6 +356,21 @@ attackDisplayAscii (System sys)
   Termlist newtl;
   struct tracebuf *tb;
 
+  void sticks (int i)
+  {
+    while (i > 0)
+      {
+	printf ("|\t");
+	i--;
+      }
+  }
+
+  void sticksLine (void)
+  {
+    sticks (width);
+    printf ("\n");
+  }
+
   /* attack trace buffer */
   tb = sys->attack;
   length = sys->attack->length;
@@ -412,21 +427,6 @@ attackDisplayAscii (System sys)
   printf ("\n");
 
   /* now we print the actual trace */
-
-  void sticks (int i)
-  {
-    while (i > 0)
-      {
-	printf ("|\t");
-	i--;
-      }
-  }
-
-  void sticksLine (void)
-  {
-    sticks (width);
-    printf ("\n");
-  }
 
   linePrint (width);
   lastrid = -1;
