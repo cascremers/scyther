@@ -331,7 +331,7 @@ termPrint (Term term)
   if (realTermLeaf (term))
     {
       symbolPrint (term->left.symb);
-      if (realTermVariable (term))
+      if (term->type == VARIABLE)
 	eprintf ("V");
       if (term->right.runid >= 0)
 	{
