@@ -1,0 +1,34 @@
+usertype Sessionkey;
+secret k: Function;
+
+protocol kaochowPalm(I,R,S)
+{
+	role I
+	{
+		const ni: Nonce;
+		var X: Nonce;
+		var KX: Sessionkey;
+
+	}	
+	
+	role R
+	{
+	}
+
+	role S
+	{
+	}
+}
+
+const Alice,Bob,Simon,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+
+run kaochowPalm.I(Agent,Agent,Simon);
+run kaochowPalm.R(Agent,Agent,Simon);
+run kaochowPalm.S(Agent,Agent,Simon);
+run kaochowPalm.I(Agent,Agent,Simon);
+run kaochowPalm.R(Agent,Agent,Simon);
+run kaochowPalm.S(Agent,Agent,Simon);
