@@ -82,6 +82,8 @@ systemInit ()
   sys->secrets = NULL;		// list of claimed secrets
   sys->attack = NULL;
   /* no protocols => no protocol preprocessed */
+  sys->rolecount = 0;
+  sys->roleeventmax = 0;
   sys->claimlist = NULL;
 
   /* matching CLP */
@@ -951,4 +953,53 @@ int attackLength(struct tracebuf* tb)
 	i++;
     }
     return len;
+}
+
+//! Get the number of roles in the system.
+int compute_rolecount (const System sys)
+{
+  Protocol pr;
+  int n;
+
+  n = 0;
+  pr = sys->protocols;
+  while (pr != NULL)
+    {
+      n = n + termlistLength(pr->rolenames);
+      pr = pr->next;
+    }
+  return n;
+}
+
+//! Compute the maximum number of events in a single role in the system.
+int compute_roleeventmax (const System sys)
+{
+  Protocol pr;
+  int maxev;
+
+  maxev = 0;
+  pr = sys->protocols;
+  while (pr != NULL)
+    {
+      Role r;
+
+      r = pr->roles;
+      while (r != NULL)
+	{
+	  Roledef rd;
+	  int n;
+
+	  rd = r->roledef;
+	  n = 0;
+	  while (rd != NULL)
+	    {
+	      n++;
+	      rd = rd->next;
+	    }
+	  if (n > maxev) maxev = n;
+	  r = r->next;
+	}
+      pr = pr->next;
+    }
+  return maxev;
 }

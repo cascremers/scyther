@@ -166,6 +166,8 @@ struct claimlist
   int count;
   //! Number of occurrences that failed.
   int failed;
+  int r;	//!< role number for mapping
+  int ev;	//!< event index in role
   //! Preceding label list
   Termlist prec;
   //! Next node pointer or NULL for the last element of the function.
@@ -222,24 +224,26 @@ struct system
   int clp;			//!< Do we use clp?
 
   /* protocol definition */
-  Protocol protocols;
-  Termlist locals;
-  Termlist variables;
-  Termlist untrusted;
+  Protocol protocols;		//!< List of protocols in the system
+  Termlist locals;		//!< List of local terms
+  Termlist variables;		//!< List of all variables
+  Termlist untrusted;		//!< List of untrusted agent names
 
   /* protocol preprocessing */
-  Claimlist claimlist;
+  int rolecount;		//!< Number of roles in the system
+  int roleeventmax;		//!< Maximum number of events in a single role
+  Claimlist claimlist;		//!< List of claims in the system, with occurrence counts
 
   /* constructed trace pointers, static */
-  Roledef *traceEvent;		// MaxRuns * maxRoledef
-  int *traceRun;		// MaxRuns * maxRoledef
-  Knowledge *traceKnow;		// Maxruns * maxRoledef
+  Roledef *traceEvent;		//!< Trace roledefs: MaxRuns * maxRoledef
+  int *traceRun;		//!< Trace run ids: MaxRuns * maxRoledef
+  Knowledge *traceKnow;		//!< Trace intruder knowledge: Maxruns * maxRoledef
 
   /* POR reduction assistance */
-  int PORphase;			// -1: init (all sends), 0...: recurse reads
-  int PORdone;			// simple bit to denote something was done.
-  int knowPhase;		// which knowPhase have we already explored?
-  Constraintlist constraints;	// only needed for CLP match
+  int PORphase;			//!< -1: init (all sends), 0...: recurse reads
+  int PORdone;			//!< Simple bit to denote something was done.
+  int knowPhase;		//!< Which knowPhase have we already explored?
+  Constraintlist constraints;	//!< Only needed for CLP match
 
   //! Shortest attack storage.
   struct tracebuf* attack;
@@ -288,5 +292,8 @@ int getMaxTraceLength (const System sys);
 void agentsOfRunPrint (const System sys, const int run);
 void violatedClaimPrint (const System sys, int i);
 int attackLength(struct tracebuf* tb);
+
+int compute_rolecount (const System sys);
+int compute_roleeventmax (const System sys);
 
 #endif

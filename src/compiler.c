@@ -748,22 +748,314 @@ tacTermlist (Tac tc)
 }
 
 //! Compute prec() sets for each claim.
+/**
+ * Generates two auxiliary structures. First, a table that contains
+ * a mapping from all events to event/claim labels.
+ * A second table is used to compute the precedence order, and 
+ * Warshall's algorithm is used to compute the transitive closure.
+ *@returns For each claim in the claim list, a preceding label set is defined.
+ */
 void
 compute_prec_sets (const System sys)
 {
+  Term *eventlabels;	// array: maps events to labels
+  int *prec;		// array: maps event*event to precedence
+  int size;		// temp constant: rolecount * roleeventmax
+  int r1,r2,ev1,ev2;	// some counters
+  int i,j;
   Claimlist cl;
 
-  // Process each individual claim
+  // Assist: compute index from role, lev
+  int
+  index (int r, int lev)
+    {
+      return r * sys->roleeventmax + lev;
+    }
+
+  // Assist: compute matrix index from i*i
+  int
+  index2 (int i1, int i2)
+    {
+      return i1 * size + i2;
+    }
+  // Assist: yield roledef from r, lev
+  Roledef
+  roledef_re (int r, int lev)
+    {
+      Protocol pr;
+      Role ro;
+      Roledef rd;
+
+      pr = sys->protocols;
+      ro = pr->roles;
+      while (r > 0)
+	{
+	  ro = ro->next;
+	  if (ro == NULL)
+	    {
+	      pr = pr->next;
+	      ro = pr->roles;
+	    }
+	  r--;
+	}
+      rd = ro->roledef;
+      while (lev > 0 && rd != NULL)
+	{
+	  rd = rd->next;
+	  lev--;
+	}
+      return rd;
+    }
+
+  // Assist: print matrix
+  void
+  show_matrix (void)
+    {
+      int r1, r2, ev1, ev2;
+
+      r1 = 0;
+      while (r1 < sys->rolecount)
+	{
+	  ev1 = 0;
+	  while (ev1 < sys->roleeventmax)
+	    {
+              printf ("prec %i,%i:  ", r1,ev1);
+	      r2 = 0;
+	      while (r2 < sys->rolecount)
+		{
+		  ev2 = 0;
+		  while (ev2 < sys->roleeventmax)
+		    {
+		      printf ("%i ", prec[index2 (index (r2,ev2), index (r1, ev1))]);
+		      ev2++;
+		    }
+		  printf (" ");
+		  r2++;
+		}
+              printf ("\n");
+	      ev1++;
+	    }
+          printf ("\n");
+	  r1++;
+	}
+       printf ("\n");
+    }
+  
+  /*
+   * Phase 1: Allocate structures and map to labels
+   */
+  printf ("Rolecount: %i\n", sys->rolecount);
+  printf ("Maxevent : %i\n", sys->roleeventmax);
+  size = sys->rolecount * sys->roleeventmax;
+  eventlabels = memAlloc (size * sizeof(Term));
+  prec = memAlloc (size * size * sizeof(int));
+  // Clear tables
+  i = 0;
+  while (i < size)
+    {
+      eventlabels[i] = NULL;
+      j = 0;
+      while (j < size)
+	{
+	  prec[index2(i,j)] = 0;
+	  j++;
+	}
+      i++;
+    }
+  // Assign labels
+  r1 = 0;
+  while (r1 < sys->rolecount)
+    {
+      Roledef rd;
+
+      ev1 = 0;
+      rd = roledef_re (r1, ev1);
+      while (rd != NULL)
+	{
+	  eventlabels[index(r1,ev1)] = rd->label;
+	  termPrint (rd->label);
+	  printf ("\t");
+	  ev1++;
+	  rd = rd->next;
+	}
+      printf ("\n");
+      r1++;
+    }
+  // Set simple precedence (progress within a role)
+  r1 = 0;
+  while (r1 < sys->rolecount)
+    {
+      ev1 = 0;
+      while (ev1 < (sys->roleeventmax - 1))
+	{ 
+	  prec[index2 (index (r1,ev1),index (r1,ev1+1))] = 1;
+	  ev1++;
+	}
+      r1++;
+    }
+  // Scan for label correspondence
+  r1 = 0;
+  while (r1 < sys->rolecount)
+    {
+      ev1 = 0;
+      while (ev1 < sys->roleeventmax)
+	{
+	  Roledef rd1;
+
+	  rd1 = roledef_re(r1,ev1);
+	  if (rd1->type == SEND)
+	    {
+	      r2 = 0;
+	      while (r2 < sys->rolecount)
+		{
+		  ev2 = 0;
+		  while (ev2 < sys->roleeventmax)
+		    {
+		      Roledef rd2;
+
+		      rd2 = roledef_re(r2,ev2);
+		      if (rd2->type == READ && isTermEqual(rd1->label, rd2->label))
+			{
+			  prec[index2(index(r1,ev1),index(r2,ev2))] = 1;
+			}
+		      ev2++;
+		    }
+		  r2++;
+		}
+	    }
+	  ev1++;
+	}
+      r1++;
+    }
+  //[x] show_matrix ();
+
+  /*
+   * Compute transitive closure (Warshall).
+   * If j<i and k<j, then k<i.
+   * Could be done more efficiently but that is irrelevant here.
+   */
+  i = 0;
+  while (i < size)
+    {
+      j = 0;
+      while (j < size)
+	{
+	  if (prec[index2 (j,i)] == 1)
+	    {
+	      int k;
+
+	      k = 0;
+	      while (k < size)
+		{
+		  if (prec[index2 (k,j)] == 1)
+		    {
+		      prec[index2 (k,i)] = 1;
+		    }
+		  k++;
+		}
+	    }
+	  j++;
+	}
+      i++;
+    }
+  // [x] show_matrix ();
+
+  /*
+   * Last phase: Process all individual claims
+   */
   cl = sys->claimlist;
   while (cl != NULL)
     {
-      //!@todo compute transitive closure
+      Term t;
+      Roledef rd;
+      Term label;
+
+      label = cl->label;
+      // Locate r,lev from label, requires (TODO) unique labeling of claims!
+      r1 = 0;
+      ev1 = -1;
+      do
+	{
+	  ev1++;
+	  if (ev1 == sys->roleeventmax)
+	    {
+	      ev1 = 0;
+	      r1++;
+	    }
+	}
+      while (r1 < sys->rolecount && !isTermEqual (label, eventlabels[index(r1,ev1)]));
+      if (r1 == sys->rolecount)
+	{
+	  error ("Prec() setup: Could not find the event corresponding to a claim label.");
+	}
+      rd = roledef_re (r1,ev1);
+      if (rd->type != CLAIM)
+	{
+	  error ("Prec() setup: First event with claim label doesn't seem to be a claim.");
+	}
+      // Store in claimlist structure
+      cl->r = r1;
+      cl->ev = ev1;
+      /*
+       * We have found the claim roledef, and r1,ev1
+       * Now we compute the preceding label set
+       */
+      cl->prec = NULL;		// clear first
+      i = index (r1,ev1);
+      r2 = 0;
+      while (r2 < sys->rolecount)
+	{
+	  Roledef rd2;
+
+	  ev2 = 0;
+	  rd = roledef_re (r2,ev2);
+	  while (rd != NULL)
+	    {
+	      if (prec[index2 (index (r2,ev2),i)] == 1)
+		{
+		  // This event precedes the claim
+		  
+                  if (rd->type == READ)
+		    {
+		      // Only store read labels (but send would work as well)
+		      cl->prec = termlistAdd (cl->prec, rd->label);
+		    }
+		}
+	      rd = rd->next;
+	      ev2++;
+	    }
+	  r2++;
+	}
+      // Check for empty stuff
+      //@todo This is for debugging, mainly.
+      if (cl->prec == NULL)
+	{
+	  fprintf (stderr, "Warning: claim with empty prec() set at r:%i, ev:%i\n",
+		   r1,ev1);
+	}
+      else
+	{
+	  printf ("Preceding label set for r:%i, ev:%i = ", r1,ev1);
+	  termlistPrint (cl->prec);
+	  printf ("\n");
+	}
+
+      // Proceed to next claim
+      cl = cl->next;
     }
+
+  /*
+   * Cleanup
+   */
+  memFree (eventlabels, size * sizeof(Term));
+  memFree (prec, size * size * sizeof(int));
 }
 
 //! Preprocess after system compilation
 void 
 preprocess (const System sys)
 {
+  sys->rolecount = compute_rolecount(sys);
+  sys->roleeventmax = compute_roleeventmax(sys);
   compute_prec_sets(sys);
 }
