@@ -101,10 +101,10 @@ main (int argc, char **argv)
     arg_int0 ("r", "max-runs", NULL, "create at most <int> runs");
   struct arg_lit *switch_incremental_runs = arg_lit0 (NULL, "increment-runs",
 				      "incremental search using the number of runs");
-  struct arg_lit *switch_latex_output = arg_lit0 (NULL, "latex", "output in LaTeX format");
+  struct arg_lit *switch_latex_output = arg_lit0 (NULL, "latex", "output attacks in LaTeX format");
   struct arg_lit *switch_empty =
     arg_lit0 ("e", "empty", "do not generate output");
-  struct arg_lit *switch_no_progress_bar = arg_lit0 (NULL, "no-progress", "suppress progress bar");
+  struct arg_lit *switch_progress_bar = arg_lit0 ("b", "progress-bar", "show progress bar");
   struct arg_lit *switch_state_space_graph = arg_lit0 (NULL, "state-space", "output state space graph");
   struct arg_lit *switch_implicit_choose = arg_lit0 (NULL, "implicit-choose", "allow implicit choose events (useful for few runs)");
   struct arg_lit *switch_choose_first = arg_lit0 (NULL, "choose-first", "priority to any choose events");
@@ -127,22 +127,24 @@ main (int argc, char **argv)
   void *argtable[] = {
     infile, 
     outfile,
+    switch_empty,
+    switch_state_space_graph,
     switch_scenario,
+    switch_latex_output,
+    switch_progress_bar, 
+
     switch_traversal_method, 
     switch_match_method, 
     switch_clp,
     switch_pruning_method, 
     switch_prune_trace_length, switch_incremental_trace_length,
     switch_maximum_runs, switch_incremental_runs,
-    switch_latex_output,
-    switch_empty,
-    switch_no_progress_bar, 
-    switch_state_space_graph,
+
     switch_implicit_choose,
     switch_choose_first,
     switch_enable_read_symmetries,
-    switch_disable_agent_symmetries,
     switch_enable_symmetry_order,
+    switch_disable_agent_symmetries,
     switch_disable_noclaims_reductions,
     switch_disable_endgame_reductions,
 #ifdef DEBUG
@@ -391,12 +393,12 @@ main (int argc, char **argv)
   sys->traverse = switch_traversal_method->ival[0];
   sys->match = switch_match_method->ival[0];
   sys->prune = switch_pruning_method->ival[0];
-  if (switch_no_progress_bar->count > 0)
-      /* disable progress display */
-      sys->switchS = 0;
-  else
+  if (switch_progress_bar->count > 0)
       /* enable progress display */
       sys->switchS = 50000;
+  else
+      /* disable progress display */
+      sys->switchS = 0;
   if (switch_state_space_graph->count > 0)
     {
       /* enable state space graph output */
