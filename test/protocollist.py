@@ -1,6 +1,13 @@
 #
 #	protocol list
 #
+#
+def list_ppfix(list, prefix, postfix):
+	newlist = []
+	for i in list:
+		newlist.append(prefix + i + postfix)
+	return newlist
+
 def from_literature():
 	list = [ \
 	"andrew-ban.spdl",
@@ -35,7 +42,7 @@ def from_literature():
 	"yahalom-paulson.spdl",
 	"yahalom.spdl" ]
 
-	return list
+	return list_ppfix(list, "../spdl/","")
 
 def from_others():
 	list = [ \
@@ -57,7 +64,8 @@ def from_others():
 	"simplest.spdl",
 	"speedtest.spdl",
 	"unknown2.spdl"]
-	return list
+
+	return list_ppfix(list, "../spdl/","")
 
 def select(type):
 	list = from_literature()
@@ -65,9 +73,6 @@ def select(type):
 		# 0 means all protocols
 		list = list + from_others()
 
-	# modify path 
-	for i in range(0, len(list)):
-		list[i] = "../spdl/" + list[i]
 	return list
 
 		
