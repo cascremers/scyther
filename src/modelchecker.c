@@ -417,9 +417,39 @@ explorify (const System sys, const int run)
 		      if (i < 0)
 			{
 			  /* only explore symmetrical variant */
-			  return;
+			  return 0;
 			}
 		    }
+		}
+	    }
+	}
+    }
+
+  /* Special check b2: symmetry order reduction.
+   *
+   * Concept: when there are two identical runs w.r.t. agents, we can make sure one goes before the other.
+   * Depends on prevSymm, skipping chooses even.
+   */
+
+  if (sys->switchSymmOrder && myStep == sys->runs[run].firstReal)
+    {
+      if (sys->runs[run].prevSymmRun != -1)
+	{
+	  /* there is such a run on which we depend */
+	  int ridSymm;
+
+	  ridSymm = sys->runs[run].prevSymmRun;
+	  /* equal runs? */
+
+	  if (isTermlistEqual (sys->runs[run].agents, sys->runs[ridSymm].agents))
+	    {
+	      /* so, we have an identical partner */
+	      /* is our partner there already? */
+	      if (sys->runs[ridSymm].step <= myStep)
+		{
+		  /* not yet there, this is not a valid exploration */
+		  /* verify !! */
+		  return 0;
 		}
 	    }
 	}

@@ -135,6 +135,7 @@ struct run
   Termlist locals;	//!< Locals of the run.
   int prevSymmRun;	//!< Used for symmetry reduction. Either -1, or the previous run with the same role def and at least a single parameter.
   int firstNonAgentRead; //!< Used for symmetry reductions for equal agents runs; -1 if there is no candidate.
+  int firstReal;	//!< 1 if a choose was inserted, otherwise 0
 };
 
 //! Shorthand for run pointer.
@@ -210,6 +211,8 @@ struct system
   int switchStatespace;		//!< Output statespace for dot package
   int switchForceChoose;	//!< Force chooses for each run, even if involved in first read
   int switchReadSymm;		//!< Enable read symmetry reduction
+  int switchSymmOrder;		//!< Enable symmetry order reduction
+
   //! Latex output switch.
   /**
    * Obsolete. Use globalLatex instead.

@@ -100,7 +100,8 @@ main (int argc, char **argv)
   struct arg_lit *switchS = arg_lit0 (NULL, "no-progress", "suppress progress bar.");
   struct arg_lit *switchSS = arg_lit0 (NULL, "state-space", "output state space graph.");
   struct arg_lit *switchFC = arg_lit0 (NULL, "force-choose", "force only explicit choose events.");
-  struct arg_lit *switchRS = arg_lit0 (NULL, "read-symm", "enable ready symmetry reductions.");
+  struct arg_lit *switchRS = arg_lit0 (NULL, "read-symm", "enable read symmetry reductions.");
+  struct arg_lit *switchSO = arg_lit0 (NULL, "symm-order", "enable ordering symmetry reductions.");
 #ifdef DEBUG
   struct arg_int *porparam = arg_int0 (NULL, "pp", NULL, "POR parameter.");
   struct arg_lit *switchI = arg_lit0 ("I", "debug-indent",
@@ -127,6 +128,7 @@ main (int argc, char **argv)
     switchSS,
     switchFC,
     switchRS,
+    switchSO,
 #ifdef DEBUG
     porparam,
     switchI,
@@ -282,7 +284,16 @@ main (int argc, char **argv)
     }
   if (switchRS->count > 0)
     {
+      if (switchSO->count > 0)
+	{
+	  exit ("--read-symm and --symm-order cannot be used at the same time.");
+	}
       sys->switchReadSymm = 1;
+    }
+  if (switchSO->count > 0)
+    {
+      /* enable symmetry order */
+      sys->switchSymmOrder = 1;
     }
 #ifdef DEBUG
   sys->porparam = porparam->ival[0];

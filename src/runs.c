@@ -65,7 +65,8 @@ systemInit ()
   sys->latex = 0;		// latex output?
   sys->switchStatespace = 0;
   sys->switchForceChoose = 0;	// don't force explicit chooses by default
-  sys->switchReadSymm = 0;	// don't force read symmetries by default:w
+  sys->switchReadSymm = 0;	// don't force read symmetries by default
+  sys->switchSymmOrder = 0;	// don't force symmetry order reduction by default
 
   /* set illegal traversal by default, to make sure it is set
      later */
@@ -629,6 +630,11 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
       rdnew->internal = 1;
       rdnew->next = rd;
       rd = rdnew;
+      runs[rid].firstReal = 1;
+    }
+  else
+    {
+      runs[rid].firstReal = 0;
     }
 
   /* set parameters */
