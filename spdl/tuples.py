@@ -22,7 +22,7 @@ import sys
 import string
 
 # Retrieve the tuple width
-tuplesize = sys.argv[1]
+tuplesize = int(sys.argv[1])
 print tuplesize
 
 # Read stdin into list and count
@@ -45,3 +45,21 @@ while loop:
 print list
 print len(list)
 
+def tupleUnit (x):
+	print x + "\t",
+
+def tuplesPrint (l, n, r):
+	if r and (len(r) == n):
+		for x in r:
+			print x,
+			print "\t",
+		print
+	else:
+		if l and (n > 0):
+			# Larger size: we have options
+			# Option 1: include first
+			tuplesPrint (l[1:], n, r + [l[0]])
+			# Option 2: exclude first
+			tuplesPrint (l[1:], n, r)
+
+tuplesPrint (list, tuplesize, [])
