@@ -1,3 +1,4 @@
+- State counter is off by one. Should start at 1, or should add 1 at printing.
 - Make filter switch, allowing maybe for some claims only to be evaluated.
   --check=Secret, --check-all as default.
 - Some compiler errors are still sent to stdout. This must be fixed
