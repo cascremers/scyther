@@ -396,6 +396,13 @@ commEvent (int event, Tac tc)
 	    makeTermTuple (thisProtocol->nameterm, levelConst (tc->t1.sym));
 	  level++;
 	}
+      else
+	{
+	  /* we already had this label constant */
+	  /* leaves a garbage tuple. dunnoh what to do with it */
+	  label =
+	    makeTermTuple (thisProtocol->nameterm, label);
+	}
     }
   trip = tc->t2.tac;
   switch (event)
