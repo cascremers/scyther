@@ -45,12 +45,6 @@ static int attack_length;
 
 Protocol INTRUDER;		// Pointers, to be set by the Init
 Role I_M;			// Same here.
-Role I_F;
-Role I_T;
-Role I_V;
-Role I_R;
-Role I_E;
-Role I_D;
 Role I_RRS;
 
 static int indentDepth;
@@ -83,8 +77,7 @@ void printSemiState ();
 void
 arachneInit (const System mysys)
 {
-  Term GVT;
-  Roledef rd = NULL;
+  Roledef rd;
   Termlist tl, know0;
 
   void add_event (int event, Term message)
@@ -118,6 +111,9 @@ arachneInit (const System mysys)
    */
 
   INTRUDER = protocolCreate (makeGlobalConstant (" INTRUDER "));
+
+  // Initially empty roledef
+  rd = NULL;
 
   add_event (SEND, NULL);
   I_M = add_role ("I_M: Atomic message");
@@ -1313,7 +1309,7 @@ bind_goal_new_m0 (const Binding b)
 	  int run;
 
 	  findLoserBegin (graph_uordblks);
-	  I_M->roledef->message = b->term;
+	  I_M->roledef->message = m0t;
 	  run = semiRunCreate (INTRUDER, I_M);
 	  proof_suppose_run (run, 0, 1);
 	  sys->runs[run].length = 1;

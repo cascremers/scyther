@@ -23,7 +23,7 @@ void memDone ();
 				  { \
 					warning ("Memory leak in [%s] of %i", t, mem_diff); \
 					mem_errorcount++; \
-					if (mem_errorcount >= 10) \
+					if (mem_errorcount >= 1) \
 						error ("More than enough leaks."); \
 				  }
 

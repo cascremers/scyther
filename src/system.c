@@ -258,36 +258,40 @@ ensureValidRun (const System sys, int run)
   /* (re)allocate  space */
   /* Note, this is never explicitly freed, because it is never
      copied */
-
-  sys->runs = (Run) memRealloc (sys->runs, sizeof (struct run) * (run + 1));
-
   /* update size parameter */
   oldsize = sys->maxruns;
   sys->maxruns = run + 1;
+  sys->runs = (Run) memRealloc (sys->runs, sizeof (struct run) * (sys->maxruns));
 
   /* create runs, set the new pointer(s) to NULL */
   for (i = oldsize; i < sys->maxruns; i++)
     {
       /* init run */
       struct run myrun = sys->runs[i];
+      myrun.protocol = NULL;
       myrun.role = NULL;
       myrun.agents = NULL;
       myrun.step = 0;
       myrun.index = NULL;
       myrun.start = NULL;
+
+      myrun.locals = NULL;
+      myrun.artefacts = NULL;
+      myrun.substitutions = NULL;
+
       if (sys->engine == POR_ENGINE)
 	{
 	  myrun.know = knowledgeDuplicate (sys->know);
-	  myrun.prevSymmRun = -1;
-	  myrun.firstNonAgentRead = -1;
 	}
       else
 	{
 	  // Arachne etc.
 	  myrun.know = NULL;
-	  myrun.prevSymmRun = -1;
-	  myrun.firstNonAgentRead = -1;
 	}
+
+      myrun.prevSymmRun = -1;
+      myrun.firstNonAgentRead = -1;
+      myrun.firstReal = 0;
     }
 }
 
@@ -686,9 +690,10 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 	  artefacts = termlistAddNew (artefacts, newt);
 	  newt->stype = oldt->stype;
 	}
-      /* Now we add any role names to the agent list. Note that instantiations do not matter:
-       * because if the variable is instantiated, the rolename will be as well, and thus they will
-       * be equal anyway.
+      /* Now we add any role names to the agent list. Note that
+       * instantiations do not matter: because if the variable is
+       * instantiated, the rolename will be as well, and thus they will be
+       * equal anyway.
        */
       if (inTermlist (protocol->rolenames, oldt))
 	{
@@ -730,6 +735,10 @@ roleInstanceArachne (const System sys, const Protocol protocol,
       scanfrom = scanfrom->next;
     }
 
+  /* Now we prefix the read before rd, if extterm is not NULL.  Even if
+   * extterm is NULL, rd is still set as the start and the index pointer of
+   * the run.
+   */
   run_prefix_read (sys, rid, rd, extterm);
 
   /* duplicate all locals form this run */
@@ -995,7 +1004,7 @@ roleInstanceDestroy (const System sys)
 	      Term t;
 
 	      t = tl->term;
-	      if (TermRunid(t) == runid)
+	      if (realTermLeaf(t) && TermRunid(t) == runid)
 		{
 		  // remove from list; return pointer to head
 		  sys->variables = termlistDelTerm (tl);
