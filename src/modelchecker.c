@@ -105,7 +105,6 @@ traverse (const System sys)
 int
 executeStep (const System sys, const int run)
 {
-  unsigned long int parentBuffer;
   Roledef runPoint;
   runPoint = runPointerGet (sys, run);
 #ifdef DEBUG

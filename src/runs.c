@@ -109,7 +109,6 @@ systemReset (const System sys)
   /* some initial counters */
   sys->statesLow = 0;		// number of explored states
   sys->statesHigh = 0;		// this is not as ridiculous as it might seem
-  sys->parentState = 0;
   sys->explore = 1;		// do explore the space
   sys->claims = 0;		// number of claims encountered
   sys->failed = 0;		// number of failed claims

@@ -481,6 +481,9 @@ attackDisplayAscii (System sys)
 void
 attackDisplay (System sys)
 {
+  if (!sys->report)
+      return;
+
   if (sys->latex)
     {
       attackDisplayLatex (sys);
@@ -575,7 +578,7 @@ void graphPath (const System sys, const char* params)
   i = 0;
   while (i < sys->step)
     {
-      printf ("\tn%i [%s]\n", sys->traceNode[i], params);
+      printf ("\tn%li [%s];\n", sys->traceNode[i], params);
       i++;
     }
 }

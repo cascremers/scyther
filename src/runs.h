@@ -229,8 +229,6 @@ struct system
   unsigned long int claims;	//!< Number of claims encountered.
   unsigned long int failed;	//!< Number of claims failed.
 
-  unsigned long int parentState; //!< Parent state number
-
   /* matching */
   int match;			//!< Matching type.
   int clp;			//!< Do we use clp?
@@ -250,7 +248,7 @@ struct system
   Roledef *traceEvent;		//!< Trace roledefs: MaxRuns * maxRoledef
   int *traceRun;		//!< Trace run ids: MaxRuns * maxRoledef
   Knowledge *traceKnow;		//!< Trace intruder knowledge: Maxruns * maxRoledef
-  unsigned long int *traceNode;	//!< Trace node traversal
+  unsigned long int *traceNode;	//!< Trace node traversal: Maxruns * maxRoledef
 
   /* POR reduction assistance */
   int PORphase;			//!< -1: init (all sends), 0...: recurse reads
