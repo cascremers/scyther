@@ -63,6 +63,7 @@ systemInit ()
   /* switches */
   sys->porparam = 0;		// multi-purpose parameter
   sys->latex = 0;		// latex output?
+  sys->switchStatespace = 0;
 
   /* set illegal traversal by default, to make sure it is set
      later */
@@ -108,6 +109,7 @@ systemReset (const System sys)
   /* some initial counters */
   sys->statesLow = 0;		// number of explored states
   sys->statesHigh = 0;		// this is not as ridiculous as it might seem
+  sys->parentState = 0;
   sys->explore = 1;		// do explore the space
   sys->claims = 0;		// number of claims encountered
   sys->failed = 0;		// number of failed claims
@@ -292,7 +294,7 @@ roledefPrint (Roledef rd)
     }
   if (globalLatex)
     printf ("$");
-  printf ("\t(");
+  printf ("(");
   termPrint (rd->from);
   printf (",");
   if (rd->type == CLAIM)

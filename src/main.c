@@ -97,7 +97,8 @@ main (int argc, char **argv)
   struct arg_lit *latex = arg_lit0 (NULL, "latex", "output in LaTeX format.");
   struct arg_lit *noreport =
     arg_lit0 ("d", "disable-report", "don't report violations.");
-  struct arg_lit *switchS = arg_lit0 (NULL, "no-progress", "surpress progress bar.");
+  struct arg_lit *switchS = arg_lit0 (NULL, "no-progress", "suppress progress bar.");
+  struct arg_lit *switchSS = arg_lit0 (NULL, "state-space", "output state space graph.");
 #ifdef DEBUG
   struct arg_int *porparam = arg_int0 (NULL, "pp", NULL, "POR parameter.");
   struct arg_lit *switchI = arg_lit0 ("I", "debug-indent",
@@ -121,6 +122,7 @@ main (int argc, char **argv)
     latex,
     noreport,
     switchS, 
+    switchSS,
 #ifdef DEBUG
     porparam,
     switchI,
@@ -327,6 +329,11 @@ main (int argc, char **argv)
   else
       /* enable progress display */
       sys->switchS = 10000;
+  if (switchSS->count > 0)
+    {
+      /* enable state space graph output */
+      sys->switchStatespace = 1;
+    }
 
   /* TODO for now, warning for -m2 and non-clp */
   if (sys->match == 2 && !sys->clp)
@@ -612,8 +619,16 @@ MC_single (const System sys)
 int
 modelCheck (const System sys)
 {
+  if (sys->switchStatespace)
+    {
+      graphInit (sys);
+    }
   traverse (sys);		// start model checking
   timersPrint (sys);
+  if (sys->switchStatespace)
+    {
+      graphDone (sys);
+    }
   return (sys->failed);
 }
 

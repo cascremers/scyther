@@ -94,18 +94,18 @@ traverse (const System sys)
     }
 }
 
-/*
- * executeStep
- *
+//! Progress counters to next step.
+/**
  * Does not really execute anything, it's just bookkeeping, progressing
  * counters and such.
  *
- * If it returns TRUE, explore. If false, don't traverse.
+ *@returns If it returns TRUE, explore. If false, don't traverse.
  */
 
 int
 executeStep (const System sys, const int run)
 {
+  unsigned long int parentBuffer;
   Roledef runPoint;
   runPoint = runPointerGet (sys, run);
 #ifdef DEBUG
@@ -176,6 +176,13 @@ executeStep (const System sys, const int run)
 	  fprintf (stderr, " \r");
 	}
     }
+
+  /* the construction below always assumes MAX_GRAPH_STATES to be smaller than the unsigned long it, which seems realistic. */
+  if (sys->switchStatespace && sys->statesHigh == 0 && sys->statesLow < MAX_GRAPH_STATES)
+    {
+      /* display graph */
+      graphNode (sys);
+    }
   return 1;
 }
 
@@ -201,7 +208,16 @@ explorify (const System sys, const int run)
 
   if (executeStep (sys, run))
     {
+      /* traverse the system after the step */
+      /* be sure to do bookkeeping for the parent state */
+      unsigned long int parentBuffer;
+
+      parentBuffer = sys->parentState;
+      sys->parentState = sys->statesLow;
+
       flag = traverse (sys);
+
+      sys->parentState = parentBuffer;
     }
   else
     {

@@ -1,3 +1,4 @@
+#define MAX_GRAPH_STATES 1000	//!< Maximum number of state space nodes drawn
 int traverse (const System oldsys);
 int explorify (const System sys, const int run);
 int executeStep (const System sys, const int run);

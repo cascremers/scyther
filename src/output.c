@@ -490,3 +490,63 @@ attackDisplay (System sys)
       attackDisplayAscii (sys);
     }
 }
+
+/* state space graph section */
+void graphInit (System sys)
+{
+  Termlist tl;
+
+  /* drawing state space. start with initial node 0 */
+  printf ("digraph Statespace {\n");
+  printf ("\tn0 [shape=box,label=\"M0: ");
+  tl = knowledgeSet (sys->know);
+  termlistPrint (tl);
+  termlistDelete (tl);
+  printf ("\"];\n");
+}
+
+void graphDone (System sys)
+{
+  /* drawing state space. close up. */
+  printf ("}\n");
+}
+
+void graphNode (System sys)
+{
+  Termlist newtl;
+
+  /* add node */
+  printf ("\tn%li [shape=", sys->statesLow);
+  
+  newtl = knowledgeNew (sys->traceKnow[sys->step-1], sys->traceKnow[sys->step]);
+  if (newtl != NULL)
+    {
+      /* knowledge added */
+      printf ("box,label=\"M + ");
+      termlistPrint (newtl);
+      termlistDelete (newtl);
+      printf ("\"");
+    }
+  else
+    {
+      /* no added knowledge */
+      printf ("point");
+    }
+  printf ("];\n");
+
+  /* add edge */
+  printf ("\tn%li -> n%li ", sys->parentState, sys->statesLow);
+  /* add label */
+  printf ("[label=\"");
+  roledefPrint (sys->traceEvent[sys->step - 1]);
+  printf ("\#%i", sys->traceRun[sys->step -1]);
+  printf ("\"");
+  /* a choose? */
+  if (sys->traceEvent[sys->step -1]->type == READ && sys->traceEvent[sys->step -1]->internal)
+    {
+      printf (",color=blue");
+      //printf (",style=dotted");
+    }
+  printf ("]");
+  printf (";\n");
+}

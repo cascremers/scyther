@@ -211,6 +211,7 @@ struct system
   int switchT;			//!< Time display switch.
   int switchS;			//!< Progress display switch. (traversed states)
   int porparam;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
+  int switchStatespace;		//!< Output statespace for dot package
   //! Latex output switch.
   /**
    * Obsolete. Use globalLatex instead.
@@ -223,10 +224,12 @@ struct system
   int explore;			//!< Boolean: explore states after actions or not.
 
   /* counters */
-  unsigned long int statesLow;
-  unsigned long int statesHigh;
+  unsigned long int statesLow;	//!< State number (low)
+  unsigned long int statesHigh; //!< State number (high)
   unsigned long int claims;	//!< Number of claims encountered.
   unsigned long int failed;	//!< Number of claims failed.
+
+  unsigned long int parentState; //!< Parent state number
 
   /* matching */
   int match;			//!< Matching type.
