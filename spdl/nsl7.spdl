@@ -12,11 +12,11 @@ protocol nsl7(I,R)
 		read_1(I,R, {I,ni}pk(R) );
 		send_2(R,I, {ni,nr,R}pk(I) );
 		read_3(I,R, {nr}pk(R) );
-		claim(I,Secret,nr,ni);
+		claim_4(I,Secret,nr,ni);
 	}
 }
 
 const Alice,Bob;
 
-run nsl3.R(Alice,Bob);
-run nsl3.R(Alice,Bob);
+run nsl7.R(Alice,Bob);
+run nsl7.R(Alice,Bob);

@@ -10,7 +10,7 @@ protocol soph(I,R)
 
 		send_1(I,R, {I,ni}pk(R) );
 		read_2(R,I, ni );
-		claim_4(I,Niagree);
+		claim_3(I,Niagree);
 	}	
 	
 	role R

@@ -6,7 +6,7 @@ protocol hw(initiator,world)
 	role initiator
 	{
 		send_1(initiator, world, HelloWorld);
-		claim_2(initiator, Secret, HelloWorld);
+		/* claim_2(initiator, Secret, HelloWorld); */
 	}
 }
 

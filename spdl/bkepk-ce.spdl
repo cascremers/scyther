@@ -40,13 +40,14 @@ protocol bkepk(A,B,testnonce)
 	{
 		var n: Nonce;
 
-		read_4 (A,A, n);
+		read_4 (testnonce,testnonce, n);
 	}
 }
 
 const Alice,Bob,Eve;
 
 compromised sk(Eve);
+untrusted Eve;
 
 
 run bkepk.A(Alice,Bob,Alice);

@@ -22,7 +22,7 @@ protocol broken1(I,R,S)
 	{
 		read_3(S, R, {HelloWorld, S, I, R}k );
 		read_1(I, R, PlainSight, {HelloWorld, I, R}k );
-		claim(R, Secret, PlainSight);
+		claim_4(R, Secret, PlainSight);
 	}
 	role S
 	{

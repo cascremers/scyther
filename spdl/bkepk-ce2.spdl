@@ -1,5 +1,5 @@
 /* 
-	Bilateral Key Exchange with Public Key protocol (BKEPK)
+	Bilateral Key Exchange with Public Key protocol (bkepkCE2)
 
 	Version from Corin/Etalle: An Improved Constraint-Based System for the Verification of Security Protocols.
 	Tried to stay as close as possible to compare timing results.
@@ -12,7 +12,7 @@ secret sk: Function;
 
 inversekeys (pk,sk);
 
-protocol bkepk(A,B,testnonce)
+protocol bkepkCE2(A,B,testnonce)
 {
 	role B
 	{
@@ -40,22 +40,23 @@ protocol bkepk(A,B,testnonce)
 	{
 		var n: Nonce;
 
-		read_4 (A,A, n);
+		read_4 (testnonce,testnonce, n);
 	}
 }
 
 const Alice,Bob,Eve;
 
 compromised sk(Eve);
+untrusted Eve;
 
 
-run bkepk.A(Alice,Bob,Alice);
-run bkepk.A(Alice,Bob,Alice);
-run bkepk.A(Alice,Bob,Alice);
-run bkepk.B(Alice,Bob,Alice);
-run bkepk.B(Alice,Bob,Alice);
-run bkepk.B(Alice,Bob,Alice);
+run bkepkCE2.A(Alice,Bob,Alice);
+run bkepkCE2.A(Alice,Bob,Alice);
+run bkepkCE2.A(Alice,Bob,Alice);
+run bkepkCE2.B(Alice,Bob,Alice);
+run bkepkCE2.B(Alice,Bob,Alice);
+run bkepkCE2.B(Alice,Bob,Alice);
 
-run bkepk.testnonce(Alice,Bob,Alice);
-run bkepk.testnonce(Alice,Bob,Alice);
-run bkepk.testnonce(Alice,Bob,Alice);
+run bkepkCE2.testnonce(Alice,Bob,Alice);
+run bkepkCE2.testnonce(Alice,Bob,Alice);
+run bkepkCE2.testnonce(Alice,Bob,Alice);

@@ -10,7 +10,6 @@ protocol carkeyni(I,R)
 
 		send_1(I,R, {R,ni}sk(I) );
 		send_2(I,R, {R,ni}sk(I) );
-		claim_5(I,Nisynch);
 	}	
 	
 	role R

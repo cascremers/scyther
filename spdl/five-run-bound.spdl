@@ -4,20 +4,6 @@ inversekeys (pk,sk);
 
 protocol r5bound(I,R)
 {
-	role I
-	{
-		const k1: Nonce;
-		const ni: Nonce;
-		var k2: Nonce;
-
-		send_1 (I,R, ni );
-		read_2 (R,I, { ni }sk(R) );
-		send_3 (I,R, {{{ {k1}pk(R) }sk(I)}sk(I)}sk(I) );
-		read_4 (R,I, {k2}k1 );
-
-		claim_5 (I, Secret, k2);
-	}
-	
 	role R
 	{
 		var k1: Nonce;
@@ -34,18 +20,13 @@ protocol r5bound(I,R)
 }
 
 const Alice, Bob: Agent;
+const ne: Nonce;
 
-run r5bound.I(Agent,Agent);
-run r5bound.R(Agent,Agent);
-run r5bound.I(Agent,Agent);
-run r5bound.R(Agent,Agent);
+run r5bound.R(Agent);
+run r5bound.R(Agent);
 
-run r5bound.I(Agent,Agent);
-run r5bound.R(Agent,Agent);
-run r5bound.I(Agent,Agent);
-run r5bound.R(Agent,Agent);
+run r5bound.R(Agent);
+run r5bound.R(Agent);
 
-run r5bound.I(Agent,Agent);
-run r5bound.R(Agent,Agent);
-run r5bound.I(Agent,Agent);
-run r5bound.R(Agent,Agent);
+run r5bound.R(Agent);
+run r5bound.R(Agent);

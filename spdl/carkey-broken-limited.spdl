@@ -9,7 +9,6 @@ protocol carkeybroken(I,R)
 		const ni: Nonce;
 
 		send_1(I,R, I,R );
-		claim_3(I,Nisynch);
 	}	
 	
 	role R

@@ -12,6 +12,7 @@ protocol onetrace(I)
 		read_1(I,I, input);
 		send_2(I,I, Hallo);
 		read_3(I,I, input);
+		claim_4(I, Secret, input);
 	}
 }
 

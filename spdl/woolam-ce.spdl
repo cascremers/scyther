@@ -29,7 +29,7 @@ protocol woolamce(A,B,S)
    		send_6(B,A, { B,(Na,(Nb,Kab)) }Kas, { Na,Nb }Kab );
 		read_7(A,B, { Nb }Kab );	
 
-		claim(B,Secret,authToken);
+		claim_8(B,Secret,authToken);
 	}
 }
 

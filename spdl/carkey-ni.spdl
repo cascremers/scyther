@@ -9,7 +9,6 @@ protocol carkeyni(I,R)
 		const ni: Nonce;
 
 		send_1(I,R, {R,ni}sk(I) );
-		claim_3(I,Nisynch);
 	}	
 	
 	role R
