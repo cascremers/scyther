@@ -1,3 +1,10 @@
+/**
+ * @file terms.c 
+ * \brief Term related base functions.
+ *
+ * Intended to be a standalone file, however during development it turned out that a termlist structure was needed
+ * to define term types, so there is now a dependency loop with termlists.c.
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>

@@ -1,5 +1,8 @@
 /**
- * @file runs.c Originally contained only procedures related to runs, but has grown
+ * @file runs.c 
+ * \brief run related logic.
+ *
+ * Originally contained only procedures related to runs, but has grown
  * somewhat over time.
  */
 #include <stdlib.h>
