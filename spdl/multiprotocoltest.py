@@ -40,16 +40,21 @@ SkipList = [
 # 	LIBS
 # ***********************
 
+# CommandLine
+#
+# Yield the commandline to test, given a list of protocols
+def CommandLine (plist):
+	linelist = " ".join(plist)
+	return "cat " + linelist + " | " + CommandPrefix
+
+
 # ScytherEval
 #
 # Take the list of protocols in plist, and give them to Scyther.
 # Returns a dictionary of claim -> bool; where 1 means that it is
 # correct, and 0 means that it is false (i.e. there exists an attack)
 def ScytherEval (plist):
-	linelist = " ".join(plist)
-
-	commandline = "cat " + linelist + " | " + CommandPrefix
-	scout = commands.getoutput(commandline)
+	scout = commands.getoutput(CommandLine (plist))
 	lines = scout.splitlines()
 	results = {}
 	for line in lines:
@@ -215,7 +220,7 @@ for tline in inp:
 				# Wooh! It was correct before
 				ClearProgress (TupleCount, safetxt)
 				newattacks = newattacks + 1
-				print "We found a new flaw:", claim, " using",CommandPrefix,"and",protocols
+				print "We found a new flaw:", claim, " using",CommandLine( protocols)
 				#
 				# TODO
 				#
