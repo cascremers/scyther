@@ -671,18 +671,348 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
 
   run = semiRunCreate (p, r);
   proof_suppose_run (run, 0, index + 1);
-    {
-      newgoals = add_read_goals (run, 0, index + 1);
-      indentDepth++;
-      flag = bind_existing_to_goal (b, run, index);
-      indentDepth--;
-      goal_remove_last (newgoals);
-    }
+  {
+    newgoals = add_read_goals (run, 0, index + 1);
+    indentDepth++;
+    flag = bind_existing_to_goal (b, run, index);
+    indentDepth--;
+    goal_remove_last (newgoals);
+  }
   semiRunDestroy ();
   return flag;
 }
 
+
+//! Iterate over all events that have an incoming arrow to the current one (forgetting the intruder for a moment)
+void
+iterate_incoming_arrows (void (*func) (), const int run, const int ev)
+{
+  /**
+   * Determine wheter to draw an incoming arrow to this event.
+   * We check all other runs, to see if they are ordered.
+   */
+  int run2;
+
+  run2 = 0;
+  while (run2 < sys->maxruns)
+    {
+      if (run2 != run && sys->runs[run2].protocol != INTRUDER)
+	{
+	  // Is this run before the event?
+	  int ev2;
+	  int found;
+
+	  found = 0;
+	  ev2 = sys->runs[run2].length;
+	  while (found == 0 && ev2 > 0)
+	    {
+	      ev2--;
+	      if (graph[graph_nodes (nodes, run2, ev2, run, ev)] != 0)
+		{
+		  found = 1;
+		}
+	    }
+
+	  if (found == 1)
+	    {
+	      // It is before the event, and thus we would like to draw it.
+	      // However, if there is another path along which we can get here, forget it
+	      /**
+	       * Note that this algorithm is similar to Floyd's algorithm for all shortest paths.
+	       * The goal here is to select only the path with distance 1 (as viewed from the regular runs),
+	       * so we can simplify stuff a bit.
+	       * Nevertheless, using Floyd first would probably be faster.
+	       */
+	      int other_route;
+	      int run3;
+	      int ev3;
+
+	      other_route = 0;
+	      run3 = 0;
+	      ev3 = 0;
+	      while (other_route == 0 && run3 < sys->maxruns)
+		{
+		  if (sys->runs[run3].protocol != INTRUDER)
+		    {
+		      ev3 = 0;
+		      while (other_route == 0 && ev3 < sys->runs[run3].length)
+			{
+			  if (graph
+			      [graph_nodes
+			       (nodes, run2, ev2, run3, ev3)] != 0
+			      &&
+			      graph[graph_nodes
+				    (nodes, run3, ev3, run, ev)] != 0)
+			    {
+			      // other route found
+			      other_route = 1;
+			    }
+			  ev3++;
+			}
+		    }
+		  run3++;
+		}
+	      if (other_route == 0)
+		{
+		  func (run2, ev2);
+		}
+
+
+	    }
+	}
+      run2++;
+    }
+}
+
+//! Iterate over all events that have an outgoing arrow from the current one (forgetting the intruder for a moment)
+void
+iterate_outgoing_arrows (void (*func) (), const int run, const int ev)
+{
+  /**
+   * Determine wheter to draw an incoming arrow to this event.
+   * We check all other runs, to see if they are ordered.
+   */
+  int run2;
+
+  run2 = 0;
+  while (run2 < sys->maxruns)
+    {
+      if (run2 != run && sys->runs[run2].protocol != INTRUDER)
+	{
+	  // Is this run after the event?
+	  int ev2;
+	  int found;
+
+	  found = 0;
+	  ev2 = 0;
+	  while (found == 0 && ev2 < sys->runs[run2].length)
+	    {
+	      if (graph[graph_nodes (nodes, run, ev, run2, ev2)] != 0)
+		{
+		  found = 1;
+		}
+	      ev2++;
+	    }
+
+	  if (found == 1)
+	    {
+	      // It is after the event, and thus we would like to draw it.
+	      // However, if there is another path along which we can get there, forget it
+	      /**
+	       * Note that this algorithm is similar to Floyd's algorithm for all shortest paths.
+	       * The goal here is to select only the path with distance 1 (as viewed from the regular runs),
+	       * so we can simplify stuff a bit.
+	       * Nevertheless, using Floyd first would probably be faster.
+	       */
+	      int other_route;
+	      int run3;
+	      int ev3;
+
+	      other_route = 0;
+	      run3 = 0;
+	      ev3 = 0;
+	      while (other_route == 0 && run3 < sys->maxruns)
+		{
+		  if (sys->runs[run3].protocol != INTRUDER)
+		    {
+		      ev3 = 0;
+		      while (other_route == 0 && ev3 < sys->runs[run3].length)
+			{
+			  if (graph
+			      [graph_nodes
+			       (nodes, run, ev, run3, ev3)] != 0
+			      &&
+			      graph[graph_nodes
+				    (nodes, run3, ev3, run2, ev2)] != 0)
+			    {
+			      // other route found
+			      other_route = 1;
+			    }
+			  ev3++;
+			}
+		    }
+		  run3++;
+		}
+	      if (other_route == 0 || 1 == 1)
+		{
+		  func (run2, ev2);
+		}
+	    }
+	}
+      run2++;
+    }
+}
+
+//! Display the current semistate using LaTeX output format.
+/**
+ * This is not as nice as we would like it. Furthermore, the function is too big, and needs to be split into functional parts that
+ * will allow the generation of dot code as well.
+ */
+void
+latexSemiState ()
+{
+  static int attack_number = 0;
+  int run;
+  Protocol p;
+  int *ranks;
+  int maxrank;
+
+  void node (const int run, const int index)
+  {
+    if (sys->runs[run].protocol == INTRUDER)
+      {
+	if (sys->runs[run].role == I_M)
+	  {
+	    eprintf ("m0");
+	  }
+	else
+	  {
+	    eprintf ("i%i", run);
+	  }
+      }
+    else
+      {
+	eprintf ("r%ii%i", run, index);
+      }
+  }
+
+  // Open graph
+  attack_number++;
+  eprintf ("\\begin{msc}{Attack on ");
+  p = (Protocol) current_claim->protocol;
+  termPrint (p->nameterm);
+  eprintf (", role ");
+  termPrint (current_claim->rolename);
+  eprintf (", claim type ");
+  termPrint (current_claim->type);
+  eprintf ("}\n%% Attack number %i\n", attack_number);
+  eprintf ("\n");
+
+  // Needed for the bindings later on: create graph
+  goal_graph_create ();		// create graph
+  if (warshall (graph, nodes) == 0)	// determine closure
+    {
+      eprintf
+	("%% This graph was not completely closed transitively because it contains a cycle!\n");
+    }
+
+  ranks = memAlloc (nodes * sizeof (int));
+  maxrank = graph_ranks (graph, ranks, nodes);	// determine ranks
+
+  // Draw headings (boxes)
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      if (sys->runs[run].protocol != INTRUDER)
+	{
+	  eprintf ("\\declinst{r%i}{}{run %i}\n", run, run);
+	}
+      run++;
+    }
+  eprintf ("\\nextlevel\n\n");
+
+  // Draw all events (according to ranks)
+  {
+    int myrank;
+
+    myrank = 0;
+    while (myrank < maxrank)
+      {
+	int count;
+	int run;
+
+	count = 0;
+	run = 0;
+	while (run < sys->maxruns)
+	  {
+	    if (sys->runs[run].protocol != INTRUDER)
+	      {
+		int ev;
+
+		ev = 0;
+		while (ev < sys->runs[run].step)
+		  {
+		    if (myrank == ranks[node_number (run, ev)])
+		      {
+			// We have found an event on this rank
+			// We only need to consider reads and claims, but for fun we just consider everything.
+			void outgoing_arrow (const int run2, const int ev2)
+			{
+			  Roledef rd, rd2;
+			  int delta;
+
+			  rd = roledef_shift (sys->runs[run].start, ev);
+			  rd2 = roledef_shift (sys->runs[run2].start, ev2);
+
+			  eprintf ("\\mess{");
+			  /*
+			     // Print the term
+			     // Maybe, if more than one outgoing, and different send/reads, we might want to change this a bit.
+			     if (rd->type == SEND)
+			     {
+			     if (rd2->type == CLAIM)
+			     {
+			     roledefPrint(rd);
+			     }
+			     if (rd2->type == READ)
+			     {
+			     eprintf("$");
+			     if (isTermEqual(rd->message, rd2->message))
+			     {
+			     termPrint(rd->message);
+			     }
+			     else
+			     {
+			     termPrint(rd->message);
+			     eprintf(" \\longrightarrow ");
+			     termPrint(rd2->message);
+			     }
+			     eprintf("$");
+			     }
+			     }
+			     else
+			     {
+			     roledefPrint(rd);
+			     }
+			   */
+			  roledefPrint (rd);
+			  eprintf (" $\\longrightarrow$ ");
+			  roledefPrint (rd2);
+
+			  eprintf ("}{r%i}{r%i}", run, run2);
+			  delta = ranks[node_number (run2, ev2)] - myrank;
+			  if (delta != 0)
+			    {
+			      eprintf ("[%i]", delta);
+			    }
+			  eprintf ("\n");
+			  count++;
+			}
+
+			iterate_outgoing_arrows (outgoing_arrow, run, ev);
+		      }
+		    ev++;
+		  }
+	      }
+	    run++;
+	  }
+	eprintf ("\\nextlevel\n");
+	myrank++;
+      }
+  }
+
+  // clean memory
+  memFree (ranks, nodes * sizeof (int));	// ranks
+
+  // close graph
+  eprintf ("\\nextlevel\n\\end{msc}\n\n");
+}
+
 //! Display the current semistate using dot output format.
+/**
+ * This is not as nice as we would like it. Furthermore, the function is too big, and needs to be split into functional parts that
+ * will allow the generation of LaTeX code as well.
+ */
 void
 dotSemiState ()
 {
@@ -891,9 +1221,9 @@ dotSemiState ()
 		      // Draw the first box
 		      // This used to be drawn only if done && send_before_read, now we always draw it.
 		      eprintf ("\t\ts%i [label=\"Run %i: ", run, run);
-	     	      termPrint (sys->runs[run].protocol->nameterm);
+		      termPrint (sys->runs[run].protocol->nameterm);
 		      eprintf (", ");
-	     	      termPrint (sys->runs[run].role->nameterm);
+		      termPrint (sys->runs[run].role->nameterm);
 		      eprintf ("\\n");
 		      agentsOfRunPrint (sys, run);
 		      eprintf ("\", shape=diamond];\n");
@@ -924,149 +1254,63 @@ dotSemiState ()
 	  ev = 0;
 	  while (ev < sys->runs[run].length)
 	    {
-	      /**
-	       * Determine wheter to draw an incoming arrow to this event.
-	       * We check all other runs, to see if they are ordered.
-	       */
-	      int run2;
+	      void incoming_arrow (int run2, int ev2)
+	      {
+		Roledef rd, rd2;
+		/*
+		 * We have decided to draw this binding,
+		 * from run2,ev2 to run,ev
+		 * However, me might need to decide some colouring for this node.
+		 */
+		eprintf ("\t");
+		node (run2, ev2);
+		eprintf (" -> ");
+		node (run, ev);
+		eprintf (" ");
+		// decide color
+		rd = roledef_shift (sys->runs[run].start, ev);
+		rd2 = roledef_shift (sys->runs[run2].start, ev2);
+		if (rd->type == CLAIM)
+		  {
+		    // Towards a claim, so only indirect dependency
+		    eprintf ("[color=cornflowerblue]");
+		  }
+		else
+		  {
+		    // Not towards claim should imply towards read,
+		    // but we check it to comply with future stuff.
+		    if (rd->type == READ && rd2->type == SEND)
+		      {
+			// We want to distinguish where it is from a 'broken' send
+			if (isTermEqual (rd->message, rd2->message))
+			  {
+			    if (isTermEqual
+				(rd->from, rd2->from)
+				&& isTermEqual (rd->to, rd2->to))
+			      {
+				// Wow, a perfect match. Leave the arrow as-is :)
+				eprintf ("[color=forestgreen]");
+			      }
+			    else
+			      {
+				// Same message, different people
+				eprintf
+				  ("[label=\"redirect\",color=darkorange2]");
+			      }
+			  }
+			else
+			  {
+			    // Not even the same message, intruder construction
+			    eprintf ("[label=\"construct\",color=red]");
+			  }
+		      }
+		  }
+		// close up
+		eprintf (";\n");
+	      }
 
-	      run2 = 0;
-	      while (run2 < sys->maxruns)
-		{
-		  if (run2 != run && sys->runs[run2].protocol != INTRUDER)
-		    {
-		      // Is this run before the event?
-		      int ev2;
-		      int found;
+	      iterate_incoming_arrows (incoming_arrow, run, ev);
 
-		      found = 0;
-		      ev2 = sys->runs[run2].length;
-		      while (found == 0 && ev2 > 0)
-			{
-			  ev2--;
-			  if (graph[graph_nodes (nodes, run2, ev2, run, ev)]
-			      != 0)
-			    {
-			      found = 1;
-			    }
-			}
-
-		      if (found == 1)
-			{
-			  // It is before the event, and thus we would like to draw it.
-			  // However, if there is another path along which we can get here, forget it
-			  /**
-			   * Note that this algorithm is similar to Floyd's algorithm for all shortest paths.
-			   * The goal here is to select only the path with distance 1 (as viewed from the regular runs),
-			   * so we can simplify stuff a bit.
-			   * Nevertheless, using Floyd first would probably be faster.
-			   */
-			  int other_route;
-			  int run3;
-			  int ev3;
-
-			  other_route = 0;
-			  run3 = 0;
-			  ev3 = 0;
-			  while (other_route == 0 && run3 < sys->maxruns)
-			    {
-			      if (sys->runs[run3].protocol != INTRUDER)
-				{
-				  ev3 = 0;
-				  while (other_route == 0
-					 && ev3 < sys->runs[run3].length)
-				    {
-				      if (graph
-					  [graph_nodes
-					   (nodes, run2, ev2, run3, ev3)] != 0
-					  &&
-					  graph[graph_nodes
-						(nodes, run3, ev3, run,
-						 ev)] != 0)
-					{
-					  // other route found
-					  other_route = 1;
-					}
-				      ev3++;
-				    }
-				}
-			      run3++;
-			    }
-			  if (other_route == 0)
-			    {
-			      Roledef rd, rd2;
-			      /*
-			       * We have decided to draw this binding,
-			       * from run2,ev2 to run,ev
-			       * However, me might need to decide some colouring for this node.
-			       */
-			      eprintf ("\t");
-			      node (run2, ev2);
-			      eprintf (" -> ");
-			      node (run, ev);
-			      eprintf (" ");
-			      // decide color
-			      rd = roledef_shift (sys->runs[run].start, ev);
-			      rd2 =
-				roledef_shift (sys->runs[run2].start, ev2);
-			      if (rd->type == CLAIM)
-				{
-				  // Towards a claim, so only indirect dependency
-				  eprintf ("[color=cornflowerblue]");
-				}
-			      else
-				{
-				  // Not towards claim should imply towards read,
-				  // but we check it to comply with future stuff.
-				  if (rd->type == READ && rd2->type == SEND)
-				    {
-				      // We want to distinguish where it is from a 'broken' send
-				      if (isTermEqual
-					  (rd->message, rd2->message))
-					{
-					  if (isTermEqual
-					      (rd->from, rd2->from)
-					      && isTermEqual (rd->to,
-							      rd2->to))
-					    {
-					      // Wow, a perfect match. Leave the arrow as-is :)
-					      eprintf ("[color=forestgreen]");
-					    }
-					  else
-					    {
-					      // Same message, different people
-					      eprintf
-						("[label=\"redirect\",color=darkorange2]");
-					    }
-					}
-				      else
-					{
-					  // Not even the same message, intruder construction
-					  eprintf
-					    ("[label=\"construct\",color=red]");
-					}
-				    }
-				}
-			      // close up
-			      eprintf (";\n");
-			    }
-#ifdef DEBUG
-			  else
-			    {
-			      // for debugging: show other route
-			      run3--;
-			      ev3--;
-
-			      eprintf
-				("\t// HIDDEN r%ii%i -> r%ii%i because route through r%ii%i\n",
-				 run2, ev2, run, ev, run3, ev3);
-
-			    }
-#endif
-			}
-		    }
-		  run2++;
-		}
 	      ev++;
 	    }
 	}
@@ -1216,7 +1460,7 @@ termBindConsequences (Term t)
 {
   Termlist openVariables;
 
-  openVariables = termlistAddVariables(NULL, t);
+  openVariables = termlistAddVariables (NULL, t);
   if (openVariables == NULL)
     {
       // No variables, no consequences
@@ -1247,7 +1491,8 @@ termBindConsequences (Term t)
 	      tl = openVariables;
 	      while (tl != NULL)
 		{
-		  if ((rd->type == READ || rd->type == SEND) && termSubTerm (rd->message, tl->term))
+		  if ((rd->type == READ || rd->type == SEND)
+		      && termSubTerm (rd->message, tl->term))
 		    {
 		      // This run event contains the open variable
 		      affectedCount++;
@@ -1289,7 +1534,7 @@ termBindConsequences (Term t)
  * Nice iteration, I'd suppose
  */
 Binding
-select_tuple_goal()
+select_tuple_goal ()
 {
   List bl;
   Binding tuplegoal;
@@ -1390,10 +1635,10 @@ select_goal ()
 	      int buf_weight;
 
 	      void adapt (int w, float fl)
-		{
-		  buf_constrain = buf_constrain + w * fl;
-		  buf_weight = buf_weight + w;
-		}
+	      {
+		buf_constrain = buf_constrain + w * fl;
+		buf_weight = buf_weight + w;
+	      }
 
 	      // buf_constrain is the addition of the factors before division by weight
 	      buf_constrain = 0;
@@ -1404,13 +1649,17 @@ select_goal ()
 
 	      // Determine buf_constrain levels
 	      // Bit 0: 1 constrain level
-	      if (mode & 1) adapt (1, term_constrain_level (b->term));
+	      if (mode & 1)
+		adapt (1, term_constrain_level (b->term));
 	      // Bit 1: 2 key level (inverted)
-	      if (mode & 2) adapt (1, 0.5 * (1 - b->level));
+	      if (mode & 2)
+		adapt (1, 0.5 * (1 - b->level));
 	      // Bit 2: 4 consequence level
-	      if (mode & 4) adapt (1, termBindConsequences (b->term));
+	      if (mode & 4)
+		adapt (1, termBindConsequences (b->term));
 	      // Bit 4: 16 single variables first
-	      if (mode & 16) adapt (4, 1-isTermVariable (b->term));
+	      if (mode & 16)
+		adapt (4, 1 - isTermVariable (b->term));
 
 	      // Weigh result
 	      if (buf_weight == 0 || buf_constrain <= min_constrain)
@@ -1447,7 +1696,7 @@ select_goal ()
 int
 bind_goal_new_m0 (const Binding b)
 {
-  Termlist m0tl,tl;
+  Termlist m0tl, tl;
   int flag;
   int found;
 
@@ -1471,28 +1720,28 @@ bind_goal_new_m0 (const Binding b)
 	  run = semiRunCreate (INTRUDER, I_M);
 	  proof_suppose_run (run, 0, 1);
 	  sys->runs[run].length = 1;
-	    {
-	      indentDepth++;
-	      if (goal_bind (b, run, 0))
-		{
-		  found++;
-		  proof_suppose_binding (b);
-		  if (sys->output == PROOF)
-		    {
-		      indentPrint ();
-		      eprintf ("* I.e. retrieving ");
-		      termPrint (b->term);
-		      eprintf (" from the initial knowledge.\n");
-		    }
-		  flag = flag && iterate ();
-		}
-	      else
-		{
-		  proof_cannot_bind (b, run, 0);
-		}
-	      goal_unbind (b);
-	      indentDepth--;
-	    }
+	  {
+	    indentDepth++;
+	    if (goal_bind (b, run, 0))
+	      {
+		found++;
+		proof_suppose_binding (b);
+		if (sys->output == PROOF)
+		  {
+		    indentPrint ();
+		    eprintf ("* I.e. retrieving ");
+		    termPrint (b->term);
+		    eprintf (" from the initial knowledge.\n");
+		  }
+		flag = flag && iterate ();
+	      }
+	    else
+	      {
+		proof_cannot_bind (b, run, 0);
+	      }
+	    goal_unbind (b);
+	    indentDepth--;
+	  }
 	  semiRunDestroy ();
 
 
@@ -1511,7 +1760,7 @@ bind_goal_new_m0 (const Binding b)
       eprintf (" cannot be constructed from the initial knowledge.\n");
     }
   termlistDelete (m0tl);
-  
+
 
   return flag;
 }
@@ -1699,9 +1948,9 @@ bind_goal_regular_run (const Binding b)
 	// Bind to existing run
 	sflag = bind_existing_run (b, p, r, index);
 	// bind to new run
-	  {
-	    sflag = sflag && bind_new_run (b, p, r, index);
-          }
+	{
+	  sflag = sflag && bind_new_run (b, p, r, index);
+	}
 	indentDepth--;
 	return sflag;
       }
@@ -1824,9 +2073,9 @@ bind_goal (const Binding b)
       else
 	{
 	  // Normal case
-	    {
-	      flag = bind_goal_regular_run (b);
-	    }
+	  {
+	    flag = bind_goal_regular_run (b);
+	  }
 	  flag = flag && bind_goal_old_intruder_run (b);
 	  flag = flag && bind_goal_new_intruder_run (b);
 	}
@@ -1960,17 +2209,17 @@ prune_theorems ()
     }
 
   // Check for c-minimality
-    {
-      if (!bindings_c_minimal ())
-	{
-	  if (sys->output == PROOF)
-	    {
-	      indentPrint ();
-	      eprintf ("Pruned because this is not <=c-minimal.\n");
-	    }
-	  return 1;
-	}
-    }
+  {
+    if (!bindings_c_minimal ())
+      {
+	if (sys->output == PROOF)
+	  {
+	    indentPrint ();
+	    eprintf ("Pruned because this is not <=c-minimal.\n");
+	  }
+	return 1;
+      }
+  }
 
   /**
    * Check whether the bindings are valid
@@ -2055,7 +2304,8 @@ prune_bounds ()
       if (sys->output == PROOF)
 	{
 	  indentPrint ();
-	  eprintf ("Pruned: ran out of allowed time (-T %i switch)\n", get_time_limit () );
+	  eprintf ("Pruned: ran out of allowed time (-T %i switch)\n",
+		   get_time_limit ());
 	}
       // Pruned because of time bound!
       current_claim->timebound = 1;
@@ -2245,7 +2495,16 @@ property_check ()
    */
   count_false ();
   if (sys->output == ATTACK)
-    dotSemiState ();
+    {
+      if (sys->latex == 1)
+	{
+	  latexSemiState ();
+	}
+      else
+	{
+	  dotSemiState ();
+	}
+    }
   // Store attack length if shorter
   attack_this = get_trace_length ();
   if (attack_this < attack_length)
@@ -2280,12 +2539,12 @@ iterate ()
 	      Binding b;
 
 	      // Are there any tuple goals?
-	      b = select_tuple_goal();
+	      b = select_tuple_goal ();
 	      if (b != NULL)
 		{
 		  // Expand tuple goal
 		  int count;
-	
+
 		  // mark as blocked for iteration
 		  binding_block (b);
 		  // simply adding will detect the tuple and add the new subgoals
@@ -2304,7 +2563,7 @@ iterate ()
 		  flag = iterate ();
 
 		  // undo
-  		  goal_remove_last (count);
+		  goal_remove_last (count);
 		  binding_unblock (b);
 		}
 	      else
