@@ -757,19 +757,37 @@ timersPrint (const System sys)
   anyclaims = 0;
   while (cl_scan != NULL)
     {
-      /**
-       * for now, we don't print the actual claim label.
-       *@todo When termPrint can also go to stderr, fix this.
-       */
       anyclaims = 1;
 
       eprintf ("claim\t");
-      termPrint (cl_scan->type);
-      eprintf ("\t");
-      termPrint (cl_scan->rolename);
-      eprintf (" (");
-      termPrint (cl_scan->label);
-      eprintf (")\tfound:\t");
+
+      /* claim label is tuple */
+      if (realTermTuple (cl_scan->label))
+	{
+	  /* modern version: claim label is tuple (protocname, label) */
+          /* first print protocol.role */
+	  termPrint (cl_scan->label->left.op1);
+	  eprintf (".");
+	  termPrint (cl_scan->rolename);
+	  eprintf ("\t");
+	  /* second print event_label */
+	  termPrint (cl_scan->type);
+	  eprintf ("_");
+	  termPrint (cl_scan->label->right.op2);
+	  eprintf ("\t");
+	}
+      else
+	{
+	  /* old-fashioned output */
+	  termPrint (cl_scan->type);
+	  eprintf ("\t");
+	  termPrint (cl_scan->rolename);
+	  eprintf (" (");
+	  termPrint (cl_scan->label);
+          eprintf (")\t");
+	}
+      /* print counts etc. */
+      eprintf ("found:\t");
       statesFormat (cl_scan->count);
       if (cl_scan->count > 0)
 	{

@@ -1,3 +1,6 @@
+- Make different error codes for compilation error/ other error. This can be
+  useful for scripts. However, it might shift some constants for the Elegast
+  scripts.
 - Consider where in Arachne dependency graph is used. If this is only for
   pruning states, we can construct it there only. However, the base 'role
   defs/bindings' graph might be re-used.

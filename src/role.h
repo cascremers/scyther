@@ -18,7 +18,8 @@ struct claimlist
   Term type;
   //! The term element for this node.
   Term label;
-  //! The pointer to the protocol (not defined yet?)
+  //! The pointer to the protocol (not defined typically, because
+  //! at compile time of the claim the protocol structure is not known yet.)
   void *protocol;
   //! The name of the role in which it occurs.
   Term rolename;
