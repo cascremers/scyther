@@ -226,6 +226,14 @@ void
 goal_add (Term term, const int run, const int ev)
 {
   term = deVar (term);
+#ifdef DEBUG
+  if (term == NULL)
+      error ("Trying to add an emtpy goal term");
+  if (run >= sys->maxruns)
+      error ("Trying to add a goal for a run that does not exist.");
+  if (ev >= sys->runs[run].step)
+      error ("Trying to add a goal for an event that is not in the semistate yet.");
+#endif
   if (realTermTuple (term))
     {
       int width;
@@ -280,6 +288,10 @@ goal_bind (const Binding b, const int run, const int ev)
 {
   if (!b->done)
     {
+#ifdef DEBUG
+      if (run >= sys->maxruns || sys->runs[run].step <= ev)
+	error ("Trying to bind to something not yet in the semistate.");
+#endif
       b->done = 1;
       b->run_from = run;
       b->ev_from = ev;
@@ -326,7 +338,7 @@ bindings_c_minimal ()
       if (!warshall (graph, nodes))
 	{
 	  // Hmm, cycle
-	  return 0;
+	  error ("Detected a cycle when testing for c-minimality");
 	}
     }
 
@@ -344,12 +356,12 @@ bindings_c_minimal ()
 
 	  node_from = node_number (b->run_from, b->ev_from);
 	  // Find all preceding events
-	  for (run = 0; run <= sys->maxruns; run++)
+	  for (run = 0; run < sys->maxruns; run++)
 	    {
 	      int ev;
 
 	      //!@todo hardcoded reference to step, should be length
-	      for (ev = 0; run < sys->runs[run].step; ev++)
+	      for (ev = 0; ev < sys->runs[run].step; ev++)
 		{
 		  int node_comp;
 
@@ -360,7 +372,7 @@ bindings_c_minimal ()
 		      Roledef rd;
 
 		      rd = roledef_shift (sys->runs[run].start, ev);
-		      if (termInTerm (rd->message, b->term))
+		      if (termInTerm (b->term, rd->message))
 			{
 			  // This term already occurs as interm in a previous node!
 			  return 0;

@@ -1,4 +1,5 @@
 /**
+ *
  *@file arachne.c
  *
  * Introduces a method for proofs akin to the Athena modelchecker
@@ -34,6 +35,7 @@ Role I_V;
 Role I_R;
 Role I_E;
 Role I_D;
+Role I_RRS;
 
 static int indentDepth;
 static int max_encryption_level;
@@ -112,7 +114,7 @@ arachneInit (const System mysys)
   add_event (READ, NULL);
   add_event (READ, NULL);
   add_event (SEND, NULL);
-  I_D = add_role ("I_D: Decrypt");
+  I_RRS = add_role ("I_D: Encrypt");
 
   return;
 }
@@ -354,7 +356,6 @@ bind_existing_to_goal (const Binding b, const int index, const int run,
 	    goal_remove_last ();
 	    keycount--;
 	  }
-	termlistDestroy (keylist);
       }
     else
       {
@@ -553,13 +554,17 @@ select_goal ()
       b = (Binding) bl->data;
       if (!b->done)
 	{
-	  float cons;
-
-	  cons = term_constrain_level (b->term);
-	  if (cons < min_constrain)
+	  // We don't care about singular variables, so...
+	  if (!isTermVariable (b->term))
 	    {
-	      min_constrain = cons;
-	      best = b;
+	      float cons;
+
+	      cons = term_constrain_level (b->term);
+	      if (cons < min_constrain)
+		{
+		  min_constrain = cons;
+		  best = b;
+		}
 	    }
 	}
       bl = bl->next;
@@ -572,7 +577,7 @@ select_goal ()
  * Handles the case where the intruder constructs a composed term himself.
  */
 int
-bind_intruder_to_construct (const Binding b)
+bind_goal_new_intruder_run (const Binding b)
 {
   Term term;
   Termlist m0tl;
@@ -588,40 +593,50 @@ bind_intruder_to_construct (const Binding b)
    */
   if (!realTermLeaf (term))
     {
+      int run;
+      int index;
+      int newgoals;
+      Roledef rd;
       Term t1, t2;
 
       if (realTermTuple (term))
 	{
-	  warning ("Goal that is a tuple should not occur!");
 	  // tuple construction
-	  t1 = term->left.op1;
-	  t2 = term->right.op2;
-	}
-      else
-	{
-	  // must be encryption
-	  t1 = term->left.op;
-	  t2 = term->right.key;
+	  error ("Goal that is a tuple should not occur!");
 	}
 
-      goal_add (t1, b->run_to, b->ev_to);
-      goal_add (t2, b->run_to, b->ev_to);
+      // must be encryption
+      t1 = term->left.op;
+      t2 = term->right.key;
+
+      roleInstance (sys, INTRUDER, I_RRS, NULL, NULL);
+      run = sys->maxruns - 1;
+      rd = sys->runs[run].start;
+      rd->message = termDuplicate (t1);
+      rd->next->message = termDuplicate (t2);
+      rd->next->next->message = termDuplicate (term);
+      index = 2;
+      newgoals = add_read_goals (run, 0, index+1);
 #ifdef DEBUG
       if (DEBUGL (3))
 	{
 	  indentPrint ();
-	  eprintf ("Constructing ");
+	  eprintf ("Encrypting ");
 	  termPrint (term);
-	  eprintf (" from smaller terms ");
+	  eprintf (" using term ");
 	  termPrint (t1);
-	  eprintf (" and ");
+	  eprintf (" and key ");
 	  termPrint (t2);
 	  eprintf ("\n");
 	}
 #endif
-      flag = flag && iterate ();
-      goal_remove_last ();
-      goal_remove_last ();
+      if (goal_bind (b, run, index))
+	{
+          flag = flag && iterate ();
+	}
+      goal_unbind (b);
+      remove_read_goals (newgoals);
+      roleInstanceDestroy (sys);
     }
   /**
    * 2. Constructed from bigger term and decryption key
@@ -713,7 +728,7 @@ bind_intruder_to_construct (const Binding b)
 
 //! Bind a regular goal
 int
-bind_goal_regular (const Binding b)
+bind_goal_regular_run (const Binding b)
 {
   int flag;
 
@@ -727,6 +742,12 @@ bind_goal_regular (const Binding b)
       // A unification exists; return the signal
       return 0;
     }
+
+    if (p == INTRUDER)
+      {
+	// No intruder roles here
+	return 1;
+      }
 
     // Test for interm unification
 #ifdef DEBUG
@@ -761,11 +782,8 @@ bind_goal_regular (const Binding b)
 #endif
 	// Bind to existing run
 	flag = bind_existing_run (b, p, r, index, 1);
-	if (p != INTRUDER)
-	  {
-	    // No intruder: bind to new run
-	    flag = flag && bind_new_run (b, p, r, index, 1);
-	  }
+	// bind to new run
+	flag = flag && bind_new_run (b, p, r, index, 1);
 	return flag;
       }
     else
@@ -775,7 +793,7 @@ bind_goal_regular (const Binding b)
       }
   }
 
-  // Bind to all possible sends or intruder node;
+  // Bind to all possible sends of regular runs
 #ifdef DEBUG
   if (DEBUGL (5))
     {
@@ -783,24 +801,47 @@ bind_goal_regular (const Binding b)
       eprintf ("Try regular role send.\n");
     }
 #endif
-  flag = iterate_role_sends (bind_this_role_send);
+  return iterate_role_sends (bind_this_role_send);
+}
+
+
+// Bind to all possible sends of intruder runs
+int bind_goal_old_intruder_run (Binding b)
+{
+  int run;
+  int flag;
+
 #ifdef DEBUG
   if (DEBUGL (5))
     {
       indentPrint ();
-      eprintf ("Try intruder send.\n");
+      eprintf ("Try regular intruder send.\n");
     }
 #endif
 
-  // Other option: bind to term construction
+  flag = 1;
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      if (sys->runs[run].protocol == INTRUDER)
+	{
+	  int ev;
+	  Roledef rd;
 
-  flag = flag && bind_intruder_to_construct (b);
-
-  // Return result
+          rd = sys->runs[run].start;
+	  ev = 0;
+	  while (ev < sys->runs[run].length)
+	    {
+	      if (rd->type == SEND)
+		{
+                  flag = flag && bind_existing_to_goal (b, ev, run, 1);
+		}
+	      rd = rd->next;
+	      ev++;
+	    }
+	}
+    }
   return flag;
 }
-
-
 
 //! Bind a goal in all possible ways
 int
@@ -808,7 +849,12 @@ bind_goal (const Binding b)
 {
   if (!b->done)
     {
-      return bind_goal_regular (b);
+      int flag;
+
+      flag = bind_goal_regular_run (b);
+      flag = flag && bind_goal_old_intruder_run (b);
+      flag = flag && bind_goal_new_intruder_run (b);
+      return flag;
     }
   else
     {

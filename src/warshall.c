@@ -81,11 +81,7 @@ warshall (int *graph, int nodes)
 		{
 		  if (graph[index (k, j)] == 1)
 		    {
-		      /**
-		       * Previously, we tested k == i (self-loop).
-		       * Now we test 2-node loops, i.e. wether there is also a path from i to k.
-		       */
-		      if (graph[index (i, k)] > 0)
+		      if (k == i)
 			{
 			  // Oh no! A cycle.
 			  graph[index (k, i)] = 2;

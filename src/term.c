@@ -1092,6 +1092,8 @@ term_constrain_level (const Term term)
   int nodel (const Term t)
   {
     structure++;
+    if (realTermTuple (t))
+	structure++;
     return 1;
   }
 
