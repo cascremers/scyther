@@ -243,8 +243,9 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 	  e_run = run;
 	  e_term1 = goal.rd->message;
 #endif
-	  flag = flag
-	    && termMguInTerm (goal.rd->message, rd->message, mgu_iterate);
+	  flag = (flag
+		  && termMguInTerm (goal.rd->message, rd->message,
+				    mgu_iterate));
 	  sys->runs[run].length = old_length;
 	}
     }
@@ -433,8 +434,8 @@ bind_intruder_to_regular (const Goal goal)
 	   * in both branches
 	   *@todo FIX!!
 	   */
-	  flag = bind_existing_run (goal, p, r, index)
-	    && bind_new_run (goal, p, r, index);
+	  flag = (bind_existing_run (goal, p, r, index)
+		  && bind_new_run (goal, p, r, index));
 
 	  /**
 	   * deconstruct key list goals
