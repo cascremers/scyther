@@ -16,11 +16,12 @@ def parse(scout):
 	for l in scout.splitlines():
 		data = l.split()
 		if len(data) > 6 and data[0] == 'claim':
-			nc = nc + 1
 			tag = data[6]
 			if tag == 'failed:':
 				ra = ra + 1
-			if tag == 'correct:':
+				nc = nc + 1
+			elif tag == 'correct:':
+				nc = nc + 1
 				if l.rfind("complete_proof") != -1:
 					rp = rp + 1
 				else:
@@ -59,11 +60,19 @@ def main():
 	(options, args) = parser.parse_args()
 	scythertest.process_default_options(options)
 
-	print "G-sel\tAttack\tBound\tProof"
+	print "G-sel\tAttack\tBound\tProof\tClaims\tScore"
 	print 
 	for g in range(1,31):
 		(ra,rb,rp,nc,np) = test_goal_selector(g)
-		print str(g) + "\t" + str(ra) + "\t" + str(rb) + "\t" + str(rp) + "\t" + str(nc)
+
+		# Score: bounds are negative
+		score = ra + rp - rb
+
+		res = str(g)
+		res = res + "\t" + str(ra) + "\t" + str(rb)
+		res = res + "\t" + str(rp) + "\t" + str(nc)
+		res = res + "\t" + str(score)
+		print res
 	print
 	print "Goal selector scan completed."
 
