@@ -22,26 +22,21 @@
 # To verify combos of protocols starting with s and t
 #
 
-import tuplesdo
+# ***********************
+# 	MODULES
+# ***********************
+
+import os
+import sys
+import string
+import commands
 import copy
-import scythercache
 from tempfile import NamedTemporaryFile
+from optparse import OptionParser
 
-# ***********************
-# 	EXPERIMENTS
-# ***********************
-
-### Test 0-2
-###------------------------------------------------------------------
-TupleWidth 	= "2"
-ScytherMethods	= "--match=0 --arachne"
-ScytherBounds	= "--timer=5 --max-runs=5 --max-length=20"
-
-### Test 1-2
-###------------------------------------------------------------------
-#TupleWidth 	= "2"
-#ScytherMethods	= "--match=1 --arachne"
-#ScytherBounds	= "--timer=5 --max-runs=5 --max-length=20"
+import tuplesdo
+import scythercache
+import protocollist
 
 
 # ***********************
@@ -55,14 +50,8 @@ TempFileTuples = "scyther-blip.tmp"
 # External programs
 TupleProgram = "./tuples.py"
 
-# Scyther parameters
-ScytherDefaults	= "--summary"
-
-# Build a large part of the command line (for Scyther) already
-ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
-CommandPrefix = "scyther " + ScytherArgs
-
 # Some default settings for Agents, untrusted e with sk(e) and k(a,e) etc.
+ScytherDefaults	= "--summary"
 IncludeProtocols = '../spdl/spdl-defaults.inc'
 
 # Some protocols are causing troubles: this is a hard-coded filter to exclude
@@ -77,15 +66,6 @@ ProtocolToEffectsMap = {}	# maps protocols that help create multiple flaws, to t
 
 # Ugly hack. Works.
 safetxt = " " * 20
-
-# ***********************
-# 	MODULES
-# ***********************
-
-import os
-import sys
-import string
-import commands
 
 # ***********************
 # 	LIBS
@@ -147,10 +127,11 @@ def ScytherEval (plist):
 
 	# Combine protocol list to an input
 	input = ""
-	for fn in plist:
-		f = open(fn, "r")
-		input = input + f.read()
-		f.close()
+	for fn in (IncludeProtocols.split(" ") + plist):
+		if len(fn) > 0:
+			f = open(fn, "r")
+			input = input + f.read()
+			f.close()
 		
 	# Use Scyther
 	(status,scout) = scythercache.eval(ScytherArgs,input)
@@ -426,35 +407,61 @@ def SignalAttack (protocols, claim):
 #
 # Furthermore, TempFileList is created.
 
+parser = OptionParser()
+parser.add_option("-m","--match", dest="match",
+		default = 0,
+		help = "select matching method (0: no type flaws, 2: \
+		full type flaws")
+parser.add_option("-t","--tuplewidth", dest="tuplewidth",
+		default = 2,
+		help = "number of concurrent protocols to test, >=2")
+parser.add_option("-p","--protocols", dest="protocols",
+		default = 0,
+		help = "protocol selection (0: all, 1:literature only)")
+parser.add_option("-b","--bounds", dest="bounds",
+		default = 0,
+		help = "bound type selection (0: quickscan, 1:thorough)")
+parser.add_option("-s","--start", dest="startpercentage",
+		default = 0,
+		help = "start test at a certain percentage")
+
+(options, args) = parser.parse_args()
+
 # Where should we start (if this is a number)
-if len(sys.argv) > 1: 
-	StartPercentage = int (sys.argv[1])
-	if StartPercentage < 0 or StartPercentage > 100:
-		print "Illegal range for starting percentage (0-100):", StartPercentage
-		sys.exit()
+StartPercentage = int (options.startpercentage)
+if StartPercentage < 0 or StartPercentage > 100:
+	print "Illegal range for starting percentage (0-100):", StartPercentage
+	sys.exit()
 
-else:
-	StartPercentage = 0
-
-# Read stdin into list and count, send to file
-loop = 1
-ProtocolCount = 0
-ProtocolFileList = []
+# Send protocollist to temp file (is this necessary?)
+ProtocolFileList = protocollist.select(options.protocols)
+ProtocolCount = len(ProtocolFileList)
 outp = open(TempFileList, 'w')
-while loop:
-	line = sys.stdin.readline()
-	if line != '':
-		# not the end of the input
-		cleanline = string.strip(line)
-		if cleanline != '' and cleanline[0] != '#' and cleanline not in SkipList:
-			# not a blank line, not forbidden
-			ProtocolFileList.append(cleanline)
-			ProtocolCount = ProtocolCount + 1
-			outp.write(line)
-	else:
-		# end of the input
-		loop = 0
+for l in ProtocolFileList:
+	outp.write(l + "\n") 
 outp.close()
+
+# Determine arguments
+TupleWidth = str(options.tuplewidth)
+
+# Match
+ScytherMethods = "--match=" + str(options.match)
+
+# Method of bounding
+if options.bounds == 0:
+	ScytherBounds = "--arachne --timer=4 --max-runs=5 --max-length=20"
+elif options.bounds == 1:
+	ScytherBounds = "--arachne --timer=15 --max-runs=6 --max-length=30"
+else:
+	print "Don't know bounds method", options.bounds
+	sys.exit()
+
+
+# Combine it all
+ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
+CommandPrefix = "scyther " + ScytherArgs
+
+
 
 # Caching of single-protocol results for speed gain.
 #----------------------------------------------------------------------
