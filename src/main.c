@@ -113,7 +113,7 @@ main (int argc, char **argv)
 						    "pruning method (default is 2)");
   struct arg_int *switch_prune_trace_length =
     arg_int0 ("l", "max-length", NULL,
-	      "prune traces longer than <int> events");
+	      "prune traces longer than <int> events, prune proof deeper than <int> splits.");
   struct arg_lit *switch_incremental_trace_length =
     arg_lit0 (NULL, "increment-traces",
 	      "incremental search using the length of the traces.");

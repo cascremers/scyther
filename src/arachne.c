@@ -48,6 +48,7 @@ Role I_D;
 Role I_RRS;
 
 static int indentDepth;
+static int proofDepth;
 static int max_encryption_level;
 static int num_regular_runs;
 static int num_intruder_runs;
@@ -1445,6 +1446,7 @@ bind_goal (const Binding b)
 	    }
 	}
 
+      proofDepth++;
       if (know_only)
 	{
 	  // Special case: only from intruder
@@ -1458,6 +1460,7 @@ bind_goal (const Binding b)
 	  flag = flag && bind_goal_old_intruder_run (b);
 	  flag = flag && bind_goal_new_intruder_run (b);
 	}
+      proofDepth--;
 
       indentDepth--;
       return flag;
@@ -1663,6 +1666,17 @@ prune_bounds ()
 {
   Termlist tl;
   List bl;
+
+  if (proofDepth > sys->switch_maxtracelength)
+    {
+      // Hardcoded limit on proof tree depth
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("Pruned: proof tree too deep: %i (-l %i switch)\n", proofDepth, sys->switch_maxtracelength);
+	}
+      return 1;
+    }
 
   if (num_regular_runs > sys->switchRuns)
     {
@@ -1949,6 +1963,7 @@ arachne ()
 #endif
 
   indentDepth = 0;
+  proofDepth = 0;
   cl = sys->claimlist;
   while (cl != NULL)
     {
