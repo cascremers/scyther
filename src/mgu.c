@@ -23,6 +23,8 @@
  */
 int mgu_match = 0;
 
+extern Term TERM_Hidden;
+
 void
 showSubst (Term t)
 {
@@ -309,16 +311,21 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (),
 	      Termlist keylist_new;
 	      Term newkey;
 
-	      keylist_new = termlistShallow (keylist);
 	      newkey = inverseKey (inverses, t2->right.key);
-	      keylist_new = termlistAdd (keylist_new, newkey);
 
-	      // Recurse
-	      flag =
-		flag && termMguSubTerm (t1, t2->left.op, iterator, inverses,
-					keylist_new);
+	      // We can never produce the TERM_Hidden key, thus, this is not a valid iteration.
+	      if (!isTermEqual (newkey, TERM_Hidden))
+		{
+		  keylist_new = termlistShallow (keylist);
+		  keylist_new = termlistAdd (keylist_new, newkey);
 
-	      termlistDelete (keylist_new);
+		  // Recurse
+		  flag =
+		    flag && termMguSubTerm (t1, t2->left.op, iterator, inverses,
+					    keylist_new);
+
+		  termlistDelete (keylist_new);
+		}
 	      termDelete (newkey);
 	    }
 	}
