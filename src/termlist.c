@@ -133,6 +133,27 @@ inTermlist (Termlist tl, const Term term)
   return 0;
 }
 
+//! Determine whether a term is an element of a termlist: yield pointer
+__inline__ Termlist termlistFind (Termlist tl, const Term term)
+{
+#ifdef DEBUG
+  if (term == NULL)
+    {
+      error ("Trying to do inTermlist for a NULL term.");
+    }
+#endif
+  while (tl != NULL)
+    {
+      if (isTermEqual (tl->term, term))
+	{
+	  return tl;
+	}
+      tl = tl->next;
+    }
+  return NULL;
+}
+
+
 //! Equality of two term lists.
 /**
  * Are all elements of list 1 in list 2, and vice versa? 

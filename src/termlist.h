@@ -29,6 +29,7 @@ void termlistDelete (Termlist tl);
 void termlistDestroy (Termlist tl);
 void termlistPrint (Termlist tl);
 __inline__ int inTermlist (Termlist tl, const Term term);
+__inline__ Termlist termlistFind (Termlist tl, const Term term);
 int isTermlistEqual (Termlist tl1, Termlist tl2);
 Termlist termlistAdd (Termlist tl, Term term);
 Termlist termlistAppend (const Termlist tl, const Term term);
