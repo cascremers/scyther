@@ -58,6 +58,7 @@ enum exittypes
 #include "latex.h"
 #include "output.h"
 #include "binding.h"
+#include "version.h"
 
 #include "argtable2.h"
 
