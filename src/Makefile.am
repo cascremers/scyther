@@ -15,6 +15,7 @@ scyther_SOURCES = main.c \
 		 runs.c runs.h \
 		 modelchecker.c modelchecker.h \
 		 report.c report.h \
+		 error.c error.h \
 		 debug.c debug.h \
 		 mgu.c mgu.h \
 		 substitutions.c substitutions.h \
