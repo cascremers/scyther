@@ -1415,7 +1415,7 @@ property_check ()
   /**
    * Prune this?
    */
-  if (sys->prune == 2)
+  if (sys->prune > 0)
     {
       /* default: if any attack is found, abort the procedure */
       flag = 0;
