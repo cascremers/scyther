@@ -159,10 +159,9 @@ latexTermlistPrint (Termlist tl, Termlist highlight)
 {
   if (tl == NULL)
     {
-      printf ("[Empty]");
+      printf ("\\emptyset");
       return;
     }
-  printf ("[");
   while (tl != NULL)
     {
       latexTermPrint (tl->term, highlight);
@@ -170,7 +169,6 @@ latexTermlistPrint (Termlist tl, Termlist highlight)
       if (tl != NULL)
 	printf (", ");
     }
-  printf ("]");
 }
 
 /*
