@@ -1298,7 +1298,7 @@ select_tuple_goal()
 
       b = (Binding) bl->data;
       // Ignore done stuff
-      if (!b->done)
+      if (!b->blocked && !b->done)
 	{
 	  if (isTermTuple (b->term))
 	    {
@@ -1352,8 +1352,8 @@ select_goal ()
 
       b = (Binding) bl->data;
 
-      // Ignore singular variables
-      if (!b->done)
+      // Only if not done and not blocked
+      if (!b->blocked && !b->done)
 	{
 	  int allow;
 	  Term gterm;
@@ -1773,6 +1773,10 @@ bind_goal_old_intruder_run (Binding b)
 int
 bind_goal (const Binding b)
 {
+  if (b->blocked)
+    {
+      error ("Trying to bind a blocked goal!");
+    }
   if (!b->done)
     {
       int flag;
@@ -1861,6 +1865,7 @@ prune_theorems ()
 	      error ("Agent of run %i is NULL", run);
 	    }
 	  if (!realTermLeaf (agent)
+	      || agent->stype == NULL
 	      || (agent->stype != NULL
 		  && !inTermlist (agent->stype, TERM_Agent)))
 	    {
@@ -1988,8 +1993,10 @@ prune_theorems ()
 	}
 
       // Check for encryption levels
-      if (sys->match < 2
-	  && (term_encryption_level (b->term) > max_encryption_level))
+      /*
+       * if (sys->match < 2
+       */
+      if (term_encryption_level (b->term) > max_encryption_level)
 	{
 	  // Prune: we do not need to construct such terms
 	  if (sys->output == PROOF)
@@ -2274,29 +2281,27 @@ iterate ()
 		{
 		  // Expand tuple goal
 		  int count;
-		  Term tt;
 	
+		  // mark as blocked for iteration
+		  binding_block (b);
+		  // simply adding will detect the tuple and add the new subgoals
+		  count = goal_add (b->term, b->run_to, b->ev_to, b->level);
+
 		  // Show this in output
 		  if (sys->output == PROOF)
 		    {
 		      indentPrint ();
 		      eprintf ("Expanding tuple goal ");
 		      termPrint (b->term);
-		      eprintf ("\n");
+		      eprintf (" into %i subgoals.\n", count);
 		    }
-
-		  // mark as done for iteration
-		  b->done = 1;
-
-		  // simply adding will detect the tuple and add the new subgoals
-		  count = goal_add (b->term, b->run_to, b->ev_to, b->level);
 
 		  // iterate
 		  flag = iterate ();
 
 		  // undo
   		  goal_remove_last (count);
-		  b->done = 0;
+		  binding_unblock (b);
 		}
 	      else
 		{

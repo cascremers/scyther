@@ -57,7 +57,6 @@ Term TERM_Function;
 Term TERM_Hidden;
 Term TERM_Type;
 Term TERM_Nonce;
-Term TERM_Agent;
 
 Term TERM_Claim;
 Term CLAIM_Secret;

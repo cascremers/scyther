@@ -42,6 +42,7 @@ binding_create (Term term, int run_to, int ev_to)
 
   b = memAlloc (sizeof (struct binding));
   b->done = 0;
+  b->blocked = 0;
   b->run_from = -1;
   b->ev_from = -1;
   b->run_to = run_to;
@@ -179,7 +180,7 @@ goal_graph_create ()
 	  Binding b;
 
 	  b = (Binding) bl->data;
-	  if (b->done)
+	  if (valid_binding (b))
 	    {
 #ifdef DEBUG
 	      if (graph_nodes
@@ -417,6 +418,8 @@ binding_print (const Binding b)
     eprintf ("Unbound --( ");
   termPrint (b->term);
   eprintf (" )->> (%i,%i)", b->run_to, b->ev_to);
+  if (b->blocked)
+    eprintf ("[blocked]");
   return 1;
 }
 
@@ -444,24 +447,9 @@ goal_add (Term term, const int run, const int ev, const int level)
 #endif
   if (realTermTuple (term))
     {
-      int width;
-      int flag;
-      int i;
-
-      flag = 1;
-      width = tupleCount (term);
-      i = 0;
-      while (i < width)
-	{
-	  sum = sum + goal_add (tupleProject (term, i), run, ev, level);
-	  if (i > 0)
-	    {
-	      Binding b;
-
-	      b = (Binding) sys->bindings->data;
-	    }
-	  i++;
-	}
+      sum = sum + 
+	  goal_add (TermOp1 (term), run, ev, level) + 
+	  goal_add (TermOp2 (term), run, ev, level);
     }
   else
     {
@@ -516,6 +504,10 @@ goal_remove_last (int n)
 int
 goal_bind (const Binding b, const int run, const int ev)
 {
+  if (b->blocked)
+    {
+      error ("Trying to bind a blocked goal.");
+    }
   if (!b->done)
     {
 #ifdef DEBUG
@@ -525,7 +517,7 @@ goal_bind (const Binding b, const int run, const int ev)
       b->done = 1;
       b->run_from = run;
       b->ev_from = ev;
-      goal_graph_create (b);
+      goal_graph_create ();
       return warshall (graph, nodes);
     }
   else
@@ -546,6 +538,37 @@ goal_unbind (const Binding b)
   else
     {
       error ("Trying to unbind an unbound goal again.");
+    }
+}
+
+//! Bind a goal as a dummy (block)
+/**
+ * Especially made for tuple expansion
+ */
+int binding_block (Binding b)
+{
+  if (!b->blocked)
+    {
+      b->blocked = 1;
+      return 1;
+    }
+  else
+    {
+      error ("Trying to block a goal again.");
+    }
+}
+
+//! Unblock a binding
+int binding_unblock (Binding b)
+{
+  if (b->blocked)
+    {
+      b->blocked = 0;
+      return 1;
+    }
+  else
+    {
+      error ("Trying to unblock a non-blocked goal.");
     }
 }
 
@@ -606,6 +629,15 @@ labels_ordered (Termmap runs, Termlist labels)
   return 1;
 }
 
+//! Check whether the binding denotes a sensible thing such that we can use run_from and ev_from
+int valid_binding (Binding b)
+{
+  if (b->done && !b->blocked)
+      return 1;
+  else
+      return 0;
+}
+
 //! Prune invalid state w.r.t. <=C minimal requirement
 /**
  * Intuition says this can be done a lot more efficient. Luckily this is the prototype.
@@ -636,7 +668,8 @@ bindings_c_minimal ()
       Binding b;
 
       b = (Binding) bl->data;
-      if (b->done)
+      // Check for a valid binding; it has to be 'done' and sensibly bound (not as in tuple expanded stuff)
+      if (valid_binding(b))
 	{
 	  int run;
 	  int node_from;

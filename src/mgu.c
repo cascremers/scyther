@@ -58,7 +58,36 @@ showSubst (Term t)
 __inline__ int
 goodsubst (Term tvar, Term tsubst)
 {
-  if (tvar->stype == NULL || (mgu_match == 2))
+  // function to test compatibility
+  __inline__ int compatibleTypes ()
+    {
+      if (tvar->stype == NULL)
+	{
+	  // If the variable type is unspecified, anything goes
+	  return 1;
+	}
+      else
+	{
+	  // There are variable types.
+	  // At least one of them should match a type of the constant.
+	  Termlist tl;
+
+	  tl = tvar->stype;
+	  while (tl != NULL)
+	    {
+	      if (inTermlist (tsubst->stype, tl->term))
+		{
+		  // One type matches
+		  return 1;
+		}
+	      tl = tl->next;
+	    }
+	  // No matches
+	  return 0;
+	}
+    }
+
+  if (mgu_match == 2)
     {
       return 1;
     }
@@ -76,7 +105,7 @@ goodsubst (Term tvar, Term tsubst)
 	{
 	  // It's a leaf, but what type?
 	  if (mgu_match == 1
-	      || termlistContained (tvar->stype, tsubst->stype))
+	      || compatibleTypes ())
 	    {
 	      return 1;
 	    }

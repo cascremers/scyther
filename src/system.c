@@ -18,6 +18,7 @@
 
 /* from compiler.o */
 extern Term TERM_Type;
+extern Term TERM_Agent;
 
 //! Global flag that signals LaTeX output.
 /**
@@ -708,11 +709,17 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 	      
 	      // Flag this
 	      newt->roleVar = 1;
+	      newt->stype = termlistAddNew (newt->stype, TERM_Agent);
 
 	      // maybe add choose?
 	      // Note that for anything but full type flaws, this is not an issue.
 	      // In the POR reduction, force choose was the default. Here it is not.
-	      if (not_read_first (rd, oldt) && sys->match == 2)
+	      /*
+	       * [x]
+	       * TODO currently disabled: something weird was goind on causing weird prunes,
+	       * for match=2. Investigate later.
+	       */
+	      if (0 && not_read_first (rd, oldt) && sys->match == 2)
 		{
 		  /* this term is forced as a choose, or it does not occur in the (first) read event */
 		  if (extterm == NULL)
