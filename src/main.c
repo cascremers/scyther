@@ -360,7 +360,8 @@ main (int argc, char **argv)
     }
 
   /* handle switches */
-
+  
+  sys->switchRuns = switch_maximum_runs->ival[0];	/* maximum number of runs */
   if (switch_implicit_choose->count > 0)
     /* allow implicit chooses */
     sys->switchForceChoose = 0;
@@ -453,7 +454,16 @@ main (int argc, char **argv)
 
   /* compile */
 
-  compile (spdltac, switch_maximum_runs->ival[0]);
+  if (sys->engine != ARACHNE_ENGINE)
+    {
+      // Compile as many runs as possible
+      compile (spdltac, switch_maximum_runs->ival[0]);
+    }
+  else
+    {
+      // Compile no runs for Arachne
+      compile (spdltac, 0);
+    }
   scanner_cleanup ();
 
   /* preprocess */

@@ -106,15 +106,9 @@ arachneInit (const System mysys)
   add_event (READ, NULL);
   I_GOAL = add_role (" I_GOAL ");
 
-  know0 = knowledgeSet (sys->know);
-  tl = know0;
-  while (tl != NULL)
-    {
-      add_event (SEND, tl->term);
-      I_M0 = add_role (" I_M0 ");
-      tl = tl->next;
-    }
-  termlistDelete (know0);
+  add_event (SEND, NULL);
+  I_M0 = add_role (" I_M0 ");
+
   return;
 }
 
@@ -268,6 +262,7 @@ create_intruder_goal (Term t)
     {
       explanation = "Adding intruder goal for message ";
       e_term1 = t;
+      e_run = run;
     }
 #endif
   return run;
@@ -441,6 +436,8 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
   int run;
   int flag;
 
+  roleInstance (sys, p, r, NULL, NULL);
+  run = sys->maxruns - 1;
 #ifdef DEBUG
   if (DEBUGL (4))
     {
@@ -451,11 +448,9 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
       termPrint (p->nameterm);
       eprintf (", ");
       termPrint (r->nameterm);
-      eprintf (" (%i)\n", subterm);
+      eprintf (", run %i (subterm:%i)\n", run, subterm);
     }
 #endif
-  roleInstance (sys, p, r, NULL, NULL);
-  run = sys->maxruns - 1;
   flag = bind_existing_to_goal (goal, index, run, subterm);
   roleInstanceDestroy (sys);
   return flag;
@@ -705,12 +700,20 @@ int
 bind_intruder_to_construct (const Goal goal)
 {
   Term term;
+  Termlist m0tl;
+  int flag;
+  int run;
 
+  flag = 1;
   term = goal.rd->message;
+  /**
+   * Two options.
+   *
+   * 1. Constructed from composite terms
+   */
   if (!realTermLeaf (term))
     {
       Term t1, t2;
-      int flag;
 
       if (realTermTuple (term))
 	{
@@ -724,19 +727,66 @@ bind_intruder_to_construct (const Goal goal)
 	  t1 = term->left.op;
 	  t2 = term->right.key;
 	}
-      create_intruder_goal (t1);
-      create_intruder_goal (t2);
 
-      flag = iterate ();
-
+      run = create_intruder_goal (t1);
+      if (binding_add (run, 0, goal.run, goal.index))
+	{
+	  run = create_intruder_goal (t2);
+          if (binding_add (run, 0, goal.run, goal.index))
+	    {
+	      flag = flag && iterate ();
+	    }
+	  binding_remove_last ();
+	  roleInstanceDestroy (sys);
+	}
+      binding_remove_last ();
       roleInstanceDestroy (sys);
-      roleInstanceDestroy (sys);
-      return flag;
     }
-  else
+  /**
+   * 2. Retrieved from M_0
+   */
+  m0tl = knowledgeSet (sys->know);
+  while (flag && m0tl != NULL)
     {
-      return 1;
+      Term m0t;
+      Termlist subst;
+
+      m0t = m0tl->term;
+      subst = termMguTerm (term, m0t);
+      if (subst != MGUFAIL)
+	{
+	  int run;
+
+	  roleInstance (sys, INTRUDER, I_M0, NULL, NULL);
+	  run = sys->maxruns - 1;
+	  sys->runs[run].start->message = termDuplicate(term);
+	  sys->runs[run].length = 1;
+          if (binding_add (run, 0, goal.run, goal.index))
+	    {
+#ifdef DEBUG
+	      if (DEBUGL (3))
+		{
+		  indentPrint ();
+		  eprintf ("Retrieving ");
+		  termPrint (term);
+		  eprintf (" from the initial knowledge.\n");
+		}
+#endif
+	      iterate ();
+	    }
+	  binding_remove_last ();
+	  roleInstanceDestroy (sys);
+	  termlistSubstReset (subst);
+          termlistDelete (subst);
+	}
+
+      m0tl = m0tl->next;
     }
+  termlistDelete (m0tl);
+  /**
+   * return result
+   */
+  return flag;
 }
 
 
@@ -766,6 +816,7 @@ bind_goal_intruder (const Goal goal)
 	  // This seems to work
 	  flag = flag && iterate ();
 	  termlistSubstReset (substlist);
+	  termlistDelete (substlist);
 	}
       tl = tl->next;
     }
@@ -820,7 +871,7 @@ prune ()
 #endif
       return 1;
     }
-  if (sys->maxruns > 4)
+  if (sys->maxruns > sys->switchRuns)
     {
       // Hardcoded limit on runs
 #ifdef DEBUG
@@ -862,13 +913,13 @@ prune ()
 #endif
 	  return 1;
 	}
-      if (inTermlist (sys->untrusted, agent))
+      if (!realTermVariable (agent) && inTermlist (sys->untrusted, agent))
 	{
 #ifdef DEBUG
 	  if (DEBUGL (3))
 	    {
 	      indentPrint ();
-	      eprintf ("Pruned because agents must be untrusted.\n");
+	      eprintf ("Pruned because all agents of the claim run must be trusted.\n");
 	    }
 #endif
 	  return 1;
@@ -914,7 +965,9 @@ iterate ()
 #ifdef DEBUG
       if (DEBUGL (3) && explanation != NULL)
 	{
+          indentDepth--;
 	  indentPrint ();
+          indentDepth++;
 	  eprintf ("ITERATE: %s", explanation);
 
 	  if (e_run != INVALID)

@@ -128,6 +128,7 @@ struct system
   int switchT;			//!< Time display switch.
   int switchS;			//!< Progress display switch. (traversed states)
   int porparam;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
+  int switchRuns;		//!< The number of runs as in the switch
   int switchScenario;		//!< -1 to count, 0 for disable, 1-n to select the choose scenario
   int switchScenarioSize;	//!< Scenario size, also called fixed trace prefix length
   int switchForceChoose;	//!< Force chooses for each run, even if involved in first read

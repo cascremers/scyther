@@ -58,6 +58,7 @@ systemInit ()
   sys->output = ATTACK;		// default is to show the attacks
   sys->porparam = 0;		// multi-purpose parameter
   sys->latex = 0;		// latex output?
+  sys->switchRuns = INT_MAX;
   sys->switchScenario = 0;
   sys->switchScenarioSize = 0;
   sys->switchForceChoose = 1;	// force explicit chooses by default
