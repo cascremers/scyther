@@ -54,6 +54,7 @@ systemInit ()
   sys->attack = tracebufInit ();
 
   /* switches */
+  sys->engine = POR_ENGINE;	// default is partial ordering engine
   sys->output = ATTACK;		// default is to show the attacks
   sys->porparam = 0;		// multi-purpose parameter
   sys->latex = 0;		// latex output?

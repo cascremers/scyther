@@ -87,6 +87,8 @@ main (int argc, char **argv)
     arg_file0 (NULL, NULL, "FILE", "input file ('-' for stdin)");
   struct arg_file *outfile = arg_file0 ("o", "output", "FILE",
 					"output file (default is stdout)");
+  struct arg_lit *switch_arachne =
+    arg_lit0 ("a", "arachne", "use Arachne engine");
   struct arg_str *switch_check = arg_str0 (NULL, "check", "CLAIM",
 					   "claim type to check (default is all)");
   struct arg_int *switch_scenario = arg_int0 ("s", "scenario", NULL,
@@ -166,6 +168,7 @@ main (int argc, char **argv)
     switch_echo,
     switch_progress_bar,
 
+    switch_arachne,
     switch_check,
     switch_traversal_method,
     switch_match_method,
@@ -333,8 +336,10 @@ main (int argc, char **argv)
    */
 
   sys = systemInit ();
-  /* select default engine */
-  sys->engine = POR_ENGINE;
+  if (switch_arachne->count > 0)
+    {
+      sys->engine = ARACHNE_ENGINE;
+    }
   /* init compiler for this system */
   compilerInit (sys);
 
@@ -892,7 +897,17 @@ modelCheck (const System sys)
     }
 
   /* modelcheck the system */
-  traverse (sys);
+  switch (sys->engine)
+    {
+    case POR_ENGINE:
+      traverse (sys);
+      break;
+    case ARACHNE_ENGINE:
+      arachne (sys);
+      break;
+    default:
+      error ("Unknown engine type %i.", sys->engine);
+    }
 
   /* clean up any states display */
   if (sys->switchS > 0)
