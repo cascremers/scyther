@@ -547,8 +547,8 @@ select_goal ()
       b = (Binding) bl->data;
       if (!b->done)
 	{
-	  // We don't care about singular variables, so...
-	  if (!isTermVariable (b->term))
+	  // We don't care about singular agent variables, so...
+	  if (! (isTermVariable (b->term) && inTermlist (b->term->stype, TERM_Agent)))
 	    {
 	      float cons;
 
@@ -1029,10 +1029,12 @@ iterate ()
 #endif
   indentDepth--;
 
-  if (!flag)
+#ifdef DEBUG
+  if (DEBUGL (5) && !flag)
     {
       warning ("Flag has turned 0!");
     }
+#endif
   return flag;
 }
 

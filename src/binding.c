@@ -372,7 +372,7 @@ bindings_c_minimal ()
 		      Roledef rd;
 
 		      rd = roledef_shift (sys->runs[run].start, ev);
-		      if (termInTerm (b->term, rd->message))
+		      if (termInTerm (rd->message, b->term))
 			{
 			  // This term already occurs as interm in a previous node!
 			  return 0;
