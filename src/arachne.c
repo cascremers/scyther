@@ -155,6 +155,44 @@ mgu_iterate (const Termlist tl)
   return iterate ();
 }
 
+//! After a role instance, or an extension of a run, we might need to add some goals
+/**
+ * From old to new. Sets the new length to new.
+ *@returns The number of goals added (for destructions)
+ */
+int
+add_read_goals (const int run, int old, int new)
+{
+  int count;
+  int i;
+  Roledef rd;
+
+  sys->runs[run].length = new;
+  i = old;
+  rd = roledef_shift (sys->runs[run], i);
+  while (i < new)
+    {
+      if (rd->type == READ)
+	{
+	  goal_add (rd->message, run, i);
+	}
+      rd = rd->next;
+      i++;
+    }
+  return count;
+}
+
+//! Remove n goals
+void
+remove_read_goals (int n)
+{
+  while (n>0)
+    {
+      goal_remove_last ();
+      n--;
+    }
+}
+
 //! Determine the run that follows from a substitution.
 /**
  * After an Arachne unification, stuff might go wrong w.r.t. nonce instantiation.
@@ -247,62 +285,13 @@ iterate_role_sends (int (*func) ())
   return 1;
 }
 
-//! Generate a new intruder goal
-int
-create_intruder_goal (Term t)
-{
-  int run;
-  Roledef rd;
-
-  roleInstance (sys, INTRUDER, NULL, NULL, NULL);
-  run = sys->maxruns - 1;
-  rd = sys->runs[run].start;
-  sys->runs[run].length = 1;
-  rd->message = termDuplicate (t);
-#ifdef DEBUG
-  if (DEBUGL (3))
-    {
-      explanation = "Adding intruder goal for message ";
-      e_term1 = t;
-      e_run = run;
-    }
-#endif
-  return run;
-}
-
-//! Generates a new intruder goal, iterates
-/**
- * Sloppy, does not unify term but hardcodes it into the stuff.
- */
-int
-add_intruder_goal_iterate (Goal goal)
-{
-  int flag;
-  int run;
-
-  run = create_intruder_goal (goal.rd->message);
-  if (binding_add (run, 0, goal.run, goal.index, goal.rd->message))
-    {
-      flag = iterate ();
-    }
-  else
-    {
-      indentPrint ();
-      eprintf ("Aborted adding intruder goal because of cycle.\n");
-      flag = 1;
-    }
-  binding_remove_last ();
-  roleInstanceDestroy (sys);	// destroy the created run
-  return flag;
-}
-
 //! Try to bind a specific existing run to a goal.
 /**
  * The key goals are bound to the goal.
  *@param subterm determines whether it is a subterm unification or not.
  */
 int
-bind_existing_to_goal (const Goal goal, const int index, const int run,
+bind_existing_to_goal (const Binding b, const int index, const int run,
 		       const int subterm)
 {
   Roledef rd;
@@ -1146,3 +1135,13 @@ arachne ()
       cl = cl->next;
     }
 }
+
+/**
+ * Done: add_read_goals, remove_read_goals.
+ *
+ * Now we must make the new algorithm.
+ * At role instance (of e.g. claim), fix add_read_goals.
+ *
+ * Iterate on roles. Create new roles for intruder (encrypt RRS, decrypt RRS, and M_0 S)
+ * Check for bindings_c_minimal.
+ */

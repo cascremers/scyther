@@ -10,26 +10,9 @@
 #include "debug.h"
 #include "term.h"
 
-/*
- * Idea is the ev_from *has to* precede the ev_to
- */
-struct binding
-{
-  int run_from;
-  int ev_from;
-
-  int run_to;
-  int ev_to;
-
-  int *graph;
-  int nodes;
-
-  Term term;
-};
-
-typedef struct binding *Binding;
-
 static System sys;
+static int* graph;
+static int nodes;
 
 /*
  *
@@ -39,17 +22,19 @@ static System sys;
 
 //! Create mem for binding
 Binding
-binding_create (int run_from, int ev_from, int run_to, int ev_to, Term term)
+binding_create (Term term, int run_to, int ev_to)
 {
   Binding b;
 
   b = memAlloc (sizeof (struct binding));
-  b->run_from = run_from;
-  b->ev_from = ev_from;
+  b->done = 0;
+  b->child = 0;
+  b->run_from = -1;
+  b->ev_from = -1;
   b->run_to = run_to;
   b->ev_to = ev_to;
-  b->graph = NULL;
-  b->nodes = 0;
+  graph = NULL;
+  nodes = 0;
   b->term = term;
   return b;
 }
@@ -58,9 +43,9 @@ binding_create (int run_from, int ev_from, int run_to, int ev_to, Term term)
 void
 binding_destroy (Binding b)
 {
-  if (b->graph != NULL)
+  if (b->done)
     {
-      memFree (b->graph, (b->nodes * b->nodes) * sizeof (int));
+      goal_unbind ();
     }
   memFree (b, sizeof (struct binding));
 }
@@ -91,6 +76,62 @@ bindingDone ()
   list_iterate (sys->bindings, delete);
   list_destroy (sys->bindings);
 }
+
+//! Compute unclosed graph
+void goal_graph_create ()
+{
+  int run, ev;
+  List bl;
+
+  goal_graph_destroy ();
+  
+  // Setup graph
+  nodes = node_count ();
+  graph = memAlloc ((nodes * nodes) * sizeof (int));
+  graph_fill (graph, nodes, 0);
+
+  // Setup run order
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      ev = 1;
+      //!@todo This now reference to step, but we intend "length" as in Arachne.
+      while (ev < sys->runs[run].step)
+	{
+	  graph[graph_nodes (nodes, run, ev - 1, run, ev)] = 1;
+	  ev++;
+	}
+      run++;
+    }
+  // Setup bindings order
+  bl = sys->bindings;
+  while (bl != NULL)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+#ifdef DEBUG
+      if (graph_nodes (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to) >=
+	  (nodes * nodes))
+	error ("Node out of scope for %i,%i -> %i,%i.\n", b->run_from,
+	       b->ev_from, b->run_to, b->ev_to);
+#endif
+      graph[graph_nodes (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to)]
+	= 1;
+      bl = bl->next;
+    }
+}
+
+//! Destroy graph
+void goal_graph_destroy ()
+{
+  if (graph != NULL)
+    {
+      memFree (graph, (nodes * nodes) * sizeof (int));
+      graph = NULL;
+    }
+}
+
 
 /**
  *
@@ -132,7 +173,7 @@ node_number (int run, int ev)
 
 //! Yield graph index, given node1, node2 numbers
 __inline__ int
-graph_index (const int nodes, const int node1, const int node2)
+graph_index (const int node1, const int node2)
 {
   return ((node1 * nodes) + node2);
 }
@@ -157,59 +198,7 @@ graph_nodes (const int nodes, const int run1, const int ev1, const int run2,
     error ("node_number %i out of scope %i for %i,%i.", node2, nodes, run2,
 	   ev2);
 #endif
-  return graph_index (nodes, node1, node2);
-}
-
-//! Compute closure graph
-/**
- *@returns 0 iff there is a cycle, 1 otherwise
- */
-int
-closure_graph (Binding b)
-{
-  int nodes;
-  int *graph;
-  int run, ev;
-  List bl;
-
-  // Setup graph
-  nodes = node_count ();
-  graph = memAlloc ((nodes * nodes) * sizeof (int));
-  graph_fill (graph, nodes, 0);
-  b->nodes = nodes;
-  b->graph = graph;
-
-  // Setup run order
-  run = 0;
-  while (run < sys->maxruns)
-    {
-      ev = 1;
-      //!@todo This now reference to step, but we intend "length" as in Arachne.
-      while (ev < sys->runs[run].step)
-	{
-	  graph[graph_nodes (nodes, run, ev - 1, run, ev)] = 1;
-	  ev++;
-	}
-      run++;
-    }
-  // Setup bindings order
-  bl = sys->bindings;
-  while (bl != NULL)
-    {
-      Binding b;
-
-      b = (Binding) bl->data;
-#ifdef DEBUG
-      if (graph_nodes (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to) >=
-	  (nodes * nodes))
-	error ("Node out of scope for %i,%i -> %i,%i.\n", b->run_from,
-	       b->ev_from, b->run_to, b->ev_to);
-#endif
-      graph[graph_nodes (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to)]
-	= 1;
-      bl = bl->next;
-    }
-  return warshall (graph, nodes);
+  return graph_index (node1, node2);
 }
 
 //! Print a binding (given a binding list pointer)
@@ -224,63 +213,144 @@ binding_print (void *bindany)
   return 1;
 }
 
-//! Add a binding
-/**
- * Note that bindings are added to the head of the list.
- *@returns True iff is a valid additional binding. False if not.
- */
-int
-binding_add (int run_from, int ev_from, int run_to, int ev_to, Term term)
+
+//! Add a goal
+void
+goal_add (Term term, const int run, const int ev)
 {
-  Binding b;
-  int flag;
-
-#ifdef DEBUG
-  if (DEBUGL (5))
+  term = deVar (term);
+  if (realTermTuple (term))
     {
-      eprintf ("Adding binding (%i,%i) --(", run_from, ev_from);
-      termPrint (term);
-      eprintf (")-->> (%i,%i)\n",
-	       run_to, ev_to);
-    }
-  if (ev_from >= sys->runs[run_from].step)
-    error ("run_from event index too large for scenario.");
-  if (ev_to >= sys->runs[run_to].step)
-    error ("run_to event index too large for scenario.");
-  if (run_from < 0 || run_from >= sys->maxruns)
-    error ("run_from out of scope.");
-  if (run_to < 0 || run_to >= sys->maxruns)
-    error ("run_to out of scope.");
-#endif
-  b = binding_create (run_from, ev_from, run_to, ev_to, term);
-  sys->bindings = list_insert (sys->bindings, b);
+      int width;
+      int flag;
+      int i;
 
-  /*
-   * Compute closure graph etc.
-   */
-  flag = closure_graph (b);
-#ifdef DEBUG
-  if (DEBUGL (5))
-    {
-      eprintf ("Adding binding result %i\n", flag);
+      flag = 1;
+      width = tupleCount (term);
+      i = 0;
+      while (i < width)
+	{
+	  goal_add (tupleProject (term, i), run, ev);
+	  if (i > 0)
+	    {
+	      Binding b;
+
+	      b = (Binding) sys->bindings->data;
+	      b->child = 1;
+	    }
+	  i++;
+	}
     }
-#endif
-  return flag;
+  else
+    {
+      Binding b;
+
+      b = binding_create (term, run, ev);
+      sys->bindings = list_insert (sys->bindings, b);
+    }
 }
 
-//! Remove last additions, including last manual addition
-/**
- * Note that this concerns the head of the list.
- */
+//! Remove a goal
 void
-binding_remove_last ()
+goal_remove_last ()
 {
   Binding b;
+  int child;
 
-  if (sys->bindings != NULL)
+  child = 1;
+  while (child && (sys->bindings != NULL))
     {
       b = (Binding) sys->bindings->data;
+      child = b->child;
       binding_destroy (b);
       sys->bindings = list_delete (sys->bindings);
     }
 }
+
+//! Bind a goal (0 if it must be pruned)
+int
+goal_bind (const Binding b, const int run, const int ev)
+{
+  if (!b->done)
+    {
+      b->done = 1;
+      b->run_from = run;
+      b->ev_from = ev;
+      goal_graph_create (b);
+      return warshall (graph, nodes);
+    }
+  else
+    {
+      error ("Trying to bind a bound goal again.");
+    }
+}
+
+//! Unbind a goal
+void
+goal_unbind (const Binding b)
+{
+  if (b->done)
+    {
+      goal_graph_destroy (b);
+      b->done = 0;
+    }
+  else
+    {
+      error ("Trying to unbind an unbound goal again.");
+    }
+}
+
+//! Prune invalid state w.r.t. <=C minimal requirement
+/**
+ * Intuition says this can be done a lot more efficient. Luckily this is the prototype.
+ *
+ *@returns True, if it's okay. If false, it needs to be pruned.
+ */
+int bindings_c_minimal ()
+{
+  List bl;
+
+  // Ensure a state graph
+  goal_graph_create ();
+  // For all goals
+  bl = sys->bindings;
+  while (bl != NULL)
+    {
+      Binding b;
+      int run;
+      int node_to;
+
+      b = (Binding) bl->data;
+      node_from = node_number (b->run_from, b->ev_from);
+      // Find all preceding events
+      for (run = 0; run <= sys->maxruns; run++)
+	{
+	  int ev;
+
+	  //!@todo hardcoded reference to step, should be length
+	  for (ev = 0; run < sys->runs[run].step; ev++)
+	    {
+	      int node_comp;
+
+	      node_comp = node_number (run, ev);
+	      if (graph[ graph_index (node_comp, node_from)] > 0)
+		{
+		  // this node is *before* the from node
+		  Roledef rd;
+
+		  rd = roledef_shift (sys->runs[run].start, ev);
+		  if (termInTerm (rd->message, b->term))
+		    {
+		      // This term already occurs as interm in a previous node!
+		      return 0;
+		    }
+		}
+	    }
+	}
+
+
+      bl = bl->next;
+    }
+  return 1;
+}
+

@@ -4,13 +4,43 @@
 #include "term.h"
 #include "system.h"
 
+/*
+ * Idea is the ev_from *has to* precede the ev_to
+ */
+struct binding
+{
+  int done;		//!< Iff true, it is bound
+  int child; 		//!< Signifies some tuple unfolding, to remove created bindings.
+
+  int run_from;
+  int ev_from;
+
+  int run_to;
+  int ev_to;
+
+  int *graph;
+  int nodes;
+
+  Term term;
+};
+
+typedef struct binding *Binding;
+
+
 void bindingInit (const System mysys);
 void bindingDone ();
 
 int node_count ();
 int node_number (int run, int ev);
-int binding_add (int run_from, int ev_from, int run_to, int ev_to, Term term);
-void binding_remove_last ();
+
+
 int binding_print (void *bindany);
+
+void goal_add (Term term, const int run, const int ev);
+void goal_remove_last ();
+int goal_bind (const Binding b, const int run, const int ev);
+void goal_unbind (const Binding b);
+
+int bindings_c_minimal ();
 
 #endif
