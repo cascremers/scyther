@@ -4,6 +4,8 @@ secret const k : Function;
    http://www.lsv.ens-cachan.fr/spore/otwayRees.html
 */
 
+usertype String, SesKey, Ticket, Server;
+
 protocol otwayrees(A,B,S)
 {
 	role A

@@ -1,3 +1,4 @@
+usertype SesKey, Server;
 secret const k : Function;
 
 /* Version from the Brutus reports

@@ -5,6 +5,8 @@
 	Tried to stay as close as possible to compare timing results.
 */
 
+usertype Key;
+
 const pk,hash: Function;
 secret sk: Function;
 

@@ -2,8 +2,10 @@
 // Type flaw
 // This version actually works!
 
+usertype Server;
+
 const a,b,c : Agent;
-const s : Simon;
+const s : Server;
 secret k : Function;
 
 

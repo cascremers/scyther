@@ -1,3 +1,4 @@
+usertype Server, SessionKey, Token, Ticket;
 secret k: Function;
 
 const Alice, Bob, Charlie, Eve: Agent;

@@ -1,5 +1,7 @@
 // Yahalom protocol
 
+usertype Sessionkey;
+
 const a,b,s,Eve : Agent;
 secret k : Function;
 

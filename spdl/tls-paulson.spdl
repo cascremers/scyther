@@ -5,6 +5,8 @@
 #define CLIENTK hash(sid,M,na,pa,a,nb,pb,b,false)
 #define SERVERK hash(sid,M,na,pa,a,nb,pb,b,true)
 
+usertype Params, Bool, SessionID;
+
 const pk,hash: Function;
 secret sk,unhash: Function;
 inversekeys(pk,sk);
