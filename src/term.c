@@ -1208,3 +1208,84 @@ term_set_keylevels (const Term term)
 
   scan_levels (0, term);
 }
+
+//! Print the term diff of two terms
+/**
+ * This is not correct yet. We need to add function application and correct tuple handing.
+ */
+void
+termPrintDiff (Term t1, Term t2)
+{
+  t1 = deVar (t1);
+  t2 = deVar (t2);
+
+  void termFromTo (Term t1, Term t2)
+    {
+      t1 = deVar (t1);
+      t2 = deVar (t2);
+
+      eprintf (" [");
+      termPrint (t1);
+      eprintf ("]->[");
+      termPrint (t2);
+      eprintf ("] ");
+    }
+
+  if (isTermEqual (t1, t2))
+    {
+      // Equal, simply print
+      termPrint (t1);
+    }
+  else
+    {
+      if (t1->type != t2->type)
+	{
+	  // Different types
+	  termFromTo (t1,t2);
+	}
+      else
+	{
+	  // Equal types, but not the same
+	  // If component type, but both components different, we simply do moveto at the node level.
+	  if (realTermLeaf (t1))
+	    {
+	      // Different constants
+	      termFromTo (t1, t2);
+	    }
+	  else
+	    {
+	      if (realTermEncrypt (t1))
+		{
+		  // Encryption
+		  if (isTermEqual (t1->left.op, t2->left.op) || isTermEqual (t1->right.key, t2->right.key))
+		    {
+		      eprintf ("{");
+		      termPrintDiff (t1->left.op, t2->left.op);
+		      eprintf ("}");
+		      termPrintDiff (t1->right.key, t2->right.key);
+		    }
+		  else
+		    {
+		      termFromTo (t1,t2);
+		    }
+		}
+	      else
+		{
+		  // Tupling
+		  if (isTermEqual (t1->left.op1, t2->left.op1) || isTermEqual (t1->right.op2, t2->right.op2))
+		    {
+		      eprintf ("(");
+		      termPrintDiff (t1->left.op1, t2->left.op1);
+		      eprintf (")");
+		      termPrintDiff (t1->right.op2, t2->right.op2);
+		    }
+		  else
+		    {
+		      termFromTo (t1,t2);
+		    }
+		}
+	    }
+
+	}
+    }
+}

@@ -179,5 +179,6 @@ void term_rolelocals_are_variables ();
 int term_encryption_level (const Term term);
 float term_constrain_level (const Term term);
 void term_set_keylevels (const Term term);
+void termPrintDiff (Term t1, Term t2);
 
 #endif
