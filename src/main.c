@@ -56,6 +56,9 @@
 
 #include "argtable2.h"
 
+// The global system state
+System sys;
+
 extern struct tacnode *spdltac;
 extern Term TERM_Claim;
 void scanner_cleanup (void);
@@ -80,8 +83,6 @@ const char *releasetag = "alpha2-devel";
 int
 main (int argc, char **argv)
 {
-  System sys;
-
   struct arg_file *infile =
     arg_file0 (NULL, NULL, "FILE", "input file ('-' for stdin)");
   struct arg_file *outfile = arg_file0 ("o", "output", "FILE",
