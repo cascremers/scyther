@@ -409,18 +409,18 @@ timersPrint (const System sys)
 {
   /* display stats, header first */
 
-  printf ("Time\t\tStates\t\tAttack\t\tst/sec\n");
+  fprintf (stderr, "Time\t\tStates\t\tAttack\t\tst/sec\n");
 
   /* print time */
 
   double seconds;
   seconds = (double) clock () / CLOCKS_PER_SEC;
-  printf ("%.3e\t", seconds);
+  fprintf (stderr, "%.3e\t", seconds);
 
   /* states traversed */
 
   statesPrintShort (sys);
-  printf ("\t");
+  fprintf (stderr, "\t");
 
   /* flag
    *
@@ -431,14 +431,14 @@ timersPrint (const System sys)
 
   if (sys->claims == 0)
     {
-      printf ("NoClaim\t\t");
+      fprintf (stderr, "NoClaim\t\t");
     }
   else
     {
       if (sys->failed > 0)
-	printf ("L:%i\t\t", attackLength(sys->attack));
+	fprintf (stderr, "L:%i\t\t", attackLength(sys->attack));
       else
-	printf ("None\t\t");
+	fprintf (stderr, "None\t\t");
     }
 
   /*
@@ -452,16 +452,16 @@ timersPrint (const System sys)
 
   if (seconds > 0)
     {
-      printf ("%.3e\t",
+      fprintf (stderr, "%.3e\t",
 	      (double) (sys->statesLow +
 			(sys->statesHigh * ULONG_MAX)) / seconds);
     }
   else
     {
-      printf ("<inf>\t\t");
+      fprintf (stderr, "<inf>\t\t");
     }
 
-  printf ("\n");
+  fprintf (stderr, "\n");
 }
 
 //! Analyse the model by incremental runs.
@@ -585,13 +585,6 @@ int
 modelCheck (const System sys)
 {
   traverse (sys);		// start model checking
-  if (sys->latex)
-    {
-      latexTimers (sys);
-    }
-  else
-    {
-      timersPrint (sys);
-    }
+  timersPrint (sys);
   return (sys->failed);
 }

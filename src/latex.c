@@ -214,75 +214,13 @@ latexTermlistPrint (Termlist tl, Termlist highlight)
 }
 
 //! Display the timers and states traversed using LaTeX.
+/**
+ * Obsolete: we will now only print timers on stderr. 
+ */
 
 void
 latexTimers (const System sys)
 {
-  void endline (void)
-  {
-    printf ("\\\\ \\hline\n");
-  }
-
-  printf ("\\begin{tabular}{|r|r|c|r|} \\hline\n");
-
-  /* display stats, header first */
-
-  printf ("Time & States & Attack & st/sec");
-  endline ();
-
-  /* print time */
-
-  double seconds;
-  seconds = (double) clock () / CLOCKS_PER_SEC;
-  printf ("$%.3e$ &", seconds);
-
-  /* states traversed */
-
-  printf ("$");
-  statesPrintShort (sys);
-  printf ("$ &");
-
-  /* flag
-   *
-   * L n          Attack of length <n>
-   * None         failed claim
-   * NoClaim      no claims
-   */
-
-  if (sys->claims == 0)
-    {
-      printf ("NoClaim & ");
-    }
-  else
-    {
-      if (sys->failed > 0)
-	printf ("L:%i & ", attackLength (sys->attack));
-      else
-	printf ("None & ");
-    }
-
-  /*
-     printf("%.3e (%li) claims encountered.\n",(double)
-     sys->claims, sys->claims);
-     printf("%.3e (%li) claims failed.\n",(double)
-     sys->failed, sys->failed);
-   */
-
-  /* states per second */
-
-  if (seconds > 0)
-    {
-      printf ("$%.3e$ ",
-	      (double) (sys->statesLow +
-			(sys->statesHigh * ULONG_MAX)) / seconds);
-    }
-  else
-    {
-      printf ("$\\infty$ ");
-    }
-  endline ();
-
-  printf ("\\end{tabular}\n\n");
 }
 
 //! Start drawing MSC environment.

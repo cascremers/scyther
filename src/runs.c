@@ -166,7 +166,7 @@ statesApproximation (System sys)
 void
 statesPrintShort (System sys)
 {
-  printf ("%.3e", statesApproximation (sys));
+  fprintf (stderr,"%.3e", statesApproximation (sys));
 }
 
 //! Print the number of states.
