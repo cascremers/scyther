@@ -1,6 +1,8 @@
 CC = @CC@
 VERSION = @VERSION@
 AM_CFLAGS = @CFLAGS@
+YFLAGS = -d
+BUILT_SOURCES = parser.h
 
 bin_PROGRAMS = scyther
 scyther_SOURCES = main.c \
