@@ -1329,7 +1329,7 @@ prune_claim_specifics ()
 {
   if (current_claim->type == CLAIM_Niagree)
     {
-      if (arachne_claim_niagree (sys, current_claim->r, current_claim->ev))
+      if (arachne_claim_niagree (sys, 0, current_claim->ev))
 	{
           current_claim->count = statesIncrease (current_claim->count);
 	  if (sys->output == PROOF)
@@ -1342,7 +1342,7 @@ prune_claim_specifics ()
     }
   if (current_claim->type == CLAIM_Nisynch)
     {
-      if (arachne_claim_nisynch (sys, current_claim->r, current_claim->ev))
+      if (arachne_claim_nisynch (sys, 0, current_claim->ev))
 	{
           current_claim->count = statesIncrease (current_claim->count);
 	  if (sys->output == PROOF)
@@ -1402,16 +1402,14 @@ property_check ()
   int flag;
 
   flag = 1;
-  if (current_claim->type == CLAIM_Secret)
-    {
-      // Secrecy claim
-      /**
-       * By the way the claim is handled, this automatically means a flaw.
-       */
-      count_false ();
-      if (sys->output == ATTACK)
-	printSemiState ();
-    }
+
+  /**
+   * By the way the claim is handled, this automatically means a flaw.
+   */
+  count_false ();
+  if (sys->output == ATTACK)
+    printSemiState ();
+
   return flag;
 }
 

@@ -3,6 +3,7 @@
 #include "system.h"
 #include "label.h"
 #include "error.h"
+#include "debug.h"
 
 #define MATCH_NONE 0
 #define MATCH_ORDER 1
@@ -11,6 +12,8 @@
 
 #define LABEL_GOOD -3
 #define LABEL_TODO -2
+
+extern int globalError;
 
 // Debugging the NI-SYNCH checks
 //#define OKIDEBUG
@@ -477,6 +480,15 @@ int arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs
   Termlist labels;
   int flag;
 
+#ifdef DEBUG
+  if (DEBUGL (5))
+    {
+      eprintf ("Checking runs agreement for Arachne.\n");
+      termmapPrint (runs);
+      eprintf ("\n");
+    }
+#endif
+
   flag = 1;
   labels = cl->prec;
   while (flag && labels != NULL)
@@ -492,7 +504,25 @@ int arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs
 	  int i;
 	  int run;
 
-	  run = termmapGet (runs, label);
+	  run = termmapGet (runs, role);
+#ifdef DEBUG
+	  if (run < 0 || run >= sys->maxruns )
+	    {
+	      globalError++;
+	      eprintf ("Run mapping %i out of bounds for role ", run);
+	      termPrint (role);
+	      eprintf (" and label ");
+	      termPrint (label);
+	      eprintf ("\n");
+	      eprintf ("This label has sendrole ");
+	      termPrint (linfo->sendrole);
+	      eprintf (" and readrole ");
+	      termPrint (linfo->readrole);
+	      eprintf ("\n");
+	      globalError--;
+	      error ("Run mapping is out of bounds.");
+	    }
+#endif
 	  rd = sys->runs[run].start;
 	  rd_res = NULL;
 	  i = 0;
@@ -559,11 +589,12 @@ int arachne_claim_niagree (const System sys, const int claim_run, const int clai
       else
 	{
 	  // Choose a run for this role, if possible
+	  // Note that any will do
 	  int run, flag;
 
 	  run = 0;
-	  flag = 1;
-	  while (flag && run < sys->maxruns)
+	  flag = 0;
+	  while (run < sys->maxruns)
 	    {
 	      // Has to be from the right protocol
 	      if (sys->runs[run].protocol == cl->protocol)
@@ -573,7 +604,7 @@ int arachne_claim_niagree (const System sys, const int claim_run, const int clai
 		    {
 		      // Choose, iterate
 		      runs_involved = termmapSet (runs_involved, roles_tofill->term, run);
-		      flag = flag && fill_roles (roles_tofill->next);
+		      flag = flag || fill_roles (roles_tofill->next);
 		    }
 		}
 	      run++;
@@ -581,6 +612,13 @@ int arachne_claim_niagree (const System sys, const int claim_run, const int clai
 	  return flag;
 	}
     }
+
+#ifdef DEBUG
+  if (DEBUGL (5))
+    {
+      eprintf ("Testing for Niagree claim with any sort of runs.\n");
+    }
+#endif
 
   rd = roledef_shift (sys->runs[claim_run].start, claim_index);
 #ifdef DEBUG
