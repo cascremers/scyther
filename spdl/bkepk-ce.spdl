@@ -1,5 +1,5 @@
 /* 
-	Bilateral Key Exchange with Public Key protocol (BKEPK)
+	Bilateral Key Exchange with Public Key protocol (bkeCE)
 
 	Version from Corin/Etalle: An Improved Constraint-Based System for the Verification of Security Protocols.
 	Tried to stay as close as possible to compare timing results.
@@ -12,7 +12,7 @@ secret sk: Function;
 
 inversekeys (pk,sk);
 
-protocol bkepk(A,B,testnonce)
+protocol bkeCE(A,B,testnonce)
 {
 	role B
 	{
@@ -50,12 +50,12 @@ compromised sk(Eve);
 untrusted Eve;
 
 
-run bkepk.A(Alice,Bob,Alice);
-run bkepk.A(Alice,Bob,Alice);
-run bkepk.B(Alice,Bob,Alice);
-run bkepk.B(Alice,Bob,Alice);
-run bkepk.testnonce(Alice,Bob,Alice);
-run bkepk.testnonce(Alice,Bob,Alice);
+run bkeCE.A(Alice,Bob,Alice);
+run bkeCE.A(Alice,Bob,Alice);
+run bkeCE.B(Alice,Bob,Alice);
+run bkeCE.B(Alice,Bob,Alice);
+run bkeCE.testnonce(Alice,Bob,Alice);
+run bkeCE.testnonce(Alice,Bob,Alice);
 
-run bkepk.A(Alice,Bob,Alice);
-run bkepk.testnonce(Alice,Bob,Alice);
+run bkeCE.A(Alice,Bob,Alice);
+run bkeCE.testnonce(Alice,Bob,Alice);

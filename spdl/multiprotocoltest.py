@@ -63,8 +63,7 @@ def ScytherEval (plist):
 			if tag == 'correct:':
 				value = 1
 		 	if value == -1:
-				print "Scyther parse error for the input line: " + commandline
-				print "On the output line: " + line
+				raise IOError, 'Scyther output for ' + commandline + ', line ' + line + ' cannot be parsed.'
 			results[claim] = value
 	return results
 
@@ -73,6 +72,9 @@ def ScytherEval (plist):
 # The above, but do the preprocessing for a single protocol
 def ScytherEval1 (protocol):
 	results = ScytherEval ([protocol])
+	for claim in results.keys():
+		if ProtocolClaims.has_key(claim):
+			raise IOError, 'Claim occurs in two protocols: ' + claim
 	ProtocolClaims.update (results)
 
 
@@ -219,5 +221,6 @@ for tline in inp:
 
 ClearProgress (TupleCount, safetxt)
 print "Processed", processed,"tuple combinations in total."
+print "Found", newattacks, "new attacks."
 
 inp.close()

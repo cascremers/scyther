@@ -9,7 +9,7 @@ secret sk: Function;
 
 inversekeys (pk,sk);
 
-protocol bkepk(I,R)
+protocol samasc-broken(I,R)
 {
 	role R
 	{

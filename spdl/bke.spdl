@@ -10,7 +10,7 @@ secret sk,unhash: Function;
 inversekeys (pk,sk);
 inversekeys (hash,unhash);
 
-protocol bkepk(I,R)
+protocol bke(I,R)
 {
 	role I
 	{
@@ -45,16 +45,16 @@ untrusted e;
 compromised sk(e);
 const ne: Nonce;
 
-run bkepk.I(a,Agent);
-run bkepk.R(Agent,b);
-run bkepk.I(a,Agent);
-run bkepk.R(Agent,b);
+run bke.I(a,Agent);
+run bke.R(Agent,b);
+run bke.I(a,Agent);
+run bke.R(Agent,b);
 
-run bkepk.I(a,Agent);
-run bkepk.R(Agent,b);
-run bkepk.I(a,Agent);
-run bkepk.R(Agent,b);
+run bke.I(a,Agent);
+run bke.R(Agent,b);
+run bke.I(a,Agent);
+run bke.R(Agent,b);
 
-run bkepk.I(a,Agent);
-run bkepk.R(Agent,b);
+run bke.I(a,Agent);
+run bke.R(Agent,b);
 

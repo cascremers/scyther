@@ -1,5 +1,5 @@
 /* 
-	Bilateral Key Exchange with Public Key protocol (BKEPK)
+	Bilateral Key Exchange with Public Key protocol (bkeONE)
 */
 
 usertype Key;
@@ -10,7 +10,7 @@ secret sk,unhash: Function;
 inversekeys (pk,sk);
 inversekeys (hash,unhash);
 
-protocol bkepk(I,R)
+protocol bkeONE(I,R)
 {
 	role I
 	{
@@ -43,16 +43,16 @@ untrusted e;
 compromised sk(e);
 const ne: Nonce;
 
-run bkepk.I(a,Agent);
-run bkepk.R(Agent,a);
-run bkepk.I(a,Agent);
-run bkepk.R(Agent,a);
+run bkeONE.I(a,Agent);
+run bkeONE.R(Agent,a);
+run bkeONE.I(a,Agent);
+run bkeONE.R(Agent,a);
 
-run bkepk.I(a,Agent);
-run bkepk.R(Agent,a);
-run bkepk.I(a,Agent);
-run bkepk.R(Agent,a);
+run bkeONE.I(a,Agent);
+run bkeONE.R(Agent,a);
+run bkeONE.I(a,Agent);
+run bkeONE.R(Agent,a);
 
-run bkepk.I(a,Agent);
-run bkepk.R(Agent,a);
+run bkeONE.I(a,Agent);
+run bkeONE.R(Agent,a);
 

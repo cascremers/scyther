@@ -1,5 +1,5 @@
 /* 
-	Bilateral Key Exchange with Public Key protocol (BKEPK)
+	Bilateral Key Exchange with Public Key protocol (bkebroken)
 	Broken version with man in the middle attack.
 */
 
@@ -11,7 +11,7 @@ secret SK,hinv: Function;
 inversekeys (PK,SK);
 inversekeys (h,hinv);
 
-protocol bkepk(I,R)
+protocol bkebroken(I,R)
 {
 	role I
 	{
@@ -44,5 +44,5 @@ untrusted e;
 compromised SK(e);
 const ne: Nonce;
 
-run bkepk.I(a,Agent);
-run bkepk.R(Agent,b);
+run bkebroken.I(a,Agent);
+run bkebroken.R(Agent,b);
