@@ -682,6 +682,69 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
   return flag;
 }
 
+//! Convert a list of ranks to a list of lines (0..)
+/**
+ * The interesting bit is that the ranks include the intruder events. Thus, we need to filter those out of
+ * the system.
+ *
+ * Returns the baseline of the highest number + 1; thus the number of lines.
+ */
+int ranks_to_lines(int *ranks, const int nodes)
+{
+  int ranksdone, baseline;
+
+  ranksdone = 0;	// All values lower than this have been done, so it is the next value
+  baseline = 0;		// The line numbers that get assigned
+  while (1)
+    {
+      int newlow;
+      int run;
+      int i;
+      
+      // Determine lowest rank for non-intruder events, that has not been done
+      newlow = INT_MAX;
+      run = 0;
+      while (run < sys->maxruns)
+	{
+	  if (sys->runs[run].protocol != INTRUDER)
+	    {
+	      int ev;
+
+	      ev = 0;
+	      while (ev < sys->runs[run].step)
+		{
+		  int nrank;
+
+		  nrank = ranks[node_number (run, ev)];
+		  if (nrank < newlow && nrank >= ranksdone)
+		    {
+		      newlow = nrank;
+		    }
+		  ev++;
+		}
+	    }
+	  run++;
+	}
+      if (newlow == INT_MAX)
+	{
+	  // All are done
+	  return baseline;
+	}
+      // Convert the nodes between ranksdone and newlow to baseline
+      i = 0;
+      while (i < nodes)
+	{
+	  if (ranks[i] <= newlow && ranks[i] >= ranksdone)
+	    {
+	      ranks[i] = baseline;
+	    }
+	  i++;
+	}
+      baseline++;
+      ranksdone = newlow+1;
+    }
+}
+
 
 //! Iterate over all events that have an incoming arrow to the current one (forgetting the intruder for a moment)
 void
@@ -791,7 +854,10 @@ iterate_outgoing_arrows (void (*func) (), const int run, const int ev)
 		{
 		  found = 1;
 		}
-	      ev2++;
+	      else
+		{
+	          ev2++;
+		}
 	    }
 
 	  if (found == 1)
@@ -833,7 +899,7 @@ iterate_outgoing_arrows (void (*func) (), const int run, const int ev)
 		    }
 		  run3++;
 		}
-	      if (other_route == 0 || 1 == 1)
+	      if (other_route == 0)
 		{
 		  func (run2, ev2);
 		}
@@ -855,26 +921,7 @@ latexSemiState ()
   int run;
   Protocol p;
   int *ranks;
-  int maxrank;
-
-  void node (const int run, const int index)
-  {
-    if (sys->runs[run].protocol == INTRUDER)
-      {
-	if (sys->runs[run].role == I_M)
-	  {
-	    eprintf ("m0");
-	  }
-	else
-	  {
-	    eprintf ("i%i", run);
-	  }
-      }
-    else
-      {
-	eprintf ("r%ii%i", run, index);
-      }
-  }
+  int maxrank, maxline;
 
   // Open graph
   attack_number++;
@@ -899,6 +946,9 @@ latexSemiState ()
   ranks = memAlloc (nodes * sizeof (int));
   maxrank = graph_ranks (graph, ranks, nodes);	// determine ranks
 
+  // Convert ranks to lines
+  maxline = ranks_to_lines(ranks, nodes);
+
   // Draw headings (boxes)
   run = 0;
   while (run < sys->maxruns)
@@ -913,10 +963,10 @@ latexSemiState ()
 
   // Draw all events (according to ranks)
   {
-    int myrank;
+    int myline;
 
-    myrank = 0;
-    while (myrank < maxrank)
+    myline = 0;
+    while (myline < maxline)
       {
 	int count;
 	int run;
@@ -932,16 +982,15 @@ latexSemiState ()
 		ev = 0;
 		while (ev < sys->runs[run].step)
 		  {
-		    if (myrank == ranks[node_number (run, ev)])
+		    if (myline == ranks[node_number (run, ev)])
 		      {
-			// We have found an event on this rank
-			// We only need to consider reads and claims, but for fun we just consider everything.
+			Roledef rd;
+
 			void outgoing_arrow (const int run2, const int ev2)
 			{
-			  Roledef rd, rd2;
+			  Roledef rd2;
 			  int delta;
 
-			  rd = roledef_shift (sys->runs[run].start, ev);
 			  rd2 = roledef_shift (sys->runs[run2].start, ev2);
 
 			  eprintf ("\\mess{");
@@ -975,12 +1024,14 @@ latexSemiState ()
 			     roledefPrint(rd);
 			     }
 			   */
+			  /*
 			  roledefPrint (rd);
 			  eprintf (" $\\longrightarrow$ ");
 			  roledefPrint (rd2);
+			  */
 
 			  eprintf ("}{r%i}{r%i}", run, run2);
-			  delta = ranks[node_number (run2, ev2)] - myrank;
+			  delta = ranks[node_number (run2, ev2)] - myline;
 			  if (delta != 0)
 			    {
 			      eprintf ("[%i]", delta);
@@ -989,7 +1040,13 @@ latexSemiState ()
 			  count++;
 			}
 
+			// We have found an event on this line
+			// We only need to consider reads and claims, but for fun we just consider everything.
+			rd = roledef_shift (sys->runs[run].start, ev);
 			iterate_outgoing_arrows (outgoing_arrow, run, ev);
+			eprintf("\\action{");
+			roledefPrint (rd);
+			eprintf("}{r%i}\n", run);
 		      }
 		    ev++;
 		  }
@@ -997,7 +1054,7 @@ latexSemiState ()
 	    run++;
 	  }
 	eprintf ("\\nextlevel\n");
-	myrank++;
+	myline++;
       }
   }
 
