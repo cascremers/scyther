@@ -350,7 +350,7 @@ def DescribeContext (filep, protocols, claim):
 def RequiresAllProtocols (protocols, claim):
 
 	# check for single results
-	if ClaimToResultMap[claim] == 0:
+	if claim in ClaimToResultMap.keys() and ClaimToResultMap[claim] == 0:
 		# claim was always false (already attack on single prot.)
 		return False
 	# check for simple cases
