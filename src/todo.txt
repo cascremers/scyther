@@ -1,7 +1,7 @@
-- HIGH PRIORITY: Fix -t11 to be left-oriented. This is more consistent with
-  ensuring that the other symmetry reductions work as advertised.
-- Figure out how static building works. Might even involve switching to
-  automake alternative (Cons, SCons,..)
+- I have no good explanation for it, but any of -O2, -O3, 
+  -finline-functions causes ni-synch claims of nsl-nisynch to fail, 
+  which is incorrect. This must be investigated later, but for now I 
+  disabled it.
 - Constraint logic now also has no checks for when a run is done by the
   intruder (which should be excluded).
 - Fix constants in intruder knowledge. Auto add single one of each type,
