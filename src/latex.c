@@ -912,7 +912,7 @@ attackDisplayLatex (System sys)
 
 	  /* put out computed widths */
 	  
-	  printf ("\\setlength{\\envinstdist}{0.5\\maxmscall}\n");
+	  printf ("\\setlength{\\envinstdist}{0.7\\maxmscall}\n");
 	  printf ("\\setlength{\\instdist}{\\maxmscall}\n");
 	  printf ("\\setlength{\\actionwidth}{\\maxmscaction}\n");
 	  printf ("\\setlength{\\instwidth}{\\maxmscinst}\n");

@@ -1,6 +1,6 @@
 %{
 #include "pheading.h"
-#include "scanner.c"
+/* #include "lex.yy.c" */
 #include "tac.h"
 
 struct tacnode*	spdltac;
