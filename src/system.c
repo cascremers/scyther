@@ -656,6 +656,9 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
   runs[rid].locals = tolist;
   runs[rid].artefacts = artefacts;
 
+  /* erase any substitutions in the role definition, as they are now copied */
+  termlistSubstReset (role->variables);
+
   /* Determine symmetric run */
   runs[rid].prevSymmRun = staticRunSymmetry (sys, rid);	// symmetry reduction static analysis
 

@@ -774,3 +774,19 @@ termlistOrder (Termlist tl1, Termlist tl2)
   else
     return 1;
 }
+
+//! Iterate over terms in termlist
+/**
+ * Function gets terms
+ */
+int
+termlist_iterate (Termlist tl, int (*func) ())
+{
+  while (tl != NULL)
+    {
+      if (!func (tl->term))
+	return 0;
+      tl = tl->next;
+    }
+  return 1;
+}
