@@ -24,6 +24,8 @@
 
 import tuplesdo
 import copy
+import scythercache
+from tempfile import NamedTemporaryFile
 
 # ***********************
 # 	PARAMETERS
@@ -38,7 +40,6 @@ TempFileTuples = "scyther-blip.tmp"
 
 # External programs
 TupleProgram = "./tuples.py"
-ScytherProgram = "../src/scyther"
 
 # Scyther parameters
 ScytherDefaults	= "--summary"
@@ -47,7 +48,7 @@ ScytherBounds	= "--timer=5 --max-runs=5 --max-length=20"
 
 # Build a large part of the command line (for Scyther) already
 ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
-CommandPrefix = ScytherProgram + " " + ScytherArgs
+CommandPrefix = "scyther "
 
 # Some default settings for Agents, untrusted e with sk(e) and k(a,e) etc.
 IncludeProtocols = '../spdl/spdl-defaults.inc'
@@ -132,8 +133,15 @@ def ScytherEval (plist):
 	sys.stdout.flush()
 	sys.stderr.flush()
 
+	# Combine protocol list to an input
+	input = ""
+	for fn in plist:
+		f = open(fn, "r")
+		input = input + f.read()
+		f.close()
+		
 	# Use Scyther
-	(status,scout) = commands.getstatusoutput(CommandLine (plist))
+	(status,scout) = scythercache.eval(ScytherArgs,input)
 
 	if status == 1 or status < 0:
 		# Something went wrong

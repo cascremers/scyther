@@ -9,6 +9,8 @@
 import md5
 import commands
 import os
+import sys
+from tempfile import NamedTemporaryFile, gettempdir
 
 #	scyther should reside in $PATH
 def scythercall (argumentstring, inputfile):
@@ -19,7 +21,7 @@ def scythercall (argumentstring, inputfile):
 #	cached results
 #	input:	a large string (consisting of read input files)
 #	argstring:	a smaller string
-def scythercache (argumentstring, inputstring):
+def eval (argumentstring, inputstring):
 
 	def cacheid():
 		m = md5.new()
@@ -42,29 +44,28 @@ def scythercache (argumentstring, inputstring):
 		# Return a readable ID (good for a filename)
 		return m.hexdigest()
 
+	# Ensure directory
+	def ensureDirectory (path):
+		if not os.path.exists(path):
+			os.mkdir(path)
+
 	# Ensure directories for a file
 	def ensureDirectories (filename):
-
-		def ensureDir (plist):
-			if len(plist) > 1:
-				ensureDir (plist[:-1])
-			path = plist.join("/")
-			if not os.path.exists(path):
-				os.mkdir(path)
-
-		dir = os.path.dirname(filename)
-		ensuredir (dir.split("/"))
+		for i in range(1,len(filename)):
+			if filename[i] == '/':
+				np = i+1
+				ensureDirectory(filename[:np])
 
 	# Determine the unique filename for this test
 	id = cacheid()
-	filename = "scythercache/" + id[:2] + "/res-" + id[2:] + ".txt"
+	filename = "scyther/cache-" + id[:3] + "/res-" + id[3:] + ".txt"
 	cachefile = gettempdir() + "/" + filename
 	ensureDirectories(cachefile)
 
 	# Does it already exist?
 	if os.path.exists(cachefile):
 		# Great: return the cached results
-		f = open(cachefile,"r")
+		f = open(cachefile,'r')
 		res = f.read()
 		f.close()
 		return (0,res)
@@ -72,11 +73,20 @@ def scythercache (argumentstring, inputstring):
 		# Hmm, we need to compute this result
 		h = NamedTemporaryFile()
 		h.write(inputstring)
+		h.flush()
 		(status, scout) = scythercall (argumentstring, h.name)
 		h.close()
-		f = open(cachefile,"w")
-		f.write(scout)
-		f.close()
+		if not(status <= 0 or status == 1):
+			# All is well
+			f = open(cachefile,'w')
+			f.write(scout)
+			f.close()
+		else:
+			print status
+			print scout
+			print h.name
+
+		sys.exit()
 		return (status,scout)
 
 
