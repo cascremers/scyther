@@ -2,6 +2,11 @@
   actual bindings list, to debug the stuff that happens.
 - PRIO 2 : resolve Arachne memory usage issue. Why is it using so much memory?
   Recode stuff to memAlloc/memFree and determine max usage, leakage etc.
+- There is no good test on the correct workings of
+  add_goals/destruction of these. We can test this if after
+  termination, we have 0 goals; for this we need to store the
+  initially added goals as well. Furthermore, we can generate an
+  error when <0 goals occur.
 - Arachne seems to trip over claims with empty prec sets. Maybe we
   simply should not test these.
 - soph segfaults at no switch or -r4 (-r3 is okay??) using non-debug version.
