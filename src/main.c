@@ -37,35 +37,12 @@ main (int argc, char **argv)
 
   struct arg_int *traversal = arg_int0 ("t", "traverse", NULL,
 					"set traversal method, partial order reduction (default is 8)");
-  struct arg_rem *trav1 = arg_rem (NULL, "1 : nondeterministic.");
-  struct arg_rem *trav2 = arg_rem (NULL, "2 : nonreads first.");
-  struct arg_rem *trav3 = arg_rem (NULL, "3 : nonreads; supertransition.");
-  struct arg_rem *trav4 =
-    arg_rem (NULL, "4 : nonreads; supertransition; forbidden");
-  struct arg_rem *trav5 = arg_rem (NULL,
-				   "5 : nonreads; supertransition; forbidden; remove hopeless");
-  struct arg_rem *trav6 =
-    arg_rem (NULL, "6 : secrecy p.o. reduction, new style");
-  struct arg_rem *trav7 = arg_rem (NULL,
-				   "7 : nonreads; supertransition; forbidden; remove hopeless V2");
-  struct arg_rem *trav8 =
-    arg_rem (NULL, "8 : nondeterministic knowledge brancher");
   struct arg_int *match =
     arg_int0 ("m", "match", NULL, "matching method (default is 0)");
-  struct arg_rem *match0 = arg_rem (NULL, "0 : typed.");
-  struct arg_rem *match1 = arg_rem (NULL, "1 : basic typeflaws.");
-  struct arg_rem *match2 = arg_rem (NULL, "2 : full typeflaws");
   struct arg_lit *clp =
     arg_lit0 ("c", "cl", "use constraint logic, non-associative.");
   struct arg_int *prune = arg_int0 ("p", "prune", NULL,
 				    "pruning method (default is 2)");
-  struct arg_rem *prune0 =
-    arg_rem (NULL, "0 : search all traces, no pruning.");
-  struct arg_rem *prune1 = arg_rem (NULL,
-				    "1 : search traces of any length until a violation occurs.");
-  struct arg_rem *prune2 = arg_rem (NULL,
-				    "2 : search progessively shorter traces after a violated claim.");
-  struct arg_rem *prune3 = arg_rem (NULL, "3 : quit after a violated claim.");
   struct arg_int *maxlength = arg_int0 ("l", "max-length", NULL,
 					"prune traces longer than <int> events.");
   struct arg_lit *incTraces = arg_lit0 (NULL, "increment-traces",
@@ -79,8 +56,6 @@ main (int argc, char **argv)
     arg_lit0 ("d", "disable-report", "don't report violations.");
   struct arg_int *switchS = arg_int0 ("s", "states", NULL,
 				      "report total number of states and claims traversed.");
-  struct arg_rem *switchS0 =
-    arg_rem (NULL, "if <int> is not 0, report progress after <int> states.");
   // struct arg_file *outfile = arg_file0("o",NULL,"<output>",            "output file (default is \"-\")");
 #ifdef DEBUG
   struct arg_int *porparam = arg_int0 (NULL, "pp", NULL, "POR parameter.");
@@ -92,25 +67,27 @@ main (int argc, char **argv)
   struct arg_lit *help = arg_lit0 (NULL, "help", "print this help and exit");
   struct arg_lit *version =
     arg_lit0 (NULL, "version", "print version information and exit");
-  //struct arg_file *infiles = arg_filen(NULL,NULL,"FILE",0,argc+2,               "input file(s)");
+  struct arg_file *outfile = arg_file0("o","output","FILE", "output file (stdout)");
+  struct arg_file *infile  = arg_file0(NULL,NULL,"FILE",    "input file (stdin)");
   struct arg_end *end = arg_end (30);
   void *argtable[] = {
-    traversal, trav1, trav2, trav3, trav4, trav5, trav6, trav7, trav8,
-    match, match0, match1, match2,
+    infile, 
+    outfile,
+    traversal, 
+    match, 
     clp,
-    prune, prune0, prune1, prune2, prune3,
+    prune, 
     maxlength, incTraces,
     maxruns, incRuns,
     latex,
     noreport,
-    switchS, switchS0,
+    switchS, 
 #ifdef DEBUG
     porparam,
     switchI,
     debugl,
 #endif
     help, version,
-    // infiles,
     end
   };
   int nerrors;
@@ -159,6 +136,7 @@ main (int argc, char **argv)
     {
       printf ("'%s' model checker for security protocols.\n", progname);
       printf ("%s release.\n", releasetag);
+      printf ("$Rev$ $Date$\n");
 #ifdef DEBUG
       printf ("Compiled with debugging support.\n");
 #endif
@@ -200,6 +178,26 @@ main (int argc, char **argv)
       printf ("matching logic, and CL simply isn't reliable in \nmany ");
       printf ("ways. Try again in a few weeks.\n");
       exit(0);
+    }
+
+  /* redirect in- and output according to supplied filenames */
+  /* output */
+  if (outfile->count > 0)
+    {
+      if (!freopen (outfile->filename[0], "w", stdout))
+	{
+	  printf("Error at stdout reopen to %s.\n", outfile->filename[0]);
+	  exit(1);
+	}
+    }
+  /* input */
+  if (infile->count > 0)
+    {
+      if (!freopen (infile->filename[0], "r", stdin))
+	{
+	  printf("Error at stdin reopen to %s.\n", infile->filename[0]);
+	  exit(1);
+	}
     }
 
   /* handle debug level */
