@@ -487,9 +487,9 @@ MC_incRuns (const System sys)
     {
       systemReset (sys);
       sys->maxruns = runs;
-      printf ("%i of %i runs in incremental runs search.\n", runs, maxruns);
+      fprintf (stderr, "%i of %i runs in incremental runs search.\n", runs, maxruns);
       res = modelCheck (sys);
-      printf ("\n");
+      fprintf (stderr, "\n");
       if (res)
 	{
 	  /* Apparently a violation occurred. If we are searching
@@ -537,10 +537,10 @@ MC_incTraces (const System sys)
     {
       systemReset (sys);
       sys->maxtracelength = tracelen;
-      printf ("%i of %i trace length in incremental trace length search.\n",
+      fprintf (stderr, "%i of %i trace length in incremental trace length search.\n",
 	      tracelen, maxtracelen);
       res = modelCheck (sys);
-      printf ("\n");
+      fprintf (stderr, "\n");
       if (res)
 	{
 	  /* Apparently a violation occurred. If we are searching
