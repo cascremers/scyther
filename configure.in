@@ -1,5 +1,6 @@
 AC_INIT(src/main.c)
-AM_INIT_AUTOMAKE(Scyther, 0.2, ccremers@win.tue.nl)
+AM_INIT_AUTOMAKE(scyther, 0.2, ccremers@win.tue.nl)
+VERSION="0.1.0"
 AM_CONFIG_HEADER(src/config.h)
 AC_CONFIG_SRCDIR(src)
 
@@ -38,7 +39,6 @@ AC_ARG_ENABLE(debug,
 	      echo debugOff
 	      )
                   
-VERSION="0.1.0"
 SUBDIRS=src 
 
 dnl read Makefile.in's and write Makefiles
