@@ -560,7 +560,10 @@ main (int argc, char **argv)
       warning ("-m2 is only supported for constraint logic programming.");
     }
 #ifdef DEBUG
-  warning ("Selected output method is %i", sys->output);
+  if (DEBUGL (4))
+    {
+      warning ("Selected output method is %i", sys->output);
+    }
 #endif
 
   if (sys->engine == ARACHNE_ENGINE)
