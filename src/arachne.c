@@ -36,6 +36,7 @@ extern Term CLAIM_Niagree;
 extern Term TERM_Agent;
 extern Term TERM_Hidden;
 extern Term TERM_Function;
+extern Term TERM_Nonce;
 
 extern int *graph;
 extern int nodes;
@@ -1676,6 +1677,71 @@ termBindConsequences (Term t)
     }
 }
 
+//! Determine whether a term is an open nonce variable
+/**
+ * Does not explore subterms
+ */
+int
+isOpenNonceVar (Term t)
+{
+  t = deVar (t);
+  if (realTermVariable (t))
+    {
+      return inTermlist (t->stype, TERM_Nonce);
+    }
+  else
+    {
+      return 0;
+    }
+}
+
+//! Count unique open variables in term
+/**
+ */
+int count_open_variables (const Term t)
+{
+  Termlist tl;
+  int n;
+
+  tl = NULL;
+  termlistAddVariables (tl, t);
+  n = 0;
+  while (tl != NULL)
+    {
+      if (!inTermlist (tl->next, t))
+	{
+	  if (isOpenNonceVar (t))
+	    {
+	      n = n + 1;
+	    }
+	}
+      tl = tl->next;
+    }
+  termlistDelete (tl);
+  return n;
+}
+
+//! Athena-like factor
+/**
+ * Lower is better (more nonce variables)
+ */
+float
+term_noncevariables_level (const Term t)
+{
+  int onv;
+  const int enough = 2;
+
+  onv = count_open_variables (t);
+  if (onv >= enough)
+    {
+      return 0;
+    }
+  else
+    {
+      return 1 - (onv/enough);
+    }
+}
+
 //------------------------------------------------------------------------
 // Larger logical componentents
 //------------------------------------------------------------------------
@@ -1785,12 +1851,22 @@ select_goal ()
 	    {
 	      float buf_constrain;
 	      int buf_weight;
+	      int smode;
 
-	      void adapt (int w, float fl)
+	      void adapt (const int w, const float fl)
 	      {
 		buf_constrain = buf_constrain + w * fl;
 		buf_weight = buf_weight + w;
 	      }
+
+	      void erode (const int w, const float fl)
+		{
+		  if (smode & 1)
+		    {
+		      adapt (w,fl);
+		    }
+		  smode = smode / 2;
+		}
 
 	      // buf_constrain is the addition of the factors before division by weight
 	      buf_constrain = 0;
@@ -1799,19 +1875,23 @@ select_goal ()
 	      if (sys->output == PROOF && best != NULL)
 		eprintf (", ");
 
+	      // We will shift this mode variable
+	      smode = mode;
+
 	      // Determine buf_constrain levels
 	      // Bit 0: 1 constrain level
-	      if (mode & 1)
-		adapt (1, term_constrain_level (b->term));
+		erode (1, term_constrain_level (b->term));
 	      // Bit 1: 2 key level (inverted)
-	      if (mode & 2)
-		adapt (1, 0.5 * (1 - b->level));
+		erode (1, 0.5 * (1 - b->level));
 	      // Bit 2: 4 consequence level
-	      if (mode & 4)
-		adapt (1, termBindConsequences (b->term));
-	      // Bit 4: 16 single variables first
-	      if (mode & 16)
-		adapt (4, 1 - isTermVariable (b->term));
+		erode (1, termBindConsequences (b->term));
+	      // Bit 3: 8 single variables first
+		erode (1, 1 - isTermVariable (b->term));
+	      // Bit 4: 16 nonce variables level (Cf. what I think is in Athena)
+	        erode (1, term_noncevariables_level (b->term));
+	      // Define legal range
+	      if (smode > 0)
+		error ("--goal-select mode %i is illegal", mode);
 
 	      // Weigh result
 	      if (buf_weight == 0 || buf_constrain <= min_constrain)
