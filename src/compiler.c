@@ -633,14 +633,20 @@ normalDeclaration (Tac tc)
 void
 roleCompile (Term nameterm, Tac tc)
 {
-  Role r;
-
-  /* make new (empty) current protocol with name */
-  r = roleCreate (nameterm);
-  thisRole = r;
-  /* add protocol to list */
-  r->next = thisProtocol->roles;
-  thisProtocol->roles = r;
+  /* locate the role, protocol into thisRole */
+  /* scan through role list */
+  thisRole = thisProtocol->roles;
+  while (thisRole != NULL && !isTermEqual (thisRole->nameterm, nameterm))
+    {
+      thisRole = thisRole->next;
+    }
+  if (thisRole == NULL)
+    {
+      printf ("ERROR: undeclared role name ");
+      termPrint (nameterm);
+      printf (" in line ");
+      errorTac (tc->lineno);
+    }
 
   /* parse the content of the role */
   levelInit ();
@@ -779,19 +785,27 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
   pr->rolenames = NULL;
   while (tcroles != NULL)
     {
+      Term rolename;
+      Role r;
+
       if (sys->engine == ARACHNE_ENGINE)
 	{
-	  Term rolename;
-
 	  rolename = levelVar (tcroles->t1.sym);
 	  rolename->stype = termlistAdd (NULL, TERM_Agent);
-	  pr->rolenames = termlistAppend (pr->rolenames, rolename);
 	}
       else
 	{
-	  pr->rolenames =
-	    termlistAppend (pr->rolenames, levelConst (tcroles->t1.sym));
+	  rolename = levelConst (tcroles->t1.sym);
 	}
+      /* add name to list of role names */
+      pr->rolenames = termlistAppend (pr->rolenames, rolename);
+      /* make new (empty) current protocol with name */
+      r = roleCreate (rolename);
+      /* add role to role list of the protocol */
+      r->next = thisProtocol->roles;
+      thisProtocol->roles = r;
+
+      /* next role name */
       tcroles = tcroles->next;
     }
 
