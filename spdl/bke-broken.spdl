@@ -5,10 +5,10 @@
 
 usertype Key;
 
-const PK,h: Function;
-secret SK,hinv: Function;
+const pk,h: Function;
+secret sk,hinv: Function;
 
-inversekeys (PK,SK);
+inversekeys (pk,sk);
 inversekeys (h,hinv);
 
 protocol bkebroken(I,R)
@@ -19,9 +19,9 @@ protocol bkebroken(I,R)
 		var nr: Nonce;
 		var kir: Key;
 
-		send_1 (I,R, { ni,I }PK(R) );
-		read_2 (R,I, { h(ni),nr,kir }PK(I) );
-		send_3 (I,R, { h(nr),kir }PK(R) );
+		send_1 (I,R, { ni,I }pk(R) );
+		read_2 (R,I, { h(ni),nr,kir }pk(I) );
+		send_3 (I,R, { h(nr),kir }pk(R) );
 		claim_4 (I, Secret, kir );
 	}
 
@@ -31,9 +31,9 @@ protocol bkebroken(I,R)
 		const nr: Nonce;
 		const kir: Key;
 
-		read_1 (I,R, { ni,I }PK(R) );
-		send_2 (R,I, { h(ni),nr,kir }PK(I) );
-		read_3 (I,R, { h(nr),kir }PK(R) );
+		read_1 (I,R, { ni,I }pk(R) );
+		send_2 (R,I, { h(ni),nr,kir }pk(I) );
+		read_3 (I,R, { h(nr),kir }pk(R) );
 		claim_5 (R, Secret, kir );
 	}
 }
@@ -41,7 +41,7 @@ protocol bkebroken(I,R)
 const a,b,e: Agent;
 
 untrusted e;
-compromised SK(e);
+compromised sk(e);
 const ne: Nonce;
 
 run bkebroken.I(a,Agent);
