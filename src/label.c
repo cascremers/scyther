@@ -28,11 +28,11 @@ void label_destroy (Labelinfo linfo)
 }
 
 //! Given a list of label infos, yield the correct one or NULL
-Labelinfo label_find (List labellist, const Term label)
+Labelinfo label_find (List labellist, Term label)
 {
   Labelinfo linfo;
 
-  int scan (void *data)
+  int label_find_scan (void *data)
     {
       Labelinfo linfo_scan;
 
@@ -49,7 +49,10 @@ Labelinfo label_find (List labellist, const Term label)
     }
 
   linfo = NULL;
-  list_iterate (labellist, scan);
+  if (label != NULL)
+    {
+      list_iterate (labellist, label_find_scan);
+    }
   return linfo;
 }
 

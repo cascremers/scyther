@@ -906,6 +906,7 @@ term_iterate (const Term term, int (*leaf) (), int (*nodel) (),
 	  if (nodel != NULL)
 	    flag = flag && nodel (term);
 
+	  // Left part
 	  if (realTermTuple (term))
 	    flag = flag
 	      && (term_iterate (term->left.op1, leaf, nodel, nodem, noder));
@@ -916,12 +917,13 @@ term_iterate (const Term term, int (*leaf) (), int (*nodel) (),
 	  if (nodem != NULL)
 	    flag = flag && nodem (term);
 
+	  // Right part
 	  if (realTermTuple (term))
 	    flag = flag
-	      && (term_iterate (term->left.op1, leaf, nodel, nodem, noder));
+	      && (term_iterate (term->right.op2, leaf, nodel, nodem, noder));
 	  else
 	    flag = flag
-	      && (term_iterate (term->left.op, leaf, nodel, nodem, noder));
+	      && (term_iterate (term->right.key, leaf, nodel, nodem, noder));
 
 	  if (noder != NULL)
 	    flag = flag && noder (term);
@@ -947,6 +949,10 @@ term_iterate_deVar (Term term, int (*leaf) (), int (*nodel) (),
 	    {
 	      return leaf (term);
 	    }
+	  else
+	    {
+	      return 1;
+	    }
 	}
       else
 	{
@@ -957,6 +963,7 @@ term_iterate_deVar (Term term, int (*leaf) (), int (*nodel) (),
 	  if (nodel != NULL)
 	    flag = flag && nodel (term);
 
+	  // Left part
 	  if (realTermTuple (term))
 	    flag = flag
 	      &&
@@ -970,15 +977,16 @@ term_iterate_deVar (Term term, int (*leaf) (), int (*nodel) (),
 	  if (nodem != NULL)
 	    flag = flag && nodem (term);
 
+	  // right part
 	  if (realTermTuple (term))
 	    flag = flag
 	      &&
 	      (term_iterate_deVar
-	       (term->left.op1, leaf, nodel, nodem, noder));
+	       (term->right.op2, leaf, nodel, nodem, noder));
 	  else
 	    flag = flag
 	      &&
-	      (term_iterate_deVar (term->left.op, leaf, nodel, nodem, noder));
+	      (term_iterate_deVar (term->right.key, leaf, nodel, nodem, noder));
 
 	  if (noder != NULL)
 	    flag = flag && noder (term);
@@ -1047,31 +1055,35 @@ term_rolelocals_are_variables ()
 int
 term_encryption_level (const Term term)
 {
-  int level, maxlevel, flag;
+  int iter_maxencrypt (Term term)
+    {
+      term = deVar (term);
+      if (realTermLeaf (term))
+	{
+	  return 0;
+	}
+      else
+	{
+	  if (realTermTuple (term))
+	    {
+	      int l,r;
 
-  int nodel (const Term term)
-  {
-    if (realTermEncrypt (term))
-      {
-	level++;
-	if (level > maxlevel)
-	  maxlevel = level;
-      }
-    return 1;
-  }
-  int noder (const Term term)
-  {
-    if (realTermEncrypt (term))
-      {
-	level--;
-      }
-    return 1;
-  }
+	      l = iter_maxencrypt (term->left.op1);
+	      r = iter_maxencrypt (term->right.op2);
+	      if (l>r)
+		  return l;
+	      else
+		  return r;
+	    }
+	  else
+	    {
+	      // encrypt
+	      return 1+iter_maxencrypt (term->left.op);
+	    }
+	}
+    }
 
-  maxlevel = 0;
-  level = 0;
-  flag = term_iterate_deVar (term, NULL, nodel, NULL, noder);
-  return maxlevel;
+  return iter_maxencrypt (term);
 }
 
 //! Determine 'constrained factor' of a term

@@ -11,7 +11,7 @@
 struct labelinfo
 {
     Term label;
-    Term protocol;
+    Protocol protocol;
     Term sendrole;
     Term readrole;
 };
