@@ -68,7 +68,7 @@ __inline__ Term deVarScan (Term t);
 #define realTermLeaf(t)		(t != NULL && t->type <= LEAF)
 #define realTermTuple(t)	(t != NULL && t->type == TUPLE)
 #define realTermEncrypt(t)	(t != NULL && t->type == ENCRYPT)
-#define realTermVariable(t)	(t != NULL && (t->type == VARIABLE || (rolelocal_variable && t->right.runid == -3)))
+#define realTermVariable(t)	(t != NULL && (t->type == VARIABLE || (t->type <= LEAF && rolelocal_variable && t->right.runid == -3)))
 #define substVar(t)		((realTermVariable (t) && t->subst != NULL) ? 1 : 0)
 #define deVar(t)		( substVar(t) ? deVarScan(t->subst) : t)
 #define isTermLeaf(t)		realTermLeaf(deVar(t))

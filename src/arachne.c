@@ -277,7 +277,7 @@ add_intruder_goal_iterate (Goal goal)
 //! Bind a goal to an existing regular run, if possible
 int
 bind_existing_run (const Goal goal, const Protocol p, const Role r,
-		   const int index)
+		   const int index, const int forced_run)
 {
   int run, flag;
 
@@ -295,29 +295,32 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
   goal.rd->bind_index = index;
   for (run = 0; run < sys->maxruns; run++)
     {
-      if (sys->runs[run].protocol == p && sys->runs[run].role == r)
+      if (forced_run >= 0 && forced_run == run)
 	{
-	  int old_length;
-	  Roledef rd;
+	  if (sys->runs[run].protocol == p && sys->runs[run].role == r)
+	    {
+	      int old_length;
+	      Roledef rd;
 
-	  // Roledef entry
-	  rd = roledef_shift (sys->runs[run].start, index);
+	      // Roledef entry
+	      rd = roledef_shift (sys->runs[run].start, index);
 
-	  // mgu and iterate
-	  old_length = sys->runs[run].length;
-	  if (index >= old_length)
-	    sys->runs[run].length = index + 1;
+	      // mgu and iterate
+	      old_length = sys->runs[run].length;
+	      if (index >= old_length)
+		sys->runs[run].length = index + 1;
 #ifdef DEBUG
-	  explanation = "Bind existing run";
-	  e_run = run;
-	  e_term1 = goal.rd->message;
+	      explanation = "Bind existing run";
+	      e_run = run;
+	      e_term1 = goal.rd->message;
 #endif
-	  goal.rd->bind_run = run;
+	      goal.rd->bind_run = run;
 
-	  flag = (flag
-		  && termMguInTerm (goal.rd->message, rd->message,
-				    mgu_iterate));
-	  sys->runs[run].length = old_length;
+	      flag = (flag
+		      && termMguInTerm (goal.rd->message, rd->message,
+					mgu_iterate));
+	      sys->runs[run].length = old_length;
+	    }
 	}
     }
   goal.rd->bind_run = -1;
@@ -463,7 +466,7 @@ bind_goal_regular (const Goal goal)
 	{
 	  flag = flag && bind_new_run (goal, p, r, index);
 	}
-      return (flag && bind_existing_run (goal, p, r, index));
+      return (flag && bind_existing_run (goal, p, r, index, run));
     }
 
     if (p == INTRUDER)
@@ -542,7 +545,7 @@ bind_intruder_to_regular (Goal goal)
 	{
 	  flag = flag && bind_new_run (goal, p, r, index);
 	}
-      flag = flag && bind_existing_run (goal, p, r, index);
+      flag = flag && bind_existing_run (goal, p, r, index, run);
 
       /**
        * deconstruct key list goals
