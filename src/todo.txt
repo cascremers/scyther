@@ -1,3 +1,5 @@
+- There is a possible memory leak when buffering attacks, e.g. with -p0.
+  Investigate.
 - Make --with-argtabledir= something switch, replacing
   README/galious-configure.sh constructs.
 - Move initial intruder knowledge maybe into the title of the MSC.
