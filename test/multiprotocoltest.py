@@ -35,7 +35,7 @@ from tempfile import NamedTemporaryFile
 from optparse import OptionParser
 
 import tuplesdo
-import scyther
+import scythertest
 import protocollist
 
 
@@ -126,13 +126,13 @@ def ScytherEval (plist):
 	sys.stdout.flush()
 	sys.stderr.flush()
 
-	args = scyther.default_arguments(plist, options.match, options.bounds)
+	args = scythertest.default_arguments(plist, options.match, options.bounds)
 	n = len(plist)
 	if not (n,args) in ArgumentsList:
 		ArgumentsList.append((n,args))
 		print "Testing",n,"tuples using",args
 
-	return scyther.default_parsed(plist, options.match, options.bounds)
+	return scythertest.default_parsed(plist, options.match, options.bounds)
 
 # ScytherEval1
 #
@@ -388,7 +388,7 @@ def SignalAttack (protocols, claim):
 # Furthermore, TempFileList is created.
 
 parser = OptionParser()
-scyther.default_options(parser)
+scythertest.default_options(parser)
 parser.add_option("-t","--tuplewidth", dest="tuplewidth",
 		default = 2,
 		help = "number of concurrent protocols to test, >=2")
