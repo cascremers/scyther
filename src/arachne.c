@@ -75,6 +75,16 @@ mgu_iterate (const Termlist tl)
   return iterate ();
 }
 
+//! Yield roledef pointer for a given index
+Roledef roledef_shift (Roledef rd, int i)
+{
+  while (i > 0 && rd != NULL)
+    {
+      rd = rd->next;
+      i--;
+    }
+  return rd;
+}
 
 //------------------------------------------------------------------------
 // Sub
@@ -209,6 +219,27 @@ int
 bind_new_run (const Goal goal, const Protocol p, const Role r,
 	      const int index)
 {
+  int run;
+  int flag;
+  Roledef rd;
+
+  roleInstance (sys, p, r, NULL);
+  run = sys->maxruns-1;
+  sys->runs[run].length = index+1;
+  goal.rd->bind_run = run;
+  goal.rd->bind_index = index;
+  rd = roledef_shift (sys->runs[run].start, index);
+
+  // Possibly double recursion (overkill) because of interm construct. Find a way to maintain this over instances/
+  /**
+   *@todo We should have the roleInstance carry over any instantiated vars from the roledef, and then undo the instatiations on the original.
+   * Then this could simply iterate, which is much better.
+   */
+  flag = termMguInTerm (goal.rd->message, rd->message, mgu_iterate);
+
+  goal.rd->bind_run = INVALID;
+  roleInstanceDestroy (sys);
+  return flag;
 }
 
 //! Bind a regular goal
