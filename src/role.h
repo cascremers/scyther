@@ -8,9 +8,7 @@
 #include "constraint.h"
 #include "states.h"
 
-#define	READ	1
-#define SEND	2
-#define CLAIM	3
+enum eventtype { READ, SEND, CLAIM };
 
 //! The container for the claim info list
 struct claimlist

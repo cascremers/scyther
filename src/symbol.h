@@ -6,11 +6,7 @@
  */
 #define HASHSIZE 997
 
-#define T_UNDEF		-1
-#define T_PROTOCOL	0
-#define T_CONST		1
-#define T_VAR		2
-#define T_SYSCONST	3
+enum symboltypes { T_UNDEF = -1, T_PROTOCOL, T_CONST, T_VAR, T_SYSCONST };
 
 #define EOS 0
 

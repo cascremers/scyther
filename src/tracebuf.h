@@ -7,11 +7,12 @@
 #include "system.h"
 
 /* STATUS symbols */
-#define S_UNK 0 // UNKnown   : unprocessed.
-#define S_OKE 1 // OKE       : done, but required for the attack.
-#define S_RED 2 // REDundant : is not needed for attack, we're sure.
-#define S_TOD 3	// TODo      : The previous suggestion REQ was too similar to RED.
-		//             This is reserved for reads.
+enum statussymbols {
+  S_UNK,	// UNKnown   : unprocessed.
+  S_OKE,	// OKE       : done, but required for the attack.
+  S_RED,	// REDundant : is not needed for attack, we're sure.
+  S_TOD 	// TODo      : The previous suggestion REQ was too similar to RED. This is reserved for reads.
+};
 
 
 /*
