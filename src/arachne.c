@@ -859,6 +859,11 @@ dotSemiState ()
 			{
 			  // It is before the event, and thus we would like to draw it.
 			  // However, if there is another path along which we can get here, forget it
+			  /**
+			   * Note that this algorithm is similar to Floyd's algorithm for all shortest paths.
+			   * The goal here is to select only the path with distance 1 (as viewed from the regular runs),
+			   * so we can simplify stuff a bit.
+			   */
 			  int run3;
 			  int other_route;
 
