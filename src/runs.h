@@ -65,6 +65,7 @@ struct run
   Roledef index;
   Roledef start;
   Knowledge know;
+  Termlist locals;
 };
 
 typedef struct run *Run;

@@ -279,19 +279,52 @@ latexMSCEnd ()
 /*
  * Declare the MSC stick for a single instance of a run participating in an
  * attack.
+ *
+ * This involves layout of the partners roles, and the agent etc.
  */
 
 void
 latexDeclInst (const System sys, int run)
 {
-  Term bar = NULL;
+  Term myAgent;
+  Term myRole;
+  Termlist roles;
+  int first;
 
-  bar = agentOfRun (sys, run);
-  printf ("\\declinst{run%d}{$", run);
-  termPrint (bar);
-  printf ("\\sharp%i$}{$", run);
-  agentsOfRunPrint (sys, run);
+  myAgent = agentOfRun (sys, run);
+  myRole = sys->runs[run].role->nameterm;
+  printf ("\\declinst{run%i}{", run);
+
+  /* display above assumptions */
+  roles = sys->runs[run].protocol->rolenames;
+  printf ("assumes $");
+  first = 1;
+  while (roles != NULL)
+    {
+      if (!isTermEqual (myRole, roles->term))
+	{
+	  if (!first)
+	      printf (", ");
+	  else
+	      first = 0;
+          termPrint (agentOfRunRole(sys,run,roles->term));
+	  printf(": ");
+	  termPrint (roles->term);
+	}
+      roles = roles->next;
+    }
+  printf ("$}{$");
+
+  /* display agent and role */
+  printf ("\\mathbf{");
+  termPrint (myAgent);
+  printf("}: ");
+  termPrint (myRole);
+  
   printf ("$}\n");
+
+  /* cleanup */
+  termDelete (myAgent);
 }
 
 /*
@@ -908,8 +941,42 @@ attackDisplayLatex (System sys)
 	latexDeclInst (sys, i);
     }
   /* Add the intruder instance */
-  printf ("\\declinst{eve}{Eve}{Intruder}\n");
+  printf ("\\declinst{eve}{}{{\\bf Eve}: Intruder}\n");
   printf ("\n\n");
+
+  /* Print the local constants for each instance */
+
+  for (i = 0; i < width; i++)
+    {
+      if (runPosition[i] > 0)
+	{
+	  Termlist tl = sys->runs[i].locals;
+          int first = 1;
+	  while (tl != NULL)
+	    {
+	      /* detect whether it's really local to this run */
+	      Term t = deVar (tl->term);
+	      if (isTermLeaf (t) && t->runid == i)
+		{
+		  if (first)
+		    {
+		      printf ("\\action{creates $");
+		      first = 0;
+		    }
+		  else
+		    {
+		      printf (", ");
+		    }
+		  termPrint (tl->term);
+		}
+	      tl = tl->next;
+	    }
+	  if (!first)
+	    {
+	      printf ("$}{run%i}\n", i);
+	    }
+	}
+    }
 
   /* Print the initial intruder knowledge */
 

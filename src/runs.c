@@ -511,7 +511,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
       rd = rd->next;
     }
   termlistDelete (fromlist);
-  termlistDelete (tolist);
+  runs[rid].locals = tolist;
 }
 
 Roledef

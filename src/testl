@@ -20,9 +20,9 @@ then
     mv $template.dvi attack.dvi
     dvips attack.dvi -o attack.ps
 
-#    xdvi attack.dvi		# for Xdvi
+    xdvi attack.dvi		# for Xdvi
 #    kdvi attack.dvi		# for KDE environment
-    kghostview attack.ps	# postscript in KDE
+#    kghostview attack.ps	# postscript in KDE
 
 else
 
