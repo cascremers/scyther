@@ -6,4 +6,4 @@
 # limit number of runs to 5
 
 ulimit -v 100000
-cat $* | ../src/scyther -a -r3
+cat $* | ../src/scyther -a -r3 --summary
