@@ -343,7 +343,7 @@ proof_suppose_run (const int run, const int oldlength, const int newlength)
 	    eprintf (" of");
 	  else
 	    eprintf (" to");
-	  eprintf (" length %i");
+	  eprintf (" length %i", newlength);
 	}
       eprintf ("\n");
     }
@@ -825,8 +825,8 @@ bind_goal_new_encrypt (const Binding b)
 	  can_be_encrypted = 1;
 	  run = semiRunCreate (INTRUDER, I_RRS);
 	  rd = sys->runs[run].start;
-	  //rd->message = termDuplicateUV (t1);
-	  //rd->next->message = termDuplicateUV (t2);
+	  rd->message = termDuplicateUV (t1);
+	  rd->next->message = termDuplicateUV (t2);
 	  rd->next->next->message = termDuplicateUV (term);
 	  index = 2;
 	  proof_suppose_run (run, 0, index + 1);
