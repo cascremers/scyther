@@ -129,6 +129,10 @@ def ScytherEval (plist):
 	sys.stderr.flush()
 
 	n = len(plist)
+	# These bounds assume at least two protocols, otherwise
+	# stuff breaks.
+	if n < 2:
+		n = 2
 	timer = 1
 	maxruns = 2
 	maxlength = 10
@@ -270,11 +274,10 @@ def DescribeContextBrief (filep, protocols, claim, prefix):
 	for prfile in protocols:
 		prnames = GetKeys (ProtocolToFileMap, prfile)
 		prlist = prlist + prnames
-	newprname = claim.split()[0]
-	filep.write ("\t" + newprname)
 
 	filep.write ("\t" + claim)
 
+	newprname = claim.split()[0]
 	prlistclean = []
 	prliststr = ""
 	for pn in prlist:
