@@ -146,20 +146,6 @@
 >>>G	spliceAShcCJ CV Secret	[1]	tmn
 >>>G	spliceAShcCJ CV Secret	[2]	nssymmetric
 >>>G	spliceAShcCJ CV Secret	[2]	nssymmetricamended
->>>G	spliceAShcCJ SV Secret	[0]	soph
->>>G	spliceAShcCJ SV Secret	[0]	spliceAS
->>>G	spliceAShcCJ SV Secret	[0]	spliceAShc
->>>G	spliceAShcCJ SV Secret	[1]	tmn
->>>G	spliceAShcCJ SV Secret	[2]	andrewBan	soph
->>>G	spliceAShcCJ SV Secret	[2]	gongnonceb	soph
->>>G	spliceAShcCJ SV Secret	[2]	gongnonce	soph
->>>G	spliceAShcCJ SV Secret	[2]	isoiec11770213	soph
->>>G	spliceAShcCJ SV Secret	[2]	kaochow2	soph
->>>G	spliceAShcCJ SV Secret	[2]	kaochow3	soph
->>>G	spliceAShcCJ SV Secret	[2]	kaochowPalm	soph
->>>G	spliceAShcCJ SV Secret	[2]	kaochow	soph
->>>G	spliceAShcCJ SV Secret	[2]	nssymmetric
->>>G	spliceAShcCJ SV Secret	[2]	nssymmetricamended
 >>>G	wmfbrutus BV Secret	[0]	yahalomBan
 >>>G	wmfbrutus BV Secret	[1]	yahalompaulson
 >>>G	wmfbrutus BV Secret	[2]	boyd
@@ -184,8 +170,6 @@
 >>>G	woolamcmv BV Secret	[1]	denningsaccosh
 >>>G	woolamcmv BV Secret	[2]	yahalomBan
 >>>G	woolamcmv BV Secret	[2]	yahalompaulson
->>>G	woolamcmv SV Secret	[1]	denningsaccosh
->>>G	woolamcmv SV Secret	[1]	yahalomlowe
 >>>G	yahalom AV Secret	[1]	denningsaccosh	woolamcmv
 >>>G	yahalom AV Secret	[2]	yahalomBan
 >>>G	yahalom AV Secret	[2]	yahalompaulson

@@ -68,6 +68,14 @@ class buffer:
 		self.reset()
 
 
+def ignore_this(data):
+	if (data[3].rfind(" SV") != -1):
+		# Server role!
+		return True
+	else:
+		# Not including the server role
+		return False
+
 def main():
 
 	buf_big = buffer("[Global]",">>>G")
@@ -92,11 +100,12 @@ def main():
 				match = int(line[loc + len(matchprefix)])
 				print "Detected match type", match
 		else:
-			# Yes!
-			claim = data[3]
-			helpers = "\t".join(data[4:])
-			buf_big.add((claim,helpers), match)
-			buf_small.add((claim,helpers), match)
+			if not ignore_this(data):
+				# Yes!
+				claim = data[3]
+				helpers = "\t".join(data[4:])
+				buf_big.add((claim,helpers), match)
+				buf_small.add((claim,helpers), match)
 
 		# Proceed to next line
 		line = sys.stdin.readline()
