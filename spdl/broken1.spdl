@@ -1,0 +1,39 @@
+/*
+ * A broken protocol
+ *
+ * Cas Cremers
+ * Visualization challenge of the week.
+ * Can be checked withouth CL, please do so.
+ */
+
+usertype String, Key;
+const PlainSight: String;
+secret HelloWorld, HelloServer: String;
+secret k: Key;
+
+protocol broken1(aap,noot,mies)
+{
+	role aap
+	{
+		send_1(aap, noot, PlainSight, {HelloWorld, aap, noot}k );
+		send_2(aap, mies, {HelloServer, aap, mies}k );
+	}	
+	role noot
+	{
+		read_3(mies, noot, {HelloWorld, mies, aap, noot}k );
+		read_1(aap, noot, PlainSight, {HelloWorld, aap, noot}k );
+		claim(noot, Secret, PlainSight);
+	}
+	role mies
+	{
+		read_2(aap, mies, {HelloServer, aap, mies}k );
+		send_3(mies, noot, {HelloWorld, mies, aap, noot}k );
+	}
+}
+
+const Bonobo, Pinda, Mies: Agent;
+
+run broken1.aap(Bonobo, Pinda, Mies);
+run broken1.noot(Bonobo, Pinda, Mies);
+run broken1.mies(Bonobo, Pinda, Mies);
+
