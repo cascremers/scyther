@@ -14,6 +14,8 @@
 #include "states.h"
 #include "mgu.h"
 #include "arachne.h"
+#include "error.h"
+#include "claim.h"
 
 static System sys;
 Protocol INTRUDER;		// Pointers, to be set by the Init
@@ -777,16 +779,16 @@ iterate ()
 int
 arachne ()
 {
+  Claimlist cl;
   /*
    * set up claim role(s)
    */
 
   if (sys->maxruns > 0)
     {
-      sys->runs[0].length = roledef_length (sys->runs[0].start);
+      error ("Something is wrong, number of runs >0.");
     }
 
-#ifdef DEBUG
   int print_send (Protocol p, Role r, Roledef rd, int index)
   {
     eprintf ("IRS: ");
@@ -800,17 +802,48 @@ arachne ()
 
   iterate_role_sends (print_send);
 
-  explanation = NULL;
-  e_run = INVALID;
-  e_term1 = NULL;
-  e_term2 = NULL;
-  e_term3 = NULL;
-#endif
   indentDepth = 0;
-  printSemiState ();
+  cl = sys->claimlist;
+  while (cl != NULL)
+    {
+      Protocol p;
+      Role r;
 
-  /*
-   * iterate
-   */
-  iterate ();
+      explanation = NULL;
+      e_run = INVALID;
+      e_term1 = NULL;
+      e_term2 = NULL;
+      e_term3 = NULL;
+
+      p = (Protocol) cl->protocol;
+      r = (Role) cl->role;
+      indentPrint ();
+      eprintf ("Testing Claim ");
+      termPrint (cl->type);
+      eprintf (" in protocol ");
+      termPrint (p->nameterm);
+      eprintf (", role ");
+      termPrint (r->nameterm);
+      eprintf (" at index %i.\n", cl->ev);
+
+      indentDepth++;
+
+      roleInstance (sys, p, r, NULL);
+      sys->runs[0].length = cl->ev+1;
+#ifdef DEBUG
+      printSemiState ();
+#endif
+
+      /*
+       * iterate
+       */
+      iterate ();
+
+      //! Destroy
+      roleInstanceDestroy (sys);
+
+      // next
+      indentDepth--;
+      cl = cl->next;
+    }
 }

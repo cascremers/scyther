@@ -464,7 +464,9 @@ commEvent (int event, Tac tc)
       cl = memAlloc (sizeof (struct claimlist));
       cl->type = claim;
       cl->label = label;
+      cl->protocol = thisProtocol;
       cl->rolename = fromrole;
+      cl->role = thisRole;
       cl->count = 0;
       cl->failed = 0;
       cl->prec = NULL;

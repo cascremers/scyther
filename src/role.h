@@ -18,8 +18,12 @@ struct claimlist
   Term type;
   //! The term element for this node.
   Term label;
+  //! The pointer to the protocol (not defined yet?)
+  void *protocol;
   //! The name of the role in which it occurs.
   Term rolename;
+  //! The pointer to the role structure
+  void *role;
   //! Number of occurrences in system exploration.
   states_t count;
   //! Number of occurrences that failed.
