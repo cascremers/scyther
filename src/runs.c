@@ -66,6 +66,7 @@ systemInit ()
   sys->switchStatespace = 0;
   sys->switchForceChoose = 0;	// don't force explicit chooses by default
   sys->switchReadSymm = 0;	// don't force read symmetries by default
+  sys->switchAgentSymm = 1;	// default enable agent symmetry
   sys->switchSymmOrder = 0;	// don't force symmetry order reduction by default
 
   /* set illegal traversal by default, to make sure it is set

@@ -101,6 +101,7 @@ main (int argc, char **argv)
   struct arg_lit *switchSS = arg_lit0 (NULL, "state-space", "output state space graph.");
   struct arg_lit *switchFC = arg_lit0 (NULL, "force-choose", "force only explicit choose events.");
   struct arg_lit *switchRS = arg_lit0 (NULL, "read-symm", "enable read symmetry reductions.");
+  struct arg_lit *switchAS = arg_lit0 (NULL, "no-agent-symm", "disable agent symmetry reductions.");
   struct arg_lit *switchSO = arg_lit0 (NULL, "symm-order", "enable ordering symmetry reductions.");
 #ifdef DEBUG
   struct arg_int *porparam = arg_int0 (NULL, "pp", NULL, "POR parameter.");
@@ -128,6 +129,7 @@ main (int argc, char **argv)
     switchSS,
     switchFC,
     switchRS,
+    switchAS,
     switchSO,
 #ifdef DEBUG
     porparam,
@@ -278,23 +280,21 @@ main (int argc, char **argv)
   /* generate system */
   sys = systemInit ();
   if (switchFC->count > 0)
-    {
       /* force explicit chooses */
       sys->switchForceChoose = 1;
-    }
   if (switchRS->count > 0)
     {
       if (switchSO->count > 0)
-	{
 	  error ("--read-symm and --symm-order cannot be used at the same time.");
-	}
       sys->switchReadSymm = 1;
     }
   if (switchSO->count > 0)
-    {
       /* enable symmetry order */
       sys->switchSymmOrder = 1;
-    }
+  if (switchAS->count > 0)
+      /* disable agent symmetry order */
+      sys->switchAgentSymm = 0;
+
 #ifdef DEBUG
   sys->porparam = porparam->ival[0];
 #endif

@@ -468,11 +468,13 @@ explorify (const System sys, const int run)
     {
       /* traverse the system after the step */
       flag = traverse (sys);
-      runPointerSet (sys, run, rd);	// reset rd pointer
-      sys->runs[run].step = myStep;	// reset local index
-      sys->step--;
-      indentSet (sys->step);
     }
+  /* restore executeStep "damage" */
+  runPointerSet (sys, run, rd);	// reset rd pointer
+  sys->runs[run].step = myStep;	// reset local index
+  sys->step--;
+  indentSet (sys->step);
+
   if (roleCap != NULL)
     {
       roleCap->next = roleCapPart;

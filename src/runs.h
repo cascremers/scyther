@@ -211,6 +211,7 @@ struct system
   int switchStatespace;		//!< Output statespace for dot package
   int switchForceChoose;	//!< Force chooses for each run, even if involved in first read
   int switchReadSymm;		//!< Enable read symmetry reduction
+  int switchAgentSymm;		//!< Enable agent symmetry reduction
   int switchSymmOrder;		//!< Enable symmetry order reduction
 
   //! Latex output switch.
