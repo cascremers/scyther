@@ -119,8 +119,8 @@ executeStep (const System sys, const int run)
       printf ("#%i\n", run);
     }
 #endif
+  sys->runs[run].step++;
   runPointerSet (sys, run, runPoint->next);
-
 
   /* store knowledge for this step */
   (sys->step)++;
@@ -200,8 +200,11 @@ explorify (const System sys, const int run)
 {
   Roledef rd;
   int flag;
+  int myStep;
 
   rd = runPointerGet (sys, run);
+  myStep = sys->runs[run].step;
+
   if (rd == NULL)
     {
       fprintf (stderr, "ERROR: trying to progress completed run!\n");
@@ -213,7 +216,7 @@ explorify (const System sys, const int run)
   /*
    * Special checks after (implicit) choose events; always first in run reads.
    */
-  if (rd == sys->runs[run].start && rd->type == READ)
+  if (myStep == 0 && rd->type == READ)
     {
       int rid;
 
@@ -286,7 +289,8 @@ explorify (const System sys, const int run)
     {
       /* traverse the system after the step */
       flag = traverse (sys);
-      runPointerSet (sys, run, rd);
+      runPointerSet (sys, run, rd);	// reset rd pointer
+      sys->runs[run].step = myStep;	// reset local index
       sys->step--;
       indentSet (sys->step);
       return flag;

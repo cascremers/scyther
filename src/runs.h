@@ -125,20 +125,14 @@ typedef struct protocol *Protocol;
 //! Run container.
 struct run
 {
-  //! Protocol of this run.
-  Protocol protocol;
-  //! Role of this run.
-  Role role;
-  //! Agents involved in this run.
-  Termlist agents;
-  //! Current execution point in the run.
-  Roledef index;
-  //! Head of the run definition.
-  Roledef start;
-  //! Current knowledge of the run.
-  Knowledge know;
-  //! Locals of the run.
-  Termlist locals;
+  Protocol protocol;	//!< Protocol of this run.
+  Role role;		//!< Role of this run.
+  Termlist agents; 	//!< Agents involved in this run.
+  int step;		//!< Current execution point in the run (integer)
+  Roledef index;	//!< Current execution point in the run (roledef pointer)
+  Roledef start;	//!< Head of the run definition.
+  Knowledge know;	//!< Current knowledge of the run.
+  Termlist locals;	//!< Locals of the run.
 };
 
 //! Shorthand for run pointer.

@@ -249,6 +249,7 @@ ensureValidRun (System sys, int run)
       struct run myrun = sys->runs[i];
       myrun.role = NULL;
       myrun.agents = NULL;
+      myrun.step = 0;
       myrun.index = NULL;
       myrun.start = NULL;
       myrun.know = knowledgeDuplicate (sys->know);
