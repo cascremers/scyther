@@ -51,11 +51,10 @@ compromised sk(Eve);
 
 run bkepk.A(Alice,Bob,Alice);
 run bkepk.A(Alice,Bob,Alice);
-run bkepk.A(Alice,Bob,Alice);
-run bkepk.B(Bob,Alice,Alice);
-run bkepk.B(Bob,Alice,Alice);
-run bkepk.B(Bob,Alice,Alice);
+run bkepk.B(Alice,Bob,Alice);
+run bkepk.B(Alice,Bob,Alice);
+run bkepk.testnonce(Alice,Bob,Alice);
+run bkepk.testnonce(Alice,Bob,Alice);
 
-run bkepk.testnonce(Alice,Bob,Alice);
-run bkepk.testnonce(Alice,Bob,Alice);
+run bkepk.A(Alice,Bob,Alice);
 run bkepk.testnonce(Alice,Bob,Alice);

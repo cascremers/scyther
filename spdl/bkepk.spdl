@@ -1,8 +1,7 @@
 /* 
 	Bilateral Key Exchange with Public Key protocol (BKEPK)
 
-	Version from Corin/Etalle: An Improved Constraint-Based System for the Verification of Security Protocols.
-	Tried to stay as close as possible to compare timing results.
+	CMV version with explicit secrecy claims.
 */
 
 usertype Key;
@@ -13,7 +12,7 @@ secret sk,unhash: Function;
 inversekeys (pk,sk);
 inversekeys (hash,unhash);
 
-protocol bkepk(A,B,testnonce)
+protocol bkepk(A,B)
 {
 	role B
 	{
@@ -24,6 +23,7 @@ protocol bkepk(A,B,testnonce)
 		send_1 (B,A, B,{ nb,B }pk(A) );
 		read_2 (A,B, { hash(nb),na,A,kab }pk(B) );
 		send_3 (B,A, { hash(na) }kab );
+		claim_4 (B, Secret, na,nb );
 	}
 
 	role A
@@ -35,13 +35,7 @@ protocol bkepk(A,B,testnonce)
 		read_1 (B,A, B,{ nb,B }pk(A) );
 		send_2 (A,B, { hash(nb),na,A,kab }pk(B) );
 		read_3 (B,A, { hash(na) }kab );
-	}
-
-	role testnonce
-	{
-		var n: Nonce;
-
-		read_4 (A,A, n);
+		claim_5 (A, Secret, na,nb );
 	}
 }
 
@@ -49,14 +43,16 @@ const Alice,Bob,Eve;
 
 compromised sk(Eve);
 
+run bkepk.A(Alice,Bob);
+run bkepk.B(Alice,Bob);
+run bkepk.A(Alice,Bob);
+run bkepk.B(Alice,Bob);
 
-run bkepk.A(Alice,Bob,Alice);
-run bkepk.A(Alice,Bob,Alice);
-run bkepk.A(Alice,Bob,Alice);
-run bkepk.B(Bob,Alice,Alice);
-run bkepk.B(Bob,Alice,Alice);
-run bkepk.B(Bob,Alice,Alice);
+run bkepk.A(Alice,Bob);
+run bkepk.B(Alice,Bob);
+run bkepk.A(Alice,Bob);
+run bkepk.B(Alice,Bob);
 
-run bkepk.testnonce(Alice,Bob,Alice);
-run bkepk.testnonce(Alice,Bob,Alice);
-run bkepk.testnonce(Alice,Bob,Alice);
+run bkepk.A(Alice,Bob);
+run bkepk.B(Alice,Bob);
+
