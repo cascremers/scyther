@@ -1,3 +1,13 @@
+- Fix 'never sent secrets' list, that are e.g. secret keys of regular agents
+  and such. The intruder can never learn these, we need this for pruning.
+  If a goal is such a term, we prune. Note that this results in a complicated
+  symbolic theorem, probably, with an implication. (sk => sk(untrusted)).
+  Investigate how this can be incorporated.
+- Goal select should favour 'old' goals. Thus, best should be <= comparison,
+  because the list is appended at the head.
+- Make 'generate_trace_bindings' to create the bindings for a given trace.
+  Note that there can be multiple solutions; for now, simply try to take the
+  shortest one.
 - If there is a limit on the runs for Arachne, but this limit is never
   reached, the proof is still complete. The same goes for other bounds. We
   thus need a flag to indicate that a state was pruned because of a bound.
