@@ -187,7 +187,7 @@ add_read_goals (const int run, const int old, const int new)
 	      if (count == 0)
 		{
 		  indentPrint ();
-		  eprintf ("* Thus, we must also produce ");
+		  eprintf ("Thus, we must also produce ");
 		}
 	      else
 		{
@@ -321,7 +321,6 @@ proof_select_goal (Binding b)
       Roledef rd;
 
       rd = roledef_shift (sys->runs[b->run_to].start, b->ev_to);
-      indentDepth--;
       indentPrint ();
       eprintf ("Selected goal: Where does term ");
       termPrint (b->term);
@@ -330,7 +329,6 @@ proof_select_goal (Binding b)
       eprintf ("* It is required for ");
       roledefPrint (rd);
       eprintf (" at index %i in run %i\n", b->ev_to, b->run_to);
-      indentDepth++;
     }
 }
 
@@ -426,11 +424,13 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
   int flag;
   int old_length;
   int newgoals;
+  int found;
 
   int subterm_iterate (Termlist substlist, Termlist keylist)
   {
     int flag;
 
+    found++;
     flag = 1;
     if (goal_bind (b, run, index))
       {
@@ -442,7 +442,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	  {
 	    indentPrint ();
 	    eprintf
-	      ("* This introduces the obligation to produce the following keys: ");
+	      ("This introduces the obligation to produce the following keys: ");
 	    termlistPrint (keylist);
 	    eprintf ("\n");
 	  }
@@ -457,7 +457,9 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	    keycount++;
 	  }
 
+	indentDepth++;
 	flag = flag && iterate ();
+	indentDepth--;
 
 	while (keycount > 0)
 	  {
@@ -485,8 +487,17 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
     newgoals = 0;
 
   // Bind to existing run
+  found = 0;
   flag = termMguSubTerm (b->term, rd->message,
 			 subterm_iterate, sys->know->inverses, NULL);
+  // Did it work?
+  if (found == 0 && sys->output == PROOF)
+    {
+      indentPrint ();
+      eprintf ("Cannot bind ");
+      termPrint (b->term);
+      eprintf (" to run %i, index %i because it does not subterm-unify.\n", run, index);
+    }
   // Reset length
   remove_read_goals (newgoals);
   sys->runs[run].length = old_length;
@@ -679,8 +690,10 @@ bind_goal_new_m0 (const Binding b)
 {
   Termlist m0tl;
   int flag;
+  int found;
 
   flag = 1;
+  found = 0;
   m0tl = knowledgeSet (sys->know);
   while (flag && m0tl != NULL)
     {
@@ -701,11 +714,12 @@ bind_goal_new_m0 (const Binding b)
 	  indentDepth++;
 	  if (goal_bind (b, run, 0))
 	    {
+	      found++;
 	      proof_suppose_binding (b);
 	      if (sys->output == PROOF)
 		{
 		  indentPrint ();
-		  eprintf ("* Retrieving ");
+		  eprintf ("* I.e. retrieving ");
 		  termPrint (b->term);
 		  eprintf (" from the initial knowledge.\n");
 		}
@@ -725,6 +739,13 @@ bind_goal_new_m0 (const Binding b)
       m0tl = m0tl->next;
     }
 
+  if (found == 0 && sys->output == PROOF)
+    {
+      indentPrint ();
+      eprintf ("Term ");
+      termPrint (b->term);
+      eprintf (" cannot be constructed from the initial knowledge.\n");
+    }
   termlistDelete (m0tl);
   return flag;
 }
@@ -795,6 +816,16 @@ bind_goal_new_encrypt (const Binding b)
       remove_read_goals (newgoals);
       roleInstanceDestroy (sys);
     }
+  else
+    {
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("Term ");
+	  termPrint (b->term);
+	  eprintf (" cannot be constructed by encryption.\n");
+	}
+    }
   return flag;
 }
 
@@ -805,7 +836,20 @@ bind_goal_new_encrypt (const Binding b)
 int
 bind_goal_new_intruder_run (const Binding b)
 {
-  return (bind_goal_new_m0 (b) && bind_goal_new_encrypt (b));
+  int flag;
+
+  if (sys->output == PROOF)
+    {
+      indentPrint ();
+      eprintf ("Can we bind ");
+      termPrint (b->term);
+      eprintf (" from a new intruder run?\n");
+    }
+  indentDepth++;
+  flag = bind_goal_new_m0 (b);
+  flag = flag && bind_goal_new_encrypt (b);
+  indentDepth--;
+  return flag;
 }
 
 //! Bind a regular goal
@@ -853,12 +897,17 @@ bind_goal_regular_run (const Binding b)
 
 	// A good candidate
 	found++;
+	if (sys->output == PROOF && found == 1)
+	  {
+	    indentPrint ();
+	    eprintf ("The term ", found);
+	    termPrint (b->term);
+	    eprintf (" matches patterns from the role definitions. Investigate.\n");
+	  }
 	if (sys->output == PROOF)
 	  {
 	    indentPrint ();
-	    eprintf ("* ");
-	    termPrint (b->term);
-	    eprintf (" matches the pattern ");
+	    eprintf ("%i. It matches the pattern ", found);
 	    termPrint (rd->message);
 	    eprintf (" from ");
 	    termPrint (p->nameterm);
@@ -866,10 +915,12 @@ bind_goal_regular_run (const Binding b)
 	    termPrint (r->nameterm);
 	    eprintf (", at %i\n", index);
 	  }
+	indentDepth++;
 	// Bind to existing run
 	flag = bind_existing_run (b, p, r, index);
 	// bind to new run
 	flag = flag && bind_new_run (b, p, r, index);
+	indentDepth--;
 	return flag;
       }
     else
@@ -879,13 +930,6 @@ bind_goal_regular_run (const Binding b)
   }
 
   // Bind to all possible sends of regular runs
-#ifdef DEBUG
-  if (DEBUGL (5))
-    {
-      indentPrint ();
-      eprintf ("Try regular role send.\n");
-    }
-#endif
   found = 0;
   flag = iterate_role_sends (bind_this_role_send);
   if (sys->output == PROOF && found == 0)
@@ -905,15 +949,9 @@ bind_goal_old_intruder_run (Binding b)
 {
   int run;
   int flag;
+  int found;
 
-#ifdef DEBUG
-  if (DEBUGL (5))
-    {
-      indentPrint ();
-      eprintf ("Try existing intruder send.\n");
-    }
-#endif
-
+  found = 0;
   flag = 1;
   for (run = 0; run < sys->maxruns; run++)
     {
@@ -928,12 +966,25 @@ bind_goal_old_intruder_run (Binding b)
 	    {
 	      if (rd->type == SEND)
 		{
+		  found++;
+		  if (sys->output == PROOF && found == 1)
+		    {
+		      indentPrint ();
+		      eprintf ("Suppose it is from an existing intruder run.\n");
+		    }
+                  indentDepth++;
 		  flag = flag && bind_existing_to_goal (b, run, ev);
+                  indentDepth--;
 		}
 	      rd = rd->next;
 	      ev++;
 	    }
 	}
+    }
+  if (sys->output == PROOF && found == 0)
+    {
+      indentPrint ();
+      eprintf ("No existing intruder runs to match to.\n");
     }
   return flag;
 }
@@ -947,28 +998,9 @@ bind_goal (const Binding b)
       int flag;
 
       proof_select_goal (b);
-      if (sys->output == PROOF)
-	{
-	  indentPrint ();
-	  eprintf ("A. Suppose it is from a regular protocol role.\n");
-	}
       indentDepth++;
       flag = bind_goal_regular_run (b);
-      indentDepth--;
-      if (sys->output == PROOF)
-	{
-	  indentPrint ();
-	  eprintf ("B. Suppose it is from an existing intruder run.\n");
-	}
-      indentDepth++;
       flag = flag && bind_goal_old_intruder_run (b);
-      indentDepth--;
-      if (sys->output == PROOF)
-	{
-	  indentPrint ();
-	  eprintf ("C. Suppose it is from a new intruder run.\n");
-	}
-      indentDepth++;
       flag = flag && bind_goal_new_intruder_run (b);
       indentDepth--;
       return flag;
@@ -1167,7 +1199,7 @@ iterate ()
 	  if (sys->output == PROOF)
 	    {
 	      indentPrint ();
-	      eprintf ("All goals are now bound.");
+	      eprintf ("All goals are now bound.\n");
 	    }
 	  sys->claims = statesIncrease (sys->claims);
 	  current_claim->count = statesIncrease (current_claim->count);
@@ -1260,16 +1292,19 @@ arachne ()
 	  p = (Protocol) cl->protocol;
 	  r = (Role) cl->role;
 
-	  roleInstance (sys, p, r, NULL, NULL);
 	  if (sys->output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf ("Testing Claim ");
 	      termPrint (cl->type);
 	      eprintf (" from ");
-	      role_name_print (0);
+	      termPrint (p->nameterm);
+	      eprintf (", ");
+	      termPrint (r->nameterm);
 	      eprintf (" at index %i.\n", cl->ev);
 	    }
+	  indentDepth++;
+	  roleInstance (sys, p, r, NULL, NULL);
 	  proof_suppose_run (0, 0, cl->ev + 1);
 	  add_read_goals (sys->maxruns - 1, 0, cl->ev + 1);
 
@@ -1297,6 +1332,7 @@ arachne ()
 	    {
 	      roleInstanceDestroy (sys);
 	    }
+	  indentDepth--;
 	}
       // next
       cl = cl->next;
