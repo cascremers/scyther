@@ -3,11 +3,8 @@
 
 #include "symbol.h"
 
-#define	GLOBAL	 1
-#define VARIABLE 2
-#define LEAF	 3		// type <= LEAF means it's a leaf, nkay?
-#define	ENCRYPT  4
-#define	TUPLE	 5
+// type <= LEAF means it's a leaf, nkay?
+enum termtypes { GLOBAL, VARIABLE, LEAF, ENCRYPT, TUPLE };
 
 //! The most basic datatype in the modelchecker.
 /**

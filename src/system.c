@@ -919,6 +919,7 @@ int compute_roleeventmax (const System sys)
 void
 runInstancePrint (const System sys, const int run)
 {
+  termPrint (sys->runs[run].role->nameterm);
   termlistPrint (sys->runs[run].agents);
 }
 
@@ -931,9 +932,9 @@ scenarioPrint (const System sys)
   for (run = 0; run < sys->maxruns; run++)
     {
       runInstancePrint (sys, run);
-      if (run < sys->maxruns - 2)
+      if (run < sys->maxruns - 1)
 	{
-          printf (", ");
+          printf ("\t");
 	}
     }
 }
