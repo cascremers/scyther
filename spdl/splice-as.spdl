@@ -1,3 +1,5 @@
+usertype TimeStamp, LifeTime;
+
 const pk: Function;
 secret sk: Function;
 inversekeys (pk,sk);
@@ -7,7 +9,8 @@ protocol spliceAS(C,AS,S)
         role C
 	{
 		const N1,N2: Nonce;
-		const T,L: Nonce;
+		const T: TimeStamp;
+		const L: LifeTime;
 
 		send_1(C,AS,  C, S, N1 );
 		read_2(AS,C,  AS, {AS, C, N1, pk(S)}sk(AS) );
@@ -31,7 +34,8 @@ protocol spliceAS(C,AS,S)
 	{
 		const N3: Nonce;
 		var N2: Nonce;
-		var T,L: Nonce;
+		var T: TimeStamp;
+		var L: LifeTime;
 
 		var ni: Nonce;
 		const nr: Nonce;
