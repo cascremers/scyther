@@ -44,9 +44,12 @@ def tupleUnit (x):
 
 def tuplesPrint (l, n, r):
 	if r and (len(r) == n):
+		count = 0
 		for x in r:
+			if count > 0:
+				print "\t",
 			print x,
-			print "\t",
+			count = count+1
 		print
 	else:
 		if l and (n > 0):
