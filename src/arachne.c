@@ -7,6 +7,7 @@
  *
  */
 
+#include <limits.h>
 #include "term.h"
 #include "termlist.h"
 #include "role.h"
@@ -30,6 +31,7 @@ extern Term TERM_Function;
 
 static System sys;
 static Claimlist current_claim;
+static int attack_length;
 
 Protocol INTRUDER;		// Pointers, to be set by the Init
 Role I_M;			// Same here.
@@ -328,6 +330,27 @@ determine_unification_run (Termlist tl)
       tl = tl->next;
     }
   return run;
+}
+
+//! Determine trace length
+int
+get_trace_length ()
+{
+  int run;
+  int length;
+
+  run = 0;
+  length = 0;
+  while (run < sys->maxruns)
+    {
+      if (sys->runs[run].protocol != INTRUDER)
+	{
+	  // Non-intruder run: count length
+	  length = length + sys->runs[run].length;
+	}
+      run++;
+    }
+  return length;
 }
 
 //------------------------------------------------------------------------
@@ -1316,6 +1339,20 @@ prune_bounds ()
 	}
       return 1;
     }
+
+  // Limit on exceeding any attack length
+  if (sys->prune == 2 && get_trace_length() >= attack_length)
+    {
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf
+	    ("Pruned: we already know an attack of length %i.\n", attack_length);
+	}
+      return 1;
+    }
+
+  // No pruning because of bounds
   return 0;
 }
 
@@ -1403,6 +1440,7 @@ int
 property_check ()
 {
   int flag;
+  int attack_this;
 
   flag = 1;
 
@@ -1412,6 +1450,19 @@ property_check ()
   count_false ();
   if (sys->output == ATTACK)
     printSemiState ();
+  // Store attack length if shorter
+  attack_this = get_trace_length ();
+  if (attack_this < attack_length)
+    {
+      // Shortest attack
+      attack_length = attack_this;
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("New shortest attack found with trace length %i.\n", attack_length);
+	}
+    }
+
   /**
    * Prune this?
    */
@@ -1562,6 +1613,7 @@ arachne ()
 	  int run;
 
 	  current_claim = cl;
+	  attack_length = INT_MAX;
 	  cl->complete = 1;
 	  p = (Protocol) cl->protocol;
 	  r = (Role) cl->role;
