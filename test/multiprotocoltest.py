@@ -122,76 +122,17 @@ def PrintProtStatus (file, prname):
 # Returns a dictionary of claim -> bool; where 1 means that it is
 # correct, and 0 means that it is false (i.e. there exists an attack)
 def ScytherEval (plist):
-	results = {}
-
 	# Flush before trying (possibly fatal) external commands
 	sys.stdout.flush()
 	sys.stderr.flush()
 
+	args = scythercache.default_arguments(plist, options.match, options.bounds)
 	n = len(plist)
-	# These bounds assume at least two protocols, otherwise
-	# stuff breaks.
-	if n < 2:
-		nmin = 2
-	else:
-		nmin = n
-	timer = 1
-	maxruns = 2
-	maxlength = 10
-	if options.bounds == 0:
-		timer = nmin**2
-		maxruns = 2*nmin
-		maxlength = 2 + maxruns * 3
-	elif options.bounds == 1:
-		timer = nmin**3
-		maxruns = 3*nmin
-		maxlength = 2 + maxruns * 4
-	else:
-		print "Don't know bounds method", options.bounds
-		sys.exit()
+	if not (n,args) in ArgumentsList:
+		ArgumentsList.append((n,args))
+		print "Testing",n,"tuples using",args
 
-	ScytherBounds = "--arachne --timer=%i --max-runs=%i --max-length=%i" % (timer, maxruns, maxlength)
-
-	# Combine it all
-	ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
-	CommandPrefix = "scyther " + ScytherArgs
-
-	# If these arguments had not been shown before, do so now
-	if not (n,ScytherArgs) in ArgumentsList:
-		ArgumentsList.append((n,ScytherArgs))
-		print "\nArguments for", n, "protocols:", ScytherArgs
-
-	# Combine protocol list to an input
-	input = ""
-	for fn in (IncludeProtocols.split(" ") + plist):
-		if len(fn) > 0:
-			f = open(fn, "r")
-			input = input + f.read()
-			f.close()
-		
-	# Use Scyther
-	(status,scout) = scythercache.eval(ScytherArgs,input)
-
-	if status == 1 or status < 0:
-		# Something went wrong
-		print "*** Error when checking [" + CommandLine (plist) + "]\n"
-		return results
-
-	lines = scout.splitlines()
-	for line in lines:
-		data = line.split()
-		if len(data) > 6 and data[0] == 'claim':
-			claim = " ".join(data[1:4])
-			tag = data[6]
-			value = -1
-			if tag == 'failed:':
-				value = 0
-			if tag == 'correct:':
-				value = 1
-		 	if value == -1:
-				raise IOError, 'Scyther output for ' + commandline + ', line ' + line + ' cannot be parsed.'
-			results[claim] = value
-	return results
+	return scythercache.default_parsed(plist, options.match, options.bounds)
 
 # ScytherEval1
 #

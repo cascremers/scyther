@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #
 #	Scyther caching mechanism
 #
@@ -19,16 +20,24 @@ import os
 import sys
 from tempfile import NamedTemporaryFile, gettempdir
 
+#----------------------------------------------------------------------------
+# How to cal Scyther
+#----------------------------------------------------------------------------
+
 #	scyther should reside in $PATH
 def scythercall (argumentstring, inputfile):
 	clstring = "scyther " + argumentstring + " " + inputfile
 	(status,scout) = commands.getstatusoutput(clstring)
 	return (status,scout)
 
+#----------------------------------------------------------------------------
+# Cached evaluation
+#----------------------------------------------------------------------------
+
 #	cached results
 #	input:	a large string (consisting of read input files)
 #	argstring:	a smaller string
-def eval (argumentstring, inputstring):
+def evaluate (argumentstring, inputstring):
 
 	def cacheid():
 		m = md5.new()
@@ -90,5 +99,95 @@ def eval (argumentstring, inputstring):
 		f.close()
 
 		return (status,scout)
+
+#----------------------------------------------------------------------------
+# Parsing Output
+#----------------------------------------------------------------------------
+
+# Parse output
+def parse(scout):
+	results = {}
+	lines = scout.splitlines()
+	for line in lines:
+		data = line.split()
+		if len(data) > 6 and data[0] == 'claim':
+			claim = " ".join(data[1:4])
+			tag = data[6]
+			value = -1
+			if tag == 'failed:':
+				value = 0
+			if tag == 'correct:':
+				value = 1
+		 	if value == -1:
+				raise IOError, 'Scyther output for ' + commandline + ', line ' + line + ' cannot be parsed.'
+			results[claim] = value
+	return results
+
+#----------------------------------------------------------------------------
+# Default tests
+#----------------------------------------------------------------------------
+
+# Yield default protocol list (from any other one)
+def default_protocols(plist):
+	return ['../spdl/spdl-defaults.inc'] + plist
+
+# Yield arguments, given a bound type:
+# 	0: fast
+# 	1: thorough
+#
+def default_arguments(plist,match,bounds):
+	n = len(plist)
+	# These bounds assume at least two protocols, otherwise
+	# stuff breaks.
+	if n < 2:
+		nmin = 2
+	else:
+		nmin = n
+	timer = 1
+	maxruns = 2
+	maxlength = 10
+	if bounds == 0:
+		timer = nmin**2
+		maxruns = 2*nmin
+		maxlength = 2 + maxruns * 3
+	elif bounds == 1:
+		timer = nmin**3
+		maxruns = 3*nmin
+		maxlength = 2 + maxruns * 4
+	else:
+		print "Don't know bounds method", bounds
+		sys.exit()
+
+	args = "--arachne --timer=%i --max-runs=%i --max-length=%i" % (timer, maxruns, maxlength)
+	matching = "--match=" + str(match)
+	allargs = "--summary " + matching + " " + args
+	return allargs
+
+# Yield test results
+def default_test(plist, match, bounds):
+	pl = default_protocols(plist)
+	args = default_arguments(plist,match,bounds)
+
+	input = ""
+	for fn in pl:
+		if len(fn) > 0:
+			f = open(fn, "r")
+			input = input + f.read()
+			f.close()
+	
+	# Use Scyther
+	(status,scout) = evaluate(args,input)
+	return (status,scout)
+
+# Test, check for status, yield parsed results
+def default_parsed(plist, match, bounds):
+	(status,scout) = default_test(plist, match, bounds)
+	if status == 1 or status < 0:
+		# Something went wrong
+		print "*** Error when checking [", plist, match, bounds, "]"
+		print
+		sys.exit()
+	return parse(scout)
+
 
 
