@@ -19,9 +19,9 @@
 #include "debug.h"
 #include "binding.h"
 
-extern CLAIM_Secret;
-extern CLAIM_Nisynch;
-extern CLAIM_Niagree;
+extern Term CLAIM_Secret;
+extern Term CLAIM_Nisynch;
+extern Term CLAIM_Niagree;
 
 static System sys;
 Protocol INTRUDER;		// Pointers, to be set by the Init
@@ -278,13 +278,14 @@ add_intruder_goal_iterate (Goal goal)
   if (binding_add (run, 0, goal.run, goal.index))
     {
       flag = iterate ();
-      binding_remove_last ();
     }
   else
     {
+      indentPrint ();
+      eprintf ("Aborted adding intruder goal because of cycle.\n");
       flag = 1;
     }
-
+  binding_remove_last ();
   roleInstanceDestroy (sys);	// destroy the created run
   return flag;
 }
@@ -339,8 +340,14 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 		  flag = (flag
 			  && termMguInTerm (goal.rd->message, rd->message,
 					    mgu_iterate));
-		  binding_remove_last ();
 		}
+	      else
+		{
+		  indentPrint ();
+		  eprintf
+		    ("Aborted binding existing run because of cycle.\n");
+		}
+	      binding_remove_last ();
 	      sys->runs[run].length = old_length;
 	    }
 	}
@@ -359,7 +366,6 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
   int old_run;
   int old_index;
 
-  //!@todo if binding_add does not require the roleinstance to be done, move roleInstance into if of binding add (more efficient)
   roleInstance (sys, p, r, NULL);
   run = sys->maxruns - 1;
   sys->runs[run].length = index + 1;
@@ -377,14 +383,14 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
 #endif
 
       flag = iterate ();
-
-      binding_remove_last ();
     }
   else
     {
+      indentPrint ();
+      eprintf ("Aborted binding new run because of cycle.\n");
       flag = 1;
     }
-
+  binding_remove_last ();
   roleInstanceDestroy (sys);
   return flag;
 }
@@ -741,7 +747,7 @@ prune ()
 //! Setup system for specific claim test
 add_claim_specifics (Claimlist cl, Roledef rd)
 {
-  if (isTermEqual (cl->type, CLAIM_Secret))
+  if (cl->type == CLAIM_Secret)
     {
       /**
        * Secrecy claim

@@ -103,9 +103,10 @@ compilerInit (const System mysys)
 }
 
 //! Make a global constant
-Term makeGlobalConstant (const char *s)
+Term
+makeGlobalConstant (const char *s)
 {
-  return levelDeclare (symbolSysConst(s), 0, 0);
+  return levelDeclare (symbolSysConst (s), 0, 0);
 }
 
 //! Clean up afterwards
@@ -1045,33 +1046,9 @@ compute_prec_sets (const System sys)
 
   /*
    * Compute transitive closure (Warshall).
-   * If j<i and k<j, then k<i.
-   * Could be done more efficiently but that is irrelevant here.
    */
-  i = 0;
-  while (i < size)
-    {
-      j = 0;
-      while (j < size)
-	{
-	  if (prec[index2 (j, i)] == 1)
-	    {
-	      int k;
+  warshall (prec, size);
 
-	      k = 0;
-	      while (k < size)
-		{
-		  if (prec[index2 (k, j)] == 1)
-		    {
-		      prec[index2 (k, i)] = 1;
-		    }
-		  k++;
-		}
-	    }
-	  j++;
-	}
-      i++;
-    }
   // [x] show_matrix ();
 
   /*
