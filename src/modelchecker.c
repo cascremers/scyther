@@ -13,6 +13,7 @@
 #include "output.h"
 #include "tracebuf.h"
 #include "attackminimize.h"
+#include "claims.h"
 
 /*
 
@@ -1012,11 +1013,12 @@ claimViolationDetails (const System sys, const int run, const Roledef rd, const 
   return NULL;
 }
 
-/* This happens when we violate a claim.
+//! A claim was violated.
+/**
+ * This happens when we violate a claim.
  * Lots of administration.
- * Returns true iff explorify is in order.
+ *@returns True iff explorify is in order.
  */
-
 int
 violateClaim (const System sys, int length, int claimev, Termlist reqt)
 {
@@ -1096,9 +1098,12 @@ executeTry (const System sys, int run)
 	    flag = send_basic (sys, run);
 	  return flag;
 	}
+
+      /*
+       * Execute claim event
+       */
       if (runPoint->type == CLAIM)
 	{
-
 	  /* first we might dynamically determine whether the claim is valid */
 	  if (untrustedAgent (sys, sys->runs[run].agents))
 	    {
@@ -1129,10 +1134,19 @@ executeTry (const System sys, int run)
 	      printf ("#%i\n", run);
 	    }
 #endif
+	  /*
+	   * update claim counters
+	   */
 	  sys->claims++;
 
+	  /*
+	   * distinguish claim types
+	   */
 	  if (runPoint->to == CLAIM_Secret)
 	    {
+	      /*
+	       * SECRECY
+	       */
 	      /* TODO claims now have their own type, test for that */
 	      /* TODO for now it is secrecy of the message */
 
@@ -1141,6 +1155,7 @@ executeTry (const System sys, int run)
 	      sys->secrets =
 		termlistAdd (termlistShallow (oldsecrets), runPoint->message);
 	      flag = claimSecrecy (sys, runPoint->message);
+              runPoint->claiminfo->count++;
 
 	      /* now check whether the claim failed for further actions */
 	      if (!flag)
@@ -1148,6 +1163,7 @@ executeTry (const System sys, int run)
 		  /* violation */
 		  Termlist tl;
 
+                  runPoint->claiminfo->failed++;
 		  tl = claimViolationDetails(sys,run,runPoint,sys->know);
 		  if (violateClaim (sys,sys->step+1, sys->step, tl ))
 		      flag = explorify (sys, run);
@@ -1165,7 +1181,23 @@ executeTry (const System sys, int run)
 	    }
 	  if (runPoint->to == CLAIM_Nisynch)
 	    {
-	      /* TODO nisynch implementation */
+	      /*
+	       * NISYNCH
+	       */
+	      //!@todo TODO nisynch implementation
+
+              flag = check_claim_nisynch (sys, sys->step);
+	      if (!flag)
+		{
+		  /* violation */
+		  if (violateClaim (sys,sys->step+1, sys->step, NULL ))
+		      flag = explorify (sys, run);
+		}
+	      else
+		{
+		  /* no violation */
+		  flag = explorify (sys, run);
+		}
 	    }
 	}
       /* a claim always succeeds */

@@ -14,6 +14,28 @@
 #define runPointerGet(sys,run)		sys->runs[run].index
 #define runPointerSet(sys,run,newp)	sys->runs[run].index = newp
 
+//! The container for the claim info list
+struct claimlist
+{
+  //! The term element for this node.
+  Term label;
+  //! The name of the role in which it occurs.
+  Term rolename;
+  //! Number of occurrences in system exploration.
+  int count;
+  //! Number of occurrences that failed.
+  int failed;
+  int r;	//!< role number for mapping
+  int ev;	//!< event index in role
+  //! Preceding label list
+  Termlist prec;
+  //! Next node pointer or NULL for the last element of the function.
+  struct claimlist *next;
+};
+
+//! Shorthand for claimlist pointers.
+typedef struct claimlist *Claimlist;
+
 //! Structure for a role event node or list.
 /**
  *\sa role
@@ -42,10 +64,19 @@ struct roledef
   //! Pointer to next roledef node.
   struct roledef *next;
 
+  /*
+   * Substructure for reads
+   */
   //! Illegal injections for this event.
   Knowledge forbidden;
   //! knowledge transitions counter.
   int knowPhase;
+
+  /*
+   * Substructure for claims
+   */
+  //! Pointer to claim type info
+  Claimlist claiminfo;
 
   /* evt runid for synchronisation, but that is implied in the
      base array */
@@ -155,28 +186,6 @@ struct tracebuf
   Varbuf	variables;
 };
 
-//! The container for the claim info list
-struct claimlist
-{
-  //! The term element for this node.
-  Term label;
-  //! The name of the role in which it occurs.
-  Term rolename;
-  //! Number of occurrences in system exploration.
-  int count;
-  //! Number of occurrences that failed.
-  int failed;
-  int r;	//!< role number for mapping
-  int ev;	//!< event index in role
-  //! Preceding label list
-  Termlist prec;
-  //! Next node pointer or NULL for the last element of the function.
-  struct claimlist *next;
-};
-
-//! Shorthand for claimlist pointers.
-typedef struct claimlist *Claimlist;
-
 //! The main state structure.
 struct system
 {
@@ -259,8 +268,6 @@ void statesPrintShort (System sys);
 void systemDestroy (System sys);
 void systemDone (System sys);
 void ensureValidRun (System sys, int run);
-void runAdd (System sys, int run, int type, Term label, Term from, Term to,
-	     Term msg);
 void roledefPrint (Roledef rd);
 void runPrint (Roledef rd);
 void runsPrint (System sys);
@@ -272,9 +279,8 @@ void roledefDelete (Roledef rd);
 void roledefDestroy (Roledef rd);
 void roleInstance (const System sys, const Protocol protocol, const Role role,
 		   const Termlist tolist);
-Roledef roledefInit (int type, Term label, Term from, Term to, Term msg);
-Roledef roledefAdd (Roledef rd, int type, Term label, Term from, Term to,
-		    Term msg);
+Roledef roledefInit (int type, Term label, Term from, Term to, Term msg, Claimlist cl);
+Roledef roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg, Claimlist cl);
 void systemStart (System sys);
 void indentActivate ();
 void indentSet (int i);

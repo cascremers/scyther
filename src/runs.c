@@ -253,40 +253,6 @@ ensureValidRun (System sys, int run)
     }
 }
 
-//! Add a run event to the system
-/**
- *@param sys A system structure.
- *@param run The run identifier.
- *@param type The type of event.
- *@param label The event label.
- *@param from The sender.
- *@param to The recipient.
- *@param msg The message.
- *\sa READ,SEND,CLAIM
- */
-void
-runAdd (System sys, int run, int type, Term label, Term from, Term to,
-	Term msg)
-{
-  Roledef newEvent;
-  Roledef scan;
-
-  newEvent = roledefInit (type, label, from, to, msg);
-  ensureValidRun (sys, run);
-  if (runPointerGet (sys, run) == NULL)
-    {
-      sys->runs[run].start = newEvent;
-      runPointerSet (sys, run, newEvent);
-    }
-  else
-    {
-      scan = runPointerGet (sys, run);
-      while (scan->next != NULL)
-	scan = scan->next;
-      scan->next = newEvent;
-    }
-}
-
 //! Print a role event list.
 void
 roledefPrint (Roledef rd)
@@ -543,7 +509,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
     {
       Roledef rdnew;
 
-      rdnew = roledefInit (READ, NULL, NULL, NULL, extterm);
+      rdnew = roledefInit (READ, NULL, NULL, NULL, extterm, NULL);
       /* this is an internal action! */
       rdnew->internal = 1;
       rdnew->next = rd;
@@ -603,7 +569,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
  *@return A pointer to a new role event with the given parameters.
  */
 Roledef
-roledefInit (int type, Term label, Term from, Term to, Term msg)
+roledefInit (int type, Term label, Term from, Term to, Term msg, Claimlist cl)
 {
   Roledef newEvent;
 
@@ -616,6 +582,7 @@ roledefInit (int type, Term label, Term from, Term to, Term msg)
   newEvent->message = msg;
   newEvent->forbidden = NULL;	// no forbidden stuff
   newEvent->knowPhase = -1;	// we haven't explored any knowledge yet
+  newEvent->claiminfo = cl;	// only for claims
   newEvent->next = NULL;
   return newEvent;
 }
@@ -625,17 +592,17 @@ roledefInit (int type, Term label, Term from, Term to, Term msg)
  *\sa roledefInit()
  */
 Roledef
-roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg)
+roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg, Claimlist cl)
 {
   Roledef scan;
 
   if (rd == NULL)
-    return roledefInit (type, label, from, to, msg);
+    return roledefInit (type, label, from, to, msg, cl);
 
   scan = rd;
   while (scan->next != NULL)
     scan = scan->next;
-  scan->next = roledefInit (type, label, from, to, msg);
+  scan->next = roledefInit (type, label, from, to, msg, cl);
   return rd;
 }
 

@@ -356,6 +356,7 @@ commEvent (int event, Tac tc)
       fromrole = tacTerm (trip);
       torole = tacTerm (trip->next);
       msg = tacTerm (tacTuple ((trip->next->next)));
+      cl = NULL;
 
       break;
     case CLAIM:
@@ -452,7 +453,7 @@ commEvent (int event, Tac tc)
     }
   /* and make that event */
   thisRole->roledef = roledefAdd (thisRole->roledef, event, label,
-				  fromrole, torole, msg);
+				  fromrole, torole, msg, cl);
 }
 
 int
@@ -1055,7 +1056,13 @@ compute_prec_sets (const System sys)
 void 
 preprocess (const System sys)
 {
+  /*
+   * init some counters
+   */
   sys->rolecount = compute_rolecount(sys);
   sys->roleeventmax = compute_roleeventmax(sys);
+  /*
+   * compute preceding label sets
+   */
   compute_prec_sets(sys);
 }
