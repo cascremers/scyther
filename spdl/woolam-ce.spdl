@@ -28,7 +28,7 @@ protocol woolamce(A,B,S)
    		send_6(B,A, { B,(Na,(Nb,Kab)) }Kas, { Na,Nb }Kab );
 		read_7(A,B, { Nb }Kab );	
 
-		claim(B,authToken);
+		claim(B,Secret,authToken);
 	}
 }
 

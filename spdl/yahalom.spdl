@@ -16,7 +16,7 @@ protocol yahalom(A,B,S)
 		send_1(A,B, A,na);
 		read_3(S,A, nb, {B,kab,na,nb}k(A,S), ticket );
 		send_4(A,B, ticket, {nb}kab );
-		claim(A, kab);
+		claim(A, Secret,kab);
 	}
 
 	role B
@@ -29,7 +29,7 @@ protocol yahalom(A,B,S)
 		read_1(A,B, A,na);
 		send_2(B,S, B,nb, {A,na,nb}k(B,S) );
 		read_4(A,B, {A,kab}k(B,S) , {nb}kab );
-		claim(B, kab);
+		claim(B, Secret,kab);
 	}
 
 	role S

@@ -28,7 +28,7 @@ protocol woolamcmv(A,B,S)
    		send_6(B,A, t2, { Na,Nb }Kab );
 		read_7(A,B, { Nb }Kab );	
 
-		claim(B,Kab,Nb,authToken);
+		claim(B,Secret,Kab,Nb,authToken);
 	}
 }
 

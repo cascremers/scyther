@@ -12,7 +12,7 @@ protocol tmn(A,B,S)
 		send_1(A,S, B,{Ka}pk(S) );
 		read_4(S,A, B,{Kb}Ka );
 
-		claim(A,Ka,Kb);
+		claim(A,Secret,Ka,Kb);
 	}	
 	
 	role B
@@ -22,7 +22,7 @@ protocol tmn(A,B,S)
 		read_2(S,B, A );
 		send_3(B,S, A, { Kb }pk(S) );
 
-		claim(B,Kb);
+		claim(B,Secret,Kb);
 	}
 
 	role S
@@ -34,7 +34,7 @@ protocol tmn(A,B,S)
 		read_3(B,S, A, { Kb }pk(S) );
 		send_4(S,A, B,{Kb}Ka );
 
-		//claim(S,Ka);
+		//claim(S,Secret,Ka);
 	}
 }
 

@@ -17,7 +17,7 @@ protocol yahalomlowe(A,B,S)
 		send_1(A,B, A,na);
 		read_3(S,A, {B,kab,na,nb}k(A,S) );
 		send_5(A,B, {A,B,S,nb}kab );
-		claim(A, kab);
+		claim(A, Secret,kab);
 	}
 
 	role B
@@ -30,7 +30,7 @@ protocol yahalomlowe(A,B,S)
 		send_2(B,S, {A,na,nb}k(B,S) );
 		read_4(S,B, {A,kab}k(B,S) );
 		read_5(A,B, {A,B,S,nb}kab );
-		claim(B, kab);
+		claim(B, Secret,kab);
 	}
 
 	role S

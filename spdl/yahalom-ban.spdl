@@ -19,7 +19,7 @@ protocol yahalomBan(A,B,S)
 		send_1(A,B, A,na);
 		read_3(S,A, nb, {B,kab,na}k(A,S), ticket );
 		send_4(A,B, ticket, {nb}kab );
-		claim(A, kab);
+		claim(A, Secret,kab);
 	}
 
 	role B
@@ -32,7 +32,7 @@ protocol yahalomBan(A,B,S)
 		read_1(A,B, A,na);
 		send_2(B,S, B,nb, {A,na}k(B,S) );
 		read_4(A,B, {A,kab,nb}k(B,S) , {nb}kab );
-		claim(B, kab);
+		claim(B, Secret,kab);
 	}
 
 	role S

@@ -16,7 +16,7 @@ protocol otwayrees(A,B,S)
 		send_1(A,B, M,A,B, { na,M,A,B }k(A,S) );
 		read_4(B,A, M, { na,kab }k(A,S) );
 
-		claim(A, kab);
+		claim(A, Secret,kab);
 	}
 
 	role B
@@ -32,7 +32,7 @@ protocol otwayrees(A,B,S)
 		read_3(S,B, M, t2, { nb,kab }k(B,S) );
 		send_4(B,A, M, t2 );
 
-		claim(B, kab);
+		claim(B, Secret,kab);
 	}
 
 	role S
