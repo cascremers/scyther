@@ -78,38 +78,38 @@ main (int argc, char **argv)
 
   struct arg_file *infile  = arg_file0(NULL,NULL,"FILE",    "input file ('-' for stdin)");
   struct arg_file *outfile = arg_file0("o","output","FILE", "output file (default is stdout)");
-  struct arg_int *traversal = arg_int0 ("t", "traverse", NULL,
+  struct arg_int *switch_traversal_method = arg_int0 ("t", "traverse", NULL,
 					"set traversal method, partial order reduction (default is 12)");
-  struct arg_int *match =
+  struct arg_int *switch_match_method =
     arg_int0 ("m", "match", NULL, "matching method (default is 0)");
-  struct arg_lit *clp =
+  struct arg_lit *switch_clp =
     arg_lit0 ("c", "cl", "use constraint logic, non-associative");
-  struct arg_int *prune = arg_int0 ("p", "prune", NULL,
+  struct arg_int *switch_pruning_method = arg_int0 ("p", "prune", NULL,
 				    "pruning method (default is 2)");
-  struct arg_int *maxlength = arg_int0 ("l", "max-length", NULL,
+  struct arg_int *switch_prune_trace_length = arg_int0 ("l", "max-length", NULL,
 					"prune traces longer than <int> events");
-  struct arg_lit *incTraces = arg_lit0 (NULL, "increment-traces",
+  struct arg_lit *switch_incremental_trace_length = arg_lit0 (NULL, "increment-traces",
 					"incremental search using the length of the traces.");
-  struct arg_int *maxruns =
+  struct arg_int *switch_maximum_runs =
     arg_int0 ("r", "max-runs", NULL, "create at most <int> runs");
-  struct arg_lit *incRuns = arg_lit0 (NULL, "increment-runs",
+  struct arg_lit *switch_incremental_runs = arg_lit0 (NULL, "increment-runs",
 				      "incremental search using the number of runs");
-  struct arg_lit *latex = arg_lit0 (NULL, "latex", "output in LaTeX format");
-  struct arg_lit *noreport =
+  struct arg_lit *switch_latex_output = arg_lit0 (NULL, "latex", "output in LaTeX format");
+  struct arg_lit *switch_disable_violations_report =
     arg_lit0 ("d", "disable-report", "don't report violations");
-  struct arg_lit *switchS = arg_lit0 (NULL, "no-progress", "suppress progress bar");
-  struct arg_lit *switchSS = arg_lit0 (NULL, "state-space", "output state space graph");
-  struct arg_lit *switchIC = arg_lit0 (NULL, "implicit-choose", "allow implicit choose events (useful for few runs)");
-  struct arg_lit *switchRS = arg_lit0 (NULL, "read-symm", "enable read symmetry reductions");
-  struct arg_lit *switchAS = arg_lit0 (NULL, "no-agent-symm", "disable agent symmetry reductions");
-  struct arg_lit *switchSO = arg_lit0 (NULL, "symm-order", "enable ordering symmetry reductions");
-  struct arg_lit *switchNC = arg_lit0 (NULL, "no-noclaims-red", "disable no more claims reductions");
-  struct arg_lit *switchRE = arg_lit0 (NULL, "no-endgame-red", "disable endgame reductions");
+  struct arg_lit *switch_no_progress_bar = arg_lit0 (NULL, "no-progress", "suppress progress bar");
+  struct arg_lit *switch_state_space_graph = arg_lit0 (NULL, "state-space", "output state space graph");
+  struct arg_lit *switch_implicit_choose = arg_lit0 (NULL, "implicit-choose", "allow implicit choose events (useful for few runs)");
+  struct arg_lit *switch_enable_read_symmetries = arg_lit0 (NULL, "read-symm", "enable read symmetry reductions");
+  struct arg_lit *switch_disable_agent_symmetries = arg_lit0 (NULL, "no-agent-symm", "disable agent symmetry reductions");
+  struct arg_lit *switch_enable_symmetry_order = arg_lit0 (NULL, "symm-order", "enable ordering symmetry reductions");
+  struct arg_lit *switch_disable_noclaims_reductions = arg_lit0 (NULL, "no-noclaims-red", "disable no more claims reductions");
+  struct arg_lit *switch_disable_endgame_reductions = arg_lit0 (NULL, "no-endgame-red", "disable endgame reductions");
 #ifdef DEBUG
-  struct arg_int *porparam = arg_int0 (NULL, "pp", NULL, "POR parameter");
-  struct arg_lit *switchI = arg_lit0 ("I", "debug-indent",
+  struct arg_int *switch_por_parameter = arg_int0 (NULL, "pp", NULL, "POR parameter");
+  struct arg_lit *switch_debug_indent = arg_lit0 ("I", "debug-indent",
 				      "indent the debug output using trace length");
-  struct arg_int *debugl =
+  struct arg_int *switch_debug_level =
     arg_int0 ("D", "debug", NULL, "set debug level (default is 0)");
 #endif
   struct arg_lit *help = arg_lit0 (NULL, "help", "print this help and exit");
@@ -119,26 +119,26 @@ main (int argc, char **argv)
   void *argtable[] = {
     infile, 
     outfile,
-    traversal, 
-    match, 
-    clp,
-    prune, 
-    maxlength, incTraces,
-    maxruns, incRuns,
-    latex,
-    noreport,
-    switchS, 
-    switchSS,
-    switchIC,
-    switchRS,
-    switchAS,
-    switchSO,
-    switchNC,
-    switchRE,
+    switch_traversal_method, 
+    switch_match_method, 
+    switch_clp,
+    switch_pruning_method, 
+    switch_prune_trace_length, switch_incremental_trace_length,
+    switch_maximum_runs, switch_incremental_runs,
+    switch_latex_output,
+    switch_disable_violations_report,
+    switch_no_progress_bar, 
+    switch_state_space_graph,
+    switch_implicit_choose,
+    switch_enable_read_symmetries,
+    switch_disable_agent_symmetries,
+    switch_enable_symmetry_order,
+    switch_disable_noclaims_reductions,
+    switch_disable_endgame_reductions,
 #ifdef DEBUG
-    porparam,
-    switchI,
-    debugl,
+    switch_por_parameter,
+    switch_debug_indent,
+    switch_debug_level,
 #endif
     help, version,
     end
@@ -158,14 +158,14 @@ main (int argc, char **argv)
   /* defaults
    * set any command line default values prior to parsing */
 #ifdef DEBUG
-  debugl->ival[0] = 0;
-  porparam->ival[0] = 0;
+  switch_debug_level->ival[0] = 0;
+  switch_por_parameter->ival[0] = 0;
 #endif
-  traversal->ival[0] = 12;
-  match->ival[0] = 0;
-  maxlength->ival[0] = -1;
-  maxruns->ival[0] = INT_MAX;
-  prune->ival[0] = 2;
+  switch_traversal_method->ival[0] = 12;
+  switch_match_method->ival[0] = 0;
+  switch_prune_trace_length->ival[0] = -1;
+  switch_maximum_runs->ival[0] = INT_MAX;
+  switch_pruning_method->ival[0] = 2;
 
   /* Parse the command line as defined by argtable[] */
   nerrors = arg_parse (argc, argv, argtable);
@@ -221,7 +221,7 @@ main (int argc, char **argv)
    */
 
   /* Lutger-tries-to-test-with-broken-methods detector */
-  if (clp->count > 0)
+  if (switch_clp->count > 0)
     {
       fprintf (stderr, "For the time being, this method is not supported, \n");
       fprintf (stderr, "as too many changes have been made to the normal \n");
@@ -257,7 +257,7 @@ main (int argc, char **argv)
 
   /* handle debug level */
 #ifdef DEBUG
-  debugSet (debugl->ival[0]);
+  debugSet (switch_debug_level->ival[0]);
   if (DEBUGL (1))
     {
       /* print command line */
@@ -283,28 +283,28 @@ main (int argc, char **argv)
 
   /* generate system */
   sys = systemInit ();
-  if (switchIC->count > 0)
+  if (switch_implicit_choose->count > 0)
       /* allow implicit chooses */
       sys->switchForceChoose = 0;
-  if (switchRS->count > 0)
+  if (switch_enable_read_symmetries->count > 0)
     {
-      if (switchSO->count > 0)
+      if (switch_enable_symmetry_order->count > 0)
 	  error ("--read-symm and --symm-order cannot be used at the same time.");
       sys->switchReadSymm = 1;
     }
-  if (switchSO->count > 0)
+  if (switch_enable_symmetry_order->count > 0)
       sys->switchSymmOrder = 1;		/* enable symmetry order */
-  if (switchAS->count > 0)
+  if (switch_disable_agent_symmetries->count > 0)
       sys->switchAgentSymm = 0;		/* disable agent symmetry order */
-  if (switchNC->count > 0)
+  if (switch_disable_noclaims_reductions->count > 0)
       sys->switchNomoreClaims = 0;	/* disable no more claims cutter */
-  if (switchRE->count > 0)
+  if (switch_disable_endgame_reductions->count > 0)
       sys->switchReduceEndgame = 0;	/* disable endgame cutter */
 
 #ifdef DEBUG
-  sys->porparam = porparam->ival[0];
+  sys->porparam = switch_por_parameter->ival[0];
 #endif
-  sys->latex = latex->count;
+  sys->latex = switch_latex_output->count;
   sys->know = emptyKnowledge ();
 
   /* parse input */
@@ -317,7 +317,7 @@ main (int argc, char **argv)
 
   /* compile */
 
-  compile (sys, spdltac, maxruns->ival[0]);
+  compile (sys, spdltac, switch_maximum_runs->ival[0]);
   scanner_cleanup ();
 
   /* preprocess */
@@ -348,18 +348,18 @@ main (int argc, char **argv)
 
   /* add parameters to system */
 
-  sys->clp = (clp->count > 0 ? 1 : 0);
+  sys->clp = (switch_clp->count > 0 ? 1 : 0);
 
-  sys->traverse = traversal->ival[0];
-  sys->match = match->ival[0];
-  sys->prune = prune->ival[0];
-  if (switchS->count > 0)
+  sys->traverse = switch_traversal_method->ival[0];
+  sys->match = switch_match_method->ival[0];
+  sys->prune = switch_pruning_method->ival[0];
+  if (switch_no_progress_bar->count > 0)
       /* disable progress display */
       sys->switchS = 0;
   else
       /* enable progress display */
       sys->switchS = 50000;
-  if (switchSS->count > 0)
+  if (switch_state_space_graph->count > 0)
     {
       /* enable state space graph output */
       sys->switchStatespace = 1;
@@ -373,7 +373,7 @@ main (int argc, char **argv)
     }
 #ifdef DEBUG
   /* in debugging mode, some extra switches */
-  if (switchI->count > 0)
+  if (switch_debug_indent->count > 0)
     indentActivate ();
   if (DEBUGL (1))
     printf ("Using traversal method %i.\n", sys->traverse);
@@ -381,10 +381,10 @@ main (int argc, char **argv)
   /* non-debug defaults */
   sys->switchM = 0;
 #endif
-  if (noreport->count > 0)
+  if (switch_disable_violations_report->count > 0)
     sys->report = 0;
-  if (maxlength->ival[0] >= 0)
-    sys->switch_maxtracelength = maxlength->ival[0];
+  if (switch_prune_trace_length->ival[0] >= 0)
+    sys->switch_maxtracelength = switch_prune_trace_length->ival[0];
 
   /* latex header? */
   if (sys->latex)
@@ -395,13 +395,13 @@ main (int argc, char **argv)
   if (DEBUGL (1))
     printf ("Start modelchecking system.\n");
 #endif
-  if (incRuns->count > 0)
+  if (switch_incremental_runs->count > 0)
     {
       MC_incRuns (sys);
     }
   else
     {
-      if (incTraces->count > 0)
+      if (switch_incremental_trace_length->count > 0)
 	{
 	  MC_incTraces (sys);
 	}
