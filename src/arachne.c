@@ -279,7 +279,7 @@ add_intruder_goal_iterate (Goal goal)
   int run;
 
   run = create_intruder_goal (goal.rd->message);
-  if (binding_add (run, 0, goal.run, goal.index))
+  if (binding_add (run, 0, goal.run, goal.index, goal.rd->message))
     {
       flag = iterate ();
     }
@@ -329,7 +329,7 @@ bind_existing_to_goal (const Goal goal, const int index, const int run,
 	int keyrun;
 
 	keyrun = create_intruder_goal (keylist->term);
-	if (!binding_add (keyrun, 0, goal.run, goal.index))
+	if (!binding_add (keyrun, 0, goal.run, goal.index, keylist->term))
 	  flag = 0;
 	keylist = keylist->next;
 	keycount++;
@@ -368,7 +368,7 @@ bind_existing_to_goal (const Goal goal, const int index, const int run,
       e_term2 = rd->message;
     }
 #endif
-  if (binding_add (run, index, goal.run, goal.index))
+  if (binding_add (run, index, goal.run, goal.index, goal.rd->message))
     {
       if (subterm)
 	{
@@ -729,10 +729,10 @@ bind_intruder_to_construct (const Goal goal)
 	}
 
       run = create_intruder_goal (t1);
-      if (binding_add (run, 0, goal.run, goal.index))
+      if (binding_add (run, 0, goal.run, goal.index, t1))
 	{
 	  run = create_intruder_goal (t2);
-          if (binding_add (run, 0, goal.run, goal.index))
+          if (binding_add (run, 0, goal.run, goal.index, t2))
 	    {
 	      flag = flag && iterate ();
 	    }
@@ -761,7 +761,7 @@ bind_intruder_to_construct (const Goal goal)
 	  run = sys->maxruns - 1;
 	  sys->runs[run].start->message = termDuplicate(term);
 	  sys->runs[run].length = 1;
-          if (binding_add (run, 0, goal.run, goal.index))
+          if (binding_add (run, 0, goal.run, goal.index, term))
 	    {
 #ifdef DEBUG
 	      if (DEBUGL (3))

@@ -8,6 +8,7 @@
 #include "warshall.h"
 #include "memory.h"
 #include "debug.h"
+#include "term.h"
 
 /*
  * Idea is the ev_from *has to* precede the ev_to
@@ -22,6 +23,8 @@ struct binding
 
   int *graph;
   int nodes;
+
+  Term term;
 };
 
 typedef struct binding *Binding;
@@ -36,7 +39,7 @@ static System sys;
 
 //! Create mem for binding
 Binding
-binding_create (int run_from, int ev_from, int run_to, int ev_to)
+binding_create (int run_from, int ev_from, int run_to, int ev_to, Term term)
 {
   Binding b;
 
@@ -47,6 +50,7 @@ binding_create (int run_from, int ev_from, int run_to, int ev_to)
   b->ev_to = ev_to;
   b->graph = NULL;
   b->nodes = 0;
+  b->term = term;
   return b;
 }
 
@@ -226,7 +230,7 @@ binding_print (void *bindany)
  *@returns True iff is a valid additional binding. False if not.
  */
 int
-binding_add (int run_from, int ev_from, int run_to, int ev_to)
+binding_add (int run_from, int ev_from, int run_to, int ev_to, Term term)
 {
   Binding b;
   int flag;
@@ -234,7 +238,9 @@ binding_add (int run_from, int ev_from, int run_to, int ev_to)
 #ifdef DEBUG
   if (DEBUGL (5))
     {
-      eprintf ("Adding binding (%i,%i) --->> (%i,%i)\n", run_from, ev_from,
+      eprintf ("Adding binding (%i,%i) --(", run_from, ev_from);
+      termPrint (term);
+      eprintf (")-->> (%i,%i)\n",
 	       run_to, ev_to);
     }
   if (ev_from >= sys->runs[run_from].step)
@@ -246,7 +252,7 @@ binding_add (int run_from, int ev_from, int run_to, int ev_to)
   if (run_to < 0 || run_to >= sys->maxruns)
     error ("run_to out of scope.");
 #endif
-  b = binding_create (run_from, ev_from, run_to, ev_to);
+  b = binding_create (run_from, ev_from, run_to, ev_to, term);
   sys->bindings = list_insert (sys->bindings, b);
 
   /*
