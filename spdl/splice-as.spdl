@@ -18,6 +18,8 @@ protocol spliceAS(C,AS,S)
 		read_6(S,C,   S, C, {S, N2}pk(C) );
 
 		claim_7(C, Secret, N2);
+		claim_9(C, Niagree);
+		claim_10(C, Nisynch);
 	}
 
 	role AS
@@ -46,10 +48,12 @@ protocol spliceAS(C,AS,S)
 		send_6(S,C,   S, C, {S, N2}pk(C) );
 
 		claim_8(S, Secret, N2);
+		claim_11(S, Niagree);
+		claim_12(S, Nisynch);
 	}
 }
 
-const Alice,Bob,Eve: Agent;
+const A,B,Eve: Agent;
 
 untrusted Eve;
 const ne: Nonce;
