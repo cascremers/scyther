@@ -1253,6 +1253,25 @@ prune_theorems ()
 	  return 1;
 	}
 
+      // Check for SK-type function occurrences
+      //!@todo Needs a LEMMA, although this seems to be quite straightforward to prove.
+      // The idea is that functions are never sent as a whole, but only used in applications.
+      if (isTermFunctionName (b->term))
+	{
+	  if (!inKnowledge (sys->know, b->term))
+	    {
+	      // Not in initial knowledge of the intruder
+	      if (sys->output == PROOF)
+		{
+		  indentPrint ();
+		  eprintf ("Pruned because the function ");
+		  termPrint (b->term);
+		  eprintf (" is not known initially to the intruder.\n");
+		}
+	      return 1;
+	    }
+	}
+
       bl = bl->next;
     }
 
