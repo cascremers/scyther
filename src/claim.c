@@ -542,7 +542,7 @@ int arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs
  * Per default, occurs in run 0, but for generality we have left the run parameter in.
  *@returns 1 if the claim is true, 0 if it is not.
  */
-int arachne_claim_agree (const System sys, const int claim_run, const int claim_index)
+int arachne_claim_niagree (const System sys, const int claim_run, const int claim_index)
 {
   Claimlist cl;
   Roledef rd;
@@ -596,3 +596,9 @@ int arachne_claim_agree (const System sys, const int claim_run, const int claim_
   return flag;
 }
 
+//! Test nisynch
+int arachne_claim_nisynch (const System sys, const int claim_run, const int claim_index)
+{
+  //!@todo For now, only agreement claim
+  return arachne_claim_niagree (sys, claim_run, claim_index);
+}
