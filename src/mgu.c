@@ -117,6 +117,8 @@ termlistSubstReset (Termlist tl)
 //! Most general unifier.
 /**
  * Try to determine the most general unifier of two terms.
+ * Resulting termlist must be termlistDelete'd.
+ *
  *@return Returns a list of variables, that were previously open, but are now closed
  * in such a way that the two terms unify. Returns \ref MGUFAIL if it is impossible.
  */
@@ -258,6 +260,15 @@ termMguInTerm (Term t1, Term t2, int (*iterator) ())
 	  flag = flag && iterator (tl);
 	  // Reset variables
 	  termlistSubstReset (tl);
+	  // Remove list
+	  termlistDelete (tl);
+	}
+    }
+  else
+    {
+      if (deVar (t1) != NULL)
+	{
+	  flag = 0;
 	}
     }
   return flag;
@@ -319,6 +330,15 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (),
 	  flag = flag && iterator (tl, keylist);
 	  // Reset variables
 	  termlistSubstReset (tl);
+	  // Remove list
+	  termlistDelete (tl);
+	}
+    }
+  else
+    {
+      if (deVar (t1) != NULL)
+	{
+	  flag = 0;
 	}
     }
   return flag;
