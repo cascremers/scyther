@@ -97,7 +97,6 @@ bindingDone ()
 void
 goal_graph_destroy ()
 {
-  findLoserBegin (graph_uordblks);
   if (graph != NULL)
     {
 #ifdef DEBUG
@@ -117,7 +116,6 @@ goal_graph_destroy ()
       graph_uordblks = 0;
       nodes = 0;
     }
-  findLoserEnd (graph_uordblks, "goal_graph_destroy");
 }
 
 //! Compute unclosed graph
@@ -127,7 +125,6 @@ goal_graph_create ()
   int run, ev;
   int last_m;
   List bl;
-  findLoserBegin (graph_uordblks);
 
   goal_graph_destroy ();
 
@@ -140,17 +137,14 @@ goal_graph_create ()
 
       if (graph_uordblks != 0)
 	  error ("Trying to create graph stuff without 0 uordblks for it first, but it is %i.", graph_uordblks);
-      findLoserBegin (graph_uordblks);
       create_mi = mallinfo();
       create_mem_before = create_mi.uordblks;
       graph = memAlloc ((nodes * nodes) * sizeof (int));
       create_mi = mallinfo();
       graph_uordblks = create_mi.uordblks - create_mem_before;
-      findLoserEnd (graph_uordblks, "core graph creation??");
     }
 
     {
-      findLoserBegin (graph_uordblks);
 
       graph_fill (graph, nodes, 0);
 
@@ -159,7 +153,6 @@ goal_graph_create ()
       last_m = -1;			// last I_M run
       while (run < sys->maxruns)
 	{
-	  findLoserBegin (graph_uordblks);
 	  ev = 1;
 	  //!@todo This now reference to step, but we intend "length" as in Arachne.
 	  while (ev < sys->runs[run].step)
@@ -178,13 +171,11 @@ goal_graph_create ()
 	    }
 	  // Next
 	  run++;
-	  findLoserEnd (graph_uordblks, "goal_graph_create: runloop");
 	}
       // Setup bindings order
       bl = sys->bindings;
       while (bl != NULL)
 	{
-	  findLoserBegin (graph_uordblks);
 	  Binding b;
 
 	  b = (Binding) bl->data;
@@ -201,13 +192,11 @@ goal_graph_create ()
 		    (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to)] = 1;
 	    }
 	  bl = bl->next;
-	  findLoserEnd (graph_uordblks, "goal_graph_create: bindings loop");
 	}
       // Setup local constants order
       run = 0;
       while (run < sys->maxruns)
 	{
-	  findLoserBegin (graph_uordblks);
 	  if (sys->runs[run].protocol != INTRUDER)
 	    {
 	      int run2;
@@ -345,11 +334,8 @@ goal_graph_create ()
 		}
 	    }
 	  run++;
-	  findLoserEnd (graph_uordblks, "goal_graph_create local constants loop");
 	}
-      findLoserEnd (graph_uordblks, "goal_graph_create: constructing graph innards");
     }
-  findLoserEnd (graph_uordblks, "goal_graph_create");
 }
 
 
