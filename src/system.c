@@ -56,8 +56,10 @@ systemInit ()
   /* switches */
   sys->porparam = 0;		// multi-purpose parameter
   sys->latex = 0;		// latex output?
+  sys->switchScenario = 0;
   sys->switchStatespace = 0;
   sys->switchForceChoose = 1;	// force explicit chooses by default
+  sys->switchChooseFirst = 0;	// no priority to chooses by default
   sys->switchReadSymm = 0;	// don't force read symmetries by default
   sys->switchAgentSymm = 1;	// default enable agent symmetry
   sys->switchSymmOrder = 0;	// don't force symmetry order reduction by default
@@ -111,6 +113,7 @@ systemReset (const System sys)
   sys->interval = statesIncrease (STATES0);	//!< To keep in line with the states
   sys->claims = STATES0;
   sys->failed = STATES0;
+  sys->countScenario = 0;
   sys->explore = 1;		// do explore the space
   cl = sys->claimlist;
   while (cl != NULL)
@@ -136,6 +139,35 @@ systemReset (const System sys)
    * single subprocedure such as termPrint */
 
   globalLatex = sys->latex;
+
+}
+
+//! Initialize runtime system (according to cut traces, limited runs)
+void
+systemRuns (const System sys)
+{
+  int run;
+
+  sys->lastChooseRun = -1;
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      Roledef rd;
+
+      rd = runPointerGet (sys, run);
+      if (rd != NULL &&
+	  rd->internal &&
+	  rd->type == READ)
+	{
+	  /* increasing run traversal, so this yields max */
+	  sys->lastChooseRun = run;
+	}
+    }
+#ifdef DEBUG
+  if (sys->switchScenario < 0)
+    {
+      printf ("// Last run with a choose: %i\n",sys->lastChooseRun);
+    }
+#endif
 }
 
 //! Delete a system structure and clear used memory for all buffers.
@@ -498,6 +530,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
       rdnew->internal = 1;
       rdnew->next = rd;
       rd = rdnew;
+      /* mark the first real action */
       runs[rid].firstReal = 1;
     }
   else
@@ -881,4 +914,27 @@ int compute_roleeventmax (const System sys)
       pr = pr->next;
     }
   return maxev;
+}
+
+//! Print the role, agents of a run
+void
+runInstancePrint (const System sys, const int run)
+{
+  termlistPrint (sys->runs[run].agents);
+}
+
+//! Print an instantiated scenario (chooses and such)
+void
+scenarioPrint (const System sys)
+{
+  int run;
+
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      runInstancePrint (sys, run);
+      if (run < sys->maxruns - 2)
+	{
+          printf (", ");
+	}
+    }
 }

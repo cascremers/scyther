@@ -514,7 +514,8 @@ void graphInit (const System sys)
 
   /* fit stuff onto the page */
   printf ("\trankdir=LR;\n");
-  printf ("\tpage=\"8.5,11\";\n");
+  printf ("\tsize=\"8.5,11\";\n");
+  //printf ("\tpage=\"8.5,11\";\n");
   printf ("\tfontsize=\"6\";\n");
   printf ("\tfontname=\"Helvetica\";\n");
   printf ("\tmargin=0.5;\n");
@@ -550,6 +551,7 @@ void graphNode (const System sys)
   Termlist newtl;
   states_t thisNode, parentNode;
   int index;
+  int run;
   Roledef rd;
 
   /* determine node numbers */
@@ -557,6 +559,7 @@ void graphNode (const System sys)
   parentNode = sys->traceNode[index];
   thisNode = sys->states;
   rd = sys->traceEvent[index];
+  run = sys->traceRun[index];
 
   /* add node */
   printf ("\tn");
@@ -575,7 +578,21 @@ void graphNode (const System sys)
   else
     {
       /* no added knowledge */
-      printf ("label=\"\"");
+      if (sys->switchScenario != 0 &&
+	  rd != NULL &&
+	  rd == sys->runs[run].start &&
+	  rd->type == READ &&
+	  run == sys->lastChooseRun)
+	{
+	  /* last choose; scenario selected */
+	  printf ("shape=box,height=0.2,label=\"Scenario %i: ", sys->countScenario);
+	  scenarioPrint (sys);
+	  printf ("\"");
+	}
+      else
+	{
+      	  printf ("label=\"\"");
+	}
     }
   printf ("];\n");
 
@@ -586,14 +603,19 @@ void graphNode (const System sys)
   statesFormat (stdout, thisNode);
   /* add label */
   printf (" [label=\"");
-  if (rd->type == CLAIM && untrustedAgent (sys, sys->runs[sys->traceRun[index]].agents))
+
+  // Print step 
+  printf ("%i:",sys->runs[run].step-1);
+
+  if (rd->type == CLAIM && untrustedAgent (sys, sys->runs[run].agents))
     {
-      printf ("Skip claim in #%i\"", sys->traceRun[index]);
+      printf ("Skip claim in #%i\"", run);
     }
   else
     {
+      // Print event
       roledefPrint (rd);
-      printf ("#%i\"", sys->traceRun[index]);
+      printf ("#%i\"", run);
       if (rd->type == CLAIM)
 	{
           printf (",shape=house,color=green");
@@ -655,4 +677,26 @@ void graphPath (const System sys, int length)
 {
   graphNodePath (sys,length,"style=bold,color=red");
   graphEdgePath (sys,length-1,"style=bold,color=red");
+}
+
+//! Scenario for graph; bit of a hack
+void
+graphScenario (const System sys, const int run, const Roledef rd)
+{
+  /* Add scenario node */
+  printf ("\ts%i [shape=box,height=0.2,label=\"Scenario %i: ",
+	  sys->countScenario,
+	  sys->countScenario);
+  scenarioPrint (sys);
+  printf ("\"];\n");
+
+  /* draw edge */
+  printf ("\tn%i -> s%i",
+	  sys->traceNode[sys->step],
+	  sys->countScenario);
+  printf (" [color=blue,label=\"");
+  printf ("%i:",sys->runs[run].step);
+  roledefPrint (rd);
+  printf ("#%i", run);
+  printf ("\"];\n");
 }

@@ -78,6 +78,8 @@ main (int argc, char **argv)
 
   struct arg_file *infile  = arg_file0(NULL,NULL,"FILE",    "input file ('-' for stdin)");
   struct arg_file *outfile = arg_file0("o","output","FILE", "output file (default is stdout)");
+  struct arg_int *switch_scenario =
+      arg_int0 ("s", "scenario", NULL, "select a scenario instance 1-n (-1 to count)");
   struct arg_int *switch_traversal_method = arg_int0 ("t", "traverse", NULL,
 					"set traversal method, partial order reduction (default is 12)");
   struct arg_int *switch_match_method =
@@ -100,6 +102,7 @@ main (int argc, char **argv)
   struct arg_lit *switch_no_progress_bar = arg_lit0 (NULL, "no-progress", "suppress progress bar");
   struct arg_lit *switch_state_space_graph = arg_lit0 (NULL, "state-space", "output state space graph");
   struct arg_lit *switch_implicit_choose = arg_lit0 (NULL, "implicit-choose", "allow implicit choose events (useful for few runs)");
+  struct arg_lit *switch_choose_first = arg_lit0 (NULL, "choose-first", "priority to any choose events");
   struct arg_lit *switch_enable_read_symmetries = arg_lit0 (NULL, "read-symm", "enable read symmetry reductions");
   struct arg_lit *switch_disable_agent_symmetries = arg_lit0 (NULL, "no-agent-symm", "disable agent symmetry reductions");
   struct arg_lit *switch_enable_symmetry_order = arg_lit0 (NULL, "symm-order", "enable ordering symmetry reductions");
@@ -119,6 +122,7 @@ main (int argc, char **argv)
   void *argtable[] = {
     infile, 
     outfile,
+    switch_scenario,
     switch_traversal_method, 
     switch_match_method, 
     switch_clp,
@@ -130,6 +134,7 @@ main (int argc, char **argv)
     switch_no_progress_bar, 
     switch_state_space_graph,
     switch_implicit_choose,
+    switch_choose_first,
     switch_enable_read_symmetries,
     switch_disable_agent_symmetries,
     switch_enable_symmetry_order,
@@ -161,6 +166,7 @@ main (int argc, char **argv)
   switch_debug_level->ival[0] = 0;
   switch_por_parameter->ival[0] = 0;
 #endif
+  switch_scenario->ival[0] = 0;
   switch_traversal_method->ival[0] = 12;
   switch_match_method->ival[0] = 0;
   switch_prune_trace_length->ival[0] = -1;
@@ -272,7 +278,12 @@ main (int argc, char **argv)
   symbolsInit ();
   tacInit ();
 
-  /* generate system */
+  /*
+   * ------------------------------------------------
+   *	 generate system 
+   * ------------------------------------------------
+   */
+
   sys = systemInit ();
 
   /* transfer command line */
@@ -289,6 +300,8 @@ main (int argc, char **argv)
   if (switch_implicit_choose->count > 0)
       /* allow implicit chooses */
       sys->switchForceChoose = 0;
+  if (switch_choose_first->count > 0)
+      sys->switchChooseFirst = 1;	/* priority to chooses */
   if (switch_enable_read_symmetries->count > 0)
     {
       if (switch_enable_symmetry_order->count > 0)
@@ -303,6 +316,19 @@ main (int argc, char **argv)
       sys->switchNomoreClaims = 0;	/* disable no more claims cutter */
   if (switch_disable_endgame_reductions->count > 0)
       sys->switchReduceEndgame = 0;	/* disable endgame cutter */
+
+  /*
+   * The scenario selector has an important side effect; when it is non-null,
+   * any scenario traversing selects chooses first.
+   */
+  sys->switchScenario = switch_scenario->ival[0];	/* scenario selector */
+  if (sys->switchScenario != 0)
+    {
+#ifdef DEBUG
+      warning ("Scenario selection implies --choose-first.");
+#endif
+      sys->switchChooseFirst = 1;
+    }
 
 #ifdef DEBUG
   sys->porparam = switch_por_parameter->ival[0];
@@ -525,6 +551,12 @@ timersPrint (const System sys)
 
   fprintf (stderr, "\n");
 #endif
+  
+  /* if scenario counting, display */
+  if (sys->switchScenario < 0)
+    {
+      fprintf (stderr, "Number of scenarios found: %i\n", sys->countScenario);
+    }
 }
 
 //! Analyse the model by incremental runs.
@@ -550,6 +582,7 @@ MC_incRuns (const System sys)
     {
       systemReset (sys);
       sys->maxruns = runs;
+      systemRuns (sys);
       fprintf (stderr, "%i of %i runs in incremental runs search.\n", runs, maxruns);
       res = modelCheck (sys);
       fprintf (stderr, "\n");
@@ -603,6 +636,7 @@ MC_incTraces (const System sys)
     {
       systemReset (sys);
       sys->maxtracelength = tracelen;
+      systemRuns (sys);
       fprintf (stderr, "%i of %i trace length in incremental trace length search.\n",
 	      tracelen, maxtracelen);
       res = modelCheck (sys);
@@ -636,6 +670,7 @@ MC_single (const System sys)
    */
 
   systemReset (sys);		// reset any globals
+  systemRuns (sys);		// init runs data
   modelCheck (sys);
 }
 

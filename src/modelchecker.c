@@ -74,9 +74,45 @@ statePrint (const System sys)
   printf ("\n");
 }
 
+//! Scenario selection makes sure implicit and explicit chooses are selected first.
+/**
+ * This help function traverses any chooses first.
+ */
+__inline__ int
+traverse_chooses_first (const System sys)
+{
+  int run_scan;
+
+  for (run_scan = 0; run_scan < sys->maxruns; run_scan++)
+    {
+      Roledef rd_scan;
+
+      rd_scan = runPointerGet (sys, run_scan);
+      if (rd_scan != NULL &&				// Not empty run
+	  rd_scan == sys->runs[run_scan].start &&	// First event
+	  rd_scan->type == READ)			// Read
+	{
+	  if (executeTry (sys, run_scan))
+	      return 1;
+	}
+    }
+  return 0;
+}
+
+//! Main traversal call.
+/**
+ * Branches into submethods.
+ */
 int
 traverse (const System sys)
 {
+  /* maybe chooses have precedence over _all_ methods */
+  if (sys->switchChooseFirst)
+    {
+      if (traverse_chooses_first (sys))
+	  return 1;
+    }
+  
   /* branch for traversal methods */
   switch (sys->traverse)
     {
@@ -369,7 +405,7 @@ explorify (const System sys, const int run)
 	    }
 	}
 
-      /* Special check 2: Symmetry reduction.
+      /* Special check 2: Symmetry reduction on chooses.
        * If the run we depend upon has already been activated (otherwise warn!) check for instance ordering
        */
 
@@ -507,6 +543,59 @@ explorify (const System sys, const int run)
 		}
 	    }
 	}
+    }
+
+  /**
+   * Final special check; we must be sure that chooses have been done. Only
+   * necessary for scenario != 0.
+   *
+   * Note: any choose selection after this would result in empty scenarios, so this
+   * should be the last special check.
+   */
+  if (sys->switchScenario != 0)
+    {
+      /* only after chooses */
+      if (myStep == 0 &&
+	  rd->type == READ)
+	{
+	  if (run == sys->lastChooseRun)
+	    {
+	      /* We are just after the last choose instance */
+	      /* count this instance */
+	      if (sys->countScenario < INT_MAX)
+		{
+      	          sys->countScenario++;
+		}
+#ifdef DEBUG
+	      /* If we are counting and debug, print it */
+	      if (sys->switchScenario < 0)
+		{
+		  printf ("// Scenario %i: ", sys->countScenario);
+		  scenarioPrint (sys);
+		  printf ("\n");
+		}
+#endif
+	      /* If it is not the selected one, abort */
+	      if (sys->switchScenario != sys->countScenario)
+		{
+		  /* this branch is not interesting */
+		  /* unfortunately, it is also not drawn in the state graph because of this */
+		  if (sys->switchStatespace)
+		    {
+		      graphScenario (sys, run, rd);
+		    }
+		  return 0;
+		}
+	    }
+	}
+    }
+
+  /* if there are chooses, and they are to go first, we must always wait for them */
+  if (myStep == 1 && sys->switchChooseFirst && sys->lastChooseRun >= 0)
+    {
+      /* we only explore this if all chooses have been done, and will be doing stuff */
+      if (sys->runs[sys->lastChooseRun].step == 0)
+	  return 0;
     }
 
   /**

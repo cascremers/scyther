@@ -117,8 +117,10 @@ struct system
   int switchT;			//!< Time display switch.
   int switchS;			//!< Progress display switch. (traversed states)
   int porparam;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
+  int switchScenario;		//!< -1 to count, 0 for disable, 1-n to select the choose scenario
   int switchStatespace;		//!< Output statespace for dot package
   int switchForceChoose;	//!< Force chooses for each run, even if involved in first read
+  int switchChooseFirst;	//!< Priority to chooses, implicit and explicit
   int switchReadSymm;		//!< Enable read symmetry reduction
   int switchAgentSymm;		//!< Enable agent symmetry reduction
   int switchSymmOrder;		//!< Enable symmetry order reduction
@@ -141,6 +143,7 @@ struct system
   states_t interval;		//!< Used to update state printing at certain intervals
   states_t claims;		//!< Number of claims encountered.
   states_t failed;		//!< Number of claims failed.
+  int countScenario;		//!< Number of scenarios skipped.
 
   /* matching */
   int match;			//!< Matching type.
@@ -155,6 +158,7 @@ struct system
   /* protocol preprocessing */
   int rolecount;		//!< Number of roles in the system
   int roleeventmax;		//!< Maximum number of events in a single role
+  int lastChooseRun;		//!< Last run with a choose event
   Claimlist claimlist;		//!< List of claims in the system, with occurrence counts
 
   /* constructed trace pointers, static */
@@ -181,6 +185,7 @@ typedef struct system *System;
 
 System systemInit ();
 void systemReset (const System sys);
+void systemRuns (const System sys);
 System systemDuplicate (const System fromsys);
 void statesPrint (const System sys);
 void statesPrintShort (const System sys);
@@ -211,5 +216,7 @@ void commandlinePrint (FILE *stream, const System sys);
 
 int compute_rolecount (const System sys);
 int compute_roleeventmax (const System sys);
+
+void scenarioPrint (const System sys);
 
 #endif

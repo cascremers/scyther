@@ -13,5 +13,6 @@ void graphNodePath (const System sys, const int length, const char*
 void graphEdgePath (const System sys, const int length, const char*
 		edgepar);
 void graphPath (const System sys, int length);
+void graphScenario (const System sys, const int run, const Roledef rd);
 
 #endif
