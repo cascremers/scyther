@@ -694,6 +694,11 @@ select_goal ()
   Binding best;
   float min_constrain;
 
+  if (sys->output == PROOF)
+    {
+      indentPrint ();
+      eprintf ("Listing open goals that might be chosen: ");
+    }
   min_constrain = 2;		// 1 is the maximum, but we want to initialize it.
   best = NULL;
   bl = sys->bindings;
@@ -712,15 +717,27 @@ select_goal ()
 	    {
 	      float cons;
 
+	      if (sys->output == PROOF && best != NULL)
+		eprintf (", ");
 	      cons = term_constrain_level (b->term);
 	      if (cons <= min_constrain)
 		{
 		  min_constrain = cons;
 		  best = b;
+		  if (sys->output == PROOF)
+		    eprintf ("*");
 		}
+	      if (sys->output == PROOF)
+		termPrint (b->term);
 	    }
 	}
       bl = bl->next;
+    }
+  if (sys->output == PROOF)
+    {
+      if (best == NULL)
+	eprintf ("none");
+      eprintf ("\n");
     }
   return best;
 }
@@ -1139,7 +1156,8 @@ prune_theorems ()
 	    }
 	  return 1;
 	}
-      if ( sys->match < 2 && ( term_encryption_level (b->term) > max_encryption_level))
+      if (sys->match < 2
+	  && (term_encryption_level (b->term) > max_encryption_level))
 	{
 	  // Prune: we do not need to construct such terms
 	  if (sys->output == PROOF)
@@ -1180,13 +1198,17 @@ prune_bounds ()
 
   // This needs some foundation. Probably * 2^max_encryption_level
   //!@todo Fix this bound
-  if ((sys->match < 2) && (num_intruder_runs > ((double) sys->switchRuns * max_encryption_level * 8)))
+  if ((sys->match < 2)
+      && (num_intruder_runs >
+	  ((double) sys->switchRuns * max_encryption_level * 8)))
     {
       // Hardcoded limit on iterations
       if (sys->output == PROOF)
 	{
 	  indentPrint ();
-	  eprintf ("Pruned: %i intruder runs is too much. (max encr. level %i)\n", num_intruder_runs, max_encryption_level);
+	  eprintf
+	    ("Pruned: %i intruder runs is too much. (max encr. level %i)\n",
+	     num_intruder_runs, max_encryption_level);
 	}
       return 1;
     }
