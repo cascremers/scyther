@@ -1,13 +1,3 @@
-- Arachne: Add 'from initial knowledge set X' insert nodes into the semistate.
-  That would allow distinguishing easily between attack types, and e.g.
-  (un)trusted requirements.
-- Arachne does termDuplicate (for roledefDuplicate) and then termLocal, which
-  creates new copies. That's a bit redundant.
-- Arachne does not respect claim select switch.
-- roleInstance should determine whether any role variables (e.g. role names,
-  received values) are already instantiated. These should be copied and
-  replaced by their substitution values. Then, still in roleInstance, the role
-  variables should be reset. 
 - Constraint logic now also has no checks for when a run is done by the
   intruder (which should be excluded).
 - Fix constants in intruder knowledge. Auto add single one of each type,
