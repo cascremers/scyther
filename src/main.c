@@ -90,6 +90,9 @@ const char *releasetag = SVNVERSION " [modified]";
 const char *releasetag = SVNVERSION;
 #endif
 
+//! The number of seconds a test is allowed to run
+static int time_limit_seconds;
+
 //! The main body, as called by the environment.
 int
 main (int argc, char **argv)
@@ -525,6 +528,7 @@ main (int argc, char **argv)
   sys->match = switch_match_method->ival[0];
   mgu_match = sys->match;
   sys->prune = switch_pruning_method->ival[0];
+  time_limit_seconds = switch_timer->ival[0];
   set_time_limit (switch_timer->ival[0]);
   if (switch_progress_bar->count > 0)
     /* enable progress display */
@@ -826,9 +830,15 @@ timersPrint (const System sys)
 	    {
 	      eprintf ("\tcorrect: ");
 	      if (cl_scan->complete)
-		eprintf ("complete_proof");
+		{
+		  eprintf ("complete_proof");
+		}
 	      else
-		eprintf ("bounded_proof");
+		{
+		  eprintf ("bounded_proof");
+		  if (cl_scan->timebound)
+		      eprintf ("\ttime=%i",time_limit_seconds);
+		}
 	    }
 	}
       else

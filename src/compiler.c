@@ -548,6 +548,7 @@ commEvent (int event, Tac tc)
       cl->roledef = NULL;
       cl->count = 0;
       cl->complete = 0;
+      cl->timebound = 0;
       cl->failed = 0;
       cl->prec = NULL;
       cl->roles = NULL;

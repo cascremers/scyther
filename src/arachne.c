@@ -2015,6 +2015,8 @@ prune_bounds ()
 	  indentPrint ();
 	  eprintf ("Pruned: ran out of allowed time (-T %i switch)\n", get_time_limit () );
 	}
+      // Pruned because of time bound!
+      current_claim->timebound = 1;
       return 1;
     }
 

@@ -33,6 +33,8 @@ struct claimlist
   states_t failed;
   //! Whether the result is complete or not (failings always are!)
   int complete;
+  //! If we ran into the time bound (incomplete, and bad for results)
+  int timebound;
 
   int r;			//!< role number for mapping
   int ev;			//!< event index in role
