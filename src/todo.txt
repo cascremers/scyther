@@ -1,3 +1,10 @@
+- If there is a limit on the runs for Arachne, but this limit is never
+  reached, the proof is still complete. The same goes for other bounds. We
+  thus need a flag to indicate that a state was pruned because of a bound.
+  Then, we get more possible results for the output.
+  1. Correct and complete
+  2. Correct within bounds
+  3. Incorrect
 - Fix term encryption level pruning for arachne, depending on the match type.
 - Constraint logic now also has no checks for when a run is done by the
   intruder (which should be excluded).
