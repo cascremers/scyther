@@ -642,7 +642,7 @@ termLocal (Term t, Termlist fromlist, Termlist tolist, const int runid)
     }
   else
     {
-      Term newt = termDuplicate (t);
+      Term newt = termNodeDuplicate (t);
       if (realTermTuple (t))
 	{
 	  newt->left.op1 = termLocal (t->left.op1, fromlist, tolist, runid);

@@ -420,6 +420,28 @@ termDuplicate (const Term term)
   return newterm;
 }
 
+//! Make a deep copy of a term node (one-level)
+/**
+ * Leaves are not copied.
+ *@return If the original was a leaf, then the pointer is simply returned. Otherwise, new memory is allocated and the node is copied recursively.
+ *\sa termDuplicateDeep()
+ */
+
+Term
+termNodeDuplicate (const Term term)
+{
+  Term newterm;
+
+  if (term == NULL)
+    return NULL;
+  if (realTermLeaf (term))
+    return term;
+
+  newterm = (Term) memAlloc (sizeof (struct term));
+  memcpy (newterm, term, sizeof (struct term));
+  return newterm;
+}
+
 //! Make a true deep copy of a term.
 /**
  * Currently, it this function is not to be used, so we can be sure leaf nodes occur only once in the system.

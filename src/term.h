@@ -158,6 +158,7 @@ int termInTerm (Term t, Term tsub);
 void termPrint (Term term);
 void termTuplePrint (Term term);
 Term termDuplicate (const Term term);
+Term termNodeDuplicate (const Term term);
 Term termDuplicateDeep (const Term term);
 Term termDuplicateUV (Term term);
 void termDelete (const Term term);
