@@ -279,7 +279,10 @@ explorify (const System sys, const int run)
 	  ridSymm = sys->runs[run].prevSymmRun;
 	  if (sys->runs[ridSymm].step == 0)
 	    {
-	      warning ("Symmetrical run dependency #%i (for run #%i) has not chosen yet!", ridSymm, run);
+	      /*
+	       * dependency run was not chosen yet, so we can't do anything now
+	       */
+	      // warning ("Symmetrical run dependency #%i (for run #%i) has not chosen yet!", ridSymm, run);
 	    }
 	  else
 	    {
