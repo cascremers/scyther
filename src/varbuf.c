@@ -13,7 +13,7 @@
  */
 
 Varbuf
-varbufInit (System sys)
+varbufInit (const System sys)
 {
   Varbuf vb;
   Termlist tl;
@@ -55,7 +55,7 @@ varbufInit (System sys)
  */
 
 void
-varbufSet (System sys, Varbuf vb)
+varbufSet (const System sys, Varbuf vb)
 {
   Termlist tl1, tl2;
 

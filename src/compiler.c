@@ -74,7 +74,7 @@ static Role thisRole;
  *\sa oki_nisynch
  */
 void
-compile (System mysys, Tac tc, int maxrunsset)
+compile (const System mysys, Tac tc, int maxrunsset)
 {
   int i;
 

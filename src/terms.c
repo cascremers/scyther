@@ -137,7 +137,7 @@ makeTermType (const int type, const Symbol symb, const int runid)
  *@return A term that is either not a variable, or has a NULL substitution.
  *\sa deVar()
  */
-Term
+__inline__ Term
 deVarScan (Term t)
 {
   while (realTermVariable (t) && t->subst != NULL)

@@ -25,7 +25,7 @@ linePrint (int i)
 }
 
 int
-correspondingSend (System sys, int rd)
+correspondingSend (const System sys, int rd)
 {
 
   int labelMatch = 0;
@@ -198,7 +198,7 @@ correspondingSend (System sys, int rd)
 }
 
 void
-tracePrint (System sys)
+tracePrint (const System sys)
 {
   int i, j;
   int lastrid;
@@ -347,7 +347,7 @@ tracePrint (System sys)
 
 
 void
-attackDisplayAscii (System sys)
+attackDisplayAscii (const System sys)
 {
   int i, j;
   int length;
@@ -479,7 +479,7 @@ attackDisplayAscii (System sys)
 
 
 void
-attackDisplay (System sys)
+attackDisplay (const System sys)
 {
   if (!sys->report || sys->switchStatespace)
       return;

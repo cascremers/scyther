@@ -9,7 +9,7 @@ extern int globalLatex;
 
 /* reportQuit is called after each violation, because it might need to abort the process */
 void
-reportQuit (System sys)
+reportQuit (const System sys)
 {
   /* determine quit or not */
   if (sys->prune >= 3)
@@ -22,7 +22,7 @@ reportQuit (System sys)
 }
 
 void
-reportStart (System sys)
+reportStart (const System sys)
 {
   if (!sys->latex)
     {
@@ -34,7 +34,7 @@ reportStart (System sys)
 }
 
 void
-reportMid (System sys)
+reportMid (const System sys)
 {
   indent ();
   printf ("Trace length %i.\n", 1 + sys->step);
@@ -45,7 +45,7 @@ reportMid (System sys)
 
 
 void
-reportEnd (System sys)
+reportEnd (const System sys)
 {
   if (!sys->latex)
     {
@@ -56,7 +56,7 @@ reportEnd (System sys)
 }
 
 void
-reportSecrecy (System sys, Term t)
+reportSecrecy (const System sys, Term t)
 {
   if (!sys->report)
     {

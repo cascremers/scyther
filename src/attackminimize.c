@@ -14,7 +14,7 @@ int cTod = 0;
  *@param tb The attack buffer.
  *@param ev The reference event index.
  */
-void markback(System sys, struct tracebuf *tb, int ev)
+void markback(const System sys, struct tracebuf *tb, int ev)
 {
 	int run = tb->run[ev];
 
@@ -53,7 +53,7 @@ void markback(System sys, struct tracebuf *tb, int ev)
 }
 
 //! Minimize the attack.
-void attackMinimize(System sys, struct tracebuf *tb)
+void attackMinimize(const System sys, struct tracebuf *tb)
 {
 	int i;
 	int j;

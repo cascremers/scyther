@@ -3,8 +3,8 @@
 
 #include "runs.h"
 
-Varbuf varbufInit (System sys);
-void varbufSet (System sys, Varbuf vb);
+Varbuf varbufInit (const System sys);
+void varbufSet (const System sys, Varbuf vb);
 void varbufDone (Varbuf vb);
 
 #endif

@@ -150,7 +150,7 @@ systemReset (const System sys)
  *\sa systemDestroy()
  */
 void
-systemDone (System sys)
+systemDone (const System sys)
 {
   int run;
   int s;
@@ -176,7 +176,7 @@ systemDone (System sys)
 
 //! Approximate the number of states traversed using a double type.
 double
-statesApproximation (System sys)
+statesApproximation (const System sys)
 {
   if (sys->statesHigh == 0)
     return (double) sys->statesLow;
@@ -186,14 +186,14 @@ statesApproximation (System sys)
 
 //! Print a short version of the number of states.
 void
-statesPrintShort (System sys)
+statesPrintShort (const System sys)
 {
   fprintf (stderr,"%.3e", statesApproximation (sys));
 }
 
 //! Print the number of states.
 void
-statesPrint (System sys)
+statesPrint (const System sys)
 {
   if (sys->statesHigh == 0)
     {
@@ -217,7 +217,7 @@ statesPrint (System sys)
  *\sa systemDone()
  */
 void
-systemDestroy (System sys)
+systemDestroy (const System sys)
 {
   memFree (sys->runs, sys->maxruns * sizeof (struct run));
   memFree (sys, sizeof (struct system));
@@ -230,7 +230,7 @@ systemDestroy (System sys)
  */
 
 void
-ensureValidRun (System sys, int run)
+ensureValidRun (const System sys, int run)
 {
   int i, oldsize;
 
@@ -336,7 +336,7 @@ runPrint (Roledef rd)
 
 //! Print all runs in the system structure.
 void
-runsPrint (System sys)
+runsPrint (const System sys)
 {
   int i;
 
@@ -750,7 +750,7 @@ roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg, Clai
  */
 
 void
-systemStart (System sys)
+systemStart (const System sys)
 {
   int i, s;
   Roledef rd;
@@ -953,7 +953,7 @@ rolesPrint (Role r)
  *@return True iff any agent in the list is untrusted.
  */
 int
-untrustedAgent (System sys, Termlist agents)
+untrustedAgent (const System sys, Termlist agents)
 {
   while (agents != NULL)
     {

@@ -1,1 +1,1 @@
-void attackMinimize(System sys, struct tracebuf *tb);
+void attackMinimize(const System sys, struct tracebuf *tb);

@@ -63,7 +63,7 @@ void termsDone (void);
 Term makeTermEncrypt (Term t1, Term t2);
 Term makeTermTuple (Term t1, Term t2);
 Term makeTermType (const int type, const Symbol symb, const int runid);
-Term deVarScan (Term t);
+__inline__ Term deVarScan (Term t);
 #define substVar(t)		((t != NULL && t->type == VARIABLE && t->subst != NULL) ? 1 : 0)
 #define deVar(t)		( substVar(t) ? deVarScan(t->subst) : t)
 #define realTermLeaf(t)		(t != NULL && t->type <= LEAF)

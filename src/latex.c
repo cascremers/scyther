@@ -663,7 +663,7 @@ knowledgePrintLatex (Knowledge know)
 //! Display the attack in the systems attack buffer using LaTeX.
 
 void
-attackDisplayLatex (System sys)
+attackDisplayLatex (const System sys)
 {
   int i;
   struct tracebuf *tb;
