@@ -1,9 +1,9 @@
 #ifndef MGU
 #define MGU
 
-#include "terms.h"
-#include "termlists.h"
-#include "substitutions.h"
+#include "term.h"
+#include "termlist.h"
+#include "substitution.h"
 
 //! A special constant do denote failure.
 /**

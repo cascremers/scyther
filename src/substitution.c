@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "terms.h"
-#include "substitutions.h"
+#include "term.h"
+#include "substitution.h"
 #include "memory.h"
 
 /* substitutions in terms */

@@ -1,7 +1,7 @@
 #ifndef TERMS
 #define TERMS
 
-#include "symbols.h"
+#include "symbol.h"
 
 #define	GLOBAL	 1
 #define VARIABLE 2

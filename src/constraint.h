@@ -1,6 +1,6 @@
 #ifndef CONSTRAINTS
 #define CONSTRAINTS
-#include "terms.h"
+#include "term.h"
 #include "knowledge.h"
 
 struct constraint

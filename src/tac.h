@@ -1,7 +1,7 @@
 #ifndef TAC_H
 #define TAC_H
 
-#include "symbols.h"
+#include "symbol.h"
 
 /*
  * TAC instructions

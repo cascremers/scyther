@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "terms.h"
+#include "term.h"
 #include "system.h"
 #include "debug.h"
 #include "output.h"

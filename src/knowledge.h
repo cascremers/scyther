@@ -1,8 +1,8 @@
 #ifndef KNOWLEDGE
 #define KNOWLEDGE
 
-#include "terms.h"
-#include "termlists.h"
+#include "term.h"
+#include "termlist.h"
 
 //! Knowledge structure.
 /**

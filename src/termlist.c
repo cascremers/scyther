@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "termlists.h"
+#include "termlist.h"
 #include "debug.h"
 #include "memory.h"
 

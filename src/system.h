@@ -1,13 +1,13 @@
 #ifndef SYSTEM
 #define SYSTEM
 
-#include "terms.h"
-#include "termmaps.h"
-#include "termlists.h"
+#include "term.h"
+#include "termmap.h"
+#include "termlist.h"
 #include "knowledge.h"
-#include "constraints.h"
+#include "constraint.h"
 #include "states.h"
-#include "roles.h"
+#include "role.h"
 
 #define runPointerGet(sys,run)		sys->runs[run].index
 #define runPointerSet(sys,run,newp)	sys->runs[run].index = newp

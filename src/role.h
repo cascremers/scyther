@@ -1,11 +1,11 @@
 #ifndef ROLES
 #define ROLES
 
-#include "terms.h"
-#include "termmaps.h"
-#include "termlists.h"
+#include "term.h"
+#include "termmap.h"
+#include "termlist.h"
 #include "knowledge.h"
-#include "constraints.h"
+#include "constraint.h"
 #include "states.h"
 
 #define	READ	1

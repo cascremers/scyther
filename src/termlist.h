@@ -1,7 +1,7 @@
 #ifndef TERMLISTS
 #define TERMLISTS
 
-#include "terms.h"
+#include "term.h"
 
 //! The list container for the term type.
 /**

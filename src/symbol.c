@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "symbols.h"
+#include "symbol.h"
 #include "memory.h"
 
 /*

@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "memory.h"
-#include "substitutions.h"
+#include "substitution.h"
 #include "system.h"
 #include "modelchecker.h"
 #include "match_basic.h"

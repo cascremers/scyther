@@ -1,13 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "tac.h"
-#include "terms.h"
-#include "termlists.h"
+#include "term.h"
+#include "termlist.h"
 #include "memory.h"
 #include "system.h"
 #include "knowledge.h"
-#include "symbols.h"
-#include "substitutions.h"
+#include "symbol.h"
+#include "substitution.h"
 #include "compiler.h"
 
 /*

@@ -10,11 +10,11 @@
  * pointer comparison, which is what we want. However, for comparison of terms
  */
 
-#include <strings.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
-#include "terms.h"
+#include "term.h"
 #include "debug.h"
 #include "memory.h"
 #include "ctype.h"

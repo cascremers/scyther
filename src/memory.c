@@ -22,10 +22,10 @@
 
 /* for displaying the sizes */
 
-#include "terms.h"
-#include "termlists.h"
+#include "term.h"
+#include "termlist.h"
 #include "knowledge.h"
-#include "substitutions.h"
+#include "substitution.h"
 #include "system.h"
 
 //! Open memory code.

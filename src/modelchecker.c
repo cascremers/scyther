@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
-#include "substitutions.h"
+#include "substitution.h"
 #include "knowledge.h"
 #include "system.h"
 #include "debug.h"
@@ -19,7 +19,7 @@
 #include "output.h"
 #include "tracebuf.h"
 #include "attackminimize.h"
-#include "claims.h"
+#include "claim.h"
 
 /*
 

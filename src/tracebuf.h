@@ -1,8 +1,8 @@
 #ifndef TRACEBUF
 #define TRACEBUF
 
-#include "terms.h"
-#include "termlists.h"
+#include "term.h"
+#include "termlist.h"
 #include "knowledge.h"
 #include "system.h"
 

@@ -1,7 +1,7 @@
 #ifndef SUBSTITUTIONS
 #define SUBSTITUTIONS
 
-#include "termlists.h"
+#include "termlist.h"
 #include "knowledge.h"
 #include "system.h"
 

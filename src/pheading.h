@@ -5,9 +5,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "terms.h"
-#include "termlists.h"
-#include "symbols.h"
+#include "term.h"
+#include "termlist.h"
+#include "symbol.h"
 #include "system.h"
 #include "tac.h"
 #endif

@@ -5,16 +5,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
-#include "terms.h"
-#include "termlists.h"
+#include "term.h"
+#include "termlist.h"
 #include "knowledge.h"
 #include "system.h"
 #include "memory.h"
-#include "constraints.h"
+#include "constraint.h"
 #include "debug.h"
 #include "output.h"
 #include "tracebuf.h"
-#include "roles.h"
+#include "role.h"
 
 extern int globalLatex;		// from system.c
 

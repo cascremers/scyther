@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "terms.h"
-#include "termlists.h"
-#include "substitutions.h"
+#include "term.h"
+#include "termlist.h"
+#include "substitution.h"
 #include "mgu.h"
 #include "memory.h"
 

@@ -6,7 +6,7 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include "termlists.h"
+#include "termlist.h"
 #include "knowledge.h"
 #include "memory.h"
 #include "system.h"

@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "termmaps.h"
+#include "termmap.h"
 #include "system.h"
 #include "error.h"
 
