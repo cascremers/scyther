@@ -593,6 +593,15 @@ timersPrint (const System sys)
   statesPrintShort (sys);
   eprintf ("\n");
 
+  /* scenario info */
+  
+  if (sys->switchScenario > 0)
+    {
+      eprintf ("scen_st\t");
+      statesFormat (sys->statesScenario);
+      eprintf ("\n");
+    }
+
   /* flag
    *
    * L n          Attack of length <n>
@@ -651,13 +660,13 @@ timersPrint (const System sys)
       eprintf (":");
       termPrint (cl_scan->label);
       eprintf ("\t");
-      statesFormat (stderr, cl_scan->count);
+      statesFormat (cl_scan->count);
       if (cl_scan->count > 0)
 	{
 	  eprintf ("\t");
 	  if (cl_scan->failed > 0)
 	    {
-	      statesFormat (stderr, cl_scan->failed);
+	      statesFormat (cl_scan->failed);
 	      eprintf (" failed");
 	    }
 	}

@@ -143,7 +143,8 @@ struct system
   int explore;			//!< Boolean: explore states after actions or not.
 
   /* counters */
-  states_t states;
+  states_t states;		//!< States traversed
+  states_t statesScenario;	//!< States traversed that are within the scenario, not the prefix
   states_t interval;		//!< Used to update state printing at certain intervals
   states_t claims;		//!< Number of claims encountered.
   states_t failed;		//!< Number of claims failed.

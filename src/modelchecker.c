@@ -202,16 +202,25 @@ executeStep (const System sys, const int run)
   /* we will explore this state, so count it. */
   sys->states = statesIncrease (sys->states);
 
+  /* what about scenario exploration? */
+  if (sys->switchScenario && sys->step+1 > sys->switchScenarioSize)
+    {
+      /* count states within scenario */
+      sys->statesScenario = statesIncrease (sys->statesScenario);
+    }
+
   /* show progression */
   if (sys->switchS > 0)
     {
       sys->interval = statesIncrease (sys->interval);
       if (!statesSmallerThan (sys->interval, (unsigned long int) sys->switchS))
 	{
+	  globalError++;
 	  sys->interval = STATES0;
-	  fprintf (stderr, "States ");
-	  statesFormat (stderr, sys->states);
-	  fprintf (stderr, " \r");
+	  eprintf ("States ");
+	  statesFormat (sys->states);
+	  eprintf (" \r");
+	  globalError--;
 	}
     }
 

@@ -15,6 +15,6 @@ typedef unsigned long int states_t;
 __inline__ states_t statesIncrease (const states_t states);
 __inline__ double statesDouble (const states_t states);
 __inline__ int statesSmallerThan (const states_t states, unsigned long int reflint);
-__inline__ void statesFormat (FILE* out, const states_t states);
+__inline__ void statesFormat (const states_t states);
 
 #endif

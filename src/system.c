@@ -111,7 +111,8 @@ systemReset (const System sys)
 
   /* some initial counters */
   sys->states = statesIncrease (STATES0);	//!< Initial state is not explored, so start counting at 1
-  sys->interval = statesIncrease (STATES0);	//!< To keep in line with the states
+  sys->statesScenario = STATES0;
+  sys->interval = sys->states;			//!< To keep in line with the states
   sys->claims = STATES0;
   sys->failed = STATES0;
   sys->countScenario = 0;
@@ -205,20 +206,17 @@ systemDone (const System sys)
 void
 statesPrintShort (const System sys)
 {
-  if (globalError == 0)
-    statesFormat (stdout, sys->states);
-  else
-    statesFormat (stderr, sys->states);
+  statesFormat (sys->states);
 }
 
 //! Print the number of states.
 void
 statesPrint (const System sys)
 {
-  statesFormat (stdout, sys->states);
-  printf (" states traversed.\n");
+  statesFormat (sys->states);
+  eprintf (" states traversed.\n");
   if (globalLatex)
-      printf("\n");
+      eprintf("\n");
 }
 
 //! Destroy a system memory block and system::runs

@@ -31,10 +31,10 @@ statesSmallerThan (const states_t states, unsigned long int reflint)
  * Acts like a modified form of %g
  */
 __inline__ void
-statesFormat (FILE* out, const states_t states)
+statesFormat (const states_t states)
 {
   if (states < 1000000)
-      fprintf (out, "%lu", states);
+      eprintf ("%lu", states);
   else
-      fprintf (out, "%.3e", statesDouble (states));
+      eprintf ("%.3e", statesDouble (states));
 }

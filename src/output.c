@@ -529,7 +529,7 @@ void graphInit (const System sys)
 
   /* start with initial node 0 */
   printf ("\tn");
-  statesFormat (stdout, STATES0);
+  statesFormat (STATES0);
   printf (" [shape=box,height=0.2,label=\"M0: ");
   tl = knowledgeSet (sys->know);
   termlistPrint (tl);
@@ -560,7 +560,7 @@ void graphNode (const System sys)
 
   /* add node */
   printf ("\tn");
-  statesFormat (stdout, thisNode);
+  statesFormat (thisNode);
   printf (" [");
   
   newtl = knowledgeNew (sys->traceKnow[index], sys->traceKnow[index+1]);
@@ -595,9 +595,9 @@ void graphNode (const System sys)
 
   /* add edge */
   printf ("\tn");
-  statesFormat (stdout, parentNode);
+  statesFormat (parentNode);
   printf (" -> n");
-  statesFormat (stdout, thisNode);
+  statesFormat (thisNode);
   /* add label */
   printf (" [label=\"");
 
@@ -641,7 +641,7 @@ void graphNodePath (const System sys, const int length, const char* nodepar)
 
       /* color node */
       printf ("\tn");
-      statesFormat (stdout, thisNode);
+      statesFormat (thisNode);
       printf (" [%s];\n", nodepar);
       i++;
     }
@@ -661,9 +661,9 @@ void graphEdgePath (const System sys, const int length, const char* edgepar)
 
       /* color edge */
       printf ("\tn");
-      statesFormat (stdout, prevNode);
+      statesFormat (prevNode);
       printf (" -> n");
-      statesFormat (stdout, thisNode);
+      statesFormat (thisNode);
       printf (" [%s];\n", edgepar);
       prevNode = thisNode;
       i++;
