@@ -1,5 +1,6 @@
 /* 
 	Bilateral Key Exchange with Public Key protocol (BKEPK)
+	Variation for exercise 2r890
 */
 
 usertype Key;
@@ -10,7 +11,7 @@ secret sk,unhash: Function;
 inversekeys (pk,sk);
 inversekeys (hash,unhash);
 
-protocol bke(I,R)
+protocol bkevariation(I,R)
 {
 	role I
 	{
@@ -47,16 +48,8 @@ untrusted e;
 compromised sk(e);
 const ne: Nonce;
 
-run bke.I(a,Agent);
-run bke.R(Agent,b);
-run bke.I(a,Agent);
-run bke.R(Agent,b);
-
-run bke.I(a,Agent);
-run bke.R(Agent,b);
-run bke.I(a,Agent);
-run bke.R(Agent,b);
-
-run bke.I(a,Agent);
-run bke.R(Agent,b);
+run bkevariation.I(a,Agent);
+run bkevariation.R(Agent,b);
+run bkevariation.I(a,Agent);
+run bkevariation.R(Agent,b);
 
