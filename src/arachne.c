@@ -545,8 +545,22 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	while (tl != NULL)
 	  {
 	    int keyrun;
+	    int prioritylevel;
 
-	    goal_add (tl->term, b->run_to, b->ev_to, 1);
+	    /* normally, a key gets higher priority */
+	    prioritylevel = 1;
+	    if (realTermEncrypt (tl->term))
+	      {
+		/* the key is a construction itself */
+		if (inKnowledge (sys->know, tl->term->right.key))
+		  {
+		    /* the key is constructed by a public thing */
+		    /* typically, this is a public key, so we postpone it  */
+		    prioritylevel = -1;
+		  }
+	      }
+	    /* add the key as a goal */
+	    goal_add (tl->term, b->run_to, b->ev_to, prioritylevel);
 	    tl = tl->next;
 	    keycount++;
 	  }
@@ -1028,7 +1042,7 @@ select_goal ()
       indentPrint ();
       eprintf ("Listing open goals that might be chosen: ");
     }
-  max_level = -1;		// 0 is the minimum level
+  max_level = INT_MIN;
   best = NULL;
   bl = sys->bindings;
   while (bl != NULL)
