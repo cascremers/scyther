@@ -1,4 +1,5 @@
-- Latex output has {( )} constructs: remove inner brackets.
+- Make --with-argtabledir= something switch, replacing
+  README/galious-configure.sh constructs.
 - Move initial intruder knowledge maybe into the title of the MSC.
 - Move time things to stderr instead of latex, does not belong in attack
   output.
