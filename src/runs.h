@@ -2,6 +2,7 @@
 #define RUNS
 
 #include "terms.h"
+#include "termmaps.h"
 #include "termlists.h"
 #include "knowledge.h"
 #include "constraints.h"
@@ -154,6 +155,26 @@ struct tracebuf
   Varbuf	variables;
 };
 
+//! The container for the claim info list
+struct claimlist
+{
+  //! The term element for this node.
+  Term label;
+  //! The name of the role in which it occurs.
+  Term rolename;
+  //! Number of occurrences in system exploration.
+  int count;
+  //! Number of occurrences that failed.
+  int failed;
+  //! Preceding label list
+  Termlist prec;
+  //! Next node pointer or NULL for the last element of the function.
+  struct claimlist *next;
+};
+
+//! Shorthand for claimlist pointers.
+typedef struct claimlist *Claimlist;
+
 //! The main state structure.
 struct system
 {
@@ -205,6 +226,9 @@ struct system
   Termlist locals;
   Termlist variables;
   Termlist untrusted;
+
+  /* protocol preprocessing */
+  Claimlist claimlist;
 
   /* constructed trace pointers, static */
   Roledef *traceEvent;		// MaxRuns * maxRoledef

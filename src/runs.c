@@ -81,6 +81,8 @@ systemInit ()
   sys->untrusted = NULL;
   sys->secrets = NULL;		// list of claimed secrets
   sys->attack = NULL;
+  /* no protocols => no protocol preprocessed */
+  sys->claimlist = NULL;
 
   /* matching CLP */
   sys->constraints = NULL;	// no initial constraints
@@ -99,12 +101,22 @@ systemInit ()
 void
 systemReset (const System sys)
 {
+  Claimlist cl;
+
   /* some initial counters */
   sys->statesLow = 0;		// number of explored states
   sys->statesHigh = 0;		// this is not as ridiculous as it might seem
   sys->explore = 1;		// do explore the space
   sys->claims = 0;		// number of claims encountered
   sys->failed = 0;		// number of failed claims
+  cl = sys->claimlist;
+  while (cl != NULL)
+    {
+      cl->count = 0;
+      cl->failed = 0;
+      cl = cl->next;
+    }
+  
   sys->knowPhase = 0;		// knowledge transition id
 
   termlistDestroy (sys->secrets);	// remove old secrets list

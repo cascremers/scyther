@@ -288,6 +288,9 @@ main (int argc, char **argv)
   compile (sys, spdltac, maxruns->ival[0]);
   scanner_cleanup ();
 
+  /* preprocess */
+  preprocess (sys);
+
 #ifdef DEBUG
   if (DEBUGL (1))
     {

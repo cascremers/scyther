@@ -3,6 +3,7 @@
 #include "tac.h"
 #include "terms.h"
 #include "termlists.h"
+#include "memory.h"
 #include "runs.h"
 #include "knowledge.h"
 #include "symbols.h"
@@ -316,6 +317,7 @@ void
 commEvent (int event, Tac tc)
 {
   /* Add an event to the roledef, send or read */
+  Claimlist cl;
   Term fromrole = NULL;
   Term torole = NULL;
   Term msg = NULL;
@@ -360,7 +362,7 @@ commEvent (int event, Tac tc)
       /* now parse tuple info */
       if (trip == NULL || trip->next == NULL)
 	{
-          error ("Problem with %i event on line %i.", event, tc->lineno);
+          error ("Problem with claim %i event on line %i.", event, tc->lineno);
 	}
       fromrole = tacTerm (trip);
       claimbig = tacTerm (tacTuple ((trip->next)));
@@ -395,6 +397,31 @@ commEvent (int event, Tac tc)
 	      error ("Problem with claim tuple unfolding at line %i.", trip->next->lineno);
 	    }
 	}
+
+      /* store claim in claim list */
+      
+      // First check whether label is unique
+      cl = sys->claimlist;
+      while (cl != NULL)
+	{
+	  if (isTermEqual (cl->label, label))
+	    {
+	      /**
+	       *@todo This should not error exit, but automatically generate a fresh claim label.
+	       */
+	      error ("Claim label is not unique at line %i.",tc->lineno);
+	    }
+	  cl = cl->next;
+	}
+      // Assert: label is unique, add claimlist info
+      cl = memAlloc (sizeof (struct claimlist));
+      cl->label = label;
+      cl->rolename = fromrole;
+      cl->count = 0;
+      cl->failed = 0;
+      cl->prec = NULL;
+      cl->next = sys->claimlist;
+      sys->claimlist = cl;
 
       /* handles all claim types differently */
 
@@ -718,4 +745,25 @@ tacTermlist (Tac tc)
       tc = tc->next;
     }
   return tl;
+}
+
+//! Compute prec() sets for each claim.
+void
+compute_prec_sets (const System sys)
+{
+  Claimlist cl;
+
+  // Process each individual claim
+  cl = sys->claimlist;
+  while (cl != NULL)
+    {
+      //!@todo compute transitive closure
+    }
+}
+
+//! Preprocess after system compilation
+void 
+preprocess (const System sys)
+{
+  compute_prec_sets(sys);
 }
