@@ -4,24 +4,6 @@
 #
 # (c)2004 Cas Cremers
 #
-# Input of this script:
-#
-# 	- A number on the commandline of stuff to test
-# 	- A list of files on stdin to be used (lines starting with '#' are
-# 	ignored)
-#
-#
-# Tips and tricks:
-#
-# Use e.g.
-#	$ ulimit -v 100000
-# to counteract memory problems
-# 
-# If you know where to look, use
-#	$ ls s*.spdl t*.spdl -1 | ./multiprotocoltest.py 2
-# To verify combos of protocols starting with s and t
-#
-
 # ***********************
 # 	MODULES
 # ***********************
@@ -31,9 +13,9 @@ import sys
 import string
 import commands
 import copy
-from tempfile import NamedTemporaryFile
 from optparse import OptionParser
 
+# My own stuff
 import tuplesdo
 import scythertest
 import protocollist
@@ -43,28 +25,12 @@ import protocollist
 # 	PARAMETERS
 # ***********************
 
-# Temporary files
-TempFileList = "scyther-blap.tmp"
-TempFileTuples = "scyther-blip.tmp"
-
-# External programs
-TupleProgram = "./tuples.py"
-
-# Some default settings for Agents, untrusted e with sk(e) and k(a,e) etc.
-ScytherDefaults	= "--summary"
-IncludeProtocols = '../spdl/spdl-defaults.inc'
-
-# Some protocols are causing troubles: this is a hard-coded filter to exclude
-# the problem children. Unfair, yes. Practical, yes.
-#SkipList = [ 'gong-nonce.spdl', 'gong-nonce-b.spdl', 'splice-as-hc.spdl', 'kaochow-palm.spdl' ]
-SkipList = []
-
 ClaimToResultMap = {}		# maps protocol claims to correctness in singular tests (0,1)
 ProtocolToFileMap = {}		# maps protocol names to file names
 ProtocolToStatusMap = {}	# maps protocol names to status: 0 all false, 1 all correct, otherwise (2) mixed
 ProtocolToEffectsMap = {}	# maps protocols that help create multiple flaws, to the protocol names of the flaws they caused
 
-CommandPrefix = "not yet initialised."
+CommandPrefix = ""
 ArgumentsList = []			# argument lists that have been displayed onscreen
 
 # Ugly hack. Works.
@@ -122,6 +88,8 @@ def PrintProtStatus (file, prname):
 # Returns a dictionary of claim -> bool; where 1 means that it is
 # correct, and 0 means that it is false (i.e. there exists an attack)
 def ScytherEval (plist):
+	global options
+
 	# Flush before trying (possibly fatal) external commands
 	sys.stdout.flush()
 	sys.stderr.flush()
@@ -173,6 +141,8 @@ LastProgress = {}
 ProgressBarWidth = 50
 
 def ShowProgress (i,n,txt):
+	global options
+
 	def IntegerPart (x):
 		return int (( x * i ) / n)
 	
@@ -181,13 +151,13 @@ def ShowProgress (i,n,txt):
 	percentage = IntegerPart (100)
 	factor = IntegerPart (ProgressBarWidth)
 
-	showme = 0
+	showme = False
 	if LastProgress.has_key(n):
 		if LastProgress[n]<>(factor,txt):
-			showme = 1
+			showme = True
 	else:
-		showme = 1
-	if showme == 1:
+		showme = True
+	if showme:
 		bar = "\r["
 		i = 0
 		while i < ProgressBarWidth:
@@ -202,6 +172,8 @@ def ShowProgress (i,n,txt):
 	LastProgress[n] = (factor, txt)
 
 def ClearProgress (n,txt):
+	global options
+
 	if not options.progressbar:
 		return
 	bar = " " * (1 + ProgressBarWidth + 2 + 5 + len(txt))
@@ -279,7 +251,7 @@ def DescribeContext (filep, protocols, claim):
 			# the protocol of the claim. However, if the
 			# partner protocol is completely correct or
 			# completely false, we summarize.
-			summary = 0
+			summary = False
 			all = 0
 			if claim.split()[0] <> prname:
 				count = [0,0]
@@ -287,12 +259,12 @@ def DescribeContext (filep, protocols, claim):
 					count[v] = count[v]+1
 				if count[0] == 0 and count[1] > 0:
 					all = 1
-					summary = 1
+					summary = True
 				if count[1] == 0 and count[0] > 0:
 					all = 0
-					summary = 1
+					summary = True
 				
-			if summary == 1:
+			if summary:
 				DC_Claim (cl.split()[0] + " *ALL*", all)
 			else:
 				for cl,v in cllist:
@@ -315,7 +287,7 @@ def RequiresAllProtocols (protocols, claim):
 		# claim was always false
 		return 0
 	# check for simple cases
-	if int(TupleWidth) <= 2:
+	if TupleWidth <= 2:
 		# nothing to remove
 		return 1
 
@@ -387,147 +359,138 @@ def SignalAttack (protocols, claim):
 #
 # Furthermore, TempFileList is created.
 
-parser = OptionParser()
-scythertest.default_options(parser)
-parser.add_option("-t","--tuplewidth", dest="tuplewidth",
-		default = 2,
-		help = "number of concurrent protocols to test, >=2")
-parser.add_option("-p","--protocols", dest="protocols",
-		default = 0,
-		help = "protocol selection (0: all, 1:literature only)")
-parser.add_option("-s","--start", dest="startpercentage",
-		default = 0,
-		help = "start test at a certain percentage")
-parser.add_option("-B","--disable-progressbar", dest="progressbar",
-		default = "True",
-		action = "store_false",
-		help = "suppress a progress bar")
+def main():
+	global options
+	global processed, newattacks, StartSkip
+	global TupleWidth, TupleCount
 
-(options, args) = parser.parse_args()
+	parser = OptionParser()
+	scythertest.default_options(parser)
+	parser.add_option("-t","--tuplewidth", dest="tuplewidth",
+			default = 2,
+			help = "number of concurrent protocols to test, >=2")
+	parser.add_option("-p","--protocols", dest="protocols",
+			default = 0,
+			help = "protocol selection (0: all, 1:literature only)")
+	parser.add_option("-s","--start", dest="startpercentage",
+			default = 0,
+			help = "start test at a certain percentage")
+	parser.add_option("-B","--disable-progressbar", dest="progressbar",
+			default = "True",
+			action = "store_false",
+			help = "suppress a progress bar")
 
-# Where should we start (if this is a number)
-StartPercentage = int (options.startpercentage)
-if StartPercentage < 0 or StartPercentage > 100:
-	print "Illegal range for starting percentage (0-100):", StartPercentage
-	sys.exit()
+	(options, args) = parser.parse_args()
 
-# Send protocollist to temp file (is this necessary?)
-ProtocolFileList = protocollist.select(options.protocols)
-ProtocolCount = len(ProtocolFileList)
-outp = open(TempFileList, 'w')
-for l in ProtocolFileList:
-	outp.write(l + "\n") 
-outp.close()
+	# Where should we start (if this is a number)
+	StartPercentage = int (options.startpercentage)
+	if StartPercentage < 0 or StartPercentage > 100:
+		print "Illegal range for starting percentage (0-100):", StartPercentage
+		sys.exit()
 
-# Determine arguments
-TupleWidth = str(options.tuplewidth)
+	# Send protocollist to temp file (is this necessary?)
+	ProtocolFileList = protocollist.select(options.protocols)
+	ProtocolCount = len(ProtocolFileList)
 
-# Match
-ScytherMethods = "--match=" + str(options.match)
+	# Determine arguments
+	TupleWidth = int(options.tuplewidth)
 
-# Method of bounding will be determined in ScytherEval
+	# Match
+	ScytherMethods = "--match=" + str(options.match)
 
-# Caching of single-protocol results for speed gain.
-#----------------------------------------------------------------------
-#
-# The script first computes the singular results for all the protocols
-# and stores this in an array, or something like that.
+	# Method of bounding will be determined in ScytherEval
 
-print "Evaluating tuples of", TupleWidth, "for", ProtocolCount, "protocols, using the command '" + CommandPrefix + "'"
-i = 0
-while i < ProtocolCount:
-	ShowProgress (i, ProtocolCount,ProtocolFileList[i]+safetxt)
-	ScytherEval1 ( ProtocolFileList[i] )
-	i = i + 1
-ClearProgress(ProtocolCount, safetxt)
-print "Evaluated single results."
+	# Caching of single-protocol results for speed gain.
+	#----------------------------------------------------------------------
+	#
+	# The script first computes the singular results for all the protocols
+	# and stores this in an array, or something like that.
 
-# Show classification
-#----------------------------------------------------------------------
-#
-print "Correct protocols: ", GetKeys (ProtocolToStatusMap, 1)
-print "Partly flawed protocols: ", GetKeys (ProtocolToStatusMap, 2)
-print "Completely flawed protocols: ", GetKeys (ProtocolToStatusMap, 0)
+	TupleCount = tuplesdo.tuples_count(ProtocolCount, TupleWidth)
+	print "Evaluating", TupleCount, "tuples of", TupleWidth, "for", ProtocolCount, "protocols."
+	i = 0
+	while i < ProtocolCount:
+		ShowProgress (i, ProtocolCount,ProtocolFileList[i]+safetxt)
+		ScytherEval1 ( ProtocolFileList[i] )
+		i = i + 1
+	ClearProgress(ProtocolCount, safetxt)
+	print "Evaluated single results."
 
-# Computation of combined list.
-#----------------------------------------------------------------------
-#
-# We use the tuple script to generate the list of tuples we need.
-# We use a temporary file (again) to store that list.
-# This requires that 'tuples.py' is in the same directory.
+	# Show classification
+	#----------------------------------------------------------------------
+	#
+	print "Correct protocols: ", GetKeys (ProtocolToStatusMap, 1)
+	print "Partly flawed protocols: ", GetKeys (ProtocolToStatusMap, 2)
+	print "Completely flawed protocols: ", GetKeys (ProtocolToStatusMap, 0)
 
-lstatus=os.system(TupleProgram + ' ' + TupleWidth + ' <' + TempFileList + ' >' + TempFileTuples)
+	# Testing of protocol tuples
+	#----------------------------------------------------------------------
+	#
+	# We take the list of tuples and test each combination.
 
-inp = open(TempFileTuples, 'r')
-TupleCount = 0
-for x in inp:
-	TupleCount = TupleCount + 1
-inp.close()
-print "Commencing test for", TupleCount, "protocol combinations."
+	processed = 0
+	newattacks = 0
+	StartSkip = 0
 
-# Testing of protocol tuples
-#----------------------------------------------------------------------
-#
-# We take the list of tuples and test each combination.
+	# Possibly skip some
+	if StartPercentage > 0:
+		StartSkip = int ((TupleCount * StartPercentage) / 100)
+		print "Resuming. Skipping the first", StartSkip,"tuples."
 
-inp = open(TempFileTuples, 'r')
-processed = 0
-newattacks = 0
-StartSkip = 0
+	#
+	# Check all these protocols
+	#
+	def process(protocols):
+		global processed, newattacks, StartSkip
 
-# Possibly skip some
-if StartPercentage > 0:
-	StartSkip = int ((TupleCount * StartPercentage) / 100)
-	print "Resuming. Skipping the first", StartSkip,"tuples."
-
-#
-# Check all these protocols
-#
-for tline in inp:
-	if (processed >= StartSkip):
-		#
-		# Get the next tuple
-		#
-		protocols = tline.split()
-		ShowProgress (processed, TupleCount, " ".join(protocols) + safetxt)
-		#
-		# Determine whether there are valid claims at all in
-		# this set of file names
-		#
-		has_valid_claims = 0
-		for prname in GetListKeys (ProtocolToFileMap, protocols):
-			if ProtocolToStatusMap[prname] != 0:
-				has_valid_claims = 1
-		if has_valid_claims == 1:
+		if (processed >= StartSkip):
 			#
-			# Use Scyther to verify the claims
+			# Get the next tuple
 			#
-			results = ScytherEval ( protocols )
+			ShowProgress (processed, TupleCount, " ".join(protocols) + safetxt)
 			#
-			# Now we have the results for this combination.
-			# Check whether any of these claims is 'newly false'
+			# Determine whether there are valid claims at all in
+			# this set of file names
 			#
-			for claim,value in results.items():
-				if value == 0:
-					# Apparently this claim is false now (there is
-					# an attack)
-					newattacks = newattacks + SignalAttack (protocols, claim)
-			
-	# Next!
-	processed = processed + 1
-inp.close()
+			has_valid_claims = False
+			for prname in GetListKeys (ProtocolToFileMap, protocols):
+				if ProtocolToStatusMap[prname] != 0:
+					has_valid_claims = True
+			if has_valid_claims:
+				#
+				# Use Scyther to verify the claims
+				#
+				results = ScytherEval ( protocols )
+				#
+				# Now we have the results for this combination.
+				# Check whether any of these claims is 'newly false'
+				#
+				for claim,value in results.items():
+					if value == 0:
+						# Apparently this claim is false now (there is
+						# an attack)
+						newattacks = newattacks + SignalAttack (protocols, claim)
+				
+		# Next!
+		processed = processed + 1
 
-ClearProgress (TupleCount, safetxt)
-print "Processed", processed,"tuple combinations in total."
-if StartSkip > 0:
-	print "In this session, checked the last",(processed - StartSkip),"tuples. "
-print "Found", newattacks, "new attacks."
-if newattacks > 0:
-	print "  These were helped by:"
-	for helper in ProtocolToEffectsMap.keys():
-		sys.stdout.write ("  ")
-		PrintProtStatus (sys.stdout, helper)
-		sys.stdout.write (". This possibly breaks " + str(ProtocolToEffectsMap[helper]) + "\n")
+	tuplesdo.tuples_do(process,ProtocolFileList,TupleWidth)
 
-sys.stdout.flush()
-sys.stderr.flush()
+	ClearProgress (TupleCount, safetxt)
+	print "Processed", processed,"tuple combinations in total."
+	if StartSkip > 0:
+		print "In this session, checked the last",(processed - StartSkip),"tuples. "
+	print "Found", newattacks, "new attacks."
+	if newattacks > 0:
+		print "  These were helped by:"
+		for helper in ProtocolToEffectsMap.keys():
+			sys.stdout.write ("  ")
+			PrintProtStatus (sys.stdout, helper)
+			sys.stdout.write (". This possibly breaks " + str(ProtocolToEffectsMap[helper]) + "\n")
+
+	sys.stdout.flush()
+	sys.stderr.flush()
+
+
+if __name__ == '__main__':
+	main()
