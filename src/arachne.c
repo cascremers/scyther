@@ -173,30 +173,40 @@ iterate_role_sends (int (*func) ())
   return 1;
 }
 
+//! Generate a new intruder goal
+int
+create_intruder_goal (Term t)
+{
+  int run;
+  Roledef rd;
+
+  roleInstance (sys, INTRUDER, I_GOAL, NULL);
+  run = sys->maxruns - 1;
+  rd = sys->runs[run].start;
+  sys->runs[run].length = 1;
+  termDelete (rd->message);
+  rd->message = termDuplicate (t);
+#ifdef DEBUG
+  explanation = "Adding intruder goal for message ";
+  e_term1 = t;
+#endif
+  return run;
+}
+
 //! Generates a new intruder goal, iterates
 /**
  * Sloppy, does not unify term but hardcodes it into the stuff.
  */
 int
-add_intruder_goal (Goal goal)
+add_intruder_goal_iterate (Goal goal)
 {
-  int run;
   int flag;
-  Roledef rd;
+  int run;
 
-  roleInstance (sys, INTRUDER, I_GOAL, NULL);
-  run = sys->maxruns - 1;
+  run = create_intruder_goal (goal.rd->message);
   goal.rd->bind_run = run;
   goal.rd->bind_index = 0;
-  rd = sys->runs[run].start;
-  sys->runs[run].length = 1;
-  termDelete (rd->message);
-  rd->message = termDuplicate (goal.rd->message);
-#ifdef DEBUG
-  explanation = "Adding intruder goal for run";
-  e_run = goal.run;
-  e_term1 = goal.rd->message;
-#endif
+
   flag = iterate ();
 
   roleInstanceDestroy (sys);	// destroy the created run
@@ -342,8 +352,6 @@ select_goal ()
 int
 bind_goal_regular (const Goal goal)
 {
-  int flag;
-
   /*
    * This is a local function so we have access to goal
    */
@@ -375,21 +383,90 @@ bind_goal_regular (const Goal goal)
     return termMguInTerm (goal.rd->message, rd->message, element_f1);
   }
 
-  // Bind to all possible sends?
-  flag = iterate_role_sends (bind_this);
-  // Bind to an intruder node?
-  if (flag)
-    {
-      add_intruder_goal (goal);	// creates a new run
-    }
-  return flag;
+  // Bind to all possible sends or intruder node;
+  return (iterate_role_sends (bind_this) &&
+          add_intruder_goal_iterate (goal));
 }
 
+//! Bind an intruder goal to a regular run
+int
+bind_intruder_to_regular (const Goal goal)
+{
+  int bind_this (Protocol p, Role r, Roledef rd, int index)
+  {
+    int element_f2 (Termlist substlist, Termlist keylist)
+    {
+      int flag;
+
+      /**
+       * Note that we only bind to regular runs here
+       */
+      if (p == INTRUDER)
+	{
+	  return 1;		// don't abort scans
+	}
+      else
+	{
+	  int keygoals;
+
+	  /**
+	   * In any case, the list of keys is added as a new goal.
+	   */
+	  int add_key_goal (Term t)
+	    {
+	      keygoals++;
+	      create_intruder_goal (t);
+	      //!@todo This needs a mapping Pi relation as well.
+	      return 1;
+	    }
+
+	  keygoals = 0;
+	  termlist_iterate (keylist, add_key_goal);
+	  /**
+	   * Two options; as this, it is from an existing run,
+	   * or from a new one.
+	   */
+
+	  flag = bind_existing_run (goal, p, r, index) &&
+		 bind_new_run (goal, p, r, index);
+
+	  /**
+	   * deconstruct key list goals
+	   */
+	  while (keygoals > 0)
+	    {
+	      roleInstanceDestroy (sys);
+	      keygoals--;
+	    }
+	  
+	  return flag;
+	}
+    }
+
+    // Test for subterm unification
+    return termMguSubTerm (goal.rd->message, rd->message, element_f2, sys->traceKnow[0]->inverses, NULL);
+  }
+
+  // Bind to all possible sends?
+  return iterate_role_sends (bind_this);
+}
+
+//! Bind an intruder goal by intruder construction
+int
+bind_intruder_to_construct (const Goal goal)
+{
+}
+
+
 //! Bind an intruder goal
+/**
+ * Computes F2 as in Athena explanations.
+ */
 int
 bind_goal_intruder (const Goal goal)
 {
-  //!@todo Fix intruder goal stuff
+  return (bind_intruder_to_regular (goal) &&
+	  bind_intruder_to_construct (goal));
 }
 
 //! Bind a goal in all possible ways
