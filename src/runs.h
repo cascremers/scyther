@@ -213,6 +213,8 @@ struct system
   int switchReadSymm;		//!< Enable read symmetry reduction
   int switchAgentSymm;		//!< Enable agent symmetry reduction
   int switchSymmOrder;		//!< Enable symmetry order reduction
+  int switchNomoreClaims;	//!< Enable no more claims cutter
+  int switchReduceEndgame;	//!< Enable endgame cutter
 
   //! Latex output switch.
   /**

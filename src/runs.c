@@ -68,6 +68,8 @@ systemInit ()
   sys->switchReadSymm = 0;	// don't force read symmetries by default
   sys->switchAgentSymm = 1;	// default enable agent symmetry
   sys->switchSymmOrder = 0;	// don't force symmetry order reduction by default
+  sys->switchNomoreClaims = 1;	// default cutter when there are no more claims
+  sys->switchReduceEndgame = 1;	// default cutter of last events in a trace
 
   /* set illegal traversal by default, to make sure it is set
      later */

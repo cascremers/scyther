@@ -103,6 +103,8 @@ main (int argc, char **argv)
   struct arg_lit *switchRS = arg_lit0 (NULL, "read-symm", "enable read symmetry reductions.");
   struct arg_lit *switchAS = arg_lit0 (NULL, "no-agent-symm", "disable agent symmetry reductions.");
   struct arg_lit *switchSO = arg_lit0 (NULL, "symm-order", "enable ordering symmetry reductions.");
+  struct arg_lit *switchNC = arg_lit0 (NULL, "no-noclaims-red", "disable no more claims reductions.");
+  struct arg_lit *switchRE = arg_lit0 (NULL, "no-endgame-red", "disable endgame reductions.");
 #ifdef DEBUG
   struct arg_int *porparam = arg_int0 (NULL, "pp", NULL, "POR parameter.");
   struct arg_lit *switchI = arg_lit0 ("I", "debug-indent",
@@ -131,6 +133,8 @@ main (int argc, char **argv)
     switchRS,
     switchAS,
     switchSO,
+    switchNC,
+    switchRE,
 #ifdef DEBUG
     porparam,
     switchI,
@@ -289,11 +293,13 @@ main (int argc, char **argv)
       sys->switchReadSymm = 1;
     }
   if (switchSO->count > 0)
-      /* enable symmetry order */
-      sys->switchSymmOrder = 1;
+      sys->switchSymmOrder = 1;		/* enable symmetry order */
   if (switchAS->count > 0)
-      /* disable agent symmetry order */
-      sys->switchAgentSymm = 0;
+      sys->switchAgentSymm = 0;		/* disable agent symmetry order */
+  if (switchNC->count > 0)
+      sys->switchNomoreClaims = 0;	/* disable no more claims cutter */
+  if (switchRE->count > 0)
+      sys->switchReduceEndgame = 0;	/* disable endgame cutter */
 
 #ifdef DEBUG
   sys->porparam = porparam->ival[0];

@@ -280,7 +280,7 @@ explorify (const System sys, const int run)
        * further traversal.
        */
       //!@todo This implementation relies on the fact that there are only secrecy, synchr and agreement properties.
-      if (sys->secrets == NULL)
+      if (sys->switchNomoreClaims && sys->secrets == NULL)
 	{ /* there are no remaining secrecy claims to be checked */
 	  Roledef rdscan;
 	  int validclaim;
@@ -349,8 +349,8 @@ explorify (const System sys, const int run)
       /* Special check 3: if after choosing, this run ends on (read|skippedclaim)*, we can remove that part already.
        */
 
-      roleCap = removeIrrelevant (sys, run, rd);
-
+      if (sys->switchReduceEndgame)
+       	  roleCap = removeIrrelevant (sys, run, rd);
 
       /* Special check x: if all agents in each run send only encrypted stuff, and all agents are trusted,
        * there is no way for the intruder to learn anything else than encrypted terms, so secrecy claims will not
