@@ -1,0 +1,33 @@
+const pk: Function;
+secret sk: Function;
+inversekeys (pk,sk);
+
+protocol carkeybroken(I,R)
+{
+	role I
+	{
+		const ni: Nonce;
+
+		send_1(I,R, I,R );
+		claim_3(I,Nisynch);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+
+		read_1(I,R, I,R );
+		claim_2(R,Nisynch);
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const nc: Nonce;
+compromised sk(Eve);
+
+run carkeybroken.I(Alice,Bob);
+run carkeybroken.R(Alice,Bob);
+run carkeybroken.I(Alice,Bob);
+run carkeybroken.R(Alice,Bob);
