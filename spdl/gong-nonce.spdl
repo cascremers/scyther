@@ -15,7 +15,8 @@ protocol gongnonce(I,R,S)
 		read_3 (S,I, { S,I,R, kr, I, ni }k(I,S), nr);
 		send_4 (I,S, { I,S,I, ki, R, nr }k(I,S) );
 
-		claim_6 (I, Secret, ki,kr);
+		claim_6 (I, Secret, ki);
+		claim_7 (I, Secret, kr);
 		claim_8 (I, Nisynch);
 	}	
 	
@@ -30,8 +31,9 @@ protocol gongnonce(I,R,S)
 		send_2 (R,S, I,R, nr, { R,S,R, kr, I,ni }k(R,S));
 		read_5 (S,R, { S,R,I, ki, R, nr }k(R,S) );
 
-		claim_7 (R, Secret, ki,kr);
-		claim_9 (R, Nisynch);
+		claim_9 (R, Secret, ki);
+		claim_10 (R, Secret, kr);
+		claim_11 (R, Nisynch);
 	}
 
 	role S

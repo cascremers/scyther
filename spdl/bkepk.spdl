@@ -23,7 +23,8 @@ protocol bkepk(A,B)
 		send_1 (B,A, B,{ nb,B }pk(A) );
 		read_2 (A,B, { hash(nb),na,A,kab }pk(B) );
 		send_3 (B,A, { hash(na) }kab );
-		claim_4 (B, Secret, na,nb );
+		claim_4 (B, Secret, na );
+		claim_5 (B, Secret, nb );
 	}
 
 	role A
@@ -35,7 +36,8 @@ protocol bkepk(A,B)
 		read_1 (B,A, B,{ nb,B }pk(A) );
 		send_2 (A,B, { hash(nb),na,A,kab }pk(B) );
 		read_3 (B,A, { hash(na) }kab );
-		claim_5 (A, Secret, na,nb );
+		claim_6 (A, Secret, na );
+		claim_7 (A, Secret, nb );
 	}
 }
 

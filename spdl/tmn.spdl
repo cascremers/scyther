@@ -14,7 +14,8 @@ protocol tmn(A,B,S)
 		send_1(A,S, B,{Ka}pk(S) );
 		read_4(S,A, B,{Kb}Ka );
 
-		claim_5(A,Secret,Ka,Kb);
+		claim_5(A,Secret,Ka);
+		claim_8(A,Secret,Kb);
 	}	
 	
 	role B
