@@ -1,0 +1,61 @@
+/* 
+	Bilateral Key Exchange with Public Key protocol (BKEPK)
+
+	CMV version with explicit secrecy claims.
+*/
+
+usertype Key;
+
+const pk,hash: Function;
+secret sk,unhash: Function;
+
+inversekeys (pk,sk);
+inversekeys (hash,unhash);
+
+protocol bkepk(Initiator,Responder)
+{
+	role Initiator
+	{
+		const NI: Nonce;
+		var NR: Nonce;
+		var kab: Key;
+
+		send_1 (Initiator,Responder, { NI,Responder }pk(Responder) );
+		read_2 (Responder,Initiator, { hash(NI),NR,Responder,kab }pk(Initiator) );
+		send_3 (Initiator,Responder, { hash(NR) }kab );
+		claim_4 (Initiator, Secret, kab );
+	}
+
+	role Responder
+	{
+		var NI: Nonce;
+		const NR: Nonce;
+		const kab: Key;
+
+		read_1 (Initiator,Responder, { NI,Responder }pk(Responder) );
+		send_2 (Responder,Initiator, { hash(NI),NR,Responder,kab }pk(Initiator) );
+		read_3 (Initiator,Responder, { hash(NR) }kab );
+		claim_5 (Responder, Secret, kab );
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+compromised sk(Eve);
+const ne: Nonce;
+
+run bkepk.Initiator(Alice,Agent);
+run bkepk.Responder(Agent,Bob);
+run bkepk.Initiator(Alice,Agent);
+run bkepk.Responder(Agent,Bob);
+
+run bkepk.Initiator(Alice,Agent);
+run bkepk.Responder(Agent,Bob);
+run bkepk.Initiator(Alice,Agent);
+run bkepk.Responder(Agent,Bob);
+
+run bkepk.Initiator(Alice,Agent);
+run bkepk.Responder(Agent,Bob);
+
+
