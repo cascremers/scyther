@@ -1,18 +1,13 @@
 AC_INIT(src/main.c)
 AM_INIT_AUTOMAKE(Scyther, 0.2, ccremers@win.tue.nl)
-AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR(src)
 
-for top_builddir in . .. ../.. $ac_auxdir $ac_auxdir/..; do
-  test -f $top_builddir/configure && break
-done
 AC_PROG_LIBTOOL
 
 dnl find and test the C compiler
 AC_PROG_CC
 AC_LANG_C
-AC_PROG_INSTALL=$ac_aux_dir
         
 AC_PROG_MAKE_SET
 
@@ -23,7 +18,8 @@ AC_CHECK_HEADERS([limits.h malloc.h stddef.h stdlib.h strings.h unistd.h])
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
                
-AC_CHECK_LIB(argtable2, arg_parse,,AC_MSG_ERROR(Scyther requires the argtable2 package (LGPL). Get it from http://argtable.sourceforge.net/))
+AC_CHECK_LIB(argtable2, arg_parse,,AC_MSG_ERROR(Scyther requires the argtable2 package (LGPL).
+Get it from http://argtable.sourceforge.net/))
 AC_PROG_YACC
 AC_PROG_LEX
 #AC_DECL_YYTEXT
