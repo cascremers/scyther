@@ -79,6 +79,7 @@ def add_extra_parameters(args):
 # 	1: thorough
 #
 def default_arguments(plist,match,bounds):
+	timer = 0
 	n = 2 + bounds
 	# These bounds assume at least two protocols, otherwise
 	# stuff breaks.
@@ -90,25 +91,32 @@ def default_arguments(plist,match,bounds):
 	maxruns = 2
 	maxlength = 10
 	if bounds == 0:
-		timer = nmin**2
+		timer = 10 * (nmin**2)
 		maxruns = 2*nmin
 		maxlength = 2 + maxruns * 4
 	elif bounds == 1:
-		timer = nmin**3
+		timer = 10 * (nmin**3)
 		maxruns = 3*nmin
-		maxlength = 2 + maxruns * 6
+		maxlength = 4 + maxruns * 6
+	elif bounds == 2:
+		timer = 0
+		maxruns = 3*nmin
+		maxlength = 4 + maxruns * 6
 	else:
 		print "Don't know bounds method", bounds
 		sys.exit()
 
-	args = "--arachne --timer=%i --max-runs=%i --max-length=%i" % (timer, maxruns, maxlength)
+	args = "--arachne"
+	if timer > 0:
+		args = args + " --timer=%i" % timer
+	args = args + " --max-runs=%i --max-length=%i" % (maxruns, maxlength)
 	matching = "--match=" + str(match)
-	allargs = "--summary " + matching + " " + args
+	args = "--summary " + matching + " " + args
 
 	extra = get_extra_parameters()
 	if extra != "":
-		allargs = extra + " " + allargs
-	return allargs
+		args = extra + " " + args
+	return args
 
 # Yield test results
 def default_test(plist, match, bounds):
@@ -144,7 +152,7 @@ def default_options(parser):
 			full type flaws")
 	parser.add_option("-b","--bounds", dest="bounds",
 			default = 0,
-			help = "bound type selection (0: quickscan, 1:thorough)")
+			help = "bound type selection (0: quickscan, 1:thorough, 2: no time limit)")
 	parser.add_option("-x","--extra", dest="extra",
 			default = "",
 			help = "add arguments to pass to Scyther")
