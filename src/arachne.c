@@ -200,9 +200,9 @@ getTermFunction (Term t)
   t = deVar (t);
   if (t != NULL)
     {
-      if (realTermEncrypt (t) && isTermFunctionName (t->right.key))
+      if (realTermEncrypt (t) && isTermFunctionName (TermKey(t)))
 	{
-	  return t->right.key;
+	  return TermKey(t);
 	}
     }
   return NULL;
@@ -304,7 +304,7 @@ determine_unification_run (Termlist tl)
   while (tl != NULL)
     {
       //! Again, hardcoded reference to compiler.c. Level -3 means a local constant for a role.
-      if (tl->term->type != VARIABLE && tl->term->right.runid == -3)
+      if (tl->term->type != VARIABLE && TermRunid(tl->term) == -3)
 	{
 	  Term t;
 
@@ -320,12 +320,12 @@ determine_unification_run (Termlist tl)
 	      if (run == -2)
 		{
 		  // Any run
-		  run = t->right.runid;
+		  run = TermRunid(t);
 		}
 	      else
 		{
 		  // Specific run: compare
-		  if (run != t->right.runid)
+		  if (run != TermRunid(t))
 		    {
 		      return -1;
 		    }
@@ -553,7 +553,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	    if (realTermEncrypt (tl->term))
 	      {
 		/* the key is a construction itself */
-		if (inKnowledge (sys->know, tl->term->right.key))
+		if (inKnowledge (sys->know, TermKey(tl->term)))
 		  {
 		    /* the key is constructed by a public thing */
 		    /* typically, this is a public key, so we postpone it  */
@@ -1361,8 +1361,8 @@ bind_goal_new_encrypt (const Binding b)
 	}
 
       // must be encryption
-      t1 = term->left.op;
-      t2 = term->right.key;
+      t1 = TermOp(term);
+      t2 = TermKey(term);
 
       if (t2 != TERM_Hidden)
 	{

@@ -60,11 +60,11 @@ solve (const struct solvepass sp, Constraintlist solvecons)
       cl = constraintlistDuplicate (solvecons);
       cl =
 	constraintlistAdd (cl,
-			   makeConstraint (deVar (activeco->term)->left.op1,
+			   makeConstraint (TermOp1(deVar (activeco->term)),
 					   activeco->know));
       cl =
 	constraintlistAdd (cl,
-			   makeConstraint (deVar (activeco->term)->right.op2,
+			   makeConstraint (TermOp2(deVar (activeco->term)),
 					   activeco->know));
       solvecons = cl;
       flag = solve (sp, solvecons) || flag;
@@ -192,11 +192,11 @@ solve (const struct solvepass sp, Constraintlist solvecons)
 	  cl = constraintlistDuplicate (oldcl);
 	  cl =
 	    constraintlistAdd (cl,
-			       makeConstraint (activeco->term->left.op,
+			       makeConstraint (TermOp(activeco->term),
 					       activeco->know));
 	  cl =
 	    constraintlistAdd (cl,
-			       makeConstraint (activeco->term->right.key,
+			       makeConstraint (TermKey(activeco->term),
 					       activeco->know));
 	  solvecons = cl;
 	  flag = solve (sp, solvecons) || flag;
@@ -368,8 +368,8 @@ sendAdd_clp (const System sys, const int run, const Termlist tl)
 	{
 	  /* tuple */
 	  tl2 = termlistShallow (tl->next);
-	  tl2 = termlistAdd (tl2, t->left.op1);
-	  tl2 = termlistAdd (tl2, t->right.op2);
+	  tl2 = termlistAdd (tl2, TermOp1(t));
+	  tl2 = termlistAdd (tl2, TermOp2(t));
 	  sendAdd_clp (sys, run, tl2);
 	  termlistDelete (tl2);
 	}
@@ -378,15 +378,15 @@ sendAdd_clp (const System sys, const int run, const Termlist tl)
 	  /* encrypt */
 	  Term invkey;
 
-	  invkey = inverseKey (sys->know->inverses, t->right.key);
+	  invkey = inverseKey (sys->know->inverses, TermKey(t));
 	  if (!hasTermVariable (invkey))
 	    {
 	      /* simple case: no variable inside */
 	      knowledgeAddTerm (sys->know, t);
 	      tl2 = termlistShallow (tl->next);
 	      if (inKnowledge (sys->know, invkey)
-		  && hasTermVariable (t->left.op))
-		tl2 = termlistAdd (tl2, t->left.op);
+		  && hasTermVariable (TermOp(t)))
+		tl2 = termlistAdd (tl2, TermOp(t));
 	      sendAdd_clp (sys, run, tl2);
 	      termlistDelete (tl2);
 	    }
@@ -418,7 +418,7 @@ sendAdd_clp (const System sys, const int run, const Termlist tl)
 	      sys->constraints = constraintlistAdd (clbuf, co);
 	      /* we _could_ explore first if this is solveable */
 	      knowledgeAddTerm (sys->know, t);
-	      tl2 = termlistAdd (tl2, t->left.op);
+	      tl2 = termlistAdd (tl2, TermOp(t));
 	      sendAdd_clp (sys, run, tl2);
 
 	      termlistDelete (tl2);

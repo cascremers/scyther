@@ -183,14 +183,14 @@ termMguTerm (Term t1, Term t2)
     {
       Termlist tl1, tl2;
 
-      tl1 = termMguTerm (t1->right.key, t2->right.key);
+      tl1 = termMguTerm (TermKey(t1), TermKey(t2));
       if (tl1 == MGUFAIL)
 	{
 	  return MGUFAIL;
 	}
       else
 	{
-	  tl2 = termMguTerm (t1->left.op, t2->left.op);
+	  tl2 = termMguTerm (TermOp(t1), TermOp(t2));
 	  if (tl2 == MGUFAIL)
 	    {
 	      termlistSubstReset (tl1);
@@ -210,14 +210,14 @@ termMguTerm (Term t1, Term t2)
     {
       Termlist tl1, tl2;
 
-      tl1 = termMguTerm (t1->left.op1, t2->left.op1);
+      tl1 = termMguTerm (TermOp1(t1), TermOp1(t2));
       if (tl1 == MGUFAIL)
 	{
 	  return MGUFAIL;
 	}
       else
 	{
-	  tl2 = termMguTerm (t1->right.op2, t2->right.op2);
+	  tl2 = termMguTerm (TermOp2(t1), TermOp2(t2));
 	  if (tl2 == MGUFAIL)
 	    {
 	      termlistSubstReset (tl1);
@@ -251,8 +251,8 @@ termMguInTerm (Term t1, Term t2, int (*iterator) (Termlist))
       if (realTermTuple (t2))
 	{
 	  // t2 is a tuple, consider interm options as well.
-	  flag = flag && termMguInTerm (t1, t2->left.op1, iterator);
-	  flag = flag && termMguInTerm (t1, t2->right.op2, iterator);
+	  flag = flag && termMguInTerm (t1, TermOp1(t2), iterator);
+	  flag = flag && termMguInTerm (t1, TermOp2(t2), iterator);
 	}
       // simple clause or combined
       tl = termMguTerm (t1, t2);
@@ -300,10 +300,10 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (Termlist, Termlist),
 	    {
 	      // 'simple' tuple
 	      flag =
-		flag && termMguSubTerm (t1, t2->left.op1, iterator, inverses,
+		flag && termMguSubTerm (t1, TermOp1(t2), iterator, inverses,
 					keylist);
 	      flag =
-		flag && termMguSubTerm (t1, t2->right.op2, iterator, inverses,
+		flag && termMguSubTerm (t1, TermOp2(t2), iterator, inverses,
 					keylist);
 	    }
 	  else
@@ -312,7 +312,7 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (Termlist, Termlist),
 	      // So, we need the key, and try to get the rest
 	      Term newkey;
 
-	      newkey = inverseKey (inverses, t2->right.key);
+	      newkey = inverseKey (inverses, TermKey(t2));
 	      // We can never produce the TERM_Hidden key, thus, this is not a valid iteration.
 	      if (!isTermEqual (newkey, TERM_Hidden))
 		{
@@ -323,7 +323,7 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (Termlist, Termlist),
 
 		  // Recurse
 		  flag =
-		    flag && termMguSubTerm (t1, t2->left.op, iterator, inverses,
+		    flag && termMguSubTerm (t1, TermOp(t2), iterator, inverses,
 					    keylist_new);
 
 		  termlistDelete (keylist_new);

@@ -64,14 +64,14 @@ termSubstitute (Term term, Substitution subs)
 	{
 	  if (isTermEncrypt (term))
 	    {
-	      return makeTermEncrypt (termSubstitute (term->left.op, subs),
-				      termSubstitute (term->right.key, subs));
+	      return makeTermEncrypt (termSubstitute (TermOp(term), subs),
+				      termSubstitute (TermKey(term), subs));
 	    }
 	  else
 	    {
 	      return
-		makeTermTuple (termSubstitute (term->left.op1, subs),
-			       termSubstitute (term->right.op2, subs));
+		makeTermTuple (termSubstitute (TermOp1(term), subs),
+			       termSubstitute (TermOp2(term), subs));
 	    }
 	}
       else

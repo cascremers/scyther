@@ -177,7 +177,7 @@ goal_graph_create ()
 		      Term t;
 
 		      t = tl->term;
-		      if (t->type == VARIABLE && t->right.runid == run
+		      if (t->type == VARIABLE && TermRunid(t) == run
 			  && t->subst != NULL)
 			{
 			  // t is a variable of run
@@ -190,7 +190,7 @@ goal_graph_create ()
 
 			      t2 = tl2->term;
 			      if (realTermLeaf (t2) && t2->type != VARIABLE
-				  && t2->right.runid == run2)
+				  && TermRunid(t2) == run2)
 				{
 				  // t2 is a constant of run2
 				  if (isTermEqual (t, t2))

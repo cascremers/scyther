@@ -563,7 +563,7 @@ create_new_local (const Term t, const int rid)
     {
       Term newt;
 
-      newt = makeTermType (t->type, t->left.symb, rid);
+      newt = makeTermType (t->type, TermSymb(t), rid);
       newt->stype = t->stype;
 
       return newt;
@@ -667,7 +667,7 @@ roleInstanceArachne (const System sys, const Protocol protocol,
       if (realTermVariable (newt))
 	{
 	  // Make new var for this run
-	  newt = makeTermType (VARIABLE, newt->left.symb, rid);
+	  newt = makeTermType (VARIABLE, TermSymb(newt), rid);
 	  artefacts = termlistAdd (artefacts, newt);
 	  newt->stype = oldt->stype;
 	  // Copy substitution
@@ -808,7 +808,7 @@ roleInstanceModelchecker (const System sys, const Protocol protocol,
 
 	  /* There is a TYPE constant in the parameter list.
 	   * Generate a new local variable for this run, with this type */
-	  newvar = makeTermType (VARIABLE, scanfrom->term->left.symb, rid);
+	  newvar = makeTermType (VARIABLE, TermSymb(scanfrom->term), rid);
 	  artefacts = termlistAdd (artefacts, newvar);
 	  sys->variables = termlistAdd (sys->variables, newvar);
 	  newvar->stype = termlistAdd (NULL, scanto->term);

@@ -117,12 +117,12 @@ latexTermPrint (Term term, Termlist highlight)
     {
       if (inTermlist (highlight, term))
 	printf ("\\mathbf{");
-      symbolPrint (term->left.symb);
+      symbolPrint (TermSymb(term));
       if (realTermVariable (term))
 	printf ("V");
-      if (term->right.runid >= 0)
+      if (TermRunid(term) >= 0)
 	{
-	  printf ("\\sharp%i", term->right.runid);
+	  printf ("\\sharp%i", TermRunid(term));
 	}
       if (term->subst != NULL)
 	{
@@ -141,22 +141,22 @@ latexTermPrint (Term term, Termlist highlight)
     }
   if (realTermEncrypt (term))
     {
-      if (isTermLeaf (term->right.key)
-	  && inTermlist (term->right.key->stype, TERM_Function))
+      if (isTermLeaf (TermKey(term))
+	  && inTermlist (TermKey(term)->stype, TERM_Function))
 	{
 	  /* function application */
-	  latexTermPrint (term->right.key, highlight);
+	  latexTermPrint (TermKey(term), highlight);
 	  printf ("(");
-	  latexTermTuplePrint (term->left.op, highlight);
+	  latexTermTuplePrint (TermOp(term), highlight);
 	  printf (")");
 	}
       else
 	{
 	  /* normal encryption */
 	  printf ("\\{");
-	  latexTermTuplePrint (term->left.op, highlight);
+	  latexTermTuplePrint (TermOp(term), highlight);
 	  printf ("\\}_{");
-	  latexTermPrint (term->right.key, highlight);
+	  latexTermPrint (TermKey(term), highlight);
 	  printf ("}");
 	}
     }
@@ -180,9 +180,9 @@ latexTermTuplePrint (Term term, Termlist hl)
   while (realTermTuple (term))
     {
       // To remove any brackets, change this into latexTermTuplePrint.
-      latexTermPrint (term->left.op1, hl);
+      latexTermPrint (TermOp1(term), hl);
       printf (",");
-      term = deVar (term->right.op2);
+      term = deVar (TermOp2(term));
     }
   latexTermPrint (term, hl);
   return;
@@ -966,7 +966,7 @@ attackDisplayLatex (const System sys)
 		{
 		  /* detect whether it's really local to this run */
 		  Term t = deVar (tl->term);
-		  if (isTermLeaf (t) && t->right.runid == i)
+		  if (isTermLeaf (t) && TermRunid(t) == i)
 		    {
 		      if (first)
 			{

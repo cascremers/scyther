@@ -53,6 +53,16 @@ struct term
   } right;
 };
 
+//! Component macros (left)
+#define TermSymb(t)		(t->left.symb)
+#define TermOp1(t)		(t->left.op1)
+#define TermOp(t)		(t->left.op)
+
+//! Component macros (right)
+#define TermRunid(t)		(t->right.runid)
+#define TermOp2(t)		(t->right.op2)
+#define TermKey(t)		(t->right.key)
+
 //! Flag for term status
 extern int rolelocal_variable;
 
@@ -68,7 +78,7 @@ __inline__ Term deVarScan (Term t);
 #define realTermLeaf(t)		(t != NULL && t->type <= LEAF)
 #define realTermTuple(t)	(t != NULL && t->type == TUPLE)
 #define realTermEncrypt(t)	(t != NULL && t->type == ENCRYPT)
-#define realTermVariable(t)	(t != NULL && (t->type == VARIABLE || (t->type <= LEAF && rolelocal_variable && t->right.runid == -3)))
+#define realTermVariable(t)	(t != NULL && (t->type == VARIABLE || (t->type <= LEAF && rolelocal_variable && TermRunid(t) == -3)))
 #define substVar(t)		((realTermVariable (t) && t->subst != NULL) ? 1 : 0)
 #define deVar(t)		( substVar(t) ? deVarScan(t->subst) : t)
 #define isTermLeaf(t)		realTermLeaf(deVar(t))
@@ -92,10 +102,10 @@ int isTermEqualDebug (Term t1, Term t2);
 							?	isTermEqualFn(t1,t2) \
 							:	( \
 								realTermEncrypt(t2) \
-								?	(isTermEqualFn(t1->right.key, t2->right.key) && \
-									 isTermEqualFn(t1->left.op,  t2->left.op)) \
-								:	(isTermEqualFn(t1->left.op1, t2->left.op1) && \
-									 isTermEqualFn(t1->right.op2, t2->right.op2)) \
+								?	(isTermEqualFn(TermKey(t1), TermKey(t2)) && \
+									 isTermEqualFn(TermOp(t1),  TermOp(t2))) \
+								:	(isTermEqualFn(TermOp1(t1), TermOp1(t2)) && \
+									 isTermEqualFn(TermOp2(t1), TermOp2(t2))) \
 								) \
 							) \
 						 )  \
@@ -115,10 +125,10 @@ int isTermEqualDebug (Term t1, Term t2);
 							?	isTermEqualFn(t1,t2) \
 							:	( \
 								realTermEncrypt(t2) \
-								?	(isTermEqual1(t1->right.key, t2->right.key) && \
-									 isTermEqual1(t1->left.op,  t2->left.op)) \
-								:	(isTermEqual1(t1->left.op1, t2->left.op1) && \
-									 isTermEqual1(t1->right.op2, t2->right.op2)) \
+								?	(isTermEqual1(TermKey(t1), TermKey(t2)) && \
+									 isTermEqual1(TermOp(t1),  TermOp(t2))) \
+								:	(isTermEqual1(TermOp1(t1), TermOp1(t2)) && \
+									 isTermEqual1(TermOp2(t1), TermOp2(t2))) \
 								) \
 							) \
 						 )  \
@@ -138,10 +148,10 @@ int isTermEqualDebug (Term t1, Term t2);
 							?	isTermEqualFn(t1,t2) \
 							:	( \
 								realTermEncrypt(t2) \
-								?	(isTermEqual2(t1->right.key, t2->right.key) && \
-									 isTermEqual2(t1->left.op,  t2->left.op)) \
-								:	(isTermEqual2(t1->left.op1, t2->left.op1) && \
-									 isTermEqual2(t1->right.op2, t2->right.op2)) \
+								?	(isTermEqual2(TermKey(t1), TermKey(t2)) && \
+									 isTermEqual2(TermOp(t1),  TermOp(t2))) \
+								:	(isTermEqual2(TermOp1(t1), TermOp1(t2)) && \
+									 isTermEqual2(TermOp2(t1), TermOp2(t2))) \
 								) \
 							) \
 						 )  \

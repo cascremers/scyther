@@ -1147,7 +1147,7 @@ claimSecrecy (const System sys, const Term t)
   {
     t = deVar (t);
     if (isTermTuple (t))
-      return csScan (t->left.op1) && csScan (t->right.op2);
+      return csScan (TermOp1(t)) && csScan (TermOp2(t));
     else
       return isTermSecret (sys, t);
   }
@@ -1171,8 +1171,8 @@ secrecyUnfolding (Term t, const Knowledge know)
 {
   t = deVar (t);
   if (isTermTuple (t))
-    return termlistConcat (secrecyUnfolding (t->left.op1, know),
-			   secrecyUnfolding (t->right.op2, know));
+    return termlistConcat (secrecyUnfolding (TermOp1(t), know),
+			   secrecyUnfolding (TermOp2(t), know));
   else
     {
       if (inKnowledge (know, t))

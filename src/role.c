@@ -61,7 +61,7 @@ roledefPrintGeneric (Roledef rd, int print_actor)
       if (protocolCount < 2 && realTermTuple (label))
 	{
 	  // Only one protocol, so we don't need to show the extra label info
-	  label = label->right.op2;
+	  label = TermOp2(label);
 	}
 
       //! Print latex/normal
