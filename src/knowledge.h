@@ -41,6 +41,7 @@ void knowledgeSetInverses (Knowledge know, Termlist tl);
 void knowledgeSimplify (Knowledge know, Term decryptkey);
 int inKnowledge (const Knowledge know, Term term);
 void knowledgePrint (Knowledge know);
+void knowledgePrintShort (const Knowledge know);
 void knowledgeInversesPrint (Knowledge know);
 int isKnowledgeEqual (Knowledge know1, Knowledge know2);
 Termlist knowledgeSet (const Knowledge know);

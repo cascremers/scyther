@@ -339,6 +339,31 @@ knowledgePrint (Knowledge know)
   eprintf ("\n");
 }
 
+//! Print a knowledge set, short version (no newline)
+void
+knowledgePrintShort (const Knowledge know)
+{
+  indent ();
+  if (know == NULL)
+    {
+      eprintf ("Empty");
+      return;
+    }
+
+  if (know->basic != NULL)
+    {
+      termlistPrint (know->basic);
+      if (know->encrypt != NULL);
+	{
+	  eprintf (", ");
+	}
+    }
+  if (know->encrypt != NULL)
+    {
+      termlistPrint (know->encrypt);
+    }
+}
+
 //! Print the inverses list of a knowledge set.
 void
 knowledgeInversesPrint (Knowledge know)
