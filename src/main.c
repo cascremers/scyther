@@ -83,7 +83,11 @@ const char *progname = "scyther";
  * Note that this is only referenced in the help output of the commandline program.
  * \todo Come up with a useful solution for release names.
  */
-const char *releasetag = "alpha2-devel";
+#ifdef SVNCHANGED
+const char *releasetag = SVNVERSION " [modified]";
+#else
+const char *releasetag = SVNVERSION;
+#endif
 
 //! The main body, as called by the environment.
 int
@@ -248,11 +252,10 @@ main (int argc, char **argv)
   if (version->count > 0)
     {
       printf ("'%s' model checker for security protocols.\n", progname);
-      printf ("%s release.\n", releasetag);
-      printf
-	("$Rev$ $Date$\n");
 #ifdef DEBUG
-      printf ("Compiled with debugging support.\n");
+      printf ("%s, compiled with debugging support.\n", releasetag);
+#else
+      printf ("%s\n", releasetag);
 #endif
       printf ("December 2003--, Cas Cremers\n");
       exitcode = 0;
