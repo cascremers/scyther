@@ -1,3 +1,5 @@
+- Rewrite for untrusted roles, redesign this.
+- Add switch for arachne to prune encryption levels when using -m2.
 - Rewrite termMguTerm such that it iterates and adapt all functions
   using it. This is to allow for associative tupling later.
 - valgrind -a; key level scanning memory leaks
