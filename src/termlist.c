@@ -790,3 +790,54 @@ termlist_iterate (Termlist tl, int (*func) ())
     }
   return 1;
 }
+
+//! Create a tuple term from a termlist
+Term termlist_to_tuple (Termlist tl)
+{
+  int width;
+
+  width = termlistLength (tl);
+  if (width > 1)
+    {
+      // 2 parts
+      // Make two termlists for each side.
+      Term tresult;
+      Termlist tl1, tl2;
+      int split, i;
+
+      /**
+       * This can be done much more efficiently by cutting
+       * the list temporarily, and reconnecting it afterwards.
+       */
+      tl1 = NULL;
+      tl2 = NULL;
+      split = width / 2;
+      i = 0;
+      while (tl != NULL)
+	{
+	  if (i < split)
+	      tl1 = termlistAdd (tl1, tl->term);
+	  else
+	      tl2 = termlistAdd (tl2, tl->term);
+	  tl = tl->next;
+	  i++;
+	}
+      tresult = makeTermTuple (termlist_to_tuple (tl1), termlist_to_tuple (tl2));
+      termlistDelete (tl1);
+      termlistDelete (tl2);
+      return tresult;
+    }
+  else
+    {
+      if (tl == NULL)
+	{
+	  // W00t! Wtf?
+	  error ("termlist_to_tuple called (internally?) with NULL");
+	}
+      else
+	{
+	  // Single node, simple
+	  return termDuplicate(tl->term);
+	}
+    }
+}
