@@ -13,20 +13,21 @@ template=../src/attacktemplate
 
 if [ -f $file ]
 then 
-
     ../src/scyther --latex $file -o attack.tex
-    latex $template.tex
-
-    mv $template.dvi attack.dvi
-    dvips attack.dvi -o attack.ps
-
-    # also eps output now
-    ps2eps -f attack.ps
-
-    xdvi attack.dvi		# for Xdvi
-#    kdvi attack.dvi		# for KDE environment
-#    kghostview attack.ps	# postscript in KDE
-
+    if [ "$?" -eq "3" ]
+    then
+        latex $template.tex
+    
+        mv $template.dvi attack.dvi
+        dvips attack.dvi -o attack.ps
+    
+        # also eps output now
+        ps2eps -f attack.ps
+    
+        xdvi attack.dvi		# for Xdvi
+        #    kdvi attack.dvi		# for KDE environment
+        #    kghostview attack.ps	# postscript in KDE
+    fi
 else
 
   echo "No file $file found."

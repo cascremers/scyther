@@ -16,7 +16,14 @@
  *
  * How to install Scyther.
  *
- * \section coding Coding convertions
+ * \section exit Exit codes
+ *
+ * 0  Okay	No attack found, claims encountered
+ * 1  Error	Something went wrong (error)
+ * 2  Okay	No attack found (because) no claims encountered
+ * 3  Okay	Attack found
+ *
+ * \section coding Coding conventions
  *
  * Usually, each source file except main.c has an myfileInit() and myfileDone() function
  * available. These allow any initialisation and destruction of required structures.
@@ -368,6 +375,17 @@ main (int argc, char **argv)
   if (sys->attack != NULL && sys->attack->length != 0)
     {
       attackDisplay(sys);
+      /* mark exit code */
+      exitcode = 3;
+    }
+  else
+    {
+      /* check for no claims */
+      if (sys->failed == 0)
+	{
+          /* mark exit code */
+	  exitcode = 2;
+	}
     }
 
   /* latex closeup */
