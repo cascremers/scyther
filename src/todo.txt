@@ -6,6 +6,9 @@
   maybe that heuristic works.
   However, there seems to be an infinite loop for this in the algorithm, which
   I did not anticipate. Investigate!
+  *** Maybe self-loops are the problem. This has to do with tuple alternation
+  decoding. Consider re-introducing explicit intruder strands OR self-loop
+  pruning.
 - Make different error codes for compilation error/ other error. This can be
   useful for scripts. However, it might shift some constants for the Elegast
   scripts.
