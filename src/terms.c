@@ -701,6 +701,9 @@ termSize(Term t)
 float
 termDistance(Term t1, Term t2)
 {
+  int t1s;
+  int t2s;
+
   /* First the special cases: no equal subterms, completely equal */
   if (isTermEqual(t1,t2))
       return 1;
@@ -708,8 +711,8 @@ termDistance(Term t1, Term t2)
   t1 = deVar(t1);
   t2 = deVar(t2);
 
-  int t1s = termSize(t1);
-  int t2s = termSize(t2);
+  t1s = termSize(t1);
+  t2s = termSize(t2);
 
   if (t1 == NULL || t2 == NULL)
     {
