@@ -8,11 +8,11 @@
 #	./testl ns3
 #
 
-file=spdl/$1.spdl outfile=tempattack
+file=../spdl/$1.spdl outfile=tempattack
 
 if [ -f $file ]
 then 
-  ./scyther --latex <$file >$outfile.tex
+  ./scyther --latex $file -o $outfile.tex
   latex $outfile.tex
   xdvi $outfile.dvi
 else
