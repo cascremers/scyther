@@ -27,21 +27,29 @@ extern Term TERM_Type;
  */
 int globalLatex;
 
+//! Switch for indent or not.
 static int indentState = 0;
+//! Current indent depth.
 static int indentDepth = 0;
 
+//! Allocate memory the size of a run struct.
 Run
 makeRun ()
 {
   return (Run) memAlloc (sizeof (struct run));
 }
 
+//! Allocate memory the size of a roledef struct.
 Roledef
 makeRoledef ()
 {
   return (Roledef) memAlloc (sizeof (struct roledef));
 }
 
+//! Initialise a system structure.
+/**
+ *@return A system structure pointer with initial values.
+ */
 System
 systemInit ()
 {
@@ -83,6 +91,11 @@ systemInit ()
   return sys;
 }
 
+//! Reset a system state after some exploration.
+/**
+ *@param A system structure pointer.
+ *@return Counter values have been reset.
+ */
 void
 systemReset (const System sys)
 {
@@ -110,6 +123,11 @@ systemReset (const System sys)
   globalLatex = sys->latex;
 }
 
+//! Delete a system structure and clear used memory for all buffers.
+/**
+ * Is more thorough than systemDestroy().
+ *\sa systemDestroy()
+ */
 void
 systemDone (System sys)
 {
@@ -134,6 +152,7 @@ systemDone (System sys)
   systemDestroy (sys);
 }
 
+//! Approximate the number of states traversed using a double type.
 double
 statesApproximation (System sys)
 {
@@ -143,12 +162,14 @@ statesApproximation (System sys)
     return (double) (sys->statesLow + (sys->statesHigh * ULONG_MAX));
 }
 
+//! Print a short version of the number of states.
 void
 statesPrintShort (System sys)
 {
   printf ("%.3e", statesApproximation (sys));
 }
 
+//! Print the number of states.
 void
 statesPrint (System sys)
 {
@@ -168,6 +189,11 @@ statesPrint (System sys)
       printf("\n");
 }
 
+//! Destroy a system memory block and system::runs
+/**
+ * Ignores any other substructes.
+ *\sa systemDone()
+ */
 void
 systemDestroy (System sys)
 {
@@ -175,11 +201,11 @@ systemDestroy (System sys)
   memFree (sys, sizeof (struct system));
 }
 
-/* ensureValidRun
-
-   Makes sure memory is allocated for instantiating this run.
-   Note: This is meant to be used BEFORE using runPointerSet.
-*/
+//! Ensures that a run can be added to the system.
+/**
+ * Allocates memory to allow a run to be added, if needed.
+ * This is meant to be used before using runPointerSet().
+ */
 
 void
 ensureValidRun (System sys, int run)
@@ -213,6 +239,17 @@ ensureValidRun (System sys, int run)
     }
 }
 
+//! Add a run event to the system
+/**
+ *@param sys A system structure.
+ *@param run The run identifier.
+ *@param type The type of event.
+ *@param label The event label.
+ *@param from The sender.
+ *@param to The recipient.
+ *@param msg The message.
+ *\sa READ,SEND,CLAIM
+ */
 void
 runAdd (System sys, int run, int type, Term label, Term from, Term to,
 	Term msg)
@@ -236,6 +273,7 @@ runAdd (System sys, int run, int type, Term label, Term from, Term to,
     }
 }
 
+//! Print a role event list.
 void
 roledefPrint (Roledef rd)
 {
@@ -287,6 +325,7 @@ roledefPrint (Roledef rd)
     printf ("$");
 }
 
+//! Print a run.
 void
 runPrint (Roledef rd)
 {
@@ -304,6 +343,7 @@ runPrint (Roledef rd)
     }
 }
 
+//! Print all runs in the system structure.
 void
 runsPrint (System sys)
 {
@@ -320,10 +360,12 @@ runsPrint (System sys)
     }
 }
 
-/*
- * returns a pointer to the agent name term
+//! Yield the agent name term in a role, for a run in the system.
+/**
+ *@param sys The system.
+ *@param run The run in which we are interested.
+ *@param role The role of which we want to know the agent.
  */
-
 Term
 agentOfRunRole (const System sys, const int run, const Term role)
 {
@@ -344,16 +386,21 @@ agentOfRunRole (const System sys, const int run, const Term role)
   return NULL;
 }
 
-/*
- * returns a pointer to the agent name term
+//! Yield the actor agent of a run in the system.
+/**
+ *@param sys The system.
+ *@param run The run in which we are interested.
  */
-
 Term
 agentOfRun (const System sys, const int run)
 {
   return agentOfRunRole(sys,run,sys->runs[run].role->nameterm);
 }
 
+//! Duplicate a single role event node.
+/**
+ *\sa roledefDelete()
+ */
 Roledef
 roledefDuplicate1 (const Roledef rd)
 {
@@ -365,6 +412,10 @@ roledefDuplicate1 (const Roledef rd)
   return newrd;
 }
     
+//! Duplicate a role event list.
+/**
+ *\sa roledefDelete()
+ */
 Roledef
 roledefDuplicate (Roledef rd)
 {
@@ -375,6 +426,10 @@ roledefDuplicate (Roledef rd)
   return newrd;
 }
 
+//! Delete a role event or event list.
+/**
+ *\sa roledefDuplicate()
+ */
 void
 roledefDelete (Roledef rd)
 {
@@ -385,6 +440,7 @@ roledefDelete (Roledef rd)
   return;
 }
 
+//! Destroy a role event or event list.
 void
 roledefDestroy (Roledef rd)
 {
@@ -398,12 +454,11 @@ roledefDestroy (Roledef rd)
   return;
 }
 
-/*
-   Instantiate a role by making a new run.
-
-   This involves creation of a new run(id).
-   Copy & subst of Roledef, Agent knowledge.
-   Tolist might contain type constants.
+//! Instantiate a role by making a new run.
+/**
+ * This involves creation of a new run(id).
+ * Copy & subst of Roledef, Agent knowledge.
+ * Tolist might contain type constants.
 */
 
 void
@@ -524,6 +579,10 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
   runs[rid].locals = tolist;
 }
 
+//! Make a new role event with the specified parameters.
+/**
+ *@return A pointer to a new role event with the given parameters.
+ */
 Roledef
 roledefInit (int type, Term label, Term from, Term to, Term msg)
 {
@@ -542,6 +601,10 @@ roledefInit (int type, Term label, Term from, Term to, Term msg)
   return newEvent;
 }
 
+//! Add a role event to an existing list, with the given parameters.
+/**
+ *\sa roledefInit()
+ */
 Roledef
 roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg)
 {
@@ -558,7 +621,12 @@ roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg)
 }
 
 
-/* allocate memory for traces, runs have to be known for that */
+//! Initialise the second system phase.
+/**
+ * Allocates memory for traces.
+ * The number of runs has to be known for this procedure.
+ *\sa systemInit()
+ */
 
 void
 systemStart (System sys)
@@ -598,12 +666,14 @@ systemStart (System sys)
     }
 }
 
+//! Activate indenting.
 void
 indentActivate ()
 {
   indentState = 1;
 }
 
+//! Set indent depth.
 void
 indentSet (int i)
 {
@@ -611,6 +681,7 @@ indentSet (int i)
     indentDepth = i;
 }
 
+//! Print the prefix of a line suitable for the current indent level.
 void
 indent ()
 {
@@ -624,6 +695,7 @@ indent ()
     }
 }
 
+//! Create an empty protocol structure with a name.
 Protocol
 protocolCreate (Term name)
 {
@@ -638,6 +710,7 @@ protocolCreate (Term name)
   return p;
 }
 
+//! Create an empty role structure with a name.
 Role
 roleCreate (Term name)
 {
@@ -651,6 +724,7 @@ roleCreate (Term name)
   return r;
 }
 
+//! Print all local terms in a term list.
 void
 locVarPrint (Termlist tl)
 {
@@ -679,6 +753,7 @@ locVarPrint (Termlist tl)
     }
 }
 
+//! Print a protocol.
 void
 protocolPrint (Protocol p)
 {
@@ -695,6 +770,7 @@ protocolPrint (Protocol p)
   rolesPrint (p->roles);
 }
 
+//! Print a list of protocols.
 void
 protocolsPrint (Protocol p)
 {
@@ -705,6 +781,7 @@ protocolsPrint (Protocol p)
     }
 }
 
+//! Print a role.
 void
 rolePrint (Role r)
 {
@@ -726,6 +803,7 @@ rolePrint (Role r)
     }
 }
 
+//! Print a list of roles.
 void
 rolesPrint (Role r)
 {
@@ -743,6 +821,12 @@ rolesPrint (Role r)
     }
 }
 
+//! Determine whether there is an untrusted agent.
+/**
+ *@param sys The system, containing system::untrusted.
+ *@param agents A list of agents to be verified.
+ *@return True iff any agent in the list is untrusted.
+ */
 int
 untrustedAgent (System sys, Termlist agents)
 {
@@ -772,6 +856,7 @@ untrustedAgent (System sys, Termlist agents)
   return 0;
 }
 
+//! Yield the maximum length of a trace by analysing the runs in the system.
 int
 getMaxTraceLength (const System sys)
 {
@@ -792,10 +877,7 @@ getMaxTraceLength (const System sys)
   return maxlen;
 }
 
-/*
- * Nicely format the role and agents we think we're talking to.
- */
-
+//! Nicely format the role and agents we think we're talking to.
 void
 agentsOfRunPrint (const System sys, const int run)
 {
@@ -816,9 +898,7 @@ agentsOfRunPrint (const System sys, const int run)
   printf(")");
 }
 
-/*
- * explain a violated claim at point i in the trace
- */
+//! Explain a violated claim at point i in the trace.
 
 void
 violatedClaimPrint (const System sys, const int i)
@@ -826,8 +906,9 @@ violatedClaimPrint (const System sys, const int i)
   printf("Claim stuk");
 }
 
-/*
- * attackLength yields the real (user friendly) length of an attack by omitting
+//! Yield the real length of an attack.
+/**
+ * AttackLength yields the real (user friendly) length of an attack by omitting
  * the redundant events but also the choose events.
  */
 
