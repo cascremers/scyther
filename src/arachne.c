@@ -188,7 +188,8 @@ int
 isTermFunctionName (Term t)
 {
   t = deVar (t);
-  if (t != NULL && isTermLeaf(t) && t->stype != NULL && inTermlist (t->stype, TERM_Function))
+  if (t != NULL && isTermLeaf (t) && t->stype != NULL
+      && inTermlist (t->stype, TERM_Function))
     return 1;
   return 0;
 }
@@ -200,9 +201,9 @@ getTermFunction (Term t)
   t = deVar (t);
   if (t != NULL)
     {
-      if (realTermEncrypt (t) && isTermFunctionName (TermKey(t)))
+      if (realTermEncrypt (t) && isTermFunctionName (TermKey (t)))
 	{
-	  return TermKey(t);
+	  return TermKey (t);
 	}
     }
   return NULL;
@@ -304,7 +305,7 @@ determine_unification_run (Termlist tl)
   while (tl != NULL)
     {
       //! Again, hardcoded reference to compiler.c. Level -3 means a local constant for a role.
-      if (tl->term->type != VARIABLE && TermRunid(tl->term) == -3)
+      if (tl->term->type != VARIABLE && TermRunid (tl->term) == -3)
 	{
 	  Term t;
 
@@ -320,12 +321,12 @@ determine_unification_run (Termlist tl)
 	      if (run == -2)
 		{
 		  // Any run
-		  run = TermRunid(t);
+		  run = TermRunid (t);
 		}
 	      else
 		{
 		  // Specific run: compare
-		  if (run != TermRunid(t))
+		  if (run != TermRunid (t))
 		    {
 		      return -1;
 		    }
@@ -553,7 +554,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	    if (realTermEncrypt (tl->term))
 	      {
 		/* the key is a construction itself */
-		if (inKnowledge (sys->know, TermKey(tl->term)))
+		if (inKnowledge (sys->know, TermKey (tl->term)))
 		  {
 		    /* the key is constructed by a public thing */
 		    /* typically, this is a public key, so we postpone it  */
@@ -561,7 +562,9 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 		  }
 	      }
 	    /* add the key as a goal */
-	    newgoals = newgoals + goal_add (tl->term, b->run_to, b->ev_to, prioritylevel);
+	    newgoals =
+	      newgoals + goal_add (tl->term, b->run_to, b->ev_to,
+				   prioritylevel);
 	    tl = tl->next;
 	  }
 
@@ -720,10 +723,11 @@ dotSemiState ()
   goal_graph_create ();		// create graph
   if (warshall (graph, nodes) == 0)	// determine closure
     {
-      eprintf ("// This graph was not completely closed transitively because it contains a cycle!\n");
+      eprintf
+	("// This graph was not completely closed transitively because it contains a cycle!\n");
     }
 
-  ranks = memAlloc (nodes * sizeof(int));
+  ranks = memAlloc (nodes * sizeof (int));
   maxrank = graph_ranks (graph, ranks, nodes);	// determine ranks
 
 #ifdef DEBUG
@@ -731,57 +735,56 @@ dotSemiState ()
   printSemiState ();
   // Even draw all dependencies for non-intruder runs
   // Real nice debugging :(
-    {
-      int run;
+  {
+    int run;
 
-      run = 0;
-      while (run < sys->maxruns)
-	{
-	  int ev;
+    run = 0;
+    while (run < sys->maxruns)
+      {
+	int ev;
 
-	  ev = 0;
-	  while (ev < sys->runs[run].length)
-	    {
-	      int run2;
-	      int notfirstrun;
+	ev = 0;
+	while (ev < sys->runs[run].length)
+	  {
+	    int run2;
+	    int notfirstrun;
 
-	      eprintf ("// precedence: r%ii%i <- ", run,ev);
-	      run2 = 0;
-	      notfirstrun = 0;
-	      while (run2 < sys->maxruns)
-		{
-		  int notfirstev;
-		  int ev2;
+	    eprintf ("// precedence: r%ii%i <- ", run, ev);
+	    run2 = 0;
+	    notfirstrun = 0;
+	    while (run2 < sys->maxruns)
+	      {
+		int notfirstev;
+		int ev2;
 
-		  notfirstev = 0;
-		  ev2 = 0;
-		  while (ev2 < sys->runs[run2].length)
-		    {
-		      if (graph[graph_nodes (nodes, run2, ev2, run, ev)]
-			  != 0)
-			{
-			  if (notfirstev)
-			      eprintf (",");
-			  else
-			    {
-			      if (notfirstrun)
-				  eprintf (" ");
-			      eprintf ("r%i:", run2);
-			    }
-			  eprintf ("%i", ev2);
-			  notfirstrun = 1;
-			  notfirstev = 1;
-			}
-		      ev2++;
-		    }
-		  run2++;
-		}
-	      eprintf ("\n");
-	      ev++;
-	    }
-	  run++;
-	}
-    }
+		notfirstev = 0;
+		ev2 = 0;
+		while (ev2 < sys->runs[run2].length)
+		  {
+		    if (graph[graph_nodes (nodes, run2, ev2, run, ev)] != 0)
+		      {
+			if (notfirstev)
+			  eprintf (",");
+			else
+			  {
+			    if (notfirstrun)
+			      eprintf (" ");
+			    eprintf ("r%i:", run2);
+			  }
+			eprintf ("%i", ev2);
+			notfirstrun = 1;
+			notfirstev = 1;
+		      }
+		    ev2++;
+		  }
+		run2++;
+	      }
+	    eprintf ("\n");
+	    ev++;
+	  }
+	run++;
+      }
+  }
 #endif
 
   // Draw graph
@@ -799,22 +802,22 @@ dotSemiState ()
 	  // Regular run
 
 	  /* DISABLED subgraphs
-	  eprintf ("\tsubgraph cluster_run%i {\n", run);
-	  eprintf ("\t\tlabel = \"");
-	  eprintf ("#%i: ", run);
-	  termPrint (sys->runs[run].protocol->nameterm);
-	  eprintf (", ");
-	  agentsOfRunPrint (sys, run);
-	  eprintf ("\";\n", run);
-	  if (run == 0)
-	    {
-	      eprintf ("\t\tcolor = red;\n");
-	    }
-	  else
-	    {
-	      eprintf ("\t\tcolor = blue;\n");
-	    }
-	    */
+	     eprintf ("\tsubgraph cluster_run%i {\n", run);
+	     eprintf ("\t\tlabel = \"");
+	     eprintf ("#%i: ", run);
+	     termPrint (sys->runs[run].protocol->nameterm);
+	     eprintf (", ");
+	     agentsOfRunPrint (sys, run);
+	     eprintf ("\";\n", run);
+	     if (run == 0)
+	     {
+	     eprintf ("\t\tcolor = red;\n");
+	     }
+	     else
+	     {
+	     eprintf ("\t\tcolor = blue;\n");
+	     }
+	   */
 
 
 	  // Display the respective events
@@ -883,7 +886,7 @@ dotSemiState ()
 			}
 		      // Draw the first box
 		      // This used to be drawn only if done && send_before_read, now we always draw it.
-		      eprintf ("\t\ts%i [label=\"Run %i\\n", run,run);
+		      eprintf ("\t\ts%i [label=\"Run %i\\n", run, run);
 		      agentsOfRunPrint (sys, run);
 		      eprintf ("\", shape=diamond];\n");
 		      eprintf ("\t\ts%i -> ", run);
@@ -895,8 +898,8 @@ dotSemiState ()
 	      rd = rd->next;
 	    }
 	  /* DISABLED subgraphs
-	  eprintf ("\t}\n");
-	  */
+	     eprintf ("\t}\n");
+	   */
 	}
       run++;
     }
@@ -983,7 +986,7 @@ dotSemiState ()
 			    }
 			  if (other_route == 0)
 			    {
-			      Roledef rd,rd2;
+			      Roledef rd, rd2;
 			      /*
 			       * We have decided to draw this binding,
 			       * from run2,ev2 to run,ev
@@ -995,8 +998,9 @@ dotSemiState ()
 			      node (run, ev);
 			      eprintf (" ");
 			      // decide color
-		              rd = roledef_shift (sys->runs[run].start,ev);
-		              rd2 = roledef_shift (sys->runs[run2].start,ev2);
+			      rd = roledef_shift (sys->runs[run].start, ev);
+			      rd2 =
+				roledef_shift (sys->runs[run2].start, ev2);
 			      if (rd->type == CLAIM)
 				{
 				  // Towards a claim, so only indirect dependency
@@ -1009,9 +1013,13 @@ dotSemiState ()
 				  if (rd->type == READ && rd2->type == SEND)
 				    {
 				      // We want to distinguish where it is from a 'broken' send
-				      if (isTermEqual (rd->message, rd2->message))
+				      if (isTermEqual
+					  (rd->message, rd2->message))
 					{
-					  if (isTermEqual (rd->from, rd2->from) && isTermEqual (rd->to, rd2->to))
+					  if (isTermEqual
+					      (rd->from, rd2->from)
+					      && isTermEqual (rd->to,
+							      rd2->to))
 					    {
 					      // Wow, a perfect match. Leave the arrow as-is :)
 					      eprintf ("[color=forestgreen]");
@@ -1019,13 +1027,15 @@ dotSemiState ()
 					  else
 					    {
 					      // Same message, different people
-					      eprintf ("[label=\"redirect\",color=darkorange2]");
+					      eprintf
+						("[label=\"redirect\",color=darkorange2]");
 					    }
 					}
 				      else
 					{
 					  // Not even the same message, intruder construction
-					  eprintf ("[label=\"construct\",color=red]");
+					  eprintf
+					    ("[label=\"construct\",color=red]");
 					}
 				    }
 				}
@@ -1039,9 +1049,10 @@ dotSemiState ()
 			      run3--;
 			      ev3--;
 
-			      eprintf ("\t// HIDDEN r%ii%i -> r%ii%i because route through r%ii%i\n",
-				       run2, ev2, run, ev, run3, ev3);
-			      
+			      eprintf
+				("\t// HIDDEN r%ii%i -> r%ii%i because route through r%ii%i\n",
+				 run2, ev2, run, ev, run3, ev3);
+
 			    }
 #endif
 			}
@@ -1055,62 +1066,62 @@ dotSemiState ()
     }
 
   // Third, all ranking info
-    {
-      int myrank;
+  {
+    int myrank;
 
 #ifdef DEBUG
+    {
+      int n;
+
+      eprintf ("/* ranks: %i\n", maxrank);
+      n = 0;
+      while (n < nodes)
 	{
-	  int n;
-
-	  eprintf ("/* ranks: %i\n", maxrank);
-	  n = 0;
-	  while (n < nodes)
-	    {
-	      eprintf ("%i ", ranks[n]);
-	      n++;
-	    }
-	  eprintf ("\n*/\n\n");
+	  eprintf ("%i ", ranks[n]);
+	  n++;
 	}
-#endif
-      myrank = 0;
-      while (myrank < maxrank)
-	{
-	  int count;
-	  int run;
-	  int run1;
-	  int ev1;
-
-	  count = 0;
-	  run = 0;
-	  while (run < sys->maxruns)
-	    {
-	      if (sys->runs[run].protocol != INTRUDER)
-		{
-		  int ev;
-
-		  ev = 0;
-		  while (ev < sys->runs[run].step)
-		    {
-		      if (myrank == ranks[node_number (run,ev)])
-			{
-			  if (count == 0)
-			      eprintf ("\t{ rank = same; ");
-			  count++;
-			  eprintf ("r%ii%i; ",run,ev);
-			}
-		      ev++;
-		    }
-		}
-	      run++;
-	    }
-	  if (count > 0)
-	      eprintf ("}\t\t// rank %i\n", myrank);
-	  myrank++;
-	}
+      eprintf ("\n*/\n\n");
     }
-  
+#endif
+    myrank = 0;
+    while (myrank < maxrank)
+      {
+	int count;
+	int run;
+	int run1;
+	int ev1;
+
+	count = 0;
+	run = 0;
+	while (run < sys->maxruns)
+	  {
+	    if (sys->runs[run].protocol != INTRUDER)
+	      {
+		int ev;
+
+		ev = 0;
+		while (ev < sys->runs[run].step)
+		  {
+		    if (myrank == ranks[node_number (run, ev)])
+		      {
+			if (count == 0)
+			  eprintf ("\t{ rank = same; ");
+			count++;
+			eprintf ("r%ii%i; ", run, ev);
+		      }
+		    ev++;
+		  }
+	      }
+	    run++;
+	  }
+	if (count > 0)
+	  eprintf ("}\t\t// rank %i\n", myrank);
+	myrank++;
+      }
+  }
+
   // clean memory
-  memFree (ranks, nodes * sizeof(int));		// ranks
+  memFree (ranks, nodes * sizeof (int));	// ranks
 
   // close graph
   eprintf ("};\n\n");
@@ -1225,8 +1236,8 @@ select_goal ()
       b = (Binding) bl->data;
 
       // Ignore singular variables
-      if (!b->done && !realTermVariable (deVar(b->term)) )
-      //if (!b->done)
+      if (!b->done && !realTermVariable (deVar (b->term)))
+	//if (!b->done)
 	{
 	  float cons;
 
@@ -1361,8 +1372,8 @@ bind_goal_new_encrypt (const Binding b)
 	}
 
       // must be encryption
-      t1 = TermOp(term);
-      t2 = TermKey(term);
+      t1 = TermOp (term);
+      t2 = TermKey (term);
 
       if (t2 != TERM_Hidden)
 	{
@@ -1481,7 +1492,8 @@ bind_goal_regular_run (const Binding b)
       }
 #endif
     if (!termMguSubTerm
-	(b->term, rd->message, test_sub_unification, sys->know->inverses, NULL))
+	(b->term, rd->message, test_sub_unification, sys->know->inverses,
+	 NULL))
       {
 	int sflag;
 
@@ -1665,12 +1677,14 @@ prune_theorems ()
 	{
 	  Term agent;
 
-	  agent = deVar(agl->term);
+	  agent = deVar (agl->term);
 	  if (agent == NULL)
 	    {
 	      error ("Agent of run %i is NULL", run);
 	    }
-	  if (!realTermLeaf (agent) || (agent->stype != NULL && !inTermlist (agent->stype, TERM_Agent)))
+	  if (!realTermLeaf (agent)
+	      || (agent->stype != NULL
+		  && !inTermlist (agent->stype, TERM_Agent)))
 	    {
 	      if (sys->output == PROOF)
 		{
@@ -1718,9 +1732,9 @@ prune_theorems ()
 	    {
 	      if (sys->runs[run].agents != NULL)
 		{
-	          Term actor;
+		  Term actor;
 
-		  actor = agentOfRun(sys, run);
+		  actor = agentOfRun (sys, run);
 		  if (actor == NULL)
 		    {
 		      error ("Agent of run %i is NULL", run);
@@ -1730,7 +1744,9 @@ prune_theorems ()
 		      if (sys->output == PROOF)
 			{
 			  indentPrint ();
-			  eprintf ("Pruned because the actor of run %i is untrusted.\n", run);
+			  eprintf
+			    ("Pruned because the actor of run %i is untrusted.\n",
+			     run);
 			}
 		      return 1;
 		    }
@@ -1741,7 +1757,7 @@ prune_theorems ()
 
 		  globalError++;
 		  eprintf ("Run %i: ", run);
-                  role_name_print (run);
+		  role_name_print (run);
 		  eprintf (" has an empty agents list.\n");
 		  eprintf ("protocol->rolenames: ");
 		  p = (Protocol) sys->runs[run].protocol;
@@ -1847,7 +1863,8 @@ prune_bounds ()
       if (sys->output == PROOF)
 	{
 	  indentPrint ();
-	  eprintf ("Pruned: proof tree too deep: %i (-l %i switch)\n", proofDepth, sys->switch_maxtracelength);
+	  eprintf ("Pruned: proof tree too deep: %i (-l %i switch)\n",
+		   proofDepth, sys->switch_maxtracelength);
 	}
       return 1;
     }

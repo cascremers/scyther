@@ -111,7 +111,8 @@ warshall (int *graph, int nodes)
 /**
  * Some crude algorithm I sketched on the blackboard.
  */
-int graph_ranks (int *graph, int *ranks, int nodes)
+int
+graph_ranks (int *graph, int *ranks, int nodes)
 {
   int i;
   int todo;
@@ -142,10 +143,11 @@ int graph_ranks (int *graph, int *ranks, int nodes)
 	      refn = 0;
 	      while (refn < nodes)
 		{
-		  if (ranks[refn] >= rank && graph[graph_index(refn, n)] != 0)
-		      refn = nodes+1;
+		  if (ranks[refn] >= rank
+		      && graph[graph_index (refn, n)] != 0)
+		    refn = nodes + 1;
 		  else
-		      refn++;
+		    refn++;
 		}
 	      if (refn == nodes)
 		{

@@ -61,7 +61,7 @@ roledefPrintGeneric (Roledef rd, int print_actor)
       if (protocolCount < 2 && realTermTuple (label))
 	{
 	  // Only one protocol, so we don't need to show the extra label info
-	  label = TermOp2(label);
+	  label = TermOp2 (label);
 	}
 
       //! Print latex/normal
@@ -84,8 +84,8 @@ roledefPrintGeneric (Roledef rd, int print_actor)
     {
       if (print_actor || rd->type == READ)
 	{
-          termPrint (rd->from);
-          eprintf (",");
+	  termPrint (rd->from);
+	  eprintf (",");
 	}
       if (rd->type == CLAIM)
 	eprintf (" ");

@@ -771,15 +771,15 @@ timersPrint (const System sys)
       if (realTermTuple (cl_scan->label))
 	{
 	  /* modern version: claim label is tuple (protocname, label) */
-          /* first print protocol.role */
-	  termPrint (TermOp1(cl_scan->label));
+	  /* first print protocol.role */
+	  termPrint (TermOp1 (cl_scan->label));
 	  eprintf ("\t");
 	  termPrint (cl_scan->rolename);
 	  eprintf ("\t");
 	  /* second print event_label */
 	  termPrint (cl_scan->type);
 	  eprintf ("_");
-	  termPrint (TermOp2(cl_scan->label));
+	  termPrint (TermOp2 (cl_scan->label));
 	  eprintf ("\t");
 	}
       else
@@ -790,7 +790,7 @@ timersPrint (const System sys)
 	  termPrint (cl_scan->rolename);
 	  eprintf (" (");
 	  termPrint (cl_scan->label);
-          eprintf (")\t");
+	  eprintf (")\t");
 	}
       /* print counts etc. */
       eprintf ("found:\t");

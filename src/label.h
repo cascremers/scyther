@@ -10,13 +10,13 @@
  */
 struct labelinfo
 {
-    Term label;
-    Protocol protocol;
-    Term sendrole;
-    Term readrole;
+  Term label;
+  Protocol protocol;
+  Term sendrole;
+  Term readrole;
 };
 
-typedef struct labelinfo* Labelinfo;
+typedef struct labelinfo *Labelinfo;
 
 Labelinfo label_create (const Term label, const Protocol protocol);
 void label_destroy (Labelinfo linfo);

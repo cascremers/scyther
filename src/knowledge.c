@@ -154,8 +154,8 @@ knowledgeAddTerm (Knowledge know, Term term)
     {
       int status;
 
-      status = knowledgeAddTerm (know, TermOp1(term));
-      return knowledgeAddTerm (know, TermOp2(term)) || status;
+      status = knowledgeAddTerm (know, TermOp1 (term));
+      return knowledgeAddTerm (know, TermOp2 (term)) || status;
     }
 
   /* test whether we knew it before */
@@ -172,12 +172,12 @@ knowledgeAddTerm (Knowledge know, Term term)
     }
   if (term->type == ENCRYPT)
     {
-      Term invkey = inverseKey (know->inverses, TermKey(term));
+      Term invkey = inverseKey (know->inverses, TermKey (term));
       if (inKnowledge (know, invkey))
 	{
 	  /* we can decrypt it */
-	  knowledgeAddTerm (know, TermOp(term));
-	  if (!inKnowledge (know, TermKey(term)))
+	  knowledgeAddTerm (know, TermOp (term));
+	  if (!inKnowledge (know, TermKey (term)))
 	    {
 	      /* we know the op now, but not the key, so add it anyway */
 	      know->encrypt = termlistAdd (know->encrypt, term);
@@ -208,9 +208,9 @@ knowledgeSimplify (Knowledge know, Term key)
 
   while (scan != NULL)
     {
-      if (isTermEqual (TermKey(scan->term), invkey))
+      if (isTermEqual (TermKey (scan->term), invkey))
 	{
-	  tldecrypts = termlistAdd (tldecrypts, TermOp(scan->term));
+	  tldecrypts = termlistAdd (tldecrypts, TermOp (scan->term));
 	  know->encrypt = termlistDelTerm (scan);
 	  scan = know->encrypt;
 	}
@@ -285,14 +285,14 @@ inKnowledge (const Knowledge know, Term term)
   if (term->type == ENCRYPT)
     {
       return inTermlist (know->encrypt, term) ||
-	(inKnowledge (know, TermKey(term))
-	 && inKnowledge (know, TermOp(term)));
+	(inKnowledge (know, TermKey (term))
+	 && inKnowledge (know, TermOp (term)));
     }
   if (term->type == TUPLE)
     {
       return (inTermlist (know->encrypt, term) ||
-	      (inKnowledge (know, TermOp1(term)) &&
-	       inKnowledge (know, TermOp2(term))));
+	      (inKnowledge (know, TermOp1 (term)) &&
+	       inKnowledge (know, TermOp2 (term))));
     }
   return 0;			/* unrecognized term type, weird */
 }

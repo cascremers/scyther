@@ -117,12 +117,12 @@ latexTermPrint (Term term, Termlist highlight)
     {
       if (inTermlist (highlight, term))
 	printf ("\\mathbf{");
-      symbolPrint (TermSymb(term));
+      symbolPrint (TermSymb (term));
       if (realTermVariable (term))
 	printf ("V");
-      if (TermRunid(term) >= 0)
+      if (TermRunid (term) >= 0)
 	{
-	  printf ("\\sharp%i", TermRunid(term));
+	  printf ("\\sharp%i", TermRunid (term));
 	}
       if (term->subst != NULL)
 	{
@@ -141,22 +141,22 @@ latexTermPrint (Term term, Termlist highlight)
     }
   if (realTermEncrypt (term))
     {
-      if (isTermLeaf (TermKey(term))
-	  && inTermlist (TermKey(term)->stype, TERM_Function))
+      if (isTermLeaf (TermKey (term))
+	  && inTermlist (TermKey (term)->stype, TERM_Function))
 	{
 	  /* function application */
-	  latexTermPrint (TermKey(term), highlight);
+	  latexTermPrint (TermKey (term), highlight);
 	  printf ("(");
-	  latexTermTuplePrint (TermOp(term), highlight);
+	  latexTermTuplePrint (TermOp (term), highlight);
 	  printf (")");
 	}
       else
 	{
 	  /* normal encryption */
 	  printf ("\\{");
-	  latexTermTuplePrint (TermOp(term), highlight);
+	  latexTermTuplePrint (TermOp (term), highlight);
 	  printf ("\\}_{");
-	  latexTermPrint (TermKey(term), highlight);
+	  latexTermPrint (TermKey (term), highlight);
 	  printf ("}");
 	}
     }
@@ -180,9 +180,9 @@ latexTermTuplePrint (Term term, Termlist hl)
   while (realTermTuple (term))
     {
       // To remove any brackets, change this into latexTermTuplePrint.
-      latexTermPrint (TermOp1(term), hl);
+      latexTermPrint (TermOp1 (term), hl);
       printf (",");
-      term = deVar (TermOp2(term));
+      term = deVar (TermOp2 (term));
     }
   latexTermPrint (term, hl);
   return;
@@ -966,7 +966,7 @@ attackDisplayLatex (const System sys)
 		{
 		  /* detect whether it's really local to this run */
 		  Term t = deVar (tl->term);
-		  if (isTermLeaf (t) && TermRunid(t) == i)
+		  if (isTermLeaf (t) && TermRunid (t) == i)
 		    {
 		      if (first)
 			{

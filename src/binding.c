@@ -177,7 +177,7 @@ goal_graph_create ()
 		      Term t;
 
 		      t = tl->term;
-		      if (t->type == VARIABLE && TermRunid(t) == run
+		      if (t->type == VARIABLE && TermRunid (t) == run
 			  && t->subst != NULL)
 			{
 			  // t is a variable of run
@@ -190,7 +190,7 @@ goal_graph_create ()
 
 			      t2 = tl2->term;
 			      if (realTermLeaf (t2) && t2->type != VARIABLE
-				  && TermRunid(t2) == run2)
+				  && TermRunid (t2) == run2)
 				{
 				  // t2 is a constant of run2
 				  if (isTermEqual (t, t2))
@@ -250,20 +250,28 @@ goal_graph_create ()
 						      else
 							{
 							  // It doesn't occur first in a READ, which shouldn't be happening
-							  if (sys->output == PROOF)
+							  if (sys->output ==
+							      PROOF)
 							    {
-							      eprintf ("Term ");
+							      eprintf
+								("Term ");
 							      termPrint (t2);
-							      eprintf (" from run %i occurs in run %i, term ",
+							      eprintf
+								(" from run %i occurs in run %i, term ",
 								 run2, run);
 							      termPrint (t);
-							      eprintf (" before it is read?\n");
+							      eprintf
+								(" before it is read?\n");
 							    }
 							  // Thus, we create an artificial loop
-							  if (sys->runs[0].step > 1)
+							  if (sys->runs[0].
+							      step > 1)
 							    {
 							      // This forces a loop, and thus prunes
-							      graph[graph_nodes (nodes, 0,1, 0,0)] = 1;
+							      graph
+								[graph_nodes
+								 (nodes, 0, 1,
+								  0, 0)] = 1;
 							    }
 							}
 						    }
@@ -421,21 +429,19 @@ goal_add (Term term, const int run, const int ev, const int level)
       int nope;
 
       int testSame (void *data)
-	{
-	  Binding b;
+      {
+	Binding b;
 
-	  b = (Binding) data;
-	  if (isTermEqual (b->term, term) &&
-	      run == b->run_to &&
-	      ev == b->ev_to)
-	    { // abort scan, report
-	      return 0;
-	    }
-	  else
-	    { // proceed with scan
-	      return 1;
-	    }
-	}
+	b = (Binding) data;
+	if (isTermEqual (b->term, term) && run == b->run_to && ev == b->ev_to)
+	  {			// abort scan, report
+	    return 0;
+	  }
+	else
+	  {			// proceed with scan
+	    return 1;
+	  }
+      }
 
       nope = list_iterate (sys->bindings, testSame);
       if (nope)

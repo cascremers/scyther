@@ -241,7 +241,7 @@ levelFind (Symbol s, int level)
     {
       if (isTermLeaf (tl->term))
 	{
-	  if (TermSymb(tl->term) == s)
+	  if (TermSymb (tl->term) == s)
 	    {
 	      return tl->term;
 	    }
@@ -404,8 +404,7 @@ commEvent (int event, Tac tc)
 	{
 	  /* we already had this label constant */
 	  /* leaves a garbage tuple. dunnoh what to do with it */
-	  label =
-	    makeTermTuple (thisProtocol->nameterm, label);
+	  label = makeTermTuple (thisProtocol->nameterm, label);
 	}
     }
   /**
@@ -441,9 +440,11 @@ commEvent (int event, Tac tc)
 	{
 	  /* set sendrole */
 	  if (!isTermEqual (fromrole, thisRole->nameterm))
-	      error ("Send role does not correspond to execution role at line %i.", tc->lineno);
+	    error
+	      ("Send role does not correspond to execution role at line %i.",
+	       tc->lineno);
 	  if (linfo->sendrole != NULL)
-	      error ("Label defined twice for sendrole!");
+	    error ("Label defined twice for sendrole!");
 	  linfo->sendrole = fromrole;
 
 	  /* set keylevels based on send events */
@@ -456,9 +457,11 @@ commEvent (int event, Tac tc)
 	  // READ
 	  /* set readrole */
 	  if (!isTermEqual (torole, thisRole->nameterm))
-	      error ("Read role does not correspond to execution role at line %i.", tc->lineno);
+	    error
+	      ("Read role does not correspond to execution role at line %i.",
+	       tc->lineno);
 	  if (linfo->readrole != NULL)
-	      error ("Label defined twice for readrole!");
+	    error ("Label defined twice for readrole!");
 	  linfo->readrole = torole;
 	}
 
@@ -505,7 +508,7 @@ commEvent (int event, Tac tc)
       else
 	{
 	  /* n parameters */
-	  msg = TermOp2(deVar (claimbig));
+	  msg = TermOp2 (deVar (claimbig));
 	  if (tupleCount (msg) != n)
 	    {
 	      error ("Problem with claim tuple unfolding at line %i.",
@@ -540,7 +543,8 @@ commEvent (int event, Tac tc)
       cl->rolename = fromrole;
       cl->role = thisRole;
       if (!isTermEqual (fromrole, thisRole->nameterm))
-	  error ("Claim role does not correspond to execution role at line %i.", tc->lineno);
+	error ("Claim role does not correspond to execution role at line %i.",
+	       tc->lineno);
       cl->roledef = NULL;
       cl->count = 0;
       cl->complete = 0;
@@ -690,7 +694,7 @@ runInstanceCreate (Tac tc)
   /* first, locate the protocol */
   psym = tc->t1.tac->t1.sym;
   p = sys->protocols;
-  while (p != NULL && TermSymb(p->nameterm) != psym)
+  while (p != NULL && TermSymb (p->nameterm) != psym)
     p = p->next;
   if (p == NULL)
     {
@@ -703,7 +707,7 @@ runInstanceCreate (Tac tc)
   /* locate the role */
   rsym = tc->t1.tac->t2.sym;
   r = p->roles;
-  while (r != NULL && TermSymb(r->nameterm) != rsym)
+  while (r != NULL && TermSymb (r->nameterm) != rsym)
     r = r->next;
   if (r == NULL)
     {
@@ -935,7 +939,7 @@ compute_role_variables (const System sys, Protocol p, Role r)
 }
 
 //! Compute term list of rolenames involved in a given term list of labels
-Termlist 
+Termlist
 compute_label_roles (Termlist labels)
 {
   Termlist roles;
@@ -948,7 +952,7 @@ compute_label_roles (Termlist labels)
       linfo = label_find (sys->labellist, labels->term);
 #ifdef DEBUG
       if (linfo == NULL)
-	  error ("Label in prec list not found in label info list");
+	error ("Label in prec list not found in label info list");
 #endif
       roles = termlistAddNew (roles, linfo->sendrole);
       roles = termlistAddNew (roles, linfo->readrole);
@@ -977,7 +981,8 @@ order_label_roles (const Claimlist cl)
 #endif
   roles_remaining = termlistShallow (cl->roles);
   roles_ordered = termlistAdd (NULL, cl->rolename);
-  roles_remaining = termlistDelTerm (termlistFind (roles_remaining, cl->rolename));
+  roles_remaining =
+    termlistDelTerm (termlistFind (roles_remaining, cl->rolename));
 
   distance = 0;
   while (roles_remaining != NULL)
@@ -991,40 +996,42 @@ order_label_roles (const Claimlist cl)
 #endif
 
       int scan_label (void *data)
-	{
-	  Labelinfo linfo;
+      {
+	Labelinfo linfo;
 
-	  linfo = (Labelinfo) data;
-	  if (inTermlist (cl->prec, linfo->label ))
-	    {
-	      if (linfo->protocol == cl->protocol)
+	linfo = (Labelinfo) data;
+	if (inTermlist (cl->prec, linfo->label))
+	  {
+	    if (linfo->protocol == cl->protocol)
+	      {
+		// If it's not the same protocol, the labels can't match
+
+		// This function checks whether the newrole can connect to the connectedrole, and whether they fulfil their requirements.
+		void roles_test (const Term connectedrole, const Term newrole)
 		{
-		  // If it's not the same protocol, the labels can't match
-
-		  // This function checks whether the newrole can connect to the connectedrole, and whether they fulfil their requirements.
-		  void roles_test (const Term connectedrole, const Term newrole)
+		  if (inTermlist (roles_ordered, connectedrole) &&
+		      inTermlist (roles_remaining, newrole))
 		    {
-		      if (inTermlist (roles_ordered, connectedrole) &&
-			  inTermlist (roles_remaining, newrole))
-			{
 #ifdef DEBUG
-			  if (DEBUGL (4))
-			    {
-			      eprintf (" ");
-			      termPrint (newrole);
-			    }
-#endif
-			  roles_ordered = termlistAppend (roles_ordered, newrole);
-			  roles_remaining = termlistDelTerm (termlistFind (roles_remaining, newrole));
+		      if (DEBUGL (4))
+			{
+			  eprintf (" ");
+			  termPrint (newrole);
 			}
+#endif
+		      roles_ordered = termlistAppend (roles_ordered, newrole);
+		      roles_remaining =
+			termlistDelTerm (termlistFind
+					 (roles_remaining, newrole));
 		    }
-
-		  roles_test (linfo->sendrole, linfo->readrole);
-		  roles_test (linfo->readrole, linfo->sendrole);
 		}
-	    }
-	  return 1;
-	}
+
+		roles_test (linfo->sendrole, linfo->readrole);
+		roles_test (linfo->readrole, linfo->sendrole);
+	      }
+	  }
+	return 1;
+      }
 
       list_iterate (sys->labellist, scan_label);
     }
@@ -1417,7 +1424,7 @@ compute_prec_sets (const System sys)
 	    {
 	      Protocol p;
 
-	      printf ("Preceding label set for r:%i, ev:%i = ", r1,ev1);
+	      printf ("Preceding label set for r:%i, ev:%i = ", r1, ev1);
 	      termlistPrint (cl->prec);
 	      printf (", involving roles ");
 	      termlistPrint (cl->roles);

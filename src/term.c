@@ -75,8 +75,8 @@ makeTermEncrypt (Term t1, Term t2)
   Term term = makeTerm ();
   term->type = ENCRYPT;
   term->stype = NULL;
-  TermOp(term) = t1;
-  TermKey(term) = t2;
+  TermOp (term) = t1;
+  TermKey (term) = t2;
   return term;
 }
 
@@ -111,8 +111,8 @@ makeTermTuple (Term t1, Term t2)
   tt = makeTerm ();
   tt->type = TUPLE;
   tt->stype = NULL;
-  TermOp1(tt) = t1;
-  TermOp2(tt) = t2;
+  TermOp1 (tt) = t1;
+  TermOp2 (tt) = t2;
   return tt;
 }
 
@@ -128,8 +128,8 @@ makeTermType (const int type, const Symbol symb, const int runid)
   term->type = type;
   term->stype = NULL;
   term->subst = NULL;
-  TermSymb(term) = symb;
-  TermRunid(term) = runid;
+  TermSymb (term) = symb;
+  TermRunid (term) = runid;
   return term;
 }
 
@@ -163,11 +163,11 @@ hasTermVariable (Term term)
   else
     {
       if (realTermTuple (term))
-	return (hasTermVariable (TermOp1(term))
-		|| hasTermVariable (TermOp2(term)));
+	return (hasTermVariable (TermOp1 (term))
+		|| hasTermVariable (TermOp2 (term)));
       else
-	return (hasTermVariable (TermOp(term))
-		|| hasTermVariable (TermKey(term)));
+	return (hasTermVariable (TermOp (term))
+		|| hasTermVariable (TermKey (term)));
     }
 }
 
@@ -206,8 +206,8 @@ isTermEqualFn (Term term1, Term term2)
     }
   if (realTermLeaf (term1))
     {
-      return (TermSymb(term1) == TermSymb(term2)
-	      && TermRunid(term1) == TermRunid(term2));
+      return (TermSymb (term1) == TermSymb (term2)
+	      && TermRunid (term1) == TermRunid (term2));
     }
   else
     {
@@ -218,15 +218,15 @@ isTermEqualFn (Term term1, Term term2)
 	  /* for optimization of encryption equality, we compare
 	     operator 2 first (we expect it to be a smaller term)
 	   */
-	  return (isTermEqualFn (TermKey(term1), TermKey(term2)) &&
-		  isTermEqualFn (TermOp(term1), TermOp(term2)));
+	  return (isTermEqualFn (TermKey (term1), TermKey (term2)) &&
+		  isTermEqualFn (TermOp (term1), TermOp (term2)));
 	}
       else
 	{
 	  /* tuple */
 
-	  return (isTermEqualFn (TermOp1(term1), TermOp1(term2)) &&
-		  isTermEqualFn (TermOp2(term1), TermOp2(term2)));
+	  return (isTermEqualFn (TermOp1 (term1), TermOp1 (term2)) &&
+		  isTermEqualFn (TermOp2 (term1), TermOp2 (term2)));
 	}
     }
 }
@@ -248,11 +248,11 @@ termSubTerm (Term t, Term tsub)
   if (realTermLeaf (t))
     return 0;
   if (realTermTuple (t))
-    return (termSubTerm (TermOp1(t), tsub)
-	    || termSubTerm (TermOp2(t), tsub));
+    return (termSubTerm (TermOp1 (t), tsub)
+	    || termSubTerm (TermOp2 (t), tsub));
   else
-    return (termSubTerm (TermOp(t), tsub)
-	    || termSubTerm (TermKey(t), tsub));
+    return (termSubTerm (TermOp (t), tsub)
+	    || termSubTerm (TermKey (t), tsub));
 }
 
 //! See if a term is an interm of another.
@@ -272,8 +272,7 @@ termInTerm (Term t, Term tsub)
   if (realTermLeaf (t))
     return 0;
   if (realTermTuple (t))
-    return (termInTerm (TermOp1(t), tsub)
-	    || termInTerm (TermOp2(t), tsub));
+    return (termInTerm (TermOp1 (t), tsub) || termInTerm (TermOp2 (t), tsub));
   else
     return 0;
 }
@@ -303,15 +302,15 @@ termPrint (Term term)
 #endif
   if (realTermLeaf (term))
     {
-      symbolPrint (TermSymb(term));
+      symbolPrint (TermSymb (term));
       if (term->type == VARIABLE)
 	eprintf ("V");
-      if (TermRunid(term) >= 0)
+      if (TermRunid (term) >= 0)
 	{
 	  if (globalLatex && globalError == 0)
-	    eprintf ("\\sharp%i", TermRunid(term));
+	    eprintf ("\\sharp%i", TermRunid (term));
 	  else
-	    eprintf ("#%i", TermRunid(term));
+	    eprintf ("#%i", TermRunid (term));
 	}
       if (term->subst != NULL)
 	{
@@ -331,13 +330,13 @@ termPrint (Term term)
     }
   if (realTermEncrypt (term))
     {
-      if (isTermLeaf (TermKey(term))
-	  && inTermlist (TermKey(term)->stype, TERM_Function))
+      if (isTermLeaf (TermKey (term))
+	  && inTermlist (TermKey (term)->stype, TERM_Function))
 	{
 	  /* function application */
-	  termPrint (TermKey(term));
+	  termPrint (TermKey (term));
 	  eprintf ("(");
-	  termTuplePrint (TermOp(term));
+	  termTuplePrint (TermOp (term));
 	  eprintf (")");
 	}
       else
@@ -346,17 +345,17 @@ termPrint (Term term)
 	  if (globalLatex)
 	    {
 	      eprintf ("\\{");
-	      termTuplePrint (TermOp(term));
+	      termTuplePrint (TermOp (term));
 	      eprintf ("\\}_{");
-	      termPrint (TermKey(term));
+	      termPrint (TermKey (term));
 	      eprintf ("}");
 	    }
 	  else
 	    {
 	      eprintf ("{");
-	      termTuplePrint (TermOp(term));
+	      termTuplePrint (TermOp (term));
 	      eprintf ("}");
-	      termPrint (TermKey(term));
+	      termPrint (TermKey (term));
 	    }
 	}
     }
@@ -380,9 +379,9 @@ termTuplePrint (Term term)
   while (realTermTuple (term))
     {
       // To remove any brackets, change this into termTuplePrint.
-      termPrint (TermOp1(term));
+      termPrint (TermOp1 (term));
       eprintf (",");
-      term = deVar (TermOp2(term));
+      term = deVar (TermOp2 (term));
     }
   termPrint (term);
   return;
@@ -409,13 +408,13 @@ termDuplicate (const Term term)
   memcpy (newterm, term, sizeof (struct term));
   if (realTermEncrypt (term))
     {
-      TermOp(newterm) = termDuplicate (TermOp(term));
-      TermKey(newterm) = termDuplicate (TermKey(term));
+      TermOp (newterm) = termDuplicate (TermOp (term));
+      TermKey (newterm) = termDuplicate (TermKey (term));
     }
   else
     {
-      TermOp1(newterm) = termDuplicate (TermOp1(term));
-      TermOp2(newterm) = termDuplicate (TermOp2(term));
+      TermOp1 (newterm) = termDuplicate (TermOp1 (term));
+      TermOp2 (newterm) = termDuplicate (TermOp2 (term));
     }
   return newterm;
 }
@@ -464,13 +463,13 @@ termDuplicateDeep (const Term term)
     {
       if (realTermEncrypt (term))
 	{
-	  TermOp(newterm) = termDuplicateDeep (TermOp(term));
-	  TermKey(newterm) = termDuplicateDeep (TermKey(term));
+	  TermOp (newterm) = termDuplicateDeep (TermOp (term));
+	  TermKey (newterm) = termDuplicateDeep (TermKey (term));
 	}
       else
 	{
-	  TermOp1(newterm) = termDuplicateDeep (TermOp1(term));
-	  TermOp2(newterm) = termDuplicateDeep (TermOp2(term));
+	  TermOp1 (newterm) = termDuplicateDeep (TermOp1 (term));
+	  TermOp2 (newterm) = termDuplicateDeep (TermOp2 (term));
 	}
     }
   return newterm;
@@ -497,13 +496,13 @@ termDuplicateUV (Term term)
   memcpy (newterm, term, sizeof (struct term));
   if (realTermEncrypt (term))
     {
-      TermOp(newterm) = termDuplicateUV (TermOp(term));
-      TermKey(newterm) = termDuplicateUV (TermKey(term));
+      TermOp (newterm) = termDuplicateUV (TermOp (term));
+      TermKey (newterm) = termDuplicateUV (TermKey (term));
     }
   else
     {
-      TermOp1(newterm) = termDuplicateUV (TermOp1(term));
-      TermOp2(newterm) = termDuplicateUV (TermOp2(term));
+      TermOp1 (newterm) = termDuplicateUV (TermOp1 (term));
+      TermOp2 (newterm) = termDuplicateUV (TermOp2 (term));
     }
   return newterm;
 }
@@ -534,13 +533,13 @@ realTermDuplicate (const Term term)
       newterm->type = term->type;
       if (realTermEncrypt (term))
 	{
-	  TermOp(newterm) = realTermDuplicate (TermOp(term));
-	  TermKey(newterm) = realTermDuplicate (TermKey(term));
+	  TermOp (newterm) = realTermDuplicate (TermOp (term));
+	  TermKey (newterm) = realTermDuplicate (TermKey (term));
 	}
       else
 	{
-	  TermOp1(newterm) = realTermDuplicate (TermOp1(term));
-	  TermOp2(newterm) = realTermDuplicate (TermOp2(term));
+	  TermOp1 (newterm) = realTermDuplicate (TermOp1 (term));
+	  TermOp2 (newterm) = realTermDuplicate (TermOp2 (term));
 	}
     }
   return newterm;
@@ -560,13 +559,13 @@ termDelete (const Term term)
     {
       if (realTermEncrypt (term))
 	{
-	  termDelete (TermOp(term));
-	  termDelete (TermKey(term));
+	  termDelete (TermOp (term));
+	  termDelete (TermKey (term));
 	}
       else
 	{
-	  termDelete (TermOp1(term));
-	  termDelete (TermOp2(term));
+	  termDelete (TermOp1 (term));
+	  termDelete (TermOp2 (term));
 	}
       memFree (term, sizeof (struct term));
     }
@@ -589,29 +588,29 @@ termNormalize (Term term)
 
   if (realTermEncrypt (term))
     {
-      termNormalize (TermOp(term));
-      termNormalize (TermKey(term));
+      termNormalize (TermOp (term));
+      termNormalize (TermKey (term));
     }
   else
     {
       /* normalize left hand first,both for tupling and for
          encryption */
-      termNormalize (TermOp1(term));
+      termNormalize (TermOp1 (term));
       /* check for ((x,y),z) construct */
-      if (realTermTuple (TermOp1(term)))
+      if (realTermTuple (TermOp1 (term)))
 	{
 	  /* temporarily store the old terms */
-	  Term tx = TermOp1(TermOp1(term));
-	  Term ty = TermOp2(TermOp1(term));
-	  Term tz = TermOp2(term);
+	  Term tx = TermOp1 (TermOp1 (term));
+	  Term ty = TermOp2 (TermOp1 (term));
+	  Term tz = TermOp2 (term);
 	  /* move node */
-	  TermOp2(term) = TermOp1(term);
+	  TermOp2 (term) = TermOp1 (term);
 	  /* construct (x,(y,z)) version */
-	  TermOp1(term) = tx;
-	  TermOp1(TermOp2(term)) = ty;
-	  TermOp2(TermOp2(term)) = tz;
+	  TermOp1 (term) = tx;
+	  TermOp1 (TermOp2 (term)) = ty;
+	  TermOp2 (TermOp2 (term)) = tz;
 	}
-      termNormalize (TermOp2(term));
+      termNormalize (TermOp2 (term));
     }
 }
 
@@ -629,12 +628,12 @@ termRunid (Term term, int runid)
   if (realTermLeaf (term))
     {
       /* leaf */
-      if (TermRunid(term) == runid)
+      if (TermRunid (term) == runid)
 	return term;
       else
 	{
 	  Term newt = termDuplicate (term);
-	  TermRunid(newt) = runid;
+	  TermRunid (newt) = runid;
 	  return newt;
 	}
     }
@@ -643,13 +642,13 @@ termRunid (Term term, int runid)
       /* anything else, recurse */
       if (realTermEncrypt (term))
 	{
-	  return makeTermEncrypt (termRunid (TermOp(term), runid),
-				  termRunid (TermKey(term), runid));
+	  return makeTermEncrypt (termRunid (TermOp (term), runid),
+				  termRunid (TermKey (term), runid));
 	}
       else
 	{
-	  return makeTermTuple (termRunid (TermOp1(term), runid),
-				termRunid (TermOp2(term), runid));
+	  return makeTermTuple (termRunid (TermOp1 (term), runid),
+				termRunid (TermOp2 (term), runid));
 	}
     }
 }
@@ -674,7 +673,7 @@ tupleCount (Term tt)
 	}
       else
 	{
-	  return (tupleCount (TermOp1(tt)) + tupleCount (TermOp2(tt)));
+	  return (tupleCount (TermOp1 (tt)) + tupleCount (TermOp2 (tt)));
 	}
     }
 }
@@ -710,16 +709,16 @@ tupleProject (Term tt, int n)
   else
     {
       /* there is a tuple to traverse */
-      int left = tupleCount (TermOp1(tt));
+      int left = tupleCount (TermOp1 (tt));
       if (n >= left)
 	{
 	  /* it's in the right hand side */
-	  return tupleProject (TermOp2(tt), n - left);
+	  return tupleProject (TermOp2 (tt), n - left);
 	}
       else
 	{
 	  /* left hand side */
-	  return tupleProject (TermOp1(tt), n);
+	  return tupleProject (TermOp1 (tt), n);
 	}
     }
 }
@@ -749,11 +748,11 @@ termSize (Term t)
     {
       if (realTermEncrypt (t))
 	{
-	  return 1 + termSize (TermOp(t)) + termSize (TermKey(t));
+	  return 1 + termSize (TermOp (t)) + termSize (TermKey (t));
 	}
       else
 	{
-	  return termSize (TermOp1(t)) + termSize (TermOp2(t));
+	  return termSize (TermOp1 (t)) + termSize (TermOp2 (t));
 	}
     }
 }
@@ -811,13 +810,13 @@ termDistance (Term t1, Term t2)
 	  if (isTermEncrypt (t1))
 	    {
 	      /* encryption */
-	      return (termDistance (TermOp(t1), TermOp(t2)) +
-		      termDistance (TermKey(t1), TermKey(t2))) / 2;
+	      return (termDistance (TermOp (t1), TermOp (t2)) +
+		      termDistance (TermKey (t1), TermKey (t2))) / 2;
 	    }
 	  else
 	    {
-	      return (termDistance (TermOp1(t1), TermOp1(t2)) +
-		      termDistance (TermOp2(t1), TermOp2(t2))) / 2;
+	      return (termDistance (TermOp1 (t1), TermOp1 (t2)) +
+		      termDistance (TermOp2 (t1), TermOp2 (t2))) / 2;
 	    }
 	}
     }
@@ -859,7 +858,7 @@ termOrder (Term t1, Term t2)
       /* compare names */
       int comp;
 
-      comp = strcmp (TermSymb(t1)->text, TermSymb(t2)->text);
+      comp = strcmp (TermSymb (t1)->text, TermSymb (t2)->text);
       if (comp != 0)
 	{
 	  /* names differ */
@@ -868,14 +867,14 @@ termOrder (Term t1, Term t2)
       else
 	{
 	  /* equal names, compare run identifiers */
-	  if (TermRunid(t1) == TermRunid(t2))
+	  if (TermRunid (t1) == TermRunid (t2))
 	    {
 	      error
 		("termOrder: two terms seem to be identical although local precondition says they aren't.");
 	    }
 	  else
 	    {
-	      if (TermRunid(t1) < TermRunid(t2))
+	      if (TermRunid (t1) < TermRunid (t2))
 		return -1;
 	      else
 		return 1;
@@ -889,13 +888,13 @@ termOrder (Term t1, Term t2)
 
       if (isTermEncrypt (t1))
 	{
-	  compL = termOrder (TermOp(t1), TermOp(t2));
-	  compR = termOrder (TermKey(t1), TermKey(t2));
+	  compL = termOrder (TermOp (t1), TermOp (t2));
+	  compR = termOrder (TermKey (t1), TermKey (t2));
 	}
       else
 	{
-	  compL = termOrder (TermOp1(t1), TermOp1(t2));
-	  compR = termOrder (TermOp2(t1), TermOp2(t2));
+	  compL = termOrder (TermOp1 (t1), TermOp1 (t2));
+	  compR = termOrder (TermOp2 (t1), TermOp2 (t2));
 	}
       if (compL != 0)
 	return compL;
@@ -931,10 +930,10 @@ term_iterate (const Term term, int (*leaf) (), int (*nodel) (),
 	  // Left part
 	  if (realTermTuple (term))
 	    flag = flag
-	      && (term_iterate (TermOp1(term), leaf, nodel, nodem, noder));
+	      && (term_iterate (TermOp1 (term), leaf, nodel, nodem, noder));
 	  else
 	    flag = flag
-	      && (term_iterate (TermOp(term), leaf, nodel, nodem, noder));
+	      && (term_iterate (TermOp (term), leaf, nodel, nodem, noder));
 
 	  if (nodem != NULL)
 	    flag = flag && nodem (term);
@@ -942,10 +941,10 @@ term_iterate (const Term term, int (*leaf) (), int (*nodel) (),
 	  // Right part
 	  if (realTermTuple (term))
 	    flag = flag
-	      && (term_iterate (TermOp2(term), leaf, nodel, nodem, noder));
+	      && (term_iterate (TermOp2 (term), leaf, nodel, nodem, noder));
 	  else
 	    flag = flag
-	      && (term_iterate (TermKey(term), leaf, nodel, nodem, noder));
+	      && (term_iterate (TermKey (term), leaf, nodel, nodem, noder));
 
 	  if (noder != NULL)
 	    flag = flag && noder (term);
@@ -990,11 +989,11 @@ term_iterate_deVar (Term term, int (*leaf) (), int (*nodel) (),
 	    flag = flag
 	      &&
 	      (term_iterate_deVar
-	       (TermOp1(term), leaf, nodel, nodem, noder));
+	       (TermOp1 (term), leaf, nodel, nodem, noder));
 	  else
 	    flag = flag
 	      &&
-	      (term_iterate_deVar (TermOp(term), leaf, nodel, nodem, noder));
+	      (term_iterate_deVar (TermOp (term), leaf, nodel, nodem, noder));
 
 	  if (nodem != NULL)
 	    flag = flag && nodem (term);
@@ -1004,11 +1003,12 @@ term_iterate_deVar (Term term, int (*leaf) (), int (*nodel) (),
 	    flag = flag
 	      &&
 	      (term_iterate_deVar
-	       (TermOp2(term), leaf, nodel, nodem, noder));
+	       (TermOp2 (term), leaf, nodel, nodem, noder));
 	  else
 	    flag = flag
 	      &&
-	      (term_iterate_deVar (TermKey(term), leaf, nodel, nodem, noder));
+	      (term_iterate_deVar
+	       (TermKey (term), leaf, nodel, nodem, noder));
 
 	  if (noder != NULL)
 	    flag = flag && noder (term);
@@ -1037,11 +1037,11 @@ term_iterate_leaves (const Term term, int (*func) ())
       else
 	{
 	  if (realTermTuple (term))
-	    return (term_iterate_leaves (TermOp1(term), func)
-		    && term_iterate_leaves (TermOp2(term), func));
+	    return (term_iterate_leaves (TermOp1 (term), func)
+		    && term_iterate_leaves (TermOp2 (term), func));
 	  else
-	    return (term_iterate_leaves (TermOp(term), func)
-		    && term_iterate_leaves (TermKey(term), func));
+	    return (term_iterate_leaves (TermOp (term), func)
+		    && term_iterate_leaves (TermKey (term), func));
 	}
     }
   return 1;
@@ -1078,32 +1078,32 @@ int
 term_encryption_level (const Term term)
 {
   int iter_maxencrypt (Term term)
-    {
-      term = deVar (term);
-      if (realTermLeaf (term))
-	{
-	  return 0;
-	}
-      else
-	{
-	  if (realTermTuple (term))
-	    {
-	      int l,r;
+  {
+    term = deVar (term);
+    if (realTermLeaf (term))
+      {
+	return 0;
+      }
+    else
+      {
+	if (realTermTuple (term))
+	  {
+	    int l, r;
 
-	      l = iter_maxencrypt (TermOp1(term));
-	      r = iter_maxencrypt (TermOp2(term));
-	      if (l>r)
-		  return l;
-	      else
-		  return r;
-	    }
-	  else
-	    {
-	      // encrypt
-	      return 1+iter_maxencrypt (TermOp(term));
-	    }
-	}
-    }
+	    l = iter_maxencrypt (TermOp1 (term));
+	    r = iter_maxencrypt (TermOp2 (term));
+	    if (l > r)
+	      return l;
+	    else
+	      return r;
+	  }
+	else
+	  {
+	    // encrypt
+	    return 1 + iter_maxencrypt (TermOp (term));
+	  }
+      }
+  }
 
   return iter_maxencrypt (term);
 }
@@ -1134,13 +1134,13 @@ term_constrain_level (const Term term)
       {
 	if (realTermTuple (t))
 	  {
-	    tcl_iterate (TermOp1(t));
-	    tcl_iterate (TermOp2(t));
+	    tcl_iterate (TermOp1 (t));
+	    tcl_iterate (TermOp2 (t));
 	  }
 	else
 	  {
-	    tcl_iterate (TermOp(t));
-	    tcl_iterate (TermKey(t));
+	    tcl_iterate (TermOp (t));
+	    tcl_iterate (TermKey (t));
 	  }
       }
   }
@@ -1184,7 +1184,7 @@ term_set_keylevels (const Term term)
 	Symbol sym;
 
 	// So, it occurs at 'level' as key. If that is less than known, store.
-	sym = TermSymb(t);
+	sym = TermSymb (t);
 	if (level < sym->keylevel)
 	  {
 	    // New minimum level
@@ -1195,13 +1195,13 @@ term_set_keylevels (const Term term)
       {
 	if (realTermTuple (t))
 	  {
-	    scan_levels (level, TermOp1(t));
-	    scan_levels (level, TermOp2(t));
+	    scan_levels (level, TermOp1 (t));
+	    scan_levels (level, TermOp2 (t));
 	  }
 	else
 	  {
-	    scan_levels (level, TermOp(t));
-	    scan_levels ((level + 1), TermKey(t));
+	    scan_levels (level, TermOp (t));
+	    scan_levels ((level + 1), TermKey (t));
 	  }
       }
   }
@@ -1220,16 +1220,16 @@ termPrintDiff (Term t1, Term t2)
   t2 = deVar (t2);
 
   void termFromTo (Term t1, Term t2)
-    {
-      t1 = deVar (t1);
-      t2 = deVar (t2);
+  {
+    t1 = deVar (t1);
+    t2 = deVar (t2);
 
-      eprintf (" [");
-      termPrint (t1);
-      eprintf ("]->[");
-      termPrint (t2);
-      eprintf ("] ");
-    }
+    eprintf (" [");
+    termPrint (t1);
+    eprintf ("]->[");
+    termPrint (t2);
+    eprintf ("] ");
+  }
 
   if (isTermEqual (t1, t2))
     {
@@ -1241,7 +1241,7 @@ termPrintDiff (Term t1, Term t2)
       if (t1->type != t2->type)
 	{
 	  // Different types
-	  termFromTo (t1,t2);
+	  termFromTo (t1, t2);
 	}
       else
 	{
@@ -1257,31 +1257,33 @@ termPrintDiff (Term t1, Term t2)
 	      if (realTermEncrypt (t1))
 		{
 		  // Encryption
-		  if (isTermEqual (TermOp(t1), TermOp(t2)) || isTermEqual (TermKey(t1), TermKey(t2)))
+		  if (isTermEqual (TermOp (t1), TermOp (t2))
+		      || isTermEqual (TermKey (t1), TermKey (t2)))
 		    {
 		      eprintf ("{");
-		      termPrintDiff (TermOp(t1), TermOp(t2));
+		      termPrintDiff (TermOp (t1), TermOp (t2));
 		      eprintf ("}");
-		      termPrintDiff (TermKey(t1), TermKey(t2));
+		      termPrintDiff (TermKey (t1), TermKey (t2));
 		    }
 		  else
 		    {
-		      termFromTo (t1,t2);
+		      termFromTo (t1, t2);
 		    }
 		}
 	      else
 		{
 		  // Tupling
-		  if (isTermEqual (TermOp1(t1), TermOp1(t2)) || isTermEqual (TermOp2(t1), TermOp2(t2)))
+		  if (isTermEqual (TermOp1 (t1), TermOp1 (t2))
+		      || isTermEqual (TermOp2 (t1), TermOp2 (t2)))
 		    {
 		      eprintf ("(");
-		      termPrintDiff (TermOp1(t1), TermOp1(t2));
+		      termPrintDiff (TermOp1 (t1), TermOp1 (t2));
 		      eprintf (")");
-		      termPrintDiff (TermOp2(t1), TermOp2(t2));
+		      termPrintDiff (TermOp2 (t1), TermOp2 (t2));
 		    }
 		  else
 		    {
-		      termFromTo (t1,t2);
+		      termFromTo (t1, t2);
 		    }
 		}
 	    }
