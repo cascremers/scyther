@@ -2,54 +2,57 @@
 
 usertype Sessionkey;
 
-const a,b,s,Eve : Agent;
+const Alice,Bob,Simon,Eve : Agent;
 secret k : Function;
 
 untrusted Eve;
-compromised k(Eve,s);
+compromised k(Eve,Simon);
+const ne: Nonce;
+const kee: Sessionkey;
 
-protocol yahalomlowe(A,B,S)
+protocol yahalomlowe(I,R,S)
 {
-	role A
+	role I
 	{
-		const na: Nonce;
-		var nb: Nonce;
-		var kab: Sessionkey;
+		const ni: Nonce;
+		var nr: Nonce;
+		var kir: Sessionkey;
 
-		send_1(A,B, A,na);
-		read_3(S,A, {B,kab,na,nb}k(A,S) );
-		send_5(A,B, {A,B,S,nb}kab );
-		claim(A, Secret,kab);
+		send_1(I,R, I,ni);
+		read_3(S,I, {R,kir,ni,nr}k(I,S) );
+		send_5(I,R, {I,R,S,nr}kir );
+		claim_8(I, Secret,kir);
 	}
 
-	role B
+	role R
 	{
-		const nb: Nonce;
-		var na: Nonce;
-		var kab: Sessionkey;
+		const nr: Nonce;
+		var ni: Nonce;
+		var kir: Sessionkey;
 
-		read_1(A,B, A,na);
-		send_2(B,S, {A,na,nb}k(B,S) );
-		read_4(S,B, {A,kab}k(B,S) );
-		read_5(A,B, {A,B,S,nb}kab );
-		claim(B, Secret,kab);
+		read_1(I,R, I,ni);
+		send_2(R,S, {I,ni,nr}k(R,S) );
+		read_4(S,R, {I,kir}k(R,S) );
+		read_5(I,R, {I,R,S,nr}kir );
+		claim_9(R, Secret,kir);
+		claim_10(R, Nisynch);
 	}
 
 	role S
 	{
-		const kab: Sessionkey;
-		var na,nb: Nonce;
+		const kir: Sessionkey;
+		var ni,nr: Nonce;
 
-		read_2(B,S, {A,na,nb}k(B,S) );
-		send_3(S,A, {B,kab,na,nb}k(A,S) );
-		send_4(S,B, {A,kab}k(B,S) );
+		read_2(R,S, {I,ni,nr}k(R,S) );
+		send_3(S,I, {R,kir,ni,nr}k(I,S) );
+		send_4(S,R, {I,kir}k(R,S) );
 	}
 }
 
-run yahalomlowe.A(Agent,Agent,s);
-run yahalomlowe.B(Agent,Agent,s);
-run yahalomlowe.S(Agent,Agent,s);
+run yahalomlowe.I(Agent,Agent,Simon);
+run yahalomlowe.R(Agent,Agent,Simon);
+run yahalomlowe.S(Agent,Agent,Simon);
 
-run yahalomlowe.A(Agent,Agent,s);
-run yahalomlowe.B(Agent,Agent,s);
+run yahalomlowe.I(Agent,Agent,Simon);
+run yahalomlowe.R(Agent,Agent,Simon);
 
