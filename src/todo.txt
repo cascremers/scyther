@@ -1,3 +1,4 @@
+- soph segfaults at no switch or -r4 (-r3 is okay??) using non-debug version.
 - Splice/AS does not work well because priority key search stumbles over the
   public key search stuff. That is a flaw in the heuristic: we should not look
   for anything that is in the intruder knowledge already. In fact, it is a
