@@ -1037,6 +1037,7 @@ traversePOR8 (const System sys)
 //! Check for the properties that have lasting effects throughout the trace.
 /**
  * Currently, only functions for secrecy.
+ *@returns 1 (true) iff everything is okay, and no attack is found. 0 (false) if an attack is found.
  */
 
 int

@@ -57,6 +57,7 @@
 #include "argtable2.h"
 
 extern struct tacnode *spdltac;
+extern Term TERM_Claim;
 void scanner_cleanup (void);
 void strings_cleanup (void);
 int yyparse (void);
@@ -83,6 +84,7 @@ main (int argc, char **argv)
 
   struct arg_file *infile  = arg_file0(NULL,NULL,"FILE",    "input file ('-' for stdin)");
   struct arg_file *outfile = arg_file0("o","output","FILE", "output file (default is stdout)");
+  struct arg_str *switch_check = arg_str0(NULL,"check","CLAIM","claim type to check (default is all)");
   struct arg_int *switch_scenario =
       arg_int0 ("s", "scenario", NULL, "select a scenario instance 1-n (-1 to count)");
   struct arg_int *switch_scenario_size =
@@ -140,6 +142,7 @@ main (int argc, char **argv)
     switch_echo,
     switch_progress_bar, 
 
+    switch_check,
     switch_traversal_method, 
     switch_match_method, 
     switch_clp,
@@ -300,6 +303,8 @@ main (int argc, char **argv)
    */
 
   sys = systemInit ();
+  /* init compiler for this system */
+  compilerInit (sys);
 
   /* transfer command line */
   sys->argc = argc;
@@ -369,6 +374,31 @@ main (int argc, char **argv)
   sys->latex = switch_latex_output->count;
   sys->know = emptyKnowledge ();
 
+
+  /* parse compiler-dependant switches */
+  if (switch_check->count > 0)
+    {
+      Term claim;
+
+#ifdef DEBUG
+      if (lookup(switch_check->sval[0]) == NULL)
+	{
+	  globalError++;
+	  warning ("Could not find this string at all in:");
+	  symbolPrintAll ();
+	  eprintf ("\n");
+	  globalError--;
+	}
+#endif
+      claim = findGlobalConstant (switch_check->sval[0]);
+      if (claim == NULL)
+	  error ("Unknown claim type to check.");
+      if (inTermlist (claim->stype, TERM_Claim))
+	  sys->switchClaimToCheck = claim;
+      else
+	  error ("Claim type to check is not a claim.");
+    }
+
   /* parse input */
 
   yyparse ();
@@ -379,7 +409,7 @@ main (int argc, char **argv)
 
   /* compile */
 
-  compile (sys, spdltac, switch_maximum_runs->ival[0]);
+  compile (spdltac, switch_maximum_runs->ival[0]);
   scanner_cleanup ();
 
   /* preprocess */
@@ -548,6 +578,7 @@ main (int argc, char **argv)
 
   knowledgeDestroy (sys->know);
   systemDone (sys);
+  compilerDone ();
 
   /* done symbols */
   tacDone ();

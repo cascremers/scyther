@@ -130,6 +130,7 @@ struct system
   int switchNomoreClaims;	//!< Enable no more claims cutter
   int switchReduceEndgame;	//!< Enable endgame cutter
   int switchClaims;		//!< Enable clails report
+  Term switchClaimToCheck;	//!< Which claim should be checked?
 
   //! Latex output switch.
   /**

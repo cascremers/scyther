@@ -7,8 +7,6 @@
 - Intruder should at least have one copy of each type that an agent can
   construct, I think in any case. Proof needed for single identifier need.
   Furthermore reduction if type flaw testing; only one constant needed.
-- Make filter switch, allowing maybe for some claims only to be evaluated.
-  --check=Secret, --check-all as default.
 - Make --with-argtabledir= something switch, replacing
   README/galious-configure.sh constructs.
 - Move initial intruder knowledge maybe into the title of the MSC.

@@ -67,6 +67,7 @@ systemInit ()
   sys->switchNomoreClaims = 1;	// default cutter when there are no more claims
   sys->switchReduceEndgame = 1;	// default cutter of last events in a trace
   sys->switchClaims = 0;	// default don't report on claims
+  sys->switchClaimToCheck = NULL;	// default check all claims
 
   /* set illegal traversal by default, to make sure it is set
      later */

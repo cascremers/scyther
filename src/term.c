@@ -832,9 +832,9 @@ int termOrder (Term t1, Term t2)
       /* compare names */
       int comp;
 
-      name1 = t1->left.symb->text;
-      name2 = t2->left.symb->text;
-      comp = strcmp (name1,name2);
+      comp = strcmp (t1->left.symb->text,
+      		     t2->left.symb->text
+		     );
       if (comp != 0)
 	{
 	  /* names differ */

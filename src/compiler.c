@@ -18,6 +18,7 @@
 */
 
 static System sys;
+static Tac tac_root;
 
 /*
    Forward declarations.
@@ -67,20 +68,12 @@ static int maxruns;
 static Protocol thisProtocol;
 static Role thisRole;
 
-/* ------------------------------------------------------------------- */
-
-//! Compile the tac into the system
-/**
- *@todo Currently, the semantics assume all labels are globally unique, but this is not enforced yet. There should be some automatic renaming when compositing protocols.
- *\sa oki_nisynch
- */
+//! Init terms and such
 void
-compile (const System mysys, Tac tc, int maxrunsset)
+compilerInit (const System mysys)
 {
   int i;
 
-  /* Init globals */
-  maxruns = maxrunsset;
   /* transfer to global static variable */
   sys = mysys;
   /* init levels */
@@ -105,9 +98,30 @@ compile (const System mysys, Tac tc, int maxrunsset)
   langcons (CLAIM_Secret, "Secret", TERM_Claim);
   langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);
   langcons (CLAIM_Niagree, "Niagree", TERM_Claim);
+}
 
+//! Clean up afterwards
+void
+compilerDone (void)
+{
+  return;
+}
+
+/* ------------------------------------------------------------------- */
+
+//! Compile the tac into the system
+/**
+ *@todo Currently, the semantics assume all labels are globally unique, but this is not enforced yet. There should be some automatic renaming when compositing protocols.
+ *\sa oki_nisynch
+ */
+void
+compile (Tac tc, int maxrunsset)
+{
+  /* Init globals */
+  maxruns = maxrunsset;
+  tac_root = tc;
   /* process the tac */
-  tacProcess (tc);
+  tacProcess (tac_root);
 
   /* cleanup */
   levelDone ();
@@ -226,6 +240,12 @@ symbolFind (Symbol s)
       i--;
     }
   return NULL;
+}
+
+//! Yield a basic global constant term (we suppose it exists) or NULL, given a string
+Term findGlobalConstant (const char *s)
+{
+  return levelFind (lookup (s), 0);
 }
 
 void
@@ -372,6 +392,15 @@ commEvent (int event, Tac tc)
       /* check for several types */
       claim = tupleProject (claimbig, 0);
       torole = claim;
+
+      /* check for ignored claim types */
+      if (sys->switchClaimToCheck != NULL &&
+	  sys->switchClaimToCheck != claim)
+	{
+	  /* abort the construction of the node */
+	  return;
+	}
+
       /* check for obvious flaws */
       if (claim == NULL)
 	{

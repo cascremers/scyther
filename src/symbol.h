@@ -20,7 +20,7 @@ struct symbol
   //! Line number at which it occurred.
   int lineno;
   //! Ascii string with name of the symbol.
-  char *text;
+  const char *text;
   //! Possible next pointer.
   struct symbol *next;
   //! Used for linking all symbol blocks, freed or in use.
@@ -33,12 +33,13 @@ void symbolsInit (void);
 void symbolsDone (void);
 
 Symbol get_symb (void);
-void free_symb (Symbol s);
+void free_symb (const Symbol s);
 
-void insert (Symbol s);
-Symbol lookup (char *s);
-void symbolPrint (Symbol s);
-Symbol symbolSysConst (char *str);
+void insert (const Symbol s);
+Symbol lookup (const char *s);
+void symbolPrint (const Symbol s);
+void symbolPrintAll (void);
+Symbol symbolSysConst (const char *str);
 
 void eprintf (char *fmt, ... );
 

@@ -1,7 +1,11 @@
 #ifndef COMPILER
 #define COMPILER
 
-void compile (const System sys, Tac tc, int maxruns);
+void compilerInit (const System sys);
+void compilerDone (void);
+
+void compile (Tac tc, int maxruns);
 void preprocess (const System sys);
+Term findGlobalConstant (const char *s);
 
 #endif

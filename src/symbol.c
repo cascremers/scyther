@@ -84,7 +84,7 @@ get_symb (void)
 
 //! Declare a symbol to be freed.
 void
-free_symb (Symbol s)
+free_symb (const Symbol s)
 {
   if (s == NULL)
     return;
@@ -94,7 +94,7 @@ free_symb (Symbol s)
 
 //! Return the index in the hash table for the string.
 int
-hash (char *s)
+hash (const char *s)
 {
   int hv = 0;
   int i;
@@ -110,7 +110,7 @@ hash (char *s)
 
 //! Insert a string into the hash table.
 void
-insert (Symbol s)
+insert (const Symbol s)
 {
   int hv;
 
@@ -124,7 +124,7 @@ insert (Symbol s)
 
 //! Find a string in the hash table.
 Symbol
-lookup (char *s)
+lookup (const char *s)
 {
   int hv;
   Symbol t;
@@ -147,7 +147,7 @@ lookup (char *s)
 
 //! Print a symbol.
 void
-symbolPrint (Symbol s)
+symbolPrint (const Symbol s)
 {
   if (s == NULL)
     return;
@@ -156,13 +156,41 @@ symbolPrint (Symbol s)
   eprintf ("%s", s->text);
 }
 
+//! Print all symbols
+void
+symbolPrintAll (void)
+{
+  int i, count;
+
+  eprintf ("List of all symbols\n");
+  count = 0;
+  for (i = 0; i < HASHSIZE; i++)
+    {
+      Symbol sym;
+
+      sym = symbtab[i];
+      if (sym != NULL)
+	{
+	  eprintf ("H%i:\t", i);
+	  while (sym != NULL)
+	    {
+	      count++;
+	      eprintf ("[%s]\t", sym->text);
+	      sym = sym->next;
+	    }
+	  eprintf ("\n");
+	}
+    }
+  eprintf ("Total:\t%i\n", count);
+}
+
 //! Insert a string into the symbol table, if it wasn't there yet.
 /**
  * Also sets line numbers and type.
  *\sa T_SYSCONST
  */
 Symbol
-symbolSysConst (char *str)
+symbolSysConst (const char *str)
 {
   Symbol symb;
 
@@ -173,6 +201,7 @@ symbolSysConst (char *str)
       symb->lineno = yylineno;
       symb->type = T_SYSCONST;
       symb->text = str;
+      insert (symb);
     }
   return symb;
 }
