@@ -163,49 +163,59 @@ termMguTerm (Term t1, Term t2)
 //! Most general interm unifiers of t1 interm t2
 /**
  * Try to determine the most general interm unifiers of two terms.
- *@returns Nothing. Iteration gets void.
+ *@returns Nothing. Iteration gets termlist of substitutions.
  */
-void
-termMguInTerm (Term t1, Term t2, void (*iterator) ())
+int
+termMguInTerm (Term t1, Term t2, int (*iterator) ())
 {
   Termlist tl;
+  int flag;
 
+  flag = 1;
   t2 = deVar (t2);
   if (t2 != NULL && isTermTuple (t2))
     {
       // t2 is a tuple, consider interm options as well.
-      termMguInTerm (t1, t2->left.op1, iterator);
-      termMguInTerm (t1, t2->right.op2, iterator);
+      flag = flag & termMguInTerm (t1, t2->left.op1, iterator);
+      flag = flag & termMguInTerm (t1, t2->right.op2, iterator);
     }
   // simple clause or combined
   tl = termMguTerm (t1, t2);
   if (tl != MGUFAIL)
     {
       // Iterate
-      iterator ();
+      flag = flag & iterator (tl);
       // Reset variables
       termlistSubstReset (tl);
     }
+  return flag;
 }
 
 //! Most general subterm unifiers of t1 subterm t2
 /**
  * Try to determine the most general subterm unifiers of two terms.
- *@returns Nothing. Iteration gets list of keys needed to decrypt.
+ *@returns Nothing. Iteration gets termlist of subst, and list of keys needed to decrypt.
  */
-void
-termMguSubTerm (Term t1, Term t2, void (*iterator) (),
+int
+termMguSubTerm (Term t1, Term t2, int (*iterator) (),
 		const Termlist inverses, Termlist keylist)
 {
+  int flag;
   Termlist tl;
+
+  flag = 1;
   t2 = deVar (t2);
   if (t2 != NULL && !isTermLeaf (t2))
     {
       if (isTermTuple (t2))
 	{
 	  // 'simple' tuple
-	  termMguSubTerm (t1, t2->left.op1, iterator, inverses, keylist);
-	  termMguSubTerm (t1, t2->right.op2, iterator, inverses, keylist);
+	  flag =
+	    flag & termMguSubTerm (t1, t2->left.op1, iterator, inverses,
+				   keylist);
+	  flag =
+	    flag & termMguSubTerm (t1, t2->right.op2, iterator, inverses,
+				   keylist);
 	}
       else
 	{
@@ -219,7 +229,9 @@ termMguSubTerm (Term t1, Term t2, void (*iterator) (),
 	  keylist_new = termlistAdd (keylist_new, newkey);
 
 	  // Recurse
-	  termMguSubTerm (t1, t2->left.op, iterator, inverses, keylist_new);
+	  flag =
+	    flag & termMguSubTerm (t1, t2->left.op, iterator, inverses,
+				   keylist_new);
 
 	  termlistDelete (keylist_new);
 	  termDelete (newkey);
@@ -230,8 +242,9 @@ termMguSubTerm (Term t1, Term t2, void (*iterator) (),
   if (tl != MGUFAIL)
     {
       // Iterate
-      iterator (keylist);
+      flag = flag & iterator (tl, keylist);
       // Reset variables
       termlistSubstReset (tl);
     }
+  return flag;
 }

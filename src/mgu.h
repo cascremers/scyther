@@ -15,8 +15,9 @@
 #define MGUFAIL (Termlist) -1
 
 Termlist termMguTerm (Term t1, Term t2);
-void termMguInTerm (Term t1, Term t2, void (*iterator) ());
-void termMguSubTerm (Term t1, Term t2, void (*iterator) (),
-		     const Termlist inverses, Termlist keylist);
+int termMguInTerm (Term t1, Term t2, int (*iterator) ());
+int termMguSubTerm (Term t1, Term t2, int (*iterator) (),
+		    const Termlist inverses, Termlist keylist);
+void termlistSubstReset (Termlist tl);
 
 #endif

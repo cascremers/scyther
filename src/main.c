@@ -542,7 +542,7 @@ main (int argc, char **argv)
 
   if (sys->engine == ARACHNE_ENGINE)
     {
-      arachneInit ();
+      arachneInit (sys);
     }
   /*
    * ---------------------------------------
@@ -912,7 +912,7 @@ modelCheck (const System sys)
       traverse (sys);
       break;
     case ARACHNE_ENGINE:
-      arachne (sys);
+      arachne ();
       break;
     default:
       error ("Unknown engine type %i.", sys->engine);

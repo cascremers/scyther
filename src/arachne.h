@@ -4,7 +4,7 @@
 #include "system.h"
 
 void arachneInit (const System sys);
-void arachneDone (const System sys);
-int arachne (const System sys);
+void arachneDone ();
+int arachne ();
 
 #endif
