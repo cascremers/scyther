@@ -1,8 +1,5 @@
 usertype SessionKey;
-const pk: Function;
-secret sk: Function;
 secret k: Function;
-inversekeys (pk,sk);
 
 protocol andrewBan(I,R)
 {
@@ -42,7 +39,11 @@ const Alice,Bob,Eve: Agent;
 untrusted Eve;
 const ne: Nonce;
 const kee: SessionKey;
-compromised sk(Eve);
+compromised k(Eve,Eve);
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
 
 run andrewBan.I(Agent,Agent);
 run andrewBan.R(Agent,Agent);
