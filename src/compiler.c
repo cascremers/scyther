@@ -564,6 +564,12 @@ commEvent (int event, Tac tc)
 		("Secrecy claim requires a list of terms to be secret on line %i.",
 		 trip->next->lineno);
 	    }
+	  if (n > 1)
+	    {
+	      error
+		("Secrecy claim on line %i should not contain tuples (for Arachne) until it is officially supported.",
+		 trip->next->lineno);
+	    }
 	  break;
 	}
       if (claim == CLAIM_Nisynch)
