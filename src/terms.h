@@ -74,7 +74,11 @@ Term deVarScan (Term t);
 #define isTermTuple(t)		realTermTuple(deVar(t))
 #define isTermEncrypt(t)	realTermEncrypt(deVar(t))
 #define isTermVariable(t)	realTermVariable(deVar(t))
-#define isTermEqual(t1,t2)	((substVar(t1) || substVar(t2)) \
+#ifdef DEBUG
+#define isTermEqual(t1,t2)      isTermEqualDebug(t1,t2)
+int isTermEqualDebug (Term t1, Term t2);
+#else
+#define isTermEqual1(t1,t2)	((substVar(t1) || substVar(t2)) \
 				?	isTermEqualFn(t1,t2) \
 				:	( \
 					(t1 == t2) \
@@ -84,7 +88,7 @@ Term deVarScan (Term t);
 						?	0 \
 						:	( \
 							realTermLeaf(t1) \
-							?	(t1->left.symb == t2->left.symb && t1->right.runid == t2->right.runid) \
+							?	0 \
 							:	( \
 								realTermEncrypt(t2) \
 								?	(isTermEqualFn(t1->right.key, t2->right.key) && \
@@ -96,6 +100,55 @@ Term deVarScan (Term t);
 						 )  \
 					) \
 				)
+
+#define isTermEqual2(t1,t2)	((substVar(t1) || substVar(t2)) \
+				?	isTermEqual1(t1,t2) \
+				:	( \
+					(t1 == t2) \
+					?	1 \
+					:	( \
+						(t1 == NULL || t2 == NULL || t1->type != t2->type) \
+						?	0 \
+						:	( \
+							realTermLeaf(t1) \
+							?	0 \
+							:	( \
+								realTermEncrypt(t2) \
+								?	(isTermEqual1(t1->right.key, t2->right.key) && \
+									 isTermEqual1(t1->left.op,  t2->left.op)) \
+								:	(isTermEqual1(t1->left.op1, t2->left.op1) && \
+									 isTermEqual1(t1->right.op2, t2->right.op2)) \
+								) \
+							) \
+						 )  \
+					) \
+				)
+
+#define isTermEqual3(t1,t2)	((substVar(t1) || substVar(t2)) \
+				?	isTermEqual2(t1,t2) \
+				:	( \
+					(t1 == t2) \
+					?	1 \
+					:	( \
+						(t1 == NULL || t2 == NULL || t1->type != t2->type) \
+						?	0 \
+						:	( \
+							realTermLeaf(t1) \
+							?	0 \
+							:	( \
+								realTermEncrypt(t2) \
+								?	(isTermEqual2(t1->right.key, t2->right.key) && \
+									 isTermEqual2(t1->left.op,  t2->left.op)) \
+								:	(isTermEqual2(t1->left.op1, t2->left.op1) && \
+									 isTermEqual2(t1->right.op2, t2->right.op2)) \
+								) \
+							) \
+						 )  \
+					) \
+				)
+
+#define isTermEqual(t1,t2) isTermEqual2(t1,t2)
+#endif
 
 int hasTermVariable (Term term);
 int isTermEqualFn (Term term1, Term term2);

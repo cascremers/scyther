@@ -1,10 +1,15 @@
-/**
- * @file terms.c 
- * \brief Term related base functions.
+/** @file terms.c \brief Term related base functions.
  *
- * Intended to be a standalone file, however during development it turned out that a termlist structure was needed
- * to define term types, so there is now a dependency loop with termlists.c.
+ * Intended to be a standalone file, however during development it turned out
+ * that a termlist structure was needed to define term types, so there is now a
+ * dependency loop with termlists.c.
+ *
+ * Until now, symbols were unique and never deleted.  The same holds for basic
+ * terms; leaves are equal when their pointers are equal.  We are looking to
+ * extend this to whole terms. At that point, term equality is be reduced to
+ * pointer comparison, which is what we want. However, for comparison of terms
  */
+
 #include <strings.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -161,6 +166,28 @@ hasTermVariable (Term term)
     }
 }
 
+#ifdef DEBUG
+int isTermEqualDebug (Term t1, Term t2)
+{
+  int test1, test2;
+
+  t1 = deVar (t1);
+  t2 = deVar (t2);
+
+  test1 = isTermEqualFn (t1,t2);
+  if (!(realTermLeaf (t1) && realTermLeaf (t2)))
+    {
+      return test1;
+    }
+
+  test2 = (t1 == t2);
+  if (test1 != test2)
+    {
+      error ("Pointer equality hypothesis for leaves does not hold!");
+    }
+  return test1;
+}
+#endif
 
 //!Tests whether two terms are completely identical.
 /**
@@ -189,7 +216,18 @@ isTermEqualFn (Term term1, Term term2)
     }
   if (realTermLeaf (term1))
     {
-      return (term1->left.symb == term2->left.symb && term1->right.runid == term2->right.runid);
+#ifdef DEBUG
+      int test;
+
+      test = (term1->left.symb == term2->left.symb && term1->right.runid == term2->right.runid);
+      if (test)
+	{
+	  error ("Strange node equality detected, should not occur.");
+	}
+      return test;
+#else
+      return 0;
+#endif
     }
   else
     {
