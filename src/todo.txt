@@ -1,3 +1,4 @@
+- Latex output has {( )} constructs: remove inner brackets.
 - Move initial intruder knowledge maybe into the title of the MSC.
 - Move time things to stderr instead of latex, does not belong in attack
   output.
