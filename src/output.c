@@ -505,7 +505,7 @@ void graphInit (const System sys)
   printf ("digraph Statespace {\n");
 
   /* label */
-  printf ("\tcomment = \"");
+  printf ("\tcomment = \"$");
   commandlinePrint (stdout, sys);
   printf ("\";\n");
 

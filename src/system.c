@@ -865,7 +865,6 @@ commandlinePrint (FILE *stream, const System sys)
   /* print command line */
   int i;
 
-  fprintf (stream, "$");
   for (i = 0; i < sys->argc; i++)
     fprintf (stream, " %s", sys->argv[i]);
 }

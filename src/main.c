@@ -114,6 +114,7 @@ main (int argc, char **argv)
   struct arg_lit *switch_disable_noclaims_reductions = arg_lit0 (NULL, "no-noclaims-red", "disable no more claims reductions");
   struct arg_lit *switch_disable_endgame_reductions = arg_lit0 (NULL, "no-endgame-red", "disable endgame reductions");
   struct arg_lit *switch_summary = arg_lit0 ("S", "summary", "show summary on stdout instead of stderr");
+  struct arg_lit *switch_echo = arg_lit0 ("E", "echo", "echo command line to stdout");
 #ifdef DEBUG
   struct arg_int *switch_por_parameter = arg_int0 (NULL, "pp", NULL, "POR parameter");
   struct arg_lit *switch_debug_indent = arg_lit0 ("I", "debug-indent",
@@ -133,6 +134,7 @@ main (int argc, char **argv)
     switch_scenario,
     switch_latex_output,
     switch_summary,
+    switch_echo,
     switch_progress_bar, 
 
     switch_traversal_method, 
@@ -298,11 +300,14 @@ main (int argc, char **argv)
   /* transfer command line */
   sys->argc = argc;
   sys->argv = argv;
-#ifdef DEBUG
-  /* print command line */
-  commandlinePrint (stderr, sys);
-  fprintf (stderr, "\n");
-#endif
+
+  if (switch_echo->count > 0)
+    {
+      /* print command line */
+      fprintf (stdout, "command\t");
+      commandlinePrint (stdout, sys);
+      fprintf (stdout, "\n");
+    }
 
   /* handle switches */
 
