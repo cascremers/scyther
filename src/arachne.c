@@ -128,7 +128,7 @@ indentPrint ()
   int i;
 
   for (i = 0; i < indentDepth; i++)
-    eprintf ("|   ");
+    eprintf ("%i    ",i);
 #else
   eprintf (">> ");
 #endif
@@ -875,8 +875,6 @@ arachne ()
 	}
 #endif
 
-      indentDepth++;
-
       roleInstance (sys, p, r, NULL);
       sys->runs[0].length = cl->ev + 1;
 #ifdef DEBUG
@@ -895,7 +893,6 @@ arachne ()
       roleInstanceDestroy (sys);
 
       // next
-      indentDepth--;
       cl = cl->next;
     }
 }
