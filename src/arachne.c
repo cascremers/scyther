@@ -346,7 +346,8 @@ get_trace_length ()
       if (sys->runs[run].protocol != INTRUDER)
 	{
 	  // Non-intruder run: count length
-	  length = length + sys->runs[run].length;
+	  // Subtract 'firstReal' to ignore chooses.
+	  length = length + sys->runs[run].length - sys->runs[run].firstReal;
 	}
       run++;
     }
