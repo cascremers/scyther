@@ -1,0 +1,7 @@
+#!/bin/sh
+#
+# Typical usage:
+#
+# ./scytherss bke.spdl -r2 | ggv -
+
+./scyther --state-space $* | dot -Tps
