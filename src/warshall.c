@@ -58,34 +58,34 @@ graph_display (int *graph, int nodes)
 int
 warshall (int *graph, int nodes)
 {
-  int i;
+  int k;
 
-  int index (const int i, const int j)
+  int index (const int x, const int y)
   {
-    return (i * nodes + j);
+    return (x * nodes + y);
   }
 
-  i = 0;
-  while (i < nodes)
+  k = 0;
+  while (k < nodes)
     {
-      int j;
+      int i;
 
-      j = 0;
-      while (j < nodes)
+      i = 0;
+      while (i < nodes)
 	{
-	  if (graph[index (j, i)] == 1)
+	  if (graph[index (i, k)] == 1)
 	    {
-	      int k;
+	      int j;
 
-	      k = 0;
-	      while (k < nodes)
+	      j = 0;
+	      while (j < nodes)
 		{
 		  if (graph[index (k, j)] == 1)
 		    {
-		      if (k == i)
+		      if (i == j)
 			{
 			  // Oh no! A cycle.
-			  graph[index (k, i)] = 2;
+			  graph[index (i, j)] = 2;
 #ifdef DEBUG
 			  if (DEBUGL (5))
 			    {
@@ -94,14 +94,14 @@ warshall (int *graph, int nodes)
 #endif
 			  return 0;
 			}
-		      graph[index (k, i)] = 1;
+		      graph[index (i, j)] = 1;
 		    }
-		  k++;
+		  j++;
 		}
 	    }
-	  j++;
+	  i++;
 	}
-      i++;
+      k++;
     }
   return 1;
 }
