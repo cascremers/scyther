@@ -12,14 +12,24 @@
 #	- Maybe it is an idea to time the output. If Scyther takes less
 #	  than a second, we don't need to cache the output. That would
 #	  reduce the required cache size significantly.
+#	  If so, we only need to create directories for the cached files
+#	  we actually create.
 #
 
 import md5
 import commands
 import os
 import sys
+import time
 from tempfile import NamedTemporaryFile, gettempdir
 from optparse import OptionParser
+
+#----------------------------------------------------------------------------
+# Global definitions
+#----------------------------------------------------------------------------
+
+# Minimum duration for something to get into the cache
+CacheTimer = 0.1
 
 #----------------------------------------------------------------------------
 # How to call Scyther
@@ -75,7 +85,7 @@ def evaluate (argumentstring, inputstring):
 	# Determine name
 	def cachefilename(id):
 		fn = gettempdir() + "/scyther/"
-		fn = fn + slashcutter(id,"/",2,4)
+		fn = fn + slashcutter(id,"/",3,2)
 		fn = fn + ".txt"
 		return fn
 
@@ -93,7 +103,6 @@ def evaluate (argumentstring, inputstring):
 
 	# Determine the unique filename for this test
 	cachefile = cachefilename(cacheid())
-	ensureDirectories(cachefile)
 
 	# Does it already exist?
 	if os.path.exists(cachefile):
@@ -101,19 +110,27 @@ def evaluate (argumentstring, inputstring):
 		f = open(cachefile,'r')
 		res = f.read()
 		f.close()
+		# TODO technically, we should store the status in the
+		# cache file as well. For now, we just return 0 status.
 		return (0,res)
 	else:
 		# Hmm, we need to compute this result
+		# Compute duration (in seconds)
 		h = NamedTemporaryFile()
 		h.write(inputstring)
 		h.flush()
+		starttime = time.time()
 		(status, scout) = scythercall (argumentstring, h.name)
+		duration = time.time() - starttime
 		h.close()
 
-		# Write cache file even if it's wrong
-		f = open(cachefile,'w')
-		f.write(scout)
-		f.close()
+		# Only cache if it took some time
+		if duration >= CacheTimer:
+			# Write cache file even if it's wrong
+			ensureDirectories(cachefile)
+			f = open(cachefile,'w')
+			f.write(scout)
+			f.close()
 
 		return (status,scout)
 
@@ -168,11 +185,11 @@ def default_arguments(plist,match,bounds):
 	if bounds == 0:
 		timer = nmin**2
 		maxruns = 2*nmin
-		maxlength = 2 + maxruns * 3
+		maxlength = 2 + maxruns * 4
 	elif bounds == 1:
 		timer = nmin**3
 		maxruns = 3*nmin
-		maxlength = 2 + maxruns * 4
+		maxlength = 2 + maxruns * 6
 	else:
 		print "Don't know bounds method", bounds
 		sys.exit()
