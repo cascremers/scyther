@@ -22,14 +22,15 @@
 # To verify combos of protocols starting with s and t
 #
 
-import tuples
+import tuplesdo
+import copy
 
 # ***********************
 # 	PARAMETERS
 # ***********************
 
 # Tuple width (number of concurrent protocols)
-TupleWidth = "2"
+TupleWidth = "3"
 
 # Temporary files
 TempFileList = "scyther-blap.tmp"
@@ -41,8 +42,8 @@ ScytherProgram = "../src/scyther"
 
 # Scyther parameters
 ScytherDefaults	= "--summary"
-ScytherMethods	= "--match=1 --arachne"
-ScytherBounds	= "--timer=30 --max-runs=5 --max-length=20"
+ScytherMethods	= "--match=0 --arachne"
+ScytherBounds	= "--timer=10 --max-runs=5 --max-length=20"
 
 # Build a large part of the command line (for Scyther) already
 ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
@@ -61,6 +62,8 @@ ProtocolToFileMap = {}		# maps protocol names to file names
 ProtocolToStatusMap = {}	# maps protocol names to status: 0 all false, 1 all correct, otherwise (2) mixed
 ProtocolToEffectsMap = {}	# maps protocols that help create multiple flaws, to the protocol names of the flaws they caused
 
+# Ugly hack. Works.
+safetxt = " " * 20
 
 # ***********************
 # 	MODULES
@@ -295,7 +298,77 @@ def DescribeContext (filep, protocols, claim):
 						DC_Claim(cl,0)
 	filep.write ("\n")
 
+#
+# Determine whether the attack is really only for this combination of protocols (and not with less)
+#
+# returns 0 if it could be done with less also
+# returns 1 if it really requires these protocols
+#
+def RequiresAllProtocols (protocols, claim):
+	# check for single results
+	if ClaimToResultMap[claim] == 0:
+		# claim was always false
+		return 0
+	# check for simple cases
+	if int(TupleWidth) <= 2:
+		# nothing to remove
+		return 1
 
+	# test the claims when removing some others
+	# for TupleWidth size list, we can remove TupleWidth-1
+	# protocols, and test
+	clprname = claim.split()[0]
+	claimfile = ProtocolToFileMap[clprname]
+	for redundantfile in protocols:
+		if redundantfile != claimfile:
+			# for this particular option, construct a list
+			simplercase = copy.copy(protocols)
+			simplercase.remove(redundantfile)
+			# now test the validity of the claim
+			simplerresults = ScytherEval (simplercase)
+			if simplerresults[claim] == 0:
+				# Redundant protocol was not necessary for attack!
+				return 0
+	return 1
+			
+
+			
+
+
+#
+# Signal that there is an attack, claim X using protocols Y
+#
+# Returns number of new attacks found
+#
+def SignalAttack (protocols, claim):
+	if RequiresAllProtocols (protocols, claim) == 0:
+		return 0
+
+	ClearProgress (TupleCount, safetxt)
+	print "-" * 40
+	print "New attack [[", newattacks, "]] at", processed, "/", TupleCount, ":", claim, " using",CommandLine( protocols)
+	for helper in GetListKeys (ProtocolToFileMap, protocols):
+		clprname = claim.split()[0]
+		if helper <> clprname:
+			if helper not in ProtocolToEffectsMap.keys():
+				# new
+				ProtocolToEffectsMap[helper] = [clprname]
+				print "% Detected a new flaw helper:", helper
+			else:
+				# already noted as helper, add destruction now
+				if clprname not in ProtocolToEffectsMap[helper]:
+					ProtocolToEffectsMap[helper].append(clprname)
+	#
+	# TODO
+	#
+	# Generate output to recreate/draw the
+	# attack, and maybe add this to a big
+	# error log thingy. Furthermore,
+	# explicitly recreate the commandline
+	# and the claim that is newly violated
+	DescribeContext (sys.stdout, protocols, claim)
+
+	return 1
 
 # ***********************
 # 	MAIN CODE
@@ -348,7 +421,6 @@ outp.close()
 
 print "Evaluating tuples of", TupleWidth, "for", ProtocolCount, "protocols, using the command '" + CommandPrefix + "'"
 i = 0
-safetxt = " " * 20
 while i < ProtocolCount:
 	ShowProgress (i, ProtocolCount,ProtocolFileList[i]+safetxt)
 	ScytherEval1 ( ProtocolFileList[i] )
@@ -405,44 +477,28 @@ for tline in inp:
 		protocols = tline.split()
 		ShowProgress (processed, TupleCount, " ".join(protocols) + safetxt)
 		#
-		# Process it
+		# Determine whether there are valid claims at all in
+		# this set of file names
 		#
-		results = ScytherEval ( protocols )
-		#
-		# Now we have the results for this combination.
-		# Check whether any of these claims is 'newly false'
-		#
-		for claim,value in results.items():
-			if value == 0:
-				# Apparently this claim is false now (there is
-				# an attack)
-				if ClaimToResultMap[claim] == 1:
-					# Wooh! It was correct before
-					ClearProgress (TupleCount, safetxt)
-					newattacks = newattacks + 1
-					print "-" * 40
-					print "New attack [[", newattacks, "]] at", processed, "/", TupleCount, ":", claim, " using",CommandLine( protocols)
-					for helper in GetListKeys (ProtocolToFileMap, protocols):
-						clprname = claim.split()[0]
-						if helper <> clprname:
-							if helper not in ProtocolToEffectsMap.keys():
-								# new
-								ProtocolToEffectsMap[helper] = [clprname]
-								print "% Detected a new flaw helper:", helper
-							else:
-								# already noted as helper, add destruction now
-								if clprname not in ProtocolToEffectsMap[helper]:
-									ProtocolToEffectsMap[helper].append(clprname)
-					#
-					# TODO
-					#
-					# Generate output to recreate/draw the
-					# attack, and maybe add this to a big
-					# error log thingy. Furthermore,
-					# explicitly recreate the commandline
-					# and the claim that is newly violated
-					DescribeContext (sys.stdout, protocols, claim)
-		
+		has_valid_claims = 0
+		for prname in GetListKeys (ProtocolToFileMap, protocols):
+			if ProtocolToStatusMap[prname] != 0:
+				has_valid_claims = 1
+		if has_valid_claims == 1:
+			#
+			# Use Scyther to verify the claims
+			#
+			results = ScytherEval ( protocols )
+			#
+			# Now we have the results for this combination.
+			# Check whether any of these claims is 'newly false'
+			#
+			for claim,value in results.items():
+				if value == 0:
+					# Apparently this claim is false now (there is
+					# an attack)
+					newattacks = newattacks + SignalAttack (protocols, claim)
+			
 	# Next!
 	processed = processed + 1
 inp.close()
