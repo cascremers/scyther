@@ -92,6 +92,7 @@ main (int argc, char **argv)
 					"output file (default is stdout)");
   struct arg_lit *switch_arachne =
     arg_lit0 ("a", "arachne", "use Arachne engine");
+  struct arg_lit *switch_proof = arg_lit0 ("P", "proof", "generate proof output");
   struct arg_str *switch_check = arg_str0 (NULL, "check", "CLAIM",
 					   "claim type to check (default is all)");
   struct arg_int *switch_scenario = arg_int0 ("s", "scenario", NULL,
@@ -163,6 +164,7 @@ main (int argc, char **argv)
     infile,
     outfile,
     switch_empty,
+    switch_proof,
     switch_state_space_graph,
     switch_scenario,
     switch_scenario_size,
@@ -386,6 +388,8 @@ main (int argc, char **argv)
     sys->switchReduceClaims = 0;	/* disable claim symmetry cutter */
   if (switch_summary->count > 0)
     sys->output = SUMMARY;	/* report summary on stdout */
+  if (switch_proof->count > 0)
+      sys->output = PROOF;	/* report proof on stdout (for arachne only) */
 
   /*
    * The scenario selector has an important side effect; when it is non-null,

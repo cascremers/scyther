@@ -43,14 +43,6 @@ Role I_RRS;
 static int indentDepth;
 static int max_encryption_level;
 
-#ifdef DEBUG
-static char *explanation;	// Pointer to a string that describes what we just tried to do
-static int e_run;
-static Term e_term1;
-static Term e_term2;
-static Term e_term3;
-#endif
-
 struct goalstruct
 {
   int run;
@@ -146,14 +138,16 @@ arachneDone ()
 void
 indentPrint ()
 {
-#ifdef DEBUG
   int i;
 
   for (i = 0; i < indentDepth; i++)
-    eprintf ("%i    ", i);
-#else
-  eprintf (">> ");
-#endif
+    {
+      if (i % 3 == 0)
+	eprintf ("|");
+      else
+	  eprintf (" ");
+    eprintf (" ");
+    }
 }
 
 //! Print indented binding
@@ -188,11 +182,28 @@ add_read_goals (const int run, const int old, const int new)
     {
       if (rd->type == READ)
 	{
+	  if (sys->output == PROOF)
+	    {
+	      if (count == 0)
+		{
+		  indentPrint();
+		  eprintf ("* Thus, we must also produce ");
+		}
+	      else
+		{
+		  eprintf (", ");
+		}
+	      termPrint (rd->message);
+	    }	  
 	  goal_add (rd->message, run, i);
 	  count++;
 	}
       rd = rd->next;
       i++;
+    }
+  if ((count > 0) && sys->output == PROOF)
+    {
+      eprintf ("\n");
     }
   return count;
 }
@@ -254,6 +265,87 @@ determine_unification_run (Termlist tl)
       tl = tl->next;
     }
   return run;
+}
+
+//------------------------------------------------------------------------
+// Proof reporting
+//------------------------------------------------------------------------
+
+//! Protocol/role name of a run
+void
+role_name_print (const int run)
+{
+  eprintf ("protocol ");
+  termPrint (sys->runs[run].protocol->nameterm);
+  eprintf (", role ");
+  termPrint (sys->runs[run].role->nameterm);
+}
+
+//! Adding a run/extending a run
+void
+proof_suppose_run (const int run, const int oldlength, const int newlength)
+{
+  if (sys->output == PROOF)
+    {
+      int reallength;
+
+      indentPrint ();
+      eprintf ("Suppose ");
+      if (oldlength == 0)
+	eprintf ("there is a ");
+      else
+	eprintf ("we extend ");
+      reallength = roledef_length (sys->runs[run].start);
+      if (reallength > newlength)
+	eprintf ("semi-");
+      eprintf ("run #%i of ", run);
+      role_name_print (run);
+      if (reallength > newlength)
+	{
+	  if (oldlength == 0)
+	    eprintf (" of");
+	  else
+	    eprintf (" to");
+	  eprintf (" length %i");
+	}
+      eprintf ("\n");
+    }
+}
+
+//! Select a goal
+void
+proof_select_goal (Binding b)
+{
+  if (sys->output == PROOF)
+    {
+      Roledef rd;
+
+      rd = roledef_shift (sys->runs[b->run_to].start, b->ev_to);
+      indentPrint ();
+      eprintf ("Where does term ");
+      termPrint (b->term);
+      eprintf (" , needed for ");
+      roledefPrint (rd);
+      eprintf (" at index %i in run %i, originate first?\n", b->ev_to, b->run_to);
+    }
+}
+
+//! Test a binding
+void
+proof_suppose_binding (Binding b)
+{
+  if (sys->output == PROOF)
+    {
+      Roledef rd;
+
+      indentPrint ();
+      rd = roledef_shift (sys->runs[b->run_from].start, b->ev_from);
+      eprintf ("Suppose it originates in run %i, at ", b->run_from);
+      roledefPrint (rd);
+      eprintf (" from ");
+      role_name_print (b->run_from);
+      eprintf (" at index %i\n", b->ev_from);
+    }
 }
 
 //------------------------------------------------------------------------
@@ -323,16 +415,14 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	int keycount;
 	Termlist tl;
 
-#ifdef DEBUG
-	if (DEBUGL (5))
+	proof_suppose_binding (b);
+	if (keylist != NULL && sys->output == PROOF)
 	  {
-	    binding_indent_print (b, 0);
 	    indentPrint ();
-	    eprintf ("Adding key list for subterm iteration: ");
+	    eprintf ("* This introduces the obligation to produce the following keys: ");
 	    termlistPrint (keylist);
 	    eprintf ("\n");
 	  }
-#endif
 	keycount = 0;
 	tl = keylist;
 	while (tl != NULL)
@@ -354,13 +444,11 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
       }
     else
       {
-#ifdef DEBUG
-	if (DEBUGL (5))
+	if (sys->output == PROOF)
 	  {
 	    indentPrint ();
 	    eprintf ("Aborted binding existing run because of cycle.\n");
 	  }
-#endif
 	flag = 1;
       }
     goal_unbind (b);
@@ -378,14 +466,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
   else
     newgoals = 0;
 
-#ifdef DEBUG
-  if (DEBUGL (3))
-    {
-      explanation = "Bind existing run (generic) ";
-      e_run = run;
-      e_term1 = b->term;
-    }
-#endif
+  // Bind to existing run
   flag = termMguSubTerm (b->term, rd->message,
 			 subterm_iterate, sys->know->inverses, NULL);
   // Reset length
@@ -401,19 +482,12 @@ bind_existing_run (const Binding b, const Protocol p, const Role r,
 {
   int run, flag;
 
-#ifdef DEBUG
-  if (DEBUGL (4))
+  if (sys->output == PROOF)
     {
       indentPrint ();
-      eprintf ("Trying to bind ");
-      termPrint (b->term);
-      eprintf (" to an existing (of %i runs) instance of ", sys->maxruns);
-      termPrint (p->nameterm);
-      eprintf (", ");
-      termPrint (r->nameterm);
-      eprintf ("\n");
+      eprintf ("Can we bind it to an existing regular run?\n");
     }
-#endif
+  indentDepth++;
   flag = 1;
   for (run = 0; run < sys->maxruns; run++)
     {
@@ -422,6 +496,7 @@ bind_existing_run (const Binding b, const Protocol p, const Role r,
 	  flag = flag && bind_existing_to_goal (b, run, index);
 	}
     }
+  indentDepth--;
   return flag;
 }
 
@@ -436,20 +511,9 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
 
   roleInstance (sys, p, r, NULL, NULL);
   run = sys->maxruns - 1;
+  proof_suppose_run (run, 0, index+1);
+
   newgoals = add_read_goals (run, 0, index + 1);
-#ifdef DEBUG
-  if (DEBUGL (4))
-    {
-      indentPrint ();
-      eprintf ("Trying to bind ");
-      termPrint (b->term);
-      eprintf (" to a new instance of ");
-      termPrint (p->nameterm);
-      eprintf (", ");
-      termPrint (r->nameterm);
-      eprintf (", run %i\n", run);
-    }
-#endif
   flag = bind_existing_to_goal (b, run, index);
   remove_read_goals (newgoals);
   roleInstanceDestroy (sys);
@@ -591,23 +655,19 @@ bind_goal_new_m0 (const Binding b)
 
 	  roleInstance (sys, INTRUDER, I_M, NULL, NULL);
 	  run = sys->maxruns - 1;
+	  proof_suppose_run (run, 0,1);
 	  sys->runs[run].start->message = termDuplicate (b->term);
 	  sys->runs[run].length = 1;
 	  if (goal_bind (b, run, 0))
 	    {
-#ifdef DEBUG
-	      if (DEBUGL (3))
+	      proof_suppose_binding (b);
+	      if (sys->output == PROOF)
 		{
-		  if (DEBUGL (5))
-		    {
-		      binding_indent_print (b, 0);
-		    }
 		  indentPrint ();
-		  eprintf ("Retrieving ");
+		  eprintf ("* Retrieving ");
 		  termPrint (b->term);
 		  eprintf (" from the initial knowledge.\n");
 		}
-#endif
 	      flag = flag && iterate ();
 	    }
 	  goal_unbind (b);
@@ -661,9 +721,9 @@ bind_goal_new_encrypt (const Binding b)
       rd->next->message = termDuplicate (t2);
       rd->next->next->message = termDuplicate (term);
       index = 2;
+      proof_suppose_run (run, 0, index+1);
       newgoals = add_read_goals (run, 0, index + 1);
-#ifdef DEBUG
-      if (DEBUGL (3))
+      if (sys->output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf ("Encrypting ");
@@ -674,9 +734,9 @@ bind_goal_new_encrypt (const Binding b)
 	  termPrint (t2);
 	  eprintf ("\n");
 	}
-#endif
       if (goal_bind (b, run, index))
 	{
+	  proof_suppose_binding (b);
 	  flag = flag && iterate ();
 	}
       goal_unbind (b);
@@ -822,9 +882,31 @@ bind_goal (const Binding b)
     {
       int flag;
 
+      proof_select_goal (b);
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("A. Suppose it is from a regular protocol role.\n");
+	}
+      indentDepth++;
       flag = bind_goal_regular_run (b);
+      indentDepth--;
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("B. Suppose it is from an existing intruder run.\n");
+	}
+      indentDepth++;
       flag = flag && bind_goal_old_intruder_run (b);
+      indentDepth--;
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("C. Suppose it is from a new intruder run.\n");
+	}
+      indentDepth++;
       flag = flag && bind_goal_new_intruder_run (b);
+      indentDepth--;
       return flag;
     }
   else
@@ -846,25 +928,21 @@ prune ()
   if (indentDepth > 20)
     {
       // Hardcoded limit on iterations
-#ifdef DEBUG
-      if (DEBUGL (3))
+      if (sys->output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf ("Pruned because too many iteration levels.\n");
 	}
-#endif
       return 1;
     }
   if (sys->maxruns > sys->switchRuns)
     {
       // Hardcoded limit on runs
-#ifdef DEBUG
-      if (DEBUGL (3))
+      if (sys->output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf ("Pruned because too many runs.\n");
 	}
-#endif
       return 1;
     }
 
@@ -877,36 +955,30 @@ prune ()
       agent = deVar (tl->term);
       if (!realTermLeaf (agent))
 	{
-#ifdef DEBUG
-	  if (DEBUGL (3))
+	  if (sys->output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf ("Pruned because agent cannot be compound term.\n");
 	    }
-#endif
 	  return 1;
 	}
       if (!inTermlist (agent->stype, TERM_Agent))
 	{
-#ifdef DEBUG
-	  if (DEBUGL (3))
+	  if (sys->output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf ("Pruned because agent must contain agent type.\n");
 	    }
-#endif
 	  return 1;
 	}
       if (!realTermVariable (agent) && inTermlist (sys->untrusted, agent))
 	{
-#ifdef DEBUG
-	  if (DEBUGL (3))
+	  if (sys->output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf
 		("Pruned because all agents of the claim run must be trusted.\n");
 	    }
-#endif
 	  return 1;
 	}
       tl = tl->next;
@@ -915,13 +987,11 @@ prune ()
   // Check for c-minimality
   if (!bindings_c_minimal ())
     {
-#ifdef DEBUG
-      if (DEBUGL (3))
+      if (sys->output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf ("Pruned because this is not <=c-minimal.\n");
 	}
-#endif
       return 1;
     }
 
@@ -935,6 +1005,13 @@ prune ()
       if (termInTerm (b->term, TERM_Hidden))
 	{
 	  // Prune the state: we can never meet this
+	  if (sys->output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("Pruned because intruder can never construnct ");
+	      termPrint (b->term);
+	      eprintf ("\n");
+	    }
 	  return 1;
 	}
       bl = bl->next;
@@ -951,6 +1028,15 @@ add_claim_specifics (const Claimlist cl, const Roledef rd)
       /**
        * Secrecy claim
        */
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("* To verify the secrecy claim, we add the term ");
+	  termPrint (rd->message);
+	  eprintf (" as a goal.\n");
+	  indentPrint ();
+	  eprintf ("* If all goals can be bound, this constitutes an attack.\n");
+	}
       goal_add (rd->message, 0, cl->ev);	// Assumption that all claims are in run 0
     }
 }
@@ -980,10 +1066,8 @@ property_check ()
        * By the way the claim is handled, this automatically means a flaw.
        */
       count_false ();
-#ifdef DEBUG
-      if (DEBUGL (3))
-	  printSemiState();
-#endif
+      if (sys->output == ATTACK)
+	printSemiState ();
     }
   return flag;
 }
@@ -1005,34 +1089,6 @@ iterate ()
        */
 
       sys->states = statesIncrease (sys->states);
-#ifdef DEBUG
-      if (DEBUGL (3) && explanation != NULL)
-	{
-	  indentDepth--;
-	  indentPrint ();
-	  indentDepth++;
-	  eprintf ("ITERATE: %s", explanation);
-
-	  if (e_run != INVALID)
-	    eprintf ("#%i ", e_run);
-	  if (e_term1 != NULL)
-	    {
-	      termPrint (e_term1);
-	      eprintf (" ");
-	    }
-	  if (e_term2 != NULL)
-	    {
-	      termPrint (e_term2);
-	      eprintf (" ");
-	    }
-	  if (e_term3 != NULL)
-	    {
-	      termPrint (e_term3);
-	      eprintf (" ");
-	    }
-	  eprintf (" ]}>=--\n");
-	}
-#endif
 
       /**
        * Check whether its a final state (i.e. all goals bound)
@@ -1044,34 +1100,23 @@ iterate ()
 	  /*
 	   * all goals bound, check for property
 	   */
+	  if (sys->output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("All goals are now bound.");
+	    }
 	  sys->claims = statesIncrease (sys->claims);
 	  current_claim->count = statesIncrease (current_claim->count);
 	  flag = flag && property_check ();
 	}
       else
 	{
-#ifdef DEBUG
-	  if (DEBUGL (3))
-	    {
-	      indentPrint ();
-	      eprintf ("Trying to bind goal ");
-	      termPrint (b->term);
-	      eprintf (" from run %i, index %i.\n", b->run_to, b->ev_to);
-	    }
-#endif
 	  /*
 	   * bind this goal in all possible ways and iterate
 	   */
 	  flag = bind_goal (b);
 	}
     }
-#ifdef DEBUG
-  explanation = NULL;
-  e_run = INVALID;
-  e_term1 = NULL;
-  e_term2 = NULL;
-  e_term3 = NULL;
-#endif
   indentDepth--;
 
 #ifdef DEBUG
@@ -1148,32 +1193,23 @@ arachne ()
       if (sys->switchClaimToCheck == NULL
 	  || sys->switchClaimToCheck == cl->type)
 	{
-#ifdef DEBUG
-	  explanation = NULL;
-	  e_run = INVALID;
-	  e_term1 = NULL;
-	  e_term2 = NULL;
-	  e_term3 = NULL;
-#endif
-          current_claim = cl;
+	  current_claim = cl;
 	  p = (Protocol) cl->protocol;
 	  r = (Role) cl->role;
-#ifdef DEBUG
-	  if (DEBUGL (2))
+
+	  roleInstance (sys, p, r, NULL, NULL);
+	  if (sys->output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf ("Testing Claim ");
 	      termPrint (cl->type);
-	      eprintf (" in protocol ");
-	      termPrint (p->nameterm);
-	      eprintf (", role ");
-	      termPrint (r->nameterm);
+	      eprintf (" from ");
+	      role_name_print (0);
 	      eprintf (" at index %i.\n", cl->ev);
 	    }
-#endif
-
-	  roleInstance (sys, p, r, NULL, NULL);
+	  proof_suppose_run (0,0, cl->ev+1);
 	  add_read_goals (sys->maxruns - 1, 0, cl->ev + 1);
+
 
 	  /**
 	   * Add specific goal info

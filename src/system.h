@@ -14,7 +14,7 @@
 #define runPointerSet(sys,run,newp)	sys->runs[run].index = newp
 
 enum outputs
-{ EMPTY, ATTACK, STATESPACE, SCENARIOS, SUMMARY };
+{ EMPTY, ATTACK, STATESPACE, SCENARIOS, SUMMARY, PROOF };
 
 enum engines
 { POR_ENGINE, ARACHNE_ENGINE };
