@@ -366,30 +366,61 @@ not_read_first (const Roledef rdstart, const Term t)
 Term
 agentOfRunRole (const System sys, const int run, const Term role)
 {
-  Termlist roles = sys->runs[run].protocol->rolenames;
-  Termlist agents = sys->runs[run].agents;
-
-  /* TODO stupid reversed order, lose that soon */
-  if (agents != NULL)
+  if (sys->engine != ARACHNE_ENGINE)
     {
-      agents = termlistForward (agents);
-      while (agents != NULL && roles != NULL)
+      // Non-arachne
+      Termlist roles;
+      Termlist agents;
+      
+      roles = sys->runs[run].protocol->rolenames;
+      agents = sys->runs[run].agents;
+
+      /* TODO stupid reversed order, lose that soon */
+      if (agents != NULL)
 	{
-	  if (isTermEqual (roles->term, role))
+	  agents = termlistForward (agents);
+	  while (agents != NULL && roles != NULL)
 	    {
-	      return agents->term;
+	      if (isTermEqual (roles->term, role))
+		{
+		  return agents->term;
+		}
+	      agents = agents->prev;
+	      roles = roles->next;
 	    }
-	  agents = agents->prev;
-	  roles = roles->next;
 	}
+      else
+	{
+	  error
+	    ("Agent list for run %i is empty, so agentOfRunRole is not usable.",
+	     run);
+	}
+      return NULL;
     }
   else
     {
-      error
-	("Agent list for run %i is empty, so agentOfRunRole is not usable.",
-	 run);
+      // Arachne engine
+      Termlist agents;
+
+      // Agent variables have the same symbol as the role names, so
+      // we can scan for this.
+      agents = sys->runs[run].agents;
+      while (agents != NULL)
+	{
+	  Term agent;
+
+	  agent = agents->term;
+	  if (TermSymb(role) == TermSymb(agent))
+	    {
+	      return agent;
+	    }
+	  else
+	    {
+	      agents = agents->next;
+	    }
+	}
+      return NULL;
     }
-  return NULL;
 }
 
 //! Yield the actor agent of a run in the system.

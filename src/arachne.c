@@ -890,7 +890,11 @@ dotSemiState ()
 			}
 		      // Draw the first box
 		      // This used to be drawn only if done && send_before_read, now we always draw it.
-		      eprintf ("\t\ts%i [label=\"Run %i\\n", run, run);
+		      eprintf ("\t\ts%i [label=\"Run %i: ", run, run);
+	     	      termPrint (sys->runs[run].protocol->nameterm);
+		      eprintf (", ");
+	     	      termPrint (sys->runs[run].role->nameterm);
+		      eprintf ("\\n");
 		      agentsOfRunPrint (sys, run);
 		      eprintf ("\", shape=diamond];\n");
 		      eprintf ("\t\ts%i -> ", run);
