@@ -682,7 +682,10 @@ printSemiState ()
 
 //! Goal selection
 /**
- * Should be ordered to prefer most constrained; for now, it is simply the first one encountered.
+ * Selects the most constrained goal.
+ *
+ * Because the list starts with the newest terms, and we use <= (as opposed to <), we
+ * ensure that for goals with equal constraint levels, we select the oldest one.
  */
 Binding
 select_goal ()
@@ -701,15 +704,16 @@ select_goal ()
       b = (Binding) bl->data;
       if (!b->done)
 	{
-	  // We don't care about singular agent variables, so...
-	  if (!
-	      (isTermVariable (b->term)
-	       && inTermlist (b->term->stype, TERM_Agent)))
+	  // We don't care about singular variables.
+	  /**
+	   * Note that to mirror the modelchecker semantics, we should check whether the type exists in M_0.
+	   */
+	  if (!isTermVariable (b->term))
 	    {
 	      float cons;
 
 	      cons = term_constrain_level (b->term);
-	      if (cons < min_constrain)
+	      if (cons <= min_constrain)
 		{
 		  min_constrain = cons;
 		  best = b;
