@@ -1318,6 +1318,44 @@ prune_bounds ()
   return 0;
 }
 
+//! Prune determination for specific properties
+/**
+ * Sometimes, a property holds in part of the tree. Thus, we don't need to explore that part further if we want to find an attack.
+ *
+ *@returns true iff this state is invalid for some reason
+ */
+int
+prune_claim_specifics ()
+{
+  if (current_claim->type == CLAIM_Niagree)
+    {
+      if (arachne_claim_niagree (sys, current_claim->r, current_claim->ev))
+	{
+          current_claim->count = statesIncrease (current_claim->count);
+	  if (sys->output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("Pruned: niagree holds in this part of the proof tree.\n");
+	    }
+	  return 1;
+	}
+    }
+  if (current_claim->type == CLAIM_Nisynch)
+    {
+      if (arachne_claim_nisynch (sys, current_claim->r, current_claim->ev))
+	{
+          current_claim->count = statesIncrease (current_claim->count);
+	  if (sys->output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("Pruned: nisynch holds in this part of the proof tree.\n");
+	    }
+	  return 1;
+	}
+    }
+  return 0;
+}
+
 //! Setup system for specific claim test
 add_claim_specifics (const Claimlist cl, const Roledef rd)
 {
@@ -1386,47 +1424,50 @@ iterate ()
   flag = 1;
   if (!prune_theorems ())
     {
-      if (!prune_bounds ())
+      if (!prune_claim_specifics ())
 	{
-	  Binding b;
-
-	  /**
-	   * Not pruned: count
-	   */
-
-	  sys->states = statesIncrease (sys->states);
-
-	  /**
-	   * Check whether its a final state (i.e. all goals bound)
-	   */
-
-	  b = select_goal ();
-	  if (b == NULL)
+	  if (!prune_bounds ())
 	    {
-	      /*
-	       * all goals bound, check for property
+	      Binding b;
+
+	      /**
+	       * Not pruned: count
 	       */
-	      if (sys->output == PROOF)
+
+	      sys->states = statesIncrease (sys->states);
+
+	      /**
+	       * Check whether its a final state (i.e. all goals bound)
+	       */
+
+	      b = select_goal ();
+	      if (b == NULL)
 		{
-		  indentPrint ();
-		  eprintf ("All goals are now bound.\n");
+		  /*
+		   * all goals bound, check for property
+		   */
+		  if (sys->output == PROOF)
+		    {
+		      indentPrint ();
+		      eprintf ("All goals are now bound.\n");
+		    }
+		  sys->claims = statesIncrease (sys->claims);
+		  current_claim->count = statesIncrease (current_claim->count);
+		  flag = property_check ();
 		}
-	      sys->claims = statesIncrease (sys->claims);
-	      current_claim->count = statesIncrease (current_claim->count);
-	      flag = property_check ();
+	      else
+		{
+		  /*
+		   * bind this goal in all possible ways and iterate
+		   */
+		  flag = bind_goal (b);
+		}
 	    }
 	  else
 	    {
-	      /*
-	       * bind this goal in all possible ways and iterate
-	       */
-	      flag = bind_goal (b);
+	      // Pruned because of bound!
+	      current_claim->complete = 0;
 	    }
-	}
-      else
-	{
-	  // Pruned because of bound!
-	  current_claim->complete = 0;
 	}
     }
 
