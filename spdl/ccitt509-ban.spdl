@@ -1,0 +1,49 @@
+usertype Data;
+const pk: Function;
+secret sk: Function;
+inversekeys (pk,sk);
+
+protocol ccitt509(I,R)
+{
+	role I
+	{
+		const xi,yi: Data;
+		const ni: Nonce;
+		var nr: Nonce;
+		var yr,xr: Data;
+
+		send_1(I,R, I,{ni, R, xi, {yi}pk(R) }sk(I) );
+		read_2(R,I, R,{nr, I, ni, xr, {yr}pk(I) }sk(R) );
+		send_3(I,R, I,{R,nr}sk(I) );
+
+		claim_4(I,Secret,yi,yr);
+		claim_5(I,Nisynch);
+	}	
+	
+	role R
+	{
+		var xi,yi: Data;
+		var ni: Nonce;
+		const nr: Nonce;
+		const yr,xr: Data;
+
+		read_1(I,R, I,{ni, R, xi, {yi}pk(R) }sk(I) );
+		send_2(R,I, R,{nr, I, ni, xr, {yr}pk(I) }sk(R) );
+		read_3(I,R, I,{R,nr}sk(I) );
+
+		claim_7(R,Secret,yi,yr);
+		claim_8(R,Nisynch);
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const de: Data;
+compromised sk(Eve);
+
+run ccitt509.I(Agent,Agent);
+run ccitt509.R(Agent,Agent);
+run ccitt509.I(Agent,Agent);
+run ccitt509.R(Agent,Agent);
