@@ -37,6 +37,9 @@
  * be done for any style using the GNU indent program.
  */
 
+enum exittypes
+{ EXIT_NOATTACK = 0, EXIT_ERROR = 1, EXIT_NOCLAIM = 2, EXIT_ATTACK = 3 };
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -200,14 +203,14 @@ main (int argc, char **argv)
     end
   };
   int nerrors;
-  int exitcode = 0;
+  int exitcode = EXIT_NOATTACK;
 
   /* verify the argtable[] entries were allocated sucessfully */
   if (arg_nullcheck (argtable) != 0)
     {
       /* NULL entries were detected, some allocations must have failed */
       fprintf (stderr, "%s: insufficient memory\n", progname);
-      exitcode = 1;
+      exitcode = EXIT_ERROR;
       goto exit;
     }
 
@@ -262,7 +265,7 @@ main (int argc, char **argv)
       /* Display the error details contained in the arg_end struct. */
       arg_print_errors (stdout, end, progname);
       printf ("Try '%s --help' for more information.\n", progname);
-      exitcode = 1;
+      exitcode = EXIT_ERROR;
       goto exit;
     }
 
@@ -610,7 +613,7 @@ main (int argc, char **argv)
 	  attackDisplay (sys);
 	}
       /* mark exit code */
-      exitcode = 3;
+      exitcode = EXIT_ATTACK;
     }
   else
     {
@@ -623,7 +626,7 @@ main (int argc, char **argv)
 	  if (cl_scan->failed == STATES0)
 	    {
 	      /* mark exit code */
-	      exitcode = 2;
+	      exitcode = EXIT_NOCLAIM;
 	    }
 	  cl_scan = cl_scan->next;
 	}
@@ -636,7 +639,7 @@ main (int argc, char **argv)
 
   /* Transfer any scenario counting to the exit code,
    * assuming that there is no error. */
-  if (exitcode != 1 && sys->switchScenario < 0)
+  if (exitcode != EXIT_ERROR && sys->switchScenario < 0)
     {
       exitcode = sys->countScenario;
     }
