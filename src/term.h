@@ -89,7 +89,7 @@ int isTermEqualDebug (Term t1, Term t2);
 						?	0 \
 						:	( \
 							realTermLeaf(t1) \
-							?	0 \
+							?	isTermEqualFn(t1,t2) \
 							:	( \
 								realTermEncrypt(t2) \
 								?	(isTermEqualFn(t1->right.key, t2->right.key) && \
@@ -112,7 +112,7 @@ int isTermEqualDebug (Term t1, Term t2);
 						?	0 \
 						:	( \
 							realTermLeaf(t1) \
-							?	0 \
+							?	isTermEqualFn(t1,t2) \
 							:	( \
 								realTermEncrypt(t2) \
 								?	(isTermEqual1(t1->right.key, t2->right.key) && \
@@ -135,7 +135,7 @@ int isTermEqualDebug (Term t1, Term t2);
 						?	0 \
 						:	( \
 							realTermLeaf(t1) \
-							?	0 \
+							?	isTermEqualFn(t1,t2) \
 							:	( \
 								realTermEncrypt(t2) \
 								?	(isTermEqual2(t1->right.key, t2->right.key) && \

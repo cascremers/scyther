@@ -25,6 +25,9 @@ extern Term TERM_Type;
  */
 int globalLatex;
 
+//! Global count of protocols
+int protocolCount;
+
 //! Switch for indent or not.
 static int indentState = 0;
 //! Current indent depth.
@@ -82,6 +85,7 @@ systemInit ()
   sys->maxruns = 0;
   sys->runs = NULL;
   /* no protocols yet */
+  protocolCount = 0;
   sys->protocols = NULL;
   sys->locals = NULL;
   sys->variables = NULL;

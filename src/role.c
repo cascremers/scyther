@@ -17,6 +17,7 @@
 #include "role.h"
 
 extern int globalLatex;		// from system.c
+extern int protocolCount;	// from system.c
 
 //! Allocate memory the size of a roledef struct.
 Roledef
@@ -50,16 +51,27 @@ roledefPrint (Roledef rd)
     eprintf ("CLAIM");
   if (rd->label != NULL)
     {
+      //! Print label
+      Term label;
+
+      label = deVar (rd->label);
+      if (protocolCount < 2 && realTermTuple (label))
+	{
+	  // Only one protocol, so we don't need to show the extra label info
+	  label = label->right.op2;
+	}
+
+      //! Print latex/normal
       if (globalLatex)
 	{
 	  eprintf ("$_{");
-	  termPrint (rd->label);
+	  termPrint (label);
 	  eprintf ("}$");
 	}
       else
 	{
 	  eprintf ("_");
-	  termPrint (rd->label);
+	  termPrint (label);
 	}
     }
   if (globalLatex)

@@ -21,6 +21,11 @@ static System sys;
 static Tac tac_root;
 
 /*
+ * Declaration from system.c
+ */
+extern int protocolCount;
+
+/*
    Forward declarations.
 */
 
@@ -386,7 +391,9 @@ commEvent (int event, Tac tc)
 	{
 	  /* effectively, labels are bound to the protocol */
 	  level--;
-	  label = levelConst (tc->t1.sym);
+	  /* leaves a garbage tuple. dunnoh what to do with it */
+	  label =
+	    makeTermTuple (thisProtocol->nameterm, levelConst (tc->t1.sym));
 	  level++;
 	}
     }
@@ -712,6 +719,7 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
   /* add protocol to list */
   pr->next = sys->protocols;
   sys->protocols = pr;
+  protocolCount++;
 
   levelInit ();
   /* add the role names */
