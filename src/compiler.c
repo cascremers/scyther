@@ -121,8 +121,7 @@ levelInit (void)
   level++;
   if (level >= MAXLEVELS)
     {
-      printf ("ERROR: level is increased too much\n");
-      exit (1);
+      error ("level is increased too much.");
     }
   leveltl[level] = NULL;
 }
@@ -132,8 +131,7 @@ levelDone (void)
 {
   if (level < 0)
     {
-      printf ("ERROR: level is increased too much\n");
-      exit (1);
+      error ("level is decreased too much.");
     }
   leveltl[level] = NULL;
   level--;
@@ -230,8 +228,7 @@ defineUsertype (Tac tcdu)
 
   if (tc == NULL)
     {
-      printf ("ERROR: empty usertype declaration.\n");
-      errorTac (tcdu->lineno);
+      error ("Empty usertype declaration on line %i.", tcdu->lineno);
     }
   while (tc != NULL && tc->op == TAC_STRING)
     {
@@ -258,10 +255,7 @@ defineUsertype (Tac tcdu)
 	  else
 	    {
 	      /* that's not right! */
-	      printf ("ERROR: conflicting definitions for ");
-	      termPrint (tfind);
-	      printf (" in usertype definition ");
-	      errorTac (tc->lineno);
+	      error ("Conflicting definitions in usertype definition on line %i.", tc->lineno);
 	    }
 	}
       tc = tc->next;
@@ -278,8 +272,7 @@ levelTacDeclaration (Tac tc, int isVar)
   tscan = tc->t2.tac;
   if (!isVar && tscan->next != NULL)
     {
-      printf ("ERROR: Multiple types not allowed for constants ");
-      errorTac (tscan->lineno);
+      error ("Multiple type definition for constant on line %i.", tscan->lineno);
     }
   while (tscan != NULL && tscan->op == TAC_STRING)
     {
@@ -289,17 +282,13 @@ levelTacDeclaration (Tac tc, int isVar)
       if (t == NULL)
 	{
 	  /* not declared, that is unacceptable. */
-	  printf ("ERROR: type ");
-	  symbolPrint (tscan->t1.sym);
-	  printf (" was not declared ");
-	  errorTac (tscan->lineno);
+          error ("Undeclared type on line %i.", tscan->lineno);
 	}
       else
 	{
 	  if (!inTermlist (t->stype, TERM_Type))
 	    {
-	      printf ("ERROR: non-type constant in type declaration ");
-	      errorTac (tscan->lineno);
+              error ("Non-type constant in type declaration on line %i.", tscan->lineno);
 	    }
 	}
       typetl = termlistAdd (typetl, t);
@@ -352,8 +341,7 @@ commEvent (int event, Tac tc)
       /* now parse triplet info */
       if (trip == NULL || trip->next == NULL || trip->next->next == NULL)
 	{
-	  printf ("ERROR in %i event ", event);
-	  errorTac (tc->lineno);
+          error ("Problem with %i event on line %i.", event, tc->lineno);
 	}
       fromrole = tacTerm (trip);
       torole = tacTerm (trip->next);
@@ -364,8 +352,7 @@ commEvent (int event, Tac tc)
       /* now parse tuple info */
       if (trip == NULL || trip->next == NULL)
 	{
-	  printf ("ERROR in %i event ", event);
-	  errorTac (tc->lineno);
+          error ("Problem with %i event on line %i.", event, tc->lineno);
 	}
       fromrole = tacTerm (trip);
       claimbig = tacTerm (tacTuple ((trip->next)));
@@ -375,8 +362,7 @@ commEvent (int event, Tac tc)
       /* check for obvious flaws */
       if (claim == NULL)
 	{
-	  printf ("ERROR: invalid claim specification ");
-	  errorTac (trip->next->lineno);
+          error ("Invalid claim specification on line %i.", tc->lineno);
 	}
       if (!inTermlist (claim->stype, TERM_Claim))
 	{
@@ -398,9 +384,7 @@ commEvent (int event, Tac tc)
 	  msg = deVar (claimbig)->right.op2;
 	  if (tupleCount (msg) != n)
 	    {
-	      printf
-		("ERROR: something went wrong in the claim tuple parameter unfolding ");
-	      errorTac (trip->next->lineno);
+	      error ("Problem with claim tuple unfolding at line %i.", trip->next->lineno);
 	    }
 	}
 
@@ -410,9 +394,7 @@ commEvent (int event, Tac tc)
 	{
 	  if (n == 0)
 	    {
-	      printf
-		("ERROR: secrecy claim requires a list of terms to be secret ");
-	      errorTac (trip->next->lineno);
+	      error ("Secrecy claim requires a list of terms to be secret on line %i.",trip->next->lineno);
 	    }
 	  break;
 	}
@@ -420,8 +402,7 @@ commEvent (int event, Tac tc)
 	{
 	  if (n != 0)
 	    {
-	      printf ("ERROR: nisynch claim has no parameters ");
-	      errorTac (trip->next->lineno);
+	      error ("NISYNCH claim requires no parameters at line %i.", trip->next->lineno);
 	    }
 	  break;
 	}
