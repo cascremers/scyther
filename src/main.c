@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <limits.h>
-#include "runs.h"
+#include "system.h"
 #include "debug.h"
 #include "modelchecker.h"
 #include "memory.h"

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
-#include "runs.h"
+#include "system.h"
 #include "memory.h"
 #include "modelchecker.h"
 #include "tracebuf.h"

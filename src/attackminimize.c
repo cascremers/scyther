@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "runs.h"
+#include "system.h"
 #include "tracebuf.h"
 
 //! Help counter for the number of unknowns.

@@ -9,7 +9,7 @@
 #include "termlists.h"
 #include "knowledge.h"
 #include "memory.h"
-#include "runs.h"
+#include "system.h"
 #include "debug.h"
 
 /*

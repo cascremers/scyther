@@ -2,11 +2,11 @@
  * varbuf.c
  *
  * Operations on a variable substitutions buffer.
- * The type is actually defined in runs.h
+ * The type is actually defined in system.h
  */
 
 #include "memory.h"
-#include "runs.h"
+#include "system.h"
 
 /*
  * create a new varbuffer from the current state of the system

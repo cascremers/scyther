@@ -8,6 +8,6 @@
 #include "terms.h"
 #include "termlists.h"
 #include "symbols.h"
-#include "runs.h"
+#include "system.h"
 #include "tac.h"
 #endif

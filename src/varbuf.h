@@ -1,7 +1,7 @@
 #ifndef VARBUF
 #define VARBUF
 
-#include "runs.h"
+#include "system.h"
 
 Varbuf varbufInit (const System sys);
 void varbufSet (const System sys, Varbuf vb);

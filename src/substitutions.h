@@ -3,7 +3,7 @@
 
 #include "termlists.h"
 #include "knowledge.h"
-#include "runs.h"
+#include "system.h"
 
 struct substitution
 {

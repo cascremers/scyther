@@ -1,7 +1,7 @@
 #ifndef OUTPUT
 #define OUTPUT
 
-#include "runs.h"
+#include "system.h"
 
 void tracePrint(const System sys);
 void attackDisplay(const System sys);

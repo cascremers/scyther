@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "terms.h"
-#include "runs.h"
+#include "system.h"
 #include "debug.h"
 #include "output.h"
 

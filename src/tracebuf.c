@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "runs.h"
+#include "system.h"
 #include "memory.h"
 #include "tracebuf.h"
 #include "varbuf.h"

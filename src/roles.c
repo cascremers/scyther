@@ -8,7 +8,7 @@
 #include "terms.h"
 #include "termlists.h"
 #include "knowledge.h"
-#include "runs.h"
+#include "system.h"
 #include "memory.h"
 #include "constraints.h"
 #include "debug.h"
@@ -16,7 +16,7 @@
 #include "tracebuf.h"
 #include "roles.h"
 
-extern int globalLatex;		// from runs.c
+extern int globalLatex;		// from system.c
 
 //! Allocate memory the size of a roledef struct.
 Roledef

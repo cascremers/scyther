@@ -9,7 +9,7 @@
 #include <limits.h>
 #include "substitutions.h"
 #include "knowledge.h"
-#include "runs.h"
+#include "system.h"
 #include "debug.h"
 #include "modelchecker.h"
 #include "report.h"

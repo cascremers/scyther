@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "termmaps.h"
-#include "runs.h"
+#include "system.h"
 #include "error.h"
 
 #define MATCH_NONE 0

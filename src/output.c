@@ -8,7 +8,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "runs.h"
+#include "system.h"
 #include "latex.h"
 
 

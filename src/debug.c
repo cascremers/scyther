@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "debug.h"
-#include "runs.h"
+#include "system.h"
 
 static int debuglevel;
 

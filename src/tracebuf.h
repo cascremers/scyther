@@ -4,7 +4,7 @@
 #include "terms.h"
 #include "termlists.h"
 #include "knowledge.h"
-#include "runs.h"
+#include "system.h"
 
 /* STATUS symbols */
 #define S_UNK 0 // UNKnown   : unprocessed.
@@ -15,7 +15,7 @@
 
 
 /*
- * tracebuf struct is defined in runs.h to avoid loops.
+ * tracebuf struct is defined in system.h to avoid loops.
  */
 
 int tracebufRebuildKnow(struct tracebuf *tb);

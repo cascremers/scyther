@@ -8,7 +8,7 @@
 #include "terms.h"
 #include "termlists.h"
 #include "knowledge.h"
-#include "runs.h"
+#include "system.h"
 #include "memory.h"
 #include "constraints.h"
 #include "debug.h"

@@ -26,7 +26,7 @@
 #include "termlists.h"
 #include "knowledge.h"
 #include "substitutions.h"
-#include "runs.h"
+#include "system.h"
 
 //! Open memory code.
 void

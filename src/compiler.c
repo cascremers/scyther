@@ -4,7 +4,7 @@
 #include "terms.h"
 #include "termlists.h"
 #include "memory.h"
-#include "runs.h"
+#include "system.h"
 #include "knowledge.h"
 #include "symbols.h"
 #include "substitutions.h"
@@ -40,7 +40,7 @@ Termlist tacTermlist (Tac tc);
 
 /* externally used:
  * TERM_Function in termlists.c for inversekeys
- * TERM_Type in runs.c for type determination.
+ * TERM_Type in system.c for type determination.
  */
 
 Term TERM_Agent;

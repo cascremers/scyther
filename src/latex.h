@@ -5,7 +5,7 @@
 #ifndef LATEX
 #define LATEX
 
-#include "runs.h"
+#include "system.h"
 
 void latexInit(const System sys, int argc, char **argv);
 void latexDone(const System sys);

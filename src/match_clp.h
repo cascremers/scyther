@@ -1,7 +1,7 @@
 #ifndef MATCHCLP
 #define MATCHCLP
 
-#include "runs.h"
+#include "system.h"
 
 int matchRead_clp (const System sys, const int run,
 		   int (*proceed) (System, int));

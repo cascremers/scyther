@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include "memory.h"
 #include "substitutions.h"
-#include "runs.h"
+#include "system.h"
 #include "modelchecker.h"
 #include "match_basic.h"
 
