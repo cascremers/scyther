@@ -1279,6 +1279,37 @@ termBindConsequences (Term t)
 // Larger logical componentents
 //------------------------------------------------------------------------
 
+//! Selector to select the first tuple goal.
+/**
+ * Basically to get rid of -m2 tuple goals.
+ * Nice iteration, I'd suppose
+ */
+Binding
+select_tuple_goal()
+{
+  List bl;
+  Binding tuplegoal;
+
+  bl = sys->bindings;
+  tuplegoal = NULL;
+  while (bl != NULL && tuplegoal == NULL)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      // Ignore done stuff
+      if (!b->done)
+	{
+	  if (isTermTuple (b->term))
+	    {
+	      tuplegoal = b;
+	    }
+	}
+      bl = bl->next;
+    }
+  return tuplegoal;
+}
+
 //! Goal selection
 /**
  * Selects the most constrained goal.
@@ -2237,38 +2268,74 @@ iterate ()
 	    {
 	      Binding b;
 
-	      /**
-	       * Not pruned: count
-	       */
-
-	      sys->states = statesIncrease (sys->states);
-
-	      /**
-	       * Check whether its a final state (i.e. all goals bound)
-	       */
-
-	      b = select_goal ();
-	      if (b == NULL)
+	      // Are there any tuple goals?
+	      b = select_tuple_goal();
+	      if (b != NULL)
 		{
-		  /*
-		   * all goals bound, check for property
-		   */
+		  // Expand tuple goal
+		  int count;
+		  Term tt;
+	
+		  // Show this in output
 		  if (sys->output == PROOF)
 		    {
 		      indentPrint ();
-		      eprintf ("All goals are now bound.\n");
+		      eprintf ("Expanding tuple goal ");
+		      termPrint (b->term);
+		      eprintf ("\n");
 		    }
-		  sys->claims = statesIncrease (sys->claims);
-		  current_claim->count =
-		    statesIncrease (current_claim->count);
-		  flag = property_check ();
+
+		  // mark as done for iteration
+		  b->done = 1;
+
+		  // simply adding will detect the tuple and add the new subgoals
+		  count = goal_add (b->term, b->run_to, b->ev_to, b->level);
+
+		  // iterate
+		  flag = iterate ();
+
+		  // undo
+  		  goal_remove_last (count);
+		  b->done = 0;
 		}
 	      else
 		{
-		  /*
-		   * bind this goal in all possible ways and iterate
+		  // No tuple goals; good
+		  Binding b;
+
+		  /**
+		   * Not pruned: count
 		   */
-		  flag = bind_goal (b);
+
+		  sys->states = statesIncrease (sys->states);
+
+		  /**
+		   * Check whether its a final state (i.e. all goals bound)
+		   */
+
+		  b = select_goal ();
+		  if (b == NULL)
+		    {
+		      /*
+		       * all goals bound, check for property
+		       */
+		      if (sys->output == PROOF)
+			{
+			  indentPrint ();
+			  eprintf ("All goals are now bound.\n");
+			}
+		      sys->claims = statesIncrease (sys->claims);
+		      current_claim->count =
+			statesIncrease (current_claim->count);
+		      flag = property_check ();
+		    }
+		  else
+		    {
+		      /*
+		       * bind this goal in all possible ways and iterate
+		       */
+		      flag = bind_goal (b);
+		    }
 		}
 	    }
 	  else
