@@ -16,7 +16,10 @@ protocol nsl7(I,R)
 	}
 }
 
-const Alice,Bob;
+const Alice,Bob,Eve;
+const ne;
+untrusted Eve;
+compromised sk(Eve);
 
-run nsl7.R(Alice,Bob);
-run nsl7.R(Alice,Bob);
+run nsl7.R(Agent,Agent);
+run nsl7.R(Agent,Agent);
