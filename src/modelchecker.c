@@ -771,7 +771,11 @@ lastActiveRun (const System sys)
   else
     {
       /* there was a previous action, start scan from there */
-      return sys->traceRun[sys->step - 1] + sys->porparam;
+#ifdef DEBUG
+      if (sys->porparam < 100)
+          return sys->traceRun[sys->step - 1] + sys->porparam;
+#endif
+      return sys->traceRun[sys->step - 1];
     }
 }
 
