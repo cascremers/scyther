@@ -165,13 +165,6 @@ binding_indent_print (Binding b, int flag)
 }
 
 
-//! Iterate but discard the info of the termlist
-int
-mgu_iterate (const Termlist tl)
-{
-  return iterate ();
-}
-
 //! After a role instance, or an extension of a run, we might need to add some goals
 /**
  * From old to new. Sets the new length to new.
@@ -366,7 +359,7 @@ bind_existing_to_goal (const Binding b, const int index, const int run,
 	    eprintf ("Aborted binding existing run because of cycle.\n");
 	  }
 #endif
-	flag = 0;
+	flag = 1;
       }
     goal_unbind (b);
     return flag;
@@ -572,25 +565,73 @@ select_goal ()
   return best;
 }
 
-//! Bind an intruder goal by intruder construction
+//! Create a new intruder run to generate knowledge from m0
+int
+bind_goal_new_m0 (const Binding b)
+{
+  Termlist m0tl;
+  int flag;
+
+  flag = 1;
+  m0tl = knowledgeSet (sys->know);
+  while (flag && m0tl != NULL)
+    {
+      Term m0t;
+      Termlist subst;
+
+      m0t = m0tl->term;
+      subst = termMguTerm (b->term, m0t);
+      if (subst != MGUFAIL)
+	{
+	  int run;
+
+	  roleInstance (sys, INTRUDER, I_M, NULL, NULL);
+	  run = sys->maxruns - 1;
+	  sys->runs[run].start->message = termDuplicate (b->term);
+	  sys->runs[run].length = 1;
+	  if (goal_bind (b, run, 0))
+	    {
+#ifdef DEBUG
+	      if (DEBUGL (3))
+		{
+		  if (DEBUGL (5))
+		    {
+		      binding_indent_print (b, 0);
+		    }
+		  indentPrint ();
+		  eprintf ("Retrieving ");
+		  termPrint (b->term);
+		  eprintf (" from the initial knowledge.\n");
+		}
+#endif
+	      flag = flag && iterate ();
+	    }
+	  goal_unbind (b);
+	  roleInstanceDestroy (sys);
+	  termlistSubstReset (subst);
+	  termlistDelete (subst);
+	}
+
+      m0tl = m0tl->next;
+    }
+
+  termlistDelete (m0tl);
+  return flag;
+}
+
+//! Bind an intruder goal by intruder composition construction
 /**
  * Handles the case where the intruder constructs a composed term himself.
  */
 int
-bind_goal_new_intruder_run (const Binding b)
+bind_goal_new_encrypt (const Binding b)
 {
   Term term;
-  Termlist m0tl;
   int flag;
-  int run;
 
   flag = 1;
   term = b->term;
-  /**
-   * Three options.
-   *
-   * 1. Constructed from smaller composite terms
-   */
+
   if (!realTermLeaf (term))
     {
       int run;
@@ -638,93 +679,18 @@ bind_goal_new_intruder_run (const Binding b)
       remove_read_goals (newgoals);
       roleInstanceDestroy (sys);
     }
-  /**
-   * 2. Constructed from bigger term and decryption key
-   */
-  /*
-     if (!realTermLeaf (term))
-     {
-     if (realTermEncrypt (term))
-     {
-     Term t1, t2;
-
-     t1 = term->left.op;
-     t2 = term->right.key;
-
-     goal_add (t1, b->run_to, b->ev_to);
-     goal_add (t2, b->run_to, b->ev_to);
-     #ifdef DEBUG
-     if (DEBUGL (3))
-     {
-     indentPrint ();
-     eprintf ("Deriving ");
-     termPrint (term);
-     eprintf (" from encrypted term ");
-     termPrint (t1);
-     eprintf (" and key ");
-     termPrint (t2);
-     eprintf ("\n");
-     }
-     #endif
-     flag = flag && iterate ();
-     goal_remove_last ();
-     goal_remove_last ();
-     }
-
-     }
-   */
-
-  /**
-   * 3. Retrieved from M_0
-   */
-  m0tl = knowledgeSet (sys->know);
-  while (flag && m0tl != NULL)
-    {
-      Term m0t;
-      Termlist subst;
-
-      m0t = m0tl->term;
-      subst = termMguTerm (term, m0t);
-      if (subst != MGUFAIL)
-	{
-	  int run;
-
-	  roleInstance (sys, INTRUDER, I_M, NULL, NULL);
-	  run = sys->maxruns - 1;
-	  sys->runs[run].start->message = termDuplicate (term);
-	  sys->runs[run].length = 1;
-	  if (goal_bind (b, run, 0))
-	    {
-#ifdef DEBUG
-	      if (DEBUGL (3))
-		{
-		  if (DEBUGL (5))
-		    {
-		      binding_indent_print (b, 0);
-		    }
-		  indentPrint ();
-		  eprintf ("Retrieving ");
-		  termPrint (term);
-		  eprintf (" from the initial knowledge.\n");
-		}
-#endif
-	      flag = flag && iterate ();
-	    }
-	  goal_unbind (b);
-	  roleInstanceDestroy (sys);
-	  termlistSubstReset (subst);
-	  termlistDelete (subst);
-	}
-
-      m0tl = m0tl->next;
-    }
-  termlistDelete (m0tl);
-  /**
-   * return result
-   */
   return flag;
 }
 
+//! Bind an intruder goal by intruder construction
+/**
+ * Handles the case where the intruder constructs a composed term himself.
+ */
+int
+bind_goal_new_intruder_run (const Binding b)
+{
+  return (bind_goal_new_m0(b) && bind_goal_new_encrypt(b));
+}
 
 //! Bind a regular goal
 int
@@ -1062,6 +1028,11 @@ iterate ()
   e_term3 = NULL;
 #endif
   indentDepth--;
+
+  if (!flag)
+    {
+      warning ("Flag has turned 0!");
+    }
   return flag;
 }
 
