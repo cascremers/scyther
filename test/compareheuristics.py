@@ -54,6 +54,27 @@ def test_goal_selector(goalselector, options):
 	
 	return (attacks,bounds,proofs,claims,np)
 
+# Max
+class maxor:
+	def __init__(self,dir=0,mymin=9999, mymax=-9999):
+		self.dir = dir
+		self.min = mymin
+		self.max = mymax
+	
+	def reg(self,data):
+		res = ""
+		if self.min >= data:
+			self.min = data
+			if (self.dir & 2):
+				res = res + "-"
+		if self.max <= data:
+			self.max = data
+			if (self.dir & 1):
+				res = res + "+"
+		if res == "":
+			return res
+		else:
+			return "[" + res + "]"
 
 # Main code
 def main():
@@ -64,28 +85,34 @@ def main():
 
 	print "G-sel\tAttack\tBound\tProof\tClaims\tScore1\tScore2"
 	print 
-	score1max = 0
-	score2max = 0
+
+	ramax = maxor(1)
+	rbmax = maxor(2)
+	rpmax = maxor(1)
+	score1max = maxor(1)
+	score2max = maxor(1)
 
 	for g in range(1,31):
-		(ra,rb,rp,nc,np) = test_goal_selector(g, options)
+		if (g & 8) == 0:
+			(ra,rb,rp,nc,np) = test_goal_selector(g, options)
 
-		# Scores: bounds are negative
-		score1 = ra + rp - rb
-		score2 = ra + rp - (2 * rb)
+			# Scores: bounds are negative
+			score1 = ra + rp - rb
+			score2 = ra + (3 * rp) - (2 * rb)
 
-		res = str(g)
-		res = res + "\t" + str(ra) + "\t" + str(rb)
-		res = res + "\t" + str(rp) + "\t" + str(nc)
-		res = res + "\t" + str(score1)
-		if score1 >= score1max:
-			score1max = score1
-			res = res + "*"
-		res = res + "\t" + str(score2)
-		if score2 >= score2max:
-			score2max = score2
-			res = res + "*"
-		print res
+			res = str(g)
+
+			def shows (res, mx, data):
+				return res + "\t" + str(data) + mx.reg(data)
+
+			res = shows (res, ramax, ra)
+			res = shows (res, rbmax, rb)
+			res = shows (res, rpmax, rp)
+			res = res + "\t" + str(nc)
+			res = shows (res, score1max, score1)
+			res = shows (res, score2max, score2)
+
+			print res
 	print
 	print "Goal selector scan completed."
 
