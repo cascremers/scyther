@@ -1,0 +1,20 @@
+AC_INIT(main.c)
+AM_INIT_AUTOMAKE(Scyther, 0.2)
+            
+dnl find and test the C compiler
+AC_PROG_CC
+AC_LANG_C
+        
+AC_PROG_MAKE_SET
+               
+AC_HEADER_STDC
+AC_CHECK_FUNC(atol,,AC_MSG_ERROR(oops! no atol ?!?))
+AC_CHECK_LIB(argtable2, arg_parse,,AC_MSG_ERROR(Scyther requires the argtable2 package))
+AC_PROG_YACC
+AC_PROG_LEX
+                  
+VERSION="0.0.1"
+AC_SUBST(VERSION)
+
+dnl read Makefile.in and write Makefile
+AC_OUTPUT(Makefile)
