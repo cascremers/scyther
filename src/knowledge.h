@@ -15,21 +15,13 @@ struct knowledge
   //! A list of terms encrypted, such that the inverse is not in the knowledge set.
   Termlist encrypt;
   Termlist inverses;
-  union
-  {
-    //! List of open variables in the knowledge set.
-    /**
-     * This list is used to determine whether the knowledge needs to be rewritten.
-     * If a new substitution is done, one of the elements of this list will become closed,
-     * and we need to reconstruct the knowledge set.
-     */
-    Termlist vars;		// special: denotes unsubstituted variables
-    //! Next pointer.
-    /**
-     * Presumably obsolete.
-     */
-    struct knowledge *next;	// use for alternative memory management.
-  };
+  //! List of open variables in the knowledge set.
+  /**
+   * This list is used to determine whether the knowledge needs to be rewritten.
+   * If a new substitution is done, one of the elements of this list will become closed,
+   * and we need to reconstruct the knowledge set.
+   */
+  Termlist vars;		// special: denotes unsubstituted variables
 };
 
 //! Shorthand for knowledge pointer.
