@@ -1,0 +1,4 @@
+# Some commandlines used
+#
+# Construction of conclusions.txt:
+cat test-s-a-B-b0-p1.txt | ./process.py | grep ">>>G" | sort > conclusions.txt
