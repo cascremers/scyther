@@ -9,7 +9,7 @@
 #include "tac.h"
 
 /* tokens for language */
-#include "tok.h"
+#include "y.tab.h"
 
 void mkname(char *name);
 void mkval(void);
