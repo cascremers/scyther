@@ -847,7 +847,7 @@ dotSemiState ()
 
 		      found = 0;
 		      ev2 = sys->runs[run2].length - 1;
-		      while (ev2 >= 0 && !found)
+		      while ((ev2 >= 0) && (found == 0))
 			{
 			  if (graph[graph_nodes (nodes, run2, ev2, run, ev)]
 			      != 0)
@@ -855,7 +855,7 @@ dotSemiState ()
 			  else
 			    ev2--;
 			}
-		      if (found)
+		      if (found == 1)
 			{
 			  // It is before the event, and thus we would like to draw it.
 			  // However, if there is another path along which we can get here, forget it
@@ -905,6 +905,21 @@ dotSemiState ()
 			      node (run, ev);
 			      eprintf (";\n");
 			    }
+			  else
+			    {
+			      eprintf ("\t\t");
+			      node (run2, ev2);
+			      eprintf (" -> ");
+			      node (run, ev);
+			      eprintf (" [style=dotted];\n");
+			    }
+			}
+		      else
+			{
+			  // not found
+			  eprintf ("\t\tNOPREV -> ");
+			  node (run, ev);
+			  eprintf (" [label=\"#%i\"];\n", run2);
 			}
 		    }
 		  run2++;
