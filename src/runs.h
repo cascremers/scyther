@@ -207,6 +207,7 @@ struct system
   int switchS;			//!< Progress display switch. (traversed states)
   int porparam;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
   int switchStatespace;		//!< Output statespace for dot package
+  int switchForceChoose;	//!< Force chooses for each run, even if involved in first read
   //! Latex output switch.
   /**
    * Obsolete. Use globalLatex instead.

@@ -99,6 +99,7 @@ main (int argc, char **argv)
     arg_lit0 ("d", "disable-report", "don't report violations.");
   struct arg_lit *switchS = arg_lit0 (NULL, "no-progress", "suppress progress bar.");
   struct arg_lit *switchSS = arg_lit0 (NULL, "state-space", "output state space graph.");
+  struct arg_lit *switchFC = arg_lit0 (NULL, "force-choose", "force only explicit choose events.");
 #ifdef DEBUG
   struct arg_int *porparam = arg_int0 (NULL, "pp", NULL, "POR parameter.");
   struct arg_lit *switchI = arg_lit0 ("I", "debug-indent",
@@ -123,6 +124,7 @@ main (int argc, char **argv)
     noreport,
     switchS, 
     switchSS,
+    switchFC,
 #ifdef DEBUG
     porparam,
     switchI,
@@ -271,6 +273,12 @@ main (int argc, char **argv)
 
   /* generate system */
   sys = systemInit ();
+  if (switchFC->count > 0)
+    {
+      /* force explicit chooses */
+      sys->switchForceChoose = 1;
+      warning ("Force choose enabled");
+    }
 #ifdef DEBUG
   sys->porparam = porparam->ival[0];
 #endif

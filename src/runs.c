@@ -64,6 +64,7 @@ systemInit ()
   sys->porparam = 0;		// multi-purpose parameter
   sys->latex = 0;		// latex output?
   sys->switchStatespace = 0;
+  sys->switchForceChoose = 0;	// don't force explicit chooses by default
 
   /* set illegal traversal by default, to make sure it is set
      later */
@@ -568,10 +569,9 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	  /* newvar is apparently new, but it might occur
 	   * in the first event if it's a read, in which
 	   * case we forget it */
-	  if (!(rd->type == READ && termOccurs (rd->message, scanfrom->term)))
+	  if (sys->switchForceChoose || !(rd->type == READ && termOccurs (rd->message, scanfrom->term)))
 	    {
-	      /* but this is already set in the first
-	       * read... */
+	      /* this term is forced as a choose, or it does not occur in the (first) read event */
 	      /* TODO scan might be more complex, but
 	       * this will do for now. I.e. occurring
 	       * first in a read will do */
