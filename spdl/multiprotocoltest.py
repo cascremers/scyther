@@ -1,16 +1,17 @@
 #!/usr/bin/python
 #
-# Multi-protocol test
+# Multi-protocol test using Scyther
+#
+# (c)2004 Cas Cremers
 #
 # Input of this script:
 #
 # 	- A number on the commandline of stuff to test
 # 	- A list of files on stdin to be used
 
-import os
-import sys
-import string
-import commands
+# ***********************
+# 	PARAMETERS
+# ***********************
 
 TempFileList = "scyther-blap.tmp"
 TempFileTuples = "scyther-blip.tmp"
@@ -28,6 +29,7 @@ ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
 CommandPrefix = ScytherProgram + " " + ScytherArgs
 
 ProtocolClaims = {}
+ProtocolFiles = {}
 
 SkipList = [
 	'gong-nonce.spdl',
@@ -37,8 +39,28 @@ SkipList = [
 	]
 
 # ***********************
+# 	MODULES
+# ***********************
+
+import os
+import sys
+import string
+import commands
+
+# ***********************
 # 	LIBS
 # ***********************
+
+# GetKeys
+#
+# Given a mapping f and a value x, returns a list of keys 
+# k for which f(k) = x
+def GetKeys (f, x):
+	res = []
+	for k in f.keys():
+		if f[k] == x:
+			res.append(k)
+	return res
 
 # CommandLine
 #
@@ -77,12 +99,21 @@ def ScytherEval (plist):
 # The above, but do the preprocessing for a single protocol
 def ScytherEval1 (protocol):
 	results = ScytherEval ([protocol])
+
+	# Add the claim to the list of ProtocolClaims
 	for claim in results.keys():
 		if ProtocolClaims.has_key(claim):
-			raise IOError, 'Claim occurs in two protocols: ' + claim
+			# Claim occurs in two protocols; determine the
+			# files
+			file1 = ProtocolFiles[claim.split()[0]]
+			file2 = protocol
+			raise IOError, 'Claim occurs in two protocols: ' + claim + ", in files (" + file1 + ") and (" + file2 + ")"
+
+		# Add the filename to the protocol mappings
+		prname = claim.split()[0]
+		ProtocolFiles[prname] = protocol
+
 	ProtocolClaims.update (results)
-
-
 
 # Show progress of i (0..n)
 # 
@@ -117,8 +148,55 @@ def ClearProgress (n,txt):
 	sys.stdout.flush()
 
 
+def DescribeContext (filep, protocols, claim):
+	def DC_Claim(cl,v):
+		if v == 0:
+			filep.write ("- " + cl + " : false in isolation")
+		elif v == 1:
+			filep.write ("+ " + cl + " : correct in isolation")
+		elif v == 2:
+			filep.write ("* " + cl + " : newly false in multi-protocol test")
+		else:
+			filep.write ("???")
+		filep.write ("\n")
 
+	filep.write ("-- Attack description.\n\n")
+	filep.write ("Involving the protocols:\n")
 
+	for prfile in protocols:
+		prnames = GetKeys (ProtocolFiles, prfile)
+		filep.write ("- " + prfile + ": " + ",".join(prnames) + "\n")
+	newprname = claim.split()[0]
+	newprfile = ProtocolFiles[newprname]
+	filep.write ("The new attack occurs in " + newprfile + ": " + newprname)
+
+	filep.write ("\n\n")
+	filep.write (" $ " + CommandLine (protocols) + "\n")
+	filep.write ("\n")
+	DC_Claim (claim, 2)
+
+	# Determine, for each protocol name within the list of files,
+	# which claims fall under it, and show their previous status
+	
+	for prname in ProtocolFiles:
+		# Protocol name
+		if ProtocolFiles[prname] in protocols:
+			# prname is a protocol name within the scope
+			# first print isolation correct files (skipping
+			# the claim one, because that is obvious)
+
+			cllist = []
+			for cl in ProtocolClaims.keys():
+				if cl.split()[0] == prname:
+					cllist.append( (cl,ProtocolClaims[cl]) )
+
+			for cl,v in cllist:
+				if v == 1 and cl <> claim:
+					DC_Claim(cl,1)
+			for cl,v in cllist:
+				if v == 0 and cl <> claim:
+					DC_Claim(cl,0)
+	filep.write ("\n")
 
 
 
@@ -220,7 +298,7 @@ for tline in inp:
 				# Wooh! It was correct before
 				ClearProgress (TupleCount, safetxt)
 				newattacks = newattacks + 1
-				print "We found a new flaw:", claim, " using",CommandLine( protocols)
+				print "New attack", newattacks, ":", claim, " using",CommandLine( protocols)
 				#
 				# TODO
 				#
@@ -229,6 +307,7 @@ for tline in inp:
 				# error log thingy. Furthermore,
 				# explicitly recreate the commandline
 				# and the claim that is newly violated
+				DescribeContext (sys.stdout, protocols, claim)
 	
 	# Next!
 	processed = processed + 1
