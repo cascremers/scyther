@@ -1,0 +1,63 @@
+usertype Sessionkey;
+usertype Ticket;
+secret k: Function;
+
+protocol isoiec11770213(I,R,S)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+		var kir: Sessionkey;
+
+		send_1 (I,R, ni);
+		read_4 (R,I, { ni,kir,R }k(I,S) );
+
+		claim_5 (I, Secret, kir);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		const nr: Nonce;
+		const kir: Sessionkey;
+		var T;
+
+		read_1 (I,R, ni);
+		send_2 (R,S, { nr,ni,I,kir }k(R,S) );
+		read_3 (S,R, { nr, I }k(R,S), T );
+		send_4 (R,I, T );
+
+		claim_6 (R, Secret, kir);
+	}
+
+	role S
+	{
+		var ni,nr: Nonce;
+		var kir: Sessionkey;
+
+		read_2 (R,S, { nr,ni,I,kir }k(R,S) );
+		send_3 (S,R, { nr, I }k(R,S), { ni,kir,R }k(I,S) );
+	}
+}
+
+const Alice,Bob,Simon,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const te: Ticket;
+const ke: Sessionkey;
+compromised k(Eve,Eve);
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Eve,Simon);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
+compromised k(Simon,Eve);
+
+run isoiec11770213.I(Agent,Agent,Simon);
+run isoiec11770213.R(Agent,Agent,Simon);
+run isoiec11770213.S(Agent,Agent,Simon);
+run isoiec11770213.I(Agent,Agent,Simon);
+run isoiec11770213.R(Agent,Agent,Simon);
+run isoiec11770213.S(Agent,Agent,Simon);
