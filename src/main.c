@@ -35,6 +35,8 @@ main (int argc, char **argv)
 {
   System sys;
 
+  struct arg_file *infile  = arg_file0(NULL,NULL,"FILE",    "input file ('-' for stdin)");
+  struct arg_file *outfile = arg_file0("o","output","FILE", "output file (default is stdout)");
   struct arg_int *traversal = arg_int0 ("t", "traverse", NULL,
 					"set traversal method, partial order reduction (default is 8)");
   struct arg_int *match =
@@ -67,8 +69,6 @@ main (int argc, char **argv)
   struct arg_lit *help = arg_lit0 (NULL, "help", "print this help and exit");
   struct arg_lit *version =
     arg_lit0 (NULL, "version", "print version information and exit");
-  struct arg_file *outfile = arg_file0("o","output","FILE", "output file (stdout)");
-  struct arg_file *infile  = arg_file0(NULL,NULL,"FILE",    "input file (stdin)");
   struct arg_end *end = arg_end (30);
   void *argtable[] = {
     infile, 
@@ -156,14 +156,12 @@ main (int argc, char **argv)
     }
 
   /* special case: uname with no command line options induces brief help */
-  /*
-     if (argc==1)
-     {
+  if (argc==1)
+   {
      printf("Try '%s --help' for more information.\n",progname);
      exitcode=0;
      goto exit;
-     }
-   */
+   }
 
   /*
    * Arguments have been parsed by argtable,
@@ -184,19 +182,24 @@ main (int argc, char **argv)
   /* output */
   if (outfile->count > 0)
     {
+      /* try to open */
       if (!freopen (outfile->filename[0], "w", stdout))
-	{
-	  printf("Error at stdout reopen to %s.\n", outfile->filename[0]);
-	  exit(1);
-	}
+        {
+          printf("Error at stdout reopen to '%s'.\n", outfile->filename[0]);
+          exit(1);
+        }
     }
   /* input */
   if (infile->count > 0)
     {
-      if (!freopen (infile->filename[0], "r", stdin))
+      /* check for the single dash */
+      if (strcmp(infile->filename[0],"-"))
 	{
-	  printf("Error at stdin reopen to %s.\n", infile->filename[0]);
-	  exit(1);
+          if (!freopen (infile->filename[0], "r", stdin))
+	    {
+	      printf("Error at stdin reopen from '%s'.\n", infile->filename[0]);
+	      exit(1);
+	    }
 	}
     }
 
