@@ -1,3 +1,8 @@
+- Fix constants in intruder knowledge. Auto add single one of each type,
+  when typed expl. Add single constant when untyped. Fix this also in
+  semantics, and add proof to establish sufficiency.
+- Fix function handling (signatures).
+- Make state space output using dot package.
 - Intruder should at least have one copy of each type that an agent can
   construct, I think in any case. Proof needed for single identifier need.
   Furthermore reduction if type flaw testing; only one constant needed.
