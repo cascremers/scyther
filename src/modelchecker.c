@@ -321,7 +321,7 @@ explorify (const System sys, const int run)
        * If the run we depend upon has already been activated (otherwise warn!) check for instance ordering
        */
 
-      if (sys->runs[run].prevSymmRun != -1)
+      if (sys->switchAgentSymm && sys->runs[run].prevSymmRun != -1)
 	{
 	  /* there is such a run on which we depend */
 	  int ridSymm;
