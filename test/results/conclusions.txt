@@ -1,0 +1,212 @@
+>>>G	boyd IV Secret	woolamce
+>>>G	boyd IV Secret	woolampif
+>>>G	boyd IV Secret	yahalom
+>>>G	boyd IV Secret	yahalomBan
+>>>G	boyd IV Secret	yahalompaulson
+>>>G	boyd RV Secret	woolamce
+>>>G	boyd RV Secret	woolampif
+>>>G	boyd RV Secret	yahalom
+>>>G	boyd RV Secret	yahalomBan
+>>>G	boyd RV Secret	yahalompaulson
+>>>G	ccitt509 IV Secret	nssymmetric
+>>>G	ccitt509 IV Secret	nssymmetricamended
+>>>G	ccitt509 IV Secret	spliceAS
+>>>G	ccitt509 IV Secret	tmn
+>>>G	ccitt509 RV Secret	nssymmetric
+>>>G	ccitt509 RV Secret	nssymmetricamended
+>>>G	ccitt509 RV Secret	spliceAS
+>>>G	ccitt509 RV Secret	spliceAShc
+>>>G	ccitt509 RV Secret	tmn
+>>>G	denningsaccosh AV Niagree	nssymmetricamended	yahalom
+>>>G	denningsaccosh AV Niagree	wmfbrutus
+>>>G	denningsaccosh AV Niagree	wmfbrutus	yahalom
+>>>G	denningsaccosh AV Niagree	woolamcmv
+>>>G	denningsaccosh AV Niagree	yahalom
+>>>G	denningsaccosh AV Niagree	yahalomBan
+>>>G	denningsaccosh AV Niagree	yahalomBan	yahalom
+>>>G	denningsaccosh AV Niagree	yahalomlowe
+>>>G	denningsaccosh AV Niagree	yahalompaulson
+>>>G	denningsaccosh AV Niagree	yahalompaulson	yahalom
+>>>G	denningsaccosh AV Secret	woolamcmv
+>>>G	denningsaccosh AV Secret	yahalomBan
+>>>G	denningsaccosh AV Secret	yahalompaulson
+>>>G	denningsaccosh BV Niagree	isoiec11770213
+>>>G	denningsaccosh BV Niagree	nssymmetric
+>>>G	denningsaccosh BV Niagree	nssymmetricamended
+>>>G	denningsaccosh BV Niagree	otwayrees
+>>>G	denningsaccosh BV Niagree	wmfbrutus
+>>>G	denningsaccosh BV Secret	nssymmetric
+>>>G	denningsaccosh BV Secret	nssymmetricamended
+>>>G	gongnonce IV Niagree	nsl7
+>>>G	kaochow2 IV Niagree	nsl7
+>>>G	kaochow2 IV Niagree	woolampif
+>>>G	kaochow2 IV Niagree	yahalomBan
+>>>G	kaochow2 IV Niagree	yahalompaulson
+>>>G	kaochow2 IV Secret	woolampif
+>>>G	kaochow2 IV Secret	yahalomBan
+>>>G	kaochow2 IV Secret	yahalompaulson
+>>>G	kaochow2 RV Niagree	nsl7
+>>>G	kaochow2 RV Niagree	woolampif
+>>>G	kaochow2 RV Niagree	yahalomBan
+>>>G	kaochow2 RV Niagree	yahalompaulson
+>>>G	kaochow2 RV Secret	gongnonce
+>>>G	kaochow2 RV Secret	woolampif
+>>>G	kaochow2 RV Secret	yahalomBan
+>>>G	kaochow2 RV Secret	yahalompaulson
+>>>G	kaochow3 IV Niagree	nsl7
+>>>G	kaochow3 IV Niagree	nsl7	yahalomBan
+>>>G	kaochow3 IV Niagree	woolampif
+>>>G	kaochow3 IV Niagree	yahalompaulson
+>>>G	kaochow3 IV Secret	nsl7	yahalomBan
+>>>G	kaochow3 IV Secret	woolampif
+>>>G	kaochow3 IV Secret	yahalompaulson
+>>>G	kaochow3 RV Niagree	nsl7
+>>>G	kaochow3 RV Niagree	woolampif
+>>>G	kaochow3 RV Niagree	yahalomBan
+>>>G	kaochow3 RV Niagree	yahalompaulson
+>>>G	kaochow3 RV Nisynch	nsl7	yahalomBan
+>>>G	kaochow3 RV Secret	gongnonce
+>>>G	kaochow3 RV Secret	woolampif
+>>>G	kaochow3 RV Secret	yahalomBan
+>>>G	kaochow3 RV Secret	yahalompaulson
+>>>G	kaochow IV Niagree	nsl7
+>>>G	kaochow IV Niagree	woolamce
+>>>G	kaochow IV Niagree	woolampif
+>>>G	kaochow IV Niagree	yahalomBan
+>>>G	kaochow IV Niagree	yahalomlowe
+>>>G	kaochow IV Niagree	yahalompaulson
+>>>G	kaochow IV Secret	woolamce
+>>>G	kaochow IV Secret	woolampif
+>>>G	kaochow IV Secret	yahalomBan
+>>>G	kaochow IV Secret	yahalompaulson
+>>>G	kaochow RV Niagree	denningsaccosh
+>>>G	kaochow RV Niagree	gongnonceb
+>>>G	kaochow RV Niagree	nsl7
+>>>G	kaochow RV Niagree	woolamce
+>>>G	kaochow RV Niagree	woolampif
+>>>G	kaochow RV Niagree	yahalomBan
+>>>G	kaochow RV Niagree	yahalomlowe
+>>>G	kaochow RV Niagree	yahalompaulson
+>>>G	kaochow RV Secret	denningsaccosh
+>>>G	kaochow RV Secret	denningsaccosh	nsl7
+>>>G	kaochow RV Secret	gongnonce
+>>>G	kaochow RV Secret	gongnonceb
+>>>G	kaochow RV Secret	woolamce
+>>>G	kaochow RV Secret	woolampif
+>>>G	kaochow RV Secret	yahalomBan
+>>>G	kaochow RV Secret	yahalomlowe
+>>>G	kaochow RV Secret	yahalompaulson
+>>>G	ns3 IV Niagree	bke	tmn
+>>>G	ns3 IV Niagree	boyd	tmn
+>>>G	ns3 IV Niagree	ccitt509	tmn
+>>>G	ns3 IV Niagree	denningsaccosh	tmn
+>>>G	ns3 IV Niagree	kaochowPalm	tmn
+>>>G	ns3 IV Niagree	nsl3
+>>>G	ns3 IV Niagree	nsl7
+>>>G	ns3 IV Niagree	nssymmetricamended	tmn
+>>>G	ns3 IV Niagree	nssymmetric	tmn
+>>>G	ns3 IV Niagree	soph
+>>>G	ns3 IV Secret	nssymmetric
+>>>G	ns3 IV Secret	nssymmetricamended
+>>>G	ns3 IV Secret	soph
+>>>G	ns3 IV Secret	spliceAS
+>>>G	ns3 IV Secret	spliceAShc
+>>>G	ns3 IV Secret	tmn
+>>>G	nsl3 IV Niagree	nsl7
+>>>G	nsl3 IV Niagree	soph
+>>>G	nsl3 IV Secret	nssymmetric
+>>>G	nsl3 IV Secret	nssymmetricamended
+>>>G	nsl3 IV Secret	soph
+>>>G	nsl3 IV Secret	spliceAS
+>>>G	nsl3 IV Secret	spliceAShc
+>>>G	nsl3 IV Secret	tmn
+>>>G	nsl3 RV Secret	nssymmetric
+>>>G	nsl3 RV Secret	nssymmetricamended
+>>>G	nsl3 RV Secret	soph
+>>>G	nsl3 RV Secret	spliceAS
+>>>G	nsl3 RV Secret	spliceAShc
+>>>G	nsl3 RV Secret	tmn
+>>>G	nsl7 RV Secret	nsl3	soph
+>>>G	nsl7 RV Secret	nsl3	spliceAS
+>>>G	nsl7 RV Secret	nsl3	spliceAShc
+>>>G	nsl7 RV Secret	nsl3	tmn
+>>>G	nsl7 RV Secret	nssymmetricamended	nsl3
+>>>G	nsl7 RV Secret	nssymmetric	nsl3
+>>>G	otwayrees BV Secret	yahalom
+>>>G	soph IV Niagree	bke	tmn
+>>>G	soph IV Niagree	boyd	tmn
+>>>G	soph IV Niagree	ccitt509	tmn
+>>>G	soph IV Niagree	denningsaccosh	tmn
+>>>G	soph IV Niagree	nssymmetricamended	tmn
+>>>G	soph IV Niagree	nssymmetric	tmn
+>>>G	sophkx IV Secret	soph
+>>>G	spliceAShcCJ CV Secret	nssymmetric
+>>>G	spliceAShcCJ CV Secret	nssymmetricamended
+>>>G	spliceAShcCJ CV Secret	soph
+>>>G	spliceAShcCJ CV Secret	spliceAS
+>>>G	spliceAShcCJ CV Secret	spliceAShc
+>>>G	spliceAShcCJ CV Secret	tmn
+>>>G	spliceAShcCJ SV Secret	andrewBan	soph
+>>>G	spliceAShcCJ SV Secret	gongnonceb	soph
+>>>G	spliceAShcCJ SV Secret	gongnonce	soph
+>>>G	spliceAShcCJ SV Secret	isoiec11770213	soph
+>>>G	spliceAShcCJ SV Secret	kaochow2	soph
+>>>G	spliceAShcCJ SV Secret	kaochow3	soph
+>>>G	spliceAShcCJ SV Secret	kaochowPalm	soph
+>>>G	spliceAShcCJ SV Secret	kaochow	soph
+>>>G	spliceAShcCJ SV Secret	nssymmetric
+>>>G	spliceAShcCJ SV Secret	nssymmetricamended
+>>>G	spliceAShcCJ SV Secret	soph
+>>>G	spliceAShcCJ SV Secret	spliceAS
+>>>G	spliceAShcCJ SV Secret	spliceAShc
+>>>G	spliceAShcCJ SV Secret	tmn
+>>>G	wmfbrutus BV Secret	boyd
+>>>G	wmfbrutus BV Secret	gongnonce
+>>>G	wmfbrutus BV Secret	gongnonceb
+>>>G	wmfbrutus BV Secret	isoiec11770213
+>>>G	wmfbrutus BV Secret	kaochow
+>>>G	wmfbrutus BV Secret	kaochow2
+>>>G	wmfbrutus BV Secret	kaochow3
+>>>G	wmfbrutus BV Secret	kaochowPalm
+>>>G	wmfbrutus BV Secret	ksl
+>>>G	wmfbrutus BV Secret	woolamce
+>>>G	wmfbrutus BV Secret	woolampif
+>>>G	wmfbrutus BV Secret	yahalom
+>>>G	wmfbrutus BV Secret	yahalomBan
+>>>G	wmfbrutus BV Secret	yahalompaulson
+>>>G	woolamce BV Secret	denningsaccosh	woolamcmv
+>>>G	woolamce BV Secret	yahalomBan
+>>>G	woolamce BV Secret	yahalompaulson
+>>>G	woolamcmv AV Secret	denningsaccosh
+>>>G	woolamcmv AV Secret	yahalomBan
+>>>G	woolamcmv AV Secret	yahalomlowe
+>>>G	woolamcmv AV Secret	yahalompaulson
+>>>G	woolamcmv BV Secret	denningsaccosh
+>>>G	woolamcmv BV Secret	yahalomBan
+>>>G	woolamcmv BV Secret	yahalompaulson
+>>>G	woolamcmv SV Secret	denningsaccosh
+>>>G	woolamcmv SV Secret	yahalomlowe
+>>>G	yahalom AV Secret	denningsaccosh	woolamcmv
+>>>G	yahalom AV Secret	yahalomBan
+>>>G	yahalom AV Secret	yahalompaulson
+>>>G	yahalomBan AV Secret	kaochow	yahalompaulson
+>>>G	yahalomBan BV Secret	kaochow	yahalompaulson
+>>>G	yahalom BV Secret	yahalomBan
+>>>G	yahalom BV Secret	yahalompaulson
+>>>G	yahalomlowe IV Niagree	wmfbrutus
+>>>G	yahalomlowe IV Niagree	woolamcmv
+>>>G	yahalomlowe IV Niagree	yahalom
+>>>G	yahalomlowe IV Secret	woolamcmv
+>>>G	yahalomlowe RV Niagree	denningsaccosh
+>>>G	yahalomlowe RV Niagree	denningsaccosh	yahalomBan
+>>>G	yahalomlowe RV Niagree	denningsaccosh	yahalompaulson
+>>>G	yahalomlowe RV Niagree	kaochow2	yahalompaulson
+>>>G	yahalomlowe RV Niagree	kaochow3	yahalompaulson
+>>>G	yahalomlowe RV Niagree	kaochow	yahalompaulson
+>>>G	yahalomlowe RV Secret	denningsaccosh
+>>>G	yahalomlowe RV Secret	denningsaccosh	yahalomBan
+>>>G	yahalomlowe RV Secret	denningsaccosh	yahalompaulson
+>>>G	yahalompaulson IV Secret	kaochow
+>>>G	yahalompaulson RV Secret	kaochow
+>>>G	yahalompaulson RV Secret	woolamcmv
+>>>G	yahalompaulson RV Secret	woolampif
