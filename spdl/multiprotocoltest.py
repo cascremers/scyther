@@ -26,6 +26,9 @@
 # 	PARAMETERS
 # ***********************
 
+# Tuple width (number of concurrent protocols)
+TupleWidth = "2"
+
 # Temporary files
 TempFileList = "scyther-blap.tmp"
 TempFileTuples = "scyther-blip.tmp"
@@ -37,7 +40,7 @@ ScytherProgram = "../src/scyther"
 # Scyther parameters
 ScytherDefaults	= "--summary"
 ScytherMethods	= "--match=1 --arachne"
-ScytherBounds	= "--timer=10 --max-runs=5 --max-length=25"
+ScytherBounds	= "--timer=30 --max-runs=5 --max-length=20"
 
 # Build a large part of the command line (for Scyther) already
 ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
@@ -48,7 +51,8 @@ IncludeProtocols = 'spdl-defaults.inc'
 
 # Some protocols are causing troubles: this is a hard-coded filter to exclude
 # the problem children. Unfair, yes. Practical, yes.
-SkipList = [ 'gong-nonce.spdl', 'gong-nonce-b.spdl', 'splice-as-hc.spdl', 'kaochow-palm.spdl' ]
+#SkipList = [ 'gong-nonce.spdl', 'gong-nonce-b.spdl', 'splice-as-hc.spdl', 'kaochow-palm.spdl' ]
+SkipList = []
 
 ClaimToResultMap = {}		# maps protocol claims to correctness in singular tests (0,1)
 ProtocolToFileMap = {}		# maps protocol names to file names
@@ -299,13 +303,20 @@ def DescribeContext (filep, protocols, claim):
 #----------------------------------------------------------------------
 # 
 # Determines:
-# 	TupleWidth
 # 	ProtocolCount
 # 	Protocol[0..count-1]
 #
 # Furthermore, TempFileList is created.
 
-TupleWidth = sys.argv[1]
+# Where should we start (if this is a number)
+if len(sys.argv) > 1: 
+	StartPercentage = int (sys.argv[1])
+	if StartPercentage < 0 or StartPercentage > 100:
+		print "Illegal range for starting percentage (0-100):", StartPercentage
+		sys.exit()
+
+else:
+	StartPercentage = 0
 
 # Read stdin into list and count, send to file
 loop = 1
@@ -374,57 +385,70 @@ print "Commencing test for", TupleCount, "protocol combinations."
 inp = open(TempFileTuples, 'r')
 processed = 0
 newattacks = 0
+StartSkip = 0
+
+# Possibly skip some
+if StartPercentage > 0:
+	StartSkip = int ((TupleCount * StartPercentage) / 100)
+	print "Resuming. Skipping the first", StartSkip,"tuples."
+
+#
+# Check all these protocols
+#
 for tline in inp:
-	#
-	# Get the next tuple
-	#
-	protocols = tline.split()
-	ShowProgress (processed, TupleCount, " ".join(protocols) + safetxt)
-	#
-	# Process it
-	#
-	results = ScytherEval ( protocols )
-	#
-	# Now we have the results for this combination.
-	# Check whether any of these claims is 'newly false'
-	#
-	for claim,value in results.items():
-		if value == 0:
-			# Apparently this claim is false now (there is
-			# an attack)
-			if ClaimToResultMap[claim] == 1:
-				# Wooh! It was correct before
-				ClearProgress (TupleCount, safetxt)
-				newattacks = newattacks + 1
-				print "-" * 40
-				print "New attack [[", newattacks, "]] at", processed, "/", TupleCount, ":", claim, " using",CommandLine( protocols)
-				for helper in GetListKeys (ProtocolToFileMap, protocols):
-					clprname = claim.split()[0]
-					if helper <> clprname:
-						if helper not in ProtocolToEffectsMap.keys():
-							# new
-							ProtocolToEffectsMap[helper] = [clprname]
-							print "% Detected a new flaw helper:", helper
-						else:
-							# already noted as helper, add destruction now
-							if clprname not in ProtocolToEffectsMap[helper]:
-								ProtocolToEffectsMap[helper].append(clprname)
-				#
-				# TODO
-				#
-				# Generate output to recreate/draw the
-				# attack, and maybe add this to a big
-				# error log thingy. Furthermore,
-				# explicitly recreate the commandline
-				# and the claim that is newly violated
-				DescribeContext (sys.stdout, protocols, claim)
-	
+	if (processed >= StartSkip):
+		#
+		# Get the next tuple
+		#
+		protocols = tline.split()
+		ShowProgress (processed, TupleCount, " ".join(protocols) + safetxt)
+		#
+		# Process it
+		#
+		results = ScytherEval ( protocols )
+		#
+		# Now we have the results for this combination.
+		# Check whether any of these claims is 'newly false'
+		#
+		for claim,value in results.items():
+			if value == 0:
+				# Apparently this claim is false now (there is
+				# an attack)
+				if ClaimToResultMap[claim] == 1:
+					# Wooh! It was correct before
+					ClearProgress (TupleCount, safetxt)
+					newattacks = newattacks + 1
+					print "-" * 40
+					print "New attack [[", newattacks, "]] at", processed, "/", TupleCount, ":", claim, " using",CommandLine( protocols)
+					for helper in GetListKeys (ProtocolToFileMap, protocols):
+						clprname = claim.split()[0]
+						if helper <> clprname:
+							if helper not in ProtocolToEffectsMap.keys():
+								# new
+								ProtocolToEffectsMap[helper] = [clprname]
+								print "% Detected a new flaw helper:", helper
+							else:
+								# already noted as helper, add destruction now
+								if clprname not in ProtocolToEffectsMap[helper]:
+									ProtocolToEffectsMap[helper].append(clprname)
+					#
+					# TODO
+					#
+					# Generate output to recreate/draw the
+					# attack, and maybe add this to a big
+					# error log thingy. Furthermore,
+					# explicitly recreate the commandline
+					# and the claim that is newly violated
+					DescribeContext (sys.stdout, protocols, claim)
+		
 	# Next!
 	processed = processed + 1
 inp.close()
 
 ClearProgress (TupleCount, safetxt)
 print "Processed", processed,"tuple combinations in total."
+if StartSkip > 0:
+	print "In this session, checked the last",(processed - StartSkip),"tuples. "
 print "Found", newattacks, "new attacks."
 if newattacks > 0:
 	print "  These were helped by:"
