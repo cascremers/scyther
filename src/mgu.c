@@ -208,46 +208,49 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (),
 
   flag = 1;
   t2 = deVar (t2);
-  if (t2 != NULL && !isTermLeaf (t2))
+  if (t2 != NULL)
     {
-      if (isTermTuple (t2))
+      if (!isTermLeaf (t2))
 	{
-	  // 'simple' tuple
-	  flag =
-	    flag && termMguSubTerm (t1, t2->left.op1, iterator, inverses,
-				   keylist);
-	  flag =
-	    flag && termMguSubTerm (t1, t2->right.op2, iterator, inverses,
-				   keylist);
+	  if (isTermTuple (t2))
+	    {
+	      // 'simple' tuple
+	      flag =
+		flag && termMguSubTerm (t1, t2->left.op1, iterator, inverses,
+					keylist);
+	      flag =
+		flag && termMguSubTerm (t1, t2->right.op2, iterator, inverses,
+					keylist);
+	    }
+	  else
+	    {
+	      // Must be encryption
+	      // So, we need the key, and try to get the rest
+	      Termlist keylist_new;
+	      Term newkey;
+
+	      keylist_new = termlistShallow (keylist);
+	      newkey = inverseKey (inverses, t2->right.key);
+	      keylist_new = termlistAdd (keylist_new, newkey);
+
+	      // Recurse
+	      flag =
+		flag && termMguSubTerm (t1, t2->left.op, iterator, inverses,
+					keylist_new);
+
+	      termlistDelete (keylist_new);
+	      termDelete (newkey);
+	    }
 	}
-      else
+      // simple clause or combined
+      tl = termMguTerm (t1, t2);
+      if (tl != MGUFAIL)
 	{
-	  // Must be encryption
-	  // So, we need the key, and try to get the rest
-	  Termlist keylist_new;
-	  Term newkey;
-
-	  keylist_new = termlistShallow (keylist);
-	  newkey = inverseKey (inverses, t2->right.key);
-	  keylist_new = termlistAdd (keylist_new, newkey);
-
-	  // Recurse
-	  flag =
-	    flag && termMguSubTerm (t1, t2->left.op, iterator, inverses,
-				    keylist_new);
-
-	  termlistDelete (keylist_new);
-	  termDelete (newkey);
+	  // Iterate
+	  flag = flag && iterator (tl, keylist);
+	  // Reset variables
+	  termlistSubstReset (tl);
 	}
-    }
-  // simple clause or combined
-  tl = termMguTerm (t1, t2);
-  if (tl != MGUFAIL)
-    {
-      // Iterate
-      flag = flag && iterator (tl, keylist);
-      // Reset variables
-      termlistSubstReset (tl);
     }
   return flag;
 }

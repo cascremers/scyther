@@ -278,10 +278,11 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
   e_term2 = rd->message;
 #endif
 
-  iterate ();
+  flag = iterate ();
 
   goal.rd->bind_run = old_run;
   goal.rd->bind_index = old_index;
+
   roleInstanceDestroy (sys);
   return flag;
 }

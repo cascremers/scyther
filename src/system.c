@@ -591,11 +591,12 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	  Term newt, oldt;
 
 	  oldt = scanfrom->term;
-	  newt = deVar (oldt);
+	  newt = oldt;
 	  if (realTermVariable (newt))
 	    {
 	      // Make new var for this run
 	      newt = makeTermType (VARIABLE, newt->left.symb, rid);
+	      newt->subst = oldt->subst;
 	      artefacts = termlistAdd (artefacts, newt);
 	    }
 	  // Add to agent list, possibly
@@ -689,13 +690,12 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 void
 roleInstanceDestroy (const System sys)
 {
-  int runid;
-
-  runid = sys->maxruns - 1;
-  if (runid >= 0)
+  if (sys->maxruns > 0)
     {
+      int runid;
       struct run myrun;
 
+      runid = sys->maxruns - 1;
       myrun = sys->runs[runid];
 
       // Destroy roledef
