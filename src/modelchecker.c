@@ -171,33 +171,25 @@ executeStep (const System sys, const int run)
     }
 
   /* we will explore this state, so count it. */
-  /* ulong was _not_ enough... */
-  if (++sys->statesLow == ULONG_MAX)
-    {
-      sys->statesLow = 0;
-      sys->statesHigh++;
-      /* No test for overflow statesHigh. If stuff gets that fast, then 
-       * I surely hope the max of ulong is set higher in the language def */
-    }
+  sys->states = statesIncrease (sys->states);
 
   /* show progression */
   if (sys->switchS > 0)
     {
-      if (sys->statesLow % (long int) sys->switchS == 0)
+      sys->interval = statesIncrease (sys->interval);
+      if (!statesSmallerThan (sys->interval, (unsigned long int) sys->switchS))
 	{
+	  sys->interval = STATES0;
 	  fprintf (stderr, "States ");
-	  if (sys->statesHigh == 0 && sys->statesLow < 1000000)
-	      fprintf (stderr, "%u", sys->statesLow);
-	  else
-	      fprintf (stderr, "%8.3e", (double) sys->statesLow + (sys->statesHigh * ULONG_MAX));
+	  statesFormat (stderr, sys->states);
 	  fprintf (stderr, " \r");
 	}
     }
 
   /* store new node numbder */
-  sys->traceNode[sys->step] = sys->statesLow;
+  sys->traceNode[sys->step] = sys->states;
   /* the construction below always assumes MAX_GRAPH_STATES to be smaller than the unsigned long it, which seems realistic. */
-  if (sys->switchStatespace && sys->statesHigh == 0 && sys->statesLow < MAX_GRAPH_STATES)
+  if (sys->switchStatespace && statesSmallerThan (sys->states, MAX_GRAPH_STATES))
     {
       /* display graph */
       graphNode (sys);
@@ -1443,7 +1435,7 @@ violateClaim (const System sys, int length, int claimev, Termlist reqt)
   flag = 1;
 
   /* Count the violations */
-  sys->failed++;
+  sys->failed = statesIncrease (sys->failed);
 
   /* mark the path in the state graph? */
   if (sys->switchStatespace)
@@ -1563,7 +1555,7 @@ executeTry (const System sys, int run)
 	  /*
 	   * update claim counters
 	   */
-	  sys->claims++;
+	  sys->claims = statesIncrease (sys->claims);
 
 	  /*
 	   * distinguish claim types

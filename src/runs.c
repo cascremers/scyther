@@ -113,11 +113,11 @@ systemReset (const System sys)
   Claimlist cl;
 
   /* some initial counters */
-  sys->statesLow = 0;		// number of explored states
-  sys->statesHigh = 0;		// this is not as ridiculous as it might seem
+  sys->states = STATES0;
+  sys->interval = STATES0;
+  sys->claims = STATES0;
+  sys->failed = STATES0;
   sys->explore = 1;		// do explore the space
-  sys->claims = 0;		// number of claims encountered
-  sys->failed = 0;		// number of failed claims
   cl = sys->claimlist;
   while (cl != NULL)
     {
@@ -161,7 +161,7 @@ systemDone (const System sys)
   memFree (sys->traceEvent, s * sizeof (Roledef));
   memFree (sys->traceRun, s * sizeof (int));
   memFree (sys->traceKnow, s * sizeof (Knowledge));
-  memFree (sys->traceNode, s * sizeof (unsigned long int));
+  memFree (sys->traceNode, s * sizeof (states_t));
 
   /* clear roledefs */
   for (run = 0; run < sys->maxruns; run++)
@@ -174,38 +174,18 @@ systemDone (const System sys)
   systemDestroy (sys);
 }
 
-//! Approximate the number of states traversed using a double type.
-double
-statesApproximation (const System sys)
-{
-  if (sys->statesHigh == 0)
-    return (double) sys->statesLow;
-  else
-    return (double) (sys->statesLow + (sys->statesHigh * ULONG_MAX));
-}
-
 //! Print a short version of the number of states.
 void
 statesPrintShort (const System sys)
 {
-  fprintf (stderr,"%.3e", statesApproximation (sys));
+  fprintf (stderr,"%.3e", statesDouble (sys->states));
 }
 
 //! Print the number of states.
 void
 statesPrint (const System sys)
 {
-  if (sys->statesHigh == 0)
-    {
-      printf ("%g", (double) sys->statesLow);
-    }
-  else
-    {
-      double dstates;
-
-      dstates = sys->statesLow + (sys->statesHigh * ULONG_MAX);
-      printf ("%.3e (...)", dstates);
-    }
+  statesFormat (stdout, sys->states);
   printf (" states traversed.\n");
   if (globalLatex)
       printf("\n");
@@ -777,7 +757,7 @@ systemStart (const System sys)
   sys->traceEvent = memAlloc (s * sizeof (Roledef));
   sys->traceRun = memAlloc (s * sizeof (int));
   sys->traceKnow = memAlloc (s * sizeof (Knowledge));
-  sys->traceNode = memAlloc (s * sizeof (unsigned long int));
+  sys->traceNode = memAlloc (s * sizeof (states_t));
 
   /* clear, for niceties */
   for (i = 0; i < s; i++)
@@ -785,7 +765,7 @@ systemStart (const System sys)
       sys->traceEvent[i] = NULL;
       sys->traceRun[i] = 0;
       sys->traceKnow[i] = NULL;
-      sys->traceNode[i] = 0;
+      sys->traceNode[i] = STATES0;
     }
 }
 

@@ -422,7 +422,7 @@ main (int argc, char **argv)
   else
     {
       /* check for no claims */
-      if (sys->failed == 0)
+      if (sys->failed == STATES0)
 	{
           /* mark exit code */
 	  exitcode = 2;
@@ -494,13 +494,13 @@ timersPrint (const System sys)
    * NoClaim      no claims
    */
 
-  if (sys->claims == 0)
+  if (sys->claims == STATES0)
     {
       fprintf (stderr, "NoClaim\t\t");
     }
   else
     {
-      if (sys->failed > 0)
+      if (sys->failed != STATES0)
 	fprintf (stderr, "L:%i\t\t", attackLength(sys->attack));
       else
 	fprintf (stderr, "None\t\t");
@@ -513,9 +513,7 @@ timersPrint (const System sys)
 
   if (seconds > 0)
     {
-      fprintf (stderr, "%.3e\t",
-	      (double) (sys->statesLow +
-			(sys->statesHigh * ULONG_MAX)) / seconds);
+      fprintf (stderr, "%.3e\t", statesDouble (sys->states) / seconds);
     }
   else
     {
@@ -653,13 +651,22 @@ modelCheck (const System sys)
     {
       graphInit (sys);
     }
-  traverse (sys);		// start model checking
+
+  /* modelcheck the system */
+  traverse (sys);
+
+  /* clean up any states display */
+  if (sys->switchS > 0)
+    {
+      fprintf (stderr, "                 \r");
+    }
+
   timersPrint (sys);
   if (sys->switchStatespace)
     {
       graphDone (sys);
     }
-  return (sys->failed);
+  return (sys->failed != STATES0);
 }
 
 

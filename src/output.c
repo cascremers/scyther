@@ -513,7 +513,9 @@ void graphInit (const System sys)
   printf ("\torientation=landscape;\n");
 
   /* start with initial node 0 */
-  printf ("\tn0 [shape=box,label=\"M0: ");
+  printf ("\tn");
+  statesFormat (stdout, STATES0);
+  printf (" [shape=box,label=\"M0: ");
   tl = knowledgeSet (sys->know);
   termlistPrint (tl);
   termlistDelete (tl);
@@ -529,18 +531,20 @@ void graphDone (const System sys)
 void graphNode (const System sys)
 {
   Termlist newtl;
-  unsigned long int thisNode, parentNode;
+  states_t thisNode, parentNode;
   int index;
   Roledef rd;
 
   /* determine node numbers */
   index = sys->step - 1;
   parentNode = sys->traceNode[index];
-  thisNode = sys->statesLow;
+  thisNode = sys->states;
   rd = sys->traceEvent[index];
 
   /* add node */
-  printf ("\tn%li [shape=", thisNode);
+  printf ("\tn");
+  statesFormat (stdout, thisNode);
+  printf (" [shape=");
   
   newtl = knowledgeNew (sys->traceKnow[index], sys->traceKnow[index+1]);
   if (newtl != NULL)
@@ -559,9 +563,12 @@ void graphNode (const System sys)
   printf ("];\n");
 
   /* add edge */
-  printf ("\tn%li -> n%li ", parentNode, thisNode);
+  printf ("\tn");
+  statesFormat (stdout, parentNode);
+  printf (" -> n");
+  statesFormat (stdout, thisNode);
   /* add label */
-  printf ("[label=\"");
+  printf (" [label=\"");
   if (rd->type == CLAIM && untrustedAgent (sys, sys->runs[sys->traceRun[index]].agents))
     {
       printf ("Skip claim in #%i\"", sys->traceRun[index]);
@@ -588,7 +595,7 @@ void graphNode (const System sys)
 void graphNodePath (const System sys, const int length, const char* nodepar)
 {
   int i;
-  unsigned long int thisNode;
+  states_t thisNode;
 
   i = 0;
   while (i < length)
@@ -597,7 +604,9 @@ void graphNodePath (const System sys, const int length, const char* nodepar)
       thisNode = sys->traceNode[i];
 
       /* color node */
-      printf ("\tn%li [%s];\n", thisNode, nodepar);
+      printf ("\tn");
+      statesFormat (stdout, thisNode);
+      printf (" [%s];\n", nodepar);
       i++;
     }
 }
@@ -605,7 +614,7 @@ void graphNodePath (const System sys, const int length, const char* nodepar)
 void graphEdgePath (const System sys, const int length, const char* edgepar)
 {
   int i;
-  unsigned long int thisNode, prevNode;
+  states_t thisNode, prevNode;
 
   i = 0;
   prevNode = sys->traceNode[i];
@@ -615,7 +624,11 @@ void graphEdgePath (const System sys, const int length, const char* edgepar)
       thisNode = sys->traceNode[i+1];
 
       /* color edge */
-      printf ("\tn%li -> n%li [%s];\n", prevNode, thisNode, edgepar);
+      printf ("\tn");
+      statesFormat (stdout, prevNode);
+      printf (" -> ");
+      statesFormat (stdout, thisNode);
+      printf (" [%s];\n", edgepar);
       prevNode = thisNode;
       i++;
     }

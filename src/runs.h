@@ -6,6 +6,7 @@
 #include "termlists.h"
 #include "knowledge.h"
 #include "constraints.h"
+#include "states.h"
 
 #define	READ	1
 #define SEND	2
@@ -228,10 +229,10 @@ struct system
   int explore;			//!< Boolean: explore states after actions or not.
 
   /* counters */
-  unsigned long int statesLow;	//!< State number (low)
-  unsigned long int statesHigh; //!< State number (high)
-  unsigned long int claims;	//!< Number of claims encountered.
-  unsigned long int failed;	//!< Number of claims failed.
+  states_t states;
+  states_t interval;		//!< Used to update state printing at certain intervals
+  states_t claims;		//!< Number of claims encountered.
+  states_t failed;		//!< Number of claims failed.
 
   /* matching */
   int match;			//!< Matching type.
@@ -252,7 +253,7 @@ struct system
   Roledef *traceEvent;		//!< Trace roledefs: MaxRuns * maxRoledef
   int *traceRun;		//!< Trace run ids: MaxRuns * maxRoledef
   Knowledge *traceKnow;		//!< Trace intruder knowledge: Maxruns * maxRoledef
-  unsigned long int *traceNode;	//!< Trace node traversal: Maxruns * maxRoledef
+  states_t *traceNode;		//!< Trace node traversal: Maxruns * maxRoledef
 
   /* POR reduction assistance */
   int PORphase;			//!< -1: init (all sends), 0...: recurse reads
