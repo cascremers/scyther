@@ -1,3 +1,22 @@
+/**
+ *@file main.c
+ * \brief The main file.
+ *
+ * Contains the main switch handling, and passes everything to the core logic.
+ */
+
+/**
+ * \mainpage
+ *
+ * \section intro Introduction
+ *
+ * Scyther is a model checker for security protocols.
+ *
+ * \section install Installation
+ *
+ * How to install Scyther.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -545,7 +564,9 @@ MC_single (const System sys)
 //! Model check the system, given all parameters.
 /*
  * Precondition: the system was reset with the corresponding parameters.
- * This also reports on time and states traversed.
+ * Reports time and states traversed.
+ * Note that the return values doubles as the number of failed claims.
+ *@return True iff any claim failed, and thus an attack was found.
  */
 
 int
