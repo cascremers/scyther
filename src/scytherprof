@@ -1,0 +1,5 @@
+#!/bin/sh
+
+scons gprof=yes
+./scyther $*
+gprof --flat-profile scyther

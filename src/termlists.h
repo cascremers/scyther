@@ -28,7 +28,7 @@ Termlist termlistShallow (Termlist tl);
 void termlistDelete (Termlist tl);
 void termlistDestroy (Termlist tl);
 void termlistPrint (Termlist tl);
-int inTermlist (Termlist tl, Term term);
+int inTermlist (Termlist tl, const Term term);
 int isTermlistEqual (Termlist tl1, Termlist tl2);
 Termlist termlistAdd (Termlist tl, Term term);
 Termlist termlistAppend (const Termlist tl, const Term term);
