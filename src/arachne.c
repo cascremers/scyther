@@ -898,37 +898,30 @@ select_goal ()
       b = (Binding) bl->data;
       if (!b->done)
 	{
-	  // We don't care about singular variables.
-	  /**
-	   * Note that to mirror the modelchecker semantics, we should check whether the type exists in M_0.
-	   */
-	  if (!isTermVariable (b->term))
-	    {
-	      float cons;
+	  float cons;
 
-	      if (sys->output == PROOF && best != NULL)
-		eprintf (", ");
-	      if (b->level >= max_level)
+	  if (sys->output == PROOF && best != NULL)
+	    eprintf (", ");
+	  if (b->level >= max_level)
+	    {
+	      if (b->level > max_level)
 		{
-		  if (b->level > max_level)
-		    {
-		      max_level = b->level;
-		      min_constrain = 1;	// 1 is the maximum
-		    }
-		  cons = term_constrain_level (b->term);
-		  if (cons <= min_constrain)
-		    {
-		      min_constrain = cons;
-		      best = b;
-		      if (sys->output == PROOF)
-			eprintf ("*");
-		    }
+		  max_level = b->level;
+		  min_constrain = 1;	// 1 is the maximum
 		}
-	      if (sys->output == PROOF)
+	      cons = term_constrain_level (b->term);
+	      if (cons <= min_constrain)
 		{
-		  termPrint (b->term);
-		  eprintf ("[%i]", b->level);
+		  min_constrain = cons;
+		  best = b;
+		  if (sys->output == PROOF)
+		    eprintf ("*");
 		}
+	    }
+	  if (sys->output == PROOF)
+	    {
+	      termPrint (b->term);
+	      eprintf ("[%i]", b->level);
 	    }
 	}
       bl = bl->next;
