@@ -750,13 +750,63 @@ dotSemiState ()
 	      eprintf (";\n");
 
 	      // Print binding to previous node
-	      if (index > 0)
+	      if (index > sys->runs[run].firstReal)
 		{
+		  // index > 0
 		  eprintf ("\t\t");
 		  node (run, index - 1);
 		  eprintf (" -> ");
 		  node (run, index);
 		  eprintf (";\n");
+		}
+	      else
+		{
+		  // index <= firstReal
+		  if (index == sys->runs[run].firstReal)
+		    {
+		      // index == firstReal
+		      Roledef rd;
+		      int send_before_read;
+		      int done;
+
+		      // Determine if it is an active role or note
+		      /**
+		       *@todo note that this will probably become a standard function call for role.h
+		       */
+		      rd =
+			roledef_shift (sys->runs[run].start,
+				       sys->runs[run].firstReal);
+		      done = 0;
+		      send_before_read = 0;
+		      while (!done && rd != NULL)
+			{
+			  if (rd->type == READ)
+			    {
+			      done = 1;
+			    }
+			  if (rd->type == SEND)
+			    {
+			      done = 1;
+			      send_before_read = 1;
+			    }
+			  rd = rd->next;
+			}
+		      if (done)
+			{
+			  // Activity other than claims...
+			  if (send_before_read)
+			    {
+			      // Sends first.
+			      // Show this explicitly in the graph by adding a prefix start node
+			      eprintf
+				("\t\ts%i [label=\"Agent start\", shape=diamond];\n",
+				 run);
+			      eprintf ("\t\ts%i -> ", run);
+			      node (run, index);
+			      eprintf (";\n");
+			    }
+			}
+		    }
 		}
 	      index++;
 	      rd = rd->next;
