@@ -1,7 +1,7 @@
 /*
  * Woo-lam version from Spore, Pi f
  *
- * Only one-way verification
+ * Only one-way verification version
  */
 
 usertype Server, SessionKey, Ticket;
