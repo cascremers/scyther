@@ -2,7 +2,7 @@ const pk: Function;
 secret sk: Function;
 inversekeys (pk,sk);
 
-protocol nsl3(I,R)
+protocol nsl3rep(I,R)
 {
 	role I
 	{
@@ -37,7 +37,7 @@ untrusted Eve;
 const nc: Nonce;
 compromised sk(Eve);
 
-run nsl3.I(Agent,Agent);
-run nsl3.R(Agent,Agent);
-run nsl3.I(Agent,Agent);
-run nsl3.R(Agent,Agent);
+run nsl3rep.I(Agent,Agent);
+run nsl3rep.R(Agent,Agent);
+run nsl3rep.I(Agent,Agent);
+run nsl3rep.R(Agent,Agent);

@@ -32,7 +32,7 @@ const succ: PseudoFunction;
 
 usertype Ticket;
 
-protocol nssymmetric(A,S,B) 
+protocol nssymmetricamended(A,S,B) 
 {
 	role A
 	{

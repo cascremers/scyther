@@ -2,7 +2,7 @@ const pk: Function;
 secret sk: Function;
 inversekeys (pk,sk);
 
-protocol carkeybroken(I,R)
+protocol carkeybrokenlim(I,R)
 {
 	role I
 	{
@@ -26,7 +26,7 @@ untrusted Eve;
 const nc: Nonce;
 compromised sk(Eve);
 
-run carkeybroken.I(Alice,Bob);
-run carkeybroken.R(Alice,Bob);
-run carkeybroken.I(Alice,Bob);
-run carkeybroken.R(Alice,Bob);
+run carkeybrokenlim.I(Alice,Bob);
+run carkeybrokenlim.R(Alice,Bob);
+run carkeybrokenlim.I(Alice,Bob);
+run carkeybrokenlim.R(Alice,Bob);
