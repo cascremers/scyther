@@ -327,6 +327,10 @@ runsPrint (const System sys)
 }
 
 //! Determine whether a term is sent or claimed, but not read first in a roledef
+/**
+ * @returns True iff the term occurs, and is sent/claimed first. If this returns true,
+ * we have to prefix a read.
+ */
 int
 not_read_first (const Roledef rdstart, const Term t)
 {
@@ -341,12 +345,8 @@ not_read_first (const Roledef rdstart, const Term t)
 	}
       rd = rd->next;
     }
-  globalError++;
-  eprintf ("The term ");
-  termPrint (t);
-  eprintf (" is not read or sent in some roledef.\n");
-  error ("Aborting.");
-  globalError--;
+  /* this term is not read or sent explicitly, which is no problem */
+  /* So we signal we don't have to prefix a read */
   return 0;
 }
 
