@@ -1,6 +1,10 @@
 #ifndef COMPILER
 #define COMPILER
 
+#include "tac.h"
+#include "role.h"
+#include "system.h"
+
 void compilerInit (const System sys);
 void compilerDone (void);
 

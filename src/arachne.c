@@ -10,13 +10,14 @@
 #include "termlist.h"
 #include "role.h"
 #include "system.h"
+#include "compiler.h"
 #include "states.h"
 #include "mgu.h"
 #include "arachne.h"
 
 static System sys;
-Protocol INTRUDER;	// Pointers, to be set by the Init
-Role I_GOAL;		// Same here.
+Protocol INTRUDER;		// Pointers, to be set by the Init
+Role I_GOAL;			// Same here.
 Role I_TEE;
 Role I_SPLIT;
 Role I_TUPLE;
@@ -25,6 +26,10 @@ Role I_DECRYPT;
 
 #ifdef DEBUG
 static char *explanation;	// Pointer to a string that describes what we just tried to do
+static int e_run;
+static Term e_term1;
+static Term e_term2;
+static Term e_term3;
 static int indentDepth;
 #endif
 
@@ -54,21 +59,23 @@ arachneInit (const System mysys)
   Roledef rd = NULL;
 
   void add_event (int event, Term message)
-    {
-      rd = roledefAdd (rd, event, NULL, NULL, NULL, message, NULL);
-    }
-  Role add_role (const char *rolename)
-    {
-      Role r;
+  {
+    rd = roledefAdd (rd, event, NULL, NULL, NULL, message, NULL);
+  }
+  Role add_role (const char *rolenamestring)
+  {
+    Role r;
+    Term rolename;
 
-      r = roleCreate (makeGlobalConstant (rolename));
-      r->roledef = rd;
-      rd = NULL;
-      r->next = INTRUDER->roles;
-      INTRUDER->roles = r;
-      compute_role_variables (sys, INTRUDER, r);
-      return r;
-    }
+    rolename = makeGlobalConstant (rolenamestring);
+    r = roleCreate (rolename);
+    r->roledef = rd;
+    rd = NULL;
+    r->next = INTRUDER->roles;
+    INTRUDER->roles = r;
+    compute_role_variables (sys, INTRUDER, r);
+    return r;
+  }
 
   sys = mysys;			// make sys available for this module as a global
   /*
@@ -189,7 +196,9 @@ add_intruder_goal (Goal goal)
   rd->message = goal.rd->message;
 
 #ifdef DEBUG
-  explanation = "Adding intruder goal";
+  explanation = "Adding intruder goal for run";
+  e_run = goal.run;
+  e_term1 = goal.rd->message;
 #endif
   flag = iterate ();
 
@@ -225,6 +234,8 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 	    sys->runs[run].length = index + 1;
 #ifdef DEBUG
 	  explanation = "Bind existing run";
+	  e_run = run;
+	  e_term1 = goal.rd->message;
 #endif
 	  flag =
 	    flag & termMguInTerm (goal.rd->message, rd->message, mgu_iterate);
@@ -413,8 +424,31 @@ iterate ()
       if (explanation != NULL)
 	{
 	  indentPrint ();
-	  eprintf ("%s\n", explanation);
+	  eprintf ("%s ", explanation);
+
+	  if (e_run != INVALID)
+	    eprintf ("#%i ", e_run);
+	  if (e_term1 != NULL)
+	    {
+	      termPrint (e_term1);
+	      eprintf (" ");
+	    }
+	  if (e_term2 != NULL)
+	    {
+	      termPrint (e_term2);
+	      eprintf (" ");
+	    }
+	  if (e_term3 != NULL)
+	    {
+	      termPrint (e_term3);
+	      eprintf (" ");
+	    }
+	  eprintf ("\n");
 	  explanation = NULL;
+	  e_run = INVALID;
+	  e_term1 = NULL;
+	  e_term2 = NULL;
+	  e_term3 = NULL;
 	}
 #endif
 
@@ -470,6 +504,10 @@ arachne ()
 
 #ifdef DEBUG
   explanation = NULL;
+  e_run = INVALID;
+  e_term1 = NULL;
+  e_term2 = NULL;
+  e_term3 = NULL;
   indentDepth = 0;
 #endif
 
