@@ -12,6 +12,7 @@
 #include "tracebuf.h"
 #include "varbuf.h"
 #include "output.h"
+#include "latex.h"
 
 //! Multiplication factor for distance between events in an MSC diagram.
 #define EVENTSPACE 1
@@ -134,7 +135,7 @@ latexTermPrint (Term term, Termlist highlight)
   if (realTermTuple (term))
     {
       printf ("(");
-      latexTermTuplePrint (term);
+      latexTermTuplePrint (term, highlight);
       printf (")");
       return;
     }
