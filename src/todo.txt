@@ -1,3 +1,5 @@
+- Move time things to stderr instead of latex, does not belong in attack
+  output.
 - Implement run knowledge, and use this in protocol compiler.
 - Timer output is broken for values e.g. above an hour. Fix or remove
   altogether.
