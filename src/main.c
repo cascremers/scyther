@@ -523,6 +523,8 @@ MC_incTraces (const System sys)
   int maxtracelen;
   int tracelen;
   int tracestep;
+  int flag;
+  int res;
 
   tracestep = 3;		/* what is a sensible stepping size? */
   maxtracelen = getMaxTraceLength (sys);
@@ -530,8 +532,8 @@ MC_incTraces (const System sys)
   while (tracelen > 6)		/* what is a reasonable minimum? */
     tracelen -= tracestep;
 
-  int flag = 1;
-  int res;
+  flag = 1;
+  res;
 
   do
     {

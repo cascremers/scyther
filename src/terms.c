@@ -78,6 +78,8 @@ makeTermEncrypt (Term t1, Term t2)
 Term
 makeTermTuple (Term t1, Term t2)
 {
+  Term tt;
+
   if (t1 == NULL)
     {
       if (t2 == NULL)
@@ -95,7 +97,7 @@ makeTermTuple (Term t1, Term t2)
       return t1;
     }
 
-  Term tt = makeTerm ();
+  tt = makeTerm ();
   tt->type = TUPLE;
   tt->stype = NULL;
   tt->left.op1 = t1;
