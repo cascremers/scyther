@@ -122,7 +122,8 @@ struct system
   int output;			//!< From enum outputs: what should be produced. Default ATTACK.
   int report;
   int prune;			//!< Type of pruning.
-  int switch_maxtracelength;	//!< Helps to remember the length of the last trace.
+  int switch_maxproofdepth;	//!< Maximum proof depth
+  int switch_maxtracelength;	//!< Maximum trace length allowed
   int maxtracelength;		//!< helps to remember the length of the last trace.
   int switchM;			//!< Memory display switch.
   int switchT;			//!< Time display switch.

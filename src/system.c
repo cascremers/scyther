@@ -78,6 +78,7 @@ systemInit ()
   /* set illegal traversal by default, to make sure it is set
      later */
   sys->traverse = 0;
+  sys->switch_maxproofdepth = INT_MAX;
   sys->switch_maxtracelength = INT_MAX;
   sys->maxtracelength = INT_MAX;
 

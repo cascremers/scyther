@@ -117,7 +117,10 @@ main (int argc, char **argv)
 						    "pruning method (default is 2)");
   struct arg_int *switch_prune_trace_length =
     arg_int0 ("l", "max-length", NULL,
-	      "prune traces longer than <int> events, prune proof deeper than <int> splits.");
+	      "prune traces longer than <int> events.");
+  struct arg_int *switch_prune_proof_depth =
+    arg_int0 (NULL, "max-depth", NULL,
+	      "prune proof deeper than <int> splits.");
   struct arg_lit *switch_incremental_trace_length =
     arg_lit0 (NULL, "increment-traces",
 	      "incremental search using the length of the traces.");
@@ -187,6 +190,7 @@ main (int argc, char **argv)
     switch_match_method,
     switch_clp,
     switch_pruning_method,
+    switch_prune_proof_depth,
     switch_prune_trace_length, switch_incremental_trace_length,
     switch_maximum_runs, switch_incremental_runs,
 
@@ -229,6 +233,7 @@ main (int argc, char **argv)
   switch_traversal_method->ival[0] = 12;
   switch_match_method->ival[0] = 0;
   switch_prune_trace_length->ival[0] = -1;
+  switch_prune_proof_depth->ival[0] = -1;
   switch_maximum_runs->ival[0] = INT_MAX;
   switch_pruning_method->ival[0] = 2;
 
@@ -524,6 +529,8 @@ main (int argc, char **argv)
     }
   if (switch_empty->count > 0)
     sys->output = EMPTY;
+  if (switch_prune_proof_depth->ival[0] >= 0)
+    sys->switch_maxproofdepth = switch_prune_proof_depth->ival[0];
   if (switch_prune_trace_length->ival[0] >= 0)
     sys->switch_maxtracelength = switch_prune_trace_length->ival[0];
 #ifdef DEBUG

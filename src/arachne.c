@@ -1876,16 +1876,49 @@ prune_bounds ()
   Termlist tl;
   List bl;
 
-  if (proofDepth > sys->switch_maxtracelength)
+  /* prune for proof depth */
+  if (proofDepth > sys->switch_maxproofdepth)
     {
       // Hardcoded limit on proof tree depth
       if (sys->output == PROOF)
 	{
 	  indentPrint ();
-	  eprintf ("Pruned: proof tree too deep: %i (-l %i switch)\n",
-		   proofDepth, sys->switch_maxtracelength);
+	  eprintf ("Pruned: proof tree too deep: %i (--max-depth %i switch)\n",
+		   proofDepth, sys->switch_maxproofdepth);
 	}
       return 1;
+    }
+
+  /* prune for trace length */
+  if (sys->switch_maxtracelength < INT_MAX)
+    {
+      int tracelength;
+      int run;
+
+      /* compute trace length of current semistate */
+      tracelength = 0;
+      run = 0;
+      while (run < sys->maxruns)
+	{
+	  /* ignore intruder actions */
+	  if (sys->runs[run].protocol != INTRUDER)
+	    {
+	      tracelength = tracelength + sys->runs[run].step;
+	    }
+	  run++;
+	}
+      /* test */
+      if (tracelength > sys->switch_maxtracelength)
+	{
+	  // Hardcoded limit on proof tree depth
+	  if (sys->output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("Pruned: trace too long: %i (-l %i switch)\n",
+		       tracelength, sys->switch_maxtracelength);
+	    }
+	  return 1;
+	}
     }
 
   if (num_regular_runs > sys->switchRuns)
