@@ -383,7 +383,7 @@ knowledgeInversesPrint (Knowledge know)
  *\sa termlistDelete()
  */
 Termlist
-knowledgeSet (Knowledge know)
+knowledgeSet (const Knowledge know)
 {
   Termlist tl1, tl2;
 
@@ -397,12 +397,26 @@ knowledgeSet (Knowledge know)
  * Essentially the inverse function of knowledgeSetInverses()
  */
 Termlist
-knowledgeGetInverses (Knowledge know)
+knowledgeGetInverses (const Knowledge know)
 {
   if (know == NULL)
     return NULL;
   else
     return know->inverses;
+}
+
+//! Get all basic elements in the knowledge
+/**
+ * This function is used by match_basic, to determine all basic elements in the knowledge set.
+ * Most of the time this doesn't even change, so it might become a parameter of knowledge.
+ * For now, this will have to do.
+ *
+ *@todo Investigate whether the basics in the knowledge set should be a parameter of knowledge, as it doesn't change very often.
+ */
+__inline__ Termlist
+knowledgeGetBasics (const Knowledge know)
+{
+  return termlistAddBasics (termlistAddBasics(NULL, know->basic), know->encrypt);
 }
 
 //! check whether any substitutions where made in a knowledge set.

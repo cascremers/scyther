@@ -13,19 +13,12 @@
 #include "modelchecker.h"
 #include "match_basic.h"
 
-Termlist
+//! Get the candidates list for typeless basic stuff
+__inline__ Termlist
 candidates (const Knowledge know)
 {
-  Termlist knowset;
-  Termlist candlist;
-
-  /* candidates for typeless basic stuff */
-  knowset = knowledgeSet (know);
-  candlist = termlistAddBasics (NULL, knowset);
-  termlistDelete (knowset);
-  return candlist;
+  return knowledgeGetBasics (know);
 }
-
 
 struct fvpass
 {
