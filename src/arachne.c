@@ -297,14 +297,14 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
       termPrint (p->nameterm);
       eprintf (", ");
       termPrint (r->nameterm);
-      eprintf ("\n");
+      eprintf (", forced run %i\n", forced_run);
     }
 #endif
   flag = 1;
   goal.rd->bind_index = index;
   for (run = 0; run < sys->maxruns; run++)
     {
-      if (forced_run >= 0 && forced_run == run)
+      if (forced_run == -2 || forced_run == run)
 	{
 	  if (sys->runs[run].protocol == p && sys->runs[run].role == r)
 	    {
@@ -739,7 +739,7 @@ iterate ()
       if (DEBUGL (3) && explanation != NULL)
 	{
 	  indentPrint ();
-	  eprintf ("%s ", explanation);
+	  eprintf ("ITERATE: %s", explanation);
 
 	  if (e_run != INVALID)
 	    eprintf ("#%i ", e_run);
@@ -758,7 +758,7 @@ iterate ()
 	      termPrint (e_term3);
 	      eprintf (" ");
 	    }
-	  eprintf ("\n");
+	  eprintf (" ]}>=--\n");
 	}
 #endif
 

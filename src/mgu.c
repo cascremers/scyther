@@ -63,6 +63,10 @@ termMguTerm (Term t1, Term t2)
       {
 	printf (", composite term");
       }
+    if (t->type != VARIABLE)
+      {
+	printf (" (bound roleconstant)");
+      }
     printf ("\n");
   }
 #endif
