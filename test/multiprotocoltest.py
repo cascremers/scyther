@@ -65,7 +65,7 @@ ProtocolToStatusMap = {}	# maps protocol names to status: 0 all false, 1 all cor
 ProtocolToEffectsMap = {}	# maps protocols that help create multiple flaws, to the protocol names of the flaws they caused
 
 CommandPrefix = "not yet initialised."
-BoundsList = []			# bounds that have been displayed onscreen
+ArgumentsList = []			# argument lists that have been displayed onscreen
 
 # Ugly hack. Works.
 safetxt = " " * 20
@@ -150,14 +150,14 @@ def ScytherEval (plist):
 
 	ScytherBounds = "--arachne --timer=%i --max-runs=%i --max-length=%i" % (timer, maxruns, maxlength)
 
-	# If these bounds had not been shown before, do so now
-	if not ScytherBounds in BoundsList:
-		BoundsList.append(ScytherBounds)
-		print "\nBounds for", n, "protocols:", ScytherBounds
-
 	# Combine it all
 	ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
 	CommandPrefix = "scyther " + ScytherArgs
+
+	# If these arguments had not been shown before, do so now
+	if not ScytherArgs in ArgumentsList:
+		ArgumentsList.append(ScytherArgs)
+		print "\nArguments for", len(plist), "protocols:", ScytherArgs
 
 	# Combine protocol list to an input
 	input = ""
