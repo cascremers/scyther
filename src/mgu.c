@@ -179,10 +179,13 @@ termMguInTerm (Term t1, Term t2, void (*iterator) ())
     }
   // simple clause or combined
   tl = termMguTerm (t1, t2);
-  // Iterate
-  iterator ();
-  // Reset variables
-  termlistSubstReset (tl);
+  if (tl != MGUFAIL)
+    {
+      // Iterate
+      iterator ();
+      // Reset variables
+      termlistSubstReset (tl);
+    }
 }
 
 //! Most general subterm unifiers of t1 subterm t2
@@ -224,8 +227,11 @@ termMguSubTerm (Term t1, Term t2, void (*iterator) (),
     }
   // simple clause or combined
   tl = termMguTerm (t1, t2);
-  // Iterate
-  iterator (keylist);
-  // Reset variables
-  termlistSubstReset (tl);
+  if (tl != MGUFAIL)
+    {
+      // Iterate
+      iterator (keylist);
+      // Reset variables
+      termlistSubstReset (tl);
+    }
 }
