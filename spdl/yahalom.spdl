@@ -3,15 +3,17 @@
 const a,b,s : Agent;
 secret k : Function;
 
+usertype Nonce, Ticket, SessionKey;
+
 
 protocol yahalom(A,B,S)
 {
 	role A
 	{
-		const na;
-		var nb;
-		var ticket;
-		var kab;
+		const na: Nonce;
+		var nb: Nonce;
+		var ticket: Ticket;
+		var kab: SessionKey;
 
 		send_1(A,B, A,na);
 		read_3(S,A, nb, {B,kab,na,nb}k(A,S), ticket );
@@ -22,10 +24,10 @@ protocol yahalom(A,B,S)
 
 	role B
 	{
-		const nb;
-		var na;
-		var ticket;
-		var kab;
+		const nb: Nonce;
+		var na: Nonce;
+		var ticket: Ticket;
+		var kab: SessionKey;
 
 		read_1(A,B, A,na);
 		send_2(B,S, B,nb, {A,na,nb}k(B,S) );
@@ -36,8 +38,8 @@ protocol yahalom(A,B,S)
 
 	role S
 	{
-		const kab;
-		var na,nb;
+		const kab: SessionKey;
+		var na,nb: Nonce;
 
 		read_2(B,S, B,nb, {A,na}k(B,S) );
 		send_3(S,A, nb, {B,kab,na,nb}k(A,S), {A,kab}k(B,S) );
