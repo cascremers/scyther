@@ -1,6 +1,7 @@
+- Rewrite termMguTerm such that it iterates and adapt all functions
+  using it. This is to allow for associative tupling later.
 - valgrind -a; key level scanning memory leaks
 - Maybe a singular, preset M_0 sending node. Test for performance issues.
-- Create dot output for arachne attacks
 - To store attacks for arachne, maybe the following is needed:
   - The roles for each run
   - The variable bindings for all (local) variables
