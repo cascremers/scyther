@@ -621,7 +621,7 @@ inverseKey (Termlist inverses, Term key)
  *\sa termlistLocal()
  */
 Term
-termLocal (Term t, Termlist fromlist, Termlist tolist, const int runid)
+termLocal (Term t, Termlist fromlist, Termlist tolist)
 {
   if (t == NULL)
     return NULL;
@@ -645,13 +645,13 @@ termLocal (Term t, Termlist fromlist, Termlist tolist, const int runid)
       Term newt = termNodeDuplicate (t);
       if (realTermTuple (t))
 	{
-	  TermOp1 (newt) = termLocal (TermOp1 (t), fromlist, tolist, runid);
-	  TermOp2 (newt) = termLocal (TermOp2 (t), fromlist, tolist, runid);
+	  TermOp1 (newt) = termLocal (TermOp1 (t), fromlist, tolist);
+	  TermOp2 (newt) = termLocal (TermOp2 (t), fromlist, tolist);
 	}
       else
 	{
-	  TermOp (newt) = termLocal (TermOp (t), fromlist, tolist, runid);
-	  TermKey (newt) = termLocal (TermKey (t), fromlist, tolist, runid);
+	  TermOp (newt) = termLocal (TermOp (t), fromlist, tolist);
+	  TermKey (newt) = termLocal (TermKey (t), fromlist, tolist);
 	}
       return newt;
     }
@@ -663,15 +663,14 @@ termLocal (Term t, Termlist fromlist, Termlist tolist, const int runid)
  *\sa termLocal()
  */
 Termlist
-termlistLocal (Termlist tl, const Termlist fromlist, const Termlist tolist,
-	       int runid)
+termlistLocal (Termlist tl, const Termlist fromlist, const Termlist tolist)
 {
   Termlist newtl = NULL;
 
   while (tl != NULL)
     {
       newtl =
-	termlistAdd (newtl, termLocal (tl->term, fromlist, tolist, runid));
+	termlistAdd (newtl, termLocal (tl->term, fromlist, tolist));
       tl = tl->next;
     }
   return newtl;

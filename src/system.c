@@ -589,12 +589,18 @@ run_localize (const System sys, const int rid, Termlist fromlist,
   rd = sys->runs[rid].start;
   while (rd != NULL)
     {
-      rd->from = termLocal (rd->from, fromlist, tolist, rid);
-      rd->to = termLocal (rd->to, fromlist, tolist, rid);
-      rd->message = termLocal (rd->message, fromlist, tolist, rid);
+      rd->from = termLocal (rd->from, fromlist, tolist);
+      rd->to = termLocal (rd->to, fromlist, tolist);
+      rd->message = termLocal (rd->message, fromlist, tolist);
       rd = rd->next;
     }
 
+  // Substlist is NULL currently? No usage of this last stuff now
+  // TODO
+  if (substlist != NULL)
+    {
+      error ("Substlist should be NULL in run_localize");
+    }
   sys->runs[rid].substitutions = NULL;
   while (substlist != NULL)
     {
@@ -603,7 +609,7 @@ run_localize (const System sys, const int rid, Termlist fromlist,
       t = substlist->term;
       if (t->subst != NULL)
 	{
-	  t->subst = termLocal (t->subst, fromlist, tolist, rid);
+	  t->subst = termLocal (t->subst, fromlist, tolist);
 	  sys->runs[rid].substitutions =
 	    termlistAdd (sys->runs[rid].substitutions, t);
 	}
@@ -668,7 +674,7 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 	{
 	  // Make new var for this run
 	  newt = makeTermType (VARIABLE, TermSymb (newt), rid);
-	  artefacts = termlistAdd (artefacts, newt);
+	  artefacts = termlistAddNew (artefacts, newt);
 	  newt->stype = oldt->stype;
 	  // Copy substitution
 	  newt->subst = oldt->subst;
@@ -695,7 +701,8 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 		  else
 		    {
 		      extterm = makeTermTuple (newt, extterm);
-		      artefacts = termlistAdd (artefacts, extterm);
+		      // NOTE: don't these get double deleted? By roledefdestroy?
+		      artefacts = termlistAddNew (artefacts, extterm);
 		    }
 		}
 	    }
@@ -728,10 +735,10 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 	  newt = create_new_local (t, rid);
 	  if (newt != NULL)
 	    {
-	      artefacts = termlistAdd (artefacts, newt);
+	      artefacts = termlistAddNew (artefacts, newt);
 	      if (realTermVariable (newt))
 		{
-		  sys->variables = termlistAdd (sys->variables, newt);
+		  sys->variables = termlistAddNew (sys->variables, newt);
 		}
 	      fromlist = termlistAdd (fromlist, t);
 	      tolist = termlistAdd (tolist, newt);
@@ -967,13 +974,41 @@ roleInstanceDestroy (const System sys)
 	    }
 	  substlist = substlist->next;
 	}
+      termlistDelete(myrun.substitutions);
+
+      // sys->variables might contain locals from the run: remove them
+        {
+	  Termlist tl;
+
+	  tl = sys->variables;
+	  while (tl != NULL)
+	    {
+	      Term t;
+
+	      t = tl->term;
+	      if (TermRunid(t) == runid)
+		{
+		  // remove from list; return pointer to head
+		  sys->variables = termlistDelTerm (tl);
+		  tl = sys->variables;
+		}
+	      else
+		{
+		  // proceed
+	          tl = tl->next;
+		}
+	    }
+	}
+
+      // remove lists
       termlistDelete (myrun.artefacts);
       termlistDelete (myrun.locals);
       termlistDelete (myrun.agents);
+
       // Destroy run struct allocation in array using realloc
-      sys->runs = (Run) memRealloc (sys->runs, sizeof (struct run) * (runid));
       // Reduce run count
-      sys->maxruns = runid;
+      sys->maxruns = sys->maxruns - 1;
+      sys->runs = (Run) memRealloc (sys->runs, sizeof (struct run) * (sys->maxruns));
     }
 }
 

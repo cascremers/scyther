@@ -46,10 +46,9 @@ Termlist termlistAddBasics (Termlist tl, Termlist scan);
 Termlist termlistMinusTerm (Termlist tl, Term t);
 int termlistLength (Termlist tl);
 Term inverseKey (Termlist inverses, Term key);
-Term termLocal (const Term t, Termlist fromlist, Termlist tolist,
-		const int runid);
+Term termLocal (const Term t, Termlist fromlist, Termlist tolist);
 Termlist termlistLocal (Termlist tl, const Termlist fromlist,
-			const Termlist tolist, const int runid);
+			const Termlist tolist);
 int termlistContained (const Termlist tlbig, Termlist tlsmall);
 int validSubst (const int matchmode, const Term term);
 Term termFunction (Termlist fromlist, Termlist tolist, Term tx);

@@ -12,10 +12,12 @@
 #include "debug.h"
 #include "term.h"
 #include "termmap.h"
+#include <malloc.h>
 
 static System sys;
-int *graph;
-int nodes;
+int *graph = NULL;
+int nodes = 0;
+int graph_uordblks = 0;
 
 extern Protocol INTRUDER;	// The intruder protocol
 extern Role I_M;		// special role; precedes all other events always
@@ -38,8 +40,7 @@ binding_create (Term term, int run_to, int ev_to)
   b->ev_from = -1;
   b->run_to = run_to;
   b->ev_to = ev_to;
-  graph = NULL;
-  nodes = 0;
+  goal_graph_destroy();
   b->term = term;
   b->level = 0;
   return b;
@@ -68,6 +69,9 @@ bindingInit (const System mysys)
 {
   sys = mysys;
   sys->bindings = NULL;
+  graph = NULL;
+  nodes = 0;
+  graph_uordblks = 0;
 }
 
 //! Close up
@@ -87,11 +91,27 @@ bindingDone ()
 void
 goal_graph_destroy ()
 {
+  findLoserBegin (graph_uordblks);
   if (graph != NULL)
     {
+#ifdef DEBUG
+      struct mallinfo mi_free;
+      int mem_free;
+
+      mi_free = mallinfo();
+      mem_free = mi_free.uordblks;
+#endif
       memFree (graph, (nodes * nodes) * sizeof (int));
       graph = NULL;
+#ifdef DEBUG
+      mi_free = mallinfo();
+      if (mem_free - mi_free.uordblks != graph_uordblks)
+	  error ("Freeing gave a weird result.");
+#endif
+      graph_uordblks = 0;
+      nodes = 0;
     }
+  findLoserEnd (graph_uordblks, "goal_graph_destroy");
 }
 
 //! Compute unclosed graph
@@ -101,201 +121,229 @@ goal_graph_create ()
   int run, ev;
   int last_m;
   List bl;
+  findLoserBegin (graph_uordblks);
 
   goal_graph_destroy ();
 
   // Setup graph
   nodes = node_count ();
-  graph = memAlloc ((nodes * nodes) * sizeof (int));
-  graph_fill (graph, nodes, 0);
 
-  // Setup run order
-  run = 0;
-  last_m = -1;			// last I_M run
-  while (run < sys->maxruns)
     {
-      ev = 1;
-      //!@todo This now reference to step, but we intend "length" as in Arachne.
-      while (ev < sys->runs[run].step)
+      struct mallinfo create_mi;
+      int create_mem_before;
+
+      if (graph_uordblks != 0)
+	  error ("Trying to create graph stuff without 0 uordblks for it first, but it is %i.", graph_uordblks);
+      findLoserBegin (graph_uordblks);
+      create_mi = mallinfo();
+      create_mem_before = create_mi.uordblks;
+      graph = memAlloc ((nodes * nodes) * sizeof (int));
+      create_mi = mallinfo();
+      graph_uordblks = create_mi.uordblks - create_mem_before;
+      findLoserEnd (graph_uordblks, "core graph creation??");
+    }
+
+    {
+      findLoserBegin (graph_uordblks);
+
+      graph_fill (graph, nodes, 0);
+
+        // Setup run order
+      run = 0;
+      last_m = -1;			// last I_M run
+      while (run < sys->maxruns)
 	{
-	  graph[graph_nodes (nodes, run, ev - 1, run, ev)] = 1;
-	  ev++;
-	}
-      // Enforce I_M ordering
-      if (sys->runs[run].protocol == INTRUDER && sys->runs[run].role == I_M)
-	{
-	  if (last_m != -1)
+	  findLoserBegin (graph_uordblks);
+	  ev = 1;
+	  //!@todo This now reference to step, but we intend "length" as in Arachne.
+	  while (ev < sys->runs[run].step)
 	    {
-	      graph[graph_nodes (nodes, last_m, 0, run, 0)] = 1;
+	      graph[graph_nodes (nodes, run, ev - 1, run, ev)] = 1;
+	      ev++;
 	    }
-	  last_m = run;
-	}
-      // Next
-      run++;
-    }
-  // Setup bindings order
-  bl = sys->bindings;
-  while (bl != NULL)
-    {
-      Binding b;
-
-      b = (Binding) bl->data;
-      if (b->done)
-	{
-#ifdef DEBUG
-	  if (graph_nodes
-	      (nodes, b->run_from, b->ev_from, b->run_to,
-	       b->ev_to) >= (nodes * nodes))
-	    error ("Node out of scope for %i,%i -> %i,%i.\n", b->run_from,
-		   b->ev_from, b->run_to, b->ev_to);
-#endif
-	  graph[graph_nodes
-		(nodes, b->run_from, b->ev_from, b->run_to, b->ev_to)] = 1;
-	}
-      bl = bl->next;
-    }
-  // Setup local constants order
-  run = 0;
-  while (run < sys->maxruns)
-    {
-      if (sys->runs[run].protocol != INTRUDER)
-	{
-	  int run2;
-
-	  run2 = 0;
-	  while (run2 < sys->maxruns)
+	  // Enforce I_M ordering
+	  if (sys->runs[run].protocol == INTRUDER && sys->runs[run].role == I_M)
 	    {
-	      if (sys->runs[run].protocol != INTRUDER && run != run2)
+	      if (last_m != -1)
 		{
-		  // For these two runs, we check whether run has any variables that are mapped
-		  // to constants from run2
-		  Termlist tl;
+		  graph[graph_nodes (nodes, last_m, 0, run, 0)] = 1;
+		}
+	      last_m = run;
+	    }
+	  // Next
+	  run++;
+	  findLoserEnd (graph_uordblks, "goal_graph_create: runloop");
+	}
+      // Setup bindings order
+      bl = sys->bindings;
+      while (bl != NULL)
+	{
+	  findLoserBegin (graph_uordblks);
+	  Binding b;
 
-		  tl = sys->runs[run].locals;
-		  while (tl != NULL)
-		    {
-		      Term t;
-
-		      t = tl->term;
-		      if (t->type == VARIABLE && TermRunid (t) == run
-			  && t->subst != NULL)
-			{
-			  // t is a variable of run
-			  Termlist tl2;
-
-			  tl2 = sys->runs[run2].locals;
-			  while (tl2 != NULL)
-			    {
-			      Term t2;
-
-			      t2 = tl2->term;
-			      if (realTermLeaf (t2) && t2->type != VARIABLE
-				  && TermRunid (t2) == run2)
-				{
-				  // t2 is a constant of run2
-				  if (isTermEqual (t, t2))
-				    {
-				      // Indeed, run depends on the run2 constant t2. Thus we must store this order.
-				      // The first send of t2 in run2 must be before the first (read) event in run with t2.
-				      int ev2;
-				      int done;
-				      Roledef rd2;
-
-				      done = 0;
-				      ev2 = 0;
-				      rd2 = sys->runs[run2].start;
-				      while (!done
-					     && ev2 < sys->runs[run2].step)
-					{
-					  if (rd2->type == SEND
-					      && termSubTerm (rd2->message,
-							      t2))
-					    {
-					      // Allright, we send it here at ev2 first
-					      int ev;
-					      Roledef rd;
-
-					      ev = 0;
-					      rd = sys->runs[run].start;
-					      while (!done
-						     && ev <
-						     sys->runs[run].step)
-						{
-						  if (termSubTerm
-						      (rd->message, t2))
-						    {
-						      // Term occurs here in run
-						      if (rd->type == READ)
-							{
-							  // It's read here first.
-							  // Order and be done with it.
-							  graph[graph_nodes
-								(nodes, run2,
-								 ev2, run,
-								 ev)] = 1;
+	  b = (Binding) bl->data;
+	  if (b->done)
+	    {
 #ifdef DEBUG
-							  if (DEBUGL (5))
-							    {
-							      eprintf
-								("* [local originator] term ");
-							      termPrint (t2);
-							      eprintf
-								(" is bound using %i, %i before %i,%i\n",
-								 run2, ev2,
-								 run, ev);
-							    }
+	      if (graph_nodes
+		  (nodes, b->run_from, b->ev_from, b->run_to,
+		   b->ev_to) >= (nodes * nodes))
+		error ("Node out of scope for %i,%i -> %i,%i.\n", b->run_from,
+		       b->ev_from, b->run_to, b->ev_to);
 #endif
-							  done = 1;
-							}
-						      else
+	      graph[graph_nodes
+		    (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to)] = 1;
+	    }
+	  bl = bl->next;
+	  findLoserEnd (graph_uordblks, "goal_graph_create: bindings loop");
+	}
+      // Setup local constants order
+      run = 0;
+      while (run < sys->maxruns)
+	{
+	  findLoserBegin (graph_uordblks);
+	  if (sys->runs[run].protocol != INTRUDER)
+	    {
+	      int run2;
+
+	      run2 = 0;
+	      while (run2 < sys->maxruns)
+		{
+		  if (sys->runs[run].protocol != INTRUDER && run != run2)
+		    {
+		      // For these two runs, we check whether run has any variables that are mapped
+		      // to constants from run2
+		      Termlist tl;
+
+		      tl = sys->runs[run].locals;
+		      while (tl != NULL)
+			{
+			  Term t;
+
+			  t = tl->term;
+			  if (t->type == VARIABLE && TermRunid (t) == run
+			      && t->subst != NULL)
+			    {
+			      // t is a variable of run
+			      Termlist tl2;
+
+			      tl2 = sys->runs[run2].locals;
+			      while (tl2 != NULL)
+				{
+				  Term t2;
+
+				  t2 = tl2->term;
+				  if (realTermLeaf (t2) && t2->type != VARIABLE
+				      && TermRunid (t2) == run2)
+				    {
+				      // t2 is a constant of run2
+				      if (isTermEqual (t, t2))
+					{
+					  // Indeed, run depends on the run2 constant t2. Thus we must store this order.
+					  // The first send of t2 in run2 must be before the first (read) event in run with t2.
+					  int ev2;
+					  int done;
+					  Roledef rd2;
+
+					  done = 0;
+					  ev2 = 0;
+					  rd2 = sys->runs[run2].start;
+					  while (!done
+						 && ev2 < sys->runs[run2].step)
+					    {
+					      if (rd2->type == SEND
+						  && termSubTerm (rd2->message,
+								  t2))
+						{
+						  // Allright, we send it here at ev2 first
+						  int ev;
+						  Roledef rd;
+
+						  ev = 0;
+						  rd = sys->runs[run].start;
+						  while (!done
+							 && ev <
+							 sys->runs[run].step)
+						    {
+						      if (termSubTerm
+							  (rd->message, t2))
 							{
-							  // It doesn't occur first in a READ, which shouldn't be happening
-							  if (sys->output ==
-							      PROOF)
+							  // Term occurs here in run
+							  if (rd->type == READ)
 							    {
-							      eprintf
-								("Term ");
-							      termPrint (t2);
-							      eprintf
-								(" from run %i occurs in run %i, term ",
-								 run2, run);
-							      termPrint (t);
-							      eprintf
-								(" before it is read?\n");
+							      // It's read here first.
+							      // Order and be done with it.
+							      graph[graph_nodes
+								    (nodes, run2,
+								     ev2, run,
+								     ev)] = 1;
+#ifdef DEBUG
+							      if (DEBUGL (5))
+								{
+								  eprintf
+								    ("* [local originator] term ");
+								  termPrint (t2);
+								  eprintf
+								    (" is bound using %i, %i before %i,%i\n",
+								     run2, ev2,
+								     run, ev);
+								}
+#endif
+							      done = 1;
 							    }
-							  // Thus, we create an artificial loop
-							  if (sys->runs[0].
-							      step > 1)
+							  else
 							    {
-							      // This forces a loop, and thus prunes
-							      graph
-								[graph_nodes
-								 (nodes, 0, 1,
-								  0, 0)] = 1;
+							      // It doesn't occur first in a READ, which shouldn't be happening
+							      if (sys->output ==
+								  PROOF)
+								{
+								  eprintf
+								    ("Term ");
+								  termPrint (t2);
+								  eprintf
+								    (" from run %i occurs in run %i, term ",
+								     run2, run);
+								  termPrint (t);
+								  eprintf
+								    (" before it is read?\n");
+								}
+							      // Thus, we create an artificial loop
+							      if (sys->runs[0].
+								  step > 1)
+								{
+								  // This forces a loop, and thus prunes
+								  graph
+								    [graph_nodes
+								     (nodes, 0, 1,
+								      0, 0)] = 1;
+								}
 							    }
 							}
+						      rd = rd->next;
+						      ev++;
 						    }
-						  rd = rd->next;
-						  ev++;
+						  done = 1;
 						}
-					      done = 1;
+					      rd2 = rd2->next;
+					      ev2++;
 					    }
-					  rd2 = rd2->next;
-					  ev2++;
 					}
 				    }
+				  tl2 = tl2->next;
 				}
-			      tl2 = tl2->next;
 			    }
+			  tl = tl->next;
 			}
-		      tl = tl->next;
 		    }
+		  run2++;
 		}
-	      run2++;
 	    }
+	  run++;
+	  findLoserEnd (graph_uordblks, "goal_graph_create local constants loop");
 	}
-      run++;
+      findLoserEnd (graph_uordblks, "goal_graph_create: constructing graph innards");
     }
+  findLoserEnd (graph_uordblks, "goal_graph_create");
 }
 
 

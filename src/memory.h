@@ -11,4 +11,20 @@ void memDone ();
 #define memFree(p,t) free(p)
 #define memRealloc(p,t) realloc(p,t);
 
+#define findLoserBegin(ign)	int mem_before; \
+				int mem_diff; \
+				static int mem_errorcount = 0; \
+				struct mallinfo mi; \
+				mi = mallinfo(); \
+				mem_before = mi.uordblks - ign;
+#define findLoserEnd(ign,t)	mi = mallinfo(); \
+				mem_diff = mi.uordblks - ign - mem_before; \
+				if (mem_diff != 0) \
+				  { \
+					warning ("Memory leak in [%s] of %i", t, mem_diff); \
+					mem_errorcount++; \
+					if (mem_errorcount >= 10) \
+						error ("More than enough leaks."); \
+				  }
+
 #endif

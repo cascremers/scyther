@@ -8,6 +8,10 @@
  */
 
 #include <limits.h>
+#ifdef DEBUG
+#include <malloc.h>
+#endif
+
 #include "term.h"
 #include "termlist.h"
 #include "role.h"
@@ -33,6 +37,7 @@ extern Term TERM_Function;
 
 extern int *graph;
 extern int nodes;
+extern int graph_uordblks;
 
 static System sys;
 static Claimlist current_claim;
@@ -113,9 +118,8 @@ arachneInit (const System mysys)
    */
 
   INTRUDER = protocolCreate (makeGlobalConstant (" INTRUDER "));
-  GVT = makeGlobalVariable ("GlobalVariable");
 
-  add_event (SEND, GVT);
+  add_event (SEND, NULL);
   I_M = add_role ("I_M: Atomic message");
 
   add_event (READ, NULL);
@@ -667,14 +671,20 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
   int flag;
   int newgoals;
 
+  findLoserBegin (graph_uordblks);
   run = semiRunCreate (p, r);
   proof_suppose_run (run, 0, index + 1);
-  newgoals = add_read_goals (run, 0, index + 1);
-  indentDepth++;
-  flag = bind_existing_to_goal (b, run, index);
-  indentDepth--;
-  goal_remove_last (newgoals);
+    {
+      findLoserBegin (graph_uordblks);
+      newgoals = add_read_goals (run, 0, index + 1);
+      indentDepth++;
+      flag = bind_existing_to_goal (b, run, index);
+      indentDepth--;
+      goal_remove_last (newgoals);
+      findLoserEnd (graph_uordblks, "bind_new_run: add read goals");
+    }
   semiRunDestroy ();
+  findLoserEnd (graph_uordblks, "bind_new_run: inner");
   return flag;
 }
 
@@ -1280,55 +1290,67 @@ select_goal ()
 int
 bind_goal_new_m0 (const Binding b)
 {
-  Termlist m0tl;
+  Termlist m0tl,tl;
   int flag;
   int found;
+
+  findLoserBegin(graph_uordblks);
 
   flag = 1;
   found = 0;
   m0tl = knowledgeSet (sys->know);
-  while (flag && m0tl != NULL)
+  tl = m0tl;
+  while (flag && tl != NULL)
     {
       Term m0t;
       Termlist subst;
+      findLoserBegin (graph_uordblks);
 
-      m0t = m0tl->term;
+      m0t = tl->term;
       subst = termMguTerm (b->term, m0t);
       if (subst != MGUFAIL)
 	{
 	  int run;
 
+	  findLoserBegin (graph_uordblks);
+	  I_M->roledef->message = b->term;
 	  run = semiRunCreate (INTRUDER, I_M);
 	  proof_suppose_run (run, 0, 1);
-	  sys->runs[run].start->message = termDuplicate (b->term);
 	  sys->runs[run].length = 1;
-	  indentDepth++;
-	  if (goal_bind (b, run, 0))
 	    {
-	      found++;
-	      proof_suppose_binding (b);
-	      if (sys->output == PROOF)
+	      findLoserBegin (graph_uordblks);
+	      indentDepth++;
+	      if (goal_bind (b, run, 0))
 		{
-		  indentPrint ();
-		  eprintf ("* I.e. retrieving ");
-		  termPrint (b->term);
-		  eprintf (" from the initial knowledge.\n");
+		  found++;
+		  proof_suppose_binding (b);
+		  if (sys->output == PROOF)
+		    {
+		      indentPrint ();
+		      eprintf ("* I.e. retrieving ");
+		      termPrint (b->term);
+		      eprintf (" from the initial knowledge.\n");
+		    }
+		  flag = flag && iterate ();
 		}
-	      flag = flag && iterate ();
+	      else
+		{
+		  proof_cannot_bind (b, run, 0);
+		}
+	      goal_unbind (b);
+	      indentDepth--;
+	      findLoserEnd (graph_uordblks, "bind goal new m0 sugar core");
 	    }
-	  else
-	    {
-	      proof_cannot_bind (b, run, 0);
-	    }
-	  goal_unbind (b);
-	  indentDepth--;
 	  semiRunDestroy ();
+
+	  findLoserEnd (graph_uordblks, "bind goal new m0: inner loop 2");
 
 	  termlistSubstReset (subst);
 	  termlistDelete (subst);
 	}
 
-      m0tl = m0tl->next;
+      tl = tl->next;
+      findLoserEnd(graph_uordblks, "bind goal new m0: inner loop");
     }
 
   if (found == 0 && sys->output == PROOF)
@@ -1339,6 +1361,9 @@ bind_goal_new_m0 (const Binding b)
       eprintf (" cannot be constructed from the initial knowledge.\n");
     }
   termlistDelete (m0tl);
+  
+  findLoserEnd(graph_uordblks, "bind goal new m0");
+
   return flag;
 }
 
@@ -1352,6 +1377,8 @@ bind_goal_new_encrypt (const Binding b)
   Term term;
   int flag;
   int can_be_encrypted;
+
+  findLoserBegin(graph_uordblks);
 
   flag = 1;
   term = deVar (b->term);
@@ -1396,21 +1423,25 @@ bind_goal_new_encrypt (const Binding b)
 	      termPrint (t2);
 	      eprintf ("\n");
 	    }
-	  newgoals = add_read_goals (run, 0, index + 1);
+	    { // indenting purely added for findLoser
+	      findLoserBegin(graph_uordblks);
+	      newgoals = add_read_goals (run, 0, index + 1);
 
-	  indentDepth++;
-	  if (goal_bind (b, run, index))
-	    {
-	      proof_suppose_binding (b);
-	      flag = flag && iterate ();
+	      indentDepth++;
+	      if (goal_bind (b, run, index))
+		{
+		  proof_suppose_binding (b);
+		  flag = flag && iterate ();
+		}
+	      else
+		{
+		  proof_cannot_bind (b, run, index);
+		}
+	      goal_unbind (b);
+	      indentDepth--;
+	      goal_remove_last (newgoals);
+	      findLoserEnd(graph_uordblks, "Goal bindings within m0 new");
 	    }
-	  else
-	    {
-	      proof_cannot_bind (b, run, index);
-	    }
-	  goal_unbind (b);
-	  indentDepth--;
-	  goal_remove_last (newgoals);
 	  semiRunDestroy ();
 	}
     }
@@ -1425,6 +1456,9 @@ bind_goal_new_encrypt (const Binding b)
 	  eprintf (" cannot be constructed by encryption.\n");
 	}
     }
+
+  findLoserEnd(graph_uordblks, "bind goal new encrypt");
+
   return flag;
 }
 
@@ -1496,6 +1530,7 @@ bind_goal_regular_run (const Binding b)
 	 NULL))
       {
 	int sflag;
+        findLoserBegin (graph_uordblks);
 
 	// A good candidate
 	found++;
@@ -1522,8 +1557,13 @@ bind_goal_regular_run (const Binding b)
 	// Bind to existing run
 	sflag = bind_existing_run (b, p, r, index);
 	// bind to new run
-	sflag = sflag && bind_new_run (b, p, r, index);
+	  {
+            findLoserBegin (graph_uordblks);
+	    sflag = sflag && bind_new_run (b, p, r, index);
+            findLoserEnd (graph_uordblks, "bind this role send; new run");
+          }
 	indentDepth--;
+        findLoserEnd (graph_uordblks, "bind this role send x");
 	return sflag;
       }
     else
@@ -1604,6 +1644,7 @@ bind_goal (const Binding b)
       int know_only;
       Term function;
 
+      flag = 1;
       proof_select_goal (b);
       indentDepth++;
 
@@ -1633,14 +1674,20 @@ bind_goal (const Binding b)
       proofDepth++;
       if (know_only)
 	{
+	  findLoserBegin (graph_uordblks);
 	  // Special case: only from intruder
 	  flag = flag && bind_goal_old_intruder_run (b);
 	  flag = flag && bind_goal_new_intruder_run (b);
+	  findLoserEnd (graph_uordblks, "bind_goal intruder case");
 	}
       else
 	{
 	  // Normal case
-	  flag = bind_goal_regular_run (b);
+	    {
+	      findLoserBegin (graph_uordblks);
+	      flag = bind_goal_regular_run (b);
+	      findLoserEnd (graph_uordblks, "bind_goal case regular run");
+	    }
 	  flag = flag && bind_goal_old_intruder_run (b);
 	  flag = flag && bind_goal_new_intruder_run (b);
 	}
@@ -1773,14 +1820,19 @@ prune_theorems ()
     }
 
   // Check for c-minimality
-  if (!bindings_c_minimal ())
     {
-      if (sys->output == PROOF)
+      findLoserBegin(graph_uordblks);
+      if (!bindings_c_minimal ())
 	{
-	  indentPrint ();
-	  eprintf ("Pruned because this is not <=c-minimal.\n");
+	  if (sys->output == PROOF)
+	    {
+	      findLoserBegin(graph_uordblks);
+	      indentPrint ();
+	      eprintf ("Pruned because this is not <=c-minimal.\n");
+	    }
+	  return 1;
 	}
-      return 1;
+      findLoserEnd(graph_uordblks, "C-minimality test");
     }
 
   /**
@@ -2031,11 +2083,15 @@ iterate ()
 {
   int flag;
 
+  findLoserBegin(graph_uordblks);
+
   flag = 1;
   if (!prune_theorems ())
     {
+      findLoserBegin(graph_uordblks);
       if (!prune_claim_specifics ())
 	{
+	  findLoserBegin(graph_uordblks);
 	  if (!prune_bounds ())
 	    {
 	      Binding b;
@@ -2071,7 +2127,9 @@ iterate ()
 		  /*
 		   * bind this goal in all possible ways and iterate
 		   */
+		  findLoserBegin (graph_uordblks);
 		  flag = bind_goal (b);
+		  findLoserEnd (graph_uordblks, "bind_goal outer");
 		}
 	    }
 	  else
@@ -2079,7 +2137,9 @@ iterate ()
 	      // Pruned because of bound!
 	      current_claim->complete = 0;
 	    }
+	  findLoserEnd(graph_uordblks, "just outside prune_bounds condition");
 	}
+      findLoserEnd(graph_uordblks, "just outside prune_claim_specifics condition");
     }
 
 #ifdef DEBUG
@@ -2087,6 +2147,10 @@ iterate ()
     {
       warning ("Flag has turned 0!");
     }
+#endif
+
+#ifdef DEBUG
+  findLoserEnd (graph_uordblks, "iterate");
 #endif
   return flag;
 }
