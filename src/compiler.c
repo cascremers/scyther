@@ -789,23 +789,37 @@ compute_prec_sets (const System sys)
 
       pr = sys->protocols;
       ro = pr->roles;
-      while (r > 0)
+      while (r > 0 && ro != NULL)
 	{
 	  ro = ro->next;
 	  if (ro == NULL)
 	    {
 	      pr = pr->next;
-	      ro = pr->roles;
+	      if (pr != NULL)
+		{
+	      	  ro = pr->roles;
+		}
+	      else
+		{
+		  ro = NULL;
+		}
 	    }
 	  r--;
 	}
-      rd = ro->roledef;
-      while (lev > 0 && rd != NULL)
+      if (ro != NULL)
 	{
-	  rd = rd->next;
-	  lev--;
+	  rd = ro->roledef;
+	  while (lev > 0 && rd != NULL)
+	    {
+	      rd = rd->next;
+	      lev--;
+	    }
+	  return rd;
 	}
-      return rd;
+      else
+	{
+	  return NULL;
+	}
     }
 
   // Assist: print matrix
@@ -904,7 +918,7 @@ compute_prec_sets (const System sys)
 	  Roledef rd1;
 
 	  rd1 = roledef_re(r1,ev1);
-	  if (rd1->type == SEND)
+	  if (rd1 != NULL && rd1->type == SEND)
 	    {
 	      r2 = 0;
 	      while (r2 < sys->rolecount)
@@ -915,7 +929,7 @@ compute_prec_sets (const System sys)
 		      Roledef rd2;
 
 		      rd2 = roledef_re(r2,ev2);
-		      if (rd2->type == READ && isTermEqual(rd1->label, rd2->label))
+		      if (rd2 != NULL && rd2->type == READ && isTermEqual(rd1->label, rd2->label))
 			{
 			  prec[index2(index(r1,ev1),index(r2,ev2))] = 1;
 			}
