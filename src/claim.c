@@ -1,11 +1,13 @@
 #include <stdlib.h>
 #include "termmap.h"
 #include "system.h"
+#include "label.h"
 #include "error.h"
 
 #define MATCH_NONE 0
 #define MATCH_ORDER 1
 #define MATCH_REVERSE 2
+#define MATCH_CONTENT 3
 
 #define LABEL_GOOD -3
 #define LABEL_TODO -2
@@ -36,6 +38,29 @@ indact ()
     }
 }
 #endif
+
+//! Check complete message match
+/**
+ * Roledef based.
+ *@returns MATCH_NONE or MATCH_CONTENT
+ */
+__inline__ int
+events_match_rd (const Roledef rdi, const Roledef rdj)
+{
+  if (isTermEqual (rdi->message, rdj->message) &&
+      isTermEqual (rdi->from, rdj->from) &&
+      isTermEqual (rdi->to, rdj->to) &&
+      isTermEqual (rdi->label, rdj->label) &&
+      !(rdi->internal || rdj->internal))
+    {
+      return MATCH_CONTENT;
+    }
+  else
+    {
+      return MATCH_NONE;
+    }
+}
+
 
 //! Check complete message match
 /**
@@ -444,6 +469,74 @@ check_claim_niagree (const System sys, const int i)
   return result;
 }
 
+
+
+//! Check generic agree claim for a given set of runs, arachne style
+int arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs)
+{
+  Termlist labels;
+  int flag;
+
+  flag = 1;
+  labels = cl->prec;
+  while (flag && labels != NULL)
+    {
+      // For each label, check whether it matches. Maybe a bit too strict (what about variables?)
+      // Locate roledefs for read & send, and check whether they are before step
+      Roledef rd_send, rd_read;
+      Labelinfo linfo;
+
+      Roledef get_label_event (const Term role, const Term label)
+	{
+	  Roledef rd, rd_res;
+	  int i;
+	  int run;
+
+	  run = termmapGet (runs, label);
+	  rd = sys->runs[run].start;
+	  rd_res = NULL;
+	  i = 0;
+	  while (i < sys->runs[run].step && rd != NULL)
+	    {
+	      if (isTermEqual (rd->label, label))
+		{
+		  rd_res = rd;
+		  rd = NULL;
+		}
+	      else
+		{
+	          rd = rd->next;
+		}
+	      i++;
+	    }
+	  return rd_res;
+	}
+
+      // Main
+      linfo = label_find (sys->labellist, labels->term);
+      rd_send = get_label_event (linfo->sendrole, labels->term);
+      rd_read = get_label_event (linfo->readrole, labels->term);
+
+      if (rd_send == NULL || rd_read == NULL)
+	{
+	  // False!
+	  flag = 0;
+	}
+      else
+	{
+	  // Compare
+	  if (events_match_rd (rd_send, rd_read) != MATCH_CONTENT)
+	    {
+	      // False!
+	      flag = 0;
+	    }
+	}
+
+      labels = labels->next;
+    }
+  return flag;
+}
+
 //! Check arachne agreement claim
 /**
  * Per default, occurs in run 0, but for generality we have left the run parameter in.
@@ -453,6 +546,41 @@ int arachne_claim_agree (const System sys, const int claim_run, const int claim_
 {
   Claimlist cl;
   Roledef rd;
+  Termmap runs_involved;
+  int flag;
+
+  int fill_roles (Termlist roles_tofill)
+    {
+      if (roles_tofill == NULL)
+	{
+	  // All roles have been chosen
+	  return arachne_runs_agree (sys, cl, runs_involved);
+	}
+      else
+	{
+	  // Choose a run for this role, if possible
+	  int run, flag;
+
+	  run = 0;
+	  flag = 1;
+	  while (flag && run < sys->maxruns)
+	    {
+	      // Has to be from the right protocol
+	      if (sys->runs[run].protocol == cl->protocol)
+		{
+		  // Has to be the right name
+		  if (isTermEqual (sys->runs[run].role->nameterm, roles_tofill->term))
+		    {
+		      // Choose, iterate
+		      runs_involved = termmapSet (runs_involved, roles_tofill->term, run);
+		      flag = flag && fill_roles (roles_tofill->next);
+		    }
+		}
+	      run++;
+	    }
+	  return flag;
+	}
+    }
 
   rd = roledef_shift (sys->runs[claim_run].start, claim_index);
 #ifdef DEBUG
@@ -460,5 +588,11 @@ int arachne_claim_agree (const System sys, const int claim_run, const int claim_
       error ("Retrieving claim info for NULL node??");
 #endif
   cl = rd->claiminfo;
+
+  runs_involved = termmapSet (NULL, cl->roles->term, claim_run);
+  flag = fill_roles (cl->roles->next);
+
+  termmapDelete (runs_involved);
+  return flag;
 }
 
