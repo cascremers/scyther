@@ -736,3 +736,26 @@ termlistForward (Termlist tl)
     }
 }
 
+/**
+ * Compare two termlists containing only basic terms, and yield ordering.
+ */
+int termlistOrder (Termlist tl1, Termlist tl2)
+{
+  int order;
+
+  order = 0;
+  while (order == 0 && tl1 != NULL && tl2 != NULL)
+    {
+      order = termOrder (tl1->term, tl2->term);
+      tl1 = tl1->next;
+      tl2 = tl2->next;
+    }
+  if (order != 0)
+      return order;
+  if (tl1 == NULL && tl2 == NULL) 
+      return order;
+  if (tl1 == NULL)
+      return -1;
+  else
+      return 1;
+}

@@ -112,5 +112,6 @@ int tupleCount (Term tt);
 Term tupleProject (Term tt, int n);
 int termSize(Term t);
 float termDistance(Term t1, Term t2);
+int termOrder (Term t1, Term t2);
 
 #endif

@@ -266,7 +266,34 @@ explorify (const System sys, const int run)
 	      return 0;
 	    }
 	}
-      /* Special check 2: if all agents in each run send only encrypted stuff, and all agents are trusted,
+
+      /* Special check 2: Symmetry reduction.
+       * If the run we depend upon has already been activated (otherwise warn!) check for instance ordering
+       */
+
+      if (sys->runs[run].prevSymmRun != -1)
+	{
+	  /* there is such a run on which we depend */
+	  int ridSymm;
+
+	  ridSymm = sys->runs[run].prevSymmRun;
+	  if (sys->runs[ridSymm].step == 0)
+	    {
+	      warning ("Symmetrical run dependency #%i (for run #%i) has not chosen yet!", ridSymm, run);
+	    }
+	  else
+	    {
+	      /* dependent run has chosen, so we can compare */
+	      if (termlistOrder (sys->runs[run].agents,
+				   sys->runs[ridSymm].agents) < 0)
+		{
+		  /* we only explore the other half */
+		  return 0;
+		}
+	    }
+	}
+
+      /* Special check 3: if all agents in each run send only encrypted stuff, and all agents are trusted,
        * there is no way for the intruder to learn anything else than encrypted terms, so secrecy claims will not
        * be violated anymore if they contain no terms that are encrypted with such keys */
 

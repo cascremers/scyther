@@ -53,5 +53,6 @@ int termlistContained (const Termlist tlbig, Termlist tlsmall);
 int validSubst (const int matchmode, const Term term);
 Term termFunction (Termlist fromlist, Termlist tolist, Term tx);
 Termlist termlistForward (Termlist tl);
+int termlistOrder (Termlist tl1, Termlist tl2);
 
 #endif

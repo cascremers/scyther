@@ -605,6 +605,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
   runs[rid].agents = termlistDuplicate (tolist);
   runs[rid].start = rd;
   runs[rid].index = rd;
+  runs[rid].step = 0;
 
   /* duplicate all locals form this run */
   scanto = role->locals;

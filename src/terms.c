@@ -5,6 +5,7 @@
  * Intended to be a standalone file, however during development it turned out that a termlist structure was needed
  * to define term types, so there is now a dependency loop with termlists.c.
  */
+#include <strings.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
@@ -757,4 +758,38 @@ termDistance(Term t1, Term t2)
 	    }
 	}
     }
+}
+
+/**
+ * Enforce a (arbitrary) ordering on basic terms
+ * <0 means a<b, 0 means a=b, >0 means a>b.
+ */
+int termOrder (Term t1, Term t2)
+{
+  char* name1;
+  char* name2;
+
+  t1 = deVar (t1);
+  t2 = deVar (t2);
+  if (!(realTermLeaf (t1) && realTermLeaf (t2)))
+    {
+      error ("'termOrder' can only be applied to two basic terms.");
+    }
+  if (isTermEqual (t1,t2))
+    {
+      /* equal terms */
+      return 0;
+    }
+  if (t1->type != t2->type)
+    {
+      /* unequal types (can this even occur?) */
+      if (t1->type < t2->type)
+	  return -1;
+      else
+	  return 1;
+    }
+  /* same type, compare names */
+  name1 = t1->left.symb->text;
+  name2 = t2->left.symb->text;
+  return strcmp (name1,name2);
 }
