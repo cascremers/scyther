@@ -767,7 +767,7 @@ timersPrint (const System sys)
 	  /* modern version: claim label is tuple (protocname, label) */
           /* first print protocol.role */
 	  termPrint (cl_scan->label->left.op1);
-	  eprintf (".");
+	  eprintf ("\t");
 	  termPrint (cl_scan->rolename);
 	  eprintf ("\t");
 	  /* second print event_label */
