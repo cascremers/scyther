@@ -291,7 +291,7 @@ main (int argc, char **argv)
     {
       if (switchSO->count > 0)
 	{
-	  exit ("--read-symm and --symm-order cannot be used at the same time.");
+	  error ("--read-symm and --symm-order cannot be used at the same time.");
 	}
       sys->switchReadSymm = 1;
     }
