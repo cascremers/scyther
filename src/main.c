@@ -79,7 +79,7 @@ main (int argc, char **argv)
   struct arg_file *infile  = arg_file0(NULL,NULL,"FILE",    "input file ('-' for stdin)");
   struct arg_file *outfile = arg_file0("o","output","FILE", "output file (default is stdout)");
   struct arg_int *traversal = arg_int0 ("t", "traverse", NULL,
-					"set traversal method, partial order reduction (default is 8)");
+					"set traversal method, partial order reduction (default is 10)");
   struct arg_int *match =
     arg_int0 ("m", "match", NULL, "matching method (default is 0)");
   struct arg_lit *clp =
@@ -161,7 +161,7 @@ main (int argc, char **argv)
   debugl->ival[0] = 0;
   porparam->ival[0] = 0;
 #endif
-  traversal->ival[0] = 8;
+  traversal->ival[0] = 10;
   match->ival[0] = 0;
   maxlength->ival[0] = -1;
   maxruns->ival[0] = INT_MAX;
