@@ -9,6 +9,7 @@ dnl find and test the C compiler
 AC_PROG_CC
 AC_LANG_C
         
+# Make sure 'make' program is set.
 AC_PROG_MAKE_SET
 
 # Checks for header files.
@@ -17,16 +18,18 @@ AC_CHECK_HEADERS([limits.h malloc.h stddef.h stdlib.h strings.h unistd.h])
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-               
-AC_CHECK_LIB(argtable2, arg_parse,,AC_MSG_ERROR(Scyther requires the argtable2 package (LGPL).
-Get it from http://argtable.sourceforge.net/
-or make sure that Scyther can find the libraries by setting
-LD_LIBRARY_PATH correctly.))
+
+# Checks for YACC and (F)LEX
 AC_PROG_YACC
 AM_PROG_LEX
+# Argtable 2 library
+AC_CHECK_LIB(argtable2, arg_parse,,AC_MSG_ERROR(Could not find the argtable2 libraries (LGPL).
+Download and install from http://argtable.sourceforge.net/
+or make sure that the libraries can be found by setting
+LD_LIBRARY_PATH correctly.))
                   
 VERSION="0.0.1"
 SUBDIRS=src 
 
-dnl read Makefile.in and write Makefile
+dnl read Makefile.in's and write Makefiles
 AC_OUTPUT(Makefile src/Makefile)
