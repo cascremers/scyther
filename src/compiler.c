@@ -859,8 +859,8 @@ compute_prec_sets (const System sys)
   /*
    * Phase 1: Allocate structures and map to labels
    */
-  printf ("Rolecount: %i\n", sys->rolecount);
-  printf ("Maxevent : %i\n", sys->roleeventmax);
+  //printf ("Rolecount: %i\n", sys->rolecount);
+  //printf ("Maxevent : %i\n", sys->roleeventmax);
   size = sys->rolecount * sys->roleeventmax;
   eventlabels = memAlloc (size * sizeof(Term));
   prec = memAlloc (size * size * sizeof(int));
@@ -888,12 +888,12 @@ compute_prec_sets (const System sys)
       while (rd != NULL)
 	{
 	  eventlabels[index(r1,ev1)] = rd->label;
-	  termPrint (rd->label);
-	  printf ("\t");
+	  //termPrint (rd->label);
+	  //printf ("\t");
 	  ev1++;
 	  rd = rd->next;
 	}
-      printf ("\n");
+      //printf ("\n");
       r1++;
     }
   // Set simple precedence (progress within a role)
@@ -1050,9 +1050,9 @@ compute_prec_sets (const System sys)
 	}
       else
 	{
-	  printf ("Preceding label set for r:%i, ev:%i = ", r1,ev1);
-	  termlistPrint (cl->prec);
-	  printf ("\n");
+	  // printf ("Preceding label set for r:%i, ev:%i = ", r1,ev1);
+	  // termlistPrint (cl->prec);
+	  // printf ("\n");
 	}
 
       // Proceed to next claim
