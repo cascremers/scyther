@@ -191,7 +191,9 @@ executeStep (const System sys, const int run)
 }
 
 /**
- * remove from a roledef that is instantiated, the uninteresting ends bits
+ * Determine for a roledef that is instantiated, the uninteresting ends bits.
+ *
+ *@todo "What is interesting" relies on the fact that there are only secrecy, sychnr and agreement properties.
  */
 Roledef removeIrrelevant (const System sys, const int run, Roledef rd)
 {
@@ -273,6 +275,7 @@ explorify (const System sys, const int run)
        * need to be evaluated, then we can skip
        * further traversal.
        */
+      //!@todo This implementation relies on the fact that there are only secrecy, sychnr and agreement properties.
       if (sys->secrets == NULL)
 	{ /* there are no remaining secrecy claims to be checked */
 	  Roledef rdscan;
