@@ -310,23 +310,31 @@ bind_existing_to_goal (const Goal goal, const int index, const int run,
 {
   Roledef rd;
   int flag;
+  int old_length;
 
   int subterm_iterate (Termlist substlist, Termlist keylist)
   {
     int keycount;
     int flag;
-    int old_length;
 
-    old_length = sys->runs[run].length;
-    if (index >= old_length)
-      sys->runs[run].length = index + 1;
 
+#ifdef DEBUG
+    if (DEBUGL (5))
+      {
+	indentPrint ();
+	eprintf ("Adding key list : ");
+	termlistPrint (keylist);
+	eprintf ("\n");
+      }
+#endif
     flag = 1;
     keycount = 0;
     while (flag && keylist != NULL)
       {
-	create_intruder_goal (keylist->term);
-	if (!binding_add (sys->maxruns - 1, 0, goal.run, goal.index))
+	int keyrun;
+
+	keyrun = create_intruder_goal (keylist->term);
+	if (!binding_add (keyrun, 0, goal.run, goal.index))
 	  flag = 0;
 	keylist = keylist->next;
 	keycount++;
@@ -334,11 +342,11 @@ bind_existing_to_goal (const Goal goal, const int index, const int run,
     flag = flag && iterate ();
     while (keycount > 0)
       {
-	roleInstanceDestroy (sys);
 	binding_remove_last ();
+	roleInstanceDestroy (sys);
 	keycount--;
       }
-    sys->runs[run].length = old_length;
+    termlistDestroy (keylist);
     return flag;
   }
 
@@ -347,8 +355,14 @@ bind_existing_to_goal (const Goal goal, const int index, const int run,
     iterate ();
   }
 
+  //----------------------------
   // Roledef entry
   rd = roledef_shift (sys->runs[run].start, index);
+
+  // Fix length
+  old_length = sys->runs[run].length;
+  if ((index + 1) > old_length)
+    sys->runs[run].length = index + 1;
 
 #ifdef DEBUG
   if (DEBUGL (3))
@@ -363,12 +377,12 @@ bind_existing_to_goal (const Goal goal, const int index, const int run,
     {
       if (subterm)
 	{
-	  return termMguSubTerm (goal.rd->message, rd->message,
+	  flag = termMguSubTerm (goal.rd->message, rd->message,
 				 subterm_iterate, sys->know->inverses, NULL);
 	}
       else
 	{
-	  return termMguInTerm (goal.rd->message, rd->message,
+	  flag = termMguInTerm (goal.rd->message, rd->message,
 				interm_iterate);
 	}
     }
@@ -381,8 +395,11 @@ bind_existing_to_goal (const Goal goal, const int index, const int run,
 	  eprintf ("Aborted binding existing run because of cycle.\n");
 	}
 #endif
-      return 1;
     }
+  binding_remove_last ();
+  // Reset length
+  sys->runs[run].length = old_length;
+  return flag;
 }
 
 //! Bind a goal to an existing regular run, if possible
@@ -402,13 +419,16 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
       termPrint (p->nameterm);
       eprintf (", ");
       termPrint (r->nameterm);
-      eprintf ("\n");
+      eprintf (" (%i)\n", subterm);
     }
 #endif
   flag = 1;
   for (run = 0; run < sys->maxruns; run++)
     {
-      flag = flag && bind_existing_to_goal (goal, index, run, subterm);
+      if (sys->runs[run].protocol == p && sys->runs[run].role == r)
+	{
+	  flag = flag && bind_existing_to_goal (goal, index, run, subterm);
+	}
     }
   return flag;
 }
@@ -421,8 +441,22 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
   int run;
   int flag;
 
+#ifdef DEBUG
+  if (DEBUGL (4))
+    {
+      indentPrint ();
+      eprintf ("Trying to bind ");
+      termPrint (goal.rd->message);
+      eprintf (" to a new instance of ");
+      termPrint (p->nameterm);
+      eprintf (", ");
+      termPrint (r->nameterm);
+      eprintf (" (%i)\n", subterm);
+    }
+#endif
   roleInstance (sys, p, r, NULL, NULL);
-  flag = bind_existing_to_goal (goal, index, sys->maxruns - 1, subterm);
+  run = sys->maxruns - 1;
+  flag = bind_existing_to_goal (goal, index, run, subterm);
   roleInstanceDestroy (sys);
   return flag;
 }
@@ -547,8 +581,6 @@ bind_goal_regular (const Goal goal)
    */
   int bind_this_role_send (Protocol p, Role r, Roledef rd, int index)
   {
-    int cannotUnify;
-
     int test_unification (Termlist substlist)
     {
       // A unification exists; return the signal
@@ -576,12 +608,8 @@ bind_goal_regular (const Goal goal)
 	    eprintf (", index %i\n", index);
 	  }
 #endif
-	cannotUnify =
-	  termMguInTerm (goal.rd->message, rd->message, test_unification);
-	if (!cannotUnify)
+	if (!termMguInTerm (goal.rd->message, rd->message, test_unification))
 	  {
-	    int flag;
-
 	    // A good candidate
 #ifdef DEBUG
 	    if (DEBUGL (5))
@@ -594,9 +622,8 @@ bind_goal_regular (const Goal goal)
 		eprintf (", index %i\n", index);
 	      }
 #endif
-	    flag = flag && bind_new_run (goal, p, r, index, 0);
-	    flag = flag && bind_existing_run (goal, p, r, index, 0);
-	    return flag;
+	    return (bind_new_run (goal, p, r, index, 0) &&
+		    bind_existing_run (goal, p, r, index, 0));
 	  }
 	else
 	  {
@@ -657,14 +684,11 @@ bind_intruder_to_regular (Goal goal)
 	  }
 	else
 	  {
-	    int flag;
-
 	      /**
 	       * Either from an existing, or from a new run.
 	       */
-	    flag = flag && bind_new_run (goal, p, r, index, 1);
-	    flag = flag && bind_existing_run (goal, p, r, index, 1);
-	    return flag;
+	    return (bind_new_run (goal, p, r, index, 1)
+		    && bind_existing_run (goal, p, r, index, 1));
 	  }
       }
   }
@@ -784,7 +808,7 @@ prune ()
 {
   Termlist tl;
 
-  if (indentDepth > 30)
+  if (indentDepth > 20)
     {
       // Hardcoded limit on iterations
 #ifdef DEBUG
@@ -796,7 +820,7 @@ prune ()
 #endif
       return 1;
     }
-  if (sys->maxruns > 10)
+  if (sys->maxruns > 4)
     {
       // Hardcoded limit on runs
 #ifdef DEBUG

@@ -8,11 +8,11 @@ graph_fill (int *graph, int nodes, int value)
 {
   int node;
 
-  node = (nodes * nodes);
-  while (node > 0)
+  node = 0;
+  while (node < (nodes * nodes))
     {
-      node--;
       graph[node] = value;
+      node++;
     }
 }
 

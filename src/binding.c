@@ -142,7 +142,17 @@ graph_nodes (const int nodes, const int run1, const int ev1, const int run2,
   int node2;
 
   node1 = node_number (run1, ev1);
+#ifdef DEBUG
+  if (node1 < 0 || node1 >= nodes)
+    error ("node_number %i out of scope %i for %i,%i.", node1, nodes, run1,
+	   ev1);
+#endif
   node2 = node_number (run2, ev2);
+#ifdef DEBUG
+  if (node2 < 0 || node2 >= nodes)
+    error ("node_number %i out of scope %i for %i,%i.", node2, nodes, run2,
+	   ev2);
+#endif
   return graph_index (nodes, node1, node2);
 }
 
@@ -160,7 +170,7 @@ closure_graph (Binding b)
 
   // Setup graph
   nodes = node_count ();
-  graph = memAlloc (nodes * nodes * sizeof (int));
+  graph = memAlloc ((nodes * nodes) * sizeof (int));
   graph_fill (graph, nodes, 0);
   b->nodes = nodes;
   b->graph = graph;
@@ -185,6 +195,12 @@ closure_graph (Binding b)
       Binding b;
 
       b = (Binding) bl->data;
+#ifdef DEBUG
+      if (graph_nodes (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to) >=
+	  (nodes * nodes))
+	error ("Node out of scope for %i,%i -> %i,%i.\n", b->run_from,
+	       b->ev_from, b->run_to, b->ev_to);
+#endif
       graph[graph_nodes (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to)]
 	= 1;
       bl = bl->next;
@@ -213,21 +229,37 @@ int
 binding_add (int run_from, int ev_from, int run_to, int ev_to)
 {
   Binding b;
+  int flag;
 
-  b = binding_create (run_from, ev_from, run_to, ev_to);
 #ifdef DEBUG
   if (DEBUGL (5))
     {
       eprintf ("Adding binding (%i,%i) --->> (%i,%i)\n", run_from, ev_from,
 	       run_to, ev_to);
     }
+  if (ev_from >= sys->runs[run_from].step)
+    error ("run_from event index too large for scenario.");
+  if (ev_to >= sys->runs[run_to].step)
+    error ("run_to event index too large for scenario.");
+  if (run_from < 0 || run_from >= sys->maxruns)
+    error ("run_from out of scope.");
+  if (run_to < 0 || run_to >= sys->maxruns)
+    error ("run_to out of scope.");
 #endif
+  b = binding_create (run_from, ev_from, run_to, ev_to);
   sys->bindings = list_insert (sys->bindings, b);
 
   /*
    * Compute closure graph etc.
    */
-  return closure_graph (b);
+  flag = closure_graph (b);
+#ifdef DEBUG
+  if (DEBUGL (5))
+    {
+      eprintf ("Adding binding result %i\n", flag);
+    }
+#endif
+  return flag;
 }
 
 //! Remove last additions, including last manual addition
