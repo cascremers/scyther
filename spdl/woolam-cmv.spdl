@@ -5,6 +5,8 @@ const Alice, Bob, Charlie, Eve: Agent;
 const Simon: Server;
 
 /* give the intruder something to work with */
+// Scyther finds an attack using basic type flaws
+
 const ne: Nonce;
 const ke: SessionKey;
 untrusted Eve;
@@ -14,22 +16,49 @@ const authToken: Token;
 
 protocol woolamcmv(A,B,S)
 {
+	role A
+	{
+		const Na: Nonce;
+		var Nb: Nonce;
+		var Kab: SessionKey;
+		var t1,t2;
+
+		send_1(A,B, A,Na);
+		read_2(B,A, B,Nb);
+		send_3(A,B, { A,B, Na,Nb }k(A,S) );
+   		read_6(B,A, { B,Na,Nb,Kab }k(A,S), { Na,Nb }Kab );
+		send_7(A,B, { Nb }Kab );	
+
+		claim_8(B,Secret, Kab);
+	}
+
 	role B
 	{
 		var Na: Nonce;
 		const Nb: Nonce;
 		var Kab: SessionKey;
-		var t1,t2: Ticket;
+		var t1,t2;
 
 		read_1(A,B, A,Na);
 		send_2(B,A, B,Nb);
 		read_3(A,B, t1 );
-		send_4(B,S, t1, { (A,(B,(Na,Nb))) }k(B,S) );
-		read_5(S,B, t2, { (A,(Na,(Nb,Kab))) }k(B,S) );
+		send_4(B,S, t1, { A,B,Na,Nb }k(B,S) );
+		read_5(S,B, t2, { A,Na,Nb,Kab }k(B,S) );
    		send_6(B,A, t2, { Na,Nb }Kab );
 		read_7(A,B, { Nb }Kab );	
 
-		claim(B,Secret,Kab,Nb,authToken);
+		claim_9(B,Secret, Kab);
+	}
+
+	role S
+	{
+		var Na, Nb: Nonce;
+		const Kab: SessionKey;
+
+		read_4(B,S, { A,B, Na,Nb }k(A,S), { A,B,Na,Nb }k(B,S) );
+		send_5(S,B, { B,Na,Nb,Kab }k(A,S), { A,Na,Nb,Kab }k(B,S) );
+
+		claim_10(B,Secret, Kab);
 	}
 }
 
