@@ -13,125 +13,192 @@
 #define runPointerGet(sys,run)		sys->runs[run].index
 #define runPointerSet(sys,run,newp)	sys->runs[run].index = newp
 
+//! Structure for a role event node or list.
+/**
+ *\sa role
+ */
 struct roledef
 {
-  /* flag for internal actions (overriding normal type) */
+  //! flag for internal actions.
+  /**
+   * Typically, this is true to signify internal reads (e.g. variable choices)
+   * as opposed to a normal read.
+   */
   int internal;
+  //! Type of event.
+  /**
+   *\sa READ, SEND, CLAIM
+   */
   int type;
+  //! Event label.
   Term label;
+  //! Event sender.
   Term from;
+  //! Event target.
   Term to;
+  //! Event message.
   Term message;
+  //! Pointer to next roledef node.
   struct roledef *next;
 
-  /* illegal injections */
+  //! Illegal injections for this event.
   Knowledge forbidden;
-  /* knowledge transitions counter */
+  //! knowledge transitions counter.
   int knowPhase;
 
   /* evt runid for synchronisation, but that is implied in the
      base array */
 };
 
+//! Shorthand for roledef pointer.
 typedef struct roledef *Roledef;
 
-
+//! Role definition.
+/**
+ *\sa roledef
+ */
 struct role
 {
+  //! Name of the role encoded in a term.
   Term nameterm;
+  //! List of role events.
   Roledef roledef;
+  //! Local constants for this role.
   Termlist locals;
+  //! Pointer to next role definition.
   struct role *next;
 };
 
+//! Shorthand for role pointer.
 typedef struct role *Role;
 
+//! Protocol definition.
 struct protocol
 {
+  //! Name of the protocol encoded in a term.
   Term nameterm;
+  //! List of role definitions.
   Role roles;
+  //! List of role names.
   Termlist rolenames;
+  //! List of local terms for this protocol.
   Termlist locals;
+  //! Pointer to next protocol.
   struct protocol *next;
 };
 
+//! Shorthand for protocol pointer.
 typedef struct protocol *Protocol;
 
+//! Run container.
 struct run
 {
+  //! Protocol of this run.
   Protocol protocol;
+  //! Role of this run.
   Role role;
+  //! Agents involved in this run.
   Termlist agents;
+  //! Current execution point in the run.
   Roledef index;
+  //! Head of the run definition.
   Roledef start;
+  //! Current knowledge of the run.
   Knowledge know;
+  //! Locals of the run.
   Termlist locals;
 };
 
+//! Shorthand for run pointer.
 typedef struct run *Run;
 
+//! Buffer for variables substitution state.
 struct varbuf
 {
+  //! List of closed variables.
   Termlist	from;
+  //! List of terms to which the closed variables are bound.
   Termlist	to;
+  //! List of open variables.
   Termlist	empty;
 };
 
+//! Shorthand for varbuf pointer.
 typedef struct varbuf *Varbuf;
 
+//! Trace buffer.
 struct tracebuf
 {
+  //! Length of trace.
   int		length;
+  //! Length of trace minus the redundant events.
   int		reallength;
+  //! Array of events.
   Roledef	*event;
+  //! Array of run identifiers for each event.
   int		*run;
+  //! Array of status flags for each event.
+  /**
+   *\sa S_OKE, S_RED, S_TOD, S_UNK
+   */
   int		*status;
+  //! Array for matching sends to reads.
   int		*link;
-  int		violatedclaim;	// index of violated claim in trace
+  //! Index of violated claim in trace.
+  int		violatedclaim;	
+  //! Array of knowledge sets for each event.
   Knowledge	*know;
+  //! List of terms required to be in the final knowledge.
   Termlist	requiredterms;
+  //! List of variables in the system.
   Varbuf	variables;
 };
 
+//! The main state structure.
 struct system
 {
-  int step;			// can be managed globally
-  Knowledge know;
+  int step;			//!< Step in trace during exploration. Can be managed globally
+  Knowledge know;		//!< Knowledge in currect step of system.
   struct parameters *parameters;	// misc
   /* static run info, maxruns */
   Run runs;
 
   /* global */
-  int maxruns;
+  int maxruns;			//!< Number of runs in the system.
 
   /* properties */
-  Termlist secrets;		// integrate secrets list into system
-  int shortestattack;		// length of shortest attack trace
+  Termlist secrets;		//!< Integrate secrets list into system.
+  int shortestattack;		//!< Length of shortest attack trace.
 
   /* switches */
   int report;
-  int prune;			// type of pruning
-  int switch_maxtracelength;	// helps to remember the length of the last trace
-  int maxtracelength;		// helps to remember the length of the last trace
-  int switchM;			// memory
-  int switchT;			// time
-  int switchS;			// progress (traversed states)
-  int porparam;			// a multi-purpose integer parameter, passed to the partial order reduction method selected
-  int latex;			// latex output switch
+  int prune;			//!< Type of pruning.
+  int switch_maxtracelength;	//!< Helps to remember the length of the last trace.
+  int maxtracelength;		//!< helps to remember the length of the last trace.
+  int switchM;			//!< Memory display switch.
+  int switchT;			//!< Time display switch.
+  int switchS;			//!< Progress display switch. (traversed states)
+  int porparam;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
+  //! Latex output switch.
+  /**
+   * Obsolete. Use globalLatex instead.
+   *\sa globalLatex
+   */
+  int latex;			
 
   /* traversal */
-  int traverse;			// traversal method
-  int explore;			// boolean: explore states after actions or not
+  int traverse;			//!< Traversal method.
+  int explore;			//!< Boolean: explore states after actions or not.
 
   /* counters */
   unsigned long int statesLow;
   unsigned long int statesHigh;
-  unsigned long int claims;	// number of claims encountered
-  unsigned long int failed;	// number of claims failed
+  unsigned long int claims;	//!< Number of claims encountered.
+  unsigned long int failed;	//!< Number of claims failed.
 
   /* matching */
-  int match;			// matching type
-  int clp;			// do we use clp?
+  int match;			//!< Matching type.
+  int clp;			//!< Do we use clp?
 
   /* protocol definition */
   Protocol protocols;
@@ -150,7 +217,7 @@ struct system
   int knowPhase;		// which knowPhase have we already explored?
   Constraintlist constraints;	// only needed for CLP match
 
-  /* relevant: storage of shortest attack */
+  //! Shortest attack storage.
   struct tracebuf* attack;
 };
 

@@ -4,18 +4,31 @@
 #include "terms.h"
 #include "termlists.h"
 
+//! Knowledge structure.
+/**
+ * Contains a miminal representation of a knowledge set.
+ */
 struct knowledge
 {
+  //! A list of non-encrypted terms.
   Termlist basic;
+  //! A list of terms encrypted, such that the inverse is not in the knowledge set.
   Termlist encrypt;
   Termlist inverses;
   union
   {
+    //! List of open variables in the knowledge set.
+    /**
+     * This list is used to determine whether the knowledge needs to be rewritten.
+     * If a new substitution is done, one of the elements of this list will become closed,
+     * and we need to reconstruct the knowledge set.
+     */
     Termlist vars;		// special: denotes unsubstituted variables
     struct knowledge *next;	// use for alternative memory management.
   };
 };
 
+//! Shorthand for knowledge pointer.
 typedef struct knowledge *Knowledge;
 
 void knowledgeInit (void);
@@ -41,6 +54,7 @@ Knowledge knowledgeSubstDo (const Knowledge know);
 void knowledgeSubstUndo (const Knowledge know);
 Termlist knowledgeNew (const Knowledge oldk, const Knowledge newk);
 
+//! Harnass macro for recursive procedures.
 #define mindwipe(k,recurse) \
 	if (k != NULL && k->vars != NULL) { \
 		Termlist tl = k->vars; \

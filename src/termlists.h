@@ -3,13 +3,22 @@
 
 #include "terms.h"
 
+//! The list container for the term type.
+/**
+ * Implemented as a double linked list to allow for element deletion.
+ *\sa term
+ */
 struct termlist
 {
+  //! The term element for this node.
   Term term;
+  //! Next node pointer or NULL for the tail of the list.
   struct termlist *next;
+  //! Previous node pointer or NULL for the head of the list.
   struct termlist *prev;
 };
 
+//! Shorthand for termlist pointers.
 typedef struct termlist *Termlist;
 
 void termlistsInit (void);

@@ -31,3 +31,7 @@ If you want LaTeX output we need
 - The MSC macro package msc.sty
 - preamble.tex and postamble.tex
 
+For the documentation generation, optionally with graphs.
+- Doxygen: http://www.doxygen.org/
+- Dot: http://www.research.att.com/sw/tools/graphviz/
+

@@ -1,3 +1,7 @@
+/**
+ * @file runs.c Originally contained only procedures related to runs, but has grown
+ * somewhat over time.
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
@@ -14,7 +18,10 @@
 /* from compiler.o */
 extern Term TERM_Type;
 
-/* for e.g. termprinting */
+//! Global flag that signals LaTeX output.
+/**
+ * True iff LaTeX output is desired.
+ */
 int globalLatex;
 
 static int indentState = 0;

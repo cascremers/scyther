@@ -11,34 +11,36 @@
 extern Term TERM_Function;
 extern Term TERM_Hidden;
 
+//! Open termlists code.
 void
 termlistsInit (void)
 {
   return;
 }
 
+//! Close termlists code.
 void
 termlistsDone (void)
 {
   return;
 }
 
-/* inline candidate */
-
+//! Allocate memory for a termlist node.
+/**
+ *@return A pointer to uninitialised memory of the size of a termlist node.
+ */
 Termlist
 makeTermlist ()
 {
+  /* inline candidate */
   return (Termlist) memAlloc (sizeof (struct termlist));
 }
 
-/*
-
-termlistDuplicate
-
-A deep copy.
-
-*/
-
+//! Duplicate a termlist.
+/**
+ * Uses termDuplicate to copy the elements, and allocated new memory for the list nodes.
+ *\sa termDuplicate(), termlistShallow()
+ */
 Termlist
 termlistDuplicate (Termlist tl)
 {
@@ -55,15 +57,12 @@ termlistDuplicate (Termlist tl)
   return newtl;
 }
 
-/*
-
-termlistShallow
-
-A shallow copy, because I gather we won't be modifying any terms, only
-termlists. Oh, and it reverses the order :) Don't forget!
-
-*/
-
+//! Shallow reverse copy of a termlist.
+/**
+ * Just copies the element pointers. Allocates new memory for the list nodes.
+ * Note that it reverses the order of the list.
+ *\sa termlistDuplicate()
+ */
 Termlist
 termlistShallow (Termlist tl)
 {
@@ -78,14 +77,11 @@ termlistShallow (Termlist tl)
   return newtl;
 }
 
-/*
-
-termlistDelete
-
-(shallow)
-
-*/
-
+//! Shallow deletion of a termlist.
+/**
+ * Deletes the termlist nodes only. Elements are intact after exit.
+ *\sa termlistShallow()
+ */
 void
 termlistDelete (Termlist tl)
 {
@@ -96,14 +92,11 @@ termlistDelete (Termlist tl)
 }
 
 
-/*
-
-termlistDestroy
-
-(deep)
-
-*/
-
+//! Deep deletion of a termlist.
+/**
+ * Deletes the termlist nodes as well as the elements.
+ *\sa termlistDuplicate(), termDuplicate(), termDelete()
+ */
 void
 termlistDestroy (Termlist tl)
 {
@@ -114,14 +107,10 @@ termlistDestroy (Termlist tl)
   memFree (tl, sizeof (struct termlist));
 }
 
-/*
-
-inTermlist
-
-check whether a term occurs in a termlist
-
-*/
-
+//! Determine whether a term is an element of a termlist.
+/**
+ *@return True iff the term is an element of the termlist.
+ */
 int
 inTermlist (Termlist tl, Term term)
 {
@@ -141,8 +130,11 @@ inTermlist (Termlist tl, Term term)
     }
 }
 
-/* are all elements of list 1 in list 2, and vice versa? 
- Note that we assume unique elements !
+//! Equality of two term lists.
+/**
+ * Are all elements of list 1 in list 2, and vice versa? 
+ * Note that we assume unique elements!
+ *@param True iff every element of the list is in the other list.
  */
 
 int
@@ -159,15 +151,12 @@ isTermlistEqual (Termlist tl1, Termlist tl2)
   return 1;
 }
 
-/*
-
-termlistAdd
-
-Adds a term. Duplicates are allowed.
-A new list pointer is returned.
-
-*/
-
+//! Adds a term to the front of a termlist.
+/**
+ * Duplicates are allowed.
+ *@return A new list pointer.
+ *\sa termlistAppend()
+ */
 Termlist
 termlistAdd (Termlist tl, Term term)
 {
@@ -191,15 +180,12 @@ termlistAdd (Termlist tl, Term term)
   return newtl;
 }
 
-/*
-
-termlistAppend
-
-Appends a term to the end of the list. Duplicates are allowed.
-A new list pointer is returned.
-
-*/
-
+//! Adds a term to the end of a termlist.
+/**
+ * Duplicates are allowed.
+ *@return A new list pointer if the termlist was NULL.
+ *\sa termlistAdd()
+ */
 Termlist
 termlistAppend (const Termlist tl, const Term term)
 {
@@ -226,6 +212,11 @@ termlistAppend (const Termlist tl, const Term term)
   return tl;
 }
 
+//! Concatenates two termlists.
+/**
+ * The last pointer of the first list is made to point to the second list.
+ *@return The pointer to the concatenated list.
+ */
 Termlist
 termlistConcat (Termlist tl1, Termlist tl2)
 {
@@ -241,14 +232,12 @@ termlistConcat (Termlist tl1, Termlist tl2)
   return tl1;
 }
 
-/*
-
-termlistDelTerm
-
-remove the current element from the termlist. Easier because of the
-double linked list.
-
-*/
+//! Remove the pointed at element from the termlist.
+/**
+ * Easier because of the double linked list.
+ *@param tl The pointer to the termlist node to be deleted from the list.
+ *@return The possibly new head pointer to the termlist.
+ */
 Termlist
 termlistDelTerm (Termlist tl)
 {
@@ -273,6 +262,10 @@ termlistDelTerm (Termlist tl)
   return newhead;
 }
 
+//! Construct the conjunction of two termlists.
+/**
+ *@return A new termlist containing the elements in both lists.
+ */
 Termlist
 termlistConjunct (Termlist tl1, Termlist tl2)
 {
@@ -290,6 +283,10 @@ termlistConjunct (Termlist tl1, Termlist tl2)
   return newtl;
 }
 
+//! Construct the conjunction of two termlists, and a certain type.
+/**
+ *@return A new termlist containing the elements in both lists, that are also of the desired type.
+ */
 Termlist
 termlistConjunctType (Termlist tl1, Termlist tl2, int termtype)
 {
@@ -307,6 +304,10 @@ termlistConjunctType (Termlist tl1, Termlist tl2, int termtype)
   return newtl;
 }
 
+//! Construct the conjunction of a termlist and a certain type.
+/**
+ *@return A new termlist containing the elements in the list that are of the desired type.
+ */
 Termlist
 termlistType (Termlist tl, int termtype)
 {
@@ -324,6 +325,10 @@ termlistType (Termlist tl, int termtype)
   return newtl;
 }
 
+//! Display a termlist.
+/**
+ * Lists of terms are displayed between square brackets, and seperated by commas.
+ */
 void
 termlistPrint (Termlist tl)
 {
@@ -343,6 +348,13 @@ termlistPrint (Termlist tl)
   printf ("]");
 }
 
+//! Append all open variables in a term to a list.
+/**
+ *@param tl The list to which to append to.
+ *@param t The term possibly containing open variables.
+ *@return The pointer to the extended list.
+ *\sa termlistAddRealVariables()
+ */
 Termlist
 termlistAddVariables (Termlist tl, Term t)
 {
@@ -368,6 +380,13 @@ termlistAddVariables (Termlist tl, Term t)
     }
 }
     
+//! Append all variables in a term to a list.
+/**
+ *@param tl The list to which to append to.
+ *@param t The term possibly containing open and closed variables.
+ *@return The pointer to the extended list.
+ *\sa termlistAddVariables()
+ */
 Termlist
 termlistAddRealVariables (Termlist tl, Term t)
 {
@@ -403,6 +422,13 @@ termlistAddRealVariables (Termlist tl, Term t)
     }
 }
 
+//! Append all basic terms in a term to a list.
+/**
+ *@param tl The list to which to append to.
+ *@param t The term containing basic terms.
+ *@return The pointer to the extended list.
+ *\sa termlistAddBasics()
+ */
 Termlist
 termlistAddBasic (Termlist tl, Term t)
 {
@@ -426,6 +452,13 @@ termlistAddBasic (Termlist tl, Term t)
   return tl;
 }
 
+//! Append all basic terms in a termlist to another list.
+/**
+ *@param tl The list to which to append to.
+ *@param scan The termlist with terms containing basic terms.
+ *@return The pointer to the extended list.
+ *\sa termlistAddBasic()
+ */
 Termlist
 termlistAddBasics (Termlist tl, Termlist scan)
 {
@@ -437,13 +470,11 @@ termlistAddBasics (Termlist tl, Termlist scan)
   return tl;
 }
 
-/*
- * termlistMinusTerm
- *
- * Remove a term from a termlist, and yield a new termlist pointer.
- * Semantics: remove the first occurrence of the term.
+//! Remove a term from a termlist.
+/**
+ * Removes the first occurrence of the term.
+ *@return A new termlist pointer.
  */
-
 Termlist
 termlistMinusTerm (Termlist tl, Term t)
 {
@@ -460,6 +491,7 @@ termlistMinusTerm (Termlist tl, Term t)
   return tl;
 }
 
+//! Determine the length of a termlist.
 int
 termlistLength (Termlist tl)
 {
@@ -473,14 +505,15 @@ termlistLength (Termlist tl)
   return i;
 }
 
-/*
-
-inverseKey
-
-Gives the inverse Key of some term (which is used to encrypt something), as is defined
-by the termlist, which is a list of key1,key1inv, key2, key2inv, etc...
-
-*/
+//! Give the inverse key term of a term.
+/**
+ * Gives a duplicate of the inverse Key of some term (which is used to encrypt something), as is defined
+ * by the termlist, which is a list of key1,key1inv, key2, key2inv, etc...
+ *@param inverses The list of inverses, typically from the knowledge.
+ *@param key Any term of which the inverse will be determined.
+ *@return A pointer to a duplicate of the inverse key term.
+ *\sa termDuplicate(), knowledge::inverses
+ */
 
 
 Term
@@ -535,14 +568,12 @@ inverseKey (Termlist inverses, Term key)
   return termDuplicate (key);	/* defaults to symmetrical */
 }
 
+//! Create a term local to a run.
 /*
- * localTerm
- *
- * Creates a term local to a run.
  * We assume that at this point, no variables have been instantiated yet that occur in this term.
  * We also assume that fromlist, tolist and locals only hold real leaves.
+ *\sa termlistLocal()
  */
-
 Term
 termLocal (const Term t, Termlist fromlist, Termlist tolist,
 	   const Termlist locals, const int runid)
@@ -585,12 +616,11 @@ termLocal (const Term t, Termlist fromlist, Termlist tolist,
     }
 }
 
-/*
- * termlistLocal
- *
- * We expand the previous concept to termlists.
+//! Create a list of instance terms.
+/**
+ * We expand the termlocal concept to termlists.
+ *\sa termLocal()
  */
-
 Termlist
 termlistLocal (Termlist tl, const Termlist fromlist, const Termlist tolist,
 	       const Termlist locals, int runid)
@@ -607,10 +637,12 @@ termlistLocal (Termlist tl, const Termlist fromlist, const Termlist tolist,
   return newtl;
 }
 
-/*
- * Check whether tl2 is contained in tl1.
+//! Check whether a termlist is contained in another.
+/**
+ *@param tlbig The big list.
+ *@param tlsmall The list that is possibly contained in the big one.
+ *@return True iff tlsmall is contained in tlbig.
  */
-
 int
 termlistContained (const Termlist tlbig, Termlist tlsmall)
 {
@@ -623,9 +655,14 @@ termlistContained (const Termlist tlbig, Termlist tlsmall)
   return 1;
 }
 
-/*
+//! Check substitution validity
+/**
  * Determine whether a variable has been substituted with something with
  * the right type.
+ *@param matchmode The system matching mode, typically system::match
+ *@param term The closed variable term.
+ *@return True iff the substitution is valid in the current mode.
+ *\sa system::match
  */
 
 int
@@ -653,15 +690,15 @@ validSubst (const int matchmode, const Term term)
     }
 }
 
-/*
- * termFunction
- *
- * An assist function that helps to simulate Term->Term functions, using
- * termlists. One termlist functions as the domain, and the other as the
- * range.
- *
- * Extending a function with a value y = f(x) amounts to extending the
- * domain with x, and the range with y.
+//! Yield the result of f(x)
+/**
+ * This function interpretes two termlists as the domain and range of a function,
+ * and if the term occurs in the domain, returns the matching value from the range.
+ * Note that these functions cannot have NULL in the domain or the range.
+ *@param fromlist The domain list.
+ *@param tolist The range list, in a one-to-one correspondence with the fromlist.
+ *@param tx The point on which the function is to be evaluated.
+ *@return The result of the function application or NULL if the point is not within the domain.
  */
 
 Term
@@ -679,10 +716,7 @@ termFunction (Termlist fromlist, Termlist tolist, Term tx)
   return NULL;
 }
 
-/*
- * Forward the termlist pointer to the last item
- */
-
+//! Yield the last node of a termlist.
 Termlist
 termlistForward (Termlist tl)
 {

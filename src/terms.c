@@ -25,24 +25,34 @@ void indent (void);
 /* Two types of terms: general, and normalized. Normalized rewrites all
    tuples to (x,(y,z))..NULL form, making list traversal easy. */
 
+//! Initialization of terms code.
 void
 termsInit (void)
 {
   return;
 }
 
+//! Cleanup of terms code.
 void
 termsDone (void)
 {
   return;
 }
 
+//! Allocate memory for a term.
+/**
+ *@return A pointer to the new term memory, which is not yet initialised.
+ */
 Term
 makeTerm ()
 {
   return (Term) memAlloc (sizeof (struct term));
 }
 
+//! Create a fresh encrypted term from two existing terms.
+/**
+ *@return A pointer to the new term.
+ */
 Term
 makeTermEncrypt (Term t1, Term t2)
 {
@@ -54,6 +64,10 @@ makeTermEncrypt (Term t1, Term t2)
   return term;
 }
 
+//! Create a fresh term tuple from two existing terms.
+/**
+ *@return A pointer to the new term.
+ */
 Term
 makeTermTuple (Term t1, Term t2)
 {
@@ -82,6 +96,11 @@ makeTermTuple (Term t1, Term t2)
   return tt;
 }
 
+//! Make a term of the given type with run identifier and symbol.
+/**
+ *@return A pointer to the new term.
+ *\sa GLOBAL, VARIABLE, LEAF, ENCRYPT, TUPLE
+ */
 Term
 makeTermType (const int type, const Symbol symb, const int runid)
 {
@@ -94,12 +113,13 @@ makeTermType (const int type, const Symbol symb, const int runid)
   return term;
 }
 
-/* deVar unwraps any substitutions.
- *
- * For speed, it is a macro. Sometimes it will call
+//! Unwrap any substitutions.
+/**
+ * For speed, it is also a macro. Sometimes it will call
  * deVarScan to do the actual unwinding.
+ *@return A term that is either not a variable, or has a NULL substitution.
+ *\sa deVar()
  */
-
 Term
 deVarScan (Term t)
 {
@@ -108,6 +128,10 @@ deVarScan (Term t)
   return t;
 }
 
+//! Determine whether a term contains an unsubstituted variable as subterm.
+/**
+ *@return True iff there is an open variable as subterm.
+ */
 int
 hasTermVariable (Term term)
 {
@@ -125,18 +149,16 @@ hasTermVariable (Term term)
     }
 }
 
-/*
 
-isTermEqualFn(term,term)
-
-Tests whether two terms are completely identical. This also includes
-variables. This is the recursive function.
-
-We assume the term is normalized, e.g. no tupling has direct
-subtupling.
-
-Out: 0 unequal, 1 equal
-*/
+//!Tests whether two terms are completely identical.
+/**
+ * This also includes
+ * variables. This is the recursive function.
+ * We assume the term is normalized, e.g. no tupling has direct
+ * subtupling.
+ *@return True iff the terms are equal.
+ *\sa isTermEqual()
+ */
 
 int
 isTermEqualFn (Term term1, Term term2)
@@ -179,6 +201,12 @@ isTermEqualFn (Term term1, Term term2)
     }
 }
 
+//! See if a term is a subterm of another.
+/**
+ *@param t Term to be checked for a subterm.
+ *@param tsub Subterm.
+ *@return True iff tsub is a subterm of t.
+ */
 int
 termOccurs (Term t, Term tsub)
 {
@@ -195,7 +223,7 @@ termOccurs (Term t, Term tsub)
     return (termOccurs (t->op, tsub) || termOccurs (t->key, tsub));
 }
 
-
+//! Print a term to stdout.
 void
 termPrint (Term term)
 {
@@ -282,13 +310,12 @@ termPrint (Term term)
 }
 
 
-/*
-
-Duplicate
-
-make a deep copy of a term, but not of leaves.
-
-*/
+//! Make a deep copy of a term.
+/**
+ * Leaves are not copied.
+ *@return If the original was a leaf, then the pointer is simply returned. Otherwise, new memory is allocated and the node is copied recursively.
+ *\sa termDuplicateDeep()
+ */
 
 Term
 termDuplicate (const Term term)
@@ -315,13 +342,13 @@ termDuplicate (const Term term)
   return newterm;
 }
 
-/*
+//! Make a true deep copy of a term.
+/**
+ * Currently, it this function is not to be used, so we can be sure leaf nodes occur only once in the system.
+ *@return New memory is allocated and the node is copied recursively.
+ *\sa termDuplicate()
+ */
 
-DuplicateDeep
-
-make a deep copy of a term, and also of leaves.
-
-*/
 
 Term
 termDuplicateDeep (const Term term)
@@ -353,10 +380,10 @@ termDuplicateDeep (const Term term)
   return newterm;
 }
 
-/*
- * DuplicateUV
- *
+//! Make a copy of a term, but remove substituted variable nodes.
+/**
  * Remove all instantiated variables on the way down.
+ *\sa termDuplicate()
  */
 
 Term
@@ -423,13 +450,12 @@ realTermDuplicate (const Term term)
   return newterm;
 }
 
-/*
-
-termDelete
-
-Removes a term and deallocates memory
-
-*/
+//!Removes a term and deallocates memory.
+/**
+ * Is meant to remove terms make with termDuplicate. Only deallocates memory
+ * of nodes, not of leaves.
+ *\sa termDuplicate(), termDuplicateUV()
+ */
 
 void
 termDelete (const Term term)
@@ -450,13 +476,13 @@ termDelete (const Term term)
     }
 }
 
-/*
-   termNormalize
-
-   avoids problems with associativity by rewriting every ((x,y),z) to
-   (x,y,z)), i.e. a normal form for terms, after which equality is
-   okay.
-*/
+//! Normalize a term with respect to tupling.
+/**
+ * Avoids problems with associativity by rewriting every ((x,y),z) to
+ * (x,(y,z)), i.e. a normal form for terms, after which equality is
+ * okay. No memory was allocated or deallocated, as only pointers are swapped.
+ *
+ *@return After execution, the term pointed at has been normalized. */
 
 void
 termNormalize (Term term)
@@ -493,7 +519,12 @@ termNormalize (Term term)
     }
 }
 
-
+//! Copy a term, and ensure all run identifiers are set to the new value.
+/**
+ * Strange code. Only to be used on locals, as is stupidly replaces all run identifiers.
+ *@return The new term.
+ *\sa termDuplicate()
+ */
 Term
 termRunid (Term term, int runid)
 {
@@ -527,8 +558,10 @@ termRunid (Term term, int runid)
     }
 }
 
-/* tupleCount yields the size of the top tuple in the term */
-
+//! Determine tuple width of a given term.
+/**
+ *\sa tupleProject()
+ */
 int
 tupleCount (Term tt)
 {
@@ -550,9 +583,13 @@ tupleCount (Term tt)
     }
 }
 
-/* tupleProject yields the projection pi (0 .. n-1) on a top tuple. Returns
- * NULL if the range is incorrect. */
-
+//! Yield the projection Pi(n) of a term.
+/**
+ *@param tt Term
+ *@param n The index in the tuple.
+ *@return Returns either a pointer to a term, or NULL if the index is out of range.
+ *\sa tupleCount()
+ */
 Term
 tupleProject (Term tt, int n)
 {
@@ -591,9 +628,12 @@ tupleProject (Term tt, int n)
     }
 }
 
-/* number of elements in a term.
- *
+//! Determine size of term.
+/**
+ * Determines the size of a term according to some heuristic.
  * Currently, the encryption operator is weighed as well.
+ *@return Returns a nonnegative integer.
+ *\sa termDistance()
  */
 
 int
@@ -622,7 +662,10 @@ termSize(Term t)
     }
 }
 
-/* Yield some sort of distance between two terms, as a float between 0 and 1.
+//! Determine distance between two terms.
+/**
+ *@return A float value between 0, completely dissimilar, and 1, equal.
+ *\sa termSize()
  */
 
 float

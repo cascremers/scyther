@@ -9,31 +9,53 @@
 #define	ENCRYPT  4
 #define	TUPLE	 5
 
+//! The most basic datatype in the modelchecker.
+/**
+ * Describes a single term.
+ */
+
 struct term
 {
   /* basic  : name,runid
      encrypt: op,key
      tuple  : op,next
    */
+
+  //! The type of term.
+  /**
+   * \sa GLOBAL, VARIABLE, LEAF, ENCRYPT, TUPLE
+   */
   int type;
-  void *stype;			// only for leaf, termlist pointer
+  //! Data Type termlist (e.g. agent or nonce)
+  /** Only for leaves. */
+  void *stype;			
+  //! Substitution term.
+  /**
+   * If this is non-NULL, this leaf term is apparently substituted by
+   * this term.
+   */
   struct term *subst;		// only for variable/leaf, substitution term
 
   union
   {
     Symbol symb;
+    //! Encrypted subterm.
     struct term *op;
+    //! Left-hand side of tuple pair.
     struct term *op1;
     struct term *next;		// for alternative memory management
   };
   union
   {
     int runid;
+    //! Key used to encrypt subterm.
     struct term *key;
+    //! Right-hand side of tuple pair.
     struct term *op2;
   };
 };
 
+//! Pointer shorthand.
 typedef struct term *Term;
 
 void termsInit (void);
