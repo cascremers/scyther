@@ -73,7 +73,7 @@ arachneInit (const System mysys)
     rd = NULL;
     r->next = INTRUDER->roles;
     INTRUDER->roles = r;
-    compute_role_variables (sys, INTRUDER, r);
+    // compute_role_variables (sys, INTRUDER, r);
     return r;
   }
 
@@ -160,6 +160,9 @@ iterate_role_sends (int (*func) ())
 	    {
 	      if (rd->type == SEND)
 		{
+		  int x;
+
+		  x = 1;
 		  if (!func (p, r, rd, index))
 		    return 0;
 		}

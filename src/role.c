@@ -191,10 +191,10 @@ roleCreate (Term name)
 
   r = memAlloc (sizeof (struct role));
   r->nameterm = name;
-  r->next = NULL;
+  r->roledef = NULL;
   r->locals = NULL;
   r->variables = NULL;
-  r->roledef = NULL;
+  r->next = NULL;
   return r;
 }
 

@@ -798,10 +798,10 @@ protocolCreate (Term name)
 
   p = memAlloc (sizeof (struct protocol));
   p->nameterm = name;
-  p->rolenames = NULL;
-  p->next = NULL;
   p->roles = NULL;
+  p->rolenames = NULL;
   p->locals = NULL;
+  p->next = NULL;
   return p;
 }
 
