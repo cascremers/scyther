@@ -207,26 +207,72 @@ explorify (const System sys, const int run)
 
   flag = 0;
 
-  /* special check: internal read
+  /*
+   * Special check: if agents have been instantiated in such a way that no more claims need to be evaluated, then we can skip
+   * further traversal.
+   * Two cases: internal read or first read of a run; both are the first event of a run.
+   *
    * Efficiency of the next check heavily relies on lazy L-R evaluation
    */
-  if (rd->internal && rd->type == READ && inTermlist (sys->untrusted, agentOfRun (sys, run)))
+  if (rd == sys->runs[run].start && rd->type == READ)
     {
-      /* this run is executed by an untrusted agent, do not explore */
-    }
-  else
-    {
-      if (executeStep (sys, run))
+      if (inTermlist (sys->untrusted, agentOfRun (sys, run)))
 	{
-	  /* traverse the system after the step */
+          /* this run is executed by an untrusted agent, do not explore */
+          return 0;
+	}
+      else
+	{
+	  /* executed by trusted agent, but is there a claim left to explore? */
+	  if (sys->secrets == NULL)
+	    { /* there are no remaining secrecy claims to be checked */
+	      Roledef rdscan;
+	      int rid;
+	      int validclaim;
 
-	  flag = traverse (sys);
-	  runPointerSet (sys, run, rd);
-	  sys->step--;
-	  indentSet (sys->step);
+	      rid = 0;
+	      validclaim = 0;
+	      /* check for each run */
+	      while (rid < sys->maxruns)
+		{ 
+		  /* are claims in this run evaluated anyway? */
+		  if (!untrustedAgent (sys, sys->runs[rid].agents))
+		    { /* possibly claims to be checked in this run */
+		      rdscan = runPointerGet(sys, rid);
+		      while (rdscan != NULL)
+			{
+			  if (rdscan->type == CLAIM)
+			    {
+		    	      /* force abort of loop */
+			      validclaim = 1;
+			      rdscan = NULL;
+			      rid = sys->maxruns;
+			    }
+			  else
+			    {
+			      rdscan = rdscan->next;
+			    }
+			}
+		    }
+		  rid++;
+		}
+	      if (validclaim == 0)
+		{ /* no valid claims, abort */
+		  return 0;
+		}
+	    }
 	}
     }
-  return flag;
+  if (executeStep (sys, run))
+    {
+      /* traverse the system after the step */
+      flag = traverse (sys);
+      runPointerSet (sys, run, rd);
+      sys->step--;
+      indentSet (sys->step);
+      return flag;
+    }
+  return 0;
 }
 
 int
