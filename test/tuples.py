@@ -20,6 +20,7 @@
 #
 import sys
 import string
+import tuplesdo
 
 # Retrieve the tuple width
 tuplesize = int(sys.argv[1])
@@ -39,26 +40,12 @@ while loop:
 		# end of the input
 		loop = 0
 
-def tupleUnit (x):
-	print x + "\t",
+def tuplesPrint (l, n):
+	def f (resultlist):
+		print " ".join(resultlist)
 
-def tuplesPrint (l, n, r):
-	if r and (len(r) == n):
-		count = 0
-		for x in r:
-			if count > 0:
-				print "\t",
-			print x,
-			count = count+1
-		print
-	else:
-		if l and (n > 0):
-			# Larger size: we have options
-			# Option 1: include first
-			tuplesPrint (l[1:], n, r + [l[0]])
-			# Option 2: exclude first
-			tuplesPrint (l[1:], n, r)
+	tuplesdo.tuplesDo (f, l, n)
 
 # Generate tuples...
-tuplesPrint (list, tuplesize, [])
+tuplesPrint (list, tuplesize)
 # Thanks for your attention

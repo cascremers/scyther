@@ -22,6 +22,8 @@
 # To verify combos of protocols starting with s and t
 #
 
+import tuples
+
 # ***********************
 # 	PARAMETERS
 # ***********************
@@ -47,7 +49,7 @@ ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
 CommandPrefix = ScytherProgram + " " + ScytherArgs
 
 # Some default settings for Agents, untrusted e with sk(e) and k(a,e) etc.
-IncludeProtocols = 'spdl-defaults.inc'
+IncludeProtocols = '../spdl/spdl-defaults.inc'
 
 # Some protocols are causing troubles: this is a hard-coded filter to exclude
 # the problem children. Unfair, yes. Practical, yes.
@@ -304,7 +306,7 @@ def DescribeContext (filep, protocols, claim):
 # 
 # Determines:
 # 	ProtocolCount
-# 	Protocol[0..count-1]
+# 	ProtocolFileList[0..count-1]
 #
 # Furthermore, TempFileList is created.
 
@@ -321,7 +323,7 @@ else:
 # Read stdin into list and count, send to file
 loop = 1
 ProtocolCount = 0
-Protocol = []
+ProtocolFileList = []
 outp = open(TempFileList, 'w')
 while loop:
 	line = sys.stdin.readline()
@@ -330,7 +332,7 @@ while loop:
 		cleanline = string.strip(line)
 		if cleanline != '' and cleanline[0] != '#' and cleanline not in SkipList:
 			# not a blank line, not forbidden
-			Protocol.append(cleanline)
+			ProtocolFileList.append(cleanline)
 			ProtocolCount = ProtocolCount + 1
 			outp.write(line)
 	else:
@@ -348,8 +350,8 @@ print "Evaluating tuples of", TupleWidth, "for", ProtocolCount, "protocols, usin
 i = 0
 safetxt = " " * 20
 while i < ProtocolCount:
-	ShowProgress (i, ProtocolCount,Protocol[i]+safetxt)
-	ScytherEval1 ( Protocol[i] )
+	ShowProgress (i, ProtocolCount,ProtocolFileList[i]+safetxt)
+	ScytherEval1 ( ProtocolFileList[i] )
 	i = i + 1
 ClearProgress(ProtocolCount, safetxt)
 print "Evaluated single results."
