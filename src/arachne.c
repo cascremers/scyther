@@ -1135,6 +1135,18 @@ prune_theorems ()
 	    }
 	  return 1;
 	}
+      if ( sys->match < 2 && ( term_encryption_level (b->term) > max_encryption_level))
+	{
+	  // Prune: we do not need to construct such terms
+	  if (sys->output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("Pruned because the encryption level of ");
+	      termPrint (b->term);
+	      eprintf (" is too high.\n");
+	    }
+	  return 1;
+	}
       bl = bl->next;
     }
 
@@ -1151,23 +1163,26 @@ prune_bounds ()
   Termlist tl;
   List bl;
 
-  if (indentDepth > 20)
-    {
-      // Hardcoded limit on iterations
-      if (sys->output == PROOF)
-	{
-	  indentPrint ();
-	  eprintf ("Pruned because too many iteration levels.\n");
-	}
-      return 1;
-    }
   if (num_regular_runs > sys->switchRuns)
     {
       // Hardcoded limit on runs
       if (sys->output == PROOF)
 	{
 	  indentPrint ();
-	  eprintf ("Pruned because too many regular runs.\n");
+	  eprintf ("Pruned: too many regular runs (%i).\n", num_regular_runs);
+	}
+      return 1;
+    }
+
+  // This needs some foundation. Probably * 2^max_encryption_level
+  //!@todo Fix this bound
+  if ((sys->match < 2) && (num_intruder_runs > ((double) sys->switchRuns * max_encryption_level * 8)))
+    {
+      // Hardcoded limit on iterations
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("Pruned: %i intruder runs is too much. (max encr. level %i)\n", num_intruder_runs, max_encryption_level);
 	}
       return 1;
     }
