@@ -163,7 +163,7 @@ def process_default_options(options):
 		print "Using", options.program, "as Scyther executable."
 	if options.extra != "":
 		add_extra_parameters(options.extra)
-		print "Added extra options, now:", get_extra_parameters(options.extra)
+		print "Added extra options, now:", get_extra_parameters()
 	if options.nocache:
 		# Do not use cache
 		print "Warning: Disabling cache"
