@@ -1,3 +1,7 @@
+- PRIO 1 : fix Arachne Dot output. Start by having dot-comments with the
+  actual bindings list, to debug the stuff that happens.
+- PRIO 2 : resolve Arachne memory usage issue. Why is it using so much memory?
+  Recode stuff to memAlloc/memFree and determine max usage, leakage etc.
 - soph segfaults at no switch or -r4 (-r3 is okay??) using non-debug version.
 - Splice/AS does not work well because priority key search stumbles over the
   public key search stuff. That is a flaw in the heuristic: we should not look
