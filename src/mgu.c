@@ -173,20 +173,23 @@ termMguInTerm (Term t1, Term t2, int (*iterator) ())
 
   flag = 1;
   t2 = deVar (t2);
-  if (t2 != NULL && isTermTuple (t2))
+  if (t2 != NULL)
     {
-      // t2 is a tuple, consider interm options as well.
-      flag = flag && termMguInTerm (t1, t2->left.op1, iterator);
-      flag = flag && termMguInTerm (t1, t2->right.op2, iterator);
-    }
-  // simple clause or combined
-  tl = termMguTerm (t1, t2);
-  if (tl != MGUFAIL)
-    {
-      // Iterate
-      flag = flag && iterator (tl);
-      // Reset variables
-      termlistSubstReset (tl);
+      if (isTermTuple (t2))
+	{
+	  // t2 is a tuple, consider interm options as well.
+	  flag = flag && termMguInTerm (t1, t2->left.op1, iterator);
+	  flag = flag && termMguInTerm (t1, t2->right.op2, iterator);
+	}
+      // simple clause or combined
+      tl = termMguTerm (t1, t2);
+      if (tl != MGUFAIL)
+	{
+	  // Iterate
+	  flag = flag && iterator (tl);
+	  // Reset variables
+	  termlistSubstReset (tl);
+	}
     }
   return flag;
 }

@@ -187,7 +187,6 @@ create_intruder_goal (Term t)
   run = sys->maxruns - 1;
   rd = sys->runs[run].start;
   sys->runs[run].length = 1;
-  termDelete (rd->message);
   rd->message = termDuplicate (t);
 #ifdef DEBUG
   explanation = "Adding intruder goal for message ";
@@ -261,10 +260,14 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
   int run;
   int flag;
   Roledef rd;
+  int old_run;
+  int old_index;
 
   roleInstance (sys, p, r, NULL);
   run = sys->maxruns - 1;
   sys->runs[run].length = index + 1;
+  old_run = goal.rd->bind_run;
+  old_index = goal.rd->bind_index;
   goal.rd->bind_run = run;
   goal.rd->bind_index = index;
 #ifdef DEBUG
@@ -277,7 +280,8 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
 
   iterate ();
 
-  goal.rd->bind_run = INVALID;
+  goal.rd->bind_run = old_run;
+  goal.rd->bind_index = old_index;
   roleInstanceDestroy (sys);
   return flag;
 }
@@ -499,6 +503,15 @@ bind_goal (const Goal goal)
 int
 prune ()
 {
+  if (indentDepth > 2)
+    {
+      // Hardcoded limit on iterations
+#ifdef DEBUG
+      indentPrint ();
+      eprintf ("Pruned because too many iteration levels.\n");
+#endif
+      return 1;
+    }
   if (sys->maxruns > 5)
     {
       // Hardcoded limit on runs

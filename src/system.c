@@ -269,9 +269,19 @@ ensureValidRun (const System sys, int run)
       myrun.step = 0;
       myrun.index = NULL;
       myrun.start = NULL;
-      myrun.know = knowledgeDuplicate (sys->know);
-      myrun.prevSymmRun = -1;
-      myrun.firstNonAgentRead = -1;
+      if (sys->engine == POR_ENGINE)
+	{
+	  myrun.know = knowledgeDuplicate (sys->know);
+	  myrun.prevSymmRun = -1;
+	  myrun.firstNonAgentRead = -1;
+	}
+      else
+	{
+	  // Arachne etc.
+	  myrun.know = NULL;
+	  myrun.prevSymmRun = -1;
+	  myrun.firstNonAgentRead = -1;
+	}
     }
 }
 
