@@ -648,7 +648,7 @@ tryChoiceSend (const System sys, const int run, const Roledef rd)
       /* 1. Simply try */
       flag = executeTry (sys, run);
       /* 2. Postpone if synchonisable */
-      if (inTermlist (sys->synchronising_labels, rd->label))
+      if (flag && inTermlist (sys->synchronising_labels, rd->label))
 	{
 	  /* This is supposed to be blocked, so we do so */
 	  /* It will possibly be unblocked by a corresponding read event,

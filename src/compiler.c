@@ -1057,6 +1057,15 @@ compute_prec_sets (const System sys)
 	      tl_scan = tl_scan->next;
 	    }
 	}
+#ifdef DEBUG
+      // Porparam = 100 (weirdness) [x][cc][debug] can turn of the synchronising label sets (override).
+      if (sys->porparam == 100)
+	{
+	  termlistDelete (sys->synchronising_labels);
+	  sys->synchronising_labels = NULL;
+	  warning ("Emptied synchronising labels set manually because --pp=100.");
+	}
+#endif
       // Check for empty stuff
       //@todo This is for debugging, mainly.
       if (cl->prec == NULL)
@@ -1082,9 +1091,12 @@ compute_prec_sets (const System sys)
   memFree (prec, size * size * sizeof(int));
 
 #ifdef DEBUG
-  printf ("Synchronising labels set: ");
-  termlistPrint (sys->synchronising_labels);
-  printf ("\n");
+  if (DEBUGL(2))
+    {
+      printf ("Synchronising labels set: ");
+      termlistPrint (sys->synchronising_labels);
+      printf ("\n");
+    }
 #endif
 
 }
