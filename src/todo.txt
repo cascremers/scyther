@@ -1,30 +1,17 @@
+- './scyther -a ../spdl/nsl3.spdl --increment-runs' segfaults.
+- Select_goal should consider, for singular variables, whether their
+  type can be found in M_0. If so, the goal can be ignored.
 - Fix 'never sent secrets' list, that are e.g. secret keys of regular agents
   and such. The intruder can never learn these, we need this for pruning.
-  If a goal is such a term, we prune. Note that this results in a complicated
-  symbolic theorem, probably, with an implication. (sk => sk(untrusted)).
-  Investigate how this can be incorporated.
-- Goal select should favour 'old' goals. Thus, best should be <= comparison,
-  because the list is appended at the head.
+  If a goal is such a term, we prune. Investigate how this can be incorporated.
+  Investigate also whether this actually makes a difference.
 - Make 'generate_trace_bindings' to create the bindings for a given trace.
   Note that there can be multiple solutions; for now, simply try to take the
   shortest one.
-- If there is a limit on the runs for Arachne, but this limit is never
-  reached, the proof is still complete. The same goes for other bounds. We
-  thus need a flag to indicate that a state was pruned because of a bound.
-  Then, we get more possible results for the output.
-  1. Correct and complete
-  2. Correct within bounds
-  3. Incorrect
-- Fix term encryption level pruning for arachne, depending on the match type.
-- Constraint logic now also has no checks for when a run is done by the
-  intruder (which should be excluded).
 - Fix constants in intruder knowledge. Auto add single one of each type,
   when typed expl. Add single constant when untyped. Fix this also in
   semantics, and add proof to establish sufficiency.
 - Fix function handling (signatures).
-- Intruder should at least have one copy of each type that an agent can
-  construct, I think in any case. Proof needed for single identifier need.
-  Furthermore reduction if type flaw testing; only one constant needed.
 - Make --with-argtabledir= something switch, replacing
   README/galious-configure.sh constructs.
 - Move initial intruder knowledge maybe into the title of the MSC.
@@ -41,7 +28,7 @@
   handling for that.
 - How should claims behave (trusted/untrusted) wrt uninstantiated
   agents? Branch again? That's what is causing the nsl3-var problem.
-- The 'choose' operator must always be typed, I think.
+- The 'choose' operator must always be typed, I think. Yes.
 - The woolam-ce is incorrect because it is illegal to have a variable
   term in a key that is read, by CMV semantics. I don't know what it
   means for CE semantics (yet).
