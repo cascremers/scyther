@@ -27,6 +27,7 @@ protocol boyd(I,R,S)
 		send_4 (I,R, m(nr, m(ks,ni,nr)) );
 
 		claim_6 (I, Secret, m(ks,ni,nr) );
+		claim_7 (I, Niagree);
 		claim_8 (I, Nisynch);
 	}	
 	
@@ -40,8 +41,9 @@ protocol boyd(I,R,S)
 		send_3 (R,I, { I,R, ks }k(I,S), m(ni, m(ks,ni,nr)), nr );
 		read_4 (I,R, m(nr, m(ks,ni,nr)) );
 
-		claim_7 (R, Secret, m(ks,ni,nr));
-		claim_9 (R, Nisynch);
+		claim_10 (R, Secret, m(ks,ni,nr));
+		claim_11 (R, Niagree);
+		claim_12 (R, Nisynch);
 	}
 
 	role S
