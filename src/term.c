@@ -962,7 +962,7 @@ term_iterate (const Term term, int (*leaf) (), int (*nodel) (),
 //! Generic term iteration
 int
 term_iterate_deVar (Term term, int (*leaf) (), int (*nodel) (),
-	      int (*nodem) (), int (*noder) ())
+		    int (*nodem) (), int (*noder) ())
 {
   term = deVar (term);
   if (term != NULL)
@@ -986,20 +986,26 @@ term_iterate_deVar (Term term, int (*leaf) (), int (*nodel) (),
 
 	  if (realTermTuple (term))
 	    flag = flag
-	      && (term_iterate_deVar (term->left.op1, leaf, nodel, nodem, noder));
+	      &&
+	      (term_iterate_deVar
+	       (term->left.op1, leaf, nodel, nodem, noder));
 	  else
 	    flag = flag
-	      && (term_iterate_deVar (term->left.op, leaf, nodel, nodem, noder));
+	      &&
+	      (term_iterate_deVar (term->left.op, leaf, nodel, nodem, noder));
 
 	  if (nodem != NULL)
 	    flag = flag && nodem (term);
 
 	  if (realTermTuple (term))
 	    flag = flag
-	      && (term_iterate_deVar (term->left.op1, leaf, nodel, nodem, noder));
+	      &&
+	      (term_iterate_deVar
+	       (term->left.op1, leaf, nodel, nodem, noder));
 	  else
 	    flag = flag
-	      && (term_iterate_deVar (term->left.op, leaf, nodel, nodem, noder));
+	      &&
+	      (term_iterate_deVar (term->left.op, leaf, nodel, nodem, noder));
 
 	  if (noder != NULL)
 	    flag = flag && noder (term);
@@ -1108,30 +1114,29 @@ term_constrain_level (const Term term)
   int structure;
   int flag;
 
-  void
-  tcl_iterate (Term t)
-    {
-      t = deVar (t);
-      structure++;
-      if (realTermLeaf (t))
-	{
-	  if (realTermVariable (t))
-	      vars++;
-	}
-      else
-	{
-	  if (realTermTuple (t))
-	    {
-	      tcl_iterate (t->left.op1);
-	      tcl_iterate (t->right.op2);
-	    }
-	  else
-	    {
-	      tcl_iterate (t->left.op);
-	      tcl_iterate (t->right.key);
-	    }
-	}
-    }
+  void tcl_iterate (Term t)
+  {
+    t = deVar (t);
+    structure++;
+    if (realTermLeaf (t))
+      {
+	if (realTermVariable (t))
+	  vars++;
+      }
+    else
+      {
+	if (realTermTuple (t))
+	  {
+	    tcl_iterate (t->left.op1);
+	    tcl_iterate (t->right.op2);
+	  }
+	else
+	  {
+	    tcl_iterate (t->left.op);
+	    tcl_iterate (t->right.key);
+	  }
+      }
+  }
 
   if (term == NULL)
     error ("Cannot determine constrain level of empty term.");
@@ -1140,4 +1145,59 @@ term_constrain_level (const Term term)
   structure = 0;
   tcl_iterate (term);
   return ((float) vars / (float) structure);
+}
+
+//! Adjust the keylevels of the symbols in a term.
+/**
+ * This is used to scan the roles. For each symbol, this function does the bookkeeping of the keylevels at which they occur.
+ */
+void
+term_set_keylevels (const Term term)
+{
+  void scan_levels (int level, Term t)
+  {
+#ifdef DEBUG
+    if (DEBUGL (5))
+      {
+	int c;
+
+	c = 0;
+	while (c < level)
+	  {
+	    eprintf ("  ");
+	    c++;
+	  }
+	eprintf ("Scanning keylevel %i for term ", level);
+	termPrint (t);
+	eprintf ("\n");
+      }
+#endif
+    if (realTermLeaf (t))
+      {
+	Symbol sym;
+
+	// So, it occurs at 'level' as key. If that is less than known, store.
+	sym = t->left.symb;
+	if (level < sym->keylevel)
+	  {
+	    // New minimum level
+	    sym->keylevel = level;
+	  }
+      }
+    else
+      {
+	if (realTermTuple (t))
+	  {
+	    scan_levels (level, t->left.op1);
+	    scan_levels (level, t->right.op2);
+	  }
+	else
+	  {
+	    scan_levels (level, t->left.op);
+	    scan_levels ((level + 1), t->right.key);
+	  }
+      }
+  }
+
+  scan_levels (0, term);
 }

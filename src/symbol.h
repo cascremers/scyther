@@ -20,6 +20,8 @@ struct symbol
   int type;
   //! Line number at which it occurred.
   int lineno;
+  //! Level of occurrence in role nodes. 0 for as non-key, 1 for key only, 2 for key of key only, etc..
+  int keylevel;
   //! Ascii string with name of the symbol.
   const char *text;
   //! Possible next pointer.
@@ -41,6 +43,7 @@ Symbol lookup (const char *s);
 void symbolPrint (const Symbol s);
 void symbolPrintAll (void);
 Symbol symbolSysConst (const char *str);
+void symbol_fix_keylevels (void);
 
 void eprintf (char *fmt, ...);
 

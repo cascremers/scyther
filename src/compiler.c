@@ -140,6 +140,9 @@ compile (Tac tc, int maxrunsset)
   /* process the tac */
   tacProcess (tac_root);
 
+  /* Clean up keylevels */
+  symbol_fix_keylevels ();
+
   /* cleanup */
   levelDone ();
 }
@@ -401,6 +404,14 @@ commEvent (int event, Tac tc)
       torole = tacTerm (trip->next);
       msg = tacTerm (tacTuple ((trip->next->next)));
       cl = NULL;
+
+      if (event == SEND)
+	{
+	  /* set keylevels based on send events */
+	  term_set_keylevels (fromrole);
+	  term_set_keylevels (torole);
+	  term_set_keylevels (msg);
+	}
 
       break;
     case CLAIM:

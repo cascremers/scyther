@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <limits.h>
 
 #include "symbol.h"
+#include "debug.h"
 #include "memory.h"
 
 /*
@@ -79,6 +81,7 @@ get_symb (void)
       t->allocnext = symb_alloc;
       symb_alloc = t;
     }
+  t->keylevel = INT_MAX;
   return t;
 }
 
@@ -204,6 +207,44 @@ symbolSysConst (const char *str)
       insert (symb);
     }
   return symb;
+}
+
+//! Fix all the unset keylevels
+void
+symbol_fix_keylevels (void)
+{
+  int i;
+
+  for (i = 0; i < HASHSIZE; i++)
+    {
+      Symbol sym;
+
+      sym = symbtab[i];
+      while (sym != NULL)
+	{
+#ifdef DEBUG
+	  if (DEBUGL (5))
+	    {
+	      eprintf ("Symbol ");
+	      symbolPrint (sym);
+	    }
+#endif
+	  if (sym->keylevel == INT_MAX)
+	    {
+	      // Nothing currently, this simply does not originate on a strand.
+	    }
+#ifdef DEBUG
+	  else
+	    {
+	      if (DEBUGL (5))
+		{
+		  eprintf (" has keylevel %i\n", sym->keylevel);
+		}
+	    }
+#endif
+	  sym = sym->next;
+	}
+    }
 }
 
 //! Print out according to globalError

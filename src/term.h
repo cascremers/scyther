@@ -177,5 +177,6 @@ int term_iterate_open_leaves (const Term term, int (*func) ());
 void term_rolelocals_are_variables ();
 int term_encryption_level (const Term term);
 float term_constrain_level (const Term term);
+void term_set_keylevels (const Term term);
 
 #endif

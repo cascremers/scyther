@@ -1,3 +1,4 @@
+- Agent terms must have keylevel 0; enforce this!
 - './scyther -a ../spdl/nsl3.spdl --increment-runs' segfaults.
 - Select_goal should consider, for singular variables, whether their
   type can be found in M_0. If so, the goal can be ignored.
