@@ -32,7 +32,7 @@ compromised k(e,b);
 compromised k(a,e);
 compromised k(b,e);
 
-protocol denningsaccoshared(A,S,B)
+protocol denningsaccosh(A,S,B)
 {
 	role A
 	{
