@@ -363,8 +363,6 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
   int run;
   int flag;
   Roledef rd;
-  int old_run;
-  int old_index;
 
   roleInstance (sys, p, r, NULL);
   run = sys->maxruns - 1;

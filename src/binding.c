@@ -5,6 +5,7 @@
 #include "list.h"
 #include "system.h"
 #include "binding.h"
+#include "warshall.h"
 #include "memory.h"
 
 /*
@@ -34,7 +35,7 @@ static System sys;
 
 //! Create mem for binding
 Binding
-binding_create (int run_from, int ev_from, int run_to, int ev_to, int manual)
+binding_create (int run_from, int ev_from, int run_to, int ev_to)
 {
   Binding b;
 
@@ -117,9 +118,9 @@ node_number (int run, int ev)
   node = ev;
   while (run > 0)
     {
+      run--;
       //!@todo This now reference to step, but we intend "length" as in Arachne.
       node = node + sys->runs[run].step;
-      run--;
     }
   return node;
 }
@@ -187,7 +188,6 @@ closure_graph (Binding b)
 	= 1;
       bl = bl->next;
     }
-
   return warshall (graph, nodes);
 }
 
@@ -202,7 +202,8 @@ binding_add (int run_from, int ev_from, int run_to, int ev_to)
 {
   Binding b;
 
-  b = binding_create (run_from, ev_from, run_to, ev_to, 1);
+  b = binding_create (run_from, ev_from, run_to, ev_to);
+  eprintf ("Adding binding (%i,%i) --->> (%i,%i)\n",run_from, ev_from, run_to, ev_to);
   sys->bindings = list_insert (sys->bindings, b);
 
   /*
