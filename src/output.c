@@ -550,7 +550,7 @@ void graphNode (const System sys)
   else
     {
       /* no added knowledge */
-      printf ("point");
+      printf ("point,label=\"\"");
     }
   printf ("];\n");
 
@@ -571,14 +571,26 @@ void graphNode (const System sys)
   printf (";\n");
 }
 
-void graphPath (const System sys, const char* params)
+void graphPath (const System sys, const char* nodepar, const char* edgepar)
 {
   int i;
 
   i = 0;
   while (i < sys->step)
     {
-      printf ("\tn%li [%s];\n", sys->traceNode[i], params);
+      /* color node */
+      if (nodepar != NULL)
+	{
+          printf ("\tn%li [%s];\n", sys->traceNode[i], nodepar);
+	}
+      /* color edge */
+      if (edgepar != NULL)
+	{
+      	  printf ("\tn%li -> n%li [%s];\n",
+	          sys->traceNode[i], 
+	          sys->traceNode[i+1],
+	          edgepar);
+	}
       i++;
     }
 }

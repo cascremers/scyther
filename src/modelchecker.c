@@ -211,12 +211,12 @@ explorify (const System sys, const int run)
       /* be sure to do bookkeeping for the parent state */
       unsigned long int parentBuffer;
 
-      parentBuffer = sys->traceNode[sys->step - 1];
-      sys->traceNode[sys->step - 1] = sys->statesLow;
+      parentBuffer = sys->traceNode[sys->step];
+      sys->traceNode[sys->step] = sys->statesLow;
 
       flag = traverse (sys);
 
-      sys->traceNode[sys->step - 1] = parentBuffer;
+      sys->traceNode[sys->step] = parentBuffer;
     }
   else
     {
@@ -1048,7 +1048,7 @@ violateClaim (const System sys, int length, int claimev, Termlist reqt)
   /* mark the path in the state graph? */
   if (sys->switchStatespace)
     {
-      graphPath (sys,"color=red");
+      graphPath (sys,"shape=doubleoctagon,color=red","color=red");
     }
 
   /* Copy the current trace to the buffer, if the new one is shorter than the previous one. */
