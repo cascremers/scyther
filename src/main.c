@@ -53,6 +53,7 @@ enum exittypes
 #include "symbol.h"
 #include "parser.h"
 #include "tac.h"
+#include "timer.h"
 #include "compiler.h"
 #include "latex.h"
 #include "output.h"
@@ -161,6 +162,8 @@ main (int argc, char **argv)
 					     "show summary on stdout instead of stderr");
   struct arg_lit *switch_echo =
     arg_lit0 ("E", "echo", "echo command line to stdout");
+  struct arg_int *switch_timer =
+    arg_int0 ("T", "timer", NULL, "maximum time in seconds");
 #ifdef DEBUG
   struct arg_int *switch_por_parameter =
     arg_int0 (NULL, "pp", NULL, "POR parameter");
@@ -191,6 +194,7 @@ main (int argc, char **argv)
     switch_traversal_method,
     switch_match_method,
     switch_clp,
+    switch_timer,
     switch_pruning_method,
     switch_prune_proof_depth,
     switch_prune_trace_length, switch_incremental_trace_length,
@@ -240,6 +244,7 @@ main (int argc, char **argv)
   switch_maximum_runs->ival[0] = INT_MAX;
   switch_pruning_method->ival[0] = 2;
   switch_goal_select_method->ival[0] = -1;
+  switch_timer->ival[0] = 0;
 
   /* Parse the command line as defined by argtable[] */
   nerrors = arg_parse (argc, argv, argtable);
@@ -520,6 +525,7 @@ main (int argc, char **argv)
   sys->match = switch_match_method->ival[0];
   mgu_match = sys->match;
   sys->prune = switch_pruning_method->ival[0];
+  set_time_limit (switch_timer->ival[0]);
   if (switch_progress_bar->count > 0)
     /* enable progress display */
     sys->switchS = 50000;

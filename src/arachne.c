@@ -28,6 +28,7 @@
 #include "debug.h"
 #include "binding.h"
 #include "warshall.h"
+#include "timer.h"
 
 extern Term CLAIM_Secret;
 extern Term CLAIM_Nisynch;
@@ -2004,6 +2005,18 @@ prune_bounds ()
 {
   Termlist tl;
   List bl;
+
+  /* prune for time */
+  if (passed_time_limit ())
+    {
+      // Oh no, we ran out of time!
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("Pruned: ran out of allowed time (-T %i switch)\n", get_time_limit () );
+	}
+      return 1;
+    }
 
   /* prune for proof depth */
   if (proofDepth > sys->switch_maxproofdepth)
