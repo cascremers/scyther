@@ -78,3 +78,9 @@ new:
 		make clean
 		make all
 
+#
+#	Make doxygen reference manuals. (in ../refman)
+#
+refman:		doxyconfig
+		doxygen doxyconfig
+
