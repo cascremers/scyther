@@ -34,6 +34,7 @@ ProtocolToFileMap = {}		# maps protocol names to file names
 ProtocolToStatusMap = {}	# maps protocol names to status: 0 all false, 1 all correct, otherwise (2) mixed
 ProtocolToEffectsMap = {}	# maps protocols that help create multiple flaws, to the protocol names of the flaws they caused
 
+ReportedAttackList = []			# stores attacks that have already been reported.
 CommandPrefix = ""
 ArgumentsList = []			# argument lists that have been displayed onscreen
 
@@ -186,27 +187,38 @@ def ClearProgress (n,txt):
 
 
 def DescribeContextBrief (filep, protocols, claim, prefix):
+	global ReportedAttackList
 
-	filep.write (prefix)
+	# compute string
+	outstr = "\t" + claim
 
 	prlist = []
 	for prfile in protocols:
 		prnames = GetKeys (ProtocolToFileMap, prfile)
 		prlist = prlist + prnames
 
-	filep.write ("\t" + claim)
 
 	newprname = claim.split()[0]
 	prlistclean = []
-	prliststr = ""
 	for pn in prlist:
 		if pn not in prlistclean:
 			if pn != newprname:
 				prlistclean.append(pn)
-				prliststr = prliststr + "\t" + pn
-	filep.write (prliststr)
+				outstr = outstr + "\t" + pn
 
-	filep.write ("\n")
+	# determine whether we did that already
+	if not outstr in ReportedAttackList:
+		ReportedAttackList.append(outstr)
+		# print
+		filep.write (prefix)
+		filep.write (outstr)
+		filep.write ("\n")
+		# a new attack!
+		return 1
+	else:
+		# 0 new attacks
+		return 0
+
 
 def DescribeContext (filep, protocols, claim):
 	def DC_Claim(cl,v):
@@ -346,9 +358,7 @@ def SignalAttack (protocols, claim):
 	# error log thingy. Furthermore,
 	# explicitly recreate the commandline
 	# and the claim that is newly violated
-	DescribeContextBrief (sys.stdout, protocols, claim, outs)
-
-	return 1
+	return DescribeContextBrief (sys.stdout, protocols, claim, outs)
 
 # ***********************
 # 	MAIN CODE
