@@ -202,6 +202,10 @@ create_intruder_goal (Term t)
 int
 add_intruder_goal_iterate (Goal goal)
 {
+  // [x][todo][cc] remove debug you know the drill
+  //!@debug Remove this
+  return 1;
+
   int flag;
   int run;
 
@@ -223,6 +227,16 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 {
   int run, flag;
 
+#ifdef DEBUG
+  indentPrint ();
+  eprintf ("Trying to bind ");
+  termPrint (goal.rd->message);
+  eprintf (" to an existing instance of ");
+  termPrint (p->nameterm);
+  eprintf (", ");
+  termPrint (r->nameterm);
+  eprintf ("\n");
+#endif
   flag = 1;
   for (run = 0; run < sys->maxruns; run++)
     {
@@ -361,39 +375,67 @@ select_goal ()
 int
 bind_goal_regular (const Goal goal)
 {
+  int flag;
   /*
    * This is a local function so we have access to goal
    */
-  int bind_this (Protocol p, Role r, Roledef rd, int index)
+  int bind_this_role_send (Protocol p, Role r, Roledef rd, int index)
   {
-    int element_f1 (Termlist substlist)
+    int bind_this_unification (Termlist substlist)
     {
+#ifdef DEBUG
+      indentPrint ();
+      eprintf ("Term ");
+      termPrint (goal.rd->message);
+      eprintf (" can possibly be bound by role ");
+      termPrint (r->nameterm);
+      eprintf (", index %i.\n", index);
+#endif
       /**
        * Two options; as this, it is from an existing run,
        * or from a new one.
-       *
-       * Note that we only bind to regular runs here
        */
-      if (p == INTRUDER)
-	{
-	  return 1;		// don't abort scans
-	}
       return (bind_existing_run (goal, p, r, index)
 	      && bind_new_run (goal, p, r, index));
     }
 
-    // Test for interm unification
-    return termMguInTerm (goal.rd->message, rd->message, element_f1);
+    if (p == INTRUDER)
+      {
+	/* only bind to regular runs */
+	return 1;
+      }
+    else
+      {
+	// Test for interm unification
+#ifdef DEBUG
+	indentPrint ();
+	eprintf ("Checking send candidate with message ");
+	termPrint (rd->message);
+	eprintf (" from ");
+	termPrint (p->nameterm);
+	eprintf (", ");
+	termPrint (r->nameterm);
+	eprintf (", index%i\n");
+#endif
+	return termMguInTerm (goal.rd->message, rd->message,
+			      bind_this_unification);
+      }
   }
 
   // Bind to all possible sends or intruder node;
-  return (iterate_role_sends (bind_this) && add_intruder_goal_iterate (goal));
+#ifdef DEBUG
+  indentPrint ();
+  eprintf ("Try regular role send.\n");
+#endif
+  flag = iterate_role_sends (bind_this_role_send);
+#ifdef DEBUG
+  indentPrint ();
+  eprintf ("Try intruder send.\n");
+#endif
+  return (flag && add_intruder_goal_iterate (goal));
 }
 
 //! Bind an intruder goal to a regular run
-/**
- * A bit of a problem child, this one.
- */
 int
 bind_intruder_to_regular (Goal goal)
 {
@@ -458,6 +500,9 @@ bind_intruder_to_regular (Goal goal)
 }
 
 //! Bind an intruder goal by intruder construction
+/**
+ * Handles the case where the intruder constructs a composed term himself.
+ */
 int
 bind_intruder_to_construct (const Goal goal)
 {
@@ -655,6 +700,19 @@ arachne ()
     }
 
 #ifdef DEBUG
+  int print_send (Protocol p, Role r, Roledef rd, int index)
+  {
+    eprintf ("IRS: ");
+    termPrint (p->nameterm);
+    eprintf (", ");
+    termPrint (r->nameterm);
+    eprintf (", %i, ", index);
+    roledefPrint (rd);
+    eprintf ("\n");
+  }
+
+  iterate_role_sends (print_send);
+
   explanation = NULL;
   e_run = INVALID;
   e_term1 = NULL;

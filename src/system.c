@@ -599,6 +599,8 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	      artefacts = termlistAdd (artefacts, newt);
 	      // Copy substitution
 	      newt->subst = oldt->subst;
+	      // Remove any old substitution! It is now propagated!
+	      oldt->subst = NULL;
 	    }
 	  // Add to agent list, possibly
 	  if (inTermlist (protocol->rolenames, oldt))
