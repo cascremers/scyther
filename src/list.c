@@ -241,3 +241,29 @@ list_destroy (List list)
       free (node);
     }
 }
+
+//! Shift n positions to the right
+List
+list_shift (List list, int n)
+{
+  while (n > 0 && list != NULL)
+    {
+      list = list->next;
+      n--;
+    }
+  return list;
+}
+
+//! Determine length of list from this point onwards
+int
+list_length (List list)
+{
+  int n;
+
+  while (list != NULL)
+    {
+      n++;
+      list = list->next;
+    }
+  return n;
+}

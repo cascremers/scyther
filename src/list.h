@@ -21,5 +21,7 @@ int in_list (List list, const void *data);
 int list_iterate (List list, int (*func) ());
 List list_duplicate (List list);
 void list_destroy (List list);
+List list_shift (List list, int n);
+int list_length (List list);
 
 #endif
