@@ -36,7 +36,7 @@ protocol tlspaulson(a,b)
 		send_7( a,b, { F }CLIENTK );
 		read_8( b,a, { F }SERVERK );
 
-		claim(a, Secret,CLIENTK, SERVERK);
+		claim_9(a, Secret,CLIENTK, SERVERK);
 
 	}	
 	
@@ -57,7 +57,7 @@ protocol tlspaulson(a,b)
 		read_7( a,b, { F }CLIENTK );
 		send_8( b,a, { F }SERVERK );
 
-		claim(a, Secret,CLIENTK, SERVERK);
+		claim_10(b, Secret,CLIENTK, SERVERK);
 	}
 }
 
