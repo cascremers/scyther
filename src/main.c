@@ -128,6 +128,8 @@ main (int argc, char **argv)
     arg_int0 ("r", "max-runs", NULL, "create at most <int> runs");
   struct arg_lit *switch_incremental_runs = arg_lit0 (NULL, "increment-runs",
 						      "incremental search using the number of runs");
+  struct arg_int *switch_goal_select_method =
+    arg_int0 (NULL, "goal-select", NULL, "use goal selection method <int> (default 0)");
   struct arg_lit *switch_latex_output =
     arg_lit0 (NULL, "latex", "output attacks in LaTeX format");
   struct arg_lit *switch_empty =
@@ -193,6 +195,7 @@ main (int argc, char **argv)
     switch_prune_proof_depth,
     switch_prune_trace_length, switch_incremental_trace_length,
     switch_maximum_runs, switch_incremental_runs,
+    switch_goal_select_method,
 
     switch_implicit_choose,
     switch_choose_first,
@@ -236,6 +239,7 @@ main (int argc, char **argv)
   switch_prune_proof_depth->ival[0] = -1;
   switch_maximum_runs->ival[0] = INT_MAX;
   switch_pruning_method->ival[0] = 2;
+  switch_goal_select_method->ival[0] = -1;
 
   /* Parse the command line as defined by argtable[] */
   nerrors = arg_parse (argc, argv, argtable);
@@ -533,6 +537,8 @@ main (int argc, char **argv)
     sys->switch_maxproofdepth = switch_prune_proof_depth->ival[0];
   if (switch_prune_trace_length->ival[0] >= 0)
     sys->switch_maxtracelength = switch_prune_trace_length->ival[0];
+  if (switch_goal_select_method->ival[0] >= 0)
+    sys->switchGoalSelectMethod = switch_goal_select_method->ival[0];
 #ifdef DEBUG
   /* in debugging mode, some extra switches */
   if (switch_debug_indent->count > 0)

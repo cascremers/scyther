@@ -74,6 +74,7 @@ systemInit ()
   sys->switchReduceClaims = 1;	// default remove claims from duplicate instance choosers
   sys->switchClaims = 0;	// default don't report on claims
   sys->switchClaimToCheck = NULL;	// default check all claims
+  sys->switchGoalSelectMethod = 3;	// default goal selection method
 
   /* set illegal traversal by default, to make sure it is set
      later */

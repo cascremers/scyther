@@ -8,6 +8,7 @@
  */
 
 #include <limits.h>
+#include <float.h>
 #ifdef DEBUG
 #include <malloc.h>
 #endif
@@ -1201,6 +1202,78 @@ printSemiState ()
   eprintf ("!! - open: %i -\n", open);
 }
 
+//! Give an indication of the amount of consequences binding a term has
+/**
+ * Given a term, returns a float. 0: maximum consequences, 1: no consequences.
+ */
+float
+termBindConsequences (Term t)
+{
+  Termlist openVariables;
+
+  openVariables = termlistAddVariables(NULL, t);
+  if (openVariables == NULL)
+    {
+      // No variables, no consequences
+      return 1;
+    }
+  else
+    {
+      // For each run event in the semitrace, check whether it contains any
+      // of the open variables.
+      int totalCount;
+      int affectedCount;
+      int run;
+
+      totalCount = 0;
+      affectedCount = 0;
+      run = 0;
+      while (run < sys->maxruns)
+	{
+	  Roledef rd;
+	  int step;
+
+	  rd = sys->runs[run].start;
+	  step = 0;
+	  while (step < sys->runs[run].length)
+	    {
+	      Termlist tl;
+
+	      tl = openVariables;
+	      while (tl != NULL)
+		{
+		  if ((rd->type == READ || rd->type == SEND) && termSubTerm (rd->message, tl->term))
+		    {
+		      // This run event contains the open variable
+		      affectedCount++;
+		      tl = NULL;
+		    }
+		  else
+		    {
+		      tl = tl->next;
+		    }
+		}
+	      totalCount++;
+	      step++;
+	      rd = rd->next;
+	    }
+	  run++;
+	}
+
+      termlistDelete (openVariables);
+      if (totalCount > 0)
+	{
+	  // Valid computation
+	  return (float) (totalCount - affectedCount) / totalCount;
+	}
+      else
+	{
+	  // No consequences, ensure no division by 0
+	  return 1;
+	}
+    }
+}
+
 //------------------------------------------------------------------------
 // Larger logical componentents
 //------------------------------------------------------------------------
@@ -1213,6 +1286,11 @@ printSemiState ()
  *
  * Because the list starts with the newest terms, and we use <= (as opposed to <), we
  * ensure that for goals with equal constraint levels, we select the oldest one.
+ *
+ * selection masks for --select-goal
+ *	1:	constrain level of term
+ * 	2:	key or not
+ * 	4:	consequences determination
  */
 Binding
 select_goal ()
@@ -1220,7 +1298,10 @@ select_goal ()
   List bl;
   Binding best;
   float min_constrain;
-  int max_level;
+  int mode;
+
+  // mode bits local storage
+  mode = sys->switchGoalSelectMethod;
 
   // Find the most constrained goal
   if (sys->output == PROOF)
@@ -1228,9 +1309,9 @@ select_goal ()
       indentPrint ();
       eprintf ("Listing open goals that might be chosen: ");
     }
-  max_level = INT_MIN;
-  best = NULL;
+  min_constrain = FLT_MAX;
   bl = sys->bindings;
+  best = NULL;
   while (bl != NULL)
     {
       Binding b;
@@ -1241,30 +1322,45 @@ select_goal ()
       if (!b->done && !realTermVariable (deVar (b->term)))
 	//if (!b->done)
 	{
-	  float cons;
+	  float buf_constrain;
+	  int buf_weight;
+
+	  void adapt (int w, float fl)
+	    {
+	      buf_constrain = buf_constrain + w * fl;
+	      buf_weight = buf_weight + w;
+	    }
+
+	  // buf_constrain is the addition of the factors before division by weight
+	  buf_constrain = 0;
+	  buf_weight = 0;
 
 	  if (sys->output == PROOF && best != NULL)
 	    eprintf (", ");
-	  if (b->level >= max_level)
+
+	  // Determine buf_constrain levels
+	  // Bit 0: 1 constrain level
+	  if (mode & 1) adapt (1, term_constrain_level (b->term));
+	  // Bit 1: 2 key level (inverted)
+	  if (mode & 2) adapt (2, 0.5 * (1 - b->level));
+	  // Bit 2: 4 consequence level
+	  if (mode & 4) adapt (2, termBindConsequences (b->term));
+
+	  // Weigh result
+	  if (buf_weight == 0 || buf_constrain <= min_constrain)
 	    {
-	      if (b->level > max_level)
-		{
-		  max_level = b->level;
-		  min_constrain = 1;	// 1 is the maximum
-		}
-	      cons = term_constrain_level (b->term);
-	      if (cons <= min_constrain)
-		{
-		  min_constrain = cons;
-		  best = b;
-		  if (sys->output == PROOF)
-		    eprintf ("*");
-		}
+	      min_constrain = buf_constrain;
+	      best = b;
+	      if (sys->output == PROOF)
+		eprintf ("*");
 	    }
 	  if (sys->output == PROOF)
 	    {
 	      termPrint (b->term);
-	      eprintf ("[%i]", b->level);
+	      if (mode & 2)
+		{
+	      	  eprintf ("[%i]", b->level);
+		}
 	    }
 	}
       bl = bl->next;
@@ -1279,6 +1375,7 @@ select_goal ()
 }
 
 //! Create a new intruder run to generate knowledge from m0
+
 int
 bind_goal_new_m0 (const Binding b)
 {

@@ -141,6 +141,7 @@ struct system
   int switchReduceEndgame;	//!< Enable endgame cutter
   int switchReduceClaims;	//!< Symmetry reduction on claims (only works when switchAgentSymm is true)
   int switchClaims;		//!< Enable clails report
+  int switchGoalSelectMethod;	//!< Goal selection method for Arachne engine
   Term switchClaimToCheck;	//!< Which claim should be checked?
 
   //! Latex output switch.
