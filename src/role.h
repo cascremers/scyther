@@ -15,6 +15,8 @@
 //! The container for the claim info list
 struct claimlist
 {
+  //! The type of claim
+  Term type;
   //! The term element for this node.
   Term label;
   //! The name of the role in which it occurs.
@@ -66,6 +68,9 @@ struct roledef
    * Substructure for reads
    */
   //! Illegal injections for this event.
+  /**
+   * For send this means that the send is allowed if it is NULL, otherwise it is blocked.
+   */
   Knowledge forbidden;
   //! knowledge transitions counter.
   int knowPhase;

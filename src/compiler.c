@@ -416,6 +416,7 @@ commEvent (int event, Tac tc)
 	}
       // Assert: label is unique, add claimlist info
       cl = memAlloc (sizeof (struct claimlist));
+      cl->type = claim;
       cl->label = label;
       cl->rolename = fromrole;
       cl->count = 0;
@@ -1041,6 +1042,21 @@ compute_prec_sets (const System sys)
 	    }
 	  r2++;
 	}
+      // For ni-synch, the preceding label sets are added to the synchronising_labels sets.
+      if (cl->type == CLAIM_Nisynch)
+	{
+	  Termlist tl_scan;
+
+	  tl_scan = cl->prec;
+	  while (tl_scan != NULL)
+	    {
+	      if (!inTermlist (sys->synchronising_labels, tl_scan->term))
+		{
+		  sys->synchronising_labels = termlistAdd (sys->synchronising_labels, tl_scan->term);
+		}
+	      tl_scan = tl_scan->next;
+	    }
+	}
       // Check for empty stuff
       //@todo This is for debugging, mainly.
       if (cl->prec == NULL)
@@ -1064,6 +1080,13 @@ compute_prec_sets (const System sys)
    */
   memFree (eventlabels, size * sizeof(Term));
   memFree (prec, size * size * sizeof(int));
+
+#ifdef DEBUG
+  printf ("Synchronising labels set: ");
+  termlistPrint (sys->synchronising_labels);
+  printf ("\n");
+#endif
+
 }
 
 //! Preprocess after system compilation

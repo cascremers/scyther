@@ -105,6 +105,7 @@ struct system
 
   /* properties */
   Termlist secrets;		//!< Integrate secrets list into system.
+  Termlist synchronising_labels; //!< List of labels that might synchronise.
   int shortestattack;		//!< Length of shortest attack trace.
 
   /* switches */

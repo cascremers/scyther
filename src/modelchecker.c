@@ -231,6 +231,45 @@ Roledef removeIrrelevant (const System sys, const int run, Roledef rd)
   return rdkill;
 }
 
+
+//! Unblock any waiting sends of my type.
+/**
+ * Note that the caller must ensure that rd->forbidden is restored afterwards.
+ *\sa tryChoiceSend()
+ */
+void
+unblock_synchronising_labels (const System sys, const int run, const Roledef rd)
+{
+  if (rd->type != READ || rd->internal)
+      return;
+  if (!inTermlist (sys->synchronising_labels, rd->label))
+      return;
+
+  // This read possibly unblocks other sends
+  int run_scan;
+
+  for (run_scan = 0; run_scan < sys->maxruns; run_scan++)
+    {
+      if (run_scan != run)
+	{
+  	  Roledef rd_scan;
+
+	  rd_scan = sys->runs[run_scan].index;
+	  if (rd_scan != NULL &&
+	      rd_scan->type == SEND &&
+	      rd_scan->forbidden != NULL &&
+	      isTermEqual (rd_scan->label, rd->label) &&
+	      isTermEqual (rd_scan->message, rd->message) &&
+	      isTermEqual (rd_scan->from, rd->from) &&
+	      isTermEqual (rd_scan->to, rd->to))
+	    {
+	      rd_scan->forbidden = NULL;
+	    }
+	}
+    }
+  return;
+}
+
 //! Explores the system state given by the next step of a run.
 /** Grandiose naming scheme (c) sjors dubya.
  *
@@ -251,6 +290,7 @@ explorify (const System sys, const int run)
   int flag;
   int myStep;
   Roledef roleCap, roleCapPart;
+  Knowledge forbiddenBuffer;
 
   rd = runPointerGet (sys, run);
   myStep = sys->runs[run].step;
@@ -263,6 +303,15 @@ explorify (const System sys, const int run)
 
   flag = 0;
 
+  /**
+   * --------------------------------------------
+   * Is the event really enabled?
+   * Typically, a read event is only instantiated
+   * at this point, so we can only now do some
+   * instantiation related determinings.
+   * --------------------------------------------
+   */
+   
   /*
    * Special checks after (implicit) choose events; always first in run reads.
    */
@@ -459,13 +508,27 @@ explorify (const System sys, const int run)
 	}
     }
 
-  /* Apparently, all is well, and we can explore further */
-  flag = 0;
+  /**
+   * --------------------------------------------
+   * Now we assume the event is indeed enabled !
+   * --------------------------------------------
+   */
+
+  /* (Possibly) do some local damage */
+  // Unblock any sends
+  forbiddenBuffer = rd->forbidden;
+  if (sys->synchronising_labels != NULL)
+    {
+      unblock_synchronising_labels (sys, run, rd);
+    }
+  // Cap roles
   if (roleCap != NULL)
     {
       roleCapPart = roleCap->next;
       roleCap->next = NULL;
     }
+
+  /* And explore the resulting system */
   if (executeStep (sys, run))
     {
       /* traverse the system after the step */
@@ -477,6 +540,8 @@ explorify (const System sys, const int run)
   sys->step--;
   indentSet (sys->step);
 
+  /* restore local damage */
+  rd->forbidden = forbiddenBuffer;
   if (roleCap != NULL)
     {
       roleCap->next = roleCapPart;
@@ -484,11 +549,13 @@ explorify (const System sys, const int run)
   return 1;	// The event was indeed enabled (irrespective of traverse!)
 }
 
+
+
+//! Simple nondeterministic traversal.
+
 __inline__ int
 traverseSimple (const System sys)
 {
-  /* simple nondeterministic traversal */
-
   int run;
   int flag = 0;
 
@@ -563,6 +630,43 @@ traverseNonReads (const System sys)
     return traverseSimple (sys);
 }
 
+//! Execute a send
+/**
+ *\sa unblock_synchronising_labels()
+ */
+
+__inline__ int
+tryChoiceSend (const System sys, const int run, const Roledef rd)
+{
+  int flag;
+
+  flag = 0;
+  if (rd->forbidden == NULL)
+    {
+      /* this is allowed. So we either try it, or we try it later (if blocking) */
+      /* Note that a send in executetry will always succeed. */
+      /* 1. Simply try */
+      flag = executeTry (sys, run);
+      /* 2. Postpone if synchonisable */
+      if (inTermlist (sys->synchronising_labels, rd->label))
+	{
+	  /* This is supposed to be blocked, so we do so */
+	  /* It will possibly be unblocked by a corresponding read event,
+	   * the actual code would be in explorify, post instantiation of the read event.
+	   */
+	  if (sys->clp)
+	    {
+	      block_clp (sys, run);
+	    }
+	  else
+	    {
+	      block_basic (sys, run);
+	    }
+	}
+    }
+  return flag;
+}
+
 //! Execute a read in the knowledge postponing way, on which the partial order reduction for secrecy depends.
 
 __inline__ int
@@ -623,8 +727,11 @@ tryChoiceRoledef (const System sys, const int run, const Roledef rd)
   switch (rd->type)
     {
     case CLAIM:
-    case SEND:
       flag = executeTry (sys, run);
+      break;
+
+    case SEND:
+      flag = tryChoiceSend (sys, run, rd);
       break;
 
     case READ:

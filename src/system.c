@@ -80,6 +80,7 @@ systemInit ()
   sys->variables = NULL;
   sys->untrusted = NULL;
   sys->secrets = NULL;		// list of claimed secrets
+  sys->synchronising_labels = NULL;
   sys->attack = NULL;
   /* no protocols => no protocol preprocessed */
   sys->rolecount = 0;
