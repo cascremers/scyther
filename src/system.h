@@ -8,6 +8,7 @@
 #include "constraint.h"
 #include "states.h"
 #include "role.h"
+#include "list.h"
 
 #define runPointerGet(sys,run)		sys->runs[run].index
 #define runPointerSet(sys,run,newp)	sys->runs[run].index = newp
@@ -185,6 +186,9 @@ struct system
   int PORdone;			//!< Simple bit to denote something was done.
   int knowPhase;		//!< Which knowPhase have we already explored?
   Constraintlist constraints;	//!< Only needed for CLP match
+
+  /* Arachne assistance */
+  List bindings;		//!< List of bindings
 
   //! Shortest attack storage.
   struct tracebuf *attack;

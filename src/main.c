@@ -53,6 +53,7 @@
 #include "compiler.h"
 #include "latex.h"
 #include "output.h"
+#include "binding.h"
 
 #include "argtable2.h"
 
@@ -339,6 +340,7 @@ main (int argc, char **argv)
   if (switch_arachne->count > 0)
     {
       sys->engine = ARACHNE_ENGINE;
+      bindingInit (sys);
     }
   /* init compiler for this system */
   compilerInit (sys);
@@ -628,6 +630,7 @@ main (int argc, char **argv)
   if (sys->engine == ARACHNE_ENGINE)
     {
       arachneDone ();
+      bindingDone ();
     }
   knowledgeDestroy (sys->know);
   systemDone (sys);
