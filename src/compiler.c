@@ -852,11 +852,16 @@ compute_role_variables (const System sys, Protocol p, Role r)
       roledef_iterate_events (r->roledef, process_event);
       r->variables = tl;
 
-      eprintf ("All variables for role ");
-      termPrint (r->nameterm);
-      eprintf (" are ");
-      termlistPrint (tl);
-      eprintf ("\n");
+#ifdef DEBUG
+      if (DEBUGL (5))
+	{
+	  eprintf ("All variables for role ");
+	  termPrint (r->nameterm);
+	  eprintf (" are ");
+	  termlistPrint (tl);
+	  eprintf ("\n");
+	}
+#endif
     }
 }
 
