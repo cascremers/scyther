@@ -1,3 +1,10 @@
+/*!\file match_basic.c
+ *\brief Implements the match function.
+ *
+ * The match function here is integrated here with an enabled() function.
+ *  It is also the basic match, so not suited for Constraint Logic Programming. 
+ */
+ 
 #include <stdlib.h>
 #include <stdio.h>
 #include "memory.h"

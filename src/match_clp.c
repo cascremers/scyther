@@ -1,3 +1,12 @@
+/*!\file match_clp.c
+ *\brief Implements the match function.
+ *
+ * The match function here is integrated here with an enabled() function.
+ * It is the constraint-logic based match.
+ *
+ *\warning Some code is obsolete, as there hasn't been any development on the CL version for a while.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include "match_clp.h"

@@ -1,3 +1,9 @@
+/*!\file modelchecker.c
+ * \brief The main procedures guiding the (optimized) traversal of the state space.
+ *
+ * This file implements various traversal methods through the state space.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
