@@ -176,15 +176,15 @@ termMguInTerm (Term t1, Term t2, int (*iterator) ())
   if (t2 != NULL && isTermTuple (t2))
     {
       // t2 is a tuple, consider interm options as well.
-      flag = flag & termMguInTerm (t1, t2->left.op1, iterator);
-      flag = flag & termMguInTerm (t1, t2->right.op2, iterator);
+      flag = flag && termMguInTerm (t1, t2->left.op1, iterator);
+      flag = flag && termMguInTerm (t1, t2->right.op2, iterator);
     }
   // simple clause or combined
   tl = termMguTerm (t1, t2);
   if (tl != MGUFAIL)
     {
       // Iterate
-      flag = flag & iterator (tl);
+      flag = flag && iterator (tl);
       // Reset variables
       termlistSubstReset (tl);
     }
@@ -211,10 +211,10 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (),
 	{
 	  // 'simple' tuple
 	  flag =
-	    flag & termMguSubTerm (t1, t2->left.op1, iterator, inverses,
+	    flag && termMguSubTerm (t1, t2->left.op1, iterator, inverses,
 				   keylist);
 	  flag =
-	    flag & termMguSubTerm (t1, t2->right.op2, iterator, inverses,
+	    flag && termMguSubTerm (t1, t2->right.op2, iterator, inverses,
 				   keylist);
 	}
       else
