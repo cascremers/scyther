@@ -93,7 +93,7 @@ systemInit ()
 
 //! Reset a system state after some exploration.
 /**
- *@param A system structure pointer.
+ *@param sys A system structure pointer.
  *@return Counter values have been reset.
  */
 void

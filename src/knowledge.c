@@ -195,8 +195,7 @@ knowledgeAddTerm (Knowledge know, Term term)
 //! Try to simplify knowledge based on a term.
 /**
  *@param know A knowledge set.
- *@param term A key, i.e. it can decrypt
-	anything that was encrypted with term^{-1}.
+ *@param key A key, i.e. it can decrypt anything that was encrypted with term^{-1}.
  */
 void
 knowledgeSimplify (Knowledge know, Term key)
