@@ -195,7 +195,7 @@ executeStep (const System sys, const int run)
 /**
  * Determine for a roledef that is instantiated, the uninteresting ends bits.
  *
- *@todo "What is interesting" relies on the fact that there are only secrecy, sychnr and agreement properties.
+ *@todo "What is interesting" relies on the fact that there are only secrecy, synchr and agreement properties.
  */
 Roledef removeIrrelevant (const System sys, const int run, Roledef rd)
 {
@@ -237,21 +237,25 @@ Roledef removeIrrelevant (const System sys, const int run, Roledef rd)
 //! Explores the system state given by the next step of a run.
 /**
  * grandiose naming scheme (c) sjors dubya.
+ *
+ * Fairly complex as it also handles pruning of traces according to symmetry reductions and such.
  */
 
 int
-explorify (const System sys, const int run)
+explorify (const System sys, const int myRid)
 {
-  Roledef rd;
+  Roledef myRp;
   int flag;
   int myStep;
+  Run runs;
   Roledef roleCap, roleCapPart;
 
-  rd = runPointerGet (sys, run);
-  myStep = sys->runs[run].step;
+  runs = sys->runs;
+  myRp = runs[myRid].index;
+  myStep = runs[myRid].step;
   roleCap = NULL;
 
-  if (rd == NULL)
+  if (myRp == NULL)
     {
       fprintf (stderr, "ERROR: trying to progress completed run!\n");
       exit (1);
@@ -262,36 +266,40 @@ explorify (const System sys, const int run)
   /*
    * Special checks after (implicit) choose events; always first in run reads.
    */
-  if (myStep == 0 && rd->type == READ)
+  if (myStep == 0 && myRp->type == READ)
     {
-      int rid;
-
-      if (inTermlist (sys->untrusted, agentOfRun (sys, run)))
+      /*---------------------------------------------------------------------------*/
+      /* special check 0: after choosing, terminate any runs by the intruder */
+      /*---------------------------------------------------------------------------*/
+      if (inTermlist (sys->untrusted, agentOfRun (sys, myRid)))
 	{
           /* this run is executed by an untrusted agent, do not explore */
           return 0;
 	}
       /* executed by trusted agent */
 
+      /*---------------------------------------------------------------------------*/
       /* Special check 1: if agents have been instantiated in such a way that no more claims in any run
        * need to be evaluated, then we can skip
        * further traversal.
        */
       //!@todo This implementation relies on the fact that there are only secrecy, sychnr and agreement properties.
+      /*---------------------------------------------------------------------------*/
       if (sys->secrets == NULL)
 	{ /* there are no remaining secrecy claims to be checked */
 	  Roledef rdscan;
 	  int validclaim;
+	  int ridscan;
 
-	  rid = 0;
+	  ridscan = 0;
 	  validclaim = 0;
 	  /* check for each run */
-	  while (rid < sys->maxruns)
+	  while (ridscan < sys->maxruns)
 	    { 
 	      /* are claims in this run evaluated anyway? */
-	      if (!untrustedAgent (sys, sys->runs[rid].agents))
+	      if (trustedClaims (sys, ridscan))
 		{ /* possibly claims to be checked in this run */
-		  rdscan = runPointerGet(sys, rid);
+		  rdscan = runPointerGet(sys, ridscan);
 		  while (rdscan != NULL)
 		    {
 		      if (rdscan->type == CLAIM)
@@ -299,7 +307,7 @@ explorify (const System sys, const int run)
 			  /* force abort of loop */
 			  validclaim = 1;
 			  rdscan = NULL;
-			  rid = sys->maxruns;
+			  ridscan = sys->maxruns;
 			}
 		      else
 			{
@@ -307,36 +315,39 @@ explorify (const System sys, const int run)
 			}
 		    }
 		}
-	      rid++;
+	      ridscan++;
 	    }
-	  if (validclaim == 0)
+	  if (!validclaim)
 	    { /* no valid claims, abort */
 	      return 0;
 	    }
 	}
 
-      /* Special check 2: Symmetry reduction.
+      /*---------------------------------------------------------------------------*/
+      /* Special check 2: Symmetry reduction on agent instances
        * If the run we depend upon has already been activated (otherwise warn!) check for instance ordering
        */
+      /*---------------------------------------------------------------------------*/
 
-      if (sys->runs[run].prevSymmRun != -1)
+      if (runs[myRid].prevSymmRun != -1)
 	{
 	  /* there is such a run on which we depend */
 	  int ridSymm;
 
-	  ridSymm = sys->runs[run].prevSymmRun;
-	  if (sys->runs[ridSymm].step == 0)
+	  ridSymm = runs[myRid].prevSymmRun;
+	  if (runs[ridSymm].step == 0)
 	    {
 	      /*
-	       * dependency run was not chosen yet, so we can't do anything now
+	       * Dependency run was not chosen yet, so we can't do anything now.
+	       * This is typically caused by any possibly delayed first reads with other stuff in it than agents.
 	       */
-	      // warning ("Symmetrical run dependency #%i (for run #%i) has not chosen yet!", ridSymm, run);
+	      return 0;
 	    }
 	  else
 	    {
 	      /* dependent run has chosen, so we can compare */
-	      if (termlistOrder (sys->runs[run].agents,
-				   sys->runs[ridSymm].agents) < 0)
+	      if (termlistOrder (runs[myRid].agents,
+				   runs[ridSymm].agents) < 0)
 		{
 		  /* we only explore the other half */
 		  return 0;
@@ -344,15 +355,19 @@ explorify (const System sys, const int run)
 	    }
 	}
 
+      /*---------------------------------------------------------------------------*/
       /* Special check 3: if after choosing, this run ends on (read|skippedclaim)*, we can remove that part already.
        */
+      /*---------------------------------------------------------------------------*/
 
-      roleCap = removeIrrelevant (sys, run, rd);
+      roleCap = removeIrrelevant (sys, myRid, myRp);
 
 
+      /*---------------------------------------------------------------------------*/
       /* Special check x: if all agents in each run send only encrypted stuff, and all agents are trusted,
        * there is no way for the intruder to learn anything else than encrypted terms, so secrecy claims will not
        * be violated anymore if they contain no terms that are encrypted with such keys */
+      /*---------------------------------------------------------------------------*/
 
       //!@todo For now, there is no check that the runs only send publicly encrypted stuff! Just an assumption to be made true using static analysis.
 
@@ -360,7 +375,7 @@ explorify (const System sys, const int run)
       rid = 0;
       while (rid < sys->maxruns)
 	{
-	  if (!untrustedAgent (sys, sys->runs[rid].agents))
+	  if (!untrustedAgent (sys, runs[rid].agents))
 	    {
 	    }
 	  rid++;
@@ -368,36 +383,40 @@ explorify (const System sys, const int run)
 	*/
     }
 
+  /*---------------------------------------------------------------------------*/
   /* 
    * Special check b1: symmetry reduction part II on similar read events for equal roles.
+   *
+   * This assumes a left-right traversal of these first real events.
    */
+  /*---------------------------------------------------------------------------*/
 
   if (sys->switchReadSymm)
     {
-      if (sys->runs[run].firstNonAgentRead == myStep)
+      if (runs[myRid].firstNonAgentRead == myStep)
 	{
 	  /* Apparently, we have a possible ordering with our symmetrical friend.
 	   * Check if it has progressed enough, and has the same agents.
 	   */
 	  int ridSymm;
      
-	  if (rd->type != READ)
+	  if (myRp->type != READ)
 	    {
 	      error ("firstNonAgentRead is not a read?!");
 	    }
-	  ridSymm = sys->runs[run].prevSymmRun;
-	  if (isTermlistEqual (sys->runs[run].agents, sys->runs[ridSymm].agents))
+	  ridSymm = runs[myRid].prevSymmRun;
+	  if (isTermlistEqual (runs[myRid].agents, runs[ridSymm].agents))
 	    {
 	      /* same agents, so relevant */
-	      if (myStep > 0 && sys->runs[ridSymm].step < myStep)
+	      if (myStep > 0 && runs[ridSymm].step < myStep)
 		{
-		  // warning ("Symmetrical firstread dependency #%i (for run #%i) has not chosen yet!", ridSymm, run);
+		  // warning ("Symmetrical firstread dependency #%i (for run #%i) has not chosen yet!", ridSymm, myRid);
 		}
 	      else
 		{
-		  if (sys->runs[ridSymm].step <= myStep)
+		  if (runs[ridSymm].step <= myStep)
 		    {
-		      // warning ("Symmetrical firstread dependency #%i (for run #%i) has not read it's firstNonAgentRead %i yet, as it is only at %i!", ridSymm, run, myStep, sys->runs[ridSymm].step);
+		      // warning ("Symmetrical firstread dependency #%i (for run #%i) has not read it's firstNonAgentRead %i yet, as it is only at %i!", ridSymm, myRid, myStep, runs[ridSymm].step);
 		    }
 		  else
 		    {
@@ -405,7 +424,7 @@ explorify (const System sys, const int run)
 		      int i;
 		      Roledef rdSymm;
 
-		      rdSymm = sys->runs[ridSymm].start;
+		      rdSymm = runs[ridSymm].start;
 		      i = myStep;
 		      while (i > 0)
 			{
@@ -413,7 +432,7 @@ explorify (const System sys, const int run)
 			  i--;
 			}
 		      /* rdSymm now points to the instance of the symmetrical read */
-		      i = termOrder (rdSymm->message, rd->message);
+		      i = termOrder (rdSymm->message, myRp->message);
 		      if (i < 0)
 			{
 			  /* only explore symmetrical variant */
@@ -425,32 +444,33 @@ explorify (const System sys, const int run)
 	}
     }
 
+  /*---------------------------------------------------------------------------*/
   /* Special check b2: symmetry order reduction.
    *
    * Concept: when there are two identical runs w.r.t. agents, we can make sure one goes before the other.
    * Depends on prevSymm, skipping chooses even.
+   *
+   * This assumes a left-right traversal of these first real events. Therefore, some --pp values will cause problems, e.g. -1
    */
+  /*---------------------------------------------------------------------------*/
 
-  if (sys->switchSymmOrder && myStep == sys->runs[run].firstReal)
+  if (sys->switchSymmOrder && myStep == runs[myRid].firstReal && runs[myRid].prevSymmRun != -1)
     {
-      if (sys->runs[run].prevSymmRun != -1)
+      /* there is such a run on which we depend */
+      int ridSymm;
+
+      ridSymm = runs[myRid].prevSymmRun;
+      /* equal runs? */
+
+      if (isTermlistEqual (runs[myRid].agents, runs[ridSymm].agents))
 	{
-	  /* there is such a run on which we depend */
-	  int ridSymm;
-
-	  ridSymm = sys->runs[run].prevSymmRun;
-	  /* equal runs? */
-
-	  if (isTermlistEqual (sys->runs[run].agents, sys->runs[ridSymm].agents))
+	  /* so, we have an identical partner */
+	  /* is our partner there already? */
+	  if (runs[ridSymm].step <= myStep)
 	    {
-	      /* so, we have an identical partner */
-	      /* is our partner there already? */
-	      if (sys->runs[ridSymm].step <= myStep)
-		{
-		  /* not yet there, this is not a valid exploration */
-		  /* verify !! */
-		  return 0;
-		}
+	      /* not yet there, this is not a valid exploration */
+	      /* verify !! */
+	      return 0;
 	    }
 	}
     }
@@ -462,21 +482,41 @@ explorify (const System sys, const int run)
       roleCapPart = roleCap->next;
       roleCap->next = NULL;
     }
-  if (executeStep (sys, run))
+  if (executeStep (sys, myRid))
     {
       /* traverse the system after the step */
       flag = traverse (sys);
-      runPointerSet (sys, run, rd);	// reset rd pointer
-      sys->runs[run].step = myStep;	// reset local index
-      sys->step--;
-      indentSet (sys->step);
     }
+  runPointerSet (sys, myRid, myRp);	// reset myRp pointer
+  runs[myRid].step = myStep;			// reset local index
+  sys->step--;
+
+  /* reset state */
+  /* first restore executeStep damage */
+#ifdef DEBUG
+  if (sys->step < 0)
+    {
+      error ("Global step counter has fallen below 0.");
+    }
+  if (runs[myRid].step < 0)
+    {
+      error ("Local step counter has fallen below 0.");
+    }
+#endif
+  indentSet (sys->step);
+  /* restore roleCap damage */
   if (roleCap != NULL)
     {
       roleCap->next = roleCapPart;
     }
   return flag;
 }
+
+
+//! The simplest form of traversal.
+/**
+ * All options are explored, and no partial order reduction is applied.
+ */
 
 int
 traverseSimple (const System sys)
@@ -1046,7 +1086,8 @@ traversePOR4 (const System sys)
 
   /* Try all events (implicitly we only handle enabled ones) starting with our
    * first choice.  If one was chosen, flag is set, and the loop aborts. */
-  for (i = 0; i < sys->maxruns && !flag; i++)
+  i = 0;
+  while (i < sys->maxruns && !flag)
     {
       run = (i + offset) % sys->maxruns;
       rd = runPointerGet (sys, run);
@@ -1058,8 +1099,7 @@ traversePOR4 (const System sys)
 	    case CLAIM:
 	    case SEND:
 	      executeTry (sys, run);
-	      flag = 1;
-	      break;
+	      return 1;
 
 	    case READ:
 	      /* the sendsdone check only prevent
@@ -1099,6 +1139,7 @@ traversePOR4 (const System sys)
 	      exit (1);
 	    }
 	}
+      i++;
     }
   return flag;
 }
@@ -1132,6 +1173,23 @@ traversePOR5 (const System sys)
    * and where lastrun is the runid of the previous event 
    * in the trace, or 0 if there was none.
    */
+
+  /* First pick out any choose events */
+  run = 0;
+  while (run < sys->maxruns && !flag)
+    {
+      rd = runPointerGet (sys, run);
+
+      if (rd != NULL && rd->type == READ && rd->internal)
+	{
+          if (executeTry (sys, run))
+	    {
+	      return 1;
+	    }
+	}
+      run++;
+    }
+
   if (sys->step == 0)
     {
       /* first step, start at 0 */
@@ -1139,41 +1197,23 @@ traversePOR5 (const System sys)
     }
   else
     {
-      /* there was a previous action, start scan from there */
-      offset = sys->traceRun[sys->step - 1] + sys->porparam;
-    }
-
-  /* First pick out any choose events */
-  for (i = 0; i < sys->maxruns && !flag; i++)
-    {
-      run = (i + offset) % sys->maxruns;
-      rd = runPointerGet (sys, run);
-
-      if (rd != NULL)
+      if (sys->traceEvent[sys->step-1]->internal &&
+	  sys->traceEvent[sys->step-1]->type == READ)
 	{
-	  switch (rd->type)
-	    {
-	    case CLAIM:
-	    case SEND:
-	      break;
-
-	    case READ:
-	      if (rd->internal)
-		{
-		  flag = executeTry (sys, run);
-		}
-	      break;
-
-	    default:
-	      fprintf (stderr, "Encountered unknown event type %i.\n", rd->type);
-	      exit (1);
-	    }
+	  /* we just finished off the previous round of chooses */
+          offset = 0;
+	}
+      else
+	{
+	  /* there was a previous action, start scan from there */
+	  offset = sys->traceRun[sys->step - 1] + sys->porparam;
 	}
     }
 
   /* Try all events (implicitly we only handle enabled ones) starting with our
    * first choice.  If one was chosen, flag is set, and the loop aborts. */
-  for (i = 0; i < sys->maxruns && !flag; i++)
+  i = 0;
+  while (i < sys->maxruns && !flag)
     {
       run = (i + offset) % sys->maxruns;
       rd = runPointerGet (sys, run);
@@ -1193,7 +1233,7 @@ traversePOR5 (const System sys)
 	       * some unneccessary inKnowledge tests,
 	       * and branch tests, still improves
 	       * about 15% */
-	      if (sys->knowPhase > rd->knowPhase)
+	      if (!rd->internal && sys->knowPhase > rd->knowPhase)
 		{
 		  /* apparently there has been a new knowledge item since the
 		   * previous check */
@@ -1226,6 +1266,7 @@ traversePOR5 (const System sys)
 	      exit (1);
 	    }
 	}
+      i++;
     }
   return flag;
 }
