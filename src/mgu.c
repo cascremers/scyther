@@ -159,3 +159,73 @@ termMguTerm (Term t1, Term t2)
     }
   return MGUFAIL;
 }
+
+//! Most general interm unifiers of t1 interm t2
+/**
+ * Try to determine the most general interm unifiers of two terms.
+ *@returns Nothing. Iteration gets void.
+ */
+void
+termMguInTerm (Term t1, Term t2, void (*iterator) ())
+{
+  Termlist tl;
+
+  t2 = deVar (t2);
+  if (t2 != NULL && isTermTuple (t2))
+    {
+      // t2 is a tuple, consider interm options as well.
+      termMguInTerm (t1, t2->left.op1, iterator);
+      termMguInTerm (t1, t2->right.op2, iterator);
+    }
+  // simple clause or combined
+  tl = termMguTerm (t1, t2);
+  // Iterate
+  iterator ();
+  // Reset variables
+  termlistSubstReset (tl);
+}
+
+//! Most general subterm unifiers of t1 subterm t2
+/**
+ * Try to determine the most general subterm unifiers of two terms.
+ *@returns Nothing. Iteration gets list of keys needed to decrypt.
+ */
+void
+termMguSubTerm (Term t1, Term t2, void (*iterator) (),
+		const Termlist inverses, Termlist keylist)
+{
+  Termlist tl;
+  t2 = deVar (t2);
+  if (t2 != NULL && !isTermLeaf (t2))
+    {
+      if (isTermTuple (t2))
+	{
+	  // 'simple' tuple
+	  termMguSubTerm (t1, t2->left.op1, iterator, inverses, keylist);
+	  termMguSubTerm (t1, t2->right.op2, iterator, inverses, keylist);
+	}
+      else
+	{
+	  // Must be encryption
+	  // So, we need the key, and try to get the rest
+	  Termlist keylist_new;
+	  Term newkey;
+
+	  keylist_new = termlistShallow (keylist);
+	  newkey = inverseKey (inverses, t2->right.key);
+	  keylist_new = termlistAdd (keylist_new, newkey);
+
+	  // Recurse
+	  termMguSubTerm (t1, t2->left.op, iterator, inverses, keylist_new);
+
+	  termlistDelete (keylist_new);
+	  termDelete (newkey);
+	}
+    }
+  // simple clause or combined
+  tl = termMguTerm (t1, t2);
+  // Iterate
+  iterator (keylist);
+  // Reset variables
+  termlistSubstReset (tl);
+}
