@@ -367,14 +367,18 @@ void
 printSemiState ()
 {
   int run;
+  int open;
 
+  indentPrint ();
+  eprintf ("!! --=[ Semistate ]=--\n");
+  open = 0;
   for (run = 0; run < sys->maxruns; run++)
     {
       int index;
       Roledef rd;
 
       indentPrint ();
-      eprintf ("[ Run %i, ", run);
+      eprintf ("!! [ Run %i, ", run);
       termPrint (sys->runs[run].role->nameterm);
       eprintf (" ]\n");
 
@@ -383,13 +387,17 @@ printSemiState ()
       while (index < sys->runs[run].length)
 	{
 	  indentPrint ();
-	  eprintf ("\\ %i ", index);
+	  eprintf ("!! %i ", index);
 	  roledefPrint (rd);
 	  eprintf ("\n");
+	  if (isGoal (rd) && !isBound (rd))
+	      open++;
 	  index++;
 	  rd = rd->next;
 	}
     }
+  indentPrint ();
+  eprintf ("!! - open: %i -\n", open);
 }
 
 //------------------------------------------------------------------------
