@@ -76,17 +76,12 @@ def eval (argumentstring, inputstring):
 		h.flush()
 		(status, scout) = scythercall (argumentstring, h.name)
 		h.close()
-		if not(status <= 0 or status == 1):
-			# All is well
-			f = open(cachefile,'w')
-			f.write(scout)
-			f.close()
-		else:
-			print status
-			print scout
-			print h.name
 
-		sys.exit()
+		# Write cache file even if it's wrong
+		f = open(cachefile,'w')
+		f.write(scout)
+		f.close()
+
 		return (status,scout)
 
 
