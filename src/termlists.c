@@ -372,11 +372,11 @@ termlistAddVariables (Termlist tl, Term t)
   else
     {
       if (isTermEncrypt (t))
-	return termlistAddVariables (termlistAddVariables (tl, t->op),
-				     t->key);
+	return termlistAddVariables (termlistAddVariables (tl, t->left.op),
+				     t->right.key);
       else
 	return
-	  termlistAddVariables (termlistAddVariables (tl, t->op1), t->op2);
+	  termlistAddVariables (termlistAddVariables (tl, t->left.op1), t->right.op2);
     }
 }
     
@@ -414,11 +414,11 @@ termlistAddRealVariables (Termlist tl, Term t)
   else
     {
       if (realTermEncrypt (t))
-	return termlistAddVariables (termlistAddVariables (tl, t->op),
-				     t->key);
+	return termlistAddVariables (termlistAddVariables (tl, t->left.op),
+				     t->right.key);
       else
 	return
-	  termlistAddVariables (termlistAddVariables (tl, t->op1), t->op2);
+	  termlistAddVariables (termlistAddVariables (tl, t->left.op1), t->right.op2);
     }
 }
 
@@ -437,9 +437,9 @@ termlistAddBasic (Termlist tl, Term t)
   if (!isTermLeaf (t))
     {
       if (isTermEncrypt (t))
-	return termlistAddBasic (termlistAddBasic (tl, t->op), t->key);
+	return termlistAddBasic (termlistAddBasic (tl, t->left.op), t->right.key);
       else
-	return termlistAddBasic (termlistAddBasic (tl, t->op1), t->op2);
+	return termlistAddBasic (termlistAddBasic (tl, t->left.op1), t->right.op2);
     }
   else
     {
@@ -528,8 +528,8 @@ inverseKey (Termlist inverses, Term key)
       return termDuplicate (TERM_Hidden);
     }
   /* check for the special case first: when it is effectively a function application  */
-  if (isTermEncrypt (key) && isTermLeaf (key->key)
-      && inTermlist (deVar (key->key)->stype, TERM_Function))
+  if (isTermEncrypt (key) && isTermLeaf (key->right.key)
+      && inTermlist (deVar (key->right.key)->stype, TERM_Function))
     {
       /* we are scanning for functions */
       /* scan the list */
@@ -538,15 +538,15 @@ inverseKey (Termlist inverses, Term key)
       {
 	/* in: {op}kk, nk
 	 * out: {op'}nk */
-	return makeTermEncrypt (termDuplicate (orig->op),
+	return makeTermEncrypt (termDuplicate (orig->left.op),
 				termDuplicate (newk));
       }
       while (inverses != NULL && inverses->next != NULL)
 	{
 
-	  if (isTermEqual (key->key, inverses->term))
+	  if (isTermEqual (key->right.key, inverses->term))
 	    return funKey (key, inverses->next->term);
-	  if (isTermEqual (key->key, inverses->next->term))
+	  if (isTermEqual (key->right.key, inverses->next->term))
 	    return funKey (key, inverses->term);
 	  inverses = inverses->next->next;
 	}
@@ -604,13 +604,13 @@ termLocal (const Term t, Termlist fromlist, Termlist tolist,
       Term newt = termDuplicate (t);
       if (realTermTuple (t))
 	{
-	  newt->op1 = termLocal (t->op1, fromlist, tolist, locals, runid);
-	  newt->op2 = termLocal (t->op2, fromlist, tolist, locals, runid);
+	  newt->left.op1 = termLocal (t->left.op1, fromlist, tolist, locals, runid);
+	  newt->right.op2 = termLocal (t->right.op2, fromlist, tolist, locals, runid);
 	}
       else
 	{
-	  newt->op = termLocal (t->op, fromlist, tolist, locals, runid);
-	  newt->key = termLocal (t->key, fromlist, tolist, locals, runid);
+	  newt->left.op = termLocal (t->left.op, fromlist, tolist, locals, runid);
+	  newt->right.key = termLocal (t->right.key, fromlist, tolist, locals, runid);
 	}
       return newt;
     }

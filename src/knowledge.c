@@ -156,8 +156,8 @@ knowledgeAddTerm (Knowledge know, Term term)
 
   if (isTermTuple (term))
     {
-      knowledgeAddTerm (know, term->op1);
-      knowledgeAddTerm (know, term->op2);
+      knowledgeAddTerm (know, term->left.op1);
+      knowledgeAddTerm (know, term->right.op2);
     }
 
   /* adding variables? */
@@ -170,12 +170,12 @@ knowledgeAddTerm (Knowledge know, Term term)
     }
   if (term->type == ENCRYPT)
     {
-      Term invkey = inverseKey (know->inverses, term->key);
+      Term invkey = inverseKey (know->inverses, term->right.key);
       if (inKnowledge (know, invkey))
 	{
 	  /* we can decrypt it */
-	  knowledgeAddTerm (know, term->op);
-	  if (!inKnowledge (know, term->key))
+	  knowledgeAddTerm (know, term->left.op);
+	  if (!inKnowledge (know, term->right.key))
 	    {
 	      /* we know the op now, but not the key, so add it anyway */
 	      know->encrypt = termlistAdd (know->encrypt, term);
@@ -207,9 +207,9 @@ knowledgeSimplify (Knowledge know, Term key)
 
   while (scan != NULL)
     {
-      if (isTermEqual ((scan->term)->key, invkey))
+      if (isTermEqual ((scan->term)->right.key, invkey))
 	{
-	  tldecrypts = termlistAdd (tldecrypts, (scan->term)->op);
+	  tldecrypts = termlistAdd (tldecrypts, (scan->term)->left.op);
 	  know->encrypt = termlistDelTerm (scan);
 	  scan = know->encrypt;
 	}
@@ -284,13 +284,13 @@ inKnowledge (const Knowledge know, Term term)
   if (term->type == ENCRYPT)
     {
       return inTermlist (know->encrypt, term) ||
-	(inKnowledge (know, term->key) && inKnowledge (know, term->op));
+	(inKnowledge (know, term->right.key) && inKnowledge (know, term->left.op));
     }
   if (term->type == TUPLE)
     {
       return (inTermlist (know->encrypt, term) ||
-	      (inKnowledge (know, term->op1) &&
-	       inKnowledge (know, term->op2)));
+	      (inKnowledge (know, term->left.op1) &&
+	       inKnowledge (know, term->right.op2)));
     }
   return 0;			/* unrecognized term type, weird */
 }

@@ -493,7 +493,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	{
 	  /* There is a TYPE constant in the parameter list.
 	   * Generate a new local variable for this run, with this type */
-	  Term newvar = makeTermType (VARIABLE, scanfrom->term->symb, rid);
+	  Term newvar = makeTermType (VARIABLE, scanfrom->term->left.symb, rid);
 	  sys->variables = termlistAdd (sys->variables, newvar);
 	  newvar->stype = termlistAdd (NULL, scanto->term);
 	  tolist = termlistAdd (tolist, newvar);
@@ -547,7 +547,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	{
 	  if (realTermLeaf (t))
 	    {
-	      Term newt = makeTermType (t->type, t->symb, rid);
+	      Term newt = makeTermType (t->type, t->left.symb, rid);
 	      if (realTermVariable (newt))
 		{
 	          sys->variables = termlistAdd (sys->variables, newt);

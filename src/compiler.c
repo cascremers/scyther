@@ -192,7 +192,7 @@ levelFind (Symbol s, int level)
     {
       if (isTermLeaf (tl->term))
 	{
-	  if (tl->term->symb == s)
+	  if (tl->term->left.symb == s)
 	    {
 	      return tl->term;
 	    }
@@ -395,7 +395,7 @@ commEvent (int event, Tac tc)
       else
 	{
 	  /* n parameters */
-	  msg = deVar (claimbig)->op2;
+	  msg = deVar (claimbig)->right.op2;
 	  if (tupleCount (msg) != n)
 	    {
 	      printf
@@ -533,7 +533,7 @@ runInstanceCreate (Tac tc)
   /* first, locate the protocol */
   psym = tc->t1.tac->t1.sym;
   p = sys->protocols;
-  while (p != NULL && p->nameterm->symb != psym)
+  while (p != NULL && p->nameterm->left.symb != psym)
     p = p->next;
   if (p == NULL)
     {
@@ -546,7 +546,7 @@ runInstanceCreate (Tac tc)
   /* locate the role */
   rsym = tc->t1.tac->t2.sym;
   r = p->roles;
-  while (r != NULL && r->nameterm->symb != rsym)
+  while (r != NULL && r->nameterm->left.symb != rsym)
     r = r->next;
   if (r == NULL)
     {

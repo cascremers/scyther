@@ -36,7 +36,7 @@ struct term
    */
   struct term *subst;		// only for variable/leaf, substitution term
 
-  union
+  union 
   {
     Symbol symb;
     //! Encrypted subterm.
@@ -44,7 +44,7 @@ struct term
     //! Left-hand side of tuple pair.
     struct term *op1;
     struct term *next;		// for alternative memory management
-  };
+  } left;
   union
   {
     int runid;
@@ -52,7 +52,7 @@ struct term
     struct term *key;
     //! Right-hand side of tuple pair.
     struct term *op2;
-  };
+  } right;
 };
 
 //! Pointer shorthand.
@@ -84,13 +84,13 @@ Term deVarScan (Term t);
 						?	0 \
 						:	( \
 							realTermLeaf(t1) \
-							?	(t1->symb == t2->symb && t1->runid == t2->runid) \
+							?	(t1->left.symb == t2->left.symb && t1->right.runid == t2->right.runid) \
 							:	( \
 								realTermEncrypt(t2) \
-								?	(isTermEqualFn(t1->key, t2->key) && \
-									 isTermEqualFn(t1->op,  t2->op)) \
-								:	(isTermEqualFn(t1->op1, t2->op1) && \
-									 isTermEqualFn(t1->op2, t2->op2)) \
+								?	(isTermEqualFn(t1->right.key, t2->right.key) && \
+									 isTermEqualFn(t1->left.op,  t2->left.op)) \
+								:	(isTermEqualFn(t1->left.op1, t2->left.op1) && \
+									 isTermEqualFn(t1->right.op2, t2->right.op2)) \
 								) \
 							) \
 						 )  \

@@ -110,14 +110,14 @@ termMguTerm (Term t1, Term t2)
     {
       Termlist tl1, tl2;
 
-      tl1 = termMguTerm (t1->key, t2->key);
+      tl1 = termMguTerm (t1->right.key, t2->right.key);
       if (tl1 == MGUFAIL)
 	{
 	  return MGUFAIL;
 	}
       else
 	{
-	  tl2 = termMguTerm (t1->op, t2->op);
+	  tl2 = termMguTerm (t1->left.op, t2->left.op);
 	  if (tl2 == MGUFAIL)
 	    {
 	      termlistSubstReset (tl1);
@@ -137,14 +137,14 @@ termMguTerm (Term t1, Term t2)
     {
       Termlist tl1, tl2;
 
-      tl1 = termMguTerm (t1->op1, t2->op1);
+      tl1 = termMguTerm (t1->left.op1, t2->left.op1);
       if (tl1 == MGUFAIL)
 	{
 	  return MGUFAIL;
 	}
       else
 	{
-	  tl2 = termMguTerm (t1->op2, t2->op2);
+	  tl2 = termMguTerm (t1->right.op2, t2->right.op2);
 	  if (tl2 == MGUFAIL)
 	    {
 	      termlistSubstReset (tl1);
