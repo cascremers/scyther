@@ -1,11 +1,4 @@
-- Remove stupid preamble postamble stuff, or maybe integrate this behaviour
-  into some switch, where default would be a standalone latex file, and
-  another option would generate a file that can be included.
-- Variables have to be 'saved' and 'stored' into some structure. However, for
-  this we need a global list of all variables, which is not available at the
-  moment. The compiler and run instantiator should maintain such a list, and
-  then we could save it into a struct with three lists. (from,to,empty)
-  This will need a sys allVariables list.
+- Implement run knowledge, and use this in protocol compiler.
 - Timer output is broken for values e.g. above an hour. Fix or remove
   altogether.
 - ns3 doesn't even reach a claim in --cl and -t8. Check.
@@ -13,7 +6,6 @@
 - CLP: variables in keys must be branched: maybe even in three situations
   (have key and contents, have inverse key and content, nothing)
 - Implement delayed protocol compiler (on run demand only).
-- Implement run knowledge, and use this in protocol compiler.
 - Remove any remaining global variables, if any.
 - When choosing agents for runs (with an initial read), it does not make
   sense to choose untrusted agents.

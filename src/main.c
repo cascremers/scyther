@@ -56,9 +56,7 @@ main (int argc, char **argv)
   struct arg_lit *latex = arg_lit0 (NULL, "latex", "output in LaTeX format.");
   struct arg_lit *noreport =
     arg_lit0 ("d", "disable-report", "don't report violations.");
-  struct arg_int *switchS = arg_int0 ("s", "states", NULL,
-				      "report total number of states and claims traversed.");
-  // struct arg_file *outfile = arg_file0("o",NULL,"<output>",            "output file (default is \"-\")");
+  struct arg_lit *switchS = arg_lit0 (NULL, "no-progress", "surpress progress bar.");
 #ifdef DEBUG
   struct arg_int *porparam = arg_int0 (NULL, "pp", NULL, "POR parameter.");
   struct arg_lit *switchI = arg_lit0 ("I", "debug-indent",
@@ -113,7 +111,6 @@ main (int argc, char **argv)
   maxlength->ival[0] = -1;
   maxruns->ival[0] = INT_MAX;
   prune->ival[0] = 2;
-  switchS->ival[0] = 0;
 
   /* Parse the command line as defined by argtable[] */
   nerrors = arg_parse (argc, argv, argtable);
@@ -185,7 +182,7 @@ main (int argc, char **argv)
       /* try to open */
       if (!freopen (outfile->filename[0], "w", stdout))
         {
-          printf("Error at stdout reopen to '%s'.\n", outfile->filename[0]);
+          printf("Could not create output file '%s'.\n", outfile->filename[0]);
           exit(1);
         }
     }
@@ -197,7 +194,7 @@ main (int argc, char **argv)
 	{
           if (!freopen (infile->filename[0], "r", stdin))
 	    {
-	      printf("Error at stdin reopen from '%s'.\n", infile->filename[0]);
+	      printf("Could not open input file '%s'.\n", infile->filename[0]);
 	      exit(1);
 	    }
 	}
@@ -279,7 +276,12 @@ main (int argc, char **argv)
   sys->traverse = traversal->ival[0];
   sys->match = match->ival[0];
   sys->prune = prune->ival[0];
-  sys->switchS = switchS->ival[0];
+  if (switchS->count > 0)
+      /* disable progress display */
+      sys->switchS = 0;
+  else
+      /* enable progress display */
+      sys->switchS = 10000;
 
   /* TODO for now, warning for -m2 and non-clp */
   if (sys->match == 2 && !sys->clp)

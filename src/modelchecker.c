@@ -167,8 +167,12 @@ executeStep (const System sys, const int run)
     {
       if (sys->statesLow % (long int) sys->switchS == 0)
 	{
-	  indent ();
-	  statesPrint (sys);
+	  fprintf (stderr, "States ");
+	  if (sys->statesHigh == 0 && sys->statesLow < 1000000)
+	      fprintf (stderr, "%u", sys->statesLow);
+	  else
+	      fprintf (stderr, "%8.3e", (double) sys->statesLow + (sys->statesHigh * ULONG_MAX));
+	  fprintf (stderr, " \r");
 	}
     }
   return 1;
