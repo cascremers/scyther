@@ -673,6 +673,10 @@ printSemiState ()
 
   indentPrint ();
   eprintf ("!! --=[ Semistate ]=--\n");
+  indentPrint ();
+  eprintf ("!!\n");
+  indentPrint ();
+  eprintf ("!! Trace length: %i\n", get_trace_length ());
   open = 0;
   for (run = 0; run < sys->maxruns; run++)
     {
@@ -1341,13 +1345,14 @@ prune_bounds ()
     }
 
   // Limit on exceeding any attack length
-  if (sys->prune == 2 && get_trace_length() >= attack_length)
+  if (sys->prune == 2 && get_trace_length () >= attack_length)
     {
       if (sys->output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf
-	    ("Pruned: we already know an attack of length %i.\n", attack_length);
+	    ("Pruned: we already know an attack of length %i.\n",
+	     attack_length);
 	}
       return 1;
     }
@@ -1459,17 +1464,9 @@ property_check ()
       if (sys->output == PROOF)
 	{
 	  indentPrint ();
-	  eprintf ("New shortest attack found with trace length %i.\n", attack_length);
+	  eprintf ("New shortest attack found with trace length %i.\n",
+		   attack_length);
 	}
-    }
-
-  /**
-   * Prune this?
-   */
-  if (sys->prune > 0)
-    {
-      /* default: if any attack is found, abort the procedure */
-      flag = 0;
     }
 
   return flag;
