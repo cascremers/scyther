@@ -177,7 +177,7 @@ semiRunCreate (const Protocol p, const Role r)
   else
     num_regular_runs++;
   roleInstance (sys, p, r, NULL, NULL);
-  run = sys->maxruns-1;
+  run = sys->maxruns - 1;
   sys->runs[run].length = 0;
   return run;
 }
@@ -361,7 +361,7 @@ proof_select_goal (Binding b)
       indentPrint ();
       eprintf ("Selected goal: Where does term ");
       termPrint (b->term);
-      eprintf (" originate first?\n");
+      eprintf (" occur first as an interm?\n");
       indentPrint ();
       eprintf ("* It is required for ");
       roledefPrint (rd);
@@ -799,7 +799,7 @@ bind_goal_new_encrypt (const Binding b)
   int can_be_encrypted;
 
   flag = 1;
-  term = deVar(b->term);
+  term = deVar (b->term);
   can_be_encrypted = 0;
 
   if (!realTermLeaf (term))
@@ -842,7 +842,7 @@ bind_goal_new_encrypt (const Binding b)
 	      eprintf ("\n");
 	    }
 	  newgoals = add_read_goals (run, 0, index + 1);
-	  
+
 	  indentDepth++;
 	  if (goal_bind (b, run, index))
 	    {
