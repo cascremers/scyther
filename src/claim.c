@@ -4,6 +4,7 @@
 #include "label.h"
 #include "error.h"
 #include "debug.h"
+#include "binding.h"
 
 #define MATCH_NONE 0
 #define MATCH_ORDER 1
@@ -475,7 +476,8 @@ check_claim_niagree (const System sys, const int i)
 
 
 //! Check generic agree claim for a given set of runs, arachne style
-int arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs)
+int
+arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs)
 {
   Termlist labels;
   int flag;
@@ -499,48 +501,48 @@ int arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs
       Labelinfo linfo;
 
       Roledef get_label_event (const Term role, const Term label)
-	{
-	  Roledef rd, rd_res;
-	  int i;
-	  int run;
+      {
+	Roledef rd, rd_res;
+	int i;
+	int run;
 
-	  run = termmapGet (runs, role);
+	run = termmapGet (runs, role);
 #ifdef DEBUG
-	  if (run < 0 || run >= sys->maxruns )
-	    {
-	      globalError++;
-	      eprintf ("Run mapping %i out of bounds for role ", run);
-	      termPrint (role);
-	      eprintf (" and label ");
-	      termPrint (label);
-	      eprintf ("\n");
-	      eprintf ("This label has sendrole ");
-	      termPrint (linfo->sendrole);
-	      eprintf (" and readrole ");
-	      termPrint (linfo->readrole);
-	      eprintf ("\n");
-	      globalError--;
-	      error ("Run mapping is out of bounds.");
-	    }
+	if (run < 0 || run >= sys->maxruns)
+	  {
+	    globalError++;
+	    eprintf ("Run mapping %i out of bounds for role ", run);
+	    termPrint (role);
+	    eprintf (" and label ");
+	    termPrint (label);
+	    eprintf ("\n");
+	    eprintf ("This label has sendrole ");
+	    termPrint (linfo->sendrole);
+	    eprintf (" and readrole ");
+	    termPrint (linfo->readrole);
+	    eprintf ("\n");
+	    globalError--;
+	    error ("Run mapping is out of bounds.");
+	  }
 #endif
-	  rd = sys->runs[run].start;
-	  rd_res = NULL;
-	  i = 0;
-	  while (i < sys->runs[run].step && rd != NULL)
-	    {
-	      if (isTermEqual (rd->label, label))
-		{
-		  rd_res = rd;
-		  rd = NULL;
-		}
-	      else
-		{
-	          rd = rd->next;
-		}
-	      i++;
-	    }
-	  return rd_res;
-	}
+	rd = sys->runs[run].start;
+	rd_res = NULL;
+	i = 0;
+	while (i < sys->runs[run].step && rd != NULL)
+	  {
+	    if (isTermEqual (rd->label, label))
+	      {
+		rd_res = rd;
+		rd = NULL;
+	      }
+	    else
+	      {
+		rd = rd->next;
+	      }
+	    i++;
+	  }
+	return rd_res;
+      }
 
       // Main
       linfo = label_find (sys->labellist, labels->term);
@@ -567,12 +569,14 @@ int arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs
   return flag;
 }
 
-//! Check arachne agreement claim
+//! Check arachne authentications claim
 /**
  * Per default, occurs in run 0, but for generality we have left the run parameter in.
  *@returns 1 if the claim is true, 0 if it is not.
  */
-int arachne_claim_niagree (const System sys, const int claim_run, const int claim_index)
+int
+arachne_claim_authentications (const System sys, const int claim_run,
+			       const int claim_index, const int require_order)
 {
   Claimlist cl;
   Roledef rd;
@@ -580,38 +584,57 @@ int arachne_claim_niagree (const System sys, const int claim_run, const int clai
   int flag;
 
   int fill_roles (Termlist roles_tofill)
-    {
-      if (roles_tofill == NULL)
-	{
-	  // All roles have been chosen
-	  return arachne_runs_agree (sys, cl, runs_involved);
-	}
-      else
-	{
-	  // Choose a run for this role, if possible
-	  // Note that any will do
-	  int run, flag;
+  {
+    if (roles_tofill == NULL)
+      {
+	// All roles have been chosen
+	if (arachne_runs_agree (sys, cl, runs_involved))
+	  {
+	    // niagree holds
+	    if (!require_order)
+	      {
+		return 1;
+	      }
+	    else
+	      {
+		// Stronger claim: nisynch. Test for ordering as well.
+		return labels_ordered (runs_involved, cl->prec);
+	      }
+	  }
+	else
+	  {
+	    // niagree does not hold
+	    return 0;
+	  }
+      }
+    else
+      {
+	// Choose a run for this role, if possible
+	// Note that any will do
+	int run, flag;
 
-	  run = 0;
-	  flag = 0;
-	  while (run < sys->maxruns)
-	    {
-	      // Has to be from the right protocol
-	      if (sys->runs[run].protocol == cl->protocol)
-		{
-		  // Has to be the right name
-		  if (isTermEqual (sys->runs[run].role->nameterm, roles_tofill->term))
-		    {
-		      // Choose, iterate
-		      runs_involved = termmapSet (runs_involved, roles_tofill->term, run);
-		      flag = flag || fill_roles (roles_tofill->next);
-		    }
-		}
-	      run++;
-	    }
-	  return flag;
-	}
-    }
+	run = 0;
+	flag = 0;
+	while (run < sys->maxruns)
+	  {
+	    // Has to be from the right protocol
+	    if (sys->runs[run].protocol == cl->protocol)
+	      {
+		// Has to be the right name
+		if (isTermEqual
+		    (sys->runs[run].role->nameterm, roles_tofill->term))
+		  {
+		    // Choose, iterate
+		    runs_involved =
+		      termmapSet (runs_involved, roles_tofill->term, run);
+		    flag = flag || fill_roles (roles_tofill->next);
+		  }
+	      }
+	    run++;
+	  }
+	return flag;
+      }
+  }
 
 #ifdef DEBUG
   if (DEBUGL (5))
@@ -623,7 +646,7 @@ int arachne_claim_niagree (const System sys, const int claim_run, const int clai
   rd = roledef_shift (sys->runs[claim_run].start, claim_index);
 #ifdef DEBUG
   if (rd == NULL)
-      error ("Retrieving claim info for NULL node??");
+    error ("Retrieving claim info for NULL node??");
 #endif
   cl = rd->claiminfo;
 
@@ -634,9 +657,18 @@ int arachne_claim_niagree (const System sys, const int claim_run, const int clai
   return flag;
 }
 
-//! Test nisynch
-int arachne_claim_nisynch (const System sys, const int claim_run, const int claim_index)
+//! Test niagree
+int
+arachne_claim_niagree (const System sys, const int claim_run,
+		       const int claim_index)
 {
-  //!@todo For now, only agreement claim
-  return arachne_claim_niagree (sys, claim_run, claim_index);
+  return arachne_claim_authentications (sys, claim_run, claim_index, 0);
+}
+
+//! Test nisynch
+int
+arachne_claim_nisynch (const System sys, const int claim_run,
+		       const int claim_index)
+{
+  return arachne_claim_authentications (sys, claim_run, claim_index, 1);
 }

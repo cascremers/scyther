@@ -2,6 +2,7 @@
 #define BINDINGS
 
 #include "term.h"
+#include "termmap.h"
 #include "system.h"
 
 /*
@@ -41,6 +42,7 @@ void goal_add (Term term, const int run, const int ev, const int level);
 void goal_remove_last ();
 int goal_bind (const Binding b, const int run, const int ev);
 void goal_unbind (const Binding b);
+int labels_ordered (Termmap runs, Termlist labels);
 
 int bindings_c_minimal ();
 

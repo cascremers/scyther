@@ -4,12 +4,14 @@
 
 #include "list.h"
 #include "role.h"
+#include "label.h"
 #include "system.h"
 #include "binding.h"
 #include "warshall.h"
 #include "memory.h"
 #include "debug.h"
 #include "term.h"
+#include "termmap.h"
 
 static System sys;
 static int *graph;
@@ -340,6 +342,58 @@ goal_unbind (const Binding b)
     {
       error ("Trying to unbind an unbound goal again.");
     }
+}
+
+//! Determine whether some label set is ordered w.r.t. send/read order.
+/**
+ * Assumes all these labels exist in the system, within length etc, and that the run mappings are valid.
+ */
+int
+labels_ordered (Termmap runs, Termlist labels)
+{
+  goal_graph_create ();
+  while (labels != NULL)
+    {
+      // Given this label, and the mapping of runs, we want to know if the order is okay. Thus, we need to know sendrole and readrole
+      Labelinfo linfo;
+      int send_run, send_ev, read_run, read_ev;
+
+      int get_index (const int run)
+      {
+	Roledef rd;
+	int i;
+
+	i = 0;
+	rd = sys->runs[run].start;
+	while (rd != NULL && !isTermEqual (rd->label, labels->term))
+	  {
+	    rd = rd->next;
+	    i++;
+	  }
+#ifdef DEBUG
+	if (rd == NULL)
+	  error
+	    ("Could not locate send or read for label, after niagree holds, to test for order.");
+#endif
+	return i;
+      }
+
+      linfo = label_find (sys->labellist, labels->term);
+      send_run = termmapGet (runs, linfo->sendrole);
+      read_run = termmapGet (runs, linfo->readrole);
+      send_ev = get_index (send_run);
+      read_ev = get_index (read_run);
+      if (graph[graph_nodes (nodes, send_run, send_ev, read_run, read_ev)] ==
+	  0)
+	{
+	  // Not ordered; false
+	  return 0;
+	}
+
+      // Proceed
+      labels = labels->next;
+    }
+  return 1;
 }
 
 //! Prune invalid state w.r.t. <=C minimal requirement
