@@ -40,6 +40,7 @@ binding_create (Term term, int run_to, int ev_to)
   graph = NULL;
   nodes = 0;
   b->term = term;
+  b->level = 0;
   return b;
 }
 
@@ -238,8 +239,12 @@ binding_print (const Binding b)
 
 
 //! Add a goal
+/**
+ * The int parameter 'level' is just to store additional info. Here, it stores priorities for a goal.
+ * Higher level goals will be selected first. Typically, a normal goal is level 0, a key is 1.
+ */
 void
-goal_add (Term term, const int run, const int ev)
+goal_add (Term term, const int run, const int ev, const int level)
 {
   term = deVar (term);
 #ifdef DEBUG
@@ -262,7 +267,7 @@ goal_add (Term term, const int run, const int ev)
       i = 0;
       while (i < width)
 	{
-	  goal_add (tupleProject (term, i), run, ev);
+	  goal_add (tupleProject (term, i), run, ev, level);
 	  if (i > 0)
 	    {
 	      Binding b;
@@ -278,6 +283,7 @@ goal_add (Term term, const int run, const int ev)
       Binding b;
 
       b = binding_create (term, run, ev);
+      b->level = level;
       sys->bindings = list_insert (sys->bindings, b);
     }
 }

@@ -22,6 +22,7 @@ struct binding
   int nodes;
 
   Term term;
+  int level;
 };
 
 typedef struct binding *Binding;
@@ -36,7 +37,7 @@ int node_number (int run, int ev);
 
 int binding_print (Binding b);
 
-void goal_add (Term term, const int run, const int ev);
+void goal_add (Term term, const int run, const int ev, const int level);
 void goal_remove_last ();
 int goal_bind (const Binding b, const int run, const int ev);
 void goal_unbind (const Binding b);

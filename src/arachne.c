@@ -232,7 +232,7 @@ add_read_goals (const int run, const int old, const int new)
 		}
 	      termPrint (rd->message);
 	    }
-	  goal_add (rd->message, run, i);
+	  goal_add (rd->message, run, i, 0);
 	  count++;
 	}
       rd = rd->next;
@@ -489,7 +489,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	  {
 	    int keyrun;
 
-	    goal_add (tl->term, b->run_to, b->ev_to);
+	    goal_add (tl->term, b->run_to, b->ev_to, 1);
 	    tl = tl->next;
 	    keycount++;
 	  }
@@ -684,6 +684,8 @@ printSemiState ()
 /**
  * Selects the most constrained goal.
  *
+ * First selection is on level; thus, keys are selected first.
+ *
  * Because the list starts with the newest terms, and we use <= (as opposed to <), we
  * ensure that for goals with equal constraint levels, we select the oldest one.
  */
@@ -693,13 +695,14 @@ select_goal ()
   List bl;
   Binding best;
   float min_constrain;
+  int max_level;
 
   if (sys->output == PROOF)
     {
       indentPrint ();
       eprintf ("Listing open goals that might be chosen: ");
     }
-  min_constrain = 2;		// 1 is the maximum, but we want to initialize it.
+  max_level = -1;		// 0 is the minimum level
   best = NULL;
   bl = sys->bindings;
   while (bl != NULL)
@@ -719,16 +722,27 @@ select_goal ()
 
 	      if (sys->output == PROOF && best != NULL)
 		eprintf (", ");
-	      cons = term_constrain_level (b->term);
-	      if (cons <= min_constrain)
+	      if (b->level >= max_level)
 		{
-		  min_constrain = cons;
-		  best = b;
-		  if (sys->output == PROOF)
-		    eprintf ("*");
+		  if (b->level > max_level)
+		    {
+		      max_level = b->level;
+		      min_constrain = 1;	// 1 is the maximum
+		    }
+		  cons = term_constrain_level (b->term);
+		  if (cons <= min_constrain)
+		    {
+		      min_constrain = cons;
+		      best = b;
+		      if (sys->output == PROOF)
+			eprintf ("*");
+		    }
 		}
 	      if (sys->output == PROOF)
-		termPrint (b->term);
+		{
+		  termPrint (b->term);
+		  eprintf ("[%i]", b->level);
+		}
 	    }
 	}
       bl = bl->next;
@@ -1239,7 +1253,7 @@ add_claim_specifics (const Claimlist cl, const Roledef rd)
        * be reached (without reaching the attack).
        */
       cl->count = statesIncrease (cl->count);
-      goal_add (rd->message, 0, cl->ev);	// Assumption that all claims are in run 0
+      goal_add (rd->message, 0, cl->ev, 0);	// Assumption that all claims are in run 0
     }
 }
 
