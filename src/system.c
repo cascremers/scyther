@@ -661,11 +661,14 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
   /* erase any substitutions in the role definition, as they are now copied */
   termlistSubstReset (role->variables);
 
-  /* Determine symmetric run */
-  runs[rid].prevSymmRun = staticRunSymmetry (sys, rid);	// symmetry reduction static analysis
+  if (sys->engine == POR_ENGINE)
+    {
+      /* Determine symmetric run */
+      runs[rid].prevSymmRun = staticRunSymmetry (sys, rid);	// symmetry reduction static analysis
 
-  /* Determine first read with variables besides agents */
-  runs[rid].firstNonAgentRead = firstNonAgentRead (sys, rid);	// symmetry reduction type II
+      /* Determine first read with variables besides agents */
+      runs[rid].firstNonAgentRead = firstNonAgentRead (sys, rid);	// symmetry reduction type II
+    }
 }
 
 
