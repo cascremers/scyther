@@ -298,14 +298,15 @@ def DescribeContext (filep, protocols, claim):
 # returns 1 if it really requires these protocols
 #
 def RequiresAllProtocols (protocols, claim):
+
 	# check for single results
 	if ClaimToResultMap[claim] == 0:
-		# claim was always false
-		return 0
+		# claim was always false (already attack on single prot.)
+		return False
 	# check for simple cases
 	if TupleWidth <= 2:
 		# nothing to remove
-		return 1
+		return True
 
 	# test the claims when removing some others
 	# for TupleWidth size list, we can remove TupleWidth-1
@@ -321,8 +322,8 @@ def RequiresAllProtocols (protocols, claim):
 			simplerresults = ScytherEval (simplercase)
 			if claim in simplerresults.keys() and simplerresults[claim] == 0:
 				# Redundant protocol was not necessary for attack!
-				return 0
-	return 1
+				return False
+	return True
 			
 
 			
@@ -334,7 +335,7 @@ def RequiresAllProtocols (protocols, claim):
 # Returns number of new attacks found
 #
 def SignalAttack (protocols, claim):
-	if RequiresAllProtocols (protocols, claim) == 0:
+	if not RequiresAllProtocols (protocols, claim):
 		return 0
 
 	ClearProgress (TupleCount, safetxt)
