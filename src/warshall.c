@@ -2,6 +2,7 @@
  * Warshall's algorithm for transitive closure computation.
  */
 
+#include <limits.h>
 #include "warshall.h"
 #include "debug.h"
 
@@ -103,4 +104,58 @@ warshall (int *graph, int nodes)
       i++;
     }
   return 1;
+}
+
+
+//! Determine ranks for all nodes
+/**
+ * Some crude algorithm I sketched on the blackboard.
+ */
+int graph_ranks (int *graph, int *ranks, int nodes)
+{
+  int i;
+  int todo;
+  int rank;
+
+  i = 0;
+  while (i < nodes)
+    {
+      ranks[i] = INT_MAX;
+      i++;
+    }
+
+  todo = nodes;
+  rank = 0;
+  while (todo > 0)
+    {
+      // There are still unassigned nodes
+      int n;
+
+      n = 0;
+      while (n < nodes)
+	{
+	  if (ranks[n] == INT_MAX)
+	    {
+	      // Does this node have incoming stuff from stuff with equal rank or higher?
+	      int refn;
+
+	      refn = 0;
+	      while (refn < nodes)
+		{
+		  if (ranks[refn] >= rank && graph[graph_index(refn, n)] != 0)
+		      refn = nodes+1;
+		  else
+		      refn++;
+		}
+	      if (refn == nodes)
+		{
+		  ranks[n] = rank;
+		  todo--;
+		}
+	    }
+	  n++;
+	}
+      rank++;
+    }
+  return rank;
 }

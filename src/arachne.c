@@ -17,6 +17,7 @@
 #include "states.h"
 #include "mgu.h"
 #include "arachne.h"
+#include "memory.h"
 #include "error.h"
 #include "claim.h"
 #include "debug.h"
@@ -681,6 +682,8 @@ dotSemiState ()
   static int attack_number = 0;
   int run;
   Protocol p;
+  int *ranks;
+  int maxrank;
 
   void node (const int run, const int index)
   {
@@ -716,6 +719,9 @@ dotSemiState ()
   // Needed for the bindings later on: create graph
   goal_graph_create ();		// create graph
   warshall (graph, nodes);	// determine closure
+
+  ranks = memAlloc (nodes * sizeof(int));
+  maxrank = graph_ranks (graph, ranks, nodes);	// determine ranks
 
 #ifdef DEBUG
   // For debugging purposes, we also display an ASCII version of some stuff in the comments
@@ -940,6 +946,62 @@ dotSemiState ()
 	}
       run++;
     }
+
+  // Third, all ranking info
+    {
+      int myrank;
+
+#ifdef DEBUG
+	{
+	  int n;
+
+	  eprintf ("/* ranks: %i\n", maxrank);
+	  n = 0;
+	  while (n < nodes)
+	    {
+	      eprintf ("%i ", ranks[n]);
+	      n++;
+	    }
+	  eprintf ("\n*/\n\n");
+	}
+#endif
+      myrank = 0;
+      while (myrank < maxrank)
+	{
+	  int count;
+	  int run;
+	  int run1;
+	  int ev1;
+
+	  count = 0;
+	  run = 0;
+	  while (run < sys->maxruns)
+	    {
+	      int ev;
+
+	      ev = 0;
+	      while (ev < sys->runs[run].step)
+		{
+		  if (myrank == ranks[node_number (run,ev)])
+		    {
+		      if (count == 0)
+			  // For now, disabled
+		          eprintf ("//\t{ rank = same; ");
+		      count++;
+		      eprintf ("r%ii%i; ",run,ev);
+		    }
+		  ev++;
+		}
+	      run++;
+	    }
+	  if (count > 0)
+	      eprintf ("}\t\t// rank %i\n", myrank);
+	  myrank++;
+	}
+    }
+  
+  // clean memory
+  memFree (ranks, nodes * sizeof(int));		// ranks
 
   // close graph
   eprintf ("};\n\n");
