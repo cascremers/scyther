@@ -10,6 +10,7 @@
 #include "termlist.h"
 #include "role.h"
 #include "system.h"
+#include "knowledge.h"
 #include "compiler.h"
 #include "states.h"
 #include "mgu.h"
@@ -22,6 +23,7 @@
 extern Term CLAIM_Secret;
 extern Term CLAIM_Nisynch;
 extern Term CLAIM_Niagree;
+extern Term TERM_Agent;
 
 static System sys;
 Protocol INTRUDER;		// Pointers, to be set by the Init
@@ -31,6 +33,7 @@ Role I_SPLIT;
 Role I_TUPLE;
 Role I_ENCRYPT;
 Role I_DECRYPT;
+Role I_M0;
 
 static int indentDepth;
 
@@ -66,6 +69,7 @@ void
 arachneInit (const System mysys)
 {
   Roledef rd = NULL;
+  Termlist tl, know0;
 
   void add_event (int event, Term message)
   {
@@ -102,6 +106,15 @@ arachneInit (const System mysys)
   add_event (READ, NULL);
   I_GOAL = add_role (" I_GOAL ");
 
+  know0 = knowledgeSet (sys->know);
+  tl = know0;
+  while (tl != NULL)
+    {
+      add_event (SEND, tl->term);
+      I_M0 = add_role (" I_M0 ");
+      tl = tl->next;
+    }
+  termlistDelete (know0);
   return;
 }
 
@@ -267,10 +280,6 @@ create_intruder_goal (Term t)
 int
 add_intruder_goal_iterate (Goal goal)
 {
-  // [x][todo][cc] remove debug you know the drill
-  //!@debug Remove this
-  return 1;
-
   int flag;
   int run;
 
@@ -715,7 +724,9 @@ bind_goal (const Goal goal)
 int
 prune ()
 {
-  if (indentDepth > 10)
+  Termlist tl;
+
+  if (indentDepth > 30)
     {
       // Hardcoded limit on iterations
 #ifdef DEBUG
@@ -727,7 +738,7 @@ prune ()
 #endif
       return 1;
     }
-  if (sys->maxruns > 5)
+  if (sys->maxruns > 10)
     {
       // Hardcoded limit on runs
 #ifdef DEBUG
@@ -739,6 +750,50 @@ prune ()
 #endif
       return 1;
     }
+
+  // Check if all agents are valid
+  tl = sys->runs[0].agents;
+  while (tl != NULL)
+    {
+      Term agent;
+
+      agent = deVar (tl->term);
+      if (!realTermLeaf (agent))
+	{
+#ifdef DEBUG
+	  if (DEBUGL (3))
+	    {
+	      indentPrint ();
+	      eprintf ("Pruned because agent cannot be compound term.\n");
+	    }
+#endif
+	  return 1;
+	}
+      if (!inTermlist (agent->stype, TERM_Agent))
+	{
+#ifdef DEBUG
+	  if (DEBUGL (3))
+	    {
+	      indentPrint ();
+	      eprintf ("Pruned because agent must contain agent type.\n");
+	    }
+#endif
+	  return 1;
+	}
+      if (inTermlist (sys->untrusted, agent))
+	{
+#ifdef DEBUG
+	  if (DEBUGL (3))
+	    {
+	      indentPrint ();
+	      eprintf ("Pruned because agents must be untrusted.\n");
+	    }
+#endif
+	  return 1;
+	}
+      tl = tl->next;
+    }
+
   return 0;
 }
 
@@ -889,57 +944,64 @@ arachne ()
   cl = sys->claimlist;
   while (cl != NULL)
     {
+      /**
+       * Check each claim
+       */
       Protocol p;
       Role r;
 
-      explanation = NULL;
-      e_run = INVALID;
-      e_term1 = NULL;
-      e_term2 = NULL;
-      e_term3 = NULL;
-
-      p = (Protocol) cl->protocol;
-      r = (Role) cl->role;
-#ifdef DEBUG
-      if (DEBUGL (2))
+      if (sys->switchClaimToCheck == NULL
+	  || sys->switchClaimToCheck == cl->type)
 	{
-	  indentPrint ();
-	  eprintf ("Testing Claim ");
-	  termPrint (cl->type);
-	  eprintf (" in protocol ");
-	  termPrint (p->nameterm);
-	  eprintf (", role ");
-	  termPrint (r->nameterm);
-	  eprintf (" at index %i.\n", cl->ev);
-	}
+	  explanation = NULL;
+	  e_run = INVALID;
+	  e_term1 = NULL;
+	  e_term2 = NULL;
+	  e_term3 = NULL;
+
+	  p = (Protocol) cl->protocol;
+	  r = (Role) cl->role;
+#ifdef DEBUG
+	  if (DEBUGL (2))
+	    {
+	      indentPrint ();
+	      eprintf ("Testing Claim ");
+	      termPrint (cl->type);
+	      eprintf (" in protocol ");
+	      termPrint (p->nameterm);
+	      eprintf (", role ");
+	      termPrint (r->nameterm);
+	      eprintf (" at index %i.\n", cl->ev);
+	    }
 #endif
 
-      roleInstance (sys, p, r, NULL);
-      sys->runs[0].length = cl->ev + 1;
+	  roleInstance (sys, p, r, NULL);
+	  sys->runs[0].length = cl->ev + 1;
 
-      /**
-       * Add specific goal info
-       */
-      add_claim_specifics (cl, roledef_shift (sys->runs[0].start, cl->ev));
+	  /**
+	   * Add specific goal info
+	   */
+	  add_claim_specifics (cl,
+			       roledef_shift (sys->runs[0].start, cl->ev));
 
 #ifdef DEBUG
-      if (DEBUGL (5))
-	{
-	  printSemiState ();
-	}
+	  if (DEBUGL (5))
+	    {
+	      printSemiState ();
+	    }
 #endif
 
-      /*
-       * iterate
-       */
-      iterate ();
+	  /*
+	   * iterate
+	   */
+	  iterate ();
 
-      //! Destroy
-      while (sys->maxruns > 0)
-	{
-	  roleInstanceDestroy (sys);
+	  //! Destroy
+	  while (sys->maxruns > 0)
+	    {
+	      roleInstanceDestroy (sys);
+	    }
 	}
-
       // next
       cl = cl->next;
     }

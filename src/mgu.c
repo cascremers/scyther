@@ -15,7 +15,13 @@
 */
 
 //! Global constant. If true, typed checking
-int welltyped = 1;
+/**
+ * Analoguous to sys->match
+ * 0	typed
+ * 1	basic typeflaws
+ * 2	all typeflaws
+ */
+int mgu_match = 0;
 
 void
 showSubst (Term t)
@@ -50,7 +56,7 @@ showSubst (Term t)
 __inline__ int
 goodsubst (Term tvar, Term tsubst)
 {
-  if (tvar->stype == NULL || (!welltyped))
+  if (tvar->stype == NULL || (mgu_match == 2))
     {
       return 1;
     }
@@ -67,7 +73,8 @@ goodsubst (Term tvar, Term tsubst)
       else
 	{
 	  // It's a leaf, but what type?
-	  if (termlistContained (tvar->stype, tsubst->stype))
+	  if (mgu_match == 1
+	      || termlistContained (tvar->stype, tsubst->stype))
 	    {
 	      return 1;
 	    }

@@ -62,6 +62,8 @@ System sys;
 
 extern struct tacnode *spdltac;
 extern Term TERM_Claim;
+extern int mgu_match;
+
 void scanner_cleanup (void);
 void strings_cleanup (void);
 int yyparse (void);
@@ -486,6 +488,7 @@ main (int argc, char **argv)
 
   sys->traverse = switch_traversal_method->ival[0];
   sys->match = switch_match_method->ival[0];
+  mgu_match = sys->match;
   sys->prune = switch_pruning_method->ival[0];
   if (switch_progress_bar->count > 0)
     /* enable progress display */
