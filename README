@@ -1,0 +1,21 @@
+This is a development version of Scyther.
+
+Read NEWS to see whats new in this release.
+
+For copyright information see COPYING
+
+For more information and extensive documentation go to:
+  http://www.win.tue.nl/~ccremers/scyther/
+
+
+Compile and Install:
+
+  $ ./configure
+  $ make
+  and then as root
+  # make install
+
+Configuration options:
+
+  Use ./configure --help to see the full list of options
+
