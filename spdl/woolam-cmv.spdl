@@ -29,7 +29,7 @@ protocol woolamcmv(A,B,S)
    		read_6(B,A, { B,Na,Nb,Kab }k(A,S), { Na,Nb }Kab );
 		send_7(A,B, { Nb }Kab );	
 
-		claim_8(B,Secret, Kab);
+		claim_8(A,Secret, Kab);
 	}
 
 	role B
@@ -58,7 +58,7 @@ protocol woolamcmv(A,B,S)
 		read_4(B,S, { A,B, Na,Nb }k(A,S), { A,B,Na,Nb }k(B,S) );
 		send_5(S,B, { B,Na,Nb,Kab }k(A,S), { A,Na,Nb,Kab }k(B,S) );
 
-		claim_10(B,Secret, Kab);
+		claim_10(S,Secret, Kab);
 	}
 }
 
