@@ -1,3 +1,14 @@
+/**
+ *@file
+ * \brief Memory functions
+ *
+ * These are not really used anymore, so maybe they should be removed.
+ * 
+ * \par Performance
+ * Tests showed that memory pooling was actually much less efficient than
+ * having \c malloc() trying to fit stuff into the memory caches.
+ */
+
 /* my own memory functions (not yet) */
 
 #include <stdlib.h>
@@ -15,6 +26,7 @@
 #include "substitutions.h"
 #include "runs.h"
 
+//! Open memory code.
 void
 memInit ()
 {
@@ -41,6 +53,7 @@ memInit ()
   return;
 }
 
+//! Close memory code.
 void
 memDone (int sw)
 {

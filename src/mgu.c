@@ -14,6 +14,10 @@
    New version yields a termlist with substituted variables, which can later be reset to NULL.
 */
 
+//! Undo all substitutions in a list of variables.
+/**
+ * The termlist should contain only variables.
+ */
 void
 termlistSubstReset (Termlist tl)
 {
@@ -24,6 +28,12 @@ termlistSubstReset (Termlist tl)
     }
 }
 
+//! Most general unifier.
+/**
+ * Try to determine the most general unifier of two terms.
+ *@return Returns a list of variables, that were previously open, but are now closed
+ * in such a way that the two terms unify. Returns \ref MGUFAIL if it is impossible.
+ */
 Termlist
 termMguTerm (Term t1, Term t2)
 {

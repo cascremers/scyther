@@ -57,6 +57,10 @@ int modelCheck (const System sys);
 //! The name of this program.
 const char *progname = "scyther";
 //! Release tag name.
+/**
+ * Note that this is only referenced in the help output of the commandline program.
+ * \todo Come up with a useful solution for release names.
+ */
 const char *releasetag = "alpha2-devel";
 
 //! The main body, as called by the environment.

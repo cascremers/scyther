@@ -134,7 +134,7 @@ inTermlist (Termlist tl, Term term)
 /**
  * Are all elements of list 1 in list 2, and vice versa? 
  * Note that we assume unique elements!
- *@param True iff every element of the list is in the other list.
+ *@return True iff every element of the list is in the other list.
  */
 
 int

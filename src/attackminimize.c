@@ -3,9 +3,17 @@
 #include "runs.h"
 #include "tracebuf.h"
 
+//! Help counter for the number of unknowns.
 int cUnk = 0;
+//! Help counter for the number of todos.
 int cTod = 0;
 
+//! Mark all events of the same run before the event as required.
+/**
+ *@param sys The system.
+ *@param tb The attack buffer.
+ *@param ev The reference event index.
+ */
 void markback(System sys, struct tracebuf *tb, int ev)
 {
 	int run = tb->run[ev];
@@ -44,6 +52,7 @@ void markback(System sys, struct tracebuf *tb, int ev)
 	}
 }
 
+//! Minimize the attack.
 void attackMinimize(System sys, struct tracebuf *tb)
 {
 	int i;
