@@ -255,3 +255,33 @@ roledef_iterate_events (Roledef rd, int (*func) ())
     }
   return 1;
 }
+
+//! Roledef length
+/**
+ * Would be faster hard-coded,
+ * but this just shows the use of the iteration.
+ */
+int
+roledef_length (const Roledef rd)
+{
+  int count = 0;
+  int countplus (Roledef rd)
+  {
+    count++;
+    return 1;
+  }
+  roledef_iterate_events (rd, countplus);
+  return count;
+}
+
+//! Yield roledef pointer for a given index
+Roledef
+roledef_shift (Roledef rd, int i)
+{
+  while (i > 0 && rd != NULL)
+    {
+      rd = rd->next;
+      i--;
+    }
+  return rd;
+}

@@ -80,18 +80,6 @@ mgu_iterate (const Termlist tl)
   return iterate ();
 }
 
-//! Yield roledef pointer for a given index
-Roledef
-roledef_shift (Roledef rd, int i)
-{
-  while (i > 0 && rd != NULL)
-    {
-      rd = rd->next;
-      i--;
-    }
-  return rd;
-}
-
 //------------------------------------------------------------------------
 // Sub
 //------------------------------------------------------------------------
