@@ -784,7 +784,7 @@ iterate ()
       else
 	{
 #ifdef DEBUG
-	  if (DEBUGL (4))
+	  if (DEBUGL (3))
 	    {
 	      indentPrint ();
 	      eprintf ("Trying to bind goal ");
