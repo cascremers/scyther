@@ -37,13 +37,11 @@ compromised sk(Eve);
 
 /* pre-defined 10 runs, limit using --max-runs parameters */
 
-run ns3.I(Alice,Bob);
-	run ns3.R(Alice,Bob);
-run ns3.I(Alice,Eve);
-	run ns3.R(Eve,Bob);
-run ns3.I(Bob,Alice);
-	run ns3.R(Bob,Alice);
-run ns3.I(Bob,Eve);
-	run ns3.R(Eve,Alice);
-run ns3.I(Alice,Alice);
-	run ns3.R(Bob,Bob);
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
