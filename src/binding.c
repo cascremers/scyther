@@ -155,6 +155,130 @@ goal_graph_create ()
 	}
       bl = bl->next;
     }
+  // Setup local constants order
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      if (sys->runs[run].protocol != INTRUDER)
+	{
+	  int run2;
+
+	  run2 = 0;
+	  while (run2 < sys->maxruns)
+	    {
+	      if (sys->runs[run].protocol != INTRUDER && run != run2)
+		{
+		  // For these two runs, we check whether run has any variables that are mapped
+		  // to constants from run2
+		  Termlist tl;
+
+		  tl = sys->runs[run].locals;
+		  while (tl != NULL)
+		    {
+		      Term t;
+
+		      t = tl->term;
+		      if (t->type == VARIABLE && t->right.runid == run
+			  && t->subst != NULL)
+			{
+			  // t is a variable of run
+			  Termlist tl2;
+
+			  tl2 = sys->runs[run2].locals;
+			  while (tl2 != NULL)
+			    {
+			      Term t2;
+
+			      t2 = tl2->term;
+			      if (realTermLeaf (t2) && t2->type != VARIABLE
+				  && t2->right.runid == run2)
+				{
+				  // t2 is a constant of run2
+				  if (isTermEqual (t, t2))
+				    {
+				      // Indeed, run depends on the run2 constant t2. Thus we must store this order.
+				      // The first send of t2 in run2 must be before the first (read) event in run with t2.
+				      int ev2;
+				      int done;
+				      Roledef rd2;
+
+				      done = 0;
+				      ev2 = 0;
+				      rd2 = sys->runs[run2].start;
+				      while (!done
+					     && ev2 < sys->runs[run2].step)
+					{
+					  if (rd2->type == SEND
+					      && termSubTerm (rd2->message,
+							      t2))
+					    {
+					      // Allright, we send it here at ev2 first
+					      int ev;
+					      Roledef rd;
+
+					      ev = 0;
+					      rd = sys->runs[run].start;
+					      while (!done
+						     && ev <
+						     sys->runs[run].step)
+						{
+						  if (termSubTerm
+						      (rd->message, t2))
+						    {
+						      // Term occurs here in run
+						      if (rd->type == READ)
+							{
+							  // It's read here first.
+							  // Order and be done with it.
+							  graph[graph_nodes
+								(nodes, run2,
+								 ev2, run,
+								 ev)] = 1;
+#ifdef DEBUG
+							  if (DEBUGL (5))
+							    {
+							      eprintf
+								("* [local originator] term ");
+							      termPrint (t2);
+							      eprintf
+								(" is bound using %i, %i before %i,%i\n",
+								 run2, ev2,
+								 run, ev);
+							    }
+#endif
+							  done = 1;
+							}
+#ifdef DEBUG
+						      else
+							{
+							  // It doesn't occur first in a READ, which shouldn't be happening
+							  error
+							    ("Term from run %i occurs in run %i before it is read?",
+							     run2, run);
+							}
+#endif
+						    }
+						  rd = rd->next;
+						  ev++;
+						}
+					      done = 1;
+					    }
+					  rd2 = rd2->next;
+					  ev2++;
+					}
+				    }
+				}
+			      tl2 = tl2->next;
+			    }
+			}
+		      tl = tl->next;
+		    }
+		}
+	      run2++;
+	    }
+	}
+      run++;
+    }
 }
 
 

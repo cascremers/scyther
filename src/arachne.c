@@ -523,6 +523,9 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 
     found++;
     flag = 1;
+    /**
+     * Now create the new bindings
+     */
     if (goal_bind (b, run, index))
       {
 	int keycount;
@@ -692,7 +695,7 @@ dotSemiState ()
   // Open graph
   attack_number++;
   eprintf ("digraph semiState%i {\n", attack_number);
-  eprintf ("\tcomment = \"Protocol ");
+  eprintf ("\tlabel = \"Protocol ");
   p = (Protocol) current_claim->protocol;
   termPrint (p->nameterm);
   eprintf (", role ");
@@ -717,10 +720,10 @@ dotSemiState ()
 
 	  eprintf ("\tsubgraph cluster_run%i {\n", run);
 	  eprintf ("\t\tlabel = \"");
-	  eprintf ("run #%i, protocol ", run);
+	  eprintf ("#%i: ", run);
 	  termPrint (sys->runs[run].protocol->nameterm);
-	  eprintf (", role ");
-	  termPrint (sys->runs[run].role->nameterm);
+	  eprintf (", ");
+	  agentsOfRunPrint (sys, run);
 	  eprintf ("\";\n", run);
 	  if (run == 0)
 	    {
@@ -738,7 +741,8 @@ dotSemiState ()
 	      eprintf (" [");
 	      if (run == 0 && index == current_claim->ev)
 		{
-		  eprintf ("shape=doubleoctagon,");
+		  eprintf
+		    ("style=filled,fillcolor=mistyrose,color=salmon,shape=doubleoctagon,");
 		}
 	      else
 		{
@@ -757,6 +761,7 @@ dotSemiState ()
 		  node (run, index - 1);
 		  eprintf (" -> ");
 		  node (run, index);
+		  eprintf (" [style=\"bold\", weight=\"2.0\"]");
 		  eprintf (";\n");
 		}
 	      else
@@ -798,9 +803,9 @@ dotSemiState ()
 			    {
 			      // Sends first.
 			      // Show this explicitly in the graph by adding a prefix start node
-			      eprintf
-				("\t\ts%i [label=\"Agent start\", shape=diamond];\n",
-				 run);
+			      eprintf ("\t\ts%i [label=\"Start ", run);
+			      agentsOfRunPrint (sys, run);
+			      eprintf ("\", shape=diamond];\n");
 			      eprintf ("\t\ts%i -> ", run);
 			      node (run, index);
 			      eprintf (";\n");
@@ -843,18 +848,24 @@ dotSemiState ()
 		    {
 		      // Is this run before the event?
 		      int ev2;
+		      int ev2_found;
 		      int found;
 
 		      found = 0;
-		      ev2 = sys->runs[run2].length - 1;
-		      while ((ev2 >= 0) && (found == 0))
+		      ev2 = 0;
+		      ev2_found = 0;
+		      while (ev2 < sys->runs[run2].length)
 			{
 			  if (graph[graph_nodes (nodes, run2, ev2, run, ev)]
 			      != 0)
-			    found = 1;
-			  else
-			    ev2--;
+			    {
+			      found = 1;
+			      ev2_found = ev2;
+			    }
+			  ev2++;
 			}
+		      ev2 = ev2_found;
+
 		      if (found == 1)
 			{
 			  // It is before the event, and thus we would like to draw it.
@@ -863,20 +874,22 @@ dotSemiState ()
 			   * Note that this algorithm is similar to Floyd's algorithm for all shortest paths.
 			   * The goal here is to select only the path with distance 1 (as viewed from the regular runs),
 			   * so we can simplify stuff a bit.
+			   * Nevertheless, using Floyd first would probably be faster.
 			   */
 			  int run3;
 			  int other_route;
 
 			  other_route = 0;
 			  run3 = 0;
-			  while (run3 < sys->maxruns)
+			  while (other_route == 0 && run3 < sys->maxruns)
 			    {
 			      if (sys->runs[run3].protocol != INTRUDER)
 				{
 				  int ev3;
 
 				  ev3 = 0;
-				  while (ev3 < sys->runs[run3].length)
+				  while (other_route == 0
+					 && ev3 < sys->runs[run3].length)
 				    {
 				      if (graph
 					  [graph_nodes
@@ -888,38 +901,20 @@ dotSemiState ()
 					{
 					  // other route found
 					  other_route = 1;
-					  // abort
-					  ev3 = sys->runs[run3].length;
-					  run3 = sys->maxruns;
 					}
 				      ev3++;
 				    }
 				}
 			      run3++;
 			    }
-			  if (!other_route)
+			  if (other_route == 0)
 			    {
-			      eprintf ("\t\t");
+			      eprintf ("\t");
 			      node (run2, ev2);
 			      eprintf (" -> ");
 			      node (run, ev);
 			      eprintf (";\n");
 			    }
-			  else
-			    {
-			      eprintf ("\t\t");
-			      node (run2, ev2);
-			      eprintf (" -> ");
-			      node (run, ev);
-			      eprintf (" [style=dotted];\n");
-			    }
-			}
-		      else
-			{
-			  // not found
-			  eprintf ("\t\tNOPREV -> ");
-			  node (run, ev);
-			  eprintf (" [label=\"#%i\"];\n", run2);
 			}
 		    }
 		  run2++;
