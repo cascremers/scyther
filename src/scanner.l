@@ -153,7 +153,8 @@ void strings_cleanup(void)
 
 int yywrap (void)
 {
-  return 0;
+  /* signal true to let lex know that nothing else is coming */
+  return 1;
 }
 
 
