@@ -193,7 +193,7 @@ executeStep (const System sys, const int run)
 /**
  * remove from a roledef that is instantiated, the uninteresting ends bits
  */
-void removeIrrelevant (const System sys, const int run, Roledef rd)
+Roledef removeIrrelevant (const System sys, const int run, Roledef rd)
 {
   Roledef rdkill;
   int killclaims;
@@ -227,8 +227,7 @@ void removeIrrelevant (const System sys, const int run, Roledef rd)
   */
 
   /* remove after rdkill */
-  roledefDelete (rdkill->next);
-  rdkill->next = NULL;
+  return rdkill;
 }
 
 //! Explores the system state given by the next step of a run.
@@ -242,9 +241,11 @@ explorify (const System sys, const int run)
   Roledef rd;
   int flag;
   int myStep;
+  Roledef roleCap, roleCapPart;
 
   rd = runPointerGet (sys, run);
   myStep = sys->runs[run].step;
+  roleCap = NULL;
 
   if (rd == NULL)
     {
@@ -341,7 +342,7 @@ explorify (const System sys, const int run)
       /* Special check 3: if after choosing, this run ends on (read|skippedclaim)*, we can remove that part already.
        */
 
-      removeIrrelevant (sys, run, rd);
+      roleCap = removeIrrelevant (sys, run, rd);
 
       /* Special check x: if all agents in each run send only encrypted stuff, and all agents are trusted,
        * there is no way for the intruder to learn anything else than encrypted terms, so secrecy claims will not
@@ -362,6 +363,12 @@ explorify (const System sys, const int run)
     }
 
   /* Apparently, all is well, and we can explore further */
+  flag = 0;
+  if (roleCap != NULL)
+    {
+      roleCapPart = roleCap->next;
+      roleCap->next = NULL;
+    }
   if (executeStep (sys, run))
     {
       /* traverse the system after the step */
@@ -370,9 +377,12 @@ explorify (const System sys, const int run)
       sys->runs[run].step = myStep;	// reset local index
       sys->step--;
       indentSet (sys->step);
-      return flag;
     }
-  return 0;
+  if (roleCap != NULL)
+    {
+      roleCap->next = roleCapPart;
+    }
+  return flag;
 }
 
 int
