@@ -7,7 +7,8 @@
 # Input of this script:
 #
 # 	- A number on the commandline of stuff to test
-# 	- A list of files on stdin to be used
+# 	- A list of files on stdin to be used (lines starting with '#' are
+# 	ignored)
 #
 #
 # Tips and tricks:
@@ -36,7 +37,7 @@ ScytherProgram = "../src/scyther"
 # Scyther parameters
 ScytherDefaults	= "--summary"
 ScytherMethods	= "-m1 -a"
-ScytherBounds	= "-r4 -l40"
+ScytherBounds	= "-r4 --max-depth=20 -l15"
 
 # Build a large part of the command line (for Scyther) already
 ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
@@ -316,7 +317,7 @@ while loop:
 	if line != '':
 		# not the end of the input
 		cleanline = string.strip(line)
-		if cleanline != '' and cleanline not in SkipList:
+		if cleanline != '' and cleanline[0] != '#' and cleanline not in SkipList:
 			# not a blank line, not forbidden
 			Protocol.append(cleanline)
 			ProtocolCount = ProtocolCount + 1
