@@ -1,0 +1,3 @@
+- Multiprotocoltest bound -1 met -T0: puur voor compilatie errors en
+  claims overzicht. Dit om bijv protocol file -> claims settings op te
+  slaan.
