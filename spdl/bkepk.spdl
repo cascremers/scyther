@@ -42,17 +42,11 @@ protocol bkepk(A,B)
 const Alice,Bob,Eve;
 
 compromised sk(Eve);
+untrusted Eve;
 
 run bkepk.A(Alice,Bob);
 run bkepk.B(Alice,Bob);
 run bkepk.A(Alice,Bob);
 run bkepk.B(Alice,Bob);
 
-run bkepk.A(Alice,Bob);
-run bkepk.B(Alice,Bob);
-run bkepk.A(Alice,Bob);
-run bkepk.B(Alice,Bob);
-
-run bkepk.A(Alice,Bob);
-run bkepk.B(Alice,Bob);
 

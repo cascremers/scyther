@@ -1,5 +1,5 @@
 usertype String, World;
-secret HelloWorld: String;
+secret HelloWorld, k: String;
 
 protocol hw(initiator,world)
 {
