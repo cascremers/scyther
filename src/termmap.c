@@ -111,12 +111,12 @@ void termmapPrint (Termmap f)
 {
   if (f != NULL)
     {
-      printf ("\"");
+      eprintf ("\"");
       termPrint (f->term);
-      printf ("\" -> %i", f->result);
+      eprintf ("\" -> %i", f->result);
       if (f->next != NULL)
 	{
-	  printf (", ");
+	  eprintf (", ");
 	  termmapPrint (f->next);
 	}
     }

@@ -165,7 +165,7 @@ systemRuns (const System sys)
 #ifdef DEBUG
   if (sys->switchScenario < 0)
     {
-      printf ("// Last run with a choose: %i\n",sys->lastChooseRun);
+      warning ("Last run with a choose: %i",sys->lastChooseRun);
     }
 #endif
 }

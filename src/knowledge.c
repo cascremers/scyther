@@ -83,7 +83,7 @@ knowledgeDuplicate (Knowledge know)
 
   if (know == NULL)
     {
-      printf ("Warning! Trying to copy empty knowledge!\n");
+      warning ("Trying to copy empty knowledge.");
       return NULL;
     }
   newknow = makeKnowledge ();
@@ -141,8 +141,7 @@ knowledgeAddTerm (Knowledge know, Term term)
 {
   if (know == NULL)
     {
-      fprintf
-	(stderr, "Warning: trying to add term to uninitialised (NULL) Know pointer.\n");
+      warning ("Trying to add term to uninitialised (NULL) Know pointer.");
       return 1;
     }
   if (term == NULL)
@@ -324,20 +323,20 @@ knowledgePrint (Knowledge know)
   indent ();
   if (know == NULL)
     {
-      printf ("Empty.\n");
+      eprintf ("Empty.\n");
       return;
     }
-  printf (" [Basic]: ");
+  eprintf (" [Basic]: ");
   termlistPrint (know->basic);
-  printf ("\n");
+  eprintf ("\n");
   indent ();
-  printf (" [Encrp]: ");
+  eprintf (" [Encrp]: ");
   termlistPrint (know->encrypt);
-  printf ("\n");
+  eprintf ("\n");
   indent ();
-  printf (" [Vars]: ");
+  eprintf (" [Vars]: ");
   termlistPrint (know->vars);
-  printf ("\n");
+  eprintf ("\n");
 }
 
 //! Print the inverses list of a knowledge set.
@@ -349,14 +348,14 @@ knowledgeInversesPrint (Knowledge know)
 
   if (know == NULL)
     {
-      printf ("Empty knowledge.");
+      eprintf ("Empty knowledge.");
       return;
     }
 
   tl = knowledgeGetInverses (know);
   if (tl == NULL)
     {
-      printf ("None.");
+      eprintf ("None.");
     }
   else
     {
@@ -364,13 +363,13 @@ knowledgeInversesPrint (Knowledge know)
 	{
 	  if (after)
 	    {
-	      printf (",");
+	      eprintf (",");
 	    }
-	  printf ("(");
+	  eprintf ("(");
 	  termPrint (tl->term);
-	  printf (",");
+	  eprintf (",");
 	  termPrint (tl->next->term);
-	  printf (")");
+	  eprintf (")");
 	  after = 1;
 	  tl = tl->next->next;
 	}
