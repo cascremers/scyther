@@ -35,6 +35,7 @@ struct traceinfo *tinfo;
 int width;
 int landscape = 0;
 int *runPerm;
+int pass;
 
 /* code */
 
@@ -293,30 +294,40 @@ latexDeclInst (const System sys, int run)
 
   myAgent = agentOfRun (sys, run);
   myRole = sys->runs[run].role->nameterm;
-  printf ("\\declinst{run%i}{", run);
+  if (pass == 1)
+    {
+      printf ("\\maxlength{\\maxmscinst}{");
+    }
+  else
+    {
+      printf ("\\declinst{run%i}{", run);
+    }
 
   /* display above assumptions */
   roles = sys->runs[run].protocol->rolenames;
-  printf ("assumes $");
-  first = 1;
-  while (roles != NULL)
+  if (pass == 2)
     {
-      if (!isTermEqual (myRole, roles->term))
+      printf ("assumes $");
+      first = 1;
+      while (roles != NULL)
 	{
-	  if (!first)
-	      printf (", ");
-	  else
-	      first = 0;
-          termPrint (agentOfRunRole(sys,run,roles->term));
-	  printf(": ");
-	  termPrint (roles->term);
+	  if (!isTermEqual (myRole, roles->term))
+	    {
+	      if (!first)
+		  printf (", ");
+	      else
+		  first = 0;
+	      termPrint (agentOfRunRole(sys,run,roles->term));
+	      printf(": ");
+	      termPrint (roles->term);
+	    }
+	  roles = roles->next;
 	}
-      roles = roles->next;
+      printf ("$}{");
     }
-  printf ("$}{$");
 
   /* display agent and role */
-  printf ("\\mathbf{");
+  printf ("$\\mathbf{");
   termPrint (myAgent);
   printf("}: ");
   termPrint (myRole);
@@ -336,6 +347,12 @@ latexDeclInst (const System sys, int run)
 void
 latexEventSpace (int amount)
 {
+  if (pass < 2)
+    {
+      /* not printing */
+      return;
+    }
+
   int i;
   //printf("%% number of newlines: %d\n",amount);
   for (i = 0; i < EVENTSPACE * amount; i++)
@@ -353,6 +370,12 @@ latexMessagePrint (struct tracebuf *tb, int from, int to)
 
   Term sendTerm = NULL;
   Term readTerm = NULL;
+
+  if (pass < 2)
+    {
+      /* no measurement of messages yet */
+      return;
+    }
 
   if (from == -1 && to == -1)
     {
@@ -415,6 +438,12 @@ latexMessagePrintHighlight (struct tracebuf *tb, int from, int to,
   Term sendTerm = NULL;
   Term readTerm = NULL;
 
+  if (pass < 2)
+    {
+      /* no measurements on message width yet */
+      return;
+    }
+
   if (from == -1 && to == -1)
     {
       return;
@@ -429,6 +458,7 @@ latexMessagePrintHighlight (struct tracebuf *tb, int from, int to,
     }
   if (from == -1 && to != -1)
     {
+      /* TODO redundant */
       printf ("\\found{$");
       latexTermPrint (readTerm, highlight);
       printf ("$}{}{run%d}\n", tb->run[to]);
@@ -482,10 +512,25 @@ latexAction (struct tracebuf *tb, int te)
 void
 latexClaim (struct tracebuf *tb, int run, Termlist tl)
 {
-  printf ("\\condition{$");
-  printf ("\\neg secret ");
+  if (pass == 1)
+    {
+      printf ("\\maxlength{\\maxmsccondition}{");
+    }
+  else
+    {
+      printf ("\\condition{");
+    }
+  printf ("$\\neg secret ");
   termlistPrint (tl);
-  printf ("$}{run%d}\n", run);
+  printf ("$}");
+  if (pass == 1)
+    {
+      printf ("\n");
+    }
+  else
+    {
+      printf ("{run%d}\n", run);
+    }
 }
 
 /*
@@ -915,158 +960,237 @@ attackDisplayLatex (System sys)
 	}
     }
 
-  /* create MSC title, involving protocol names and such. */
+  /* ------------------------------------------------------
+   *
+   * Start of MSC creation (2-phase)
+   *
+   *
+   * ------------------------------------------------------
+   */
 
-  Termlist protocolnames = NULL;
-  Term pname;
-  for (i = 0; i < width; i++)
+  /* 2 pass for widths */
+
+  for (pass = 1; pass <= 2; pass++)
     {
-      if (runPosition[i] > 0)
+      printf ("%% Pass %i\n\n",pass);
+
+      if (pass == 1)
 	{
-	  pname = sys->runs[i].protocol->nameterm;
-	  if (!inTermlist (protocolnames, pname))
+	  printf ("\\maxlength{\\maxmscaction}{knows}\n");
+	  printf ("\\maxlength{\\maxmscaction}{creates}\n");
+	}
+      else
+	{
+	  /* slightly stretch measurements */
+	  printf ("\\addtolength{\\maxmscall}{2\\mscspacer}\n");
+	  printf ("\\addtolength{\\maxmscaction}{\\mscspacer}\n");
+	  printf ("\\addtolength{\\maxmscinst}{\\mscspacer}\n");
+	  printf ("\\addtolength{\\maxmsccondition}{\\mscspacer}\n");
+
+	  /* put out computed widths */
+	  
+	  printf ("\\setlength{\\envinstdist}{0.5\\maxmscall}\n");
+	  printf ("\\setlength{\\instdist}{\\maxmscall}\n");
+	  printf ("\\setlength{\\actionwidth}{\\maxmscaction}\n");
+	  printf ("\\setlength{\\instwidth}{\\maxmscinst}\n");
+	  printf ("\\setlength{\\conditionoverlap}{0.5\\maxmsccondition}\n");
+
+	  /* create MSC title, involving protocol names and such. */
+
+	  Termlist protocolnames = NULL;
+	  Term pname;
+	  for (i = 0; i < width; i++)
 	    {
-	      protocolnames = termlistAppend (protocolnames, pname);
+	      if (runPosition[i] > 0)
+		{
+		  pname = sys->runs[i].protocol->nameterm;
+		  if (!inTermlist (protocolnames, pname))
+		    {
+		      protocolnames = termlistAppend (protocolnames, pname);
+		    }
+		}
+	    }
+	  latexMSCStart (protocolnames);
+	  termlistDelete (protocolnames);
+	}
+
+      /* declare instances */
+
+      for (i = 0; i < width; i++)
+	{
+	  if (runPosition[i] > 0)
+	    latexDeclInst (sys, i);
+	}
+      /* Add the intruder instance */
+      if (pass == 2)
+	  printf ("\\declinst{eve}{}{");
+      else
+	  printf ("\\maxlength{\\maxmscinst}{");
+      printf ("{\\bf Eve}: Intruder}\n\n");
+
+      /* Print the local constants for each instance */
+
+      for (i = 0; i < width; i++)
+	{
+	  if (runPosition[i] > 0)
+	    {
+	      Termlist tl = sys->runs[i].locals;
+	      int first = 1;
+	      while (tl != NULL)
+		{
+		  /* detect whether it's really local to this run */
+		  Term t = deVar (tl->term);
+		  if (isTermLeaf (t) && t->runid == i)
+		    {
+		      if (first)
+			{
+			  if (pass == 1)
+			      printf ("\\maxlength{\\maxmscaction}{$");
+			  else
+			      printf ("\\ActionBox{creates \\\\\n$");
+			  first = 0;
+			}
+		      else
+			{
+			  printf (", ");
+			}
+		      termPrint (tl->term);
+		    }
+		  tl = tl->next;
+		}
+	      if (!first)
+		{
+		  if (pass == 1)
+		      printf ("$}\n");
+		  else
+		      printf ("$}{run%i}\n", i);
+		}
 	    }
 	}
-    }
-  latexMSCStart (protocolnames);
-  termlistDelete (protocolnames);
 
-  /* declare instances */
+      /* Print the initial intruder knowledge */
 
-  for (i = 0; i < width; i++)
-    {
-      if (runPosition[i] > 0)
-	latexDeclInst (sys, i);
-    }
-  /* Add the intruder instance */
-  printf ("\\declinst{eve}{}{{\\bf Eve}: Intruder}\n");
-  printf ("\n\n");
-
-  /* Print the local constants for each instance */
-
-  for (i = 0; i < width; i++)
-    {
-      if (runPosition[i] > 0)
+      if (pass == 2)
 	{
-	  Termlist tl = sys->runs[i].locals;
-          int first = 1;
-	  while (tl != NULL)
+	  printf ("\\ActionBox{");
+          printf ("knows \\\\\n$");
+          knowledgePrintLatex (tb->know[0]);
+          printf ("$}");
+	  printf ("{eve}\n");
+          printf ("\\nextlevel[3]\n");
+          printf ("\n");
+	}
+
+      /* print the events in the attack */
+
+      //for (j=-1; j<=sys->step; j++)
+      position = 0;
+      cKnowledge = 0;
+      for (i = 0; i < tb->length; i++)
+	{
+	  if (tb->status[i] != S_RED)
 	    {
-	      /* detect whether it's really local to this run */
-	      Term t = deVar (tl->term);
-	      if (isTermLeaf (t) && t->runid == i)
+	      latexEventSpace (tinfo[i].position - position);
+	      if (tinfo[i].position >= position)
 		{
-		  if (first)
+		  position = tinfo[i].position;
+		}
+	      switch (tb->event[i]->type)
+		{
+		case SEND:
+		  newtl = knowledgeNew (tb->know[i], tb->know[i + 1]);
+		  highlights = NULL;
+		  /* Build a Termlist of terms that from the claimViolationDetails,
+		     that appear in the knowledge */
+		  if (newtl != NULL)
 		    {
-		      printf ("\\action{creates $");
-		      first = 0;
+		      tl = claimDetails;
+		      while (tl != NULL)
+			{
+			  if (inTermlist (newtl, tl->term))
+			    {
+			      highlights = termlistAdd (highlights, tl->term);
+			    }
+			  tl = tl->next;
+			}
+
+		    }
+
+		  if (tb->link[i] != -1 && i < tb->length)
+		    {
+		      latexMessagePrintHighlight (tb, i, tb->link[i], highlights);
 		    }
 		  else
 		    {
-		      printf (", ");
+		      latexMessagePrintHighlight (tb, i, -1, highlights);	//lost message
 		    }
-		  termPrint (tl->term);
-		}
-	      tl = tl->next;
-	    }
-	  if (!first)
-	    {
-	      printf ("$}{run%i}\n", i);
-	    }
-	}
-    }
 
-  /* Print the initial intruder knowledge */
-
-  printf ("\\action{knows $");
-  knowledgePrintLatex (tb->know[0]);
-  printf ("$}{eve}\n");
-  printf ("\\nextlevel[2]\n\n");
-
-  /* print the events in the attack */
-
-  //for (j=-1; j<=sys->step; j++)
-  position = 0;
-  cKnowledge = 0;
-  for (i = 0; i < tb->length; i++)
-    {
-      if (tb->status[i] != S_RED)
-	{
-	  latexEventSpace (tinfo[i].position - position);
-	  if (tinfo[i].position >= position)
-	    {
-	      position = tinfo[i].position;
-	    }
-	  switch (tb->event[i]->type)
-	    {
-	    case SEND:
-	      newtl = knowledgeNew (tb->know[i], tb->know[i + 1]);
-	      highlights = NULL;
-	      /* Build a Termlist of terms that from the claimViolationDetails,
-	         that appear in the knowledge */
-	      if (newtl != NULL)
-		{
-		  tl = claimDetails;
-		  while (tl != NULL)
+		  /* maybe extra knowledge? */
+		  if (newtl != NULL)
 		    {
-		      if (inTermlist (newtl, tl->term))
+		      /* print what was learned */
+
+		      if (pass == 1)
 			{
-			  highlights = termlistAdd (highlights, tl->term);
+			  printf ("\\maxlength{\\maxmscaction}{");
 			}
-		      tl = tl->next;
+		      else
+			{
+		          printf ("\\nextlevel[1]\n");
+		          printf ("\\ActionBox{learns \\\\\n");
+			}
+		      printf ("$");
+		      cKnowledge++;
+		      latexTermlistPrint (newtl, highlights);
+		      printf ("$}");
+		      if (pass == 1)
+			{
+			  printf ("\n");
+			}
+		      else
+			{
+			  printf ("{eve}\n");
+		      	  printf ("\\nextlevel[2]\n");
+			}
 		    }
 
-		}
+		  termlistDelete (highlights);
 
-	      if (tb->link[i] != -1 && i < tb->length)
-		{
-		  latexMessagePrintHighlight (tb, i, tb->link[i], highlights);
+		  break;
+		case READ:
+		  if (tb->event[i]->internal)
+		    {
+		    }
+		  else if (tb->link[i] == -1)
+		    {
+		      latexMessagePrint (tb, -1, i);	//found message
+		    }
+		  break;
+		case CLAIM:
+		  if (claimDetails != NULL && claimDetails != (Termlist) - 1)
+		    {
+		      latexClaim (tb, tb->run[i], claimDetails);
+		    }
+		  break;
+		default:
+		  break;		//kannie!
 		}
-	      else
-		{
-		  latexMessagePrintHighlight (tb, i, -1, highlights);	//lost message
-		}
-
-	      /* maybe extra knowledge? */
-	      if (newtl != NULL)
-		{
-		  /* print what was learned */
-
-		  printf ("\\nextlevel[1]\n");
-		  printf ("\\action{learns $");
-		  cKnowledge++;
-		  latexTermlistPrint (newtl, highlights);
-		  printf ("$}{eve}\n");
-		  printf ("\\nextlevel[1]\n");
-		}
-
-	      termlistDelete (highlights);
-
-	      break;
-	    case READ:
-	      if (tb->event[i]->internal)
-		{
-		}
-	      else if (tb->link[i] == -1)
-		{
-		  latexMessagePrint (tb, -1, i);	//found message
-		}
-	      break;
-	    case CLAIM:
-	      if (claimDetails != NULL && claimDetails != (Termlist) - 1)
-		{
-		  latexClaim (tb, tb->run[i], claimDetails);
-		}
-	      break;
-	    default:
-	      break;		//kannie!
 	    }
 	}
     }
+
+  /*
+   * close up diagrams
+   */
+
+
   latexEventSpace (2);
   latexMSCEnd ();
+
+  /*
+   * free used memory
+   */
+
   memFree (runPosition, width * sizeof (int));
   memFree (tinfo, (tb->length + 1) * sizeof (struct traceinfo));
 }
