@@ -1,0 +1,68 @@
+usertype Sessionkey;
+usertype Keypart;
+secret k: Function;
+
+protocol gongnonce(I,R,S)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+		const ki: Keypart;
+		var kr: Keypart;
+
+		send_1 (I,R, I,R,ni );
+		read_3 (S,I, { S,I,R, kr, I, ni }k(I,S), nr);
+		send_4 (I,S, { I,S,I, ki, R, nr }k(I,S) );
+
+		claim_6 (I, Secret, ki,kr);
+		claim_8 (I, Nisynch);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		const nr: Nonce;
+		const kr: Keypart;
+		var ki: Keypart;
+
+		read_1 (I,R, I,R,ni );
+		send_2 (R,S, I,R, nr, { R,S,R, kr, I,ni }k(R,S));
+		read_5 (S,R, { S,R,I, ki, R, nr }k(R,S) );
+
+		claim_7 (R, Secret, ki,kr);
+		claim_9 (R, Nisynch);
+	}
+
+	role S
+	{
+		var ni,nr: Nonce;
+		var ki,kr: Keypart;
+
+		read_2 (R,S, I,R, nr, { R,S,R, kr, I,ni }k(R,S));
+		send_3 (S,I, { S,I,R, kr, I, ni }k(I,S), nr);
+		read_4 (I,S, { I,S,I, ki, R, nr }k(I,S) );
+		send_5 (S,R, { S,R,I, ki, R, nr }k(R,S) );
+	}
+}
+
+const Alice,Bob,Simon,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const kpe: Keypart;
+const ke: Sessionkey;
+compromised k(Eve,Eve);
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Eve,Simon);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
+compromised k(Simon,Eve);
+
+run gongnonce.I(Agent,Agent,Simon);
+run gongnonce.R(Agent,Agent,Simon);
+run gongnonce.S(Agent,Agent,Simon);
+run gongnonce.I(Agent,Agent,Simon);
+run gongnonce.R(Agent,Agent,Simon);
+run gongnonce.S(Agent,Agent,Simon);
