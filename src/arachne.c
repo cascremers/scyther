@@ -28,6 +28,8 @@ extern Term TERM_Agent;
 extern Term TERM_Hidden;
 
 static System sys;
+static Claimlist current_claim;
+
 Protocol INTRUDER;		// Pointers, to be set by the Init
 Role I_M;			// Same here.
 Role I_F;
@@ -953,9 +955,38 @@ add_claim_specifics (const Claimlist cl, const Roledef rd)
     }
 }
 
+//! Count a false claim
+void
+count_false ()
+{
+  current_claim->failed = statesIncrease (current_claim->failed);
+}
+
 //------------------------------------------------------------------------
 // Main logic core
 //------------------------------------------------------------------------
+
+//! Check properties
+int
+property_check ()
+{
+  int flag;
+
+  flag = 1;
+  if (current_claim->type == CLAIM_Secret)
+    {
+      // Secrecy claim
+      /**
+       * By the way the claim is handled, this automatically means a flaw.
+       */
+      count_false ();
+#ifdef DEBUG
+      if (DEBUGL (3))
+	  printSemiState();
+#endif
+    }
+  return flag;
+}
 
 //! Main recursive procedure for Arachne
 int
@@ -1014,13 +1045,8 @@ iterate ()
 	   * all goals bound, check for property
 	   */
 	  sys->claims = statesIncrease (sys->claims);
-#ifdef DEBUG
-	  if (DEBUGL (3))
-	    {
-	      printSemiState ();
-	    }
-#endif
-	  //!@todo Property check in Arachne.
+	  current_claim->count = statesIncrease (current_claim->count);
+	  flag = flag && property_check ();
 	}
       else
 	{
@@ -1129,7 +1155,7 @@ arachne ()
 	  e_term2 = NULL;
 	  e_term3 = NULL;
 #endif
-
+          current_claim = cl;
 	  p = (Protocol) cl->protocol;
 	  r = (Role) cl->role;
 #ifdef DEBUG
