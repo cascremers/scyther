@@ -481,7 +481,7 @@ attackDisplayAscii (System sys)
 void
 attackDisplay (System sys)
 {
-  if (!sys->report)
+  if (!sys->report || sys->switchStatespace)
       return;
 
   if (sys->latex)
