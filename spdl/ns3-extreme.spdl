@@ -12,7 +12,7 @@ protocol ns3(I,R)
 		send_1(I,R, {I,ni}pk(R) );
 		read_2(R,I, {ni,nr}pk(I) );
 		send_3(I,R, {nr}pk(R) );
-		claim(I,Secret,nr);
+		claim(I,Secret,ni,nr);
 	}	
 	
 	role R
@@ -23,11 +23,11 @@ protocol ns3(I,R)
 		read_1(I,R, {I,ni}pk(R) );
 		send_2(R,I, {ni,nr}pk(I) );
 		read_3(I,R, {nr}pk(R) );
-		claim(I,Secret,ni);
+		claim(R,Secret,ni,nr);
 	}
 }
 
-const Alice,Bob,Eve : Agent;
+const Alice,Bob,Eve: Agent;
 
 /* something like this will later on all be implied by 'untrusted Eve' */
 
