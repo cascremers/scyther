@@ -228,12 +228,14 @@ latexTimers (const System sys)
 }
 
 void
-latexMSCStart ()
+latexMSCStart (Termlist protocolnames)
 {
   if (landscape)
     printf ("\\begin{landscape}\n");
 
-  printf ("\\begin{msc}{attack}\n");
+  printf ("\\begin{msc}{attack on $");
+  termlistPrint(protocolnames);
+  printf ("$}\n");
 }
 
 void
@@ -787,12 +789,33 @@ attackDisplayLatex (System sys)
 	}
     }
 
-  latexMSCStart ();
+  /* create title */
+
+  Termlist protocolnames = NULL;
+  Term pname;
+  for (i = 0; i < width; i++)
+    {
+      if (runPosition[i] > 0)
+	{
+	  pname = sys->runs[i].protocol->nameterm;
+	  if (!inTermlist(protocolnames, pname))
+	    {
+	      protocolnames = termlistAppend(protocolnames, pname);
+	    }
+	}
+    }
+  latexMSCStart (protocolnames);
+  termlistDelete (protocolnames);
+
+  /* declare instances */
+
   for (i = 0; i < width; i++)
     {
       if (runPosition[i] > 0)
 	latexDeclInst (sys, i);
     }
+
+  /* print the events in the attack */
 
   //for (j=-1; j<=sys->step; j++)
   position = 0;
