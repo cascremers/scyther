@@ -12,6 +12,8 @@
 #define runPointerGet(sys,run)		sys->runs[run].index
 #define runPointerSet(sys,run,newp)	sys->runs[run].index = newp
 
+enum outputs { EMPTY, ATTACK, STATESPACE, SCENARIOS, SUMMARY };
+
 //! Protocol definition.
 struct protocol
 {
@@ -90,8 +92,6 @@ struct tracebuf
   //! List of variables in the system.
   Varbuf	variables;
 };
-
-enum outputs { EMPTY, ATTACK, STATESPACE, SCENARIOS };
 
 //! The main state structure.
 struct system

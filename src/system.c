@@ -204,7 +204,10 @@ systemDone (const System sys)
 void
 statesPrintShort (const System sys)
 {
-  fprintf (stderr,"%.3e", statesDouble (sys->states));
+  if (globalError == 0)
+    statesFormat (stdout, sys->states);
+  else
+    statesFormat (stderr, sys->states);
 }
 
 //! Print the number of states.

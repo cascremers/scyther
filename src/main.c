@@ -113,7 +113,7 @@ main (int argc, char **argv)
   struct arg_lit *switch_enable_symmetry_order = arg_lit0 (NULL, "symm-order", "enable ordering symmetry reductions");
   struct arg_lit *switch_disable_noclaims_reductions = arg_lit0 (NULL, "no-noclaims-red", "disable no more claims reductions");
   struct arg_lit *switch_disable_endgame_reductions = arg_lit0 (NULL, "no-endgame-red", "disable endgame reductions");
-  struct arg_lit *switch_claims = arg_lit0 (NULL, "claims", "show claims report");
+  struct arg_lit *switch_summary = arg_lit0 ("S", "summary", "show summary on stdout instead of stderr");
 #ifdef DEBUG
   struct arg_int *switch_por_parameter = arg_int0 (NULL, "pp", NULL, "POR parameter");
   struct arg_lit *switch_debug_indent = arg_lit0 ("I", "debug-indent",
@@ -132,8 +132,8 @@ main (int argc, char **argv)
     switch_state_space_graph,
     switch_scenario,
     switch_latex_output,
+    switch_summary,
     switch_progress_bar, 
-    switch_claims,
 
     switch_traversal_method, 
     switch_match_method, 
@@ -325,8 +325,8 @@ main (int argc, char **argv)
       sys->switchNomoreClaims = 0;	/* disable no more claims cutter */
   if (switch_disable_endgame_reductions->count > 0)
       sys->switchReduceEndgame = 0;	/* disable endgame cutter */
-  if (switch_claims->count > 0)
-      sys->switchClaims = 1;		/* claims report */
+  if (switch_summary->count > 0)
+      sys->output = SUMMARY;		/* report summary on stdout */
 
   /*
    * The scenario selector has an important side effect; when it is non-null,
@@ -563,23 +563,17 @@ timersPrint (const System sys)
 
 // #define NOTIMERS
 
-  /* display stats, header first */
-#ifdef NOTIMERS
-  fprintf (stderr, "States\t\tAttack\n");
-#else
-  fprintf (stderr, "Time\t\tStates\t\tAttack\t\tst/sec\n");
-
-  /* print time */
-
-  double seconds;
-  seconds = (double) clock () / CLOCKS_PER_SEC;
-  fprintf (stderr, "%.3e\t", seconds);
-#endif
+  /* display stats */
+  if (sys->output != SUMMARY)
+    {
+      globalError++;
+    }
 
   /* states traversed */
 
+  eprintf ("states\t");
   statesPrintShort (sys);
-  fprintf (stderr, "\t");
+  eprintf ("\n");
 
   /* flag
    *
@@ -588,79 +582,79 @@ timersPrint (const System sys)
    * NoClaim      no claims
    */
 
+  eprintf ("attack\t");
   if (sys->claims == STATES0)
     {
-      fprintf (stderr, "NoClaim\t\t");
+      eprintf ("NoClaim\n");
     }
   else
     {
       if (sys->failed != STATES0)
-	fprintf (stderr, "L:%i\t\t", attackLength(sys->attack));
+	eprintf ("L:%i\n", attackLength(sys->attack));
       else
-	fprintf (stderr, "None\t\t");
+	eprintf ("None\n");
     }
 
-#ifdef NOTIMERS
-  fprintf (stderr, "\n");
-#else
+#ifndef NOTIMERS
+  /* print time */
+
+  double seconds;
+  seconds = (double) clock () / CLOCKS_PER_SEC;
+  eprintf ("time\t%.3e\n", seconds);
+
   /* states per second */
 
+  eprintf ("st/sec\t");
   if (seconds > 0)
     {
-      fprintf (stderr, "%.3e\t", statesDouble (sys->states) / seconds);
+      eprintf ("%.3e\n", statesDouble (sys->states) / seconds);
     }
   else
     {
-      fprintf (stderr, "<inf>\t\t");
+      eprintf ("<inf>\n");
     }
-
-  fprintf (stderr, "\n");
 #endif
 
-  if (sys->switchClaims)
+  /* Print also individual claims */
+  /* Note that if the output is set to empty, the claim output is redirected to stdout (for e.g. processing)
+   */
+  cl_scan = sys->claimlist;
+  anyclaims = 0;
+  while (cl_scan != NULL)
     {
-      /* Print also individual claims */
-      /* Note that if the output is set to empty, the claim output is redirected to stdout (for e.g. processing)
+      /**
+       * for now, we don't print the actual claim label.
+       *@todo When termPrint can also go to stderr, fix this.
        */
-      if (sys->output != EMPTY)
-          globalError++;
-      cl_scan = sys->claimlist;
-      anyclaims = 0;
-      while (cl_scan != NULL)
-	{
-	  /**
-	   * for now, we don't print the actual claim label.
-	   *@todo When termPrint can also go to stderr, fix this.
-	   */
-	  if (!anyclaims)
-	    {
-	      eprintf ("Claim\tOccurrences\n");
-	      anyclaims = 1;
-	    }
+      anyclaims = 1;
 
-	  termPrint (cl_scan->rolename);
-	  eprintf (":");
-	  termPrint (cl_scan->label);
-	  eprintf ("\t");
-	  statesFormat (stderr, cl_scan->count);
-	  if (cl_scan->count > 0)
-	    {
-	      eprintf ("\t");
-	      if (cl_scan->failed > 0)
-		{
-		  statesFormat (stderr, cl_scan->failed);
-		  eprintf (" failed");
-		}
-	    }
-	  eprintf ("\n");
-	  cl_scan = cl_scan->next;
-	}
-      if (!anyclaims)
+      eprintf ("claim\t");
+      termPrint (cl_scan->rolename);
+      eprintf (":");
+      termPrint (cl_scan->label);
+      eprintf ("\t");
+      statesFormat (stderr, cl_scan->count);
+      if (cl_scan->count > 0)
 	{
-	  warning ("No claims in system.");
+	  eprintf ("\t");
+	  if (cl_scan->failed > 0)
+	    {
+	      statesFormat (stderr, cl_scan->failed);
+	      eprintf (" failed");
+	    }
 	}
-      if (sys->output != EMPTY)
-          globalError--;
+      eprintf ("\n");
+      cl_scan = cl_scan->next;
+    }
+  if (!anyclaims)
+    {
+      warning ("No claims in system.");
+    }
+
+  /* reset globalError */
+  if (sys->output != SUMMARY)
+    {
+      globalError--;
     }
 }
 
