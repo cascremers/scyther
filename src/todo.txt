@@ -1,3 +1,6 @@
+- Some compiler errors are still sent to stdout. This must be fixed
+  ASAP! because it means people get an invisible error using the
+  scripts.
 - There is a possible memory leak when buffering attacks, e.g. with -p0.
   Investigate.
 - Make --with-argtabledir= something switch, replacing
