@@ -1,3 +1,5 @@
+- Figure out how static building works. Might even involve switching to
+  automake alternative (Cons, SCons,..)
 - Constraint logic now also has no checks for when a run is done by the
   intruder (which should be excluded).
 - Fix constants in intruder knowledge. Auto add single one of each type,
@@ -25,8 +27,6 @@
   (have key and contents, have inverse key and content, nothing)
 - Implement delayed protocol compiler (on run demand only).
 - Remove any remaining global variables, if any.
-- When choosing agents for runs (with an initial read), it does not make
-  sense to choose untrusted agents.
 - Introduce 'Ticket' default type in the compiler, along with some
   handling for that.
 - Make a shell script 'test $filename $commandline'
@@ -35,10 +35,6 @@
 - How should claims behave (trusted/untrusted) wrt uninstantiated
   agents? Branch again? That's what is causing the nsl3-var problem.
 - The 'choose' operator must always be typed, I think.
-- Synchronisation test can be expensive, because a good protocol will
-  yield few such tests, and a bad protocol will prune most traces after
-  failure. The performance loss will only be 'felt' when the whole state
-  space is explored (-p0), which is only used for theoretical tests.
 - The woolam-ce is incorrect because it is illegal to have a variable
   term in a key that is read, by CMV semantics. I don't know what it
   means for CE semantics (yet).
