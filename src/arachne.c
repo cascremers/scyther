@@ -21,6 +21,7 @@
 #include "claim.h"
 #include "debug.h"
 #include "binding.h"
+#include "warshall.h"
 
 extern Term CLAIM_Secret;
 extern Term CLAIM_Nisynch;
@@ -28,6 +29,9 @@ extern Term CLAIM_Niagree;
 extern Term TERM_Agent;
 extern Term TERM_Hidden;
 extern Term TERM_Function;
+
+extern int *graph;
+extern int nodes;
 
 static System sys;
 static Claimlist current_claim;
@@ -685,25 +689,6 @@ dotSemiState ()
       }
   }
 
-  int binder (void *data)
-  {
-    Binding b;
-
-    b = (Binding) data;
-    if (b->done)
-      {
-	eprintf ("\t");
-	node (b->run_from, b->ev_from);
-	eprintf (" -> ");
-	node (b->run_to, b->ev_to);
-	eprintf (" [label=\"");
-	termPrint (b->term);
-	eprintf ("\"]");
-	eprintf (";\n");
-      }
-    return 1;
-  }
-
   // Open graph
   attack_number++;
   eprintf ("digraph semiState%i {\n", attack_number);
@@ -778,26 +763,102 @@ dotSemiState ()
 	    }
 	  eprintf ("\t}\n");
 	}
-      else
-	{
-	  // INTRUDER run
-	  eprintf ("\t");
-	  node (run, 0);
-	  if (sys->runs[run].role == I_M)
-	    {
-	      eprintf (" [label=\"M0\"]");
-	    }
-	  else
-	    {
-	      eprintf (" [shape=point]");
-	    }
-	  eprintf (";\n");
-	}
       run++;
     }
 
-  // Second, all bindings
-  list_iterate (sys->bindings, binder);
+  // Second, all bindings.
+  // We now determine them ourselves between existing runs
+  goal_graph_create ();		// create graph
+  warshall (graph, nodes);	// determine closure
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      if (sys->runs[run].protocol != INTRUDER)
+	{
+	  int ev;
+
+	  ev = 0;
+	  while (ev < sys->runs[run].length)
+	    {
+	      /**
+	       * Determine wheter to draw an incoming arrow to this event.
+	       * We check all other runs, to see if they are ordered.
+	       */
+	      int run2;
+
+	      run2 = 0;
+	      while (run2 < sys->maxruns)
+		{
+		  if (run2 != run && sys->runs[run2].protocol != INTRUDER)
+		    {
+		      // Is this run before the event?
+		      int ev2;
+		      int found;
+
+		      found = 0;
+		      ev2 = sys->runs[run2].length - 1;
+		      while (ev2 >= 0 && !found)
+			{
+			  if (graph[graph_nodes (nodes, run2, ev2, run, ev)]
+			      != 0)
+			    found = 1;
+			  else
+			    ev2--;
+			}
+		      if (found)
+			{
+			  // It is before the event, and thus we would like to draw it.
+			  // However, if there is another path along which we can get here, forget it
+			  int run3;
+			  int other_route;
+
+			  other_route = 0;
+			  run3 = 0;
+			  while (run3 < sys->maxruns)
+			    {
+			      if (sys->runs[run3].protocol != INTRUDER)
+				{
+				  int ev3;
+
+				  ev3 = 0;
+				  while (ev3 < sys->runs[run3].length)
+				    {
+				      if (graph
+					  [graph_nodes
+					   (nodes, run2, ev2, run3, ev3)] != 0
+					  &&
+					  graph[graph_nodes
+						(nodes, run3, ev3, run,
+						 ev)] != 0)
+					{
+					  // other route found
+					  other_route = 1;
+					  // abort
+					  ev3 = sys->runs[run3].length;
+					  run3 = sys->maxruns;
+					}
+				      ev3++;
+				    }
+				}
+			      run3++;
+			    }
+			  if (!other_route)
+			    {
+			      eprintf ("\t\t");
+			      node (run2, ev2);
+			      eprintf (" -> ");
+			      node (run, ev);
+			      eprintf (";\n");
+			    }
+			}
+		    }
+		  run2++;
+		}
+	      ev++;
+	    }
+	}
+      run++;
+    }
 
   // close graph
   eprintf ("};\n\n");

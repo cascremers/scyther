@@ -34,6 +34,9 @@ void bindingDone ();
 
 int node_count ();
 int node_number (int run, int ev);
+__inline__ int graph_nodes (const int nodes, const int run1, const int ev1,
+			    const int run2, const int ev2);
+void goal_graph_create ();
 
 
 int binding_print (Binding b);

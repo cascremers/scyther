@@ -14,8 +14,8 @@
 #include "termmap.h"
 
 static System sys;
-static int *graph;
-static int nodes;
+int *graph;
+int nodes;
 
 extern Protocol INTRUDER;	// The intruder protocol
 extern Role I_M;		// special role; precedes all other events always
@@ -352,6 +352,8 @@ int
 labels_ordered (Termmap runs, Termlist labels)
 {
   goal_graph_create ();
+  warshall (graph, nodes);
+
   while (labels != NULL)
     {
       // Given this label, and the mapping of runs, we want to know if the order is okay. Thus, we need to know sendrole and readrole
