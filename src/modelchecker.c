@@ -1255,40 +1255,11 @@ traversePOR6 (const System sys)
   /* The 'choose' implemented here is the following:
    *
    * choose ev#rid
-   * where rid = min(r: ev#r in enabled(sys): (r-lastrun) mod maxruns)
-   * and where lastrun is the runid of the previous event 
-   * in the trace, or 0 if there was none.
+   * where rid = min(r: ev#r in enabled(sys): r)
    */
 
-  /* First pick out any choose events */
-  for (run = 0; run < sys->maxruns && !flag; run++)
-    {
-      rd = runPointerGet (sys, run);
-
-      if (rd != NULL)
-	{
-	  switch (rd->type)
-	    {
-	    case CLAIM:
-	    case SEND:
-	      break;
-
-	    case READ:
-	      if (rd->internal)
-		{
-		  flag = executeTry (sys, run);
-		}
-	      break;
-
-	    default:
-	      fprintf (stderr, "Encountered unknown event type %i.\n", rd->type);
-	      exit (1);
-	    }
-	}
-    }
-
-  /* Try all events (implicitly we only handle enabled ones) starting with our
-   * first choice.  If one was chosen, flag is set, and the loop aborts. */
+  /* Try all events (implicitly we only handle enabled ones) left-to-right.
+   * If one was chosen, flag is set, and the loop aborts. */
   for (run = 0; run < sys->maxruns && !flag; run++)
     {
       rd = runPointerGet (sys, run);
