@@ -189,9 +189,9 @@ add_intruder_goal (Goal goal)
   goal.rd->bind_run = run;
   goal.rd->bind_index = 0;
   rd = sys->runs[run].start;
+  sys->runs[run].length = 1;
   termDelete (rd->message);
   rd->message = termDuplicate (goal.rd->message);
-
 #ifdef DEBUG
   explanation = "Adding intruder goal for run";
   e_run = goal.run;
@@ -216,14 +216,11 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
     {
       if (sys->runs[run].protocol == p && sys->runs[run].role == r)
 	{
-	  int i;
 	  int old_length;
 	  Roledef rd;
 
-	  // find roledef entry
-	  rd = sys->runs[run].start;
-	  for (i = 0; i < index; i++)
-	    rd = rd->next;
+	  // Roledef entry
+	  rd = roledef_shift (sys->runs[run].start, index);
 
 	  // mgu and iterate
 	  old_length = sys->runs[run].length;
@@ -234,8 +231,8 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 	  e_run = run;
 	  e_term1 = goal.rd->message;
 #endif
-	  flag =
-	    flag & termMguInTerm (goal.rd->message, rd->message, mgu_iterate);
+	  flag = flag
+	    && termMguInTerm (goal.rd->message, rd->message, mgu_iterate);
 	  sys->runs[run].length = old_length;
 	}
     }
@@ -256,9 +253,12 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
   sys->runs[run].length = index + 1;
   goal.rd->bind_run = run;
   goal.rd->bind_index = index;
-  rd = roledef_shift (sys->runs[run].start, index);
 #ifdef DEBUG
   explanation = "Bind new run";
+  e_run = run;
+  e_term1 = r->nameterm;
+  rd = roledef_shift (sys->runs[run].start, index);
+  e_term2 = rd->message;
 #endif
 
   iterate ();
@@ -266,6 +266,36 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
   goal.rd->bind_run = INVALID;
   roleInstanceDestroy (sys);
   return flag;
+}
+
+//! Print the current semistate
+void
+printSemiState ()
+{
+  int run;
+
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      int index;
+      Roledef rd;
+
+      indentPrint ();
+      eprintf ("[ Run %i, ", run);
+      termPrint (sys->runs[run].role->nameterm);
+      eprintf (" ]\n");
+
+      index = 0;
+      rd = sys->runs[run].start;
+      while (index < sys->runs[run].length)
+	{
+	  indentPrint ();
+	  eprintf ("\\ %i ", index);
+	  roledefPrint (rd);
+	  eprintf ("\n");
+	  index++;
+	  rd = rd->next;
+	}
+    }
 }
 
 //------------------------------------------------------------------------
@@ -459,6 +489,8 @@ iterate ()
 	  /*
 	   * all goals bound, check for property
 	   */
+	  sys->claims = statesIncrease (sys->claims);
+	  printSemiState ();
 	  //!@todo Property check in Arachne.
 	}
       else
@@ -507,6 +539,7 @@ arachne ()
   e_term3 = NULL;
   indentDepth = 0;
 #endif
+  printSemiState ();
 
   /*
    * iterate
