@@ -15,7 +15,10 @@
 
 /*
  * Validity checks for claims
+ *
+ * Note that the first few operate on claims, and that the tests for e.g. the Arachne engine are seperate.
  */
+
 
 #ifdef OKIDEBUG
 int indac = 0;
@@ -440,3 +443,14 @@ check_claim_niagree (const System sys, const int i)
   termmapDelete (g);
   return result;
 }
+
+
+//! Check arachne agreement claim
+/**
+ * Per default, occurs in run 0, but for generality we have left the run parameter in.
+ *@returns 1 if the claim is true, 0 if it is not.
+ */
+int arachne_claim_agree (const System sys, const int claim_run, const int claim_index)
+{
+}
+

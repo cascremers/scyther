@@ -21,6 +21,19 @@ static System sys;
 static Tac tac_root;
 
 /*
+ * Structure to store label information
+ */
+struct labelinfo
+{
+    Term label;
+    Term protocol;
+    Term sendrole;
+    Term readrole;
+};
+
+typedef struct labelinfo Labelinfo;
+
+/*
  * Declaration from system.c
  */
 extern int protocolCount;
@@ -898,6 +911,8 @@ compute_role_variables (const System sys, Protocol p, Role r)
  * a mapping from all events to event/claim labels.
  * A second table is used to compute the precedence order, and 
  * Warshall's algorithm is used to compute the transitive closure.
+ * Then, for each claim, the in the preceding labels occurring roles are stored,
+ * which is useful later.
  *@returns For each claim in the claim list, a preceding label set is defined.
  */
 void

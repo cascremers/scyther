@@ -176,6 +176,7 @@ struct system
   int roleeventmax;		//!< Maximum number of events in a single role
   int lastChooseRun;		//!< Last run with a choose event
   Claimlist claimlist;		//!< List of claims in the system, with occurrence counts
+  List labellist;		//!< List of labelinfo stuff
 
   /* constructed trace pointers, static */
   Roledef *traceEvent;		//!< Trace roledefs: MaxRuns * maxRoledef
