@@ -6,6 +6,13 @@
 #	(c)2005 Cas Cremers
 #
 #
+#	TODO:
+#
+#	- Maybe it is an idea to time the output. If Scyther takes less
+#	  than a second, we don't need to cache the output. That would
+#	  reduce the required cache size significantly.
+#
+
 import md5
 import commands
 import os
