@@ -290,7 +290,7 @@ termPrint (Term term)
 {
   if (term == NULL)
     {
-      eprintf ("Empty term");
+      eprintf ("*");
       return;
     }
 #ifdef DEBUG
