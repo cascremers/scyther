@@ -425,7 +425,7 @@ exit:
 void
 timersPrint (const System sys)
 {
-#define NOTIMERS
+// #define NOTIMERS
 
   /* display stats, header first */
 #ifdef NOTIMERS
