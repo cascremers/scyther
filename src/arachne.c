@@ -1514,9 +1514,6 @@ prune_theorems ()
 	      Term actor;
 
 	      actor = agentOfRun(sys, run);
-	      eprintf ("Bla %i ", run);
-	      termPrint (actor);
-	      eprintf ("\n");
 	      if (inTermlist (sys->untrusted, actor))
 		{
 		  if (sys->output == PROOF)
