@@ -352,7 +352,7 @@ main (int argc, char **argv)
       sys->switchS = 0;
   else
       /* enable progress display */
-      sys->switchS = 10000;
+      sys->switchS = 50000;
   if (switchSS->count > 0)
     {
       /* enable state space graph output */
