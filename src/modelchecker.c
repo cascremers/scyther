@@ -1043,8 +1043,7 @@ violateClaim (const System sys, int length, int claimev, Termlist reqt)
   /* mark the path in the state graph? */
   if (sys->switchStatespace)
     {
-      graphNodePath (sys,length,"shape=parallelogram,color=red");
-      graphEdgePath (sys,length-1,"color=red");
+      graphPath (sys, length);
     }
 
   /* Copy the current trace to the buffer, if the new one is shorter than the previous one. */

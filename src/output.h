@@ -12,5 +12,6 @@ void graphNodePath (const System sys, const int length, const char*
 		nodepar);
 void graphEdgePath (const System sys, const int length, const char*
 		edgepar);
+void graphPath (const System sys, int length);
 
 #endif

@@ -572,7 +572,7 @@ void graphNode (const System sys)
       printf ("#%i\"", sys->traceRun[index]);
       if (rd->type == CLAIM)
 	{
-          printf (",color=green");
+          printf (",shape=house,color=green");
 	}
     }
   /* a choose? */
@@ -619,4 +619,10 @@ void graphEdgePath (const System sys, const int length, const char* edgepar)
       prevNode = thisNode;
       i++;
     }
+}
+
+void graphPath (const System sys, int length)
+{
+  graphNodePath (sys,length,"shape=parallelogram,style=bold,color=red");
+  graphEdgePath (sys,length-1,"style=bold,color=red");
 }
