@@ -738,10 +738,11 @@ dotSemiState ()
 
       index = 0;
       rd = sys->runs[run].start;
-      if (sys->runs[run].protocol != INTRUDER)
+      if (sys->runs[run].protocol != INTRUDER && sys->runs[run].length > 0)
 	{
 	  // Regular run
 
+	  /* DISABLED subgraphs
 	  eprintf ("\tsubgraph cluster_run%i {\n", run);
 	  eprintf ("\t\tlabel = \"");
 	  eprintf ("#%i: ", run);
@@ -757,6 +758,10 @@ dotSemiState ()
 	    {
 	      eprintf ("\t\tcolor = blue;\n");
 	    }
+	    */
+
+
+	  // Display the respective events
 	  while (index < sys->runs[run].length)
 	    {
 	      // Print node itself
@@ -785,7 +790,7 @@ dotSemiState ()
 		  node (run, index - 1);
 		  eprintf (" -> ");
 		  node (run, index);
-		  eprintf (" [style=\"bold\", weight=\"2.0\"]");
+		  eprintf (" [style=\"bold\", weight=\"10.0\"]");
 		  eprintf (";\n");
 		}
 	      else
@@ -820,27 +825,22 @@ dotSemiState ()
 			    }
 			  rd = rd->next;
 			}
-		      if (done)
-			{
-			  // Activity other than claims...
-			  if (send_before_read)
-			    {
-			      // Sends first.
-			      // Show this explicitly in the graph by adding a prefix start node
-			      eprintf ("\t\ts%i [label=\"Start ", run);
-			      agentsOfRunPrint (sys, run);
-			      eprintf ("\", shape=diamond];\n");
-			      eprintf ("\t\ts%i -> ", run);
-			      node (run, index);
-			      eprintf (";\n");
-			    }
-			}
+		      // Draw the first box
+		      // This used to be drawn only if done && send_before_read, now we always draw it.
+		      eprintf ("\t\ts%i [label=\"Run %i ", run,run);
+		      agentsOfRunPrint (sys, run);
+		      eprintf ("\", shape=diamond];\n");
+		      eprintf ("\t\ts%i -> ", run);
+		      node (run, index);
+		      eprintf (";\n");
 		    }
 		}
 	      index++;
 	      rd = rd->next;
 	    }
+	  /* DISABLED subgraphs
 	  eprintf ("\t}\n");
+	  */
 	}
       run++;
     }
@@ -931,10 +931,53 @@ dotSemiState ()
 			    }
 			  if (other_route == 0)
 			    {
+			      Roledef rd,rd2;
+			      /*
+			       * We have decided to draw this binding,
+			       * from run2,ev2 to run,ev
+			       * However, me might need to decide some colouring for this node.
+			       */
 			      eprintf ("\t");
 			      node (run2, ev2);
 			      eprintf (" -> ");
 			      node (run, ev);
+			      eprintf (" ");
+			      // decide color
+		              rd = roledef_shift (sys->runs[run].start,ev);
+		              rd2 = roledef_shift (sys->runs[run2].start,ev2);
+			      if (rd->type == CLAIM)
+				{
+				  // Towards a claim, so only indirect dependency
+				  eprintf ("[color=cornflowerblue]");
+				}
+			      else
+				{
+				  // Not towards claim should imply towards read,
+				  // but we check it to comply with future stuff.
+				  if (rd->type == READ && rd2->type == SEND)
+				    {
+				      // We want to distinguish where it is from a 'broken' send
+				      if (isTermEqual (rd->message, rd2->message))
+					{
+					  if (isTermEqual (rd->from, rd2->from) && isTermEqual (rd->to, rd2->to))
+					    {
+					      // Wow, a perfect match. Leave the arrow as-is :)
+					      eprintf ("[color=forestgreen]");
+					    }
+					  else
+					    {
+					      // Same message, different people
+					      eprintf ("[label=\"redirect\",color=darkorange2]");
+					    }
+					}
+				      else
+					{
+					  // Not even the same message, intruder construction
+					  eprintf ("[label=\"construct\",color=red]");
+					}
+				    }
+				}
+			      // close up
 			      eprintf (";\n");
 			    }
 			}
@@ -977,20 +1020,22 @@ dotSemiState ()
 	  run = 0;
 	  while (run < sys->maxruns)
 	    {
-	      int ev;
-
-	      ev = 0;
-	      while (ev < sys->runs[run].step)
+	      if (sys->runs[run].protocol != INTRUDER)
 		{
-		  if (myrank == ranks[node_number (run,ev)])
+		  int ev;
+
+		  ev = 0;
+		  while (ev < sys->runs[run].step)
 		    {
-		      if (count == 0)
-			  // For now, disabled
-		          eprintf ("//\t{ rank = same; ");
-		      count++;
-		      eprintf ("r%ii%i; ",run,ev);
+		      if (myrank == ranks[node_number (run,ev)])
+			{
+			  if (count == 0)
+			      eprintf ("\t{ rank = same; ");
+			  count++;
+			  eprintf ("r%ii%i; ",run,ev);
+			}
+		      ev++;
 		    }
-		  ev++;
 		}
 	      run++;
 	    }
