@@ -157,8 +157,10 @@ roledefInit (int type, Term label, Term from, Term to, Term msg, Claimlist cl)
   newEvent->forbidden = NULL;	// no forbidden stuff
   newEvent->knowPhase = -1;	// we haven't explored any knowledge yet
   newEvent->claiminfo = cl;	// only for claims
-  newEvent->bind_run = -1;	// unbound goal
-  newEvent->bind_index = -1;	// unbound goal
+  if (type == READ)
+    newEvent->bound = 0;	// bound goal (Used for arachne only). Technically involves choose events as well.
+  else
+    newEvent->bound = 1;	// other stuff does not need to be bound
   newEvent->next = NULL;
   return newEvent;
 }

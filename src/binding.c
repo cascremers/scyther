@@ -7,6 +7,9 @@
 #include "binding.h"
 #include "memory.h"
 
+/*
+ * Idea is the ev_from *has to* precede the ev_to
+ */
 struct binding
 {
   int run_from;
@@ -112,14 +115,14 @@ binding_remove_last ()
   manual = 0;
   list = sys->bindings;
 
-  while (!manual && list != NULL);
-  {
-    Binding b;
+  while (list != NULL && !manual)
+    {
+      Binding b;
 
-    b = (Binding) list->data;
-    manual = b->manual;
-    binding_destroy (b);
-    list = list_delete (list);
-  }
+      b = (Binding) list->data;
+      manual = b->manual;
+      binding_destroy (b);
+      list = list_delete (list);
+    }
   sys->bindings = list;
 }

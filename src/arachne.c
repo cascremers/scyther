@@ -17,6 +17,7 @@
 #include "error.h"
 #include "claim.h"
 #include "debug.h"
+#include "binding.h"
 
 extern CLAIM_Secret;
 extern CLAIM_Nisynch;
@@ -121,7 +122,7 @@ arachneDone ()
  */
 #define INVALID		-1
 #define isGoal(rd)	(rd->type == READ && !rd->internal)
-#define isBound(rd)	(rd->bind_run != INVALID)
+#define isBound(rd)	(rd->bound)
 #define length		step
 
 //! Indent print
@@ -132,7 +133,7 @@ indentPrint ()
   int i;
 
   for (i = 0; i < indentDepth; i++)
-    eprintf ("%i    ",i);
+    eprintf ("%i    ", i);
 #else
   eprintf (">> ");
 #endif
@@ -274,13 +275,17 @@ add_intruder_goal_iterate (Goal goal)
   int run;
 
   run = create_intruder_goal (goal.rd->message);
-  goal.rd->bind_run = run;
-  goal.rd->bind_index = 0;
-
-  flag = iterate ();
+  if (binding_add (run, 0, goal.run, goal.index))
+    {
+      flag = iterate ();
+      binding_remove_last ();
+    }
+  else
+    {
+      flag = 1;
+    }
 
   roleInstanceDestroy (sys);	// destroy the created run
-  goal.rd->bind_run = INVALID;
   return flag;
 }
 
@@ -305,7 +310,6 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
     }
 #endif
   flag = 1;
-  goal.rd->bind_index = index;
   for (run = 0; run < sys->maxruns; run++)
     {
       if (forced_run == -2 || forced_run == run)
@@ -330,16 +334,17 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 		  e_term1 = goal.rd->message;
 		}
 #endif
-	      goal.rd->bind_run = run;
-
-	      flag = (flag
-		      && termMguInTerm (goal.rd->message, rd->message,
-					mgu_iterate));
+	      if (binding_add (run, index, goal.run, goal.index))
+		{
+		  flag = (flag
+			  && termMguInTerm (goal.rd->message, rd->message,
+					    mgu_iterate));
+		  binding_remove_last ();
+		}
 	      sys->runs[run].length = old_length;
 	    }
 	}
     }
-  goal.rd->bind_run = -1;
   return flag;
 }
 
@@ -354,28 +359,31 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
   int old_run;
   int old_index;
 
+  //!@todo if binding_add does not require the roleinstance to be done, move roleInstance into if of binding add (more efficient)
   roleInstance (sys, p, r, NULL);
   run = sys->maxruns - 1;
   sys->runs[run].length = index + 1;
-  old_run = goal.rd->bind_run;
-  old_index = goal.rd->bind_index;
-  goal.rd->bind_run = run;
-  goal.rd->bind_index = index;
-#ifdef DEBUG
-  if (DEBUGL (3))
+  if (binding_add (run, index, goal.run, goal.index))
     {
-      explanation = "Bind new run";
-      e_run = run;
-      e_term1 = r->nameterm;
-      rd = roledef_shift (sys->runs[run].start, index);
-      e_term2 = rd->message;
-    }
+#ifdef DEBUG
+      if (DEBUGL (3))
+	{
+	  explanation = "Bind new run";
+	  e_run = run;
+	  e_term1 = r->nameterm;
+	  rd = roledef_shift (sys->runs[run].start, index);
+	  e_term2 = rd->message;
+	}
 #endif
 
-  flag = iterate ();
+      flag = iterate ();
 
-  goal.rd->bind_run = old_run;
-  goal.rd->bind_index = old_index;
+      binding_remove_last ();
+    }
+  else
+    {
+      flag = 1;
+    }
 
   roleInstanceDestroy (sys);
   return flag;
@@ -675,13 +683,24 @@ bind_goal_intruder (const Goal goal)
 int
 bind_goal (const Goal goal)
 {
-  if (sys->runs[goal.run].protocol == INTRUDER)
+  if (!goal.rd->bound)
     {
-      return bind_goal_intruder (goal);
+      int flag;
+      goal.rd->bound = 1;
+      if (sys->runs[goal.run].protocol == INTRUDER)
+	{
+	  flag = bind_goal_intruder (goal);
+	}
+      else
+	{
+	  flag = bind_goal_regular (goal);
+	}
+      goal.rd->bound = 0;
+      return flag;
     }
   else
     {
-      return bind_goal_regular (goal);
+      return 1;
     }
 }
 
@@ -897,7 +916,7 @@ arachne ()
       /**
        * Add specific goal info
        */
-      add_claim_specifics (cl, roledef_shift(sys->runs[0].start, cl->ev));
+      add_claim_specifics (cl, roledef_shift (sys->runs[0].start, cl->ev));
 
 #ifdef DEBUG
       if (DEBUGL (5))
@@ -914,7 +933,7 @@ arachne ()
       //! Destroy
       while (sys->maxruns > 0)
 	{
-          roleInstanceDestroy (sys);
+	  roleInstanceDestroy (sys);
 	}
 
       // next
