@@ -1,3 +1,9 @@
+- Splice/AS does not work well because priority key search stumbles over the
+  public key search stuff. That is a flaw in the heuristic: we should not look
+  for anything that is in the intruder knowledge already. In fact, it is a
+  problem with branching. We should not look for PK(X), even if X is a
+  variable. Priority should go to keys of which the constructor is not in M_0,
+  maybe that heuristic works.
 - Make different error codes for compilation error/ other error. This can be
   useful for scripts. However, it might shift some constants for the Elegast
   scripts.
