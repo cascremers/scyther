@@ -29,7 +29,6 @@ If you want LaTeX output we need
 
 - LaTeX
 - The MSC macro package msc.sty
-- preamble.tex and postamble.tex
 
 For the documentation generation, optionally with graphs.
 - Doxygen: http://www.doxygen.org/
