@@ -562,15 +562,14 @@ void graphNode (const System sys)
   printf ("\tn%li -> n%li ", parentNode, thisNode);
   /* add label */
   printf ("[label=\"");
-  printf ("%i:%i ", sys->traceRun[index], sys->runs[sys->traceRun[index]].step-1);
   if (rd->type == CLAIM && untrustedAgent (sys, sys->runs[sys->traceRun[index]].agents))
     {
-      printf ("Skip claim\"", sys->traceRun[index]);
+      printf ("Skip claim in #%i\"", sys->traceRun[index]);
     }
   else
     {
       roledefPrint (rd);
-      printf ("\"");
+      printf ("#%i\"", sys->traceRun[index]);
       if (rd->type == CLAIM)
 	{
           printf (",shape=house,color=green");
