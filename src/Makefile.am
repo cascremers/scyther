@@ -11,7 +11,7 @@ scyther_SOURCES = main.c \
 		 output.c latex.c varbuf.c tracebuf.c \
 		 attackminimize.c tac.c \
 		 compiler.c \
-		 scanner.lex parser.y
+		 scanner.l parser.y
 scyther_LDADD = @LEXLIB@
 
 

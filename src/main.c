@@ -36,7 +36,7 @@
 #include "symbols.h"
 #include "pheading.h"
 #include "symbols.h"
-#include "tok.h"
+#include "parser.h"
 #include "tac.h"
 #include "compiler.h"
 #include "latex.h"
