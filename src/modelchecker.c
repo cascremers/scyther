@@ -35,10 +35,6 @@ extern Term CLAIM_Nisynch;
 
 __inline__ int traverseSimple (const System oldsys);
 __inline__ int traverseNonReads (const System oldsys);
-__inline__ int traversePOR (const System oldsys);
-__inline__ int traversePOR2 (const System oldsys);
-__inline__ int traversePOR2b (const System oldsys);
-__inline__ int traversePOR3 (const System oldsys);
 __inline__ int traversePOR4 (const System oldsys);
 __inline__ int traversePOR5 (const System oldsys);
 __inline__ int traversePOR6 (const System oldsys);
@@ -89,13 +85,10 @@ traverse (const System sys)
       return traverseNonReads (sys);
     case 3:
     case 4:
-      return traversePOR (sys);
     case 5:
-      return traversePOR2 (sys);
     case 6:
-      return traversePOR3 (sys);
     case 7:
-      return traversePOR2b (sys);
+      error ("%i is an obsolete traversal method.", sys->traverse);
     case 8:
       return traversePOR4 (sys);
     case 9:
@@ -107,8 +100,7 @@ traverse (const System sys)
     case 12:
       return traversePOR8 (sys);
     default:
-      debug (2, "This is NOT an existing traversal method !");
-      exit (1);
+      error ("%i is NOT an existing traversal method.", sys->traverse);
     }
 }
 
@@ -515,6 +507,21 @@ traverseSimple (const System sys)
   return flag;
 }
 
+/**
+ * -----------------------------------------------------
+ *
+ * 		Traversal Methods
+ *
+ * -----------------------------------------------------
+ */
+
+/*
+ * Some assistance macros
+ */
+#define predRead(sys,rd)	( rd->type == READ && !rd->internal )
+#define isRead(sys,rd)		( rd != NULL && predRead(sys,rd) )
+#define nonRead(sys,rd)		( rd != NULL && !predRead(sys,rd) )
+
 /*
  * nonReads
  *
@@ -522,10 +529,6 @@ traverseSimple (const System sys)
  * Roledef). Use the inverse of this predicate to detect the other type of
  * event.
  */
-
-#define predRead(sys,rd)	( rd->type == READ && !rd->internal )
-#define isRead(sys,rd)		( rd != NULL && predRead(sys,rd) )
-#define nonRead(sys,rd)		( rd != NULL && !predRead(sys,rd) )
 
 __inline__ int
 nonReads (const System sys)
@@ -547,6 +550,10 @@ nonReads (const System sys)
   return 0;
 }
 
+/*
+ * First traverse any non-reads, then non-deterministically the reads.
+ */
+
 __inline__ int
 traverseNonReads (const System sys)
 {
@@ -554,464 +561,6 @@ traverseNonReads (const System sys)
     return 1;
   else
     return traverseSimple (sys);
-}
-
-int
-traversePOR (const System sys)
-{
-  int flag = 0;
-  int phase = sys->PORphase;
-  int done = sys->PORdone;
-  Roledef rd;
-
-  if (phase == -1)
-    {
-      /* if we did nothing in the previous scan, this does not
-         add anything new, and we exit. */
-      if (done == 0)
-	return 0;
-
-      if (nonReads (sys))
-	{
-	  return 1;
-	}
-      else
-	{
-	  sys->PORphase = 0;
-	  sys->PORdone = 0;
-	  flag = traversePOR (sys);
-	  sys->PORphase = phase;
-	  sys->PORdone = done;
-          return flag;
-	}
-    }
-  else
-    {
-      /* other phase: branch the reads */
-
-      if (phase == 0)
-	{
-	  /* phase 0: init the relevant counters */
-	  sys->PORdone = 0;
-	  flag = 0;
-	}
-
-      (sys->PORphase)++;
-      if (sys->PORphase == sys->maxruns)
-	{
-	  sys->PORphase = -1;
-	}
-
-      rd = runPointerGet (sys, phase);
-      if (isRead (sys, rd))
-	{
-	  /* consider both possibilities */
-
-	  /* empty branch test */
-	  if (sys->PORphase != -1 || sys->PORdone == 1)
-	    {
-	      /* apparently we have already done something,
-	       * so we can consider _not_ doing this read */
-
-	      /* option 1: we do not execute the event */
-
-#ifdef DEBUG
-	      if (DEBUGL (5))
-		{
-		  indent ();
-		  printf
-		    ("We are not executing a non-send event in phase %i\n",
-		     phase);
-		}
-#endif
-	      switch (sys->clp)
-		{
-		case 0:
-		  flag = block_basic (sys, phase);
-		  break;
-		case 1:
-		  flag = block_clp (sys, phase);
-		  break;
-		default:
-		  fprintf (stderr, "Non existing clp switch.\n");
-		  exit (1);
-		}
-	    }
-
-	  /* option 2: we do execute the event */
-
-#ifdef DEBUG
-	  if (DEBUGL (5))
-	    {
-	      indent ();
-	      printf
-		("We are actually executing a non-send event in phase %i\n",
-		 phase);
-	    }
-#endif
-	  sys->PORdone = 1;	// mark that we did (try) stuff
-	  flag = executeTry (sys, phase);
-	}
-      else
-	{
-	  /* empty branch test */
-	  if (sys->PORphase != -1 || sys->PORdone == 1)
-	    {
-	      /* something else or null, proceed with scan */
-	      flag = traverse (sys);
-	    }
-	}
-      sys->PORdone = done;
-      sys->PORphase = phase;
-      return flag;
-    }
-}
-
-/*
- * POR2b
- *
- * currently -t7
- *
- * New partial order reduction, which ought to be much more intuitive.
- */
-
-__inline__ int
-traversePOR2b (const System sys)
-{
-  Roledef runPoint;
-  int flag = 0;
-  int phase = sys->PORphase;
-  int done = sys->PORdone;
-
-  if (phase == -1)
-    {
-      /* if we did nothing in the previous scan, this does not
-         add anything new, and we exit. */
-      if (done == 0)
-	{
-#ifdef DEBUG
-	  if (DEBUGL (5))
-	    {
-	      indent ();
-	      printf
-		("Read branch had no executed reads in phase %i, pruning tree.\n",
-		 phase);
-	    }
-#endif
-	  return 0;
-	}
-
-      /* nonReads first, as long as they exist */
-
-      if (nonReads (sys))
-	{
-	  /* there was a nonread executed, branches itself */
-	  return 1;
-	}
-      else
-	{
-	  /* no more nonreads, go to next phase */
-
-	  sys->PORphase = 0;
-	  sys->PORdone = 0;
-	  flag = traverse (sys);
-	  sys->PORdone = done;
-	  sys->PORphase = phase;
-	  return flag;
-	}
-    }
-  else
-    {
-      /* other phase: branch the reads */
-
-      (sys->PORphase)++;
-      if (sys->PORphase == sys->maxruns)
-	{
-	  sys->PORphase = -1;
-	}
-
-      runPoint = runPointerGet (sys, phase);
-      if (isRead (sys, runPoint))
-	{
-
-	  /* A read, we were looking for one of those.  Consider
-	   * both possibilities */
-
-	  /* option A. Try to execute the event */
-
-#ifdef DEBUG
-	  if (DEBUGL (5))
-	    {
-	      indent ();
-	      printf ("We are actually executing a read event in phase %i\n",
-		      phase);
-	    }
-#endif
-	  sys->PORdone++;
-	  flag = executeTry (sys, phase);
-	  sys->PORdone--;
-
-	  /* option B. Not execute now */
-
-	  if (!flag)
-	    {
-	      /* It did not work now, so we try it later */
-#ifdef DEBUG
-	      if (DEBUGL (5))
-		{
-		  indent ();
-		  printf ("Postponing a failed read in phase %i\n", phase);
-		}
-#endif
-
-	      flag = traverse (sys);
-	    }
-	  else
-	    {
-	      /* It worked. Will the situation change later
-	       * however?  Surely only if there was a
-	       * variable involved, we might try it later */
-
-	      if (hasTermVariable (runPoint->message))
-		{
-		  /* It has a variable, so we might try
-		   * it later, but _only_ with different
-		   * knowledge */
-
-#ifdef DEBUG
-		  if (DEBUGL (5))
-		    {
-		      indent ();
-		      printf
-			("Postponing a read for later ideas in phase %i\n",
-			 phase);
-		    }
-#endif
-		  if (!sys->clp)
-		    {
-		      /* non-clp */
-		      flag = block_basic (sys, phase);
-		    }
-		  else
-		    {
-		      /* clp */
-		      flag = block_clp (sys, phase);
-		    }
-		}
-	      else
-		{
-		  /* no more hope */
-#ifdef DEBUG
-		  if (DEBUGL (5))
-		    {
-		      indent ();
-		      printf ("No more hope in phase %i.\n", phase);
-		    }
-#endif
-		}
-	    }
-
-	}
-      else
-	{
-	  /* it is not a read. this actually should mean the role is empty */
-
-	  /* something else or null, proceed with scan */
-	  flag = traverse (sys);
-	}
-
-      /* reset phase counter */
-      sys->PORphase = phase;
-      return flag;
-    }
-}
-
-__inline__ int
-traversePOR2 (const System sys)
-{
-  Roledef runPoint;
-  int flag = 0;
-  int phase = sys->PORphase;
-  int done = sys->PORdone;
-
-  if (phase == -1)
-    {
-      /* if we did nothing in the previous scan, this does not
-         add anything new, and we exit. */
-      if (sys->PORdone == 0)
-	return 0;
-
-      if (nonReads (sys))
-	{
-	  return 1;
-	}
-      else
-	{
-	  sys->PORphase = 0;
-	  sys->PORdone = 0;
-	  flag = traversePOR2 (sys);
-	  sys->PORphase = phase;
-	  sys->PORdone = done;
-	  return flag;
-	}
-    }
-  else
-    {
-      /* other phase: branch the reads */
-
-      if (phase == 0)
-	{
-	  /* phase 0: init the relevant counters */
-	  sys->PORdone = 0;
-	  flag = 0;
-	}
-
-      (sys->PORphase)++;
-      if (sys->PORphase == sys->maxruns)
-	{
-	  sys->PORphase = -1;
-	}
-
-      runPoint = runPointerGet (sys, phase);
-
-      if (isRead (sys, runPoint))
-	{
-	  /* empty branch test */
-	  if (sys->PORphase != -1 || sys->PORdone == 1)
-	    {
-	      /* option 1: we do not execute the event */
-
-#ifdef DEBUG
-	      if (DEBUGL (5))
-		{
-		  indent ();
-		  printf
-		    ("We are not executing a non-send event in phase %i\n",
-		     phase);
-		}
-#endif
-	      switch (sys->clp)
-		{
-		case 0:
-
-		  /* the idea is, that if the
-		   * read has no variables, and
-		   * is enabled already, it makes
-		   * no sense to delay it any
-		   * longer. */
-
-		  if (hasTermVariable (runPoint->message))
-		    {
-		      /* original case */
-		      flag = block_basic (sys, phase);
-		    }
-		  else
-		    {
-		      /* check whether it was enabled already */
-		      /* HACK this is a custom 'enabled' test. */
-		      /* TODO rewrite this, we don't want such a test. */
-		      if (!inKnowledge (sys->know, runPoint->message))
-			{
-			  /* not enabled yet, so we might want to do so later */
-			  flag = block_basic (sys, phase);
-			}
-		      else
-			{
-			  /* enabled, skipping */
-			}
-		    }
-		  break;
-		case 1:
-		  flag = block_clp (sys, phase);
-		  break;
-		default:
-		  fprintf (stderr, "Non existing clp switch.\n");
-		  exit (1);
-		}
-	    }
-
-	  /* option 2: we do execute the event */
-
-#ifdef DEBUG
-	  if (DEBUGL (5))
-	    {
-	      indent ();
-	      printf
-		("We are actually executing a non-send event in phase %i\n",
-		 phase);
-	    }
-#endif
-	  sys->PORdone = 1;	// mark that we did (try) stuff
-	  flag = executeTry (sys, phase);
-	}
-      else
-	{
-	  /* empty branch test */
-	  if (sys->PORphase != -1 || sys->PORdone == 1)
-	    {
-	      /* something else or null, proceed with scan */
-	      flag = traverse (sys);
-	    }
-	}
-      sys->PORdone = done;
-      sys->PORphase = phase;
-      return flag;
-    }
-}
-
-__inline__ int
-traversePOR3 (const System sys)
-{
-  Roledef rd;
-  int flag;
-  int run;
-
-  if (nonReads (sys))
-    {
-      return 1;
-    }
-
-  for (run = 0; run < sys->maxruns; run++)
-    {
-      rd = runPointerGet (sys, run);
-      if (rd != NULL)
-	{
-	  /* option 1: just execute it */
-
-	  flag = executeTry (sys, run);
-
-	  /* option 2: if it worked, and its a read... */
-
-	  if (flag)
-	    {
-	      if (rd->type == READ &&
-		  !(rd->internal) && hasTermVariable (rd->message))
-		{
-
-		  /* option 2a: worked, but also execute
-		   * it later if we thinks that's
-		   * different actually only relevant for
-		   * non internal reads */
-
-		  /* TODO consider option for global
-		   * 'sendsTodo' counter, because if
-		   * there are zero left, this is not
-		   * required. */
-
-#ifdef DEBUG
-		  if (DEBUGL (5))
-		    {
-		      indent ();
-		      printf ("Blocking read for run #%i.\n", run);
-		    }
-#endif
-		  block_basic (sys, run);
-		}
-	      return 1;
-	    }
-	}
-    }
-  return 0;
 }
 
 //! Execute a read in the knowledge postponing way, on which the partial order reduction for secrecy depends.
