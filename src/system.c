@@ -594,11 +594,13 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	  fromlist = termlistAdd (fromlist, oldt);
 	  tolist = termlistAdd (tolist, newt);
 
-	  eprintf ("Created for run %i: ", rid);
-	  termPrint (oldt);
-	  eprintf (" -> ");
-	  termPrint (newt);
-	  eprintf ("\n");
+	  /*
+	     eprintf ("Created for run %i: ", rid);
+	     termPrint (oldt);
+	     eprintf (" -> ");
+	     termPrint (newt);
+	     eprintf ("\n");
+	   */
 
 	  scanfrom = scanfrom->next;
 	}
@@ -695,14 +697,6 @@ roleInstanceDestroy (const System sys)
 	{
 	  Termlist artefacts;
 	  // Remove artefacts
-	  artefacts = myrun.artefacts;
-	  while (artefacts != NULL)
-	    {
-	      eprintf ("Artefact term to delete: ");
-	      termPrint (artefacts->term);
-	      eprintf ("\n");
-	      artefacts = artefacts->next;
-	    }
 	  artefacts = myrun.artefacts;
 	  while (artefacts != NULL)
 	    {
