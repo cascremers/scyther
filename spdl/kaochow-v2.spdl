@@ -2,17 +2,17 @@ usertype Sessionkey;
 usertype Ticket;
 secret k: Function;
 
-protocol kaochow(I,R,S)
+protocol kaochow2(I,R,S)
 {
 	role I
 	{
 		const ni: Nonce;
 		var nr: Nonce;
-		var kir: Sessionkey;
+		var kir,kt: Sessionkey;
 
 		send_1 (I,S, I,R,ni);
-		read_3 (R,I, {I,R,ni,kir}k(I,S), {ni}kir, nr );
-		send_4 (I,R, {nr}kir );
+		read_3 (R,I, R, {I,R,ni,kir,kt}k(I,S), {ni, kir}kt, nr );
+		send_4 (I,R, {nr,kir}kt );
 
 		claim_5 (I, Nisynch);
 		claim_6 (I, Niagree);
@@ -23,12 +23,12 @@ protocol kaochow(I,R,S)
 	{
 		var ni: Nonce;
 		const nr: Nonce;
-		var kir: Sessionkey;
-		var T;
+		var kir,kt: Sessionkey;
+		var T: Ticket;
 
-		read_2 (S,R, T, { I,R,ni,kir }k(R,S) ); 
-		send_3 (R,I, T, {ni}kir, nr );
-		read_4 (I,R, {nr}kir );
+		read_2 (S,R, T, { I,R,ni,kir,kt }k(R,S)  ); 
+		send_3 (R,I, R, T, {ni, kir}kt, nr );
+		read_4 (I,R, {nr,kir}kt );
 
 		claim_8 (R, Nisynch);
 		claim_9 (R, Niagree);
@@ -38,10 +38,10 @@ protocol kaochow(I,R,S)
 	role S
 	{
 		var ni: Nonce;
-		const kir: Sessionkey;
+		const kir, kt: Sessionkey;
 
 		read_1 (I,S, I,R,ni);
-		send_2 (S,R, {I,R,ni,kir}k(I,S), { I,R,ni,kir }k(R,S)  ); 
+		send_2 (S,R, {I,R,ni,kir,kt}k(I,S), { I,R,ni,kir,kt }k(R,S)  ); 
 	}
 }
 
@@ -59,9 +59,9 @@ compromised k(Alice,Eve);
 compromised k(Bob,Eve);
 compromised k(Simon,Eve);
 
-run kaochow.I(Agent,Agent,Simon);
-run kaochow.R(Agent,Agent,Simon);
-run kaochow.S(Agent,Agent,Simon);
-run kaochow.I(Agent,Agent,Simon);
-run kaochow.R(Agent,Agent,Simon);
-run kaochow.S(Agent,Agent,Simon);
+run kaochow2.I(Agent,Agent,Simon);
+run kaochow2.R(Agent,Agent,Simon);
+run kaochow2.S(Agent,Agent,Simon);
+run kaochow2.I(Agent,Agent,Simon);
+run kaochow2.R(Agent,Agent,Simon);
+run kaochow2.S(Agent,Agent,Simon);

@@ -53,7 +53,7 @@ def default_protocols(plist):
 # 	1: thorough
 #
 def default_arguments(plist,match,bounds):
-	n = len(plist)
+	n = 2 + bounds
 	# These bounds assume at least two protocols, otherwise
 	# stuff breaks.
 	if n < 2:

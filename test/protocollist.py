@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #
 #	protocol list
 #
@@ -22,6 +23,8 @@ def from_literature():
 	"isoiec11770-2-13.spdl",
 	"kaochow-palm.spdl",
 	"kaochow.spdl",
+	"kaochow-v2.spdl",
+	"kaochow-v3.spdl",
 	"ns3.spdl",
 	"nsl3.spdl",
 	"nsl7.spdl",
@@ -81,4 +84,15 @@ def select(type):
 	else:
 		# Otherwise empty list
 		return []
-		
+
+
+
+
+def main():
+	for l in [from_literature(), from_others()]:
+		for p in l:
+			print p
+		print
+
+if __name__ == '__main__':
+	main()

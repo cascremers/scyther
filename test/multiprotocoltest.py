@@ -98,13 +98,13 @@ def ScytherEval (plist):
 	sys.stdout.flush()
 	sys.stderr.flush()
 
-	args = scythertest.default_arguments(plist, options.match, options.bounds)
+	args = scythertest.default_arguments(plist, int(options.match), int(options.bounds))
 	n = len(plist)
 	if not (n,args) in ArgumentsList:
 		ArgumentsList.append((n,args))
 		print "Testing",n,"tuples using",args
 
-	return scythertest.default_parsed(plist, options.match, options.bounds)
+	return scythertest.default_parsed(plist, int(options.match), int(options.bounds))
 
 # ScytherEval1
 #
@@ -475,30 +475,29 @@ def banner(str):
 def the_great_houdini(list,width,match):
 	global options
 
+	# Empty list
 	if list == []:
-		list = protocollist.select(int(options.protocols))
-		the_great_houdini(list,width,match)
-		return
-
-	if options.sequence:
+		the_great_houdini(protocollist.select(int(options.protocols)),width,match)
+	# Unfold sequence of tuple widths
+	elif options.sequence:
 		options.sequence = False
 		banner ("Testing multiple tuple widths")
 		for n in range(2,4):
 			banner ("Testing tuple width %i" % n)
 			the_great_houdini(list,n,match)
 		options.sequence = True
-		return 
-
-	if options.allmatch:
+	# Unfold matching methods
+	elif options.allmatch:
 		options.allmatch = False
 		banner ("Testing multiple match methods")
 		for m in range(0,3):
+			options.match = m
 			banner ("Testing match %i" % m)
 			the_great_houdini(list,width,m)
 		options.allmatch = True
-		return
-
-	multiprotocol_test(list,width,match)
+	# Last but not least: test
+	else:
+		multiprotocol_test(list,width,match)
 	
 
 def main():
