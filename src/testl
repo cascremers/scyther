@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Shell script to display the latex output relatively quickly. For
+# internal testing only, as it depends on the spdl subdirectory.
+#
+# Usage example:
+#
+#	./testl ns3
+#
+
+file=spdl/$1.spdl outfile=tempattack
+
+if [ -f $file ]
+then 
+  ./scyther --latex <$file >$outfile.tex
+  latex $outfile.tex
+  xdvi $outfile.dvi
+else
+  echo "No file $file found."
+fi
+
+

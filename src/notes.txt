@@ -1,0 +1,76 @@
+- best heuristic currently for -t8: ignore sendsfirst, just look at the
+  previous event and continue at that run.
+- termPrint must currently be encapsulated in a math environment to work in
+  latex output, I wil change this later to some ensure mathmode construct,
+  probably with something like latexTermPrint.
+- Repository to apache2 webdav.
+- The trace incremental search should start at something like 'distance of
+  first claim + SOMECONST * runs'. SOMECONST relates to the partial-order
+  induced trace prolonings.
+- For now, CLP is non-working and not checked. Reconsider this later.
+- Because the properties checked are related to the partial order reductions,
+  it makes sense to check 'all secrecy claims' or 'all synchronisation claims'
+  at once.
+- Once an attack is generated, we know the actual scenario and the trace
+  length. We might re-use this information to generate the shortest attack
+  using no partial order reduction.  Note that choosing a wise method of
+  finding that is a mathematical issue: searching -t1 is exponential, so how
+  do we step trough these traces in order to find the shortest trace in the
+  quickest way? This can be determined under some (statistical) assumptions.
+- The incremental check can be done much easier, by just retrying the main
+  loop explore with different parameters. It keeps everything nicely intact.
+  We must check for fails however, and how pruning is affected.
+- Incremental check can at least be done in two ways: either by limiting the
+  number of runs (big axe method) or by limiting the trace length (nice).
+  There is a drawback to trace length only: the superfluous sends of the
+  algorithm in a scenario with many runs might interfere with the usefulness
+  of short traces. Maybe some heuristic that reduces the runs automatically is
+  required. (e.g. 'number of runs is at most MaxTraceLength/MaxRoleLength' or
+  something like that). Do analysis.
+- If synch checking is expensive, introduce a limit (for -p0 stuff).
+  Basically, after the limit (if -p0 is set), we stop checking synch claims.
+  This then is default behaviour, to be overridden or changed by a switch.
+- clp does not yet consider the matching for variables that have not been
+  instantiated. This *might* lead to some improvement, e.g. when there is only
+  one candidate for the variable. In general, I don't think it will help.
+- match_clp.c 1.25 introduced the variable_in_invkey brancher, which hasn't
+  been thoroughly tested yet. Please do test.
+- Brutus is slower than -t4. CLP is much, much faster however than both.
+- It is very important to have variables in the run agent list, because it
+  dramatically decreases the complexity of the system, as opposed to just
+  creating runs for all possibilities. However, this explicitly introduces the
+  clp problem of var encryptions (see above).
+- Given originator assumptions and such, we might want to implement the
+  compiler, that for non-typed matching, it will ignore all type definitions
+  in the code (as in, putting them in stype, but still considering Function).
+  Then, for 'any agent' we can use stype silently. The modelchecker should
+  then always consider the types with -m0 and -m1.
+- In a paper concerning the CASRUL compiler, they mention associativity for
+  the equality relations.  Note that CASRUL restricts the intruder actions,
+  and sometimes uses approximations.
+- MS and CE never mention associativity as a restriction.
+- For now, clp stuff will use pairing and simple mgu. Maybe a -m3 switch will
+  add the associative variant later.
+- MALLOC_TRACE is the environment variable that triggers mtrace() output.
+- Several memory leak detectors are still in place, they can all be located by
+  searching for "lead" or "diff" and destroying the code.
+- knowledgeAddTerm might be improved by scanning through key list only with
+  things that are newly added.
+- Associativity and unification don't play together well; consider other
+  algorithms. Maybe a simple explore (x,y),z and explore x,(y,z) will do, e.g.
+  take any split point for both sequences.
+- POR (-t3) is actually worse than -t2: sends first. After some pondering I
+  now know why. It's because simultaneous reads yield traces in which there
+  are attacks that are also in the ones where we have R0S0S0;R1 (i.e. is thus
+  equivalent with R0;R1;S0S0)
+- Knowledge is monotonous. So, if we say 'R#0' cannot be triggered by some
+  knowledge, we can just use a pointer for it. If we do want to trigger it, we
+  need to compare two knowledge pointers. As they don't have a unique
+  representation, it is more difficult. For now, I will just forbid specific
+  branches of the read when a message is in some previous knowledge, which is
+  more precise.
+- Comparisons with Casper are in order.
+- It is a good idea to have any number of input files, and parse them all, to
+  combine scenarios. A command should be "require <file>", because that would
+  enable scenarios to load the required role definitions. It's require instead
+  of include, because of possible multiple occurrences.

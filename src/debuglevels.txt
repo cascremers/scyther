@@ -1,0 +1,7 @@
+Conventions for debug levels; ifdef DEBUG
+
+-D1	meta		show compiled code, meta dynamic results
+-D2	claims		show results of claims
+-D3	events		show executed events
+-D4	internalsHigh	interesting internals (traces that were cut off)
+-D5	internalsLow	usually uninteresting stuff

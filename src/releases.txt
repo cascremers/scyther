@@ -1,0 +1,33 @@
+?		bonk
+	- New partial order reduction method.
+	Maybe CLP/t4
+	maybe MSC stuff
+
+2004-02-19	billionaire
+	- replace substitutions with implicit substitutions.
+	- many syntax updates.
+	- many speed improvements.
+
+2004-01-20	alpha1
+	teehee_valley with a couple of minor bugfixes.
+	- Shows error line correctly on parse.
+	- Allows for multi-line comments.
+
+2004-01-20	teehee_valley
+	Nicely working role-based release, can test stdin scenario files.
+	- Preliminary untrusted support.
+	- Public, inversekeys are working.
+	- No tickets yet.
+
+2004-01-19	amoxicillin	
+	Preliminary compiler test release.
+	- Compiler works in ptest, now we can integrate it into the main
+	  part, and throw out the scenarios.
+	  
+2003		dead_ringers
+	A first working release.
+	- -t0 through -t2 implemented.
+	- Typed matching matches all basic terms.
+	- CLP matching works (-m2), but is not compatible with -t2.
+	- Hard coded protocols, inclusion through Makefile.
+

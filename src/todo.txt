@@ -1,0 +1,80 @@
+- Remove stupid preamble postamble stuff, or maybe integrate this behaviour
+  into some switch, where default would be a standalone latex file, and
+  another option would generate a file that can be included.
+- Variables have to be 'saved' and 'stored' into some structure. However, for
+  this we need a global list of all variables, which is not available at the
+  moment. The compiler and run instantiator should maintain such a list, and
+  then we could save it into a struct with three lists. (from,to,empty)
+  This will need a sys allVariables list.
+- Timer output is broken for values e.g. above an hour. Fix or remove
+  altogether.
+- ns3 doesn't even reach a claim in --cl and -t8. Check.
+- in Runs.c, revise 'untrustedAgent' to cope with some weird exceptions.
+- CLP: variables in keys must be branched: maybe even in three situations
+  (have key and contents, have inverse key and content, nothing)
+- Implement delayed protocol compiler (on run demand only).
+- Implement run knowledge, and use this in protocol compiler.
+- Remove any remaining global variables, if any.
+- When choosing agents for runs (with an initial read), it does not make
+  sense to choose untrusted agents.
+- Introduce 'Ticket' default type in the compiler, along with some
+  handling for that.
+- Make a shell script 'test $filename $commandline'
+  Generates a $test-$date.out and $test-$date.err. Useful for storing
+  test data.
+- How should claims behave (trusted/untrusted) wrt uninstantiated
+  agents? Branch again? That's what is causing the nsl3-var problem.
+- The 'choose' operator must always be typed, I think.
+- Synchronisation test can be expensive, because a good protocol will
+  yield few such tests, and a bad protocol will prune most traces after
+  failure. The performance loss will only be 'felt' when the whole state
+  space is explored (-p0), which is only used for theoretical tests.
+- The woolam-ce is incorrect because it is illegal to have a variable
+  term in a key that is read, by CMV semantics. I don't know what it
+  means for CE semantics (yet).
+- Idea: run bla.bla(params) [compromised <localterm> [,<localterm>] ];
+  1. These local terms are given to the intruder. Technically this
+  should only happen _after_ they are first sent in the run. Maybe add
+  this to send semantics: if termOccurs(sendterm, compromisedterm) then
+  add compromisedterm to M, remove compromisedterm from list of terms to
+  compromise.
+  2. All claims in the run are ignored (add untrusted flag to run)
+  Alternative: run x.x(x) untrusted; or just compromised, to give up
+  all constants.
+  Note this is not sufficient yet, because it does not consider any
+  partner runs. Maybe declare a 'compromised' section first; other runs
+  will only activate after these have completed. Note this is much more
+  expensive.
+- Issue: how do untrusted claims work in the context of an intruder?
+  Claim must be checked if it can be solved such that at least one of 
+  the agents is trusted.
+- Fix the first environment read with a special (hidden) label.
+  1. Hide it or print differently in output.
+  2. Ensure typed matching for it, even when using -m1 switch.
+- Woolam-ce gives nothing. But then again, it's a wrong impl.
+- consider option -finline-functions for gcc, test.
+- Currently, match_basic unrolls substitutions to compare message with
+  the forbidden list, but I don't think that it is required. Test.
+- -m2 is much better with a lot of variables. Compare this to unfolding
+  of the runs with -t4 -m0/1.
+- Global/protocol variables should not exist in the current system.
+- File freopen stuff, instead of this sdtin stuff.
+- Solve the 'version' issue. How is it defined?
+- run nsl.initiator(alice, all Agent) constructs?
+  - 'all' would generate the roles with the corresponding type.
+  - or maybe for clarity/complexity control: use 'runs' for constructs
+    with 'all' in it.
+- Constraints might be a part of a knowledge thing, because with we
+  might now have a number of local knowledge sets, each with their own
+  constraint sets. That doesn't make it easier though :( and will cause
+  some performance loss I suppose. Each local set has to remain
+  solveable as well.
+- Maybe function application ought to be a different basic term type.
+- After role construction, msc consistency can be checked.
+- Make sure module knowledge has an interface instead of reference to
+  internals (i.e. no ref to basic/encr)
+- Reduce knowledge to a simple term list? That would simplify a number
+  of things, and also allow for easier addition of stuff.
+- How is % notation handled in Casper?
+- Vernam encryption?
+- Count number of illegal injections rejected for statistics.

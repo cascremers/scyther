@@ -1,0 +1,3 @@
+#!/bin/sh
+
+./scyther -d -p0 -r 8 $* <spdl/speedtest.spdl
