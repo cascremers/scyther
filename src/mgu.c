@@ -54,8 +54,15 @@ termMguTerm (Term t1, Term t2)
     termPrint (t);
     printf (", typed ");
     termlistPrint (t->stype);
-    printf ("->");
-    termlistPrint (t->subst->stype);
+    if (realTermLeaf (t->subst))
+      {
+	printf ("->");
+	termlistPrint (t->subst->stype);
+      }
+    else
+      {
+	printf (", composite term");
+      }
     printf ("\n");
   }
 #endif
