@@ -831,6 +831,10 @@ timersPrint (const System sys)
 		eprintf ("bounded proof");
 	    }
 	}
+      else
+	{
+	  eprintf ("\tcorrect: does not occur");
+	}
       eprintf ("\n");
       cl_scan = cl_scan->next;
     }
