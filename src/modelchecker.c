@@ -212,14 +212,18 @@ void removeIrrelevant (const System sys, const int run, Roledef rd)
     }
   /* report part */
   /*
-  rd = rdkill;
+  rd = rdkill->next;
   killclaims = 0;
   while (rd != NULL)
     {
       killclaims++;
       rd = rd->next;
     }
-  warning ("%i events stripped from run %i.", killclaims, run);
+  if (killclaims > 1)
+    {
+      warning ("%i events stripped from run %i.", killclaims, run);
+      runPrint (rdkill->next);
+    }
   */
 
   /* remove after rdkill */
