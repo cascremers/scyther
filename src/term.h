@@ -168,6 +168,10 @@ Term tupleProject (Term tt, int n);
 int termSize (Term t);
 float termDistance (Term t1, Term t2);
 int termOrder (Term t1, Term t2);
+int term_iterate (const Term term, int (*leaf) (), int (*nodel) (),
+		  int (*nodem) (), int (*noder) ());
+int term_iterate_deVar (const Term term, int (*leaf) (), int (*nodel) (),
+			int (*nodem) (), int (*noder) ());
 int term_iterate_leaves (const Term t, int (*func) ());
 int term_iterate_open_leaves (const Term term, int (*func) ());
 void term_rolelocals_are_variables ();

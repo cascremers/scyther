@@ -278,7 +278,8 @@ termSubTerm (Term t, Term tsub)
     return (termSubTerm (t->left.op1, tsub)
 	    || termSubTerm (t->right.op2, tsub));
   else
-    return (termSubTerm (t->left.op, tsub) || termSubTerm (t->right.key, tsub));
+    return (termSubTerm (t->left.op, tsub)
+	    || termSubTerm (t->right.key, tsub));
 }
 
 //! See if a term is an interm of another.
@@ -910,6 +911,77 @@ termOrder (Term t1, Term t2)
       else
 	return compR;
     }
+}
+
+//! Generic term iteration
+int
+term_iterate (const Term term, int (*leaf) (), int (*nodel) (),
+	      int (*nodem) (), int (*noder) ())
+{
+  if (term != NULL)
+    {
+      if (realTermLeaf (term))
+	{
+	  // Leaf
+	  if (leaf != NULL)
+	    {
+	      return leaf (term);
+	    }
+	}
+      else
+	{
+	  int flag;
+
+	  flag = 1;
+
+	  if (nodel != NULL)
+	    flag = flag && nodel (term);
+
+	  if (realTermTuple (term))
+	    flag = flag
+	      && (term_iterate (term->left.op1, leaf, nodel, nodem, noder));
+	  else
+	    flag = flag
+	      && (term_iterate (term->left.op, leaf, nodel, nodem, noder));
+
+	  if (nodem != NULL)
+	    flag = flag && nodem (term);
+
+	  if (realTermTuple (term))
+	    flag = flag
+	      && (term_iterate (term->left.op1, leaf, nodel, nodem, noder));
+	  else
+	    flag = flag
+	      && (term_iterate (term->left.op, leaf, nodel, nodem, noder));
+
+	  if (noder != NULL)
+	    flag = flag && noder (term);
+	}
+    }
+  return 1;
+}
+
+//! Generic term iteration with deVar
+int
+term_iterate_deVar (const Term term, int (*leaf) (), int (*nodel) (),
+		    int (*nodem) (), int (*noder) ())
+{
+  int deVar_leaf (const Term term)
+  {
+    if (substVar (term))
+      {
+	return term_iterate_deVar (term->subst, deVar_leaf, nodel, nodem,
+				   noder);
+      }
+    else
+      {
+	if (leaf == NULL)
+	  return 1;
+	else
+	  return leaf (term);
+      }
+  }
+  return term_iterate (term, deVar_leaf, nodel, nodem, noder);
 }
 
 //! Iterate over the leaves in a term
