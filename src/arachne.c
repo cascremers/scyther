@@ -1643,8 +1643,6 @@ prune_theorems ()
     }
 
   // Check if the actors of all other runs are not untrusted
-  // TODO Somehow, this does not work. Investigate.
-  /*
   if (sys->untrusted != NULL)
     {
       int run;
@@ -1693,7 +1691,6 @@ prune_theorems ()
 	  run++;
 	}
     }
-    */
 
   // Check for c-minimality
   if (!bindings_c_minimal ())

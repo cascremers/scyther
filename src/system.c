@@ -301,9 +301,9 @@ runPrint (Roledef rd)
   i = 0;
   while (rd != NULL)
     {
-      printf ("%i: ", i);
+      eprintf ("%i: ", i);
       roledefPrint (rd);
-      printf ("\n");
+      eprintf ("\n");
       i++;
       rd = rd->next;
     }
@@ -316,13 +316,13 @@ runsPrint (const System sys)
   int i;
 
   indent ();
-  printf ("[ Run definitions ]\n");
+  eprintf ("[ Run definitions ]\n");
   for (i = 0; i < (sys->maxruns); i++)
     {
       indent ();
-      printf ("Run definition %i:\n", i);
+      eprintf ("Run definition %i:\n", i);
       runPrint (runPointerGet (sys, i));
-      printf ("\n");
+      eprintf ("\n");
     }
 }
 
@@ -678,7 +678,7 @@ roleInstanceArachne (const System sys, const Protocol protocol,
       // Add to agent list, possibly
       if (inTermlist (protocol->rolenames, oldt))
 	{
-	  runs[rid].agents = termlistAdd (runs[rid].agents, newt);
+	  runs[rid].agents = termlistAppend (runs[rid].agents, newt);
 
 	  if (isTermVariable (newt))
 	    {
@@ -1047,7 +1047,7 @@ indent ()
   int j = 0;
   while (i > 0)
     {
-      printf ("%i  ", j);
+      eprintf ("%i  ", j);
       i--;
       j++;
     }
@@ -1075,26 +1075,26 @@ locVarPrint (Termlist tl)
 {
   if (tl == NULL)
     {
-      printf ("No local terms.\n");
+      eprintf ("No local terms.\n");
     }
   else
     {
-      printf ("Local terms: ");
-      printf ("[");
+      eprintf ("Local terms: ");
+      eprintf ("[");
       while (tl != NULL)
 	{
 	  termPrint (tl->term);
 	  if (tl->term->stype != NULL)
 	    {
-	      printf (":");
+	      eprintf (":");
 	      termlistPrint (tl->term->stype);
 	    }
 	  tl = tl->next;
 	  if (tl != NULL)
-	    printf (",");
+	    eprintf (",");
 	}
-      printf ("]");
-      printf ("\n");
+      eprintf ("]");
+      eprintf ("\n");
     }
 }
 
@@ -1106,11 +1106,11 @@ protocolPrint (Protocol p)
     return;
 
   indent ();
-  printf ("[[Protocol : ");
+  eprintf ("[[Protocol : ");
   termPrint (p->nameterm);
-  printf (" (");
+  eprintf (" (");
   termlistPrint (p->rolenames);
-  printf (")]]\n");
+  eprintf (")]]\n");
   locVarPrint (p->locals);
   rolesPrint (p->roles);
 }
@@ -1188,19 +1188,27 @@ agentsOfRunPrint (const System sys, const int run)
 {
   Term role = sys->runs[run].role->nameterm;
   Termlist roles = sys->runs[run].protocol->rolenames;
+  int notfirst;
 
   termPrint (role);
-  printf ("(");
+  eprintf (":");
+  termPrint (agentOfRunRole (sys, run, role));
+  eprintf (" (");
+  notfirst = 0;
   while (roles != NULL)
     {
-      termPrint (agentOfRunRole (sys, run, roles->term));
-      roles = roles->next;
-      if (roles != NULL)
+      if (!isTermEqual (role, roles->term))
 	{
-	  printf (",");
+	  if (notfirst)
+	      eprintf (", ");
+	  termPrint (roles->term);
+	  eprintf (":");
+	  termPrint (agentOfRunRole (sys, run, roles->term));
+	  notfirst = 1;
 	}
+      roles = roles->next;
     }
-  printf (")");
+  eprintf (")");
 }
 
 //! Explain a violated claim at point i in the trace.
@@ -1208,7 +1216,7 @@ agentsOfRunPrint (const System sys, const int run)
 void
 violatedClaimPrint (const System sys, const int i)
 {
-  printf ("Claim stuk");
+  eprintf ("Claim stuk");
 }
 
 //! Yield the real length of an attack.
@@ -1321,7 +1329,7 @@ scenarioPrint (const System sys)
       runInstancePrint (sys, run);
       if (run < sys->maxruns - 1)
 	{
-	  printf ("\t");
+	  eprintf ("\t");
 	}
     }
 }
