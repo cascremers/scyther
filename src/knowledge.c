@@ -141,8 +141,8 @@ knowledgeAddTerm (Knowledge know, Term term)
 {
   if (know == NULL)
     {
-      printf
-	("Warning: trying to add term to uninitialised (NULL) Know pointer.\n");
+      fprintf
+	(stderr, "Warning: trying to add term to uninitialised (NULL) Know pointer.\n");
       return 1;
     }
   if (term == NULL)
@@ -150,15 +150,18 @@ knowledgeAddTerm (Knowledge know, Term term)
 
   term = deVar (term);
 
+  /* for tuples, simply recurse for components */
+  if (isTermTuple (term))
+    {
+      int status;
+
+      status = knowledgeAddTerm (know, term->left.op1);
+      return knowledgeAddTerm (know, term->right.op2) || status;
+    }
+
   /* test whether we knew it before */
   if (inKnowledge (know, term))
     return 0;
-
-  if (isTermTuple (term))
-    {
-      knowledgeAddTerm (know, term->left.op1);
-      knowledgeAddTerm (know, term->right.op2);
-    }
 
   /* adding variables? */
   know->vars = termlistAddVariables (know->vars, term);
