@@ -1,3 +1,9 @@
+- For secrecy, one trusted agent and one untrusted agent suffices.
+  Implement this in the modelchecker.
+- Possible bug in Arachne: AV->BV->AV mappings cause loops. This can
+  occur normally, but typically in type flaw stuff. It should be covered
+  by the unification procedure, but I haven't verified it myself that
+  this covers all cased in such a system.
 - Rewrite for untrusted roles, redesign this.
 - Add switch for arachne to prune encryption levels when using -m2.
 - Rewrite termMguTerm such that it iterates and adapt all functions
