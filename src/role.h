@@ -24,6 +24,8 @@ struct claimlist
   Term rolename;
   //! The pointer to the role structure
   void *role;
+  //! The pointer to the roledef
+  void *roledef;
   //! Number of occurrences in system exploration.
   states_t count;
   //! Number of occurrences that failed.

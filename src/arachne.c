@@ -18,6 +18,10 @@
 #include "claim.h"
 #include "debug.h"
 
+extern CLAIM_Secret;
+extern CLAIM_Nisynch;
+extern CLAIM_Niagree;
+
 static System sys;
 Protocol INTRUDER;		// Pointers, to be set by the Init
 Role I_GOAL;			// Same here.
@@ -715,6 +719,18 @@ prune ()
   return 0;
 }
 
+//! Setup system for specific claim test
+add_claim_specifics (Claimlist cl, Roledef rd)
+{
+  if (isTermEqual (cl->type, CLAIM_Secret))
+    {
+      /**
+       * Secrecy claim
+       */
+      create_intruder_goal (rd->message);
+    }
+}
+
 //------------------------------------------------------------------------
 // Main logic core
 //------------------------------------------------------------------------
@@ -877,6 +893,12 @@ arachne ()
 
       roleInstance (sys, p, r, NULL);
       sys->runs[0].length = cl->ev + 1;
+
+      /**
+       * Add specific goal info
+       */
+      add_claim_specifics (cl, roledef_shift(sys->runs[0].start, cl->ev));
+
 #ifdef DEBUG
       if (DEBUGL (5))
 	{
@@ -890,7 +912,10 @@ arachne ()
       iterate ();
 
       //! Destroy
-      roleInstanceDestroy (sys);
+      while (sys->maxruns > 0)
+	{
+          roleInstanceDestroy (sys);
+	}
 
       // next
       cl = cl->next;

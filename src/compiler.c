@@ -467,6 +467,7 @@ commEvent (int event, Tac tc)
       cl->protocol = thisProtocol;
       cl->rolename = fromrole;
       cl->role = thisRole;
+      cl->roledef = NULL;
       cl->count = 0;
       cl->failed = 0;
       cl->prec = NULL;
@@ -1113,6 +1114,8 @@ compute_prec_sets (const System sys)
       // Store in claimlist structure
       cl->r = r1;
       cl->ev = ev1;
+      cl->roledef = rd;
+
       /*
        * We have found the claim roledef, and r1,ev1
        * Now we compute the preceding label set
