@@ -192,6 +192,16 @@ closure_graph (Binding b)
   return warshall (graph, nodes);
 }
 
+//! Print a binding (given a binding list pointer)
+int binding_print (void *bindany)
+{
+  Binding b;
+
+  b = (Binding) bindany;
+  eprintf ("Binding (%i,%i) --->> (%i,%i)\n", b->run_from, b->ev_from,
+       b->run_to, b->ev_to);
+  return 1;
+}
 
 //! Add a binding
 /**

@@ -408,6 +408,15 @@ printSemiState ()
 {
   int run;
   int open;
+  List bl;
+
+  int binding_indent_print (void *data)
+    {
+      indentPrint ();
+      eprintf ("!! ");
+      binding_print (data);
+      return 1;
+    }
 
   indentPrint ();
   eprintf ("!! --=[ Semistate ]=--\n");
@@ -450,6 +459,12 @@ printSemiState ()
 	  index++;
 	  rd = rd->next;
 	}
+    }
+  if (sys->bindings != NULL)
+    {
+      indentPrint ();
+      eprintf ("!!\n");
+      list_iterate (sys->bindings, binding_indent_print);
     }
   indentPrint ();
   eprintf ("!!\n");
