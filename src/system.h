@@ -15,6 +15,9 @@
 enum outputs
 { EMPTY, ATTACK, STATESPACE, SCENARIOS, SUMMARY };
 
+enum engines
+{ POR_ENGINE, ARACHNE_ENGINE };
+
 //! Protocol definition.
 struct protocol
 {
@@ -44,6 +47,7 @@ struct run
   Roledef start;		//!< Head of the run definition.
   Knowledge know;		//!< Current knowledge of the run.
   Termlist locals;		//!< Locals of the run.
+  Termlist artefacts;		//!< Stuff created especially for this run.
   int prevSymmRun;		//!< Used for symmetry reduction. Either -1, or the previous run with the same role def and at least a single parameter.
   int firstNonAgentRead;	//!< Used for symmetry reductions for equal agents runs; -1 if there is no candidate.
   int firstReal;		//!< 1 if a choose was inserted, otherwise 0
@@ -97,6 +101,7 @@ struct tracebuf
 //! The main state structure.
 struct system
 {
+  int engine;			//!< Engine type (POR_ENGINE,ARACHNE_ENGINE)
   int step;			//!< Step in trace during exploration. Can be managed globally
   Knowledge know;		//!< Knowledge in currect step of system.
   struct parameters *parameters;	// misc
@@ -205,6 +210,7 @@ Term agentOfRunRole (const System sys, const int run, const Term role);
 Term agentOfRun (const System sys, const int run);
 void roleInstance (const System sys, const Protocol protocol, const Role role,
 		   const Termlist tolist);
+void roleInstanceDestroy (const System sys);
 void systemStart (const System sys);
 void indentActivate ();
 void indentSet (int i);

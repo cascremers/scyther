@@ -329,6 +329,8 @@ main (int argc, char **argv)
    */
 
   sys = systemInit ();
+  /* select default engine */
+  sys->engine = POR_ENGINE;
   /* init compiler for this system */
   compilerInit (sys);
 
@@ -791,6 +793,7 @@ MC_incRuns (const System sys)
       runs++;
     }
   while (flag && runs <= maxruns);
+  sys->maxruns = maxruns;
 }
 
 //! Analyse the model by incremental trace lengths.

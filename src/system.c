@@ -191,8 +191,10 @@ systemDone (const System sys)
   memFree (sys->traceNode, s * sizeof (states_t));
 
   /* clear roledefs */
-  for (run = 0; run < sys->maxruns; run++)
-    roledefDestroy (runPointerGet (sys, run));
+  while (sys->maxruns > 0)
+    {
+      roleInstanceDestroy (sys);
+    }
 
   /* clear substructures */
   termlistDestroy (sys->secrets);
@@ -479,6 +481,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
   Termlist scanfrom, scanto;
   Termlist fromlist = NULL;
   Termlist tolist = NULL;
+  Termlist artefacts = NULL;
   Term extterm = NULL;
   Term newvar;
 
@@ -503,6 +506,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	  /* There is a TYPE constant in the parameter list.
 	   * Generate a new local variable for this run, with this type */
 	  newvar = makeTermType (VARIABLE, scanfrom->term->left.symb, rid);
+	  artefacts = termlistAdd (artefacts, newvar);
 	  sys->variables = termlistAdd (sys->variables, newvar);
 	  newvar->stype = termlistAdd (NULL, scanto->term);
 	  tolist = termlistAdd (tolist, newvar);
@@ -518,6 +522,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	       * this will do for now. I.e. occurring
 	       * first in a read will do */
 	      extterm = makeTermTuple (newvar, extterm);
+	      artefacts = termlistAdd (artefacts, extterm);
 	    }
 	}
       else
@@ -565,6 +570,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	  if (realTermLeaf (t))
 	    {
 	      Term newt = makeTermType (t->type, t->left.symb, rid);
+	      artefacts = termlistAdd (artefacts, newt);
 	      if (realTermVariable (newt))
 		{
 		  sys->variables = termlistAdd (sys->variables, newt);
@@ -579,7 +585,14 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 
   /* TODO this is not what we want yet, also local knowledge. The local
    * knowledge (list?) also needs to be substituted on invocation. */
-  runs[rid].know = knowledgeDuplicate (sys->know);
+  if (sys->engine == ARACHNE_ENGINE)
+    {
+      runs[rid].know = NULL;
+    }
+  else
+    {
+      runs[rid].know = knowledgeDuplicate (sys->know);
+    }
 
   /* now adjust the local run copy */
 
@@ -594,6 +607,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
     }
   termlistDelete (fromlist);
   runs[rid].locals = tolist;
+  runs[rid].artefacts = artefacts;
 
   /* Determine symmetric run */
   runs[rid].prevSymmRun = staticRunSymmetry (sys, rid);	// symmetry reduction static analysis
@@ -602,6 +616,50 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
   runs[rid].firstNonAgentRead = firstNonAgentRead (sys, rid);	// symmetry reduction type II
 }
 
+
+//! Destroy roleInstance
+/**
+ * Destroys the run with the highest index number
+ */
+void
+roleInstanceDestroy (const System sys)
+{
+  int runid;
+
+  runid = sys->maxruns - 1;
+  if (runid >= 0)
+    {
+      struct run myrun;
+      Termlist artefacts;
+
+      myrun = sys->runs[runid];
+
+      // Destroy roledef
+      roledefDestroy (myrun.start);
+      // Destroy artefacts
+      termlistDelete (myrun.artefacts);
+      termlistDelete (myrun.locals);
+      termlistDelete (myrun.agents);
+      /*
+       * Arachne does real-time reduction of memory, POR does not
+       * Artefact removal can only be done if knowledge sets are empty, as with Arachne
+       */
+      if (sys->engine == ARACHNE_ENGINE)
+	{
+	  // Remove artefacts
+          artefacts = myrun.artefacts;
+	  while (artefacts != NULL)
+	    {
+	      memFree(artefacts->term, sizeof (struct term));
+	      artefacts = artefacts->next;
+	    }
+	}
+      // Destroy run struct allocation in array using realloc
+      sys->runs = (Run) memRealloc (sys->runs, sizeof (struct run) * (runid));
+      // Reduce run count
+      sys->maxruns = runid;
+    }
+}
 
 //! Initialise the second system phase.
 /**
