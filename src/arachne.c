@@ -160,10 +160,7 @@ iterate_role_sends (int (*func) ())
 	    {
 	      if (rd->type == SEND)
 		{
-		  int flag;
-
-		  flag = func (p, r, rd, index);
-		  if (!flag)
+		  if (!func (p, r, rd, index))
 		    return 0;
 		}
 	      index++;
@@ -193,7 +190,7 @@ add_intruder_goal (Goal goal)
   goal.rd->bind_index = 0;
   rd = sys->runs[run].start;
   termDelete (rd->message);
-  rd->message = goal.rd->message;
+  rd->message = termDuplicate (goal.rd->message);
 
 #ifdef DEBUG
   explanation = "Adding intruder goal for run";
