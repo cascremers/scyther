@@ -170,7 +170,7 @@ isTermFunctionName (Term t)
 {
   t = deVar (t);
   if (t != NULL && inTermlist (t->stype, TERM_Function))
-      return 1;
+    return 1;
   return 0;
 }
 
@@ -1035,7 +1035,7 @@ bind_goal_regular_run (const Binding b)
       }
   }
 
- 
+
   // Bind to all possible sends of regular runs
   found = 0;
   flag = iterate_role_sends (bind_this_role_send);
@@ -1113,7 +1113,7 @@ bind_goal (const Binding b)
       // Prune: if it is an SK type construct, ready
       // No regular run will apply SK for you.
       //!@todo This still needs a lemma, and a more generic (correct) algorithm!!
-      
+
       know_only = 0;
       function = getTermFunction (b->term);
       if (function != NULL)
@@ -1126,17 +1126,18 @@ bind_goal (const Binding b)
 		  indentPrint ();
 		  eprintf ("* Because ");
 		  termPrint (b->term);
-		  eprintf (" is never sent from a regular run (STILL NEEDS LEMMA!), we only intruder construct it.\n");
+		  eprintf
+		    (" is never sent from a regular run (STILL NEEDS LEMMA!), we only intruder construct it.\n");
 		}
 	      know_only = 1;
 	    }
 	}
-      
+
       if (know_only)
 	{
 	  // Special case: only from intruder
-          flag = flag && bind_goal_old_intruder_run (b);
-          flag = flag && bind_goal_new_intruder_run (b);
+	  flag = flag && bind_goal_old_intruder_run (b);
+	  flag = flag && bind_goal_new_intruder_run (b);
 	}
       else
 	{
@@ -1331,11 +1332,12 @@ prune_claim_specifics ()
     {
       if (arachne_claim_niagree (sys, 0, current_claim->ev))
 	{
-          current_claim->count = statesIncrease (current_claim->count);
+	  current_claim->count = statesIncrease (current_claim->count);
 	  if (sys->output == PROOF)
 	    {
 	      indentPrint ();
-	      eprintf ("Pruned: niagree holds in this part of the proof tree.\n");
+	      eprintf
+		("Pruned: niagree holds in this part of the proof tree.\n");
 	    }
 	  return 1;
 	}
@@ -1344,11 +1346,12 @@ prune_claim_specifics ()
     {
       if (arachne_claim_nisynch (sys, 0, current_claim->ev))
 	{
-          current_claim->count = statesIncrease (current_claim->count);
+	  current_claim->count = statesIncrease (current_claim->count);
 	  if (sys->output == PROOF)
 	    {
 	      indentPrint ();
-	      eprintf ("Pruned: nisynch holds in this part of the proof tree.\n");
+	      eprintf
+		("Pruned: nisynch holds in this part of the proof tree.\n");
 	    }
 	  return 1;
 	}
@@ -1409,6 +1412,14 @@ property_check ()
   count_false ();
   if (sys->output == ATTACK)
     printSemiState ();
+  /**
+   * Prune this?
+   */
+  if (sys->prune == 2)
+    {
+      /* default: if any attack is found, abort the procedure */
+      flag = 0;
+    }
 
   return flag;
 }
@@ -1450,7 +1461,8 @@ iterate ()
 		      eprintf ("All goals are now bound.\n");
 		    }
 		  sys->claims = statesIncrease (sys->claims);
-		  current_claim->count = statesIncrease (current_claim->count);
+		  current_claim->count =
+		    statesIncrease (current_claim->count);
 		  flag = property_check ();
 		}
 	      else
