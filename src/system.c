@@ -339,15 +339,22 @@ agentOfRunRole (const System sys, const int run, const Term role)
   Termlist agents = sys->runs[run].agents;
 
   /* TODO stupid reversed order, lose that soon */
-  agents = termlistForward (agents);
-  while (agents != NULL && roles != NULL)
+  if (agents != NULL)
     {
-      if (isTermEqual (roles->term, role))
+      agents = termlistForward (agents);
+      while (agents != NULL && roles != NULL)
 	{
-	  return agents->term;
+	  if (isTermEqual (roles->term, role))
+	    {
+	      return agents->term;
+	    }
+	  agents = agents->prev;
+	  roles = roles->next;
 	}
-      agents = agents->prev;
-      roles = roles->next;
+    }
+  else
+    {
+      error ("Agent list for run %i is empty, so agentOfRunRole is not usable.", run);
     }
   return NULL;
 }

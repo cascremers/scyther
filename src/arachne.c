@@ -1253,6 +1253,9 @@ bind_goal_new_intruder_run (const Binding b)
 }
 
 //! Bind a regular goal
+/**
+ * Problem child. Valgrind does not like it.
+ */
 int
 bind_goal_regular_run (const Binding b)
 {
@@ -1292,7 +1295,7 @@ bind_goal_regular_run (const Binding b)
     if (!termMguSubTerm
 	(b->term, rd->message, test_sub_unification, sys->know->inverses, NULL))
       {
-	int flag;
+	int sflag;
 
 	// A good candidate
 	found++;
@@ -1317,11 +1320,11 @@ bind_goal_regular_run (const Binding b)
 	  }
 	indentDepth++;
 	// Bind to existing run
-	flag = bind_existing_run (b, p, r, index);
+	sflag = bind_existing_run (b, p, r, index);
 	// bind to new run
-	flag = flag && bind_new_run (b, p, r, index);
+	sflag = sflag && bind_new_run (b, p, r, index);
 	indentDepth--;
-	return flag;
+	return sflag;
       }
     else
       {
@@ -1506,12 +1509,21 @@ prune_theorems ()
       run = 1;
       while (run < sys->maxruns)
 	{
-	  if (inTermlist (sys->untrusted, agentOfRun (sys, run)))
+	  if (sys->runs[run].protocol != INTRUDER)
 	    {
-	      if (sys->output == PROOF)
+	      Term actor;
+
+	      actor = agentOfRun(sys, run);
+	      eprintf ("Bla %i ", run);
+	      termPrint (actor);
+	      eprintf ("\n");
+	      if (inTermlist (sys->untrusted, actor))
 		{
-		  indentPrint ();
-		  eprintf ("Pruned because the actor of run %i is untrusted.\n", run);
+		  if (sys->output == PROOF)
+		    {
+		      indentPrint ();
+		      eprintf ("Pruned because the actor of run %i is untrusted.\n", run);
+		    }
 		}
 	    }
 	  run++;
