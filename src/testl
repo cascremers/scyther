@@ -8,15 +8,26 @@
 #	./testl ns3
 #
 
-file=../spdl/$1.spdl outfile=tempattack
+file=../spdl/$1.spdl
+template=../src/attacktemplate
 
 if [ -f $file ]
 then 
-  ./scyther --latex $file -o $outfile.tex
-  latex $outfile.tex
-  xdvi $outfile.dvi
+
+    ../src/scyther --latex $file -o attack.tex
+    latex $template.tex
+
+    mv $template.dvi attack.dvi
+    dvips attack.dvi -o attack.ps
+
+#    xdvi attack.dvi		# for Xdvi
+#    kdvi attack.dvi		# for KDE environment
+    kghostview attack.ps	# postscript in KDE
+
 else
+
   echo "No file $file found."
+
 fi
 
 
