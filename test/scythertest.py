@@ -79,7 +79,6 @@ def add_extra_parameters(args):
 # 	1: thorough
 #
 def default_arguments(plist,match,bounds):
-	timer = 0
 	n = 2 + bounds
 	# These bounds assume at least two protocols, otherwise
 	# stuff breaks.
@@ -99,7 +98,7 @@ def default_arguments(plist,match,bounds):
 		maxruns = 3*nmin
 		maxlength = 4 + maxruns * 6
 	elif bounds == 2:
-		timer = 0
+		timer = 20 * 60	# 20 minutes
 		maxruns = 3*nmin
 		maxlength = 4 + maxruns * 6
 	else:
