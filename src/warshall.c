@@ -1,7 +1,9 @@
 /**
- * Temp file. I just forgot Warshall...
- *
+ * Warshall's algorithm for transitive closure computation.
  */
+
+#include "warshall.h"
+#include "debug.h"
 
 void
 graph_fill (int *graph, int nodes, int value)
@@ -17,7 +19,8 @@ graph_fill (int *graph, int nodes, int value)
 }
 
 //! Show a graph
-void graph_display (int *graph, int nodes)
+void
+graph_display (int *graph, int nodes)
 {
   int i;
 
@@ -31,9 +34,9 @@ void graph_display (int *graph, int nodes)
     {
       int j;
       j = 0;
-      while (j<nodes)
+      while (j < nodes)
 	{
-	  eprintf ("%i ", graph[index(i,j)]);
+	  eprintf ("%i ", graph[index (i, j)]);
 	  j++;
 	}
       eprintf ("\n");
@@ -78,11 +81,20 @@ warshall (int *graph, int nodes)
 		{
 		  if (graph[index (k, j)] == 1)
 		    {
-		      if (k == i)
+		      /**
+		       * Previously, we tested k == i (self-loop).
+		       * Now we test 2-node loops, i.e. wether there is also a path from i to k.
+		       */
+		      if (graph[index (i, k)] > 0)
 			{
 			  // Oh no! A cycle.
-			  graph [index (k,i)] = 2;
-			  graph_display (graph, nodes);
+			  graph[index (k, i)] = 2;
+#ifdef DEBUG
+			  if (DEBUGL (5))
+			    {
+			      graph_display (graph, nodes);
+			    }
+#endif
 			  return 0;
 			}
 		      graph[index (k, i)] = 1;

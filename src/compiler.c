@@ -109,6 +109,13 @@ makeGlobalConstant (const char *s)
   return levelDeclare (symbolSysConst (s), 0, 0);
 }
 
+//! Make a global variable
+Term
+makeGlobalVariable (const char *s)
+{
+  return levelDeclare (symbolSysConst (s), 1, 0);
+}
+
 //! Clean up afterwards
 void
 compilerDone (void)

@@ -9,8 +9,8 @@
  */
 struct binding
 {
-  int done;		//!< Iff true, it is bound
-  int child; 		//!< Signifies some tuple unfolding, to remove created bindings.
+  int done;			//!< Iff true, it is bound
+  int child;			//!< Signifies some tuple unfolding, to remove created bindings.
 
   int run_from;
   int ev_from;
@@ -34,7 +34,7 @@ int node_count ();
 int node_number (int run, int ev);
 
 
-int binding_print (void *bindany);
+int binding_print (Binding b);
 
 void goal_add (Term term, const int run, const int ev);
 void goal_remove_last ();

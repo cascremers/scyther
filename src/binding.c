@@ -11,7 +11,7 @@
 #include "term.h"
 
 static System sys;
-static int* graph;
+static int *graph;
 static int nodes;
 
 /*
@@ -78,7 +78,8 @@ bindingDone ()
 }
 
 //! Destroy graph
-void goal_graph_destroy ()
+void
+goal_graph_destroy ()
 {
   if (graph != NULL)
     {
@@ -88,13 +89,14 @@ void goal_graph_destroy ()
 }
 
 //! Compute unclosed graph
-void goal_graph_create ()
+void
+goal_graph_create ()
 {
   int run, ev;
   List bl;
 
   goal_graph_destroy ();
-  
+
   // Setup graph
   nodes = node_count ();
   graph = memAlloc ((nodes * nodes) * sizeof (int));
@@ -120,14 +122,18 @@ void goal_graph_create ()
       Binding b;
 
       b = (Binding) bl->data;
+      if (b->done)
+	{
 #ifdef DEBUG
-      if (graph_nodes (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to) >=
-	  (nodes * nodes))
-	error ("Node out of scope for %i,%i -> %i,%i.\n", b->run_from,
-	       b->ev_from, b->run_to, b->ev_to);
+	  if (graph_nodes
+	      (nodes, b->run_from, b->ev_from, b->run_to,
+	       b->ev_to) >= (nodes * nodes))
+	    error ("Node out of scope for %i,%i -> %i,%i.\n", b->run_from,
+		   b->ev_from, b->run_to, b->ev_to);
 #endif
-      graph[graph_nodes (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to)]
-	= 1;
+	  graph[graph_nodes
+		(nodes, b->run_from, b->ev_from, b->run_to, b->ev_to)] = 1;
+	}
       bl = bl->next;
     }
 }
@@ -203,13 +209,14 @@ graph_nodes (const int nodes, const int run1, const int ev1, const int run2,
 
 //! Print a binding (given a binding list pointer)
 int
-binding_print (void *bindany)
+binding_print (const Binding b)
 {
-  Binding b;
-
-  b = (Binding) bindany;
-  eprintf ("Binding (%i,%i) --->> (%i,%i)\n", b->run_from, b->ev_from,
-	   b->run_to, b->ev_to);
+  if (b->done)
+    eprintf ("Binding (%i,%i) --( ", b->run_from, b->ev_from);
+  else
+    eprintf ("Unbound --( ");
+  termPrint (b->term);
+  eprintf (" )->> (%i,%i)", b->run_to, b->ev_to);
   return 1;
 }
 
@@ -306,51 +313,63 @@ goal_unbind (const Binding b)
  *
  *@returns True, if it's okay. If false, it needs to be pruned.
  */
-int bindings_c_minimal ()
+int
+bindings_c_minimal ()
 {
   List bl;
 
   // Ensure a state graph
-  goal_graph_create ();
+  if (graph == NULL)
+    {
+      goal_graph_create ();
+      // Recompute closure; does that work?
+      if (!warshall (graph, nodes))
+	{
+	  // Hmm, cycle
+	  return 0;
+	}
+    }
+
   // For all goals
   bl = sys->bindings;
   while (bl != NULL)
     {
       Binding b;
-      int run;
-      int node_from;
 
       b = (Binding) bl->data;
-      node_from = node_number (b->run_from, b->ev_from);
-      // Find all preceding events
-      for (run = 0; run <= sys->maxruns; run++)
+      if (b->done)
 	{
-	  int ev;
+	  int run;
+	  int node_from;
 
-	  //!@todo hardcoded reference to step, should be length
-	  for (ev = 0; run < sys->runs[run].step; ev++)
+	  node_from = node_number (b->run_from, b->ev_from);
+	  // Find all preceding events
+	  for (run = 0; run <= sys->maxruns; run++)
 	    {
-	      int node_comp;
+	      int ev;
 
-	      node_comp = node_number (run, ev);
-	      if (graph[ graph_index (node_comp, node_from)] > 0)
+	      //!@todo hardcoded reference to step, should be length
+	      for (ev = 0; run < sys->runs[run].step; ev++)
 		{
-		  // this node is *before* the from node
-		  Roledef rd;
+		  int node_comp;
 
-		  rd = roledef_shift (sys->runs[run].start, ev);
-		  if (termInTerm (rd->message, b->term))
+		  node_comp = node_number (run, ev);
+		  if (graph[graph_index (node_comp, node_from)] > 0)
 		    {
-		      // This term already occurs as interm in a previous node!
-		      return 0;
+		      // this node is *before* the from node
+		      Roledef rd;
+
+		      rd = roledef_shift (sys->runs[run].start, ev);
+		      if (termInTerm (rd->message, b->term))
+			{
+			  // This term already occurs as interm in a previous node!
+			  return 0;
+			}
 		    }
 		}
 	    }
 	}
-
-
       bl = bl->next;
     }
   return 1;
 }
-

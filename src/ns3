@@ -12,8 +12,8 @@ protocol ns3(I,R)
 		send_1(I,R, {I,ni}pk(R) );
 		read_2(R,I, {ni,nr}pk(I) );
 		send_3(I,R, {nr}pk(R) );
-		claim_4(I,Secret,ni,nr);
-		claim_6(I,Nisynch);
+//		claim_4(I,Secret,ni,nr);
+//		claim_6(I,Nisynch);
 	}	
 	
 	role R
@@ -24,49 +24,13 @@ protocol ns3(I,R)
 		read_1(I,R, {I,ni}pk(R) );
 		send_2(R,I, {ni,nr}pk(I) );
 		read_3(I,R, {nr}pk(R) );
-		claim_5(R,Secret,ni,nr);
-		claim_7(R,Nisynch);
+		claim_5(R,Secret,nr);
+//		claim_5(R,Secret,ni,nr);
+//		claim_7(R,Nisynch);
 	}
 }
 
-// We leave out: M (from M_0) and Decryption, because that causes
-// problems with the inverse key.
-protocol I_MALICE (I_F, I_T, I_V, I_R, I_E)
-{
-	role I_F {
-	        var t;
-		read_if1 (F,F, t);
-	}
-	role I_T {
-	        var t;
-		read_it1 (T,T, t);
-		send_it2 (T,T, t);
-		send_it3 (T,T, t);
-	}
-	role I_V {
-	        var t1;
-		var t2;
-		read_iv1 (V,V, t1);
-		read_iv2 (V,V, t2);
-		send_iv3 (V,V, (t1,t2));
-	}
-	role I_R {
-	        var t1;
-		var t2;
-		read_ir1 (I_R,I_R, (t1,t2));
-		read_ir2 (I_R,I_R, t1);
-		send_ir3 (I_R,I_R, t2);
-	}
-	role I_E {
-	        var t1;
-		var t2;
-		read_ie1 (I_E,I_E, t1);
-		read_ie2 (I_E,I_E, t2);
-		send_ie3 (I_E,I_E, {t1}t2);
-	}
-}
-
-const Alice,Bob,Eve: Agent;
+const Alice,Eve: Agent;
 
 untrusted Eve;
 const nc: Nonce;

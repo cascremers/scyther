@@ -1037,3 +1037,69 @@ term_rolelocals_are_variables ()
 {
   rolelocal_variable = 1;
 }
+
+//! Count the encryption level of a term
+int
+term_encryption_level (const Term term)
+{
+  int level, maxlevel, flag;
+
+  int nodel (const Term term)
+  {
+    if (realTermEncrypt (term))
+      {
+	level++;
+	if (level > maxlevel)
+	  maxlevel = level;
+      }
+    return 1;
+  }
+  int noder (const Term term)
+  {
+    if (realTermEncrypt (term))
+      {
+	level--;
+      }
+    return 1;
+  }
+
+  maxlevel = 0;
+  level = 0;
+  flag = term_iterate_deVar (term, NULL, nodel, NULL, noder);
+  return maxlevel;
+}
+
+//! Determine 'constrained factor' of a term
+/**
+ * Actually this is (#vars/structure).
+ * Thus, 0 means very constrained, no variables.
+ * Everything else has higher float, but always <=1. In fact, only a single variable has a level 1.
+ */
+float
+term_constrain_level (const Term term)
+{
+  int vars;
+  int structure;
+  int flag;
+
+  int leaf (const Term t)
+  {
+    structure++;
+    if (realTermVariable (t))
+      vars++;
+    return 1;
+  }
+  int nodel (const Term t)
+  {
+    structure++;
+    return 1;
+  }
+
+  if (term == NULL)
+    error ("Cannot determine constrain level of empty term.");
+
+  vars = 0;
+  structure = 0;
+  flag = term_iterate_deVar (term, leaf, nodel, NULL, NULL);
+  return ((float) vars / (float) structure);
+}
