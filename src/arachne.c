@@ -19,8 +19,8 @@ static Protocol INTRUDER;	// Pointers, to be set by the Init
 static Role I_GOAL;		// Same here.
 
 #ifdef DEBUG
-static explanation;		// Pointer to a string that describes what we just tried to do
-static indent;			// Integer indicating iteration depth 0..
+static char *explanation;	// Pointer to a string that describes what we just tried to do
+static int indentDepth;
 #endif
 
 struct goalstruct
@@ -81,7 +81,8 @@ mgu_iterate (const Termlist tl)
 }
 
 //! Yield roledef pointer for a given index
-Roledef roledef_shift (Roledef rd, int i)
+Roledef
+roledef_shift (Roledef rd, int i)
 {
   while (i > 0 && rd != NULL)
     {
@@ -193,7 +194,7 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 	  if (index >= old_length)
 	    sys->runs[run].length = index + 1;
 #ifdef DEBUG
-          explanation = "Bind existing run";
+	  explanation = "Bind existing run";
 #endif
 	  flag =
 	    flag & termMguInTerm (goal.rd->message, rd->message, mgu_iterate);
@@ -213,8 +214,8 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
   Roledef rd;
 
   roleInstance (sys, p, r, NULL);
-  run = sys->maxruns-1;
-  sys->runs[run].length = index+1;
+  run = sys->maxruns - 1;
+  sys->runs[run].length = index + 1;
   goal.rd->bind_run = run;
   goal.rd->bind_index = index;
   rd = roledef_shift (sys->runs[run].start, index);
@@ -292,7 +293,7 @@ bind_goal_regular (const Goal goal)
 
       if (p == INTRUDER)
 	{
-	  return 1;	// don't abort scans
+	  return 1;		// don't abort scans
 	}
       flag = bind_existing_run (goal, p, r, index);
       if (flag)
@@ -360,7 +361,7 @@ iterate ()
 
   flag = 1;
 #ifdef DEBUG
-  indent++;
+  indentDepth++;
 #endif
   if (prune ())
     {
@@ -374,10 +375,10 @@ iterate ()
 	{
 	  int i;
 
-	  for (i = 0; i < indent; i++)
-	      eprintf ("   ");
+	  for (i = 0; i < indentDepth; i++)
+	    eprintf ("   ");
 	  eprintf ("%s\n", explanation);
-      	  explanation = NULL;
+	  explanation = NULL;
 	}
 #endif
 
@@ -402,7 +403,7 @@ iterate ()
 	}
     }
 #ifdef DEBUG
-  indent--;
+  indentDepth--;
 #endif
   return flag;
 }
@@ -419,7 +420,7 @@ arachne ()
    */
 #ifdef DEBUG
   explanation = NULL;
-  indent = -1;
+  indentDepth = -1;
 #endif
 
   /*

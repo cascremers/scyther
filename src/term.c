@@ -884,3 +884,50 @@ termOrder (Term t1, Term t2)
 	return compR;
     }
 }
+
+//! Iterate over the leaves in a term
+/**
+ * Note that this function iterates over real leaves; thus closed variables can occur as
+ * well. It is up to func to decide wether or not to recurse.
+ */
+int
+term_iterate_leaves (const Term term, int (*func) ())
+{
+  if (term != NULL)
+    {
+      if (realTermLeaf (term))
+	{
+	  if (!func (term))
+	    return 0;
+	}
+      else
+	{
+	  if (realTermTuple (term))
+	    return (term_iterate_leaves (term->left.op1, func)
+		    && term_iterate_leaves (term->right.op2, func));
+	  else
+	    return (term_iterate_leaves (term->left.op, func)
+		    && term_iterate_leaves (term->right.key, func));
+	}
+    }
+  return 1;
+}
+
+//! Iterate over open leaves (i.e. respect variable closure)
+int
+term_iterate_open_leaves (const Term term, int (*func) ())
+{
+  int testleaf (const Term t)
+  {
+    if (substVar (t))
+      {
+	return term_iterate_open_leaves (t, func);
+      }
+    else
+      {
+	return func (t);
+      }
+  }
+
+  return term_iterate_leaves (term, testleaf);
+}

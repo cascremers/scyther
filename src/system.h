@@ -232,5 +232,6 @@ int compute_rolecount (const System sys);
 int compute_roleeventmax (const System sys);
 
 void scenarioPrint (const System sys);
+int system_iterate_roles (const System sys, int (*func) ());
 
 #endif

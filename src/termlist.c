@@ -592,12 +592,11 @@ inverseKey (Termlist inverses, Term key)
 //! Create a term local to a run.
 /*
  * We assume that at this point, no variables have been instantiated yet that occur in this term.
- * We also assume that fromlist, tolist and locals only hold real leaves.
+ * We also assume that fromlist, tolist only hold real leaves.
  *\sa termlistLocal()
  */
 Term
-termLocal (Term t, Termlist fromlist, Termlist tolist,
-	   const Termlist locals, const int runid)
+termLocal (Term t, Termlist fromlist, Termlist tolist, const int runid)
 {
   if (t == NULL)
     return NULL;
@@ -615,10 +614,6 @@ termLocal (Term t, Termlist fromlist, Termlist tolist,
 	  fromlist = fromlist->next;
 	  tolist = tolist->next;
 	}
-      if (inTermlist (locals, t))
-	{
-	  // return termRunid(t,runid);
-	}
       return t;
     }
   else
@@ -626,17 +621,13 @@ termLocal (Term t, Termlist fromlist, Termlist tolist,
       Term newt = termDuplicate (t);
       if (realTermTuple (t))
 	{
-	  newt->left.op1 =
-	    termLocal (t->left.op1, fromlist, tolist, locals, runid);
-	  newt->right.op2 =
-	    termLocal (t->right.op2, fromlist, tolist, locals, runid);
+	  newt->left.op1 = termLocal (t->left.op1, fromlist, tolist, runid);
+	  newt->right.op2 = termLocal (t->right.op2, fromlist, tolist, runid);
 	}
       else
 	{
-	  newt->left.op =
-	    termLocal (t->left.op, fromlist, tolist, locals, runid);
-	  newt->right.key =
-	    termLocal (t->right.key, fromlist, tolist, locals, runid);
+	  newt->left.op = termLocal (t->left.op, fromlist, tolist, runid);
+	  newt->right.key = termLocal (t->right.key, fromlist, tolist, runid);
 	}
       return newt;
     }
@@ -649,15 +640,14 @@ termLocal (Term t, Termlist fromlist, Termlist tolist,
  */
 Termlist
 termlistLocal (Termlist tl, const Termlist fromlist, const Termlist tolist,
-	       const Termlist locals, int runid)
+	       int runid)
 {
   Termlist newtl = NULL;
 
   while (tl != NULL)
     {
       newtl =
-	termlistAdd (newtl,
-		     termLocal (tl->term, fromlist, tolist, locals, runid));
+	termlistAdd (newtl, termLocal (tl->term, fromlist, tolist, runid));
       tl = tl->next;
     }
   return newtl;

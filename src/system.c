@@ -495,72 +495,118 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
   /* duplicate roledef in buffer rd */
   rd = roledefDuplicate (role->roledef);
 
+  /* set parameters */
+  /* generic setup */
+  runs[rid].protocol = protocol;
+  runs[rid].role = role;
+  runs[rid].step = 0;
+  runs[rid].firstReal = 0;
+
   /* scan for types in agent list */
   /* scanners */
-  scanfrom = protocol->rolenames;
-  scanto = paramlist;
-  while (scanfrom != NULL && scanto != NULL)
+  if (sys->engine != ARACHNE_ENGINE)
     {
-      fromlist = termlistAdd (fromlist, scanfrom->term);
-      if (scanto->term->stype != NULL &&
-	  inTermlist (scanto->term->stype, TERM_Type))
+      // Default engine adheres to scenario
+      scanfrom = protocol->rolenames;
+      scanto = paramlist;
+      while (scanfrom != NULL && scanto != NULL)
 	{
-	  /* There is a TYPE constant in the parameter list.
-	   * Generate a new local variable for this run, with this type */
-	  newvar = makeTermType (VARIABLE, scanfrom->term->left.symb, rid);
-	  artefacts = termlistAdd (artefacts, newvar);
-	  sys->variables = termlistAdd (sys->variables, newvar);
-	  newvar->stype = termlistAdd (NULL, scanto->term);
-	  tolist = termlistAdd (tolist, newvar);
-	  /* newvar is apparently new, but it might occur
-	   * in the first event if it's a read, in which
-	   * case we forget it */
-	  if (sys->switchForceChoose
-	      || !(rd->type == READ
-		   && termOccurs (rd->message, scanfrom->term)))
+	  fromlist = termlistAdd (fromlist, scanfrom->term);
+	  if (scanto->term->stype != NULL &&
+	      inTermlist (scanto->term->stype, TERM_Type))
 	    {
-	      /* this term is forced as a choose, or it does not occur in the (first) read event */
-	      /* TODO scan might be more complex, but
-	       * this will do for now. I.e. occurring
-	       * first in a read will do */
-	      extterm = makeTermTuple (newvar, extterm);
-	      artefacts = termlistAdd (artefacts, extterm);
+	      /* There is a TYPE constant in the parameter list.
+	       * Generate a new local variable for this run, with this type */
+	      newvar =
+		makeTermType (VARIABLE, scanfrom->term->left.symb, rid);
+	      artefacts = termlistAdd (artefacts, newvar);
+	      sys->variables = termlistAdd (sys->variables, newvar);
+	      newvar->stype = termlistAdd (NULL, scanto->term);
+	      tolist = termlistAdd (tolist, newvar);
+	      /* newvar is apparently new, but it might occur
+	       * in the first event if it's a read, in which
+	       * case we forget it */
+	      if (sys->switchForceChoose
+		  || !(rd->type == READ
+		       && termOccurs (rd->message, scanfrom->term)))
+		{
+		  /* this term is forced as a choose, or it does not occur in the (first) read event */
+		  /* TODO scan might be more complex, but
+		   * this will do for now. I.e. occurring
+		   * first in a read will do */
+		  extterm = makeTermTuple (newvar, extterm);
+		  artefacts = termlistAdd (artefacts, extterm);
+		}
 	    }
+	  else
+	    {
+	      /* not a type constant, add to list */
+	      tolist = termlistAdd (tolist, scanto->term);
+	    }
+	  scanfrom = scanfrom->next;
+	  scanto = scanto->next;
 	}
-      else
+
+      /* set agent list */
+      runs[rid].agents = termlistDuplicate (tolist);
+
+      /* prefix a read for such reads. TODO: this should also cover any external stuff */
+      if (extterm != NULL)
 	{
-	  /* not a type constant, add to list */
-	  tolist = termlistAdd (tolist, scanto->term);
+	  Roledef rdnew;
+
+	  rdnew = roledefInit (READ, NULL, NULL, NULL, extterm, NULL);
+	  /* this is an internal action! */
+	  rdnew->internal = 1;
+	  rdnew->next = rd;
+	  rd = rdnew;
+	  /* mark the first real action */
+	  runs[rid].firstReal++;
 	}
-      scanfrom = scanfrom->next;
-      scanto = scanto->next;
-    }
-
-  /* prefix a read for such reads. TODO: this should also cover any external stuff */
-  if (extterm != NULL)
-    {
-      Roledef rdnew;
-
-      rdnew = roledefInit (READ, NULL, NULL, NULL, extterm, NULL);
-      /* this is an internal action! */
-      rdnew->internal = 1;
-      rdnew->next = rd;
-      rd = rdnew;
-      /* mark the first real action */
-      runs[rid].firstReal = 1;
     }
   else
     {
-      runs[rid].firstReal = 0;
+      // For the Arachne engine, we need to copy all these roles to new variables
+      /**
+       * Because of pre-instantiation unification, some variables might already have been filled in.
+       * Ignore agent list; instead rely on role->variables.
+       */
+      Termlist scanfrom;
+
+      runs[rid].agents = NULL;
+
+      scanfrom = role->variables;
+      while (scanfrom != NULL)
+	{
+	  Term newt, oldt;
+
+	  oldt = scanfrom->term;
+	  newt = deVar (oldt);
+	  if (realTermVariable (newt))
+	    {
+	      // Make new var for this run
+	      newt = makeTermType (VARIABLE, newt->left.symb, rid);
+	      artefacts = termlistAdd (artefacts, newt);
+	    }
+	  // Add to agent list, possibly
+	  if (inTermlist (protocol->rolenames, oldt))
+	    runs[rid].agents = termlistAdd (runs[rid].agents, newt);
+	  fromlist = termlistAdd (fromlist, oldt);
+	  tolist = termlistAdd (tolist, newt);
+
+	  eprintf ("Created for run %i: ", rid);
+	  termPrint (oldt);
+	  eprintf (" -> ");
+	  termPrint (newt);
+	  eprintf ("\n");
+
+	  scanfrom = scanfrom->next;
+	}
     }
 
-  /* set parameters */
-  runs[rid].protocol = protocol;
-  runs[rid].role = role;
-  runs[rid].agents = termlistDuplicate (tolist);
+  /* possibly shifted rd */
   runs[rid].start = rd;
   runs[rid].index = rd;
-  runs[rid].step = 0;
 
   /* duplicate all locals form this run */
   scanto = role->locals;
@@ -601,10 +647,9 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
   rd = runs[rid].start;
   while (rd != NULL)
     {
-      rd->from = termLocal (rd->from, fromlist, tolist, role->locals, rid);
-      rd->to = termLocal (rd->to, fromlist, tolist, role->locals, rid);
-      rd->message =
-	termLocal (rd->message, fromlist, tolist, role->locals, rid);
+      rd->from = termLocal (rd->from, fromlist, tolist, rid);
+      rd->to = termLocal (rd->to, fromlist, tolist, rid);
+      rd->message = termLocal (rd->message, fromlist, tolist, rid);
       rd = rd->next;
     }
   termlistDelete (fromlist);
@@ -632,23 +677,29 @@ roleInstanceDestroy (const System sys)
   if (runid >= 0)
     {
       struct run myrun;
-      Termlist artefacts;
 
       myrun = sys->runs[runid];
 
       // Destroy roledef
       roledefDestroy (myrun.start);
+
       // Destroy artefacts
-      termlistDelete (myrun.artefacts);
-      termlistDelete (myrun.locals);
-      termlistDelete (myrun.agents);
       /*
        * Arachne does real-time reduction of memory, POR does not
        * Artefact removal can only be done if knowledge sets are empty, as with Arachne
        */
       if (sys->engine == ARACHNE_ENGINE)
 	{
+	  Termlist artefacts;
 	  // Remove artefacts
+	  artefacts = myrun.artefacts;
+	  while (artefacts != NULL)
+	    {
+	      eprintf ("Artefact term to delete: ");
+	      termPrint (artefacts->term);
+	      eprintf ("\n");
+	      artefacts = artefacts->next;
+	    }
 	  artefacts = myrun.artefacts;
 	  while (artefacts != NULL)
 	    {
@@ -656,6 +707,9 @@ roleInstanceDestroy (const System sys)
 	      artefacts = artefacts->next;
 	    }
 	}
+      termlistDelete (myrun.artefacts);
+      termlistDelete (myrun.locals);
+      termlistDelete (myrun.agents);
       // Destroy run struct allocation in array using realloc
       sys->runs = (Run) memRealloc (sys->runs, sizeof (struct run) * (runid));
       // Reduce run count
@@ -1010,4 +1064,31 @@ scenarioPrint (const System sys)
 	  printf ("\t");
 	}
     }
+}
+
+//! Iterate over all roles (AND)
+/**
+ * Function called gets (sys,protocol,role)
+ * If it returns 0, iteration aborts.
+ */
+int
+system_iterate_roles (const System sys, int (*func) ())
+{
+  Protocol p;
+
+  p = sys->protocols;
+  while (p != NULL)
+    {
+      Role r;
+
+      r = p->roles;
+      while (r != NULL)
+	{
+	  if (!func (sys, p, r))
+	    return 0;
+	  r = r->next;
+	}
+      p = p->next;
+    }
+  return 1;
 }

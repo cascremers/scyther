@@ -164,5 +164,7 @@ Term tupleProject (Term tt, int n);
 int termSize (Term t);
 float termDistance (Term t1, Term t2);
 int termOrder (Term t1, Term t2);
+int term_iterate_leaves (const Term t, int (*func) ());
+int term_iterate_open_leaves (const Term term, int (*func) ());
 
 #endif

@@ -193,6 +193,7 @@ roleCreate (Term name)
   r->nameterm = name;
   r->next = NULL;
   r->locals = NULL;
+  r->variables = NULL;
   r->roledef = NULL;
   return r;
 }
@@ -237,4 +238,20 @@ rolesPrint (Role r)
 	  r = r->next;
 	}
     }
+}
+
+//! Iterate over the events in a roledef list
+/**
+ * Function gets roledef pointer
+ */
+int
+roledef_iterate_events (Roledef rd, int (*func) ())
+{
+  while (rd != NULL)
+    {
+      if (!func (rd))
+	return 0;
+      rd = rd->next;
+    }
+  return 1;
 }

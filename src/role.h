@@ -83,7 +83,7 @@ struct roledef
   /*
    * Bindings for Arachne engine
    */
-  int bind_run;		//!< -1 for unbound
+  int bind_run;			//!< -1 for unbound
   int bind_index;
 
   /* evt runid for synchronisation, but that is implied in the
@@ -105,6 +105,8 @@ struct role
   Roledef roledef;
   //! Local constants for this role.
   Termlist locals;
+  //! Local variables for this role.
+  Termlist variables;
   //! Pointer to next role definition.
   struct role *next;
 };
@@ -124,5 +126,6 @@ Roledef roledefAdd (Roledef rd, int type, Term label, Term from, Term to,
 Role roleCreate (Term nameterm);
 void rolePrint (Role r);
 void rolesPrint (Role r);
+int roledef_iterate_events (Roledef rd, int (*func) ());
 
 #endif

@@ -33,6 +33,7 @@ Term levelFind (Symbol s, int i);
 Term symbolFind (Symbol s);
 Term tacTerm (Tac tc);
 Termlist tacTermlist (Tac tc);
+void compute_role_variables (const System sys, Protocol p, Role r);
 
 #define	levelDeclareVar(s)	levelTacDeclaration(s,1)
 #define	levelDeclareConst(s)	levelTacDeclaration(s,0)
@@ -120,6 +121,7 @@ compile (Tac tc, int maxrunsset)
   /* Init globals */
   maxruns = maxrunsset;
   tac_root = tc;
+
   /* process the tac */
   tacProcess (tac_root);
 
@@ -578,6 +580,7 @@ roleCompile (Term nameterm, Tac tc)
 	}
       tc = tc->next;
     }
+  compute_role_variables (sys, thisProtocol, thisRole);
   levelDone ();
 }
 
@@ -638,7 +641,7 @@ runInstanceCreate (Tac tc)
     }
 
   /* equal numbers, so it seems to be safe */
-  roleInstance (sys, p, r, instParams);
+  roleInstance (sys, p, r, instParams);	// technically, we don't need to do this for Arachne [fix later]
 
   /* after creation analysis */
   /* AC1: untrusted agents */
@@ -685,8 +688,16 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
   pr->rolenames = NULL;
   while (tcroles != NULL)
     {
-      pr->rolenames =
-	termlistAppend (pr->rolenames, levelConst (tcroles->t1.sym));
+      if (sys->engine == ARACHNE_ENGINE)
+	{
+	  pr->rolenames =
+	    termlistAppend (pr->rolenames, levelVar (tcroles->t1.sym));
+	}
+      else
+	{
+	  pr->rolenames =
+	    termlistAppend (pr->rolenames, levelConst (tcroles->t1.sym));
+	}
       tcroles = tcroles->next;
     }
 
@@ -797,6 +808,35 @@ tacTermlist (Tac tc)
       tc = tc->next;
     }
   return tl;
+}
+
+//! Compute variables for a roles (for Arachne)
+void
+compute_role_variables (const System sys, Protocol p, Role r)
+{
+  if (r->variables == NULL)
+    {
+      // Not computed before, for some reason
+      Termlist tl;
+
+      int process_event (Roledef rd)
+      {
+	tl = termlistAddVariables (tl, rd->from);
+	tl = termlistAddVariables (tl, rd->to);
+	tl = termlistAddVariables (tl, rd->message);
+	return 1;
+      }
+
+      tl = NULL;
+      roledef_iterate_events (r->roledef, process_event);
+      r->variables = tl;
+
+      eprintf ("All variables for role ");
+      termPrint (r->nameterm);
+      eprintf (" are ");
+      termlistPrint (tl);
+      eprintf ("\n");
+    }
 }
 
 //! Compute prec() sets for each claim.
