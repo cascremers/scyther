@@ -1,3 +1,9 @@
+/**
+ *@file knowledge.c
+ *\brief Procedures concerning knowledge structures.
+ *
+ * The main issue of this code is to maintain the minimal property of the knowledge set.
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include "termlists.h"
@@ -20,23 +26,34 @@
  *     they now have some overhead.
  */
 
+//! Open knowledge code.
 void
 knowledgeInit (void)
 {
   return;
 }
 
+//! Close knowledge code.
 void
 knowledgeDone (void)
 {
 }
 
+//! Allocate a fresh memory block the size of a knowledge struct.
+/**
+ * Memory will not be initialized.
+ *@return Pointer to a fresh memory block.
+ */
 Knowledge
 makeKnowledge ()
 {
   return (Knowledge) memAlloc (sizeof (struct knowledge));
 }
 
+//! Create a new empty knowledge structure.
+/**
+ *@return Pointer to an empty knowledge structure.
+ */
 Knowledge
 emptyKnowledge ()
 {
@@ -50,6 +67,15 @@ emptyKnowledge ()
   return know;
 }
 
+//! Duplicate a knowledge structure.
+/**
+ * Makes copies using termlistShallow() of knowledge::basic, knowledge::encrypt and 
+ * knowledge::vars.
+ * For the inverses, only the pointer is copied.
+ *@param know The knowledge structure to be copied.
+ *@return A pointer to a new memory struct.
+ *\sa termlistShallow(), knowledgeDelete()
+ */
 Knowledge
 knowledgeDuplicate (Knowledge know)
 {
@@ -68,6 +94,11 @@ knowledgeDuplicate (Knowledge know)
   return newknow;
 }
 
+//! Delete a knowledge set.
+/**
+ * Typically used to destroy something made with knowledgeDuplicate().
+ *\sa knowledgeDuplicate()
+ */
 void
 knowledgeDelete (Knowledge know)
 {
@@ -80,6 +111,12 @@ knowledgeDelete (Knowledge know)
     }
 }
 
+//! Destroy a knowledge set.
+/**
+ * Unlike knowledgeDelete(), uses termlistDestroy() to remove knowledge::basic, 
+ * knowledge::encrypt and knowledge::vars substructures.
+ *\sa knowledgeDelete()
+ */
 void
 knowledgeDestroy (Knowledge know)
 {
@@ -93,13 +130,12 @@ knowledgeDestroy (Knowledge know)
     }
 }
 
-/*
- * knowledgeAddTerm
- *
- * returns a boolean:
- * true iff the term was actually new, and added.
+//! Add a term to a knowledge set.
+/**
+ *@param know The knowledge set.
+ *@param term The term to be added.
+ *@return True iff the term was actually new, and added.
  */
-
 int
 knowledgeAddTerm (Knowledge know, Term term)
 {
@@ -156,11 +192,12 @@ knowledgeAddTerm (Knowledge know, Term term)
 }
 
 
-/*
-	Note: the input is a key k, i.e. it can decrypt
-	anything that was encrypted with k^{-1}.
-*/
-
+//! Try to simplify knowledge based on a term.
+/**
+ *@param know A knowledge set.
+ *@param term A key, i.e. it can decrypt
+	anything that was encrypted with term^{-1}.
+ */
 void
 knowledgeSimplify (Knowledge know, Term key)
 {
@@ -184,12 +221,11 @@ knowledgeSimplify (Knowledge know, Term key)
   termlistDelete (tldecrypts);
 }
 
+//! Add a termlist to the knowledge.
 /*
- * Add a whole termlist.
- *
- * Returns true iff there was at least one new item.
+ *@return True iff there was at least one new item.
+ *\sa knowledgeAddTerm()
  */
-
 int
 knowledgeAddTermlist (Knowledge know, Termlist tl)
 {
@@ -203,12 +239,7 @@ knowledgeAddTermlist (Knowledge know, Termlist tl)
   return flag;
 }
 
-/*
-
-   add an inverse pair to the knowledge
-
- */
-
+//! Add an inverse pair to the knowledge
 void
 knowledgeAddInverse (Knowledge know, Term t1, Term t2)
 {
@@ -217,24 +248,22 @@ knowledgeAddInverse (Knowledge know, Term t1, Term t2)
   return;
 }
 
-/*
-   same, but for list. List pointer is simply copied, so don't delete it later!
-*/
-
+//! Set an inverse pair list for the knowledge.
+/**
+ * List pointer is simply copied, so don't delete it later!
+ */
 void
 knowledgeSetInverses (Knowledge know, Termlist tl)
 {
   know->inverses = tl;
 }
 
-/*
-
-inKnowledge
-
-Is a term a part of the knowledge?
-
-*/
-
+//! Is a term a part of the knowledge?
+/**
+ *@param know The knowledge set.
+ *@param term The term to be inferred.
+ *@return True iff the term can be inferred from the knowledge set.
+ */
 int
 inKnowledge (const Knowledge know, Term term)
 {
@@ -266,6 +295,11 @@ inKnowledge (const Knowledge know, Term term)
   return 0;			/* unrecognized term type, weird */
 }
 
+//! Compare two knowledge sets.
+/**
+ * This does not check currently for equivalence of inverse sets, which it should.
+ *@return True iff both knowledge sets are equal.
+ */
 int
 isKnowledgeEqual (Knowledge know1, Knowledge know2)
 {
@@ -281,7 +315,7 @@ isKnowledgeEqual (Knowledge know1, Knowledge know2)
   return isTermlistEqual (know1->basic, know2->basic);
 }
 
-
+//! Print a knowledge set.
 void
 knowledgePrint (Knowledge know)
 {
@@ -304,10 +338,7 @@ knowledgePrint (Knowledge know)
   printf ("\n");
 }
 
-/*
-   print inverses
- */
-
+//! Print the inverses list of a knowledge set.
 void
 knowledgeInversesPrint (Knowledge know)
 {
@@ -344,11 +375,11 @@ knowledgeInversesPrint (Knowledge know)
     }
 }
 
-/*
-   give the set of representatives for the knowledge.
-   Note: this is a shallow copy, and needs to be termlistDelete'd.
+//! Yield the set of representatives for the knowledge.
+/**
+ * Note: this is a shallow copy, and needs to be termlistDelete'd.
+ *\sa termlistDelete()
  */
-
 Termlist
 knowledgeSet (Knowledge know)
 {
@@ -359,11 +390,10 @@ knowledgeSet (Knowledge know)
   return termlistConcat (tl1, tl2);
 }
 
-/*
-   get the inverses pointer of the knowledge.
-   Essentially the inverse function of knowledgeSetInverses
-*/
-
+//! Get the inverses pointer of the knowledge.
+/**
+ * Essentially the inverse function of knowledgeSetInverses()
+ */
 Termlist
 knowledgeGetInverses (Knowledge know)
 {
@@ -373,10 +403,13 @@ knowledgeGetInverses (Knowledge know)
     return know->inverses;
 }
 
-/*
- * check whether any substitutions where made at all.
+//! check whether any substitutions where made in a knowledge set.
+/**
+ * Typically, when a substitution is made, a knowledge set has to be reconstructed.
+ * This procedure detects this by checking knowledge::vars.
+ *@return True iff an open variable was later closed by a substitution.
+ *\sa knowledgeReconstruction()
  */
-
 int
 knowledgeSubstNeeded (const Knowledge know)
 {
@@ -394,13 +427,13 @@ knowledgeSubstNeeded (const Knowledge know)
   return 0;
 }
 
-/*
- * knowledgeReconstruction
- *
+//! Reconstruct a knowledge set.
+/**
  * This is useful after e.g. substitutions.
  * Just rebuilds the knowledge in a new (shallow) copy.
+ *@return The pointer to the new knowledge.
+ *\sa knowledgeSubstNeeded()
  */
-
 Knowledge
 knowledgeReconstruction (const Knowledge know)
 {
@@ -412,13 +445,12 @@ knowledgeReconstruction (const Knowledge know)
   return newknow;
 }
 
-/*
- * propagate any substitutions just made.
- *
+//! Propagate any substitutions just made.
+/**
  * This usually involves reconstruction of the complete knowledge, which is
  * 'cheaper' than a thorough analysis, so we always make a copy.
+ *\sa knowledgeReconstruction()
  */
-
 Knowledge
 knowledgeSubstDo (const Knowledge know)
 {
@@ -426,10 +458,10 @@ knowledgeSubstDo (const Knowledge know)
   return knowledgeReconstruction (know);
 }
 
-/*
- * Undo the substitutions just made. Note that this does not work anymore after knowledgeSubstDo!
+//! Undo substitutions that were not propagated yet.
+/**
+ * Undo the substitutions just made. Note that this does not work anymore after knowledgeSubstDo()
  */
-
 void
 knowledgeSubstUndo (const Knowledge know)
 {
@@ -443,11 +475,13 @@ knowledgeSubstUndo (const Knowledge know)
     }
 }
 
-/*
- * knowledgeNew(old,new)
- *
- * yield a termlist (or NULL) that represents the reduced items that are
+//! Yield the minimal set of terms that are in some knowledge, but not in some other set.
+/**
+ * Yield a termlist (or NULL) that represents the reduced items that are
  * in the new set, but not in the old one.
+ *@param oldk The old knowledge.
+ *@param newk The new knowledge, possibly with new terms.
+ *@return A termlist of miminal terms in newk, but not in oldk.
  */
 
 Termlist

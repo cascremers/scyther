@@ -24,6 +24,10 @@ struct knowledge
      * and we need to reconstruct the knowledge set.
      */
     Termlist vars;		// special: denotes unsubstituted variables
+    //! Next pointer.
+    /**
+     * Presumably obsolete.
+     */
     struct knowledge *next;	// use for alternative memory management.
   };
 };
