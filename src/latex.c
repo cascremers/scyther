@@ -176,15 +176,15 @@ latexTermTuplePrint (Term term, Termlist hl)
       printf ("Empty term");
       return;
     }
-  term = deVar(term);
+  term = deVar (term);
   while (realTermTuple (term))
     {
       // To remove any brackets, change this into latexTermTuplePrint.
       latexTermPrint (term->left.op1, hl);
       printf (",");
-      term = deVar(term->right.op2);
+      term = deVar (term->right.op2);
     }
-  latexTermPrint(term, hl);
+  latexTermPrint (term, hl);
   return;
 }
 
@@ -290,11 +290,11 @@ latexDeclInst (const System sys, int run)
 	  if (!isTermEqual (myRole, roles->term))
 	    {
 	      if (!first)
-		  printf (", ");
+		printf (", ");
 	      else
-		  first = 0;
-	      termPrint (agentOfRunRole(sys,run,roles->term));
-	      printf(": ");
+		first = 0;
+	      termPrint (agentOfRunRole (sys, run, roles->term));
+	      printf (": ");
 	      termPrint (roles->term);
 	    }
 	  roles = roles->next;
@@ -305,9 +305,9 @@ latexDeclInst (const System sys, int run)
   /* display agent and role */
   printf ("$\\mathbf{");
   termPrint (myAgent);
-  printf("}: ");
+  printf ("}: ");
   termPrint (myRole);
-  
+
   printf ("$}\n");
 
   /* cleanup */
@@ -896,7 +896,7 @@ attackDisplayLatex (const System sys)
 
   for (pass = 1; pass <= 2; pass++)
     {
-      printf ("%% Pass %i\n\n",pass);
+      printf ("%% Pass %i\n\n", pass);
 
       if (pass == 1)
 	{
@@ -915,7 +915,7 @@ attackDisplayLatex (const System sys)
 	  printf ("\\addtolength{\\maxmsccondition}{\\mscspacer}\n");
 
 	  /* put out computed widths */
-	  
+
 	  printf ("\\setlength{\\envinstdist}{0.7\\maxmscall}\n");
 	  printf ("\\setlength{\\instdist}{\\maxmscall}\n");
 	  printf ("\\setlength{\\actionwidth}{\\maxmscaction}\n");
@@ -949,9 +949,9 @@ attackDisplayLatex (const System sys)
 	}
       /* Add the intruder instance */
       if (pass == 2)
-	  printf ("\\declinst{eve}{}{");
+	printf ("\\declinst{eve}{}{");
       else
-	  printf ("\\maxlength{\\maxmscinst}{");
+	printf ("\\maxlength{\\maxmscinst}{");
       printf ("{\\bf Eve}: Intruder}\n\n");
 
       /* Print the local constants for each instance */
@@ -971,9 +971,9 @@ attackDisplayLatex (const System sys)
 		      if (first)
 			{
 			  if (pass == 1)
-			      printf ("\\maxlength{\\maxmscaction}{$");
+			    printf ("\\maxlength{\\maxmscaction}{$");
 			  else
-			      printf ("\\ActionBox{creates \\\\\n$");
+			    printf ("\\ActionBox{creates \\\\\n$");
 			  first = 0;
 			}
 		      else
@@ -987,9 +987,9 @@ attackDisplayLatex (const System sys)
 	      if (!first)
 		{
 		  if (pass == 1)
-		      printf ("$}\n");
+		    printf ("$}\n");
 		  else
-		      printf ("$}{run%i}\n", i);
+		    printf ("$}{run%i}\n", i);
 		}
 	    }
 	}
@@ -999,12 +999,12 @@ attackDisplayLatex (const System sys)
       if (pass == 2)
 	{
 	  printf ("\\ActionBox{");
-          printf ("knows \\\\\n$");
-          knowledgePrintLatex (tb->know[0]);
-          printf ("$}");
+	  printf ("knows \\\\\n$");
+	  knowledgePrintLatex (tb->know[0]);
+	  printf ("$}");
 	  printf ("{eve}\n");
-          printf ("\\nextlevel[3]\n");
-          printf ("\n");
+	  printf ("\\nextlevel[3]\n");
+	  printf ("\n");
 	}
 
       /* print the events in the attack */
@@ -1044,7 +1044,8 @@ attackDisplayLatex (const System sys)
 
 		  if (tb->link[i] != -1 && i < tb->length)
 		    {
-		      latexMessagePrintHighlight (tb, i, tb->link[i], highlights);
+		      latexMessagePrintHighlight (tb, i, tb->link[i],
+						  highlights);
 		    }
 		  else
 		    {
@@ -1062,8 +1063,8 @@ attackDisplayLatex (const System sys)
 			}
 		      else
 			{
-		          printf ("\\nextlevel[1]\n");
-		          printf ("\\ActionBox{learns \\\\\n");
+			  printf ("\\nextlevel[1]\n");
+			  printf ("\\ActionBox{learns \\\\\n");
 			}
 		      printf ("$");
 		      cKnowledge++;
@@ -1076,7 +1077,7 @@ attackDisplayLatex (const System sys)
 		      else
 			{
 			  printf ("{eve}\n");
-		      	  printf ("\\nextlevel[2]\n");
+			  printf ("\\nextlevel[2]\n");
 			}
 		    }
 
@@ -1099,7 +1100,7 @@ attackDisplayLatex (const System sys)
 		    }
 		  break;
 		default:
-		  break;		//kannie!
+		  break;	//kannie!
 		}
 	    }
 	}

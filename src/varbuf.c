@@ -18,15 +18,15 @@ varbufInit (const System sys)
   Varbuf vb;
   Termlist tl;
   Term termfrom, termto;
-  
-  vb = (Varbuf) memAlloc(sizeof(struct varbuf));
+
+  vb = (Varbuf) memAlloc (sizeof (struct varbuf));
   vb->from = NULL;
   vb->to = NULL;
   vb->empty = NULL;
   tl = sys->variables;
   while (tl != NULL)
     {
-      if (realTermVariable(tl->term))
+      if (realTermVariable (tl->term))
 	{
 	  /* this is actually a variable */
 	  if (tl->term->subst == NULL)
@@ -87,8 +87,6 @@ varbufDone (Varbuf vb)
       termlistDelete (vb->from);
       termlistDelete (vb->to);
       termlistDelete (vb->empty);
-      memFree(vb, sizeof(struct varbuf));
+      memFree (vb, sizeof (struct varbuf));
     }
 }
-
-

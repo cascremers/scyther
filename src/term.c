@@ -159,22 +159,25 @@ hasTermVariable (Term term)
   else
     {
       if (realTermTuple (term))
-	return (hasTermVariable (term->left.op1) || hasTermVariable (term->right.op2));
+	return (hasTermVariable (term->left.op1)
+		|| hasTermVariable (term->right.op2));
       else
-	return (hasTermVariable (term->left.op) || hasTermVariable (term->right.key));
+	return (hasTermVariable (term->left.op)
+		|| hasTermVariable (term->right.key));
     }
 }
 
 //! Safe wrapper for isTermEqual
 
-int isTermEqualDebug (Term t1, Term t2)
+int
+isTermEqualDebug (Term t1, Term t2)
 {
   int test1, test2;
 
   t1 = deVar (t1);
   t2 = deVar (t2);
 
-  test1 = isTermEqualFn (t1,t2);
+  test1 = isTermEqualFn (t1, t2);
   if (!(realTermLeaf (t1) && realTermLeaf (t2)))
     {
       return test1;
@@ -218,7 +221,8 @@ isTermEqualFn (Term term1, Term term2)
 #ifdef DEBUG
       int test;
 
-      test = (term1->left.symb == term2->left.symb && term1->right.runid == term2->right.runid);
+      test = (term1->left.symb == term2->left.symb
+	      && term1->right.runid == term2->right.runid);
       if (test)
 	{
 	  error ("Strange node equality detected, should not occur.");
@@ -267,7 +271,8 @@ termOccurs (Term t, Term tsub)
   if (realTermLeaf (t))
     return 0;
   if (realTermTuple (t))
-    return (termOccurs (t->left.op1, tsub) || termOccurs (t->right.op2, tsub));
+    return (termOccurs (t->left.op1, tsub)
+	    || termOccurs (t->right.op2, tsub));
   else
     return (termOccurs (t->left.op, tsub) || termOccurs (t->right.key, tsub));
 }
@@ -319,7 +324,7 @@ termPrint (Term term)
   if (realTermTuple (term))
     {
       eprintf ("(");
-      termTuplePrint(term);
+      termTuplePrint (term);
       eprintf (")");
       return;
     }
@@ -370,15 +375,15 @@ termTuplePrint (Term term)
       eprintf ("Empty term");
       return;
     }
-  term = deVar(term);
+  term = deVar (term);
   while (realTermTuple (term))
     {
       // To remove any brackets, change this into termTuplePrint.
       termPrint (term->left.op1);
       eprintf (",");
-      term = deVar(term->right.op2);
+      term = deVar (term->right.op2);
     }
-  termPrint(term);
+  termPrint (term);
   return;
 }
 
@@ -709,27 +714,27 @@ tupleProject (Term tt, int n)
  */
 
 int
-termSize(Term t)
+termSize (Term t)
 {
   if (t == NULL)
     {
       return 0;
     }
 
-  t = deVar(t);
-  if (realTermLeaf(t))
+  t = deVar (t);
+  if (realTermLeaf (t))
     {
       return 1;
     }
   else
     {
-      if (realTermEncrypt(t))
+      if (realTermEncrypt (t))
 	{
-	  return 1 + termSize(t->left.op) + termSize(t->right.key);
+	  return 1 + termSize (t->left.op) + termSize (t->right.key);
 	}
       else
 	{
-	  return termSize(t->left.op1) + termSize(t->right.op2);
+	  return termSize (t->left.op1) + termSize (t->right.op2);
 	}
     }
 }
@@ -741,20 +746,20 @@ termSize(Term t)
  */
 
 float
-termDistance(Term t1, Term t2)
+termDistance (Term t1, Term t2)
 {
   int t1s;
   int t2s;
 
   /* First the special cases: no equal subterms, completely equal */
-  if (isTermEqual(t1,t2))
-      return 1;
+  if (isTermEqual (t1, t2))
+    return 1;
 
-  t1 = deVar(t1);
-  t2 = deVar(t2);
+  t1 = deVar (t1);
+  t2 = deVar (t2);
 
-  t1s = termSize(t1);
-  t2s = termSize(t2);
+  t1s = termSize (t1);
+  t2s = termSize (t2);
 
   if (t1 == NULL || t2 == NULL)
     {
@@ -763,11 +768,11 @@ termDistance(Term t1, Term t2)
   if (t1->type != t2->type)
     {
       /* unequal type, maybe one is a subterm of the other? */
-      if (t1s > t2s && termOccurs(t1,t2))
+      if (t1s > t2s && termOccurs (t1, t2))
 	{
 	  return (float) t2s / t1s;
 	}
-      if (t2s > t1s && termOccurs(t2,t1))
+      if (t2s > t1s && termOccurs (t2, t1))
 	{
 	  return (float) t1s / t2s;
 	}
@@ -776,7 +781,7 @@ termDistance(Term t1, Term t2)
   else
     {
       /* equal types */
-      if (isTermLeaf(t1))
+      if (isTermLeaf (t1))
 	{
 	  /* we had established before that they are not equal */
 	  return 0;
@@ -784,14 +789,16 @@ termDistance(Term t1, Term t2)
       else
 	{
 	  /* non-leaf recurse */
-	  if (isTermEncrypt(t1))
+	  if (isTermEncrypt (t1))
 	    {
 	      /* encryption */
-	      return (termDistance(t1->left.op, t2->left.op) + termDistance(t1->right.key, t2->right.key)) / 2;
+	      return (termDistance (t1->left.op, t2->left.op) +
+		      termDistance (t1->right.key, t2->right.key)) / 2;
 	    }
 	  else
 	    {
-	      return (termDistance(t1->left.op1, t2->left.op1) + termDistance(t1->right.op2, t2->right.op2)) / 2;
+	      return (termDistance (t1->left.op1, t2->left.op1) +
+		      termDistance (t1->right.op2, t2->right.op2)) / 2;
 	    }
 	}
     }
@@ -801,14 +808,15 @@ termDistance(Term t1, Term t2)
  * Enforce a (arbitrary) ordering on terms
  * <0 means a<b, 0 means a=b, >0 means a>b.
  */
-int termOrder (Term t1, Term t2)
+int
+termOrder (Term t1, Term t2)
 {
-  char* name1;
-  char* name2;
+  char *name1;
+  char *name2;
 
   t1 = deVar (t1);
   t2 = deVar (t2);
-  if (isTermEqual (t1,t2))
+  if (isTermEqual (t1, t2))
     {
       /* equal terms */
       return 0;
@@ -819,9 +827,9 @@ int termOrder (Term t1, Term t2)
     {
       /* different types, so ordering on types first */
       if (t1->type < t2->type)
-	  return -1;
+	return -1;
       else
-	  return 1;
+	return 1;
     }
 
   /* same type
@@ -832,9 +840,7 @@ int termOrder (Term t1, Term t2)
       /* compare names */
       int comp;
 
-      comp = strcmp (t1->left.symb->text,
-      		     t2->left.symb->text
-		     );
+      comp = strcmp (t1->left.symb->text, t2->left.symb->text);
       if (comp != 0)
 	{
 	  /* names differ */
@@ -845,35 +851,36 @@ int termOrder (Term t1, Term t2)
 	  /* equal names, compare run identifiers */
 	  if (t1->right.runid == t2->right.runid)
 	    {
-	      error ("termOrder: two terms seem to be identical although local precondition says they aren't.");
+	      error
+		("termOrder: two terms seem to be identical although local precondition says they aren't.");
 	    }
 	  else
 	    {
 	      if (t1->right.runid < t2->right.runid)
-		  return -1;
+		return -1;
 	      else
-		  return 1;
+		return 1;
 	    }
 	}
     }
   else
     {
       /* non-leaf */
-      int compL,compR;
+      int compL, compR;
 
       if (isTermEncrypt (t1))
 	{
-	  compL = termOrder (t1->left.op,   t2->left.op);
+	  compL = termOrder (t1->left.op, t2->left.op);
 	  compR = termOrder (t1->right.key, t2->right.key);
 	}
       else
 	{
-	  compL = termOrder (t1->left.op1,  t2->left.op1);
+	  compL = termOrder (t1->left.op1, t2->left.op1);
 	  compR = termOrder (t1->right.op2, t2->right.op2);
 	}
       if (compL != 0)
-	  return compL;
+	return compL;
       else
-	  return compR;
+	return compR;
     }
 }

@@ -21,7 +21,7 @@
 
 struct solvepass
 {
-  int (*solution)();
+  int (*solution) ();
 
   System sys;
   int run;
@@ -384,7 +384,8 @@ sendAdd_clp (const System sys, const int run, const Termlist tl)
 	      /* simple case: no variable inside */
 	      knowledgeAddTerm (sys->know, t);
 	      tl2 = termlistShallow (tl->next);
-	      if (inKnowledge (sys->know, invkey) && hasTermVariable (t->left.op))
+	      if (inKnowledge (sys->know, invkey)
+		  && hasTermVariable (t->left.op))
 		tl2 = termlistAdd (tl2, t->left.op);
 	      sendAdd_clp (sys, run, tl2);
 	      termlistDelete (tl2);

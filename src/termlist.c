@@ -223,9 +223,9 @@ Termlist
 termlistAddNew (const Termlist tl, const Term t)
 {
   if (inTermlist (tl, t))
-      return tl;
+    return tl;
   else
-      return termlistAdd (tl, t);
+    return termlistAdd (tl, t);
 }
 
 //! Concatenates two termlists.
@@ -361,7 +361,7 @@ termlistPrint (Termlist tl)
       termPrint (tl->term);
       tl = tl->next;
       if (tl != NULL)
-	  eprintf(", ");
+	eprintf (", ");
     }
   eprintf ("]");
 }
@@ -394,10 +394,11 @@ termlistAddVariables (Termlist tl, Term t)
 				     t->right.key);
       else
 	return
-	  termlistAddVariables (termlistAddVariables (tl, t->left.op1), t->right.op2);
+	  termlistAddVariables (termlistAddVariables (tl, t->left.op1),
+				t->right.op2);
     }
 }
-    
+
 //! Append all variables in a term to a list.
 /**
  *@param tl The list to which to append to.
@@ -417,12 +418,12 @@ termlistAddRealVariables (Termlist tl, Term t)
 	{
 	  Term tbuf = t->subst;
 	  t->subst = NULL;
-	  if (!inTermlist (tl,t))
+	  if (!inTermlist (tl, t))
 	    {
-	      tl = termlistAdd (tl,t);
+	      tl = termlistAdd (tl, t);
 	    }
 	  t->subst = tbuf;
-	  return termlistAddRealVariables (tl,t->subst);
+	  return termlistAddRealVariables (tl, t->subst);
 	}
       else
 	{
@@ -436,7 +437,8 @@ termlistAddRealVariables (Termlist tl, Term t)
 				     t->right.key);
       else
 	return
-	  termlistAddVariables (termlistAddVariables (tl, t->left.op1), t->right.op2);
+	  termlistAddVariables (termlistAddVariables (tl, t->left.op1),
+				t->right.op2);
     }
 }
 
@@ -455,9 +457,11 @@ termlistAddBasic (Termlist tl, Term t)
   if (!isTermLeaf (t))
     {
       if (isTermEncrypt (t))
-	return termlistAddBasic (termlistAddBasic (tl, t->left.op), t->right.key);
+	return termlistAddBasic (termlistAddBasic (tl, t->left.op),
+				 t->right.key);
       else
-	return termlistAddBasic (termlistAddBasic (tl, t->left.op1), t->right.op2);
+	return termlistAddBasic (termlistAddBasic (tl, t->left.op1),
+				 t->right.op2);
     }
   else
     {
@@ -622,13 +626,17 @@ termLocal (const Term t, Termlist fromlist, Termlist tolist,
       Term newt = termDuplicate (t);
       if (realTermTuple (t))
 	{
-	  newt->left.op1 = termLocal (t->left.op1, fromlist, tolist, locals, runid);
-	  newt->right.op2 = termLocal (t->right.op2, fromlist, tolist, locals, runid);
+	  newt->left.op1 =
+	    termLocal (t->left.op1, fromlist, tolist, locals, runid);
+	  newt->right.op2 =
+	    termLocal (t->right.op2, fromlist, tolist, locals, runid);
 	}
       else
 	{
-	  newt->left.op = termLocal (t->left.op, fromlist, tolist, locals, runid);
-	  newt->right.key = termLocal (t->right.key, fromlist, tolist, locals, runid);
+	  newt->left.op =
+	    termLocal (t->left.op, fromlist, tolist, locals, runid);
+	  newt->right.key =
+	    termLocal (t->right.key, fromlist, tolist, locals, runid);
 	}
       return newt;
     }
@@ -755,7 +763,8 @@ termlistForward (Termlist tl)
 /**
  * Compare two termlists containing only basic terms, and yield ordering.
  */
-int termlistOrder (Termlist tl1, Termlist tl2)
+int
+termlistOrder (Termlist tl1, Termlist tl2)
 {
   int order;
 
@@ -767,13 +776,11 @@ int termlistOrder (Termlist tl1, Termlist tl2)
       tl2 = tl2->next;
     }
   if (order != 0)
-      return order;
-  if (tl1 == NULL && tl2 == NULL) 
-      return order;
+    return order;
+  if (tl1 == NULL && tl2 == NULL)
+    return order;
   if (tl1 == NULL)
-      return -1;
+    return -1;
   else
-      return 1;
+    return 1;
 }
-
-

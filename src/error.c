@@ -6,7 +6,7 @@
 void
 error_die (void)
 {
-  exit(1);
+  exit (1);
 }
 
 //! Print error message header
@@ -26,7 +26,7 @@ error_pre (void)
  * Input is comparable to printf, only end of line is not required.
  */
 void
-error_post (char *fmt, ... )
+error_post (char *fmt, ...)
 {
   va_list args;
 
@@ -34,7 +34,7 @@ error_post (char *fmt, ... )
   vfprintf (stderr, fmt, args);
   fprintf (stderr, "\n");
   va_end (args);
-  exit(1);
+  exit (1);
 }
 
 //! Print error message and die.
@@ -43,7 +43,7 @@ error_post (char *fmt, ... )
  * Input is comparable to printf, only end of line is not required.
  */
 void
-error (char *fmt, ... )
+error (char *fmt, ...)
 {
   va_list args;
 
@@ -60,7 +60,7 @@ error (char *fmt, ... )
  * Input is comparable to printf, only end of line is not required.
  */
 void
-warning (char *fmt, ... )
+warning (char *fmt, ...)
 {
   va_list args;
 

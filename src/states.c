@@ -8,7 +8,7 @@
 __inline__ states_t
 statesIncrease (const states_t states)
 {
-  return states+1;
+  return states + 1;
 }
 
 __inline__ double
@@ -21,9 +21,9 @@ __inline__ int
 statesSmallerThan (const states_t states, unsigned long int reflint)
 {
   if (states < (states_t) reflint)
-      return 1;
+    return 1;
   else
-      return 0;
+    return 0;
 }
 
 //! Sensible output for number of states/claims
@@ -34,7 +34,7 @@ __inline__ void
 statesFormat (const states_t states)
 {
   if (states < 1000000)
-      eprintf ("%lu", states);
+    eprintf ("%lu", states);
   else
-      eprintf ("%.3e", statesDouble (states));
+    eprintf ("%.3e", statesDouble (states));
 }

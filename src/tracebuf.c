@@ -16,7 +16,7 @@
  */
 
 int
-tracebufRebuildKnow(struct tracebuf *tb)
+tracebufRebuildKnow (struct tracebuf *tb)
 {
   Knowledge k;
   Roledef rd;
@@ -31,7 +31,7 @@ tracebufRebuildKnow(struct tracebuf *tb)
     }
 
   flag = -1;
-  k = knowledgeDuplicate(tb->know[0]);
+  k = knowledgeDuplicate (tb->know[0]);
   i = 0;
   while (i < tb->length)
     {
@@ -60,8 +60,8 @@ tracebufRebuildKnow(struct tracebuf *tb)
 	    }
 	}
       /* write the new knowledge, overwriting old stuff */
-      knowledgeDelete (tb->know[i+1]);
-      tb->know[i+1] = knowledgeDuplicate (k);
+      knowledgeDelete (tb->know[i + 1]);
+      tb->know[i + 1] = knowledgeDuplicate (k);
 
       i++;
     }
@@ -69,12 +69,12 @@ tracebufRebuildKnow(struct tracebuf *tb)
   while (tl != NULL)
     {
       if (!inKnowledge (k, tl->term))
-        {
-          flag = tb->length;
-        }
+	{
+	  flag = tb->length;
+	}
       tl = tl->next;
     }
-  knowledgeDelete(k);
+  knowledgeDelete (k);
   return flag;
 }
 
@@ -84,10 +84,11 @@ tracebufRebuildKnow(struct tracebuf *tb)
  * initializes the trace buffer.
  */
 
-struct tracebuf*
+struct tracebuf *
 tracebufInit (void)
 {
-  struct tracebuf *tb = (struct tracebuf *) memAlloc(sizeof(struct tracebuf));
+  struct tracebuf *tb =
+    (struct tracebuf *) memAlloc (sizeof (struct tracebuf));
   tb->length = 0;
   tb->reallength = 0;
   tb->event = NULL;
@@ -118,28 +119,28 @@ tracebufDone (struct tracebuf *tb)
 
       i = 0;
       /* note: knowledge domain is length+1 */
-      knowledgeDelete(tb->know[0]);
+      knowledgeDelete (tb->know[0]);
       while (i < tb->length)
 	{
-      	  rd = tb->event[i];
+	  rd = tb->event[i];
 	  termDelete (rd->from);
 	  termDelete (rd->to);
 	  termDelete (rd->message);
-          roledefDelete(rd);
-	  knowledgeDelete(tb->know[i+1]);
+	  roledefDelete (rd);
+	  knowledgeDelete (tb->know[i + 1]);
 	  i++;
 	}
 
-      memFree(tb->know, (i+1) * sizeof (struct knowledge*));
-      memFree(tb->event, i * sizeof (struct roledef*));
-      memFree(tb->run, i * sizeof(int));
-      memFree(tb->status, i * sizeof(int));
-      memFree(tb->link, i * sizeof(int));
+      memFree (tb->know, (i + 1) * sizeof (struct knowledge *));
+      memFree (tb->event, i * sizeof (struct roledef *));
+      memFree (tb->run, i * sizeof (int));
+      memFree (tb->status, i * sizeof (int));
+      memFree (tb->link, i * sizeof (int));
     }
-  memFree(tb, sizeof(tracebuf));
+  memFree (tb, sizeof (tracebuf));
 }
 
-struct tracebuf*
+struct tracebuf *
 tracebufSet (const System sys, int length, int claimev)
 {
   struct tracebuf *tb;
@@ -150,7 +151,7 @@ tracebufSet (const System sys, int length, int claimev)
    * any constant from the constraint for a variable.
    */
 
-  tb = tracebufInit();
+  tb = tracebufInit ();
   if (length == 0)
     {
       return tb;
@@ -158,11 +159,12 @@ tracebufSet (const System sys, int length, int claimev)
   tb->length = length;
   tb->reallength = length;
   tb->variables = (Varbuf) varbufInit (sys);
-  tb->event = (Roledef *) memAlloc(length * sizeof(struct roledef*));
-  tb->status = (int *) memAlloc(length * sizeof(int));
-  tb->link = (int *) memAlloc(length * sizeof(int));
-  tb->run = (int *) memAlloc(length * sizeof(int));
-  tb->know = (Knowledge *) memAlloc((length + 1) * sizeof (struct knowledge*));
+  tb->event = (Roledef *) memAlloc (length * sizeof (struct roledef *));
+  tb->status = (int *) memAlloc (length * sizeof (int));
+  tb->link = (int *) memAlloc (length * sizeof (int));
+  tb->run = (int *) memAlloc (length * sizeof (int));
+  tb->know =
+    (Knowledge *) memAlloc ((length + 1) * sizeof (struct knowledge *));
 
   /* when duplicating the knowledge, we want to instantiate the variables as well
    */
@@ -175,20 +177,20 @@ tracebufSet (const System sys, int length, int claimev)
       rd = roledefDuplicate1 (sys->traceEvent[i]);
       if (rd == NULL)
 	{
-	  printf("Empty event in trace at %i of %i?\n",i,length);
-	  exit(1);
+	  printf ("Empty event in trace at %i of %i?\n", i, length);
+	  exit (1);
 	}
 
-      /* make a copy without variables */ 
-      rd->to      = termDuplicateUV (rd->to);
-      rd->from    = termDuplicateUV (rd->from);
+      /* make a copy without variables */
+      rd->to = termDuplicateUV (rd->to);
+      rd->from = termDuplicateUV (rd->from);
       rd->message = termDuplicateUV (rd->message);
 
       tb->event[i] = rd;
       tb->link[i] = -1;
       tb->status[i] = S_UNK;
       tb->run[i] = sys->traceRun[i];
-      tb->know[i+1] = NULL;
+      tb->know[i + 1] = NULL;
       i++;
     }
 

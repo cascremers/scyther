@@ -82,47 +82,67 @@ main (int argc, char **argv)
 {
   System sys;
 
-  struct arg_file *infile  = arg_file0(NULL,NULL,"FILE",    "input file ('-' for stdin)");
-  struct arg_file *outfile = arg_file0("o","output","FILE", "output file (default is stdout)");
-  struct arg_str *switch_check = arg_str0(NULL,"check","CLAIM","claim type to check (default is all)");
-  struct arg_int *switch_scenario =
-      arg_int0 ("s", "scenario", NULL, "select a scenario instance 1-n (-1 to count)");
-  struct arg_int *switch_scenario_size =
-      arg_int0 ("S", "scenario-size", NULL, "scenario size (fixed trace prefix length)");
+  struct arg_file *infile =
+    arg_file0 (NULL, NULL, "FILE", "input file ('-' for stdin)");
+  struct arg_file *outfile = arg_file0 ("o", "output", "FILE",
+					"output file (default is stdout)");
+  struct arg_str *switch_check = arg_str0 (NULL, "check", "CLAIM",
+					   "claim type to check (default is all)");
+  struct arg_int *switch_scenario = arg_int0 ("s", "scenario", NULL,
+					      "select a scenario instance 1-n (-1 to count)");
+  struct arg_int *switch_scenario_size = arg_int0 ("S", "scenario-size", NULL,
+						   "scenario size (fixed trace prefix length)");
   struct arg_int *switch_traversal_method = arg_int0 ("t", "traverse", NULL,
-					"set traversal method, partial order reduction (default is 12)");
+						      "set traversal method, partial order reduction (default is 12)");
   struct arg_int *switch_match_method =
     arg_int0 ("m", "match", NULL, "matching method (default is 0)");
   struct arg_lit *switch_clp =
     arg_lit0 ("c", "cl", "use constraint logic, non-associative");
   struct arg_int *switch_pruning_method = arg_int0 ("p", "prune", NULL,
-				    "pruning method (default is 2)");
-  struct arg_int *switch_prune_trace_length = arg_int0 ("l", "max-length", NULL,
-					"prune traces longer than <int> events");
-  struct arg_lit *switch_incremental_trace_length = arg_lit0 (NULL, "increment-traces",
-					"incremental search using the length of the traces.");
+						    "pruning method (default is 2)");
+  struct arg_int *switch_prune_trace_length =
+    arg_int0 ("l", "max-length", NULL,
+	      "prune traces longer than <int> events");
+  struct arg_lit *switch_incremental_trace_length =
+    arg_lit0 (NULL, "increment-traces",
+	      "incremental search using the length of the traces.");
   struct arg_int *switch_maximum_runs =
     arg_int0 ("r", "max-runs", NULL, "create at most <int> runs");
   struct arg_lit *switch_incremental_runs = arg_lit0 (NULL, "increment-runs",
-				      "incremental search using the number of runs");
-  struct arg_lit *switch_latex_output = arg_lit0 (NULL, "latex", "output attacks in LaTeX format");
+						      "incremental search using the number of runs");
+  struct arg_lit *switch_latex_output =
+    arg_lit0 (NULL, "latex", "output attacks in LaTeX format");
   struct arg_lit *switch_empty =
     arg_lit0 ("e", "empty", "do not generate output");
-  struct arg_lit *switch_progress_bar = arg_lit0 ("b", "progress-bar", "show progress bar");
-  struct arg_lit *switch_state_space_graph = arg_lit0 (NULL, "state-space", "output state space graph");
-  struct arg_lit *switch_implicit_choose = arg_lit0 (NULL, "implicit-choose", "allow implicit choose events (useful for few runs)");
-  struct arg_lit *switch_choose_first = arg_lit0 (NULL, "choose-first", "priority to any choose events");
-  struct arg_lit *switch_enable_read_symmetries = arg_lit0 (NULL, "read-symm", "enable read symmetry reductions");
-  struct arg_lit *switch_disable_agent_symmetries = arg_lit0 (NULL, "no-agent-symm", "disable agent symmetry reductions");
-  struct arg_lit *switch_enable_symmetry_order = arg_lit0 (NULL, "symm-order", "enable ordering symmetry reductions");
-  struct arg_lit *switch_disable_noclaims_reductions = arg_lit0 (NULL, "no-noclaims-red", "disable no more claims reductions");
-  struct arg_lit *switch_disable_endgame_reductions = arg_lit0 (NULL, "no-endgame-red", "disable endgame reductions");
-  struct arg_lit *switch_summary = arg_lit0 (NULL, "summary", "show summary on stdout instead of stderr");
-  struct arg_lit *switch_echo = arg_lit0 ("E", "echo", "echo command line to stdout");
+  struct arg_lit *switch_progress_bar =
+    arg_lit0 ("b", "progress-bar", "show progress bar");
+  struct arg_lit *switch_state_space_graph =
+    arg_lit0 (NULL, "state-space", "output state space graph");
+  struct arg_lit *switch_implicit_choose = arg_lit0 (NULL, "implicit-choose",
+						     "allow implicit choose events (useful for few runs)");
+  struct arg_lit *switch_choose_first =
+    arg_lit0 (NULL, "choose-first", "priority to any choose events");
+  struct arg_lit *switch_enable_read_symmetries =
+    arg_lit0 (NULL, "read-symm", "enable read symmetry reductions");
+  struct arg_lit *switch_disable_agent_symmetries =
+    arg_lit0 (NULL, "no-agent-symm",
+	      "disable agent symmetry reductions");
+  struct arg_lit *switch_enable_symmetry_order = arg_lit0 (NULL, "symm-order",
+							   "enable ordering symmetry reductions");
+  struct arg_lit *switch_disable_noclaims_reductions =
+    arg_lit0 (NULL, "no-noclaims-red",
+	      "disable no more claims reductions");
+  struct arg_lit *switch_disable_endgame_reductions =
+    arg_lit0 (NULL, "no-endgame-red", "disable endgame reductions");
+  struct arg_lit *switch_summary = arg_lit0 (NULL, "summary",
+					     "show summary on stdout instead of stderr");
+  struct arg_lit *switch_echo =
+    arg_lit0 ("E", "echo", "echo command line to stdout");
 #ifdef DEBUG
-  struct arg_int *switch_por_parameter = arg_int0 (NULL, "pp", NULL, "POR parameter");
+  struct arg_int *switch_por_parameter =
+    arg_int0 (NULL, "pp", NULL, "POR parameter");
   struct arg_lit *switch_debug_indent = arg_lit0 ("I", "debug-indent",
-				      "indent the debug output using trace length");
+						  "indent the debug output using trace length");
   struct arg_int *switch_debug_level =
     arg_int0 ("D", "debug", NULL, "set debug level (default is 0)");
 #endif
@@ -131,7 +151,7 @@ main (int argc, char **argv)
     arg_lit0 (NULL, "version", "print version information and exit");
   struct arg_end *end = arg_end (30);
   void *argtable[] = {
-    infile, 
+    infile,
     outfile,
     switch_empty,
     switch_state_space_graph,
@@ -140,13 +160,13 @@ main (int argc, char **argv)
     switch_latex_output,
     switch_summary,
     switch_echo,
-    switch_progress_bar, 
+    switch_progress_bar,
 
     switch_check,
-    switch_traversal_method, 
-    switch_match_method, 
+    switch_traversal_method,
+    switch_match_method,
     switch_clp,
-    switch_pruning_method, 
+    switch_pruning_method,
     switch_prune_trace_length, switch_incremental_trace_length,
     switch_maximum_runs, switch_incremental_runs,
 
@@ -212,7 +232,8 @@ main (int argc, char **argv)
     {
       printf ("'%s' model checker for security protocols.\n", progname);
       printf ("%s release.\n", releasetag);
-      printf ("$Rev$ $Date$\n");
+      printf
+	("$Rev$ $Date$\n");
 #ifdef DEBUG
       printf ("Compiled with debugging support.\n");
 #endif
@@ -232,12 +253,12 @@ main (int argc, char **argv)
     }
 
   /* special case: uname with no command line options induces brief help */
-  if (argc==1)
-   {
-     printf("Try '%s --help' for more information.\n",progname);
-     exitcode=0;
-     goto exit;
-   }
+  if (argc == 1)
+    {
+      printf ("Try '%s --help' for more information.\n", progname);
+      exitcode = 0;
+      goto exit;
+    }
 
   /*
    * Arguments have been parsed by argtable,
@@ -247,11 +268,13 @@ main (int argc, char **argv)
   /* Lutger-tries-to-test-with-broken-methods detector */
   if (switch_clp->count > 0)
     {
-      fprintf (stderr, "For the time being, this method is not supported, \n");
+      fprintf (stderr,
+	       "For the time being, this method is not supported, \n");
       fprintf (stderr, "as too many changes have been made to the normal \n");
-      fprintf (stderr, "matching logic, and CL simply isn't reliable in \nmany ");
+      fprintf (stderr,
+	       "matching logic, and CL simply isn't reliable in \nmany ");
       fprintf (stderr, "ways. Try again in a few weeks.\n");
-      exit(0);
+      exit (0);
     }
 
   /* redirect in- and output according to supplied filenames */
@@ -260,21 +283,23 @@ main (int argc, char **argv)
     {
       /* try to open */
       if (!freopen (outfile->filename[0], "w", stdout))
-        {
-          fprintf(stderr, "Could not create output file '%s'.\n", outfile->filename[0]);
-          exit(1);
-        }
+	{
+	  fprintf (stderr, "Could not create output file '%s'.\n",
+		   outfile->filename[0]);
+	  exit (1);
+	}
     }
   /* input */
   if (infile->count > 0)
     {
       /* check for the single dash */
-      if (strcmp(infile->filename[0],"-"))
+      if (strcmp (infile->filename[0], "-"))
 	{
-          if (!freopen (infile->filename[0], "r", stdin))
+	  if (!freopen (infile->filename[0], "r", stdin))
 	    {
-	      fprintf(stderr, "Could not open input file '%s'.\n", infile->filename[0]);
-	      exit(1);
+	      fprintf (stderr, "Could not open input file '%s'.\n",
+		       infile->filename[0]);
+	      exit (1);
 	    }
 	}
     }
@@ -298,7 +323,7 @@ main (int argc, char **argv)
 
   /*
    * ------------------------------------------------
-   *	 generate system 
+   *     generate system 
    * ------------------------------------------------
    */
 
@@ -321,32 +346,33 @@ main (int argc, char **argv)
   /* handle switches */
 
   if (switch_implicit_choose->count > 0)
-      /* allow implicit chooses */
-      sys->switchForceChoose = 0;
+    /* allow implicit chooses */
+    sys->switchForceChoose = 0;
   if (switch_choose_first->count > 0)
-      sys->switchChooseFirst = 1;	/* priority to chooses */
+    sys->switchChooseFirst = 1;	/* priority to chooses */
   if (switch_enable_read_symmetries->count > 0)
     {
       if (switch_enable_symmetry_order->count > 0)
-	  error ("--read-symm and --symm-order cannot be used at the same time.");
+	error
+	  ("--read-symm and --symm-order cannot be used at the same time.");
       sys->switchReadSymm = 1;
     }
   if (switch_enable_symmetry_order->count > 0)
-      sys->switchSymmOrder = 1;		/* enable symmetry order */
+    sys->switchSymmOrder = 1;	/* enable symmetry order */
   if (switch_disable_agent_symmetries->count > 0)
-      sys->switchAgentSymm = 0;		/* disable agent symmetry order */
+    sys->switchAgentSymm = 0;	/* disable agent symmetry order */
   if (switch_disable_noclaims_reductions->count > 0)
-      sys->switchNomoreClaims = 0;	/* disable no more claims cutter */
+    sys->switchNomoreClaims = 0;	/* disable no more claims cutter */
   if (switch_disable_endgame_reductions->count > 0)
-      sys->switchReduceEndgame = 0;	/* disable endgame cutter */
+    sys->switchReduceEndgame = 0;	/* disable endgame cutter */
   if (switch_summary->count > 0)
-      sys->output = SUMMARY;		/* report summary on stdout */
+    sys->output = SUMMARY;	/* report summary on stdout */
 
   /*
    * The scenario selector has an important side effect; when it is non-null,
    * any scenario traversing selects chooses first.
    */
-  sys->switchScenario = switch_scenario->ival[0];		/* scenario selector */
+  sys->switchScenario = switch_scenario->ival[0];	/* scenario selector */
   sys->switchScenarioSize = switch_scenario_size->ival[0];	/* scenario size */
   if (sys->switchScenario == 0 && sys->switchScenarioSize > 0)
     {
@@ -363,11 +389,11 @@ main (int argc, char **argv)
   if (sys->switchScenario != 0 && sys->switchScenarioSize == 0)
     {
 #ifdef DEBUG
-      warning ("Scenario selection without trace prefix length implies --choose-first.");
+      warning
+	("Scenario selection without trace prefix length implies --choose-first.");
 #endif
       sys->switchChooseFirst = 1;
     }
-
 #ifdef DEBUG
   sys->porparam = switch_por_parameter->ival[0];
 #endif
@@ -381,7 +407,7 @@ main (int argc, char **argv)
       Term claim;
 
 #ifdef DEBUG
-      if (lookup(switch_check->sval[0]) == NULL)
+      if (lookup (switch_check->sval[0]) == NULL)
 	{
 	  globalError++;
 	  warning ("Could not find this string at all in:");
@@ -392,11 +418,11 @@ main (int argc, char **argv)
 #endif
       claim = findGlobalConstant (switch_check->sval[0]);
       if (claim == NULL)
-	  error ("Unknown claim type to check.");
+	error ("Unknown claim type to check.");
       if (inTermlist (claim->stype, TERM_Claim))
-	  sys->switchClaimToCheck = claim;
+	sys->switchClaimToCheck = claim;
       else
-	  error ("Claim type to check is not a claim.");
+	error ("Claim type to check is not a claim.");
     }
 
   /* parse input */
@@ -446,15 +472,15 @@ main (int argc, char **argv)
   sys->match = switch_match_method->ival[0];
   sys->prune = switch_pruning_method->ival[0];
   if (switch_progress_bar->count > 0)
-      /* enable progress display */
-      sys->switchS = 50000;
+    /* enable progress display */
+    sys->switchS = 50000;
   else
-      /* disable progress display */
-      sys->switchS = 0;
+    /* disable progress display */
+    sys->switchS = 0;
   if (switch_state_space_graph->count > 0)
     {
       /* enable state space graph output */
-      sys->output = STATESPACE;		//!< New method
+      sys->output = STATESPACE;	//!< New method
     }
   if (switch_empty->count > 0)
     sys->output = EMPTY;
@@ -486,8 +512,7 @@ main (int argc, char **argv)
   if (switch_incremental_runs->count > 0 ||
       switch_incremental_trace_length->count > 0)
     {
-      if (sys->output != ATTACK &&
-	  sys->output != EMPTY)
+      if (sys->output != ATTACK && sys->output != EMPTY)
 	{
 	  error ("Incremental traversal only for empty or attack output.");
 	}
@@ -497,7 +522,6 @@ main (int argc, char **argv)
     {
       warning ("-m2 is only supported for constraint logic programming.");
     }
-
 #ifdef DEBUG
   warning ("Selected output method is %i", sys->output);
 #endif
@@ -531,14 +555,14 @@ main (int argc, char **argv)
 	  MC_single (sys);
 	}
     }
-  
+
   /* Display shortest attack, if any */
 
   if (sys->attack != NULL && sys->attack->length != 0)
     {
       if (sys->output == ATTACK)
 	{
-      	  attackDisplay(sys);
+	  attackDisplay (sys);
 	}
       /* mark exit code */
       exitcode = 3;
@@ -551,9 +575,9 @@ main (int argc, char **argv)
       cl_scan = sys->claimlist;
       while (cl_scan != NULL)
 	{
-          if (cl_scan->failed == STATES0)
+	  if (cl_scan->failed == STATES0)
 	    {
-              /* mark exit code */
+	      /* mark exit code */
 	      exitcode = 2;
 	    }
 	  cl_scan = cl_scan->next;
@@ -625,7 +649,7 @@ timersPrint (const System sys)
   eprintf ("\n");
 
   /* scenario info */
-  
+
   if (sys->switchScenario > 0)
     {
       eprintf ("scen_st\t");
@@ -648,7 +672,7 @@ timersPrint (const System sys)
   else
     {
       if (sys->failed != STATES0)
-	eprintf ("L:%i\n", attackLength(sys->attack));
+	eprintf ("L:%i\n", attackLength (sys->attack));
       else
 	eprintf ("None\n");
     }
@@ -740,7 +764,8 @@ MC_incRuns (const System sys)
       systemReset (sys);
       sys->maxruns = runs;
       systemRuns (sys);
-      fprintf (stderr, "%i of %i runs in incremental runs search.\n", runs, maxruns);
+      fprintf (stderr, "%i of %i runs in incremental runs search.\n",
+	       runs, maxruns);
       res = modelCheck (sys);
       fprintf (stderr, "\n");
       if (res)
@@ -794,8 +819,9 @@ MC_incTraces (const System sys)
       systemReset (sys);
       sys->maxtracelength = tracelen;
       systemRuns (sys);
-      fprintf (stderr, "%i of %i trace length in incremental trace length search.\n",
-	      tracelen, maxtracelen);
+      fprintf (stderr,
+	       "%i of %i trace length in incremental trace length search.\n",
+	       tracelen, maxtracelen);
       res = modelCheck (sys);
       fprintf (stderr, "\n");
       if (res)
@@ -873,5 +899,3 @@ modelCheck (const System sys)
     }
   return (sys->failed != STATES0);
 }
-
-

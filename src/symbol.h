@@ -6,7 +6,8 @@
  */
 #define HASHSIZE 997
 
-enum symboltypes { T_UNDEF = -1, T_PROTOCOL, T_CONST, T_VAR, T_SYSCONST };
+enum symboltypes
+{ T_UNDEF = -1, T_PROTOCOL, T_CONST, T_VAR, T_SYSCONST };
 
 #define EOS 0
 
@@ -41,7 +42,7 @@ void symbolPrint (const Symbol s);
 void symbolPrintAll (void);
 Symbol symbolSysConst (const char *str);
 
-void eprintf (char *fmt, ... );
+void eprintf (char *fmt, ...);
 
 extern int globalError;
 

@@ -93,7 +93,7 @@ roledefDuplicate1 (const Roledef rd)
   newrd->next = NULL;
   return newrd;
 }
-    
+
 //! Duplicate a role event list.
 /**
  *\sa roledefDelete()
@@ -166,7 +166,8 @@ roledefInit (int type, Term label, Term from, Term to, Term msg, Claimlist cl)
  *\sa roledefInit()
  */
 Roledef
-roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg, Claimlist cl)
+roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg,
+	    Claimlist cl)
 {
   Roledef scan;
 
@@ -235,5 +236,3 @@ rolesPrint (Role r)
 	}
     }
 }
-
-

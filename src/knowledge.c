@@ -285,7 +285,8 @@ inKnowledge (const Knowledge know, Term term)
   if (term->type == ENCRYPT)
     {
       return inTermlist (know->encrypt, term) ||
-	(inKnowledge (know, term->right.key) && inKnowledge (know, term->left.op));
+	(inKnowledge (know, term->right.key)
+	 && inKnowledge (know, term->left.op));
     }
   if (term->type == TUPLE)
     {
@@ -354,9 +355,9 @@ knowledgePrintShort (const Knowledge know)
     {
       termlistPrint (know->basic);
       if (know->encrypt != NULL);
-	{
-	  eprintf (", ");
-	}
+      {
+	eprintf (", ");
+      }
     }
   if (know->encrypt != NULL)
     {
@@ -440,7 +441,8 @@ knowledgeGetInverses (const Knowledge know)
 __inline__ Termlist
 knowledgeGetBasics (const Knowledge know)
 {
-  return termlistAddBasics (termlistAddBasics(NULL, know->basic), know->encrypt);
+  return termlistAddBasics (termlistAddBasics (NULL, know->basic),
+			    know->encrypt);
 }
 
 //! check whether any substitutions where made in a knowledge set.
@@ -540,7 +542,7 @@ knowledgeNew (const Knowledge oldk, const Knowledge newk)
 	tl = tl->next;
       }
   }
-  
+
   newtl = NULL;
   addNewStuff (newk->basic);
   addNewStuff (newk->encrypt);

@@ -7,7 +7,8 @@
  * TAC instructions
  */
 
-enum tactypes {
+enum tactypes
+{
   TAC_UNDEF,
   TAC_SYM,
   TAC_TUPLE,
@@ -43,7 +44,7 @@ struct tacnode
     struct tacnode *tac;
     char *str;
   } t1;
-  union 
+  union
   {
     Symbol sym;
     struct tacnode *tac;

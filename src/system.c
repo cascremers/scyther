@@ -51,7 +51,7 @@ systemInit ()
   /* initially, no trace ofcourse */
   sys->step = 0;
   sys->shortestattack = INT_MAX;
-  sys->attack = tracebufInit();
+  sys->attack = tracebufInit ();
 
   /* switches */
   sys->output = ATTACK;		// default is to show the attacks
@@ -113,7 +113,7 @@ systemReset (const System sys)
   /* some initial counters */
   sys->states = statesIncrease (STATES0);	//!< Initial state is not explored, so start counting at 1
   sys->statesScenario = STATES0;
-  sys->interval = sys->states;			//!< To keep in line with the states
+  sys->interval = sys->states;	//!< To keep in line with the states
   sys->claims = STATES0;
   sys->failed = STATES0;
   sys->countScenario = 0;
@@ -125,7 +125,7 @@ systemReset (const System sys)
       cl->failed = STATES0;
       cl = cl->next;
     }
-  
+
   sys->knowPhase = 0;		// knowledge transition id
 
   termlistDestroy (sys->secrets);	// remove old secrets list
@@ -157,9 +157,7 @@ systemRuns (const System sys)
       Roledef rd;
 
       rd = runPointerGet (sys, run);
-      if (rd != NULL &&
-	  rd->internal &&
-	  rd->type == READ)
+      if (rd != NULL && rd->internal && rd->type == READ)
 	{
 	  /* increasing run traversal, so this yields max */
 	  sys->lastChooseRun = run;
@@ -168,7 +166,7 @@ systemRuns (const System sys)
 #ifdef DEBUG
   if (sys->switchScenario < 0)
     {
-      warning ("Last run with a choose: %i",sys->lastChooseRun);
+      warning ("Last run with a choose: %i", sys->lastChooseRun);
     }
 #endif
 }
@@ -217,7 +215,7 @@ statesPrint (const System sys)
   statesFormat (sys->states);
   eprintf (" states traversed.\n");
   if (globalLatex)
-      eprintf("\n");
+    eprintf ("\n");
 }
 
 //! Destroy a system memory block and system::runs
@@ -318,13 +316,13 @@ Term
 agentOfRunRole (const System sys, const int run, const Term role)
 {
   Termlist roles = sys->runs[run].protocol->rolenames;
-  Termlist agents= sys->runs[run].agents;
+  Termlist agents = sys->runs[run].agents;
 
   /* TODO stupid reversed order, lose that soon */
-  agents = termlistForward(agents);
+  agents = termlistForward (agents);
   while (agents != NULL && roles != NULL)
     {
-      if (isTermEqual(roles->term, role))
+      if (isTermEqual (roles->term, role))
 	{
 	  return agents->term;
 	}
@@ -342,7 +340,7 @@ agentOfRunRole (const System sys, const int run, const Term role)
 Term
 agentOfRun (const System sys, const int run)
 {
-  return agentOfRunRole(sys,run,sys->runs[run].role->nameterm);
+  return agentOfRunRole (sys, run, sys->runs[run].role->nameterm);
 }
 
 /**
@@ -353,31 +351,32 @@ agentOfRun (const System sys, const int run)
  *
  * Return -1 if there is no such symmetry.
  */
-int staticRunSymmetry (const System sys,const int rid)
+int
+staticRunSymmetry (const System sys, const int rid)
 {
-  int ridSymm;		// previous symmetrical run
-  Termlist agents;	// list of agents for rid
-  Run runs;		// shortcut usage
+  int ridSymm;			// previous symmetrical run
+  Termlist agents;		// list of agents for rid
+  Run runs;			// shortcut usage
 
   ridSymm = -1;
   runs = sys->runs;
   agents = runs[rid].agents;
   while (agents != NULL)
     {
-      if (isTermVariable(agents->term))
-          ridSymm = rid - 1;
+      if (isTermVariable (agents->term))
+	ridSymm = rid - 1;
       agents = agents->next;
     }
   /* there is no variable in this roledef, abort */
   if (ridSymm == -1)
-      return -1;
+    return -1;
 
   agents = runs[rid].agents;
   while (ridSymm >= 0)
     {
       /* compare protocol name, role name */
       if (runs[ridSymm].protocol == runs[rid].protocol &&
-	  runs[ridSymm].role     == runs[rid].role)
+	  runs[ridSymm].role == runs[rid].role)
 	{
 	  /* same stuff */
 	  int isEqual;
@@ -394,8 +393,9 @@ int staticRunSymmetry (const System sys,const int rid)
 		  /* case 1: variable, should match type */
 		  if (isTermVariable (alSymm->term))
 		    {
-		      if (!isTermlistEqual (al->term->stype, alSymm->term->stype))
-			  isEqual = 0;
+		      if (!isTermlistEqual
+			  (al->term->stype, alSymm->term->stype))
+			isEqual = 0;
 		    }
 		  else
 		    {
@@ -406,7 +406,7 @@ int staticRunSymmetry (const System sys,const int rid)
 		{
 		  /* case 2: constant, should match */
 		  if (!isTermEqual (al->term, alSymm->term))
-		      isEqual = 0;
+		    isEqual = 0;
 		}
 	      alSymm = alSymm->next;
 	      al = al->next;
@@ -415,21 +415,23 @@ int staticRunSymmetry (const System sys,const int rid)
 	    {
 	      /* this candidate is allright */
 #ifdef DEBUG
-  	      warning ("Symmetry detection. #%i can depend on #%i.",rid,ridSymm);
+	      warning ("Symmetry detection. #%i can depend on #%i.", rid,
+		       ridSymm);
 #endif
 	      return ridSymm;
 	    }
 	}
       ridSymm--;
     }
-  return -1;	// signal that no symmetrical run was found
+  return -1;			// signal that no symmetrical run was found
 }
 
 //! Determine first read with variables besides agents
 /**
  *@todo For now, we assume it is simply the first read after the choose, if there is one.
  */
-int firstNonAgentRead (const System sys, int rid)
+int
+firstNonAgentRead (const System sys, int rid)
 {
   int step;
   Roledef rd;
@@ -446,10 +448,12 @@ int firstNonAgentRead (const System sys, int rid)
       rd = rd->next;
       step++;
     }
-  if (rd != NULL && !rd->internal && rd->type == READ)		// assumes lazy LR eval
+  if (rd != NULL && !rd->internal && rd->type == READ)	// assumes lazy LR eval
     {
 #ifdef DEBUG
-      warning ("First read %i with dependency on symmetrical found in run %i.", step, rid);
+      warning
+	("First read %i with dependency on symmetrical found in run %i.",
+	 step, rid);
 #endif
       return step;
     }
@@ -505,7 +509,9 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	  /* newvar is apparently new, but it might occur
 	   * in the first event if it's a read, in which
 	   * case we forget it */
-	  if (sys->switchForceChoose || !(rd->type == READ && termOccurs (rd->message, scanfrom->term)))
+	  if (sys->switchForceChoose
+	      || !(rd->type == READ
+		   && termOccurs (rd->message, scanfrom->term)))
 	    {
 	      /* this term is forced as a choose, or it does not occur in the (first) read event */
 	      /* TODO scan might be more complex, but
@@ -561,7 +567,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	      Term newt = makeTermType (t->type, t->left.symb, rid);
 	      if (realTermVariable (newt))
 		{
-	          sys->variables = termlistAdd (sys->variables, newt);
+		  sys->variables = termlistAdd (sys->variables, newt);
 		}
 	      newt->stype = t->stype;
 	      fromlist = termlistAdd (fromlist, t);
@@ -590,7 +596,7 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
   runs[rid].locals = tolist;
 
   /* Determine symmetric run */
-  runs[rid].prevSymmRun = staticRunSymmetry (sys, rid);		// symmetry reduction static analysis
+  runs[rid].prevSymmRun = staticRunSymmetry (sys, rid);	// symmetry reduction static analysis
 
   /* Determine first read with variables besides agents */
   runs[rid].firstNonAgentRead = firstNonAgentRead (sys, rid);	// symmetry reduction type II
@@ -809,18 +815,18 @@ agentsOfRunPrint (const System sys, const int run)
   Term role = sys->runs[run].role->nameterm;
   Termlist roles = sys->runs[run].protocol->rolenames;
 
-  termPrint(role);
-  printf("(");
+  termPrint (role);
+  printf ("(");
   while (roles != NULL)
     {
-      termPrint(agentOfRunRole(sys,run,roles->term));
+      termPrint (agentOfRunRole (sys, run, roles->term));
       roles = roles->next;
       if (roles != NULL)
 	{
-	  printf(",");
+	  printf (",");
 	}
     }
-  printf(")");
+  printf (")");
 }
 
 //! Explain a violated claim at point i in the trace.
@@ -828,7 +834,7 @@ agentsOfRunPrint (const System sys, const int run)
 void
 violatedClaimPrint (const System sys, const int i)
 {
-  printf("Claim stuk");
+  printf ("Claim stuk");
 }
 
 //! Yield the real length of an attack.
@@ -837,30 +843,31 @@ violatedClaimPrint (const System sys, const int i)
  * the redundant events but also the choose events.
  */
 
-int attackLength(struct tracebuf* tb)
+int
+attackLength (struct tracebuf *tb)
 {
-    int len,i;
+  int len, i;
 
-    len = 0;
-    i = 0;
-    while (i < tb->length)
+  len = 0;
+  i = 0;
+  while (i < tb->length)
     {
-        if (tb->status[i] != S_RED)
+      if (tb->status[i] != S_RED)
 	{
-	    /* apparently not redundant */
-	    if (!(tb->event[i]->type == READ && tb->event[i]->internal))
+	  /* apparently not redundant */
+	  if (!(tb->event[i]->type == READ && tb->event[i]->internal))
 	    {
-	        /* and no internal read, so it counts */
-	        len++;
+	      /* and no internal read, so it counts */
+	      len++;
 	    }
 	}
-	i++;
+      i++;
     }
-    return len;
+  return len;
 }
 
 void
-commandlinePrint (FILE *stream, const System sys)
+commandlinePrint (FILE * stream, const System sys)
 {
   /* print command line */
   int i;
@@ -870,7 +877,8 @@ commandlinePrint (FILE *stream, const System sys)
 }
 
 //! Get the number of roles in the system.
-int compute_rolecount (const System sys)
+int
+compute_rolecount (const System sys)
 {
   Protocol pr;
   int n;
@@ -879,14 +887,15 @@ int compute_rolecount (const System sys)
   pr = sys->protocols;
   while (pr != NULL)
     {
-      n = n + termlistLength(pr->rolenames);
+      n = n + termlistLength (pr->rolenames);
       pr = pr->next;
     }
   return n;
 }
 
 //! Compute the maximum number of events in a single role in the system.
-int compute_roleeventmax (const System sys)
+int
+compute_roleeventmax (const System sys)
 {
   Protocol pr;
   int maxev;
@@ -910,7 +919,8 @@ int compute_roleeventmax (const System sys)
 	      n++;
 	      rd = rd->next;
 	    }
-	  if (n > maxev) maxev = n;
+	  if (n > maxev)
+	    maxev = n;
 	  r = r->next;
 	}
       pr = pr->next;
@@ -937,7 +947,7 @@ scenarioPrint (const System sys)
       runInstancePrint (sys, run);
       if (run < sys->maxruns - 1)
 	{
-          printf ("\t");
+	  printf ("\t");
 	}
     }
 }

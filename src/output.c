@@ -497,7 +497,8 @@ attackDisplay (const System sys)
  *-------------------------------------------
  */
 
-void graphInit (const System sys)
+void
+graphInit (const System sys)
 {
   Termlist tl;
 
@@ -524,7 +525,8 @@ void graphInit (const System sys)
   printf ("\tconcentrate=true;\n");
 
   /* node/edge defaults */
-  printf ("\tnode [shape=\"point\",fontsize=\"4\",fontname=\"Helvetica\"];\n");
+  printf
+    ("\tnode [shape=\"point\",fontsize=\"4\",fontname=\"Helvetica\"];\n");
   printf ("\tedge [fontsize=\"4\",fontname=\"Helvetica\"];\n");
 
   /* start with initial node 0 */
@@ -537,13 +539,15 @@ void graphInit (const System sys)
   printf ("\"];\n");
 }
 
-void graphDone (const System sys)
+void
+graphDone (const System sys)
 {
   /* drawing state space. close up. */
   printf ("}\n");
 }
 
-void graphNode (const System sys)
+void
+graphNode (const System sys)
 {
   Termlist newtl;
   states_t thisNode, parentNode;
@@ -562,8 +566,8 @@ void graphNode (const System sys)
   printf ("\tn");
   statesFormat (thisNode);
   printf (" [");
-  
-  newtl = knowledgeNew (sys->traceKnow[index], sys->traceKnow[index+1]);
+
+  newtl = knowledgeNew (sys->traceKnow[index], sys->traceKnow[index + 1]);
   if (newtl != NULL)
     {
       /* knowledge added */
@@ -578,17 +582,17 @@ void graphNode (const System sys)
       if (sys->switchScenario != 0 &&
 	  rd != NULL &&
 	  rd == sys->runs[run].start &&
-	  rd->type == READ &&
-	  run == sys->lastChooseRun)
+	  rd->type == READ && run == sys->lastChooseRun)
 	{
 	  /* last choose; scenario selected */
-	  printf ("shape=box,height=0.2,label=\"Scenario %i: ", sys->countScenario);
+	  printf ("shape=box,height=0.2,label=\"Scenario %i: ",
+		  sys->countScenario);
 	  scenarioPrint (sys);
 	  printf ("\"");
 	}
       else
 	{
-      	  printf ("label=\"\"");
+	  printf ("label=\"\"");
 	}
     }
   printf ("];\n");
@@ -602,7 +606,7 @@ void graphNode (const System sys)
   printf (" [label=\"");
 
   // Print step 
-  printf ("%i:",sys->runs[run].step-1);
+  printf ("%i:", sys->runs[run].step - 1);
 
   if (rd->type == CLAIM && untrustedAgent (sys, sys->runs[run].agents))
     {
@@ -615,7 +619,7 @@ void graphNode (const System sys)
       printf ("#%i\"", run);
       if (rd->type == CLAIM)
 	{
-          printf (",shape=house,color=green");
+	  printf (",shape=house,color=green");
 	}
     }
   /* a choose? */
@@ -628,7 +632,8 @@ void graphNode (const System sys)
   printf (";\n");
 }
 
-void graphNodePath (const System sys, const int length, const char* nodepar)
+void
+graphNodePath (const System sys, const int length, const char *nodepar)
 {
   int i;
   states_t thisNode;
@@ -647,7 +652,8 @@ void graphNodePath (const System sys, const int length, const char* nodepar)
     }
 }
 
-void graphEdgePath (const System sys, const int length, const char* edgepar)
+void
+graphEdgePath (const System sys, const int length, const char *edgepar)
 {
   int i;
   states_t thisNode, prevNode;
@@ -657,7 +663,7 @@ void graphEdgePath (const System sys, const int length, const char* edgepar)
   while (i < length)
     {
       /* determine node number */
-      thisNode = sys->traceNode[i+1];
+      thisNode = sys->traceNode[i + 1];
 
       /* color edge */
       printf ("\tn");
@@ -670,10 +676,11 @@ void graphEdgePath (const System sys, const int length, const char* edgepar)
     }
 }
 
-void graphPath (const System sys, int length)
+void
+graphPath (const System sys, int length)
 {
-  graphNodePath (sys,length,"style=bold,color=red");
-  graphEdgePath (sys,length-1,"style=bold,color=red");
+  graphNodePath (sys, length, "style=bold,color=red");
+  graphEdgePath (sys, length - 1, "style=bold,color=red");
 }
 
 //! Scenario for graph; bit of a hack
@@ -682,17 +689,14 @@ graphScenario (const System sys, const int run, const Roledef rd)
 {
   /* Add scenario node */
   printf ("\ts%i [shape=box,height=0.2,label=\"Scenario %i: ",
-	  sys->countScenario,
-	  sys->countScenario);
+	  sys->countScenario, sys->countScenario);
   scenarioPrint (sys);
   printf ("\"];\n");
 
   /* draw edge */
-  printf ("\tn%i -> s%i",
-	  sys->traceNode[sys->step],
-	  sys->countScenario);
+  printf ("\tn%i -> s%i", sys->traceNode[sys->step], sys->countScenario);
   printf (" [color=blue,label=\"");
-  printf ("%i:",sys->runs[run].step);
+  printf ("%i:", sys->runs[run].step);
   roledefPrint (rd);
   printf ("#%i", run);
   printf ("\"];\n");

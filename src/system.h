@@ -12,7 +12,8 @@
 #define runPointerGet(sys,run)		sys->runs[run].index
 #define runPointerSet(sys,run,newp)	sys->runs[run].index = newp
 
-enum outputs { EMPTY, ATTACK, STATESPACE, SCENARIOS, SUMMARY };
+enum outputs
+{ EMPTY, ATTACK, STATESPACE, SCENARIOS, SUMMARY };
 
 //! Protocol definition.
 struct protocol
@@ -35,17 +36,17 @@ typedef struct protocol *Protocol;
 //! Run container.
 struct run
 {
-  Protocol protocol;	//!< Protocol of this run.
-  Role role;		//!< Role of this run.
-  Termlist agents; 	//!< Agents involved in this run.
-  int step;		//!< Current execution point in the run (integer)
-  Roledef index;	//!< Current execution point in the run (roledef pointer)
-  Roledef start;	//!< Head of the run definition.
-  Knowledge know;	//!< Current knowledge of the run.
-  Termlist locals;	//!< Locals of the run.
-  int prevSymmRun;	//!< Used for symmetry reduction. Either -1, or the previous run with the same role def and at least a single parameter.
-  int firstNonAgentRead; //!< Used for symmetry reductions for equal agents runs; -1 if there is no candidate.
-  int firstReal;	//!< 1 if a choose was inserted, otherwise 0
+  Protocol protocol;		//!< Protocol of this run.
+  Role role;			//!< Role of this run.
+  Termlist agents;		//!< Agents involved in this run.
+  int step;			//!< Current execution point in the run (integer)
+  Roledef index;		//!< Current execution point in the run (roledef pointer)
+  Roledef start;		//!< Head of the run definition.
+  Knowledge know;		//!< Current knowledge of the run.
+  Termlist locals;		//!< Locals of the run.
+  int prevSymmRun;		//!< Used for symmetry reduction. Either -1, or the previous run with the same role def and at least a single parameter.
+  int firstNonAgentRead;	//!< Used for symmetry reductions for equal agents runs; -1 if there is no candidate.
+  int firstReal;		//!< 1 if a choose was inserted, otherwise 0
 };
 
 //! Shorthand for run pointer.
@@ -55,11 +56,11 @@ typedef struct run *Run;
 struct varbuf
 {
   //! List of closed variables.
-  Termlist	from;
+  Termlist from;
   //! List of terms to which the closed variables are bound.
-  Termlist	to;
+  Termlist to;
   //! List of open variables.
-  Termlist	empty;
+  Termlist empty;
 };
 
 //! Shorthand for varbuf pointer.
@@ -69,28 +70,28 @@ typedef struct varbuf *Varbuf;
 struct tracebuf
 {
   //! Length of trace.
-  int		length;
+  int length;
   //! Length of trace minus the redundant events.
-  int		reallength;
+  int reallength;
   //! Array of events.
-  Roledef	*event;
+  Roledef *event;
   //! Array of run identifiers for each event.
-  int		*run;
+  int *run;
   //! Array of status flags for each event.
   /**
    *\sa S_OKE, S_RED, S_TOD, S_UNK
    */
-  int		*status;
+  int *status;
   //! Array for matching sends to reads.
-  int		*link;
+  int *link;
   //! Index of violated claim in trace.
-  int		violatedclaim;	
+  int violatedclaim;
   //! Array of knowledge sets for each event.
-  Knowledge	*know;
+  Knowledge *know;
   //! List of terms required to be in the final knowledge.
-  Termlist	requiredterms;
+  Termlist requiredterms;
   //! List of variables in the system.
-  Varbuf	variables;
+  Varbuf variables;
 };
 
 //! The main state structure.
@@ -107,7 +108,7 @@ struct system
 
   /* properties */
   Termlist secrets;		//!< Integrate secrets list into system.
-  Termlist synchronising_labels; //!< List of labels that might synchronise.
+  Termlist synchronising_labels;	//!< List of labels that might synchronise.
   int shortestattack;		//!< Length of shortest attack trace.
 
   /* switches */
@@ -137,7 +138,7 @@ struct system
    * Obsolete. Use globalLatex instead.
    *\sa globalLatex
    */
-  int latex;			
+  int latex;
 
   /* traversal */
   int traverse;			//!< Traversal method.
@@ -180,7 +181,7 @@ struct system
   Constraintlist constraints;	//!< Only needed for CLP match
 
   //! Shortest attack storage.
-  struct tracebuf* attack;
+  struct tracebuf *attack;
 
   //! Command line arguments
   int argc;
@@ -217,8 +218,8 @@ int untrustedAgent (const System sys, Termlist agents);
 int getMaxTraceLength (const System sys);
 void agentsOfRunPrint (const System sys, const int run);
 void violatedClaimPrint (const System sys, int i);
-int attackLength(struct tracebuf* tb);
-void commandlinePrint (FILE *stream, const System sys);
+int attackLength (struct tracebuf *tb);
+void commandlinePrint (FILE * stream, const System sys);
 
 int compute_rolecount (const System sys);
 int compute_roleeventmax (const System sys);

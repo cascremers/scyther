@@ -4,7 +4,8 @@
 #include "symbol.h"
 
 // type <= LEAF means it's a leaf, nkay?
-enum termtypes { GLOBAL, VARIABLE, LEAF, ENCRYPT, TUPLE };
+enum termtypes
+{ GLOBAL, VARIABLE, LEAF, ENCRYPT, TUPLE };
 
 //! The most basic datatype in the modelchecker.
 /**
@@ -25,7 +26,7 @@ struct term
   int type;
   //! Data Type termlist (e.g. agent or nonce)
   /** Only for leaves. */
-  void *stype;			
+  void *stype;
   //! Substitution term.
   /**
    * If this is non-NULL, this leaf term is apparently substituted by
@@ -33,7 +34,7 @@ struct term
    */
   struct term *subst;		// only for variable/leaf, substitution term
 
-  union 
+  union
   {
     Symbol symb;
     //! Encrypted subterm.
@@ -160,8 +161,8 @@ void termNormalize (Term term);
 Term termRunid (Term term, int runid);
 int tupleCount (Term tt);
 Term tupleProject (Term tt, int n);
-int termSize(Term t);
-float termDistance(Term t1, Term t2);
+int termSize (Term t);
+float termDistance (Term t1, Term t2);
 int termOrder (Term t1, Term t2);
 
 #endif

@@ -4,7 +4,7 @@
  * The match function here is integrated here with an enabled() function.
  *  It is also the basic match, so not suited for Constraint Logic Programming. 
  */
- 
+
 #include <stdlib.h>
 #include <stdio.h>
 #include "memory.h"
@@ -22,7 +22,7 @@ candidates (const Knowledge know)
 
 struct fvpass
 {
-  int (*solution)();
+  int (*solution) ();
 
   System sys;
   int run;

@@ -20,7 +20,8 @@
 #ifdef OKIDEBUG
 int indac = 0;
 
-void indact ()
+void
+indact ()
 {
   int i;
 
@@ -44,26 +45,25 @@ events_match (const System sys, const int i, const int j)
 
   rdi = sys->traceEvent[i];
   rdj = sys->traceEvent[j];
-  if (isTermEqual (rdi->message, rdj->message) && 
-      isTermEqual (rdi->from,    rdj->from) &&
-      isTermEqual (rdi->to,      rdj->to) && 
-      isTermEqual (rdi->label,   rdj->label) &&
-      !(rdi->internal || rdj->internal)
-      )
+  if (isTermEqual (rdi->message, rdj->message) &&
+      isTermEqual (rdi->from, rdj->from) &&
+      isTermEqual (rdi->to, rdj->to) &&
+      isTermEqual (rdi->label, rdj->label) &&
+      !(rdi->internal || rdj->internal))
     {
       if (rdi->type == SEND && rdj->type == READ)
 	{
-	  if (i<j)
-	      return MATCH_ORDER;
+	  if (i < j)
+	    return MATCH_ORDER;
 	  else
-	      return MATCH_REVERSE;
+	    return MATCH_REVERSE;
 	}
       if (rdi->type == READ && rdj->type == SEND)
 	{
-	  if (i>j)
-	      return MATCH_ORDER;
+	  if (i > j)
+	    return MATCH_ORDER;
 	  else
-	      return MATCH_REVERSE;
+	    return MATCH_REVERSE;
 	}
     }
   return MATCH_NONE;
@@ -99,7 +99,8 @@ oki_nisynch_full (const System sys, const Termmap label_to_index)
 
 //! Evaluate claims or internal reads (chooses)
 __inline__ int
-oki_nisynch_other (const System sys, const int trace_index, const Termmap role_to_run, const Termmap label_to_index)
+oki_nisynch_other (const System sys, const int trace_index,
+		   const Termmap role_to_run, const Termmap label_to_index)
 {
   int result;
 
@@ -108,7 +109,7 @@ oki_nisynch_other (const System sys, const int trace_index, const Termmap role_t
   printf ("Exploring further assuming this (claim) run is not involved.\n");
   indac++;
 #endif
-  result =  oki_nisynch (sys, trace_index-1, role_to_run, label_to_index);
+  result = oki_nisynch (sys, trace_index - 1, role_to_run, label_to_index);
 #ifdef OKIDEBUG
   indact ();
   printf (">%i<\n", result);
@@ -119,7 +120,8 @@ oki_nisynch_other (const System sys, const int trace_index, const Termmap role_t
 
 //! Evaluate reads
 __inline__ int
-oki_nisynch_read (const System sys, const int trace_index, const Termmap role_to_run, const Termmap label_to_index)
+oki_nisynch_read (const System sys, const int trace_index,
+		  const Termmap role_to_run, const Termmap label_to_index)
 {
   /*
    * Read is only relevant for already involved runs, and labels in prec
@@ -144,13 +146,16 @@ oki_nisynch_read (const System sys, const int trace_index, const Termmap role_to
 	      int result;
 
 	      label_to_index_buf = termmapDuplicate (label_to_index);
-	      label_to_index_buf = termmapSet (label_to_index_buf, rd->label, trace_index);
+	      label_to_index_buf =
+		termmapSet (label_to_index_buf, rd->label, trace_index);
 #ifdef OKIDEBUG
 	      indact ();
 	      printf ("Exploring because this (read) run is involved.\n");
 	      indac++;
 #endif
-	      result = oki_nisynch (sys, trace_index-1, role_to_run, label_to_index_buf);
+	      result =
+		oki_nisynch (sys, trace_index - 1, role_to_run,
+			     label_to_index_buf);
 #ifdef OKIDEBUG
 	      indact ();
 	      printf (">%i<\n", result);
@@ -168,7 +173,7 @@ oki_nisynch_read (const System sys, const int trace_index, const Termmap role_to
   printf ("Exploring further assuming this (read) run is not involved.\n");
   indac++;
 #endif
-  result = oki_nisynch (sys, trace_index-1, role_to_run, label_to_index);
+  result = oki_nisynch (sys, trace_index - 1, role_to_run, label_to_index);
 #ifdef OKIDEBUG
   indac--;
 #endif
@@ -178,7 +183,8 @@ oki_nisynch_read (const System sys, const int trace_index, const Termmap role_to
 
 //! Evaluate sends
 __inline__ int
-oki_nisynch_send (const System sys, const int trace_index, const Termmap role_to_run, const Termmap label_to_index)
+oki_nisynch_send (const System sys, const int trace_index,
+		  const Termmap role_to_run, const Termmap label_to_index)
 {
   Roledef rd;
   int rid;
@@ -197,14 +203,14 @@ oki_nisynch_send (const System sys, const int trace_index, const Termmap role_to
   printf ("Exploring further assuming (send) run %i is not involved.\n", rid);
   indac++;
 #endif
-  result = oki_nisynch (sys, trace_index-1, role_to_run, label_to_index);
+  result = oki_nisynch (sys, trace_index - 1, role_to_run, label_to_index);
 #ifdef OKIDEBUG
   indact ();
   printf (">%i<\n", result);
   indac--;
 #endif
   if (result)
-      return 1;
+    return 1;
 
 #ifdef OKIDEBUG
   indact ();
@@ -241,15 +247,20 @@ oki_nisynch_send (const System sys, const int trace_index, const Termmap role_to
 	      role_to_run_buf = termmapDuplicate (role_to_run);
 	      role_to_run_buf = termmapSet (role_to_run_buf, rolename, rid);
 	      label_to_index_buf = termmapDuplicate (label_to_index);
-	      label_to_index_buf = termmapSet (label_to_index_buf, rd->label, LABEL_GOOD);
+	      label_to_index_buf =
+		termmapSet (label_to_index_buf, rd->label, LABEL_GOOD);
 #ifdef OKIDEBUG
 	      indact ();
-	      printf ("In NI-Synch scan, assuming %i run is involved.\n", rid);
+	      printf ("In NI-Synch scan, assuming %i run is involved.\n",
+		      rid);
 	      indact ();
-	      printf ("Exploring further assuming this matching, which worked.\n");
+	      printf
+		("Exploring further assuming this matching, which worked.\n");
 	      indac++;
 #endif
-	      result = oki_nisynch (sys, trace_index-1, role_to_run_buf, label_to_index_buf);
+	      result =
+		oki_nisynch (sys, trace_index - 1, role_to_run_buf,
+			     label_to_index_buf);
 #ifdef OKIDEBUG
 	      indact ();
 	      printf (">%i<\n", result);
@@ -274,13 +285,14 @@ oki_nisynch_send (const System sys, const int trace_index, const Termmap role_to
  *@returns 1 iff the claim is allright, 0 iff it is violated.
  */
 int
-oki_nisynch (const System sys, const int trace_index, const Termmap role_to_run, const Termmap label_to_index)
+oki_nisynch (const System sys, const int trace_index,
+	     const Termmap role_to_run, const Termmap label_to_index)
 {
   int type;
 
   // Check for completed trace
   if (trace_index < 0)
-      return oki_nisynch_full (sys, label_to_index);
+    return oki_nisynch_full (sys, label_to_index);
 
 #ifdef OKIDEBUG
   indact ();
@@ -293,11 +305,11 @@ oki_nisynch (const System sys, const int trace_index, const Termmap role_to_run,
   type = sys->traceEvent[trace_index]->type;
 
   if (type == CLAIM || sys->traceEvent[trace_index]->internal)
-      return oki_nisynch_other (sys, trace_index, role_to_run, label_to_index);
+    return oki_nisynch_other (sys, trace_index, role_to_run, label_to_index);
   if (type == READ)
-      return oki_nisynch_read (sys, trace_index, role_to_run, label_to_index);
+    return oki_nisynch_read (sys, trace_index, role_to_run, label_to_index);
   if (type == SEND)
-      return oki_nisynch_send (sys, trace_index, role_to_run, label_to_index);
+    return oki_nisynch_send (sys, trace_index, role_to_run, label_to_index);
   /*
    * Exception: no claim, no send, no read, what is it?
    */
@@ -318,7 +330,7 @@ check_claim_nisynch (const System sys, const int i)
   Roledef rd;
   int result;
   int rid;
-  Termmap f,g;
+  Termmap f, g;
   Term label;
   Claimlist cl;
   Termlist tl;
@@ -342,12 +354,12 @@ check_claim_nisynch (const System sys, const int i)
   /*
    * Check claim
    */
-  result = oki_nisynch(sys, i, f, g);
+  result = oki_nisynch (sys, i, f, g);
   if (!result)
     {
       cl->failed = statesIncrease (cl->failed);
 
-#ifdef DEBUG 
+#ifdef DEBUG
       globalError++;
       warning ("Claim has failed!");
       eprintf ("To be exact, claim label ");
@@ -355,7 +367,7 @@ check_claim_nisynch (const System sys, const int i)
       eprintf (" with prec set ");
       termlistPrint (cl->prec);
       eprintf ("\n");
-      eprintf ("i: %i\nf: ",i);
+      eprintf ("i: %i\nf: ", i);
       termmapPrint (f);
       eprintf ("\ng: ");
       termmapPrint (g);
@@ -380,7 +392,7 @@ check_claim_niagree (const System sys, const int i)
   Roledef rd;
   int result;
   int rid;
-  Termmap f,g;
+  Termmap f, g;
   Term label;
   Claimlist cl;
   Termlist tl;
@@ -404,7 +416,7 @@ check_claim_niagree (const System sys, const int i)
   /*
    * Check claim
    */
-  result = oki_nisynch(sys, i, f, g);
+  result = oki_nisynch (sys, i, f, g);
   if (!result)
     {
       cl->failed = statesIncrease (cl->failed);
@@ -416,7 +428,7 @@ check_claim_niagree (const System sys, const int i)
       printf (" with prec set ");
       termlistPrint (cl->prec);
       printf ("\n");
-      printf ("i: %i\nf: ",i);
+      printf ("i: %i\nf: ", i);
       termmapPrint (f);
       printf ("\ng: ");
       termmapPrint (g);
@@ -428,4 +440,3 @@ check_claim_niagree (const System sys, const int i)
   termmapDelete (g);
   return result;
 }
-

@@ -39,7 +39,7 @@ termmapGet (Termmap f, const Term x)
   while (f != NULL)
     {
       if (isTermEqual (x, f->term))
-	  return f->result;
+	return f->result;
       f = f->next;
     }
   return -1;
@@ -62,8 +62,8 @@ termmapSet (const Termmap f, const Term x, const int y)
 	{
 	  //! Is the result correct already?
 	  if (fscan->result != y)
-	      fscan->result = y;
-          return f;
+	    fscan->result = y;
+	  return f;
 	}
       fscan = fscan->next;
     }
@@ -107,7 +107,8 @@ termmapDelete (const Termmap f)
 }
 
 //! Print a function
-void termmapPrint (Termmap f)
+void
+termmapPrint (Termmap f)
 {
   if (f != NULL)
     {

@@ -212,14 +212,14 @@ symbolSysConst (const char *str)
  *\sa globalError
  */
 void
-eprintf (char *fmt, ... )
+eprintf (char *fmt, ...)
 {
   va_list args;
 
   va_start (args, fmt);
   if (globalError == 0)
-  	vfprintf (stdout, fmt, args);
+    vfprintf (stdout, fmt, args);
   else
-  	vfprintf (stderr, fmt, args);
+    vfprintf (stderr, fmt, args);
   va_end (args);
 }

@@ -88,12 +88,12 @@ traverse_chooses_first (const System sys)
       Roledef rd_scan;
 
       rd_scan = runPointerGet (sys, run_scan);
-      if (rd_scan != NULL &&				// Not empty run
+      if (rd_scan != NULL &&	// Not empty run
 	  rd_scan == sys->runs[run_scan].start &&	// First event
-	  rd_scan->type == READ)			// Read
+	  rd_scan->type == READ)	// Read
 	{
 	  if (executeTry (sys, run_scan))
-	      return 1;
+	    return 1;
 	}
     }
   return 0;
@@ -110,9 +110,9 @@ traverse (const System sys)
   if (sys->switchChooseFirst)
     {
       if (traverse_chooses_first (sys))
-	  return 1;
+	return 1;
     }
-  
+
   /* branch for traversal methods */
   switch (sys->traverse)
     {
@@ -203,7 +203,7 @@ executeStep (const System sys, const int run)
   sys->states = statesIncrease (sys->states);
 
   /* what about scenario exploration? */
-  if (sys->switchScenario && sys->step+1 > sys->switchScenarioSize)
+  if (sys->switchScenario && sys->step + 1 > sys->switchScenarioSize)
     {
       /* count states within scenario */
       sys->statesScenario = statesIncrease (sys->statesScenario);
@@ -213,7 +213,8 @@ executeStep (const System sys, const int run)
   if (sys->switchS > 0)
     {
       sys->interval = statesIncrease (sys->interval);
-      if (!statesSmallerThan (sys->interval, (unsigned long int) sys->switchS))
+      if (!statesSmallerThan
+	  (sys->interval, (unsigned long int) sys->switchS))
 	{
 	  globalError++;
 	  sys->interval = STATES0;
@@ -227,7 +228,8 @@ executeStep (const System sys, const int run)
   /* store new node numbder */
   sys->traceNode[sys->step] = sys->states;
   /* the construction below always assumes MAX_GRAPH_STATES to be smaller than the unsigned long it, which seems realistic. */
-  if (sys->output == STATESPACE && statesSmallerThan (sys->states, MAX_GRAPH_STATES))
+  if (sys->output == STATESPACE
+      && statesSmallerThan (sys->states, MAX_GRAPH_STATES))
     {
       /* display graph */
       graphNode (sys);
@@ -240,38 +242,39 @@ executeStep (const System sys, const int run)
  *
  *@todo "What is interesting" relies on the fact that there are only secrecy, sychnr and agreement properties.
  */
-Roledef removeIrrelevant (const System sys, const int run, Roledef rd)
+Roledef
+removeIrrelevant (const System sys, const int run, Roledef rd)
 {
   Roledef rdkill;
   int killclaims;
-  
+
   if (untrustedAgent (sys, sys->runs[run].agents))
-      killclaims = 1;
+    killclaims = 1;
   else
-      killclaims = 0;
+    killclaims = 0;
 
   rdkill = rd;
   while (rd != NULL)
     {
       if (rd->type == SEND || (!killclaims && rd->type == CLAIM))
-	  rdkill = rd;
+	rdkill = rd;
       rd = rd->next;
     }
   /* report part */
   /*
-  rd = rdkill->next;
-  killclaims = 0;
-  while (rd != NULL)
-    {
-      killclaims++;
-      rd = rd->next;
-    }
-  if (killclaims > 1)
-    {
-      warning ("%i events stripped from run %i.", killclaims, run);
-      runPrint (rdkill->next);
-    }
-  */
+     rd = rdkill->next;
+     killclaims = 0;
+     while (rd != NULL)
+     {
+     killclaims++;
+     rd = rd->next;
+     }
+     if (killclaims > 1)
+     {
+     warning ("%i events stripped from run %i.", killclaims, run);
+     runPrint (rdkill->next);
+     }
+   */
 
   /* remove after rdkill */
   return rdkill;
@@ -284,12 +287,13 @@ Roledef removeIrrelevant (const System sys, const int run, Roledef rd)
  *\sa tryChoiceSend()
  */
 void
-unblock_synchronising_labels (const System sys, const int run, const Roledef rd)
+unblock_synchronising_labels (const System sys, const int run,
+			      const Roledef rd)
 {
   if (rd->type != READ || rd->internal)
-      return;
+    return;
   if (!inTermlist (sys->synchronising_labels, rd->label))
-      return;
+    return;
 
   // This read possibly unblocks other sends
   int run_scan;
@@ -298,7 +302,7 @@ unblock_synchronising_labels (const System sys, const int run, const Roledef rd)
     {
       if (run_scan != run)
 	{
-  	  Roledef rd_scan;
+	  Roledef rd_scan;
 
 	  rd_scan = sys->runs[run_scan].index;
 	  if (rd_scan != NULL &&
@@ -357,7 +361,7 @@ explorify (const System sys, const int run)
    * instantiation related determinings.
    * --------------------------------------------
    */
-   
+
   /*
    * Special checks after (implicit) choose events; always first in run reads.
    */
@@ -367,8 +371,8 @@ explorify (const System sys, const int run)
 
       if (inTermlist (sys->untrusted, agentOfRun (sys, run)))
 	{
-          /* this run is executed by an untrusted agent, do not explore */
-          return 0;
+	  /* this run is executed by an untrusted agent, do not explore */
+	  return 0;
 	}
       /* executed by trusted agent */
 
@@ -378,7 +382,7 @@ explorify (const System sys, const int run)
        */
       //!@todo This implementation relies on the fact that there are only secrecy, synchr and agreement properties.
       if (sys->switchNomoreClaims && sys->secrets == NULL)
-	{ /* there are no remaining secrecy claims to be checked */
+	{			/* there are no remaining secrecy claims to be checked */
 	  Roledef rdscan;
 	  int validclaim;
 
@@ -386,11 +390,11 @@ explorify (const System sys, const int run)
 	  validclaim = 0;
 	  /* check for each run */
 	  while (rid < sys->maxruns)
-	    { 
+	    {
 	      /* are claims in this run evaluated anyway? */
 	      if (!untrustedAgent (sys, sys->runs[rid].agents))
-		{ /* possibly claims to be checked in this run */
-		  rdscan = runPointerGet(sys, rid);
+		{		/* possibly claims to be checked in this run */
+		  rdscan = runPointerGet (sys, rid);
 		  while (rdscan != NULL)
 		    {
 		      if (rdscan->type == CLAIM)
@@ -409,7 +413,7 @@ explorify (const System sys, const int run)
 	      rid++;
 	    }
 	  if (validclaim == 0)
-	    { /* no valid claims, abort */
+	    {			/* no valid claims, abort */
 	      return 0;
 	    }
 	}
@@ -435,7 +439,7 @@ explorify (const System sys, const int run)
 	    {
 	      /* dependent run has chosen, so we can compare */
 	      if (termlistOrder (sys->runs[run].agents,
-				   sys->runs[ridSymm].agents) < 0)
+				 sys->runs[ridSymm].agents) < 0)
 		{
 		  /* we only explore the other half */
 		  return 0;
@@ -447,7 +451,7 @@ explorify (const System sys, const int run)
        */
 
       if (sys->switchReduceEndgame)
-       	  roleCap = removeIrrelevant (sys, run, rd);
+	roleCap = removeIrrelevant (sys, run, rd);
 
       /* Special check x: if all agents in each run send only encrypted stuff, and all agents are trusted,
        * there is no way for the intruder to learn anything else than encrypted terms, so secrecy claims will not
@@ -456,15 +460,15 @@ explorify (const System sys, const int run)
       //!@todo For now, there is no check that the runs only send publicly encrypted stuff! Just an assumption to be made true using static analysis.
 
       /*
-      rid = 0;
-      while (rid < sys->maxruns)
-	{
-	  if (!untrustedAgent (sys, sys->runs[rid].agents))
-	    {
-	    }
-	  rid++;
-	}
-	*/
+         rid = 0;
+         while (rid < sys->maxruns)
+         {
+         if (!untrustedAgent (sys, sys->runs[rid].agents))
+         {
+         }
+         rid++;
+         }
+       */
     }
 
   /* 
@@ -479,13 +483,14 @@ explorify (const System sys, const int run)
 	   * Check if it has progressed enough, and has the same agents.
 	   */
 	  int ridSymm;
-     
+
 	  if (rd->type != READ)
 	    {
 	      error ("firstNonAgentRead is not a read?!");
 	    }
 	  ridSymm = sys->runs[run].prevSymmRun;
-	  if (isTermlistEqual (sys->runs[run].agents, sys->runs[ridSymm].agents))
+	  if (isTermlistEqual
+	      (sys->runs[run].agents, sys->runs[ridSymm].agents))
 	    {
 	      /* same agents, so relevant */
 	      if (myStep > 0 && sys->runs[ridSymm].step < myStep)
@@ -540,7 +545,8 @@ explorify (const System sys, const int run)
 	  ridSymm = sys->runs[run].prevSymmRun;
 	  /* equal runs? */
 
-	  if (isTermlistEqual (sys->runs[run].agents, sys->runs[ridSymm].agents))
+	  if (isTermlistEqual
+	      (sys->runs[run].agents, sys->runs[ridSymm].agents))
 	    {
 	      /* so, we have an identical partner */
 	      /* is our partner there already? */
@@ -567,8 +573,7 @@ explorify (const System sys, const int run)
       if (sys->switchScenarioSize == 0)
 	{
 	  /* only after chooses */
-	  if (myStep == 0 &&
-	      rd->type == READ)
+	  if (myStep == 0 && rd->type == READ)
 	    {
 	      if (run == sys->lastChooseRun)
 		{
@@ -605,10 +610,10 @@ explorify (const System sys, const int run)
 	  /* scenario size is not zero */
 
 	  //!@todo Optimization: if the good scenario is already traversed, other trace prefixes need not be explored any further.
-	  if (sys->step+1 == sys->switchScenarioSize)
+	  if (sys->step + 1 == sys->switchScenarioSize)
 	    {
 	      /* Now, the prefix has been set. Count it */
-    	      if (sys->countScenario < INT_MAX)
+	      if (sys->countScenario < INT_MAX)
 		{
 		  sys->countScenario++;
 		}
@@ -679,7 +684,7 @@ explorify (const System sys, const int run)
     {
       roleCap->next = roleCapPart;
     }
-  return 1;	// The event was indeed enabled (irrespective of traverse!)
+  return 1;			// The event was indeed enabled (irrespective of traverse!)
 }
 
 
@@ -806,7 +811,7 @@ __inline__ int
 tryChoiceRead (const System sys, const int run, const Roledef rd)
 {
   int flag;
-  
+
   flag = 0;
 
   /* the sendsdone check only prevent
@@ -853,9 +858,9 @@ tryChoiceRoledef (const System sys, const int run, const Roledef rd)
 
 #ifdef DEBUG
   if (rd == NULL)
-      error ("tryChoiceRoledef should not be called with a NULL rd pointer");
+    error ("tryChoiceRoledef should not be called with a NULL rd pointer");
 #endif
-  
+
   flag = 0;
   switch (rd->type)
     {
@@ -886,9 +891,9 @@ tryChoiceRun (const System sys, const int run)
 
   rd = runPointerGet (sys, run);
   if (rd != NULL)
-      return tryChoiceRoledef (sys, run, rd);
+    return tryChoiceRoledef (sys, run, rd);
   else
-      return 0;
+    return 0;
 }
 
 //! Yield the last active run in the partial trace, or 0 if there is none.
@@ -905,7 +910,7 @@ lastActiveRun (const System sys)
       /* there was a previous action, start scan from there */
 #ifdef DEBUG
       if (sys->porparam < 100)
-          return sys->traceRun[sys->step - 1] + sys->porparam;
+	return sys->traceRun[sys->step - 1] + sys->porparam;
 #endif
       return sys->traceRun[sys->step - 1];
     }
@@ -915,9 +920,7 @@ lastActiveRun (const System sys)
 __inline__ int
 isChooseRoledef (const System sys, const int run, const Roledef rd)
 {
-  return (rd == sys->runs[run].start &&
-	  rd->type == READ && 
-	  rd->internal);
+  return (rd == sys->runs[run].start && rd->type == READ && rd->internal);
 }
 
 //! Explore possible chooses first
@@ -933,7 +936,7 @@ tryChoosesFirst (const System sys)
     {
       rd = runPointerGet (sys, run);
       if (isChooseRoledef (sys, run, rd))
-	  flag = tryChoiceRoledef (sys, run, rd);
+	flag = tryChoiceRoledef (sys, run, rd);
     }
   return flag;
 }
@@ -980,7 +983,7 @@ __inline__ int
 traversePOR5 (const System sys)
 {
   if (tryChoosesFirst (sys))
-      return 1;
+    return 1;
   return tryEventsOffset (sys, lastActiveRun (sys));
 }
 
@@ -1006,7 +1009,7 @@ __inline__ int
 traversePOR7 (const System sys)
 {
   if (tryChoosesFirst (sys))
-      return 1;
+    return 1;
   tryEventsOffset (sys, 0);
 }
 
@@ -1028,7 +1031,7 @@ traversePOR8 (const System sys)
   for (run = 0; run < sys->maxruns && !flag; run++)
     {
       if (run != last)
-          flag = tryChoiceRun (sys, run);
+	flag = tryChoiceRun (sys, run);
     }
   return flag;
 }
@@ -1043,7 +1046,7 @@ traversePOR8 (const System sys)
 int
 propertyCheck (const System sys)
 {
-  int flag = 1;	// default: properties are true, no attack 
+  int flag = 1;			// default: properties are true, no attack 
 
   /* for now, we only check secrecy */
   if (sys->secrets != NULL)
@@ -1065,13 +1068,13 @@ propertyCheck (const System sys)
 		{
 		  if (sys->traceEvent[i]->type == CLAIM &&
 		      sys->traceEvent[i]->to == CLAIM_Secret)
-	 	    {
-		      Termlist tl = secrecyUnfolding(scan->term, sys->know);
+		    {
+		      Termlist tl = secrecyUnfolding (scan->term, sys->know);
 		      if (tl != NULL)
-		        {
-		          /* This was indeed a violated claim */
+			{
+			  /* This was indeed a violated claim */
 			  claimev = i;
-		        }
+			}
 		    }
 		  i++;
 		}
@@ -1079,17 +1082,18 @@ propertyCheck (const System sys)
 	      if (claimev == -1)
 		{
 		  /* weird, should not occur */
-		  fprintf(stderr, "Violation, but cannot locate claim.\n");
-		  printf("A secrecy claim was supposed to be violated on term ");
-		  termPrint(scan->term);
-		  printf(" but we couldn't find the corresponding claim.\n");
-		  exit(1);
+		  fprintf (stderr, "Violation, but cannot locate claim.\n");
+		  printf
+		    ("A secrecy claim was supposed to be violated on term ");
+		  termPrint (scan->term);
+		  printf (" but we couldn't find the corresponding claim.\n");
+		  exit (1);
 		}
 	      else
 		{
 		  /* fine. so it's violated */
-		  violateClaim(sys, sys->step, claimev, tl);
-		  termlistDelete(tl);
+		  violateClaim (sys, sys->step, claimev, tl);
+		  termlistDelete (tl);
 		  flag = 0;
 		}
 	    }
@@ -1163,15 +1167,14 @@ secrecyUnfolding (Term t, const Knowledge know)
 {
   t = deVar (t);
   if (isTermTuple (t))
-    return termlistConcat (secrecyUnfolding(t->left.op1,know),
-			   secrecyUnfolding(t->right.op2,know)
-			  );
+    return termlistConcat (secrecyUnfolding (t->left.op1, know),
+			   secrecyUnfolding (t->right.op2, know));
   else
     {
-      if (inKnowledge(know, t))
-	  return termlistAdd(NULL, t);
+      if (inKnowledge (know, t))
+	return termlistAdd (NULL, t);
       else
-	  return NULL;
+	return NULL;
     }
 }
 
@@ -1187,28 +1190,30 @@ secrecyUnfolding (Term t, const Knowledge know)
  */
 
 Termlist
-claimViolationDetails (const System sys, const int run, const Roledef rd, const Knowledge know)
+claimViolationDetails (const System sys, const int run, const Roledef rd,
+		       const Knowledge know)
 {
   if (rd->type != CLAIM)
     {
-      fprintf(stderr, "Trying to determine details of something other than a claim!\n");
-      exit(-1);
+      fprintf (stderr,
+	       "Trying to determine details of something other than a claim!\n");
+      exit (-1);
     }
 
   /* cases */
   if (rd->to == CLAIM_Secret)
     {
       /* secrecy claim */
-      
+
       if (untrustedAgent (sys, sys->runs[run].agents))
 	{
 	  /* claim was skipped */
-	  return (Termlist) -1;
+	  return (Termlist) - 1;
 	}
       else
 	{
 	  /* construct violating subterms list */
-          return secrecyUnfolding(rd->message, know);
+	  return secrecyUnfolding (rd->message, know);
 	}
     }
   return NULL;
@@ -1240,8 +1245,8 @@ violateClaim (const System sys, int length, int claimev, Termlist reqt)
   /* Copy the current trace to the buffer, if the new one is shorter than the previous one. */
   if (sys->attack == NULL || length < sys->attack->reallength)
     {
-      tracebufDone(sys->attack);
-      sys->attack = tracebufSet(sys, length, claimev);
+      tracebufDone (sys->attack);
+      sys->attack = tracebufSet (sys, length, claimev);
       attackMinimize (sys, sys->attack);
       sys->shortestattack = sys->attack->reallength;
 
@@ -1257,7 +1262,7 @@ violateClaim (const System sys, int length, int claimev, Termlist reqt)
 	case 2:
 	  sys->maxtracelength = sys->shortestattack - 1;
 	  break;
-	} 
+	}
     }
   return flag;
 }
@@ -1275,7 +1280,7 @@ executeTry (const System sys, int run)
 
   runPoint = runPointerGet (sys, run);
   sys->traceEvent[sys->step] = runPoint;	// store for later usage, problem: variables are substituted later...
-  sys->traceRun[sys->step] = run;		// same
+  sys->traceRun[sys->step] = run;	// same
 
   if (runPoint == NULL)
     {
@@ -1367,7 +1372,7 @@ executeTry (const System sys, int run)
 	      sys->secrets =
 		termlistAdd (termlistShallow (oldsecrets), runPoint->message);
 	      flag = claimSecrecy (sys, runPoint->message);
-              runPoint->claiminfo->count++;
+	      runPoint->claiminfo->count++;
 
 	      /* now check whether the claim failed for further actions */
 	      if (!flag)
@@ -1375,11 +1380,11 @@ executeTry (const System sys, int run)
 		  /* violation */
 		  Termlist tl;
 
-                  runPoint->claiminfo->failed++;
-		  tl = claimViolationDetails(sys,run,runPoint,sys->know);
-		  if (violateClaim (sys,sys->step+1, sys->step, tl ))
-		      flag = explorify (sys, run);
-		  termlistDelete(tl);
+		  runPoint->claiminfo->failed++;
+		  tl = claimViolationDetails (sys, run, runPoint, sys->know);
+		  if (violateClaim (sys, sys->step + 1, sys->step, tl))
+		    flag = explorify (sys, run);
+		  termlistDelete (tl);
 		}
 	      else
 		{
@@ -1396,12 +1401,12 @@ executeTry (const System sys, int run)
 	      /*
 	       * NISYNCH
 	       */
-              flag = check_claim_nisynch (sys, sys->step);
+	      flag = check_claim_nisynch (sys, sys->step);
 	      if (!flag)
 		{
 		  /* violation */
-		  if (violateClaim (sys,sys->step+1, sys->step, NULL ))
-		      flag = explorify (sys, run);
+		  if (violateClaim (sys, sys->step + 1, sys->step, NULL))
+		    flag = explorify (sys, run);
 		}
 	      else
 		{
@@ -1414,12 +1419,12 @@ executeTry (const System sys, int run)
 	      /*
 	       * NIAGREE
 	       */
-              flag = check_claim_niagree (sys, sys->step);
+	      flag = check_claim_niagree (sys, sys->step);
 	      if (!flag)
 		{
 		  /* violation */
-		  if (violateClaim (sys,sys->step+1, sys->step, NULL ))
-		      flag = explorify (sys, run);
+		  if (violateClaim (sys, sys->step + 1, sys->step, NULL))
+		    flag = explorify (sys, run);
 		}
 	      else
 		{
@@ -1433,4 +1438,3 @@ executeTry (const System sys, int run)
     }
   return flag;
 }
-

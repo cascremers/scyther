@@ -8,7 +8,8 @@
 #include "constraint.h"
 #include "states.h"
 
-enum eventtype { READ, SEND, CLAIM };
+enum eventtype
+{ READ, SEND, CLAIM };
 
 //! The container for the claim info list
 struct claimlist
@@ -23,8 +24,8 @@ struct claimlist
   states_t count;
   //! Number of occurrences that failed.
   states_t failed;
-  int r;	//!< role number for mapping
-  int ev;	//!< event index in role
+  int r;			//!< role number for mapping
+  int ev;			//!< event index in role
   //! Preceding label list
   Termlist prec;
   //! Next node pointer or NULL for the last element of the function.
@@ -110,11 +111,12 @@ Roledef roledefDuplicate1 (const Roledef rd);
 Roledef roledefDuplicate (Roledef rd);
 void roledefDelete (Roledef rd);
 void roledefDestroy (Roledef rd);
-Roledef roledefInit (int type, Term label, Term from, Term to, Term msg, Claimlist cl);
-Roledef roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg, Claimlist cl);
+Roledef roledefInit (int type, Term label, Term from, Term to, Term msg,
+		     Claimlist cl);
+Roledef roledefAdd (Roledef rd, int type, Term label, Term from, Term to,
+		    Term msg, Claimlist cl);
 Role roleCreate (Term nameterm);
 void rolePrint (Role r);
 void rolesPrint (Role r);
 
 #endif
-

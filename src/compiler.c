@@ -243,7 +243,8 @@ symbolFind (Symbol s)
 }
 
 //! Yield a basic global constant term (we suppose it exists) or NULL, given a string
-Term findGlobalConstant (const char *s)
+Term
+findGlobalConstant (const char *s)
 {
   return levelFind (lookup (s), 0);
 }
@@ -286,7 +287,9 @@ defineUsertype (Tac tcdu)
 	  else
 	    {
 	      /* that's not right! */
-	      error ("Conflicting definitions in usertype definition on line %i.", tc->lineno);
+	      error
+		("Conflicting definitions in usertype definition on line %i.",
+		 tc->lineno);
 	    }
 	}
       tc = tc->next;
@@ -303,7 +306,8 @@ levelTacDeclaration (Tac tc, int isVar)
   tscan = tc->t2.tac;
   if (!isVar && tscan->next != NULL)
     {
-      error ("Multiple type definition for constant on line %i.", tscan->lineno);
+      error ("Multiple type definition for constant on line %i.",
+	     tscan->lineno);
     }
   while (tscan != NULL && tscan->op == TAC_STRING)
     {
@@ -313,13 +317,14 @@ levelTacDeclaration (Tac tc, int isVar)
       if (t == NULL)
 	{
 	  /* not declared, that is unacceptable. */
-          error ("Undeclared type on line %i.", tscan->lineno);
+	  error ("Undeclared type on line %i.", tscan->lineno);
 	}
       else
 	{
 	  if (!inTermlist (t->stype, TERM_Type))
 	    {
-              error ("Non-type constant in type declaration on line %i.", tscan->lineno);
+	      error ("Non-type constant in type declaration on line %i.",
+		     tscan->lineno);
 	    }
 	}
       typetl = termlistAdd (typetl, t);
@@ -373,7 +378,7 @@ commEvent (int event, Tac tc)
       /* now parse triplet info */
       if (trip == NULL || trip->next == NULL || trip->next->next == NULL)
 	{
-          error ("Problem with %i event on line %i.", event, tc->lineno);
+	  error ("Problem with %i event on line %i.", event, tc->lineno);
 	}
       fromrole = tacTerm (trip);
       torole = tacTerm (trip->next);
@@ -385,7 +390,8 @@ commEvent (int event, Tac tc)
       /* now parse tuple info */
       if (trip == NULL || trip->next == NULL)
 	{
-          error ("Problem with claim %i event on line %i.", event, tc->lineno);
+	  error ("Problem with claim %i event on line %i.", event,
+		 tc->lineno);
 	}
       fromrole = tacTerm (trip);
       claimbig = tacTerm (tacTuple ((trip->next)));
@@ -394,8 +400,7 @@ commEvent (int event, Tac tc)
       torole = claim;
 
       /* check for ignored claim types */
-      if (sys->switchClaimToCheck != NULL &&
-	  sys->switchClaimToCheck != claim)
+      if (sys->switchClaimToCheck != NULL && sys->switchClaimToCheck != claim)
 	{
 	  /* abort the construction of the node */
 	  return;
@@ -404,7 +409,7 @@ commEvent (int event, Tac tc)
       /* check for obvious flaws */
       if (claim == NULL)
 	{
-          error ("Invalid claim specification on line %i.", tc->lineno);
+	  error ("Invalid claim specification on line %i.", tc->lineno);
 	}
       if (!inTermlist (claim->stype, TERM_Claim))
 	{
@@ -426,12 +431,13 @@ commEvent (int event, Tac tc)
 	  msg = deVar (claimbig)->right.op2;
 	  if (tupleCount (msg) != n)
 	    {
-	      error ("Problem with claim tuple unfolding at line %i.", trip->next->lineno);
+	      error ("Problem with claim tuple unfolding at line %i.",
+		     trip->next->lineno);
 	    }
 	}
 
       /* store claim in claim list */
-      
+
       // First check whether label is unique
       cl = sys->claimlist;
       while (cl != NULL)
@@ -441,7 +447,7 @@ commEvent (int event, Tac tc)
 	      /**
 	       *@todo This should not error exit, but automatically generate a fresh claim label.
 	       */
-	      error ("Claim label is not unique at line %i.",tc->lineno);
+	      error ("Claim label is not unique at line %i.", tc->lineno);
 	    }
 	  cl = cl->next;
 	}
@@ -462,7 +468,9 @@ commEvent (int event, Tac tc)
 	{
 	  if (n == 0)
 	    {
-	      error ("Secrecy claim requires a list of terms to be secret on line %i.",trip->next->lineno);
+	      error
+		("Secrecy claim requires a list of terms to be secret on line %i.",
+		 trip->next->lineno);
 	    }
 	  break;
 	}
@@ -470,7 +478,8 @@ commEvent (int event, Tac tc)
 	{
 	  if (n != 0)
 	    {
-	      error ("NISYNCH claim requires no parameters at line %i.", trip->next->lineno);
+	      error ("NISYNCH claim requires no parameters at line %i.",
+		     trip->next->lineno);
 	    }
 	  break;
 	}
@@ -478,7 +487,8 @@ commEvent (int event, Tac tc)
 	{
 	  if (n != 0)
 	    {
-	      error ("NIAGREE claim requires no parameters at line %i.", trip->next->lineno);
+	      error ("NIAGREE claim requires no parameters at line %i.",
+		     trip->next->lineno);
 	    }
 	  break;
 	}
@@ -518,7 +528,8 @@ normalDeclaration (Tac tc)
       knowledgeAddTermlist (sys->know, tacTermlist (tc->t1.tac));
       break;
     case TAC_INVERSEKEYS:
-      knowledgeAddInverse (sys->know, tacTerm (tc->t1.tac), tacTerm (tc->t2.tac));
+      knowledgeAddInverse (sys->know, tacTerm (tc->t1.tac),
+			   tacTerm (tc->t2.tac));
       break;
     default:
       /* abort with false */
@@ -799,111 +810,108 @@ tacTermlist (Tac tc)
 void
 compute_prec_sets (const System sys)
 {
-  Term *eventlabels;	// array: maps events to labels
-  int *prec;		// array: maps event*event to precedence
-  int size;		// temp constant: rolecount * roleeventmax
-  int r1,r2,ev1,ev2;	// some counters
-  int i,j;
+  Term *eventlabels;		// array: maps events to labels
+  int *prec;			// array: maps event*event to precedence
+  int size;			// temp constant: rolecount * roleeventmax
+  int r1, r2, ev1, ev2;		// some counters
+  int i, j;
   Claimlist cl;
 
   // Assist: compute index from role, lev
-  int
-  index (int r, int lev)
-    {
-      return r * sys->roleeventmax + lev;
-    }
+  int index (int r, int lev)
+  {
+    return r * sys->roleeventmax + lev;
+  }
 
   // Assist: compute matrix index from i*i
-  int
-  index2 (int i1, int i2)
-    {
-      return i1 * size + i2;
-    }
+  int index2 (int i1, int i2)
+  {
+    return i1 * size + i2;
+  }
   // Assist: yield roledef from r, lev
-  Roledef
-  roledef_re (int r, int lev)
-    {
-      Protocol pr;
-      Role ro;
-      Roledef rd;
+  Roledef roledef_re (int r, int lev)
+  {
+    Protocol pr;
+    Role ro;
+    Roledef rd;
 
-      pr = sys->protocols;
-      ro = pr->roles;
-      while (r > 0 && ro != NULL)
-	{
-	  ro = ro->next;
-	  if (ro == NULL)
-	    {
-	      pr = pr->next;
-	      if (pr != NULL)
-		{
-	      	  ro = pr->roles;
-		}
-	      else
-		{
-		  ro = NULL;
-		}
-	    }
-	  r--;
-	}
-      if (ro != NULL)
-	{
-	  rd = ro->roledef;
-	  while (lev > 0 && rd != NULL)
-	    {
-	      rd = rd->next;
-	      lev--;
-	    }
-	  return rd;
-	}
-      else
-	{
-	  return NULL;
-	}
-    }
+    pr = sys->protocols;
+    ro = pr->roles;
+    while (r > 0 && ro != NULL)
+      {
+	ro = ro->next;
+	if (ro == NULL)
+	  {
+	    pr = pr->next;
+	    if (pr != NULL)
+	      {
+		ro = pr->roles;
+	      }
+	    else
+	      {
+		ro = NULL;
+	      }
+	  }
+	r--;
+      }
+    if (ro != NULL)
+      {
+	rd = ro->roledef;
+	while (lev > 0 && rd != NULL)
+	  {
+	    rd = rd->next;
+	    lev--;
+	  }
+	return rd;
+      }
+    else
+      {
+	return NULL;
+      }
+  }
 
   // Assist: print matrix
-  void
-  show_matrix (void)
-    {
-      int r1, r2, ev1, ev2;
+  void show_matrix (void)
+  {
+    int r1, r2, ev1, ev2;
 
-      r1 = 0;
-      while (r1 < sys->rolecount)
-	{
-	  ev1 = 0;
-	  while (ev1 < sys->roleeventmax)
-	    {
-              printf ("prec %i,%i:  ", r1,ev1);
-	      r2 = 0;
-	      while (r2 < sys->rolecount)
-		{
-		  ev2 = 0;
-		  while (ev2 < sys->roleeventmax)
-		    {
-		      printf ("%i ", prec[index2 (index (r2,ev2), index (r1, ev1))]);
-		      ev2++;
-		    }
-		  printf (" ");
-		  r2++;
-		}
-              printf ("\n");
-	      ev1++;
-	    }
-          printf ("\n");
-	  r1++;
-	}
-       printf ("\n");
-    }
-  
+    r1 = 0;
+    while (r1 < sys->rolecount)
+      {
+	ev1 = 0;
+	while (ev1 < sys->roleeventmax)
+	  {
+	    printf ("prec %i,%i:  ", r1, ev1);
+	    r2 = 0;
+	    while (r2 < sys->rolecount)
+	      {
+		ev2 = 0;
+		while (ev2 < sys->roleeventmax)
+		  {
+		    printf ("%i ",
+			    prec[index2 (index (r2, ev2), index (r1, ev1))]);
+		    ev2++;
+		  }
+		printf (" ");
+		r2++;
+	      }
+	    printf ("\n");
+	    ev1++;
+	  }
+	printf ("\n");
+	r1++;
+      }
+    printf ("\n");
+  }
+
   /*
    * Phase 1: Allocate structures and map to labels
    */
   //printf ("Rolecount: %i\n", sys->rolecount);
   //printf ("Maxevent : %i\n", sys->roleeventmax);
   size = sys->rolecount * sys->roleeventmax;
-  eventlabels = memAlloc (size * sizeof(Term));
-  prec = memAlloc (size * size * sizeof(int));
+  eventlabels = memAlloc (size * sizeof (Term));
+  prec = memAlloc (size * size * sizeof (int));
   // Clear tables
   i = 0;
   while (i < size)
@@ -912,7 +920,7 @@ compute_prec_sets (const System sys)
       j = 0;
       while (j < size)
 	{
-	  prec[index2(i,j)] = 0;
+	  prec[index2 (i, j)] = 0;
 	  j++;
 	}
       i++;
@@ -927,7 +935,7 @@ compute_prec_sets (const System sys)
       rd = roledef_re (r1, ev1);
       while (rd != NULL)
 	{
-	  eventlabels[index(r1,ev1)] = rd->label;
+	  eventlabels[index (r1, ev1)] = rd->label;
 	  //termPrint (rd->label);
 	  //printf ("\t");
 	  ev1++;
@@ -942,8 +950,8 @@ compute_prec_sets (const System sys)
     {
       ev1 = 0;
       while (ev1 < (sys->roleeventmax - 1))
-	{ 
-	  prec[index2 (index (r1,ev1),index (r1,ev1+1))] = 1;
+	{
+	  prec[index2 (index (r1, ev1), index (r1, ev1 + 1))] = 1;
 	  ev1++;
 	}
       r1++;
@@ -957,7 +965,7 @@ compute_prec_sets (const System sys)
 	{
 	  Roledef rd1;
 
-	  rd1 = roledef_re(r1,ev1);
+	  rd1 = roledef_re (r1, ev1);
 	  if (rd1 != NULL && rd1->type == SEND)
 	    {
 	      r2 = 0;
@@ -968,10 +976,11 @@ compute_prec_sets (const System sys)
 		    {
 		      Roledef rd2;
 
-		      rd2 = roledef_re(r2,ev2);
-		      if (rd2 != NULL && rd2->type == READ && isTermEqual(rd1->label, rd2->label))
+		      rd2 = roledef_re (r2, ev2);
+		      if (rd2 != NULL && rd2->type == READ
+			  && isTermEqual (rd1->label, rd2->label))
 			{
-			  prec[index2(index(r1,ev1),index(r2,ev2))] = 1;
+			  prec[index2 (index (r1, ev1), index (r2, ev2))] = 1;
 			}
 		      ev2++;
 		    }
@@ -995,16 +1004,16 @@ compute_prec_sets (const System sys)
       j = 0;
       while (j < size)
 	{
-	  if (prec[index2 (j,i)] == 1)
+	  if (prec[index2 (j, i)] == 1)
 	    {
 	      int k;
 
 	      k = 0;
 	      while (k < size)
 		{
-		  if (prec[index2 (k,j)] == 1)
+		  if (prec[index2 (k, j)] == 1)
 		    {
-		      prec[index2 (k,i)] = 1;
+		      prec[index2 (k, i)] = 1;
 		    }
 		  k++;
 		}
@@ -1039,15 +1048,18 @@ compute_prec_sets (const System sys)
 	      r1++;
 	    }
 	}
-      while (r1 < sys->rolecount && !isTermEqual (label, eventlabels[index(r1,ev1)]));
+      while (r1 < sys->rolecount
+	     && !isTermEqual (label, eventlabels[index (r1, ev1)]));
       if (r1 == sys->rolecount)
 	{
-	  error ("Prec() setup: Could not find the event corresponding to a claim label.");
+	  error
+	    ("Prec() setup: Could not find the event corresponding to a claim label.");
 	}
-      rd = roledef_re (r1,ev1);
+      rd = roledef_re (r1, ev1);
       if (rd->type != CLAIM)
 	{
-	  error ("Prec() setup: First event with claim label doesn't seem to be a claim.");
+	  error
+	    ("Prec() setup: First event with claim label doesn't seem to be a claim.");
 	}
       // Store in claimlist structure
       cl->r = r1;
@@ -1057,21 +1069,21 @@ compute_prec_sets (const System sys)
        * Now we compute the preceding label set
        */
       cl->prec = NULL;		// clear first
-      claim_index = index (r1,ev1);
+      claim_index = index (r1, ev1);
       r2 = 0;
       while (r2 < sys->rolecount)
 	{
 	  Roledef rd2;
 
 	  ev2 = 0;
-	  rd = roledef_re (r2,ev2);
+	  rd = roledef_re (r2, ev2);
 	  while (rd != NULL)
 	    {
-	      if (prec[index2 (index (r2,ev2),claim_index)] == 1)
+	      if (prec[index2 (index (r2, ev2), claim_index)] == 1)
 		{
 		  // This event precedes the claim
-		  
-                  if (rd->type == READ)
+
+		  if (rd->type == READ)
 		    {
 		      // Only store read labels (but send would work as well)
 		      cl->prec = termlistAdd (cl->prec, rd->label);
@@ -1096,7 +1108,8 @@ compute_prec_sets (const System sys)
 	  tl_scan = cl->prec;
 	  while (tl_scan != NULL)
 	    {
-	      sys->synchronising_labels = termlistAddNew (sys->synchronising_labels, tl_scan->term);
+	      sys->synchronising_labels =
+		termlistAddNew (sys->synchronising_labels, tl_scan->term);
 	      tl_scan = tl_scan->next;
 	    }
 	}
@@ -1125,11 +1138,12 @@ compute_prec_sets (const System sys)
 		  while (ev_scan < sys->roleeventmax)
 		    {
 		      // if this event preceds the claim, replace the label term
-		      if (prec[index2 (index (r_scan, ev_scan), claim_index)] == 1)
+		      if (prec[index2 (index (r_scan, ev_scan), claim_index)]
+			  == 1)
 			{
 			  Roledef rd;
 
-	  		  rd = roledef_re (r_scan,ev_scan);
+			  rd = roledef_re (r_scan, ev_scan);
 			  if (rd->label != NULL)
 			    {
 			      t_buf = rd->label;
@@ -1140,7 +1154,8 @@ compute_prec_sets (const System sys)
 		  // Store only the last label
 		  if (t_buf != NULL)
 		    {
-		      sys->synchronising_labels = termlistAddNew(sys->synchronising_labels, t_buf);
+		      sys->synchronising_labels =
+			termlistAddNew (sys->synchronising_labels, t_buf);
 		    }
 		}
 	      r_scan++;
@@ -1153,15 +1168,17 @@ compute_prec_sets (const System sys)
 	{
 	  termlistDelete (sys->synchronising_labels);
 	  sys->synchronising_labels = NULL;
-	  warning ("Emptied synchronising labels set manually because --pp=100.");
+	  warning
+	    ("Emptied synchronising labels set manually because --pp=100.");
 	}
 #endif
       // Check for empty stuff
       //@todo This is for debugging, mainly.
       if (cl->prec == NULL)
 	{
-	  fprintf (stderr, "Warning: claim with empty prec() set at r:%i, ev:%i\n",
-		   r1,ev1);
+	  fprintf (stderr,
+		   "Warning: claim with empty prec() set at r:%i, ev:%i\n",
+		   r1, ev1);
 	}
       else
 	{
@@ -1177,11 +1194,11 @@ compute_prec_sets (const System sys)
   /*
    * Cleanup
    */
-  memFree (eventlabels, size * sizeof(Term));
-  memFree (prec, size * size * sizeof(int));
+  memFree (eventlabels, size * sizeof (Term));
+  memFree (prec, size * size * sizeof (int));
 
 #ifdef DEBUG
-  if (DEBUGL(2))
+  if (DEBUGL (2))
     {
       printf ("Synchronising labels set: ");
       termlistPrint (sys->synchronising_labels);
@@ -1192,16 +1209,16 @@ compute_prec_sets (const System sys)
 }
 
 //! Preprocess after system compilation
-void 
+void
 preprocess (const System sys)
 {
   /*
    * init some counters
    */
-  sys->rolecount = compute_rolecount(sys);
-  sys->roleeventmax = compute_roleeventmax(sys);
+  sys->rolecount = compute_rolecount (sys);
+  sys->roleeventmax = compute_roleeventmax (sys);
   /*
    * compute preceding label sets
    */
-  compute_prec_sets(sys);
+  compute_prec_sets (sys);
 }

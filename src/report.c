@@ -39,7 +39,7 @@ reportMid (const System sys)
   indent ();
   printf ("Trace length %i.\n", 1 + sys->step);
   if (globalLatex)
-      printf("\n");
+    printf ("\n");
   tracePrint (sys);
 }
 
@@ -69,7 +69,7 @@ reportSecrecy (const System sys, Term t)
   termPrint (t);
   printf ("$\n");
   if (globalLatex)
-      printf("\n");
+    printf ("\n");
   reportMid (sys);
   reportEnd (sys);
 }
