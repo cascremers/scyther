@@ -670,7 +670,14 @@ dotSemiState ()
   {
     if (sys->runs[run].protocol == INTRUDER)
       {
-	eprintf ("i%i", run);
+	if (sys->runs[run].role == I_M)
+	  {
+	    eprintf ("m0");
+	  }
+	else
+	  {
+	    eprintf ("i%i", run);
+	  }
       }
     else
       {
@@ -776,9 +783,15 @@ dotSemiState ()
 	  // INTRUDER run
 	  eprintf ("\t");
 	  node (run, 0);
-	  eprintf (" [label=\"");
-	  termPrint (sys->runs[run].role->nameterm);
-	  eprintf ("\"];\n");
+	  if (sys->runs[run].role == I_M)
+	    {
+	      eprintf (" [label=\"M0\"]");
+	    }
+	  else
+	    {
+	      eprintf (" [shape=point]");
+	    }
+	  eprintf (";\n");
 	}
       run++;
     }
