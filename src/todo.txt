@@ -1,3 +1,5 @@
+- Make filter switch, allowing maybe for some claims only to be evaluated.
+  --check=Secret, --check-all as default.
 - Some compiler errors are still sent to stdout. This must be fixed
   ASAP! because it means people get an invisible error using the
   scripts.
@@ -6,8 +8,6 @@
 - Make --with-argtabledir= something switch, replacing
   README/galious-configure.sh constructs.
 - Move initial intruder knowledge maybe into the title of the MSC.
-- Move time things to stderr instead of latex, does not belong in attack
-  output.
 - Implement run knowledge, and use this in protocol compiler.
 - Timer output is broken for values e.g. above an hour. Fix or remove
   altogether.
@@ -60,7 +60,6 @@
 - -m2 is much better with a lot of variables. Compare this to unfolding
   of the runs with -t4 -m0/1.
 - Global/protocol variables should not exist in the current system.
-- File freopen stuff, instead of this sdtin stuff.
 - Solve the 'version' issue. How is it defined?
 - run nsl.initiator(alice, all Agent) constructs?
   - 'all' would generate the roles with the corresponding type.
