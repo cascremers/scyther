@@ -1,0 +1,53 @@
+// Yahalom protocol
+
+const a,b,s,Eve : Agent;
+secret k : Function;
+
+untrusted Eve;
+compromised k(Eve,s);
+
+protocol yahalomlowe(A,B,S)
+{
+	role A
+	{
+		const na: Nonce;
+		var nb: Nonce;
+		var kab: Sessionkey;
+
+		send_1(A,B, A,na);
+		read_3(S,A, {B,kab,na,nb}k(A,S) );
+		send_5(A,B, {A,B,S,nb}kab );
+		claim(A, kab);
+	}
+
+	role B
+	{
+		const nb: Nonce;
+		var na: Nonce;
+		var kab: Sessionkey;
+
+		read_1(A,B, A,na);
+		send_2(B,S, {A,na,nb}k(B,S) );
+		read_4(S,B, {A,kab}k(B,S) );
+		read_5(A,B, {A,B,S,nb}kab );
+		claim(B, kab);
+	}
+
+	role S
+	{
+		const kab: Sessionkey;
+		var na,nb: Nonce;
+
+		read_2(B,S, {A,na,nb}k(B,S) );
+		send_3(S,A, {B,kab,na,nb}k(A,S) );
+		send_4(S,B, {A,kab}k(B,S) );
+	}
+}
+
+run yahalomlowe.A(Agent,Agent,s);
+run yahalomlowe.B(Agent,Agent,s);
+run yahalomlowe.S(Agent,Agent,s);
+
+run yahalomlowe.A(Agent,Agent,s);
+run yahalomlowe.B(Agent,Agent,s);
+

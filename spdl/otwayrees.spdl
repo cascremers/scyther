@@ -1,0 +1,62 @@
+secret const k : Function;
+
+/* Version from the Spore Librairy
+   http://www.lsv.ens-cachan.fr/spore/otwayRees.html
+*/
+
+protocol otwayrees(A,B,S)
+{
+	role A
+	{
+		const na : Nonce;
+		const M : String;
+		var nb : Nonce;
+		var kab : SesKey;
+
+		send_1(A,B, M,A,B, { na,M,A,B }k(A,S) );
+		read_4(B,A, M, { na,kab }k(A,S) );
+
+		claim(A, kab);
+	}
+
+	role B
+	{
+		var na : Nonce;
+		var M : String;
+		const nb : Nonce;
+		var kab : SesKey;
+		var t1,t2 : Ticket;
+
+		read_1(A,B, M,A,B, t1 );
+		send_2(B,S, M,A,B, t2, { nb,M,A,B }k(B,S) );
+		read_3(S,B, M, t2, { nb,kab }k(B,S) );
+		send_4(B,A, M, t2 );
+
+		claim(B, kab);
+	}
+
+	role S
+	{
+		var na,nb : Nonce;
+		var M : String;
+		const kab : SesKey;
+		
+		read_2(B,S, M,A,B, { na,M,A,B }k(A,S), { nb,M,A,B }k(B,S) );
+		send_3(S,B, M, { na,kab }k(A,S) , { nb,kab }k(B,S) );
+	}
+}
+
+const Alice, Bob, Eve: Agent;
+const Simon: Server;
+
+untrusted Eve;
+compromised k(Eve,Simon);
+
+run otwayrees.A(Alice, Agent, Simon);
+run otwayrees.B(Agent, Bob, Simon);
+run otwayrees.S(Agent, Agent, Simon);
+
+run otwayrees.A(Agent, Agent, Simon);
+run otwayrees.B(Agent, Agent, Simon);
+run otwayrees.S(Agent, Agent, Simon);
+

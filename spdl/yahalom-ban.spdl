@@ -1,0 +1,53 @@
+// BAN modified version of the yahalom protocol
+// Type flaw
+// This version actually works!
+
+const a,b,c : Agent;
+const s : Simon;
+secret k : Function;
+
+
+protocol yahalomBan(A,B,S)
+{
+	role A
+	{
+		const na;
+		var nb;
+		var ticket;
+		var kab;
+
+		send_1(A,B, A,na);
+		read_3(S,A, nb, {B,kab,na}k(A,S), ticket );
+		send_4(A,B, ticket, {nb}kab );
+		claim(A, kab);
+	}
+
+	role B
+	{
+		const nb;
+		var na;
+		var ticket;
+		var kab;
+
+		read_1(A,B, A,na);
+		send_2(B,S, B,nb, {A,na}k(B,S) );
+		read_4(A,B, {A,kab,nb}k(B,S) , {nb}kab );
+		claim(B, kab);
+	}
+
+	role S
+	{
+		const kab;
+		var na,nb;
+
+		read_2(B,S, B,nb, {A,na}k(B,S) );
+		send_3(S,A, nb, {B,kab,na}k(A,S), {A,kab,nb}k(B,S) );
+	}
+}
+
+run yahalomBan.A(Agent,Agent,s);
+run yahalomBan.A(Agent,Agent,s);
+run yahalomBan.B(Agent,Agent,s);
+run yahalomBan.B(Agent,Agent,s);
+run yahalomBan.S(Agent,Agent,s);
+

@@ -1,0 +1,37 @@
+secret k: Function;
+
+const Alice, Bob, Charlie, Eve: Agent;
+const Simon: Server;
+
+/* give the intruder something to work with */
+const ne: Nonce;
+const ke: SessionKey;
+untrusted Eve;
+compromised k(Eve,Simon);
+
+const authToken: Token;
+
+protocol woolamce(A,B,S)
+{
+	role B
+	{
+		var Na: Nonce;
+		const Nb: Nonce;
+		var Kab: SessionKey;
+		var Kas : SymmetricKey;
+
+		read_1(A,B, A,Na);
+		send_2(B,A, B,Nb);
+		read_3(A,B, { A,(B,(Na,Nb)) }Kas );
+		send_4(B,S, { A,(B,(Na,Nb)) }Kas, { A,(B,(Na,Nb)) }k(B,S) );
+		read_5(S,B, { B,(Na,(Nb,Kab)) }Kas, { A,(Na,(Nb,Kab)) }k(B,S) );
+   		send_6(B,A, { B,(Na,(Nb,Kab)) }Kas, { Na,Nb }Kab );
+		read_7(A,B, { Nb }Kab );	
+
+		claim(B,authToken);
+	}
+}
+
+run woolamce.B(Agent,Agent,Simon);
+run woolamce.B(Agent,Agent,Simon);
+

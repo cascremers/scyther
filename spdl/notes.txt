@@ -1,0 +1,2 @@
+- Paulson TLS -r4 -t4 -m0 doet 186m 11s time (top) over 160.390.000 states
+  ongeveer, en draait nog.
