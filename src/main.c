@@ -658,7 +658,8 @@ modelCheck (const System sys)
   /* clean up any states display */
   if (sys->switchS > 0)
     {
-      fprintf (stderr, "                 \r");
+      //                States: 1.000e+06
+      fprintf (stderr, "                  \r");
     }
 
   timersPrint (sys);
