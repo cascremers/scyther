@@ -237,8 +237,16 @@ Roledef removeIrrelevant (const System sys, const int run, Roledef rd)
 }
 
 //! Explores the system state given by the next step of a run.
-/**
- * grandiose naming scheme (c) sjors dubya.
+/** Grandiose naming scheme (c) sjors dubya.
+ *
+ * After an event was instantiated, this function is called to explore the
+ * remainder of the system.
+ *
+ * Note that some additional pruning is done, so this function
+ * also determines the enabledness of the event that was just instantiated.
+ *
+ *@returns 1 (true) if the event was enabled.
+ *\sa match_basic(),executeTry()
  */
 
 int
@@ -255,8 +263,7 @@ explorify (const System sys, const int run)
 
   if (rd == NULL)
     {
-      fprintf (stderr, "ERROR: trying to progress completed run!\n");
-      exit (1);
+      error ("Trying to progress completed run!\n");
     }
 
   flag = 0;
@@ -479,7 +486,7 @@ explorify (const System sys, const int run)
     {
       roleCap->next = roleCapPart;
     }
-  return flag;
+  return 1;	// The event was indeed enabled (irrespective of traverse!)
 }
 
 int
@@ -531,8 +538,7 @@ nonReads (const System sys)
       rd = runPointerGet (sys, run);
       if (nonRead (sys, rd))
 	{
-	  executeTry (sys, run);
-	  return 1;
+	  return executeTry (sys, run);
 	}
     }
   return 0;
@@ -1061,8 +1067,7 @@ traversePOR4 (const System sys)
 	    {
 	    case CLAIM:
 	    case SEND:
-	      executeTry (sys, run);
-	      flag = 1;
+	      flag = executeTry (sys, run);
 	      break;
 
 	    case READ:
@@ -1188,8 +1193,7 @@ traversePOR5 (const System sys)
 	    {
 	    case CLAIM:
 	    case SEND:
-	      executeTry (sys, run);
-	      flag = 1;
+	      flag = executeTry (sys, run);
 	      break;
 
 	    case READ:
@@ -1274,8 +1278,7 @@ traversePOR6 (const System sys)
 	    {
 	    case CLAIM:
 	    case SEND:
-	      executeTry (sys, run);
-	      flag = 1;
+	      flag = executeTry (sys, run);
 	      break;
 
 	    case READ:
@@ -1359,8 +1362,7 @@ traversePOR7 (const System sys)
 	    {
 	    case CLAIM:
 	    case SEND:
-	      executeTry (sys, run);
-	      flag = 1;
+	      flag = executeTry (sys, run);
 	      break;
 
 	    case READ:
@@ -1414,8 +1416,7 @@ traversePOR7 (const System sys)
 	    {
 	    case CLAIM:
 	    case SEND:
-	      executeTry (sys, run);
-	      flag = 1;
+	      flag = executeTry (sys, run);
 	      break;
 
 	    case READ:
@@ -1683,6 +1684,11 @@ violateClaim (const System sys, int length, int claimev, Termlist reqt)
   return flag;
 }
 
+//! Try to execute the next event in a run.
+/**
+ * One of the core functions of the system.
+ *@returns 0 (false) if the event was not enabled. 1 (true) if there was an enabled instantiation of this event.
+ */
 int
 executeTry (const System sys, int run)
 {

@@ -30,13 +30,11 @@ struct fvpass
   int (*proceed) (System, int);
 };
 
-/*
- * fix variables in a message, and check whether it can be accepted.
- *
+//! Fix variables in a message, and check whether it can be accepted.
+/**
  * fp.sys is only accessed for the matching type.
+ *@returns 1 (true) if there exists a message that can be accepted, fvpass returns 1 on it.
  */
-
-
 int
 fixVariablelist (const struct fvpass fp, const Knowledge know,
 		 Termlist varlist, const Term message)
@@ -89,11 +87,15 @@ fixVariablelist (const struct fvpass fp, const Knowledge know,
 	    }
 	  else
 	    {
+	      /* signal that it was enabled, now we omit the pruning */
 	      flag = 1;
 	    }
 	}
       else
-	flag = 0;
+	{
+	  /* not enabled */
+	  flag = 0;
+	}
 
       /* restore state */
       if (copied)
@@ -163,16 +165,15 @@ fixVariablelist (const struct fvpass fp, const Knowledge know,
 
 #define enabled_basic(sys,know,newterm) !inKnowledge(know,newterm)
 
-/*
- * matchRead
- *
- * try to execute a read event. It must be able to be construct it from the
+//! Try to execute a read event.
+/**
+ * Try to execute a read event. It must be able to be construct it from the
  * current intruder knowledge (Inject), but not from the forbidden knowledge
  * set, which we tried earlier.
  *
- * returns 0 if it is not enabled, 1 if it was enabled (and routes explored)
+ *@returns 0 if it is not enabled, 1 if it was enabled (and routes explored)
+ *\sa explorify()
  */
-
 int
 matchRead_basic (const System sys, const int run,
 		 int (*proceed) (System, int))
@@ -194,7 +195,9 @@ matchRead_basic (const System sys, const int run,
 	fp.roledef->forbidden == NULL ||
 	enabled_basic (fp.sys, fp.roledef->forbidden, newterm))
       {
-	/* it is enabled, i.e. not forbidden */
+	/* it is possibly enabled, i.e. not forbidden */
+	int enabled;
+
 	oldknow = fp.sys->know;
 	fp.sys->know = know;
 #ifdef DEBUG
@@ -203,10 +206,10 @@ matchRead_basic (const System sys, const int run,
 	    printf ("+");
 	  }
 #endif
-	fp.proceed (fp.sys, fp.run);
+	enabled = fp.proceed (fp.sys, fp.run);	// flag determines the enabled status now
 	fp.sys->know = oldknow;
 	termDelete (newterm);
-	return 1;
+	return enabled;
       }
     else
       {
@@ -252,13 +255,12 @@ matchRead_basic (const System sys, const int run,
   return flag;
 }
 
-/* 
- * block
- *
+//! Skip an event
+/**
  * Skips over an event. Because the intruder knowledge is incremental, we can
  * just overwrite the old value of forbidden.
+ *@returns 1
  */
-
 int
 block_basic (const System sys, const int run)
 {
@@ -273,6 +275,10 @@ block_basic (const System sys, const int run)
   return 1;
 }
 
+//! Execute a send
+/**
+ *@returns 1
+ */
 int
 send_basic (const System sys, const int run)
 {
