@@ -1,0 +1,469 @@
+
+****************************************
+	Testing multiple tuple widths
+****************************************
+
+
+****************************************
+	Testing tuple width 2
+****************************************
+
+
+****************************************
+	Testing multiple match methods
+****************************************
+
+
+****************************************
+	Testing match 0
+****************************************
+
+Evaluating 561 tuples of 2 for 34 protocols.
+Testing 1 tuples using --summary --match=0 --arachne --timer=4 --max-runs=4 --max-length=18
+Evaluated single results.
+Correct protocols:  ['ccitt509', 'kaochow', 'yahalomBan', 'yahalomlowe', 'kaochow2', 'kaochow3', 'nssymmetric', 'otwayrees', 'wmfbrutus', 'bke', 'soph', 'nsl3', 'nsl7', 'denningsaccosh', 'yahalom', 'sophkx', 'isoiec11770213', 'woolamce', 'nssymmetricamended', 'kaochowPalm', 'andrewBan']
+Partly flawed protocols:  ['woolamcmv', 'andrewLoweBan', 'ksl', 'boyd', 'yahalompaulson', 'gongnonce', 'ns3', 'gongnonceb', 'spliceAShcCJ']
+Completely flawed protocols:  ['spliceAS', 'woolampif', 'tmn', 'spliceAShc']
+Testing 2 tuples using --summary --match=0 --arachne --timer=4 --max-runs=4 --max-length=18
+***	0	290/561	kaochow IV Niagree_6	nsl7
+***	1	290/561	kaochow RV Nisynch_8	nsl7
+***	2	290/561	kaochow RV Niagree_9	nsl7
+***	3	290/561	kaochow IV Nisynch_5	nsl7
+***	4	312/561	kaochow2 RV Nisynch_8	nsl7
+***	5	312/561	kaochow2 RV Niagree_9	nsl7
+***	6	312/561	kaochow2 IV Niagree_6	nsl7
+***	7	312/561	kaochow2 IV Nisynch_5	nsl7
+***	8	333/561	kaochow3 IV Niagree_6	nsl7
+***	9	333/561	kaochow3 RV Nisynch_8	nsl7
+***	10	333/561	kaochow3 RV Niagree_9	nsl7
+***	11	333/561	kaochow3 IV Nisynch_5	nsl7
+***	12	377/561	ns3 IV Secret_i1	soph
+***	13	377/561	ns3 IV Secret_i2	soph
+***	14	377/561	ns3 IV Niagree_i3	soph
+***	15	377/561	ns3 IV Nisynch_i4	soph
+***	16	379/561	ns3 IV Secret_i2	spliceAShc
+***	17	380/561	ns3 IV Secret_i2	spliceAS
+***	18	395/561	nsl3 RV Secret_r1	soph
+***	19	395/561	nsl3 IV Secret_i2	soph
+***	20	395/561	nsl3 IV Secret_i1	soph
+***	21	395/561	nsl3 IV Nisynch_i4	soph
+***	22	395/561	nsl3 IV Niagree_i3	soph
+***	23	397/561	nsl3 RV Secret_r2	spliceAShc
+***	24	397/561	nsl3 IV Secret_i2	spliceAShc
+***	25	398/561	nsl3 RV Secret_r2	spliceAS
+***	26	398/561	nsl3 IV Secret_i2	spliceAS
+***	27	483/561	spliceAShcCJ CV Secret_7	soph
+***	28	483/561	spliceAShcCJ SV Secret_8	soph
+***	29	495/561	spliceAShcCJ CV Secret_7	spliceAShc
+***	30	495/561	spliceAShcCJ SV Secret_8	spliceAShc
+***	31	496/561	spliceAShcCJ CV Secret_7	spliceAS
+***	32	496/561	spliceAShcCJ SV Secret_8	spliceAS
+***	33	536/561	wmfbrutus BV Secret_3	yahalomBan
+***	34	557/561	yahalom BV Secret_6	yahalomBan
+***	35	559/561	yahalomlowe IV Niagree_9	yahalom
+***	36	559/561	yahalomlowe IV Nisynch_10	yahalom
+Processed 561 tuple combinations in total.
+Found 37 new attacks.
+  These were helped by:
+  nsl7: All-Correct. This possibly breaks ['kaochow', 'kaochow2', 'kaochow3']
+  spliceAS: All-Flawed. This possibly breaks ['ns3', 'nsl3', 'spliceAShcCJ']
+  yahalom: All-Correct. This possibly breaks ['yahalomlowe']
+  yahalomBan: All-Correct. This possibly breaks ['wmfbrutus', 'yahalom']
+  spliceAShc: All-Flawed. This possibly breaks ['ns3', 'nsl3', 'spliceAShcCJ']
+  soph: All-Correct. This possibly breaks ['ns3', 'nsl3', 'spliceAShcCJ']
+
+****************************************
+	Testing match 1
+****************************************
+
+Evaluating 561 tuples of 2 for 34 protocols.
+Testing 1 tuples using --summary --match=1 --arachne --timer=4 --max-runs=4 --max-length=18
+Evaluated single results.
+Correct protocols:  ['ccitt509', 'kaochow', 'yahalomBan', 'yahalomlowe', 'kaochow2', 'kaochow3', 'nssymmetric', 'otwayrees', 'wmfbrutus', 'bke', 'soph', 'nsl3', 'nsl7', 'denningsaccosh', 'yahalom', 'sophkx', 'isoiec11770213', 'woolamce', 'nssymmetricamended', 'kaochowPalm', 'andrewBan']
+Partly flawed protocols:  ['woolamcmv', 'andrewLoweBan', 'ksl', 'boyd', 'yahalompaulson', 'gongnonce', 'ns3', 'gongnonceb', 'spliceAShcCJ']
+Completely flawed protocols:  ['spliceAS', 'woolampif', 'tmn', 'spliceAShc']
+Testing 2 tuples using --summary --match=1 --arachne --timer=4 --max-runs=4 --max-length=18
+***	0	121/561	boyd RV Secret_10	woolampif
+***	1	121/561	boyd IV Secret_6	woolampif
+***	2	125/561	boyd RV Secret_10	yahalom
+***	3	125/561	boyd IV Secret_6	yahalom
+***	4	144/561	ccitt509 RV Secret_8	spliceAShc
+***	5	144/561	ccitt509 RV Secret_9	spliceAShc
+***	6	145/561	ccitt509 RV Secret_9	spliceAS
+***	7	145/561	ccitt509 RV Secret_8	spliceAS
+***	8	145/561	ccitt509 IV Secret_5	spliceAS
+***	9	145/561	ccitt509 IV Secret_4	spliceAS
+***	10	146/561	ccitt509 RV Secret_8	tmn
+***	11	146/561	ccitt509 IV Secret_5	tmn
+***	12	146/561	ccitt509 IV Secret_4	tmn
+***	13	146/561	ccitt509 RV Secret_9	tmn
+***	14	159/561	kaochow RV Secret_10	denningsaccosh
+***	15	159/561	kaochow RV Niagree_9	denningsaccosh
+***	16	177/561	woolamcmv BV Secret_11	denningsaccosh
+***	17	177/561	denningsaccosh AV Secret_4	woolamcmv
+***	18	177/561	woolamcmv AV Secret_8	denningsaccosh
+***	19	177/561	denningsaccosh AV Niagree_6	woolamcmv
+***	20	177/561	denningsaccosh AV Nisynch_5	woolamcmv
+***	21	177/561	woolamcmv SV Secret_14	denningsaccosh
+***	22	180/561	denningsaccosh AV Niagree_6	yahalomlowe
+***	23	180/561	denningsaccosh AV Nisynch_5	yahalomlowe
+***	24	218/561	gongnonce IV Niagree_9	nsl7
+***	25	218/561	gongnonce IV Nisynch_8	nsl7
+***	26	301/561	kaochow RV Secret_10	woolamce
+***	27	301/561	kaochow IV Niagree_6	woolamce
+***	28	301/561	kaochow RV Nisynch_8	woolamce
+***	29	301/561	kaochow RV Niagree_9	woolamce
+***	30	301/561	kaochow IV Secret_7	woolamce
+***	31	301/561	kaochow IV Nisynch_5	woolamce
+***	32	303/561	kaochow RV Secret_10	woolampif
+***	33	303/561	kaochow IV Niagree_6	woolampif
+***	34	303/561	kaochow RV Nisynch_8	woolampif
+***	35	303/561	kaochow RV Niagree_9	woolampif
+***	36	303/561	kaochow IV Nisynch_5	woolampif
+***	37	305/561	kaochow RV Secret_10	yahalomlowe
+***	38	305/561	kaochow IV Niagree_6	yahalomlowe
+***	39	305/561	kaochow IV Nisynch_5	yahalomlowe
+***	40	305/561	kaochow RV Nisynch_8	yahalomlowe
+***	41	305/561	kaochow RV Niagree_9	yahalomlowe
+***	42	306/561	kaochow RV Secret_10	yahalompaulson
+***	43	306/561	kaochow IV Niagree_6	yahalompaulson
+***	44	306/561	yahalompaulson RV Secret_11	kaochow
+***	45	306/561	kaochow RV Nisynch_8	yahalompaulson
+***	46	306/561	kaochow RV Niagree_9	yahalompaulson
+***	47	306/561	yahalompaulson IV Secret_8	kaochow
+***	48	306/561	kaochow IV Nisynch_5	yahalompaulson
+***	49	381/561	ns3 IV Secret_i2	tmn
+***	50	390/561	nsl3 IV Nisynch_i4	nsl7
+***	51	390/561	nsl3 IV Niagree_i3	nsl7
+***	52	399/561	nsl3 RV Secret_r2	tmn
+***	53	399/561	nsl3 IV Secret_i2	tmn
+***	54	469/561	otwayrees BV Secret_6	yahalom
+***	55	470/561	sophkx IV Secret_4	soph
+***	56	497/561	spliceAShcCJ CV Secret_7	tmn
+***	57	497/561	spliceAShcCJ SV Secret_8	tmn
+***	58	538/561	wmfbrutus BV Secret_3	yahalompaulson
+***	59	548/561	woolamcmv AV Secret_8	yahalomlowe
+***	60	548/561	yahalomlowe IV Niagree_9	woolamcmv
+***	61	548/561	yahalomlowe IV Secret_8	woolamcmv
+***	62	548/561	yahalomlowe IV Nisynch_10	woolamcmv
+***	63	548/561	woolamcmv SV Secret_14	yahalomlowe
+***	64	549/561	yahalompaulson RV Secret_11	woolamcmv
+***	65	553/561	yahalompaulson RV Secret_11	woolampif
+***	66	560/561	yahalom BV Secret_6	yahalompaulson
+Processed 561 tuple combinations in total.
+Found 67 new attacks.
+  These were helped by:
+  woolamcmv: Mixed. This possibly breaks ['denningsaccosh', 'yahalomlowe', 'yahalompaulson']
+  kaochow: All-Correct. This possibly breaks ['yahalompaulson']
+  nsl7: All-Correct. This possibly breaks ['gongnonce', 'kaochow', 'nsl3']
+  denningsaccosh: All-Correct. This possibly breaks ['kaochow', 'woolamcmv']
+  spliceAS: All-Flawed. This possibly breaks ['ccitt509', 'ns3', 'nsl3', 'spliceAShcCJ']
+  yahalom: All-Correct. This possibly breaks ['boyd', 'otwayrees', 'yahalomlowe']
+  woolampif: All-Flawed. This possibly breaks ['boyd', 'kaochow', 'yahalompaulson']
+  yahalomBan: All-Correct. This possibly breaks ['wmfbrutus', 'yahalom']
+  spliceAShc: All-Flawed. This possibly breaks ['ccitt509', 'ns3', 'nsl3', 'spliceAShcCJ']
+  woolamce: All-Correct. This possibly breaks ['kaochow']
+  yahalompaulson: Mixed. This possibly breaks ['kaochow', 'wmfbrutus', 'yahalom']
+  yahalomlowe: All-Correct. This possibly breaks ['denningsaccosh', 'kaochow', 'woolamcmv']
+  soph: All-Correct. This possibly breaks ['nsl3', 'sophkx', 'spliceAShcCJ']
+  tmn: All-Flawed. This possibly breaks ['ccitt509', 'ns3', 'nsl3', 'spliceAShcCJ']
+
+****************************************
+	Testing match 2
+****************************************
+
+Evaluating 561 tuples of 2 for 34 protocols.
+Testing 1 tuples using --summary --match=2 --arachne --timer=4 --max-runs=4 --max-length=18
+Evaluated single results.
+Correct protocols:  ['ccitt509', 'kaochow', 'yahalomlowe', 'kaochow2', 'kaochow3', 'nssymmetric', 'wmfbrutus', 'bke', 'soph', 'nsl3', 'nsl7', 'sophkx', 'isoiec11770213', 'woolamce', 'nssymmetricamended', 'kaochowPalm', 'andrewBan']
+Partly flawed protocols:  ['woolamcmv', 'andrewLoweBan', 'ksl', 'boyd', 'gongnonce', 'ns3', 'gongnonceb', 'denningsaccosh', 'yahalom', 'spliceAShcCJ']
+Completely flawed protocols:  ['spliceAS', 'yahalomBan', 'otwayrees', 'woolampif', 'tmn', 'spliceAShc', 'yahalompaulson']
+Testing 2 tuples using --summary --match=2 --arachne --timer=4 --max-runs=4 --max-length=18
+***	0	118/561	wmfbrutus BV Secret_3	boyd
+***	1	119/561	boyd RV Secret_10	woolamce
+***	2	119/561	boyd IV Secret_6	woolamce
+***	3	122/561	boyd RV Secret_10	yahalomBan
+***	4	122/561	boyd IV Secret_6	yahalomBan
+***	5	124/561	boyd RV Secret_10	yahalompaulson
+***	6	124/561	boyd IV Secret_6	yahalompaulson
+***	7	138/561	ccitt509 IV Secret_5	nssymmetricamended
+***	8	138/561	ccitt509 RV Secret_8	nssymmetricamended
+***	9	138/561	ccitt509 RV Secret_9	nssymmetricamended
+***	10	138/561	ccitt509 IV Secret_4	nssymmetricamended
+***	11	139/561	ccitt509 IV Secret_4	nssymmetric
+***	12	139/561	ccitt509 RV Secret_8	nssymmetric
+***	13	139/561	ccitt509 RV Secret_9	nssymmetric
+***	14	139/561	ccitt509 IV Secret_5	nssymmetric
+***	15	157/561	denningsaccosh BV Niagree_9	isoiec11770213
+***	16	166/561	denningsaccosh BV Secret_7	nssymmetricamended
+***	17	166/561	denningsaccosh BV Niagree_9	nssymmetricamended
+***	18	167/561	denningsaccosh BV Niagree_9	nssymmetric
+***	19	167/561	denningsaccosh BV Secret_7	nssymmetric
+***	20	168/561	denningsaccosh BV Niagree_9	otwayrees
+***	21	175/561	denningsaccosh AV Niagree_6	wmfbrutus
+***	22	175/561	denningsaccosh BV Niagree_9	wmfbrutus
+***	23	179/561	denningsaccosh AV Secret_4	yahalomBan
+***	24	179/561	denningsaccosh AV Niagree_6	yahalomBan
+***	25	180/561	yahalomlowe RV Niagree_13	denningsaccosh
+***	26	180/561	yahalomlowe RV Nisynch_12	denningsaccosh
+***	27	180/561	yahalomlowe RV Secret_11	denningsaccosh
+***	28	181/561	denningsaccosh AV Secret_4	yahalompaulson
+***	29	181/561	denningsaccosh AV Niagree_6	yahalompaulson
+***	30	182/561	denningsaccosh AV Niagree_6	yahalom
+***	31	186/561	kaochow RV Secret_10	gongnonceb
+***	32	186/561	kaochow RV Nisynch_8	gongnonceb
+***	33	186/561	kaochow RV Niagree_9	gongnonceb
+***	34	202/561	wmfbrutus BV Secret_3	gongnonceb
+***	35	212/561	kaochow RV Secret_10	gongnonce
+***	36	213/561	kaochow2 RV Secret_10	gongnonce
+***	37	214/561	kaochow3 RV Secret_10	gongnonce
+***	38	228/561	wmfbrutus BV Secret_3	gongnonce
+***	39	253/561	wmfbrutus BV Secret_3	isoiec11770213
+***	40	277/561	wmfbrutus BV Secret_3	kaochowPalm
+***	41	300/561	wmfbrutus BV Secret_3	kaochow
+***	42	303/561	kaochow IV Secret_7	woolampif
+***	43	304/561	kaochow RV Secret_10	yahalomBan
+***	44	304/561	kaochow IV Niagree_6	yahalomBan
+***	45	304/561	kaochow RV Nisynch_8	yahalomBan
+***	46	304/561	kaochow RV Niagree_9	yahalomBan
+***	47	304/561	kaochow IV Secret_7	yahalomBan
+***	48	304/561	kaochow IV Nisynch_5	yahalomBan
+***	49	306/561	kaochow IV Secret_7	yahalompaulson
+***	50	322/561	wmfbrutus BV Secret_3	kaochow2
+***	51	325/561	kaochow2 RV Nisynch_8	woolampif
+***	52	325/561	kaochow2 RV Niagree_9	woolampif
+***	53	325/561	kaochow2 IV Niagree_6	woolampif
+***	54	325/561	kaochow2 IV Secret_7	woolampif
+***	55	325/561	kaochow2 IV Nisynch_5	woolampif
+***	56	325/561	kaochow2 RV Secret_10	woolampif
+***	57	326/561	kaochow2 RV Nisynch_8	yahalomBan
+***	58	326/561	kaochow2 RV Niagree_9	yahalomBan
+***	59	326/561	kaochow2 IV Niagree_6	yahalomBan
+***	60	326/561	kaochow2 IV Secret_7	yahalomBan
+***	61	326/561	kaochow2 IV Nisynch_5	yahalomBan
+***	62	326/561	kaochow2 RV Secret_10	yahalomBan
+***	63	328/561	kaochow2 RV Nisynch_8	yahalompaulson
+***	64	328/561	kaochow2 RV Niagree_9	yahalompaulson
+***	65	328/561	kaochow2 IV Secret_7	yahalompaulson
+***	66	328/561	kaochow2 IV Niagree_6	yahalompaulson
+***	67	328/561	kaochow2 IV Nisynch_5	yahalompaulson
+***	68	328/561	kaochow2 RV Secret_10	yahalompaulson
+***	69	343/561	wmfbrutus BV Secret_3	kaochow3
+***	70	346/561	kaochow3 RV Secret_10	woolampif
+***	71	346/561	kaochow3 IV Niagree_6	woolampif
+***	72	346/561	kaochow3 RV Nisynch_8	woolampif
+***	73	346/561	kaochow3 RV Niagree_9	woolampif
+***	74	346/561	kaochow3 IV Secret_7	woolampif
+***	75	346/561	kaochow3 IV Nisynch_5	woolampif
+***	76	347/561	kaochow3 RV Secret_10	yahalomBan
+***	77	347/561	kaochow3 RV Niagree_9	yahalomBan
+***	78	349/561	kaochow3 RV Secret_10	yahalompaulson
+***	79	349/561	kaochow3 RV Nisynch_8	yahalompaulson
+***	80	349/561	kaochow3 IV Niagree_6	yahalompaulson
+***	81	349/561	kaochow3 IV Secret_7	yahalompaulson
+***	82	349/561	kaochow3 IV Nisynch_5	yahalompaulson
+***	83	349/561	kaochow3 RV Niagree_9	yahalompaulson
+***	84	363/561	wmfbrutus BV Secret_3	ksl
+***	85	371/561	ns3 IV Niagree_i3	nsl3
+***	86	371/561	ns3 IV Nisynch_i4	nsl3
+***	87	372/561	ns3 IV Niagree_i3	nsl7
+***	88	372/561	ns3 IV Nisynch_i4	nsl7
+***	89	373/561	ns3 IV Secret_i2	nssymmetricamended
+***	90	374/561	ns3 IV Secret_i2	nssymmetric
+***	91	391/561	nsl3 RV Secret_r2	nssymmetricamended
+***	92	391/561	nsl3 IV Secret_i2	nssymmetricamended
+***	93	392/561	nsl3 RV Secret_r2	nssymmetric
+***	94	392/561	nsl3 IV Secret_i2	nssymmetric
+***	95	429/561	spliceAShcCJ CV Secret_7	nssymmetricamended
+***	96	429/561	spliceAShcCJ SV Secret_8	nssymmetricamended
+***	97	444/561	spliceAShcCJ CV Secret_7	nssymmetric
+***	98	444/561	spliceAShcCJ SV Secret_8	nssymmetric
+***	99	533/561	wmfbrutus BV Secret_3	woolamce
+***	100	535/561	wmfbrutus BV Secret_3	woolampif
+***	101	537/561	yahalomlowe IV Niagree_9	wmfbrutus
+***	102	537/561	yahalomlowe IV Nisynch_10	wmfbrutus
+***	103	539/561	wmfbrutus BV Secret_3	yahalom
+***	104	542/561	woolamce BV Secret_8	yahalomBan
+***	105	544/561	woolamce BV Secret_8	yahalompaulson
+***	106	547/561	woolamcmv BV Secret_11	yahalomBan
+***	107	547/561	woolamcmv AV Secret_8	yahalomBan
+***	108	549/561	woolamcmv BV Secret_11	yahalompaulson
+***	109	549/561	woolamcmv AV Secret_8	yahalompaulson
+***	110	557/561	yahalom AV Secret_5	yahalomBan
+***	111	560/561	yahalom AV Secret_5	yahalompaulson
+Processed 561 tuple combinations in total.
+Found 112 new attacks.
+  These were helped by:
+  woolampif: All-Flawed. This possibly breaks ['boyd', 'kaochow', 'kaochow2', 'kaochow3', 'wmfbrutus']
+  spliceAS: All-Flawed. This possibly breaks ['nsl3', 'spliceAShcCJ']
+  kaochow: All-Correct. This possibly breaks ['wmfbrutus']
+  yahalomlowe: All-Correct. This possibly breaks ['denningsaccosh']
+  kaochow2: All-Correct. This possibly breaks ['wmfbrutus']
+  kaochow3: All-Correct. This possibly breaks ['wmfbrutus']
+  nssymmetric: All-Correct. This possibly breaks ['ccitt509', 'denningsaccosh', 'ns3', 'nsl3', 'spliceAShcCJ']
+  otwayrees: All-Flawed. This possibly breaks ['denningsaccosh']
+  yahalomBan: All-Flawed. This possibly breaks ['boyd', 'denningsaccosh', 'kaochow', 'kaochow2', 'kaochow3', 'wmfbrutus', 'woolamce', 'woolamcmv', 'yahalom']
+  wmfbrutus: All-Correct. This possibly breaks ['denningsaccosh', 'yahalomlowe']
+  ksl: Mixed. This possibly breaks ['wmfbrutus']
+  tmn: All-Flawed. This possibly breaks ['ccitt509', 'ns3', 'nsl3', 'spliceAShcCJ']
+  spliceAShc: All-Flawed. This possibly breaks ['spliceAShcCJ']
+  boyd: Mixed. This possibly breaks ['wmfbrutus']
+  kaochowPalm: All-Correct. This possibly breaks ['wmfbrutus']
+  gongnonce: Mixed. This possibly breaks ['kaochow', 'kaochow2', 'kaochow3', 'wmfbrutus']
+  soph: All-Correct. This possibly breaks ['nsl3', 'sophkx']
+  gongnonceb: Mixed. This possibly breaks ['kaochow', 'wmfbrutus']
+  nsl3: All-Correct. This possibly breaks ['ns3']
+  nsl7: All-Correct. This possibly breaks ['gongnonce', 'kaochow', 'ns3', 'nsl3']
+  denningsaccosh: Mixed. This possibly breaks ['woolamcmv', 'yahalomlowe']
+  yahalom: Mixed. This possibly breaks ['boyd', 'denningsaccosh', 'wmfbrutus', 'yahalomlowe']
+  isoiec11770213: All-Correct. This possibly breaks ['denningsaccosh', 'wmfbrutus']
+  woolamce: All-Correct. This possibly breaks ['boyd', 'kaochow', 'wmfbrutus']
+  nssymmetricamended: All-Correct. This possibly breaks ['ccitt509', 'denningsaccosh', 'ns3', 'nsl3', 'spliceAShcCJ']
+  yahalompaulson: All-Flawed. This possibly breaks ['boyd', 'denningsaccosh', 'kaochow', 'kaochow2', 'kaochow3', 'wmfbrutus', 'woolamce', 'woolamcmv', 'yahalom']
+
+****************************************
+	Testing tuple width 3
+****************************************
+
+
+****************************************
+	Testing multiple match methods
+****************************************
+
+
+****************************************
+	Testing match 0
+****************************************
+
+Evaluating 5984 tuples of 3 for 34 protocols.
+Evaluated single results.
+Correct protocols:  ['ccitt509', 'kaochow', 'yahalomBan', 'yahalomlowe', 'kaochow2', 'kaochow3', 'nssymmetric', 'otwayrees', 'wmfbrutus', 'bke', 'soph', 'nsl3', 'nsl7', 'denningsaccosh', 'yahalom', 'sophkx', 'isoiec11770213', 'woolamce', 'nssymmetricamended', 'kaochowPalm', 'andrewBan']
+Partly flawed protocols:  ['woolamcmv', 'andrewLoweBan', 'ksl', 'boyd', 'yahalompaulson', 'gongnonce', 'ns3', 'gongnonceb', 'spliceAShcCJ']
+Completely flawed protocols:  ['spliceAS', 'woolampif', 'tmn', 'spliceAShc']
+Testing 3 tuples using --summary --match=0 --arachne --timer=4 --max-runs=4 --max-length=18
+Processed 5984 tuple combinations in total.
+Found 0 new attacks.
+
+****************************************
+	Testing match 1
+****************************************
+
+Evaluating 5984 tuples of 3 for 34 protocols.
+Evaluated single results.
+Correct protocols:  ['ccitt509', 'kaochow', 'yahalomBan', 'yahalomlowe', 'kaochow2', 'kaochow3', 'nssymmetric', 'otwayrees', 'wmfbrutus', 'bke', 'soph', 'nsl3', 'nsl7', 'denningsaccosh', 'yahalom', 'sophkx', 'isoiec11770213', 'woolamce', 'nssymmetricamended', 'kaochowPalm', 'andrewBan']
+Partly flawed protocols:  ['woolamcmv', 'andrewLoweBan', 'ksl', 'boyd', 'yahalompaulson', 'gongnonce', 'ns3', 'gongnonceb', 'spliceAShcCJ']
+Completely flawed protocols:  ['spliceAS', 'woolampif', 'tmn', 'spliceAShc']
+Testing 3 tuples using --summary --match=1 --arachne --timer=4 --max-runs=4 --max-length=18
+***	0	2587/5984	denningsaccosh AV Niagree_6	nssymmetricamended	yahalom
+***	1	2587/5984	denningsaccosh AV Nisynch_5	nssymmetricamended	yahalom
+***	2	2686/5984	denningsaccosh AV Niagree_6	wmfbrutus	yahalom
+***	3	2686/5984	denningsaccosh AV Nisynch_5	wmfbrutus	yahalom
+***	4	2687/5984	woolamce BV Secret_8	denningsaccosh	woolamcmv
+***	5	2697/5984	yahalom AV Secret_5	denningsaccosh	woolamcmv
+***	6	2702/5984	yahalomlowe RV Niagree_13	denningsaccosh	yahalomBan
+***	7	2702/5984	yahalomlowe RV Nisynch_12	denningsaccosh	yahalomBan
+***	8	2702/5984	yahalomlowe RV Secret_11	denningsaccosh	yahalomBan
+***	9	2704/5984	denningsaccosh AV Nisynch_5	yahalomBan	yahalom
+***	10	2704/5984	denningsaccosh AV Niagree_6	yahalomBan	yahalom
+***	11	2705/5984	yahalomlowe RV Niagree_13	denningsaccosh	yahalompaulson
+***	12	2705/5984	yahalomlowe RV Nisynch_12	denningsaccosh	yahalompaulson
+***	13	2705/5984	yahalomlowe RV Secret_11	denningsaccosh	yahalompaulson
+***	14	2707/5984	denningsaccosh AV Nisynch_5	yahalompaulson	yahalom
+***	15	2707/5984	denningsaccosh AV Niagree_6	yahalompaulson	yahalom
+***	16	4208/5984	yahalomBan AV Secret_5	kaochow	yahalompaulson
+***	17	4208/5984	yahalomBan BV Secret_6	kaochow	yahalompaulson
+***	18	5019/5984	nsl7 RV Secret_4	nsl3	soph
+***	19	5021/5984	nsl7 RV Secret_5	nsl3	spliceAShc
+***	20	5022/5984	nsl7 RV Secret_5	nsl3	spliceAS
+***	21	5023/5984	nsl7 RV Secret_5	nsl3	tmn
+Processed 5984 tuple combinations in total.
+Found 22 new attacks.
+  These were helped by:
+  woolamcmv: Mixed. This possibly breaks ['woolamce', 'yahalom']
+  nsl3: All-Correct. This possibly breaks ['nsl7']
+  denningsaccosh: All-Correct. This possibly breaks ['woolamce', 'yahalom', 'yahalomlowe']
+  spliceAS: All-Flawed. This possibly breaks ['nsl7']
+  yahalom: All-Correct. This possibly breaks ['denningsaccosh']
+  kaochow: All-Correct. This possibly breaks ['yahalomBan']
+  yahalomBan: All-Correct. This possibly breaks ['yahalomlowe', 'denningsaccosh']
+  spliceAShc: All-Flawed. This possibly breaks ['nsl7']
+  wmfbrutus: All-Correct. This possibly breaks ['denningsaccosh']
+  nssymmetricamended: All-Correct. This possibly breaks ['denningsaccosh']
+  yahalompaulson: Mixed. This possibly breaks ['yahalomlowe', 'denningsaccosh', 'yahalomBan']
+  soph: All-Correct. This possibly breaks ['nsl7']
+  tmn: All-Flawed. This possibly breaks ['nsl7']
+
+****************************************
+	Testing match 2
+****************************************
+
+Evaluating 5984 tuples of 3 for 34 protocols.
+Evaluated single results.
+Correct protocols:  ['ccitt509', 'kaochow', 'yahalomlowe', 'kaochow2', 'kaochow3', 'nssymmetric', 'wmfbrutus', 'bke', 'soph', 'nsl3', 'nsl7', 'sophkx', 'isoiec11770213', 'woolamce', 'nssymmetricamended', 'kaochowPalm', 'andrewBan']
+Partly flawed protocols:  ['woolamcmv', 'andrewLoweBan', 'ksl', 'boyd', 'gongnonce', 'ns3', 'gongnonceb', 'denningsaccosh', 'yahalom', 'spliceAShcCJ']
+Completely flawed protocols:  ['spliceAS', 'yahalomBan', 'otwayrees', 'woolampif', 'tmn', 'spliceAShc', 'yahalompaulson']
+Testing 3 tuples using --summary --match=2 --arachne --timer=4 --max-runs=4 --max-length=18
+***	0	450/5984	spliceAShcCJ SV Secret_8	andrewBan	soph
+***	1	1309/5984	ns3 IV Niagree_i3	bke	tmn
+***	2	1309/5984	ns3 IV Nisynch_i4	bke	tmn
+***	3	1414/5984	soph IV Niagree_3	bke	tmn
+***	4	1744/5984	ns3 IV Niagree_i3	boyd	tmn
+***	5	1744/5984	ns3 IV Nisynch_i4	boyd	tmn
+***	6	1849/5984	soph IV Niagree_3	boyd	tmn
+***	7	2150/5984	ns3 IV Niagree_i3	ccitt509	tmn
+***	8	2150/5984	ns3 IV Nisynch_i4	ccitt509	tmn
+***	9	2255/5984	soph IV Niagree_3	ccitt509	tmn
+***	10	2437/5984	kaochow RV Secret_10	denningsaccosh	nsl7
+***	11	2528/5984	ns3 IV Niagree_i3	denningsaccosh	tmn
+***	12	2528/5984	ns3 IV Nisynch_i4	denningsaccosh	tmn
+***	13	2633/5984	soph IV Niagree_3	denningsaccosh	tmn
+***	14	2981/5984	spliceAShcCJ SV Secret_8	gongnonceb	soph
+***	15	3306/5984	spliceAShcCJ SV Secret_8	gongnonce	soph
+***	16	3606/5984	spliceAShcCJ SV Secret_8	isoiec11770213	soph
+***	17	3780/5984	ns3 IV Niagree_i3	kaochowPalm	tmn
+***	18	3780/5984	ns3 IV Nisynch_i4	kaochowPalm	tmn
+***	19	3882/5984	spliceAShcCJ SV Secret_8	kaochowPalm	soph
+***	20	4135/5984	spliceAShcCJ SV Secret_8	kaochow	soph
+***	21	4210/5984	yahalomlowe RV Niagree_13	kaochow	yahalompaulson
+***	22	4366/5984	spliceAShcCJ SV Secret_8	kaochow2	soph
+***	23	4441/5984	yahalomlowe RV Niagree_13	kaochow2	yahalompaulson
+***	24	4514/5984	kaochow3 IV Secret_7	nsl7	yahalomBan
+***	25	4514/5984	kaochow3 IV Niagree_6	nsl7	yahalomBan
+***	26	4514/5984	kaochow3 RV Nisynch_8	nsl7	yahalomBan
+***	27	4514/5984	kaochow3 IV Nisynch_5	nsl7	yahalomBan
+***	28	4576/5984	spliceAShcCJ SV Secret_8	kaochow3	soph
+***	29	4651/5984	yahalomlowe RV Niagree_13	kaochow3	yahalompaulson
+***	30	4886/5984	ns3 IV Niagree_i3	nssymmetricamended	tmn
+***	31	4886/5984	ns3 IV Nisynch_i4	nssymmetricamended	tmn
+***	32	4901/5984	ns3 IV Niagree_i3	nssymmetric	tmn
+***	33	4901/5984	ns3 IV Nisynch_i4	nssymmetric	tmn
+***	34	5015/5984	nsl7 RV Secret_5	nssymmetricamended	nsl3
+***	35	5016/5984	nsl7 RV Secret_5	nssymmetric	nsl3
+***	36	5349/5984	soph IV Niagree_3	nssymmetricamended	tmn
+***	37	5454/5984	soph IV Niagree_3	nssymmetric	tmn
+Processed 5984 tuple combinations in total.
+Found 38 new attacks.
+  These were helped by:
+  bke: All-Correct. This possibly breaks ['ns3', 'soph']
+  spliceAS: All-Flawed. This possibly breaks ['nsl7']
+  kaochow: All-Correct. This possibly breaks ['spliceAShcCJ', 'yahalomlowe']
+  kaochow2: All-Correct. This possibly breaks ['spliceAShcCJ', 'yahalomlowe']
+  kaochow3: All-Correct. This possibly breaks ['spliceAShcCJ', 'yahalomlowe']
+  nssymmetric: All-Correct. This possibly breaks ['ns3', 'nsl7', 'soph']
+  gongnonce: Mixed. This possibly breaks ['spliceAShcCJ']
+  yahalomBan: All-Flawed. This possibly breaks ['kaochow3']
+  tmn: All-Flawed. This possibly breaks ['ns3', 'soph', 'nsl7']
+  ccitt509: All-Correct. This possibly breaks ['ns3', 'soph']
+  boyd: Mixed. This possibly breaks ['ns3', 'soph']
+  kaochowPalm: All-Correct. This possibly breaks ['ns3', 'spliceAShcCJ']
+  spliceAShc: All-Flawed. This possibly breaks ['nsl7']
+  soph: All-Correct. This possibly breaks ['spliceAShcCJ', 'nsl7']
+  woolamcmv: Mixed. This possibly breaks ['yahalom']
+  gongnonceb: Mixed. This possibly breaks ['spliceAShcCJ']
+  nsl3: All-Correct. This possibly breaks ['nsl7']
+  nsl7: All-Correct. This possibly breaks ['kaochow', 'kaochow3']
+  denningsaccosh: Mixed. This possibly breaks ['kaochow', 'ns3', 'soph', 'yahalom']
+  isoiec11770213: All-Correct. This possibly breaks ['spliceAShcCJ']
+  nssymmetricamended: All-Correct. This possibly breaks ['ns3', 'nsl7', 'soph']
+  yahalompaulson: All-Flawed. This possibly breaks ['yahalomlowe']
+  andrewBan: All-Correct. This possibly breaks ['spliceAShcCJ']
