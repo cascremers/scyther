@@ -826,14 +826,14 @@ timersPrint (const System sys)
 	    {
 	      eprintf ("\tcorrect: ");
 	      if (cl_scan->complete)
-		eprintf ("complete proof");
+		eprintf ("complete_proof");
 	      else
-		eprintf ("bounded proof");
+		eprintf ("bounded_proof");
 	    }
 	}
       else
 	{
-	  eprintf ("\tcorrect: does not occur");
+	  eprintf ("\tcorrect: does_not_occur");
 	}
       eprintf ("\n");
       cl_scan = cl_scan->next;
