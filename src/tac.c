@@ -38,9 +38,9 @@ tacCreate (int op)
   t->op = op;
   t->next = NULL;
   t->prev = NULL;
-  t->tac1 = NULL;
-  t->tac2 = NULL;
-  t->tac3 = NULL;
+  t->t1.tac = NULL;
+  t->t2.tac = NULL;
+  t->t3.tac = NULL;
   return t;
 }
 
@@ -49,7 +49,7 @@ tacString (char *s)
 {
   Tac t;
   t = tacCreate (TAC_STRING);
-  t->str1 = s;
+  t->t1.str = s;
   return t;
 }
 
@@ -58,9 +58,9 @@ tacJoin (int op, Tac t1, Tac t2, Tac t3)
 {
   Tac t;
   t = tacCreate (op);
-  t->tac1 = t1;
-  t->tac2 = t2;
-  t->tac3 = t3;
+  t->t1.tac = t1;
+  t->t2.tac = t2;
+  t->t3.tac = t3;
   return t;
 }
 
@@ -110,12 +110,12 @@ tacTuple (Tac taclist)
     {
       /* otherwise, write as (x,(y,(z,..))) */
       tc = tacCreate (TAC_TUPLE);
-      tc->tac1 = taclist;
-      tc->tac2 = tacTuple (taclist->next);
+      tc->t1.tac = taclist;
+      tc->t2.tac = tacTuple (taclist->next);
 
       /* unlink list */
-      tc->tac1->next = NULL;
-      tc->tac2->prev = NULL;
+      tc->t1.tac->next = NULL;
+      tc->t2.tac->prev = NULL;
     }
   return tc;
 }
@@ -133,64 +133,64 @@ tacPrint (Tac t)
   switch (t->op)
     {
     case TAC_PROTOCOL:
-      printf ("protocol %s (", t->sym1->text);
-      tacPrint (t->tac3);
+      printf ("protocol %s (", t->t1.sym->text);
+      tacPrint (t->t3.tac);
       printf (")\n{\n");
-      tacPrint (t->tac2);
+      tacPrint (t->t2.tac);
       printf ("};\n");
       break;
     case TAC_ROLE:
-      printf ("role %s\n{\n", t->sym1->text);
-      tacPrint (t->tac2);
+      printf ("role %s\n{\n", t->t1.sym->text);
+      tacPrint (t->t2.tac);
       printf ("};\n");
       break;
     case TAC_READ:
       printf ("read");
-      if (t->sym1 != NULL)
+      if (t->t1.sym != NULL)
 	{
-	  printf ("_%s", t->sym1->text);
+	  printf ("_%s", t->t1.sym->text);
 	}
       printf ("(");
-      tacPrint (t->tac2);
+      tacPrint (t->t2.tac);
       printf (");\n");
       break;
     case TAC_SEND:
       printf ("send");
-      if (t->sym1 != NULL)
+      if (t->t1.sym != NULL)
 	{
-	  printf ("_%s", t->sym1->text);
+	  printf ("_%s", t->t1.sym->text);
 	}
       printf ("(");
-      tacPrint (t->tac2);
+      tacPrint (t->t2.tac);
       printf (");\n");
       break;
     case TAC_CLAIM:
       printf ("claim");
-      if (t->sym1 != NULL)
+      if (t->t1.sym != NULL)
 	{
-	  printf ("_%s", t->sym1->text);
+	  printf ("_%s", t->t1.sym->text);
 	}
       printf ("(");
-      tacPrint (t->tac2);
+      tacPrint (t->t2.tac);
       printf (");\n");
       break;
     case TAC_CONST:
       printf ("const ");
-      tacPrint (t->tac1);
-      if (t->tac2 != NULL)
+      tacPrint (t->t1.tac);
+      if (t->t2.tac != NULL)
 	{
 	  printf (" : ");
-	  tacPrint (t->tac2);
+	  tacPrint (t->t2.tac);
 	}
       printf (";\n");
       break;
     case TAC_VAR:
       printf ("var ");
-      tacPrint (t->tac1);
-      if (t->tac2 != NULL)
+      tacPrint (t->t1.tac);
+      if (t->t2.tac != NULL)
 	{
 	  printf (" : ");
-	  tacPrint (t->tac2);
+	  tacPrint (t->t2.tac);
 	}
       printf (";\n");
       break;
@@ -200,22 +200,22 @@ tacPrint (Tac t)
 	printf (",");
       break;
     case TAC_STRING:
-      printf ("%s", t->sym1->text);
+      printf ("%s", t->t1.sym->text);
       if (t->next != NULL)
 	printf (",");
       break;
     case TAC_TUPLE:
       printf ("(");
-      tacPrint (t->tac1);
+      tacPrint (t->t1.tac);
       printf (",");
-      tacPrint (t->tac2);
+      tacPrint (t->t2.tac);
       printf (")");
       break;
     case TAC_ENCRYPT:
       printf ("{");
-      tacPrint (t->tac1);
+      tacPrint (t->t1.tac);
       printf ("}");
-      tacPrint (t->tac2);
+      tacPrint (t->t2.tac);
       if (t->next != NULL)
 	{
 	  printf (",");
@@ -225,36 +225,36 @@ tacPrint (Tac t)
       break;
     case TAC_RUN:
       printf ("run ");
-      tacPrint (t->tac1);
+      tacPrint (t->t1.tac);
       printf ("(");
-      tacPrint (t->tac2);
+      tacPrint (t->t2.tac);
       printf (");\n");
       break;
     case TAC_ROLEREF:
-      symbolPrint (t->sym1);
+      symbolPrint (t->t1.sym);
       printf (".");
-      symbolPrint (t->sym2);
+      symbolPrint (t->t2.sym);
       break;
     case TAC_COMPROMISED:
       printf ("compromised ");
-      tacPrint (t->tac1);
+      tacPrint (t->t1.tac);
       printf (";\n");
       break;
     case TAC_SECRET:
       printf ("secret ");
-      tacPrint (t->tac1);
+      tacPrint (t->t1.tac);
       printf (";\n");
       break;
     case TAC_INVERSEKEYS:
       printf ("inversekeys (");
-      tacPrint (t->tac1);
+      tacPrint (t->t1.tac);
       printf (",");
-      tacPrint (t->tac2);
+      tacPrint (t->t2.tac);
       printf (");\n");
       break;
     case TAC_UNTRUSTED:
       printf ("untrusted ");
-      tacPrint (t->tac1);
+      tacPrint (t->t1.tac);
       printf (";\n");
       break;
     default:

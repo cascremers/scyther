@@ -67,28 +67,28 @@ spdlrep		: /* empty */
 spdl		: UNTRUSTED termlist ';'
 		  {	
 		  	Tac t = tacCreate(TAC_UNTRUSTED);
-		  	t->tac1 = $2;
+		  	t->t1.tac = $2;
 			$$ = t;
 		  }
 		| RUN roleref '(' termlist ')' ';'
 		  {	
 		  	Tac t = tacCreate(TAC_RUN);
-		  	t->tac1 = $2;
-			t->tac2 = $4;
+		  	t->t1.tac = $2;
+			t->t2.tac = $4;
 			$$ = t;
 		  }
 		| PROTOCOL ID '(' termlist ')' '{' roles '}' optclosing
 	 	  {
 		  	Tac t = tacCreate(TAC_PROTOCOL);
-			t->sym1 = $2;
-			t->tac2 = $7;
-			t->tac3 = $4;
+			t->t1.sym = $2;
+			t->t2.tac = $7;
+			t->t3.tac = $4;
 			$$ = t;
 		  }
 		| USERTYPE termlist ';'
 		  {
 			Tac t = tacCreate(TAC_USERTYPE);
-			t->tac1 = $2;
+			t->t1.tac = $2;
 			$$ = t;
 		  }
 		| declaration
@@ -108,8 +108,8 @@ roles		: /* empty */
 role		: ROLE ID '{' roledef '}' optclosing
       		  { 
 		  	Tac t = tacCreate(TAC_ROLE);
-			t->sym1 = $2;
-			t->tac2 = $4;
+			t->t1.sym = $2;
+			t->t2.tac = $4;
 			$$ = t;
 		  }
 		;
@@ -130,64 +130,64 @@ roledef		: /* empty */
 
 event		: READT label '(' termlist ')' ';'
 		  {	Tac t = tacCreate(TAC_READ);
-		  	t->sym1 = $2;
+		  	t->t1.sym = $2;
 			/* TODO test here: tac2 should have at least 3 elements */
-			t->tac2 = $4;
+			t->t2.tac = $4;
 			$$ = t;
 		  }
 		| SENDT label '(' termlist ')' ';'
 		  {	Tac t = tacCreate(TAC_SEND);
-		  	t->sym1 = $2;
+		  	t->t1.sym = $2;
 			/* TODO test here: tac2 should have at least 3 elements */
-			t->tac2 = $4;
+			t->t2.tac = $4;
 			$$ = t;
 		  }
 		| CLAIMT label '(' termlist ')' ';'
 		/* TODO maybe claims should be in the syntax */
 		  {	Tac t = tacCreate(TAC_CLAIM);
-		  	t->sym1 = $2;
-			t->tac2 = $4;
+		  	t->t1.sym = $2;
+			t->t2.tac = $4;
 			$$ = t;
 		  }
 		;
 
 roleref		: ID '.' ID
 		  {	Tac t = tacCreate(TAC_ROLEREF);
-		  	t->sym1 = $1;
-			t->sym2 = $3;
+		  	t->t1.sym = $1;
+			t->t2.sym = $3;
 			$$ = t;
 		  }
 		;
 
 declaration	: secretpref CONST termlist typeinfo1 ';'
 		  {	Tac t = tacCreate(TAC_CONST);
-		  	t->tac1 = $3;
-			t->tac2 = $4;
-			t->tac3 = $1;
+		  	t->t1.tac = $3;
+			t->t2.tac = $4;
+			t->t3.tac = $1;
 			$$ = t;
 		  }
 		| secretpref VAR termlist typeinfoN ';'
 		  {	Tac t = tacCreate(TAC_VAR);
-		  	t->tac1 = $3;
-			t->tac2 = $4;
-			t->tac3 = $1;
+		  	t->t1.tac = $3;
+			t->t2.tac = $4;
+			t->t3.tac = $1;
 			$$ = t;
 		  }
 		| SECRET termlist typeinfo1 ';'
 		  {	Tac t = tacCreate(TAC_SECRET);
-		  	t->tac1 = $2;
-			t->tac2 = $3;
+		  	t->t1.tac = $2;
+			t->t2.tac = $3;
 			$$ = t;
 		  }
 		| INVERSEKEYS '(' term ',' term ')' ';'
 		  {	Tac t = tacCreate(TAC_INVERSEKEYS);
-			t->tac1 = $3;
-			t->tac2 = $5;
+			t->t1.tac = $3;
+			t->t2.tac = $5;
 			$$ = t;
 		  }
 		| COMPROMISED termlist ';'
 		  {	Tac t = tacCreate(TAC_COMPROMISED);
-		  	t->tac1= $2;
+		  	t->t1.tac= $2;
 			$$ = t;
 		  }
 		;
@@ -210,7 +210,7 @@ typeinfo1	: /* empty */
 		  }
 		| ':' ID
 		  {	Tac t = tacCreate(TAC_STRING);
-		  	t->sym1 = $2;
+		  	t->t1.sym = $2;
 			$$ = t;
 		  }
 		;
@@ -235,13 +235,13 @@ label		: /* empty */
 term  		: ID
 		  {
 		  	Tac t = tacCreate(TAC_STRING);
-			t->sym1 = $1;
+			t->t1.sym = $1;
 			$$ = t;
 		  }
 		| ID '(' termlist ')'
 		  {
 		  	Tac t = tacCreate(TAC_STRING);
-			t->sym1 = $1;
+			t->t1.sym = $1;
 			$$ = tacJoin(TAC_ENCRYPT,tacTuple($3),t,NULL);
 		  }
 		| '{' termlist '}' key

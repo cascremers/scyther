@@ -226,7 +226,7 @@ defineUsertype (Tac tcdu)
   Term t;
   Term tfind;
 
-  tc = tcdu->tac1;
+  tc = tcdu->t1.tac;
 
   if (tc == NULL)
     {
@@ -238,11 +238,11 @@ defineUsertype (Tac tcdu)
       /* check whether this term is already declared in the same way
        * (i.e. as a type) */
 
-      tfind = levelFind (tc->sym1, 0);
+      tfind = levelFind (tc->t1.sym, 0);
       if (tfind == NULL)
 	{
 	  /* this is what we expected: this type is not declared yet */
-	  t = levelDeclare (tc->sym1, 0, 0);
+	  t = levelDeclare (tc->t1.sym, 0, 0);
 	  t->stype = termlistAdd (NULL, TERM_Type);
 	}
       else
@@ -275,7 +275,7 @@ levelTacDeclaration (Tac tc, int isVar)
   Termlist typetl = NULL;
   Term t;
 
-  tscan = tc->tac2;
+  tscan = tc->t2.tac;
   if (!isVar && tscan->next != NULL)
     {
       printf ("ERROR: Multiple types not allowed for constants ");
@@ -284,13 +284,13 @@ levelTacDeclaration (Tac tc, int isVar)
   while (tscan != NULL && tscan->op == TAC_STRING)
     {
       /* apparently there is type info, termlist? */
-      t = levelFind (tscan->sym1, 0);
+      t = levelFind (tscan->t1.sym, 0);
 
       if (t == NULL)
 	{
 	  /* not declared, that is unacceptable. */
 	  printf ("ERROR: type ");
-	  symbolPrint (tscan->sym1);
+	  symbolPrint (tscan->t1.sym);
 	  printf (" was not declared ");
 	  errorTac (tscan->lineno);
 	}
@@ -306,10 +306,10 @@ levelTacDeclaration (Tac tc, int isVar)
       tscan = tscan->next;
     }
   /* parse all constants and vars */
-  tscan = tc->tac1;
+  tscan = tc->t1.tac;
   while (tscan != NULL)
     {
-      t = symbolDeclare (tscan->sym1, isVar);
+      t = symbolDeclare (tscan->t1.sym, isVar);
       t->stype = typetl;
       tscan = tscan->next;
     }
@@ -329,22 +329,22 @@ commEvent (int event, Tac tc)
   Tac trip;
 
   /* Construct label, if any */
-  if (tc->sym1 == NULL)
+  if (tc->t1.sym == NULL)
     {
       label = NULL;
     }
   else
     {
-      label = levelFind (tc->sym1, level - 1);
+      label = levelFind (tc->t1.sym, level - 1);
       if (label == NULL)
 	{
 	  /* effectively, labels are bound to the protocol */
 	  level--;
-	  label = levelConst (tc->sym1);
+	  label = levelConst (tc->t1.sym);
 	  level++;
 	}
     }
-  trip = tc->tac2;
+  trip = tc->t2.tac;
   switch (event)
     {
     case READ:
@@ -446,22 +446,22 @@ normalDeclaration (Tac tc)
     {
     case TAC_VAR:
       levelDeclareVar (tc);
-      if (level < 2 && tc->tac3 == NULL)
-	knowledgeAddTermlist (sys->know, tacTermlist (tc->tac1));
+      if (level < 2 && tc->t3.tac == NULL)
+	knowledgeAddTermlist (sys->know, tacTermlist (tc->t1.tac));
       break;
     case TAC_CONST:
       levelDeclareConst (tc);
-      if (level < 2 && tc->tac3 == NULL)
-	knowledgeAddTermlist (sys->know, tacTermlist (tc->tac1));
+      if (level < 2 && tc->t3.tac == NULL)
+	knowledgeAddTermlist (sys->know, tacTermlist (tc->t1.tac));
       break;
     case TAC_SECRET:
       levelDeclareConst (tc);
       break;
     case TAC_COMPROMISED:
-      knowledgeAddTermlist (sys->know, tacTermlist (tc->tac1));
+      knowledgeAddTermlist (sys->know, tacTermlist (tc->t1.tac));
       break;
     case TAC_INVERSEKEYS:
-      knowledgeAddInverse (sys->know, tacTerm (tc->tac1), tacTerm (tc->tac2));
+      knowledgeAddInverse (sys->know, tacTerm (tc->t1.tac), tacTerm (tc->t2.tac));
       break;
     default:
       /* abort with false */
@@ -531,7 +531,7 @@ runInstanceCreate (Tac tc)
     return;
 
   /* first, locate the protocol */
-  psym = tc->tac1->sym1;
+  psym = tc->t1.tac->t1.sym;
   p = sys->protocols;
   while (p != NULL && p->nameterm->symb != psym)
     p = p->next;
@@ -544,7 +544,7 @@ runInstanceCreate (Tac tc)
     }
 
   /* locate the role */
-  rsym = tc->tac1->sym2;
+  rsym = tc->t1.tac->t2.sym;
   r = p->roles;
   while (r != NULL && r->nameterm->symb != rsym)
     r = r->next;
@@ -559,7 +559,7 @@ runInstanceCreate (Tac tc)
     }
 
   /* we now know what we are instancing, equal numbers? */
-  instParams = tacTermlist (tc->tac2);
+  instParams = tacTermlist (tc->t2.tac);
   if (termlistLength (instParams) != termlistLength (p->rolenames))
     {
       printf
@@ -618,7 +618,7 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
   while (tcroles != NULL)
     {
       pr->rolenames =
-	termlistAppend (pr->rolenames, levelConst (tcroles->sym1));
+	termlistAppend (pr->rolenames, levelConst (tcroles->t1.sym));
       tcroles = tcroles->next;
     }
 
@@ -629,21 +629,21 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
 	{
 	case TAC_UNTRUSTED:
 	  sys->untrusted =
-	    termlistConcat (sys->untrusted, tacTermlist (tc->tac1));
+	    termlistConcat (sys->untrusted, tacTermlist (tc->t1.tac));
 	  break;
 	case TAC_ROLE:
-	  t = levelFind (tc->sym1, level);
+	  t = levelFind (tc->t1.sym, level);
 	  if (t != NULL)
 	    {
-	      roleCompile (t, tc->tac2);
+	      roleCompile (t, tc->t2.tac);
 	    }
 	  else
 	    {
 	      printf ("ERROR: undeclared role ");
-	      symbolPrint (tc->sym1);
+	      symbolPrint (tc->t1.sym);
 	      printf (" in protocol ");
 	      termPrint (pr->nameterm);
-	      errorTac (tc->sym1->lineno);
+	      errorTac (tc->t1.sym->lineno);
 	    }
 	  break;
 	default:
@@ -668,11 +668,11 @@ tacProcess (Tac tc)
       switch (tc->op)
 	{
 	case TAC_PROTOCOL:
-	  protocolCompile (tc->sym1, tc->tac2, tc->tac3);
+	  protocolCompile (tc->t1.sym, tc->t2.tac, tc->t3.tac);
 	  break;
 	case TAC_UNTRUSTED:
 	  sys->untrusted =
-	    termlistConcat (sys->untrusted, tacTermlist (tc->tac1));
+	    termlistConcat (sys->untrusted, tacTermlist (tc->t1.tac));
 	  break;
 	case TAC_RUN:
 	  runInstanceCreate (tc);
@@ -699,16 +699,16 @@ tacTerm (Tac tc)
   switch (tc->op)
     {
     case TAC_ENCRYPT:
-      return makeTermEncrypt (tacTerm (tc->tac1), tacTerm (tc->tac2));
+      return makeTermEncrypt (tacTerm (tc->t1.tac), tacTerm (tc->t2.tac));
     case TAC_TUPLE:
-      return makeTermTuple (tacTerm (tc->tac1), tacTerm (tc->tac2));
+      return makeTermTuple (tacTerm (tc->t1.tac), tacTerm (tc->t2.tac));
     case TAC_STRING:
       {
-	Term t = symbolFind (tc->sym1);
+	Term t = symbolFind (tc->t1.sym);
 	if (t == NULL)
 	  {
 	    printf ("Undeclared symbol ");
-	    symbolPrint (tc->sym1);
+	    symbolPrint (tc->t1.sym);
 	    errorTac (tc->lineno);
 	  }
 	return t;

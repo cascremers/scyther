@@ -37,22 +37,22 @@ struct tacnode
   int lineno;
   union
   {
-    Symbol sym1;
-    struct tacnode *tac1;
-    char *str1;
-  };
+    Symbol sym;
+    struct tacnode *tac;
+    char *str;
+  } t1;
+  union 
+  {
+    Symbol sym;
+    struct tacnode *tac;
+    char *str;
+  } t2;
   union
   {
-    Symbol sym2;
-    struct tacnode *tac2;
-    char *str2;
-  };
-  union
-  {
-    Symbol sym3;
-    struct tacnode *tac3;
-    char *str3;
-  };
+    Symbol sym;
+    struct tacnode *tac;
+    char *str;
+  } t3;
 };
 
 typedef struct tacnode *Tac;
