@@ -14,9 +14,9 @@ protocol kaochow(I,R,S)
 		read_3 (R,I, {I,R,ni,kir}k(I,S), {ni}kir, nr );
 		send_4 (I,R, {nr}kir );
 
-		claim_5 (R, Nisynch);
-		claim_6 (R, Niagree);
-		claim_7 (R, Secret, kir);
+		claim_5 (I, Nisynch);
+		claim_6 (I, Niagree);
+		claim_7 (I, Secret, kir);
 	}	
 	
 	role R
