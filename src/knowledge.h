@@ -52,13 +52,16 @@ Termlist knowledgeNew (const Knowledge oldk, const Knowledge newk);
 
 //! Harnass macro for recursive procedures.
 #define mindwipe(k,recurse) \
+        Termlist tl; \
+	Term oldsubst; \
+	int flag; \
 	if (k != NULL && k->vars != NULL) { \
-		Termlist tl = k->vars; \
+		tl = k->vars; \
 		while (tl != NULL) { \
 			if (tl->term->subst != NULL) { \
 				Term oldsubst = tl->term->subst; \
 				tl->term->subst = NULL; \
-				int flag = recurse; \
+				flag = recurse; \
 				tl->term->subst = oldsubst; \
 				return flag; \
 			} \
