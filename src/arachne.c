@@ -1575,6 +1575,12 @@ arachne ()
    * set up claim role(s)
    */
 
+  if (sys->switchRuns == 0)
+    {
+      // No real checking.
+      return;
+    }
+
   if (sys->maxruns > 0)
     {
       error ("Something is wrong, number of runs >0.");
