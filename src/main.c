@@ -19,7 +19,7 @@
  * \section exit Exit codes
  *
  * 0  Okay	No attack found, claims encountered
- * 1  Error	Something went wrong (error)
+ * 1  Error	Something went wrong (error) E.g. switch error, or scenario ran out.
  * 2  Okay	No attack found (because) no claims encountered
  * 3  Okay	Attack found
  *
@@ -704,6 +704,15 @@ modelCheck (const System sys)
   if (sys->switchStatespace)
     {
       graphDone (sys);
+    }
+  if (sys->switchScenario > 0)
+    {
+      /* Traversing a scenario. Maybe we ran out. */
+      if (sys->switchScenario > sys->countScenario)
+	{
+	  /* Signal as error */
+	  exit (1);
+	}
     }
   return (sys->failed != STATES0);
 }
