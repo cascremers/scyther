@@ -1035,7 +1035,10 @@ select_goal ()
       Binding b;
 
       b = (Binding) bl->data;
-      if (!b->done)
+
+      // Ignore singular variables
+      if (!b->done && !realTermVariable (deVar(b->term)) )
+      //if (!b->done)
 	{
 	  float cons;
 
