@@ -1643,6 +1643,8 @@ prune_theorems ()
     }
 
   // Check if the actors of all other runs are not untrusted
+  // TODO Somehow, this does not work. Investigate.
+  /*
   if (sys->untrusted != NULL)
     {
       int run;
@@ -1668,6 +1670,7 @@ prune_theorems ()
 			  indentPrint ();
 			  eprintf ("Pruned because the actor of run %i is untrusted.\n", run);
 			}
+		      return 1;
 		    }
 		}
 	      else
@@ -1684,11 +1687,13 @@ prune_theorems ()
 		  eprintf ("\n");
 		  error ("Aborting.");
 		  globalError--;
+		  return 1;
 		}
 	    }
 	  run++;
 	}
     }
+    */
 
   // Check for c-minimality
   if (!bindings_c_minimal ())
