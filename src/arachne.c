@@ -1883,7 +1883,7 @@ prune_bounds ()
       if (sys->output == PROOF)
 	{
 	  indentPrint ();
-	  eprintf ("Pruned: proof tree too deep: %i (--max-depth %i switch)\n",
+	  eprintf ("Pruned: proof tree too deep: %i (-d %i switch)\n",
 		   proofDepth, sys->switch_maxproofdepth);
 	}
       return 1;

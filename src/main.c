@@ -119,7 +119,7 @@ main (int argc, char **argv)
     arg_int0 ("l", "max-length", NULL,
 	      "prune traces longer than <int> events.");
   struct arg_int *switch_prune_proof_depth =
-    arg_int0 (NULL, "max-depth", NULL,
+    arg_int0 ("d", "max-depth", NULL,
 	      "prune proof deeper than <int> splits.");
   struct arg_lit *switch_incremental_trace_length =
     arg_lit0 (NULL, "increment-traces",
