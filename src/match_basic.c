@@ -22,7 +22,7 @@ candidates (const Knowledge know)
 
 struct fvpass
 {
-  int (*solution) (struct fvpass, Knowledge);
+  int (*solution)();
 
   System sys;
   int run;

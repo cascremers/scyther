@@ -21,7 +21,7 @@
 
 struct solvepass
 {
-  int (*solution) (struct solvepass, Constraintlist);
+  int (*solution)();
 
   System sys;
   int run;
