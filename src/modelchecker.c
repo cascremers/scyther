@@ -1111,7 +1111,6 @@ tryChoiceRun (const System sys, const int run)
 }
 
 //! Yield the last active run in the partial trace, or 0 if there is none.
-
 __inline__ int
 lastActiveRun (const System sys)
 {
@@ -1127,6 +1126,49 @@ lastActiveRun (const System sys)
     }
 }
 
+//! Determine whether a roleevent is a choose event
+__inline__ int
+isChooseRoledef (const System sys, const int run, const Roledef rd)
+{
+  return (rd == sys->runs[run].start &&
+	  rd->type == READ && 
+	  rd->internal);
+}
+
+//! Explore possible chooses first
+__inline__ int
+tryChoosesFirst (const System sys)
+{
+  int flag;
+  int run;
+  Roledef rd;
+
+  flag = 0;
+  for (run = 0; run < sys->maxruns && !flag; run++)
+    {
+      rd = runPointerGet (sys, run);
+      if (isChooseRoledef (sys, run, rd))
+	  flag = tryChoiceRoledef (sys, run, rd);
+    }
+  return flag;
+}
+
+//! Explore left-to-right (from an offset)
+__inline__ int
+tryEventsOffset (const System sys, const int offset)
+{
+  int flag;
+  int run;
+  int i;
+
+  flag = 0;
+  for (i = 0; i < sys->maxruns && !flag; i++)
+    {
+      run = (i + offset) % sys->maxruns;
+      flag = tryChoiceRun (sys, run);
+    }
+  return flag;
+}
 
 /*
  * POR4
@@ -1140,36 +1182,7 @@ lastActiveRun (const System sys)
 __inline__ int
 traversePOR4 (const System sys)
 {
-  Roledef rd;
-  int flag = 0;
-  int run;
-  int i;
-  int offset;
-
-  /* Previously we did the sends first. This does not always improve things,
-   * depending on the protocol.
-   */
-  // if (nonReads (sys)) return 1;
-
-  /* a choice for choose */
-
-  /* The 'choose' implemented here is the following:
-   *
-   * choose ev#rid
-   * where rid = min(r: ev#r in enabled(sys): (r-lastrun) mod maxruns)
-   * and where lastrun is the runid of the previous event 
-   * in the trace, or 0 if there was none.
-   */
-  offset = lastActiveRun (sys);
-
-  /* Try all events (implicitly we only handle enabled ones) starting with our
-   * first choice.  If one was chosen, flag is set, and the loop aborts. */
-  for (i = 0; i < sys->maxruns && !flag; i++)
-    {
-      run = (i + offset) % sys->maxruns;
-      flag = tryChoiceRun (sys, run);
-    }
-  return flag;
+  return tryEventsOffset (sys, lastActiveRun (sys));
 }
 
 /*
@@ -1181,62 +1194,9 @@ traversePOR4 (const System sys)
 __inline__ int
 traversePOR5 (const System sys)
 {
-  Roledef rd;
-  int flag = 0;
-  int run;
-  int i;
-  int offset;
-
-  /* Previously we did the sends first. This does not always improve things,
-   * depending on the protocol.
-   */
-  // if (nonReads (sys)) return 1;
-
-  /* a choice for choose */
-
-  /* The 'choose' implemented here is the following:
-   *
-   * choose ev#rid
-   * where rid = min(r: ev#r in enabled(sys): (r-lastrun) mod maxruns)
-   * and where lastrun is the runid of the previous event 
-   * in the trace, or 0 if there was none.
-   */
-  offset = lastActiveRun (sys);
-
-    /* First pick out any choose events */
-  for (i = 0; i < sys->maxruns && !flag; i++)
-    {
-      run = (i + offset) % sys->maxruns;
-      rd = runPointerGet (sys, run);
-
-      if (rd != NULL)
-	{
-	  switch (rd->type)
-	    {
-	    case CLAIM:
-	    case SEND:
-	      break;
-
-	    case READ:
-	      if (rd->internal)
-		  flag = executeTry (sys, run);
-	      break;
-
-	    default:
-	      fprintf (stderr, "Encountered unknown event type %i.\n", rd->type);
-	      exit (1);
-	    }
-	}
-    }
-
-  /* Try all events (implicitly we only handle enabled ones) starting with our
-   * first choice.  If one was chosen, flag is set, and the loop aborts. */
-  for (i = 0; i < sys->maxruns && !flag; i++)
-    {
-      run = (i + offset) % sys->maxruns;
-      flag = tryChoiceRun (sys, run);
-    }
-  return flag;
+  if (tryChoosesFirst (sys))
+      return 1;
+  return tryEventsOffset (sys, lastActiveRun (sys));
 }
 
 /*
@@ -1248,26 +1208,7 @@ traversePOR5 (const System sys)
 __inline__ int
 traversePOR6 (const System sys)
 {
-  Roledef rd;
-  int flag = 0;
-  int run;
-  int i;
-  int offset;
-
-  /* The 'choose' implemented here is the following:
-   *
-   * choose ev#rid
-   * where rid = min(r: ev#r in enabled(sys): r)
-   */
-
-  /* Try all events (implicitly we only handle enabled ones) left-to-right.
-   * If one was chosen, flag is set, and the loop aborts. */
-
-  for (run = 0; run < sys->maxruns && !flag; run++)
-    {
-      flag = tryChoiceRun (sys, run);
-    }
-  return flag;
+  return tryEventsOffset (sys, 0);
 }
 
 /*
@@ -1279,63 +1220,24 @@ traversePOR6 (const System sys)
 __inline__ int
 traversePOR7 (const System sys)
 {
-  Roledef rd;
-  int flag = 0;
-  int run;
-  int i;
-  int offset;
-
-  /* Previously we did the sends first. This does not always improve things,
-   * depending on the protocol.
-   */
-  // if (nonReads (sys)) return 1;
-
-  /* a choice for choose */
-
-  /* The 'choose' implemented here is the following:
-   *
-   * choose ev#rid
-   * where rid = min(r: ev#r in enabled(sys): r)
-   */
-
-  /* Try all first events (implicitly we only handle enabled ones) left-to-right.
-   * If one was chosen, flag is set, and the loop aborts. */
-  for (run = 0; run < sys->maxruns && !flag; run++)
-    {
-      rd = runPointerGet (sys, run);
-      if (rd == sys->runs[run].start)
-	{
-	  flag = tryChoiceRoledef (sys, run, rd);
-	}
-    }
-  /* Try all other events (implicitly we only handle enabled ones) left-to-right.
-   * If one was chosen, flag is set, and the loop aborts. */
-  for (run = 0; run < sys->maxruns && !flag; run++)
-    {
-      flag = tryChoiceRun (sys, run);
-    }
-  return flag;
+  if (tryChoosesFirst (sys))
+      return 1;
+  tryEventsOffset (sys, 0);
 }
 
 /*
  * POR8
  *
- * POR6, but tries to continue on the current run.
+ * POR6, but tries to continue on the current run first. This turned out to be highly more efficient.
  */
 
 __inline__ int
 traversePOR8 (const System sys)
 {
-  Roledef rd;
-  int flag = 0;
+  int flag;
   int run;
-  int i;
   int last;
 
-  /* Try all events (implicitly we only handle enabled ones) left-to-right.
-   * If one was chosen, flag is set, and the loop aborts. */
-  /* However, try to continue on the last chosen run first */
-  
   last = lastActiveRun (sys);
   flag = tryChoiceRun (sys, last);
   for (run = 0; run < sys->maxruns && !flag; run++)
