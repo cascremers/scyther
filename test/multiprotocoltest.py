@@ -48,7 +48,7 @@ ScytherBounds	= "--timer=5 --max-runs=5 --max-length=20"
 
 # Build a large part of the command line (for Scyther) already
 ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
-CommandPrefix = "scyther "
+CommandPrefix = "scyther " + ScytherArgs
 
 # Some default settings for Agents, untrusted e with sk(e) and k(a,e) etc.
 IncludeProtocols = '../spdl/spdl-defaults.inc'
