@@ -388,19 +388,13 @@ def SignalAttack (protocols, claim):
 # Furthermore, TempFileList is created.
 
 parser = OptionParser()
-parser.add_option("-m","--match", dest="match",
-		default = 0,
-		help = "select matching method (0: no type flaws, 2: \
-		full type flaws")
+scyther.default_options(parser)
 parser.add_option("-t","--tuplewidth", dest="tuplewidth",
 		default = 2,
 		help = "number of concurrent protocols to test, >=2")
 parser.add_option("-p","--protocols", dest="protocols",
 		default = 0,
 		help = "protocol selection (0: all, 1:literature only)")
-parser.add_option("-b","--bounds", dest="bounds",
-		default = 0,
-		help = "bound type selection (0: quickscan, 1:thorough)")
 parser.add_option("-s","--start", dest="startpercentage",
 		default = 0,
 		help = "start test at a certain percentage")

@@ -67,12 +67,18 @@ def from_others():
 
 	return list_ppfix(list, "../spdl/","")
 
+def from_all():
+	return from_literature() + from_others()
+
 def select(type):
-	list = from_literature()
-	if int(type) == 0:
+	n = int(type)
+	if n == 0:
 		# 0 means all protocols
-		list = list + from_others()
-
-	return list
-
+		return from_all()
+	elif n == 1:
+		# 1 means from literature
+		return from_literature()
+	else:
+		# Otherwise empty list
+		return []
 		

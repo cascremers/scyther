@@ -19,9 +19,10 @@ import commands
 import os
 import sys
 from tempfile import NamedTemporaryFile, gettempdir
+from optparse import OptionParser
 
 #----------------------------------------------------------------------------
-# How to cal Scyther
+# How to call Scyther
 #----------------------------------------------------------------------------
 
 #	scyther should reside in $PATH
@@ -207,5 +208,72 @@ def default_parsed(plist, match, bounds):
 		sys.exit()
 	return parse(scout)
 
+def default_options(parser):
+	parser.add_option("-m","--match", dest="match",
+			default = 0,
+			help = "select matching method (0: no type flaws, 2: \
+			full type flaws")
+	parser.add_option("-b","--bounds", dest="bounds",
+			default = 0,
+			help = "bound type selection (0: quickscan, 1:thorough)")
 
 
+#----------------------------------------------------------------------------
+# Standalone usage
+#----------------------------------------------------------------------------
+
+def main():
+	parser = OptionParser()
+	default_options(parser)
+	parser.add_option("-e","--errors", dest="errors",
+			default = "False",
+			action = "store_true",
+			help = "detect compilation errors for all protocols [in list_all]")
+	(options, args) = parser.parse_args()
+
+	# Subcases
+	if options.errors != "False":
+		# Detect errors in list
+		
+		# Select specific list
+		if args == []:
+			# Get the list
+			import protocollist
+			plist = protocollist.from_all()
+		else:
+			plist = args
+
+		# Now check all things in the list
+		errorcount = 0
+		for p in plist:
+			# Test and gather output
+			(status,scout) = default_test([p], 0, 0)
+			error = 0
+			if status < 0 or status == 1:
+				error = 1
+			else:
+				if scout.rfind("ERROR") != -1:
+					error = 1
+				if scout.rfind("error") != -1:
+					error = 1
+			if error == 1:
+				print "There is an error in the output for", p
+				errorcount = errorcount + 1
+
+		if errorcount > 0:
+			print
+		print "Scan complete. Found", errorcount, "error(s) in", len(plist), "files."
+
+
+	else:
+		# Not any other switch: just test the list then
+		if args == []:
+			print "Scyther default test needs at least one input file."
+			sys.exit()
+		(status,scout) = default_test(args, options.match, options.bounds)
+		print "Status:", status
+		print scout
+
+# Only if main stuff
+if __name__ == '__main__':
+	main()
