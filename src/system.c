@@ -327,7 +327,8 @@ runsPrint (const System sys)
 }
 
 //! Determine whether a term is sent or claimed, but not read first in a roledef
-int not_read_first (const Roledef rdstart, const Term t)
+int
+not_read_first (const Roledef rdstart, const Term t)
 {
   Roledef rd;
 
@@ -377,7 +378,9 @@ agentOfRunRole (const System sys, const int run, const Term role)
     }
   else
     {
-      error ("Agent list for run %i is empty, so agentOfRunRole is not usable.", run);
+      error
+	("Agent list for run %i is empty, so agentOfRunRole is not usable.",
+	 run);
     }
   return NULL;
 }
@@ -512,7 +515,105 @@ firstNonAgentRead (const System sys, int rid)
 }
 
 
-//! Instantiate a role by making a new run.
+/*************************************************
+ *
+ * Support code for roleInstance
+ *
+*************************************************/
+
+//! Prefix a read before a given run.
+/**
+ * Maybe this simply needs integration in the role definitions. However, in practice it
+ * depends on the specific scenario. For Arachne it can thus depend on the roledef.
+ *
+ * Stores the (new) rd pointer in start and index
+ */
+void
+run_prefix_read (const System sys, const int run, Roledef rd,
+		 const Term extterm)
+{
+  /* prefix a read for such reads. TODO: this should also cover any external stuff */
+  if (extterm != NULL)
+    {
+      Roledef rdnew;
+
+      rdnew = roledefInit (READ, NULL, NULL, NULL, extterm, NULL);
+      /* this is an internal action! */
+      rdnew->internal = 1;
+      /* Store this new pointer */
+      rdnew->next = rd;
+      rd = rdnew;
+      /* mark the first real action */
+      sys->runs[run].firstReal++;
+    }
+  /* possibly shifted rd */
+  sys->runs[run].start = rd;
+  sys->runs[run].index = rd;
+}
+
+
+//! Create a new local
+/**
+ * Given a term, construct a new local term. Returns NULL if no such term was constructed.
+ */
+Term
+create_new_local (const Term t, const int rid)
+{
+  if (t != NULL && realTermLeaf (t))
+    {
+      Term newt;
+
+      newt = makeTermType (t->type, t->left.symb, rid);
+      newt->stype = t->stype;
+
+      return newt;
+    }
+  else
+    {
+      return NULL;
+    }
+}
+
+//! Localize run
+/**
+ * Takes a run roledef list and substitutes fromlist into tolist terms.
+ * Furthermore, localizes all substitutions occurring in this, which termLocal
+ * does not. Any localized substitutions are stored as well in a list.
+ */
+void
+run_localize (const System sys, const int rid, Termlist fromlist,
+	      Termlist tolist, Termlist substlist)
+{
+  Roledef rd;
+
+  rd = sys->runs[rid].start;
+  while (rd != NULL)
+    {
+      rd->from = termLocal (rd->from, fromlist, tolist, rid);
+      rd->to = termLocal (rd->to, fromlist, tolist, rid);
+      rd->message = termLocal (rd->message, fromlist, tolist, rid);
+      rd = rd->next;
+    }
+
+  sys->runs[rid].substitutions = NULL;
+  while (substlist != NULL)
+    {
+      Term t;
+
+      t = substlist->term;
+      if (t->subst != NULL)
+	{
+	  t->subst = termLocal (t->subst, fromlist, tolist, rid);
+	  sys->runs[rid].substitutions =
+	    termlistAdd (sys->runs[rid].substitutions, t);
+	}
+      substlist = substlist->next;
+    }
+}
+
+
+
+//! Instantiate a role by making a new run for Arachne
 /**
  * This involves creation of a new run(id).
  * Copy & subst of Roledef, Agent knowledge.
@@ -520,8 +621,9 @@ firstNonAgentRead (const System sys, int rid)
 */
 
 void
-roleInstance (const System sys, const Protocol protocol, const Role role,
-	      const Termlist paramlist, Termlist substlist)
+roleInstanceArachne (const System sys, const Protocol protocol,
+		     const Role role, const Termlist paramlist,
+		     Termlist substlist)
 {
   int rid;
   Run runs;
@@ -549,143 +651,70 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 
   /* scan for types in agent list */
   /* scanners */
-  if (sys->engine != ARACHNE_ENGINE)
-    {
-      // Default engine adheres to scenario
-      scanfrom = protocol->rolenames;
-      scanto = paramlist;
-      while (scanfrom != NULL && scanto != NULL)
-	{
-	  fromlist = termlistAdd (fromlist, scanfrom->term);
-	  if (scanto->term->stype != NULL &&
-	      inTermlist (scanto->term->stype, TERM_Type))
-	    {
-	      Term newvar;
+  /**
+   * Because of pre-instantiation unification, some variables might already have been filled in.
+   * Ignore agent list; instead rely on role->variables.
+   */
+  runs[rid].agents = NULL;
 
-	      /* There is a TYPE constant in the parameter list.
-	       * Generate a new local variable for this run, with this type */
-	      newvar =
-		makeTermType (VARIABLE, scanfrom->term->left.symb, rid);
-	      artefacts = termlistAdd (artefacts, newvar);
-	      sys->variables = termlistAdd (sys->variables, newvar);
-	      newvar->stype = termlistAdd (NULL, scanto->term);
-	      tolist = termlistAdd (tolist, newvar);
-	      /* newvar is apparently new, but it might occur
-	       * in the first event if it's a read, in which
-	       * case we forget it */
-	      if (sys->switchForceChoose || not_read_first (rd, scanfrom->term))
+  scanfrom = role->variables;
+  while (scanfrom != NULL)
+    {
+      Term newt, oldt;
+
+      oldt = scanfrom->term;
+      newt = oldt;
+      if (realTermVariable (newt))
+	{
+	  // Make new var for this run
+	  newt = makeTermType (VARIABLE, newt->left.symb, rid);
+	  artefacts = termlistAdd (artefacts, newt);
+	  newt->stype = oldt->stype;
+	  // Copy substitution
+	  newt->subst = oldt->subst;
+	  // Remove any old substitution! It is now propagated!
+	  oldt->subst = NULL;
+	}
+      // Add to agent list, possibly
+      if (inTermlist (protocol->rolenames, oldt))
+	{
+	  runs[rid].agents = termlistAdd (runs[rid].agents, newt);
+
+	  if (isTermVariable (newt))
+	    {
+	      // It is a protocol role name, maybe add choose?
+	      // Note that for anything but full type flaws, this is not an issue.
+	      // In the POR reduction, force choose was the default. Here it is not.
+	      if (not_read_first (rd, oldt) && sys->match == 2)
 		{
 		  /* this term is forced as a choose, or it does not occur in the (first) read event */
 		  if (extterm == NULL)
 		    {
-		      extterm = newvar;
+		      extterm = newt;
 		    }
 		  else
 		    {
-		      extterm = makeTermTuple (newvar, extterm);
+		      extterm = makeTermTuple (newt, extterm);
 		      artefacts = termlistAdd (artefacts, extterm);
 		    }
 		}
 	    }
-	  else
-	    {
-	      /* not a type constant, add to list */
-	      tolist = termlistAdd (tolist, scanto->term);
-	    }
-	  scanfrom = scanfrom->next;
-	  scanto = scanto->next;
 	}
+      fromlist = termlistAdd (fromlist, oldt);
+      tolist = termlistAdd (tolist, newt);
 
-      /* set agent list */
-      runs[rid].agents = termlistDuplicate (tolist);
-
-    }
-  else
-    {
-      // For the Arachne engine, we need to copy all these roles to new variables
-      /**
-       * Because of pre-instantiation unification, some variables might already have been filled in.
-       * Ignore agent list; instead rely on role->variables.
+      /*
+         eprintf ("Created for run %i: ", rid);
+         termPrint (oldt);
+         eprintf (" -> ");
+         termPrint (newt);
+         eprintf ("\n");
        */
-      Termlist scanfrom;
 
-      runs[rid].agents = NULL;
-
-      scanfrom = role->variables;
-      while (scanfrom != NULL)
-	{
-	  Term newt, oldt;
-
-	  oldt = scanfrom->term;
-	  newt = oldt;
-	  if (realTermVariable (newt))
-	    {
-	      // Make new var for this run
-	      newt = makeTermType (VARIABLE, newt->left.symb, rid);
-	      artefacts = termlistAdd (artefacts, newt);
-	      newt->stype = oldt->stype;
-	      // Copy substitution
-	      newt->subst = oldt->subst;
-	      // Remove any old substitution! It is now propagated!
-	      oldt->subst = NULL;
-	    }
-	  // Add to agent list, possibly
-	  if (inTermlist (protocol->rolenames, oldt))
-	    {
-	      runs[rid].agents = termlistAdd (runs[rid].agents, newt);
-
-	      if (isTermVariable (newt))
-        	{
-		  // It is a protocol role name, maybe add choose?
-		  // Note that for anything but full type flaws, this is not an issue.
-		  // In the POR reduction, force choose was the default. Here it is not.
-		  if (not_read_first(rd, oldt) && sys->match == 2 )
-		    {
-		      /* this term is forced as a choose, or it does not occur in the (first) read event */
-		      if (extterm == NULL)
-			{
-			  extterm = newt;
-			}
-		      else
-			{
-			  extterm = makeTermTuple (newt, extterm);
-			  artefacts = termlistAdd (artefacts, extterm);
-			}
-		    }
-		}
-	    }
-	  fromlist = termlistAdd (fromlist, oldt);
-	  tolist = termlistAdd (tolist, newt);
-
-	  /*
-	     eprintf ("Created for run %i: ", rid);
-	     termPrint (oldt);
-	     eprintf (" -> ");
-	     termPrint (newt);
-	     eprintf ("\n");
-	   */
-
-	  scanfrom = scanfrom->next;
-	}
+      scanfrom = scanfrom->next;
     }
 
-  /* prefix a read for such reads. TODO: this should also cover any external stuff */
-  if (extterm != NULL)
-    {
-      Roledef rdnew;
-
-      rdnew = roledefInit (READ, NULL, NULL, NULL, extterm, NULL);
-      /* this is an internal action! */
-      rdnew->internal = 1;
-      rdnew->next = rd;
-      rd = rdnew;
-      /* mark the first real action */
-      runs[rid].firstReal++;
-    }
-
-  /* possibly shifted rd */
-  runs[rid].start = rd;
-  runs[rid].index = rd;
+  run_prefix_read (sys, rid, rd, extterm);
 
   /* duplicate all locals form this run */
   scanto = role->locals;
@@ -694,15 +723,16 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
       Term t = scanto->term;
       if (!inTermlist (fromlist, t))
 	{
-	  if (realTermLeaf (t))
+	  Term newt;
+
+	  newt = create_new_local (t, rid);
+	  if (newt != NULL)
 	    {
-	      Term newt = makeTermType (t->type, t->left.symb, rid);
 	      artefacts = termlistAdd (artefacts, newt);
 	      if (realTermVariable (newt))
 		{
 		  sys->variables = termlistAdd (sys->variables, newt);
 		}
-	      newt->stype = t->stype;
 	      fromlist = termlistAdd (fromlist, t);
 	      tolist = termlistAdd (tolist, newt);
 	    }
@@ -712,39 +742,139 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 
   /* TODO this is not what we want yet, also local knowledge. The local
    * knowledge (list?) also needs to be substituted on invocation. */
-  if (sys->engine == ARACHNE_ENGINE)
-    {
-      runs[rid].know = NULL;
-    }
-  else
-    {
-      runs[rid].know = knowledgeDuplicate (sys->know);
-    }
+  runs[rid].know = NULL;
 
   /* now adjust the local run copy */
+  run_localize (sys, rid, fromlist, tolist, substlist);
 
-  rd = runs[rid].start;
-  while (rd != NULL)
+  termlistDelete (fromlist);
+  runs[rid].locals = tolist;
+  runs[rid].artefacts = artefacts;
+
+  /* erase any substitutions in the role definition, as they are now copied */
+  termlistSubstReset (role->variables);
+}
+
+
+
+//! Instantiate a role by making a new run for the Modelchecker
+/**
+ * This involves creation of a new run(id).
+ * Copy & subst of Roledef, Agent knowledge.
+ * Tolist might contain type constants.
+*/
+
+void
+roleInstanceModelchecker (const System sys, const Protocol protocol,
+			  const Role role, const Termlist paramlist,
+			  Termlist substlist)
+{
+  int rid;
+  Run runs;
+  Roledef rd;
+  Termlist scanfrom, scanto;
+  Termlist fromlist = NULL;
+  Termlist tolist = NULL;
+  Termlist artefacts = NULL;
+  Term extterm = NULL;
+
+  /* claim runid, allocate space */
+  rid = sys->maxruns;
+  ensureValidRun (sys, rid);
+  runs = sys->runs;
+
+  /* duplicate roledef in buffer rd */
+  rd = roledefDuplicate (role->roledef);
+
+  /* set parameters */
+  /* generic setup */
+  runs[rid].protocol = protocol;
+  runs[rid].role = role;
+  runs[rid].step = 0;
+  runs[rid].firstReal = 0;
+
+  /* scan for types in agent list */
+  /* scanners */
+  // Default engine adheres to scenario
+  scanfrom = protocol->rolenames;
+  scanto = paramlist;
+  while (scanfrom != NULL && scanto != NULL)
     {
-      rd->from = termLocal (rd->from, fromlist, tolist, rid);
-      rd->to = termLocal (rd->to, fromlist, tolist, rid);
-      rd->message = termLocal (rd->message, fromlist, tolist, rid);
-      rd = rd->next;
-    }
-
-  runs[rid].substitutions = NULL;
-  while (substlist != NULL)
-    {
-      Term t;
-
-      t = substlist->term;
-      if (t->subst != NULL)
+      fromlist = termlistAdd (fromlist, scanfrom->term);
+      if (scanto->term->stype != NULL &&
+	  inTermlist (scanto->term->stype, TERM_Type))
 	{
-	  t->subst = termLocal (t->subst, fromlist, tolist, rid);
-	  runs[rid].substitutions = termlistAdd (runs[rid].substitutions, t);
+	  Term newvar;
+
+	  /* There is a TYPE constant in the parameter list.
+	   * Generate a new local variable for this run, with this type */
+	  newvar = makeTermType (VARIABLE, scanfrom->term->left.symb, rid);
+	  artefacts = termlistAdd (artefacts, newvar);
+	  sys->variables = termlistAdd (sys->variables, newvar);
+	  newvar->stype = termlistAdd (NULL, scanto->term);
+	  tolist = termlistAdd (tolist, newvar);
+	  /* newvar is apparently new, but it might occur
+	   * in the first event if it's a read, in which
+	   * case we forget it */
+	  if (sys->switchForceChoose || not_read_first (rd, scanfrom->term))
+	    {
+	      /* this term is forced as a choose, or it does not occur in the (first) read event */
+	      if (extterm == NULL)
+		{
+		  extterm = newvar;
+		}
+	      else
+		{
+		  extterm = makeTermTuple (newvar, extterm);
+		  artefacts = termlistAdd (artefacts, extterm);
+		}
+	    }
 	}
-      substlist = substlist->next;
+      else
+	{
+	  /* not a type constant, add to list */
+	  tolist = termlistAdd (tolist, scanto->term);
+	}
+      scanfrom = scanfrom->next;
+      scanto = scanto->next;
     }
+
+  /* set agent list */
+  runs[rid].agents = termlistDuplicate (tolist);
+
+  run_prefix_read (sys, rid, rd, extterm);
+
+  /* duplicate all locals form this run */
+  scanto = role->locals;
+  while (scanto != NULL)
+    {
+      Term t = scanto->term;
+      if (!inTermlist (fromlist, t))
+	{
+	  Term newt;
+
+	  newt = create_new_local (t, rid);
+	  if (newt != NULL)
+	    {
+	      artefacts = termlistAdd (artefacts, newt);
+	      if (realTermVariable (newt))
+		{
+		  sys->variables = termlistAdd (sys->variables, newt);
+		}
+	      fromlist = termlistAdd (fromlist, t);
+	      tolist = termlistAdd (tolist, newt);
+	    }
+	}
+      scanto = scanto->next;
+    }
+
+  /* TODO this is not what we want yet, also local knowledge. The local
+   * knowledge (list?) also needs to be substituted on invocation. */
+  runs[rid].know = knowledgeDuplicate (sys->know);
+
+  /* now adjust the local run copy */
+  run_localize (sys, rid, fromlist, tolist, substlist);
+
   termlistDelete (fromlist);
   runs[rid].locals = tolist;
   runs[rid].artefacts = artefacts;
@@ -762,6 +892,27 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
     }
 }
 
+//! Instantiate a role by making a new run
+/**
+ * Generic splitter. Splits into the arachne version, or the modelchecker version.
+ *
+ * This involves creation of a new run(id).
+ * Copy & subst of Roledef, Agent knowledge.
+ * Tolist might contain type constants.
+*/
+void
+roleInstance (const System sys, const Protocol protocol, const Role role,
+	      const Termlist paramlist, Termlist substlist)
+{
+  if (sys->engine == ARACHNE_ENGINE)
+    {
+      roleInstanceArachne (sys, protocol, role, paramlist, substlist);
+    }
+  else
+    {
+      roleInstanceModelchecker (sys, protocol, role, paramlist, substlist);
+    }
+}
 
 //! Destroy roleInstance
 /**

@@ -134,7 +134,8 @@ inTermlist (Termlist tl, const Term term)
 }
 
 //! Determine whether a term is an element of a termlist: yield pointer
-__inline__ Termlist termlistFind (Termlist tl, const Term term)
+__inline__ Termlist
+termlistFind (Termlist tl, const Term term)
 {
 #ifdef DEBUG
   if (term == NULL)
@@ -614,6 +615,9 @@ inverseKey (Termlist inverses, Term key)
 /*
  * We assume that at this point, no variables have been instantiated yet that occur in this term.
  * We also assume that fromlist, tolist only hold real leaves.
+ *
+ * variable instantiations are not followed through.
+ *
  *\sa termlistLocal()
  */
 Term
@@ -622,7 +626,6 @@ termLocal (Term t, Termlist fromlist, Termlist tolist, const int runid)
   if (t == NULL)
     return NULL;
 
-  // deVar (t);                 // remove any instantiated variables from the term.
   if (realTermLeaf (t))
     {
       while (fromlist != NULL && tolist != NULL)
@@ -813,7 +816,8 @@ termlist_iterate (Termlist tl, int (*func) ())
 }
 
 //! Create a tuple term from a termlist
-Term termlist_to_tuple (Termlist tl)
+Term
+termlist_to_tuple (Termlist tl)
 {
   int width;
 
@@ -837,13 +841,14 @@ Term termlist_to_tuple (Termlist tl)
       while (tl != NULL)
 	{
 	  if (i < split)
-	      tl1 = termlistAdd (tl1, tl->term);
+	    tl1 = termlistAdd (tl1, tl->term);
 	  else
-	      tl2 = termlistAdd (tl2, tl->term);
+	    tl2 = termlistAdd (tl2, tl->term);
 	  tl = tl->next;
 	  i++;
 	}
-      tresult = makeTermTuple (termlist_to_tuple (tl1), termlist_to_tuple (tl2));
+      tresult =
+	makeTermTuple (termlist_to_tuple (tl1), termlist_to_tuple (tl2));
       termlistDelete (tl1);
       termlistDelete (tl2);
       return tresult;
@@ -858,7 +863,7 @@ Term termlist_to_tuple (Termlist tl)
       else
 	{
 	  // Single node, simple
-	  return termDuplicate(tl->term);
+	  return termDuplicate (tl->term);
 	}
     }
 }
