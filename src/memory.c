@@ -14,7 +14,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <malloc.h>
+#ifdef DEBUG
 #include <mcheck.h>
+#endif
 #include "memory.h"
 #include "debug.h"
 
