@@ -666,9 +666,16 @@ dotSemiState ()
   int run;
   Protocol p;
 
-  void node (int run, int index)
+  void node (const int run, const int index)
   {
-    eprintf ("r%ii%i", run, index);
+    if (sys->runs[run].protocol == INTRUDER)
+      {
+	eprintf ("i%i", run);
+      }
+    else
+      {
+	eprintf ("r%ii%i", run, index);
+      }
   }
 
   int binder (void *data)
@@ -712,44 +719,67 @@ dotSemiState ()
 
       index = 0;
       rd = sys->runs[run].start;
-      eprintf ("\tsubgraph cluster_run%i {\n", run);
-      eprintf ("\t\tlabel = \"");
       if (sys->runs[run].protocol != INTRUDER)
 	{
+	  // Regular run
+
+	  eprintf ("\tsubgraph cluster_run%i {\n", run);
+	  eprintf ("\t\tlabel = \"");
 	  eprintf ("run #%i, protocol ", run);
 	  termPrint (sys->runs[run].protocol->nameterm);
 	  eprintf (", role ");
 	  termPrint (sys->runs[run].role->nameterm);
+	  eprintf ("\";\n", run);
+	  if (run == 0)
+	    {
+	      eprintf ("\t\tcolor = red;\n");
+	    }
+	  else
+	    {
+	      eprintf ("\t\tcolor = blue;\n");
+	    }
+	  while (index < sys->runs[run].length)
+	    {
+	      // Print node itself
+	      eprintf ("\t\t");
+	      node (run, index);
+	      eprintf (" [");
+	      if (run == 0 && index == current_claim->ev)
+		{
+		  eprintf ("shape=doubleoctagon,");
+		}
+	      else
+		{
+		  eprintf ("shape=box,");
+		}
+	      eprintf ("label=\"");
+	      roledefPrint (rd);
+	      eprintf ("\"]");
+	      eprintf (";\n");
+
+	      // Print binding to previous node
+	      if (index > 0)
+		{
+		  eprintf ("\t\t");
+		  node (run, index - 1);
+		  eprintf (" -> ");
+		  node (run, index);
+		  eprintf (";\n");
+		}
+	      index++;
+	      rd = rd->next;
+	    }
+	  eprintf ("\t}\n");
 	}
       else
 	{
-	  eprintf ("(intruder)");
+	  // INTRUDER run
+	  eprintf ("\t");
+	  node (run, 0);
+	  eprintf (" [label=\"");
+	  termPrint (sys->runs[run].role->nameterm);
+	  eprintf ("\"];\n");
 	}
-      eprintf ("\";\n", run);
-      eprintf ("\t\tcolor = blue;\n");
-      while (index < sys->runs[run].length)
-	{
-	  // Print node itself
-	  eprintf ("\t\t");
-	  node (run, index);
-	  eprintf (" [shape=box,label=\"");
-	  roledefPrint (rd);
-	  eprintf ("\"]");
-	  eprintf (";\n");
-
-	  // Print binding to previous node
-	  if (index > 0)
-	    {
-	      eprintf ("\t\t");
-	      node (run, index - 1);
-	      eprintf (" -> ");
-	      node (run, index);
-	      eprintf (";\n");
-	    }
-	  index++;
-	  rd = rd->next;
-	}
-      eprintf ("\t}\n");
       run++;
     }
 
