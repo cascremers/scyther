@@ -33,6 +33,7 @@ Term levelFind (Symbol s, int i);
 Term symbolFind (Symbol s);
 Term tacTerm (Tac tc);
 Termlist tacTermlist (Tac tc);
+Term levelDeclare (Symbol s, int isVar, int level);
 void compute_role_variables (const System sys, Protocol p, Role r);
 
 #define	levelDeclareVar(s)	levelTacDeclaration(s,1)
@@ -99,6 +100,12 @@ compilerInit (const System mysys)
   langcons (CLAIM_Secret, "Secret", TERM_Claim);
   langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);
   langcons (CLAIM_Niagree, "Niagree", TERM_Claim);
+}
+
+//! Make a global constant
+Term makeGlobalConstant (const char *s)
+{
+  return levelDeclare (symbolSysConst(s), 0, 0);
 }
 
 //! Clean up afterwards

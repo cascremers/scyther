@@ -15,8 +15,13 @@
 #include "arachne.h"
 
 static System sys;
-static Protocol INTRUDER;	// Pointers, to be set by the Init
-static Role I_GOAL;		// Same here.
+Protocol INTRUDER;	// Pointers, to be set by the Init
+Role I_GOAL;		// Same here.
+Role I_TEE;
+Role I_SPLIT;
+Role I_TUPLE;
+Role I_ENCRYPT;
+Role I_DECRYPT;
 
 #ifdef DEBUG
 static char *explanation;	// Pointer to a string that describes what we just tried to do
@@ -46,10 +51,35 @@ int iterate ();
 void
 arachneInit (const System mysys)
 {
+  Roledef rd = NULL;
+
+  void add_event (int event, Term message)
+    {
+      rd = roledefAdd (rd, event, NULL, NULL, NULL, message, NULL);
+    }
+  Role add_role (const char *rolename)
+    {
+      Role r;
+
+      r = roleCreate (makeGlobalConstant (rolename));
+      r->roledef = rd;
+      rd = NULL;
+      r->next = INTRUDER->roles;
+      INTRUDER->roles = r;
+      compute_role_variables (sys, INTRUDER, r);
+      return r;
+    }
+
   sys = mysys;			// make sys available for this module as a global
   /*
    * Add intruder protocol roles
    */
+
+  INTRUDER = protocolCreate (makeGlobalConstant (" INTRUDER "));
+
+  add_event (READ, NULL);
+  I_GOAL = add_role (" I_GOAL ");
+
   return;
 }
 
