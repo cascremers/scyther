@@ -119,9 +119,8 @@ main (int argc, char **argv)
   struct arg_int *switch_prune_trace_length =
     arg_int0 ("l", "max-length", NULL,
 	      "prune traces longer than <int> events.");
-  struct arg_int *switch_prune_proof_depth =
-    arg_int0 ("d", "max-depth", NULL,
-	      "prune proof deeper than <int> splits.");
+  struct arg_int *switch_prune_proof_depth = arg_int0 ("d", "max-depth", NULL,
+						       "prune proof deeper than <int> splits.");
   struct arg_lit *switch_incremental_trace_length =
     arg_lit0 (NULL, "increment-traces",
 	      "incremental search using the length of the traces.");
@@ -130,7 +129,8 @@ main (int argc, char **argv)
   struct arg_lit *switch_incremental_runs = arg_lit0 (NULL, "increment-runs",
 						      "incremental search using the number of runs");
   struct arg_int *switch_goal_select_method =
-    arg_int0 (NULL, "goal-select", NULL, "use goal selection method <int> (default 3)");
+    arg_int0 (NULL, "goal-select", NULL,
+	      "use goal selection method <int> (default 3)");
   struct arg_lit *switch_latex_output =
     arg_lit0 (NULL, "latex", "output attacks in LaTeX format");
   struct arg_lit *switch_empty =
@@ -577,11 +577,6 @@ main (int argc, char **argv)
 	  error ("Incremental traversal only for empty or attack output.");
 	}
     }
-  /* TODO for now, warning for -m2 and non-clp */
-  if (sys->match == 2 && !sys->clp)
-    {
-      warning ("-m2 is only supported for constraint logic programming.");
-    }
 #ifdef DEBUG
   if (DEBUGL (4))
     {
@@ -834,7 +829,7 @@ timersPrint (const System sys)
 		{
 		  eprintf ("bounded_proof");
 		  if (cl_scan->timebound)
-		      eprintf ("\ttime=%i",time_limit_seconds);
+		    eprintf ("\ttime=%i", time_limit_seconds);
 		}
 	    }
 	}
