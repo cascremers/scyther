@@ -31,6 +31,7 @@ ReportInterval = 10
 
 ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
 CommandPrefix = ScytherProgram + " " + ScytherArgs
+IncludeProtocols = 'spdl-defaults.inc'
 
 ProtocolClaims = {}
 ProtocolFiles = {}
@@ -71,7 +72,7 @@ def GetKeys (f, x):
 # Yield the commandline to test, given a list of protocols
 def CommandLine (plist):
 	linelist = " ".join(plist)
-	return "cat " + linelist + " | " + CommandPrefix
+	return "cat " + IncludeProtocols + " " + linelist + " | " + CommandPrefix
 
 
 # ScytherEval
