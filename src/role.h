@@ -37,6 +37,8 @@ struct claimlist
   int ev;			//!< event index in role
   //! Preceding label list
   Termlist prec;
+  //! Roles that are involved (nameterms)
+  Termlist roles;
   //! Next node pointer or NULL for the last element of the function.
   struct claimlist *next;
 };

@@ -2,6 +2,8 @@
 #define LABEL
 
 #include "term.h"
+#include "list.h"
+#include "system.h"
 
 /*
  * Structure to store label information
@@ -16,7 +18,8 @@ struct labelinfo
 
 typedef struct labelinfo* Labelinfo;
 
-Labelinfo label_create (const Term label, const Term protocol);
+Labelinfo label_create (const Term label, const Protocol protocol);
 void label_destroy (Labelinfo linfo);
+Labelinfo label_find (List labellist, const Term label);
 
 #endif

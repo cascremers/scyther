@@ -3,6 +3,7 @@
 #include "tac.h"
 #include "term.h"
 #include "termlist.h"
+#include "label.h"
 #include "memory.h"
 #include "system.h"
 #include "knowledge.h"
@@ -19,19 +20,6 @@
 
 static System sys;
 static Tac tac_root;
-
-/*
- * Structure to store label information
- */
-struct labelinfo
-{
-    Term label;
-    Term protocol;
-    Term sendrole;
-    Term readrole;
-};
-
-typedef struct labelinfo Labelinfo;
 
 /*
  * Declaration from system.c
@@ -391,6 +379,7 @@ commEvent (int event, Tac tc)
   Term claimbig = NULL;
   int n = 0;
   Tac trip;
+  Labelinfo linfo;
 
   /* Construct label, if any */
   if (tc->t1.sym == NULL)
@@ -417,6 +406,20 @@ commEvent (int event, Tac tc)
 	    makeTermTuple (thisProtocol->nameterm, label);
 	}
     }
+  /**
+   * We now know the label. Find the corresponding labelinfo bit or make a new one
+   */
+  linfo = label_find (sys->labellist, label);
+  if (linfo == NULL)
+    {
+      /* Not found, make a new one */
+      linfo = label_create (label, thisProtocol);
+      sys->labellist = list_append (sys->labellist, linfo);
+    }
+
+  /**
+   * Parse the specific event type
+   */
   trip = tc->t2.tac;
   switch (event)
     {
@@ -434,10 +437,23 @@ commEvent (int event, Tac tc)
 
       if (event == SEND)
 	{
+	  /* set sendrole */
+	  if (linfo->sendrole != NULL)
+	      error ("Label defined twice for sendrole!");
+	  linfo->sendrole = fromrole;
+
 	  /* set keylevels based on send events */
 	  term_set_keylevels (fromrole);
 	  term_set_keylevels (torole);
 	  term_set_keylevels (msg);
+	}
+      else
+	{
+	  // READ
+	  /* set readrole */
+	  if (linfo->readrole != NULL)
+	      error ("Label defined twice for readrole!");
+	  linfo->readrole = torole;
 	}
 
       break;
@@ -518,6 +534,7 @@ commEvent (int event, Tac tc)
       cl->complete = 0;
       cl->failed = 0;
       cl->prec = NULL;
+      cl->roles = NULL;
       cl->next = sys->claimlist;
       sys->claimlist = cl;
 
@@ -905,6 +922,30 @@ compute_role_variables (const System sys, Protocol p, Role r)
     }
 }
 
+//! Compute term list of rolenames involved in a given term list of labels
+Termlist 
+compute_label_roles (Termlist labels)
+{
+  Termlist roles;
+
+  roles = NULL;
+  while (labels != NULL)
+    {
+      Labelinfo linfo;
+
+      linfo = label_find (sys->labellist, labels->term);
+#ifdef DEBUG
+      if (linfo == NULL)
+	  error ("Label in prec list not found in label info list");
+#endif
+      roles = termlistAddNew (roles, linfo->sendrole);
+      roles = termlistAddNew (roles, linfo->readrole);
+
+      labels = labels->next;
+    }
+  return roles;
+}
+
 //! Compute prec() sets for each claim.
 /**
  * Generates two auxiliary structures. First, a table that contains
@@ -1181,6 +1222,12 @@ compute_prec_sets (const System sys)
 	  r2++;
 	}
       /**
+       * cl->prec is done, now we infer cl->roles
+       */
+
+      cl->roles = compute_label_roles (cl->prec);
+
+      /**
        * ---------------------------
        * Distinguish types of claims
        * ---------------------------
@@ -1268,9 +1315,21 @@ compute_prec_sets (const System sys)
 	}
       else
 	{
-	  // printf ("Preceding label set for r:%i, ev:%i = ", r1,ev1);
-	  // termlistPrint (cl->prec);
-	  // printf ("\n");
+#ifdef DEBUG
+	  if (DEBUGL (3))
+	    {
+	      Protocol p;
+
+	      printf ("Preceding label set for r:%i, ev:%i = ", r1,ev1);
+	      termlistPrint (cl->prec);
+	      printf (", involving roles ");
+	      termlistPrint (cl->roles);
+	      printf (", from protocol ");
+	      p = (Protocol) cl->protocol;
+	      termPrint (p->nameterm);
+	      printf ("\n");
+	    }
+#endif
 	}
 
       // Proceed to next claim

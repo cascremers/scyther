@@ -222,7 +222,7 @@ termlistAppend (const Termlist tl, const Term term)
 Termlist
 termlistAddNew (const Termlist tl, const Term t)
 {
-  if (inTermlist (tl, t))
+  if (t == NULL || inTermlist (tl, t))
     return tl;
   else
     return termlistAdd (tl, t);
