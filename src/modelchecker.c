@@ -187,11 +187,9 @@ executeStep (const System sys, const int run)
   return 1;
 }
 
-/*
- * explorify
- *
+//! Explores the system state given by the next step of a run.
+/**
  * grandiose naming scheme (c) sjors dubya.
- * explores the system state given by the next step of a run.
  */
 
 int
@@ -207,19 +205,27 @@ explorify (const System sys, const int run)
       exit (1);
     }
 
-  if (executeStep (sys, run))
-    {
-      /* traverse the system after the step */
+  flag = 0;
 
-      flag = traverse (sys);
+  /* special check: internal read
+   * Efficiency of the next check heavily relies on lazy L-R evaluation
+   */
+  if (rd->internal && rd->type == READ && inTermlist (sys->untrusted, agentOfRun (sys, run)))
+    {
+      /* this run is executed by an untrusted agent, do not explore */
     }
   else
     {
-      flag = 0;
+      if (executeStep (sys, run))
+	{
+	  /* traverse the system after the step */
+
+	  flag = traverse (sys);
+	  runPointerSet (sys, run, rd);
+	  sys->step--;
+	  indentSet (sys->step);
+	}
     }
-  runPointerSet (sys, run, rd);
-  sys->step--;
-  indentSet (sys->step);
   return flag;
 }
 
