@@ -45,22 +45,35 @@ safetxt = " " * 20
 # 	LIBS
 # ***********************
 
-# GetKeys
-#
-# Given a mapping f and a value x, returns a list of keys 
-# k for which f(k) = x
 def GetKeys (f, x):
+	"""Get the list of keys of a mapping to some value
+
+	   in:
+	   	f:	a mapping
+		x:	an element of the range of f
+	   out:
+	   	A list, with elements from the domain of f, such that
+		for each y in the list we have f(y)=x
+	"""
+
 	res = []
 	for k in f.keys():
 		if f[k] == x:
 			res.append(k)
 	return res
 
-# GetListKeys
-#
-# Given a mapping f and a list l, returns a list of keys 
-# k for which f(k) = x, x in l
+
 def GetListKeys (f, l):
+	"""Get a list of keys for a list of elements (generalized GetKeys)
+
+	   in:
+	   	f:	a mapping
+		l:	a list of elements from the range of f
+	   out:
+	   	A list, with elements from the domain of f, such that
+		for each y in the list we have f(y) in l.
+	"""
+	   	
 	res = []
 	for x in l:
 		for y in GetKeys (f, x):
@@ -68,17 +81,32 @@ def GetListKeys (f, l):
 				res.append(y)
 	return res
 
-# CommandLine
-#
-# Yield the commandline to test, given a list of protocols
+
 def CommandLine (plist):
+	"""Yield the commandline to test
+
+	   in:
+		a list of protocol file names
+	   out:
+		a command line string
+	"""
+
 	linelist = " ".join(plist)
 	return "cat " + IncludeProtocols + " " + linelist + " | " + CommandPrefix
 
-# PrintProtStatus
-#
-# pretty-print the status of a protocol
+
 def PrintProtStatus (file, prname):
+	"""Pretty-print the protocol status
+
+	   in:
+		file:			a file pointer to write to (e.g. stdout)
+		prname:			a protocol name id
+	   global:
+	   	ProtocolStatusMap:	the pre-determined status of the protocols
+	   out:
+	   	output is written to file
+	"""
+
 	file.write (prname + ": ")
 	if ProtocolToStatusMap[prname] == 0:
 		file.write ("All-Flawed")
@@ -87,12 +115,23 @@ def PrintProtStatus (file, prname):
 	else:
 		file.write ("Mixed")
 
-# ScytherEval
-#
-# Take the list of protocols in plist, and give them to Scyther.
-# Returns a dictionary of claim -> bool; where 1 means that it is
-# correct, and 0 means that it is false (i.e. there exists an attack)
+
 def ScytherEval (plist):
+	"""Evaluate a protocol file list using Scyther
+
+	   in:
+	   	A list of protocol file names
+	   global:
+	   	options:	settings for scyther
+		ArgumentsList:	already reported arguments list for
+				scyther.
+	   out:
+	   	A dictionary of claim->bool, where true means correct
+		(either complete or bounded) and false means attack.
+		If the arguments list that is constructed was not
+		reported before, it is now (to stdout).
+	"""
+
 	global options
 
 	# Flush before trying (possibly fatal) external commands
@@ -107,10 +146,21 @@ def ScytherEval (plist):
 
 	return scythertest.default_parsed(plist, int(options.match), int(options.bounds))
 
-# ScytherEval1
-#
-# The above, but do the preprocessing for a single protocol
+
 def ScytherEval1 (protocol):
+	"""Evaluate a single protocol and store the results for later usage
+
+	   in:
+	   	a single protocol file name
+	   global:
+	   	ClaimToResultMap
+		ProtocolToFileMap
+		ProtocolToStatusMap
+	   out:
+	   	Globals have been updated to reflect the computed
+		protocol status
+	"""
+
 	results = ScytherEval ([protocol])
 
 	# Add the claim to the list of ClaimToResultMap

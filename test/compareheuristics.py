@@ -9,6 +9,18 @@ import scythertest
 
 # Parse
 def parse(scout):
+	"""Parse Scyther output for heuristics tests
+
+	   in:
+	       A single Scyther output string (including newlines)
+	   out:
+	       ra:	number of failed claims
+	       rb:	number of bounded proofs of claims
+	       rc:	number of complete proofs of claims
+	       nc:	number of processed claims (should be the sum of the previous)
+	       st:	number of states traversed
+	"""
+	     
 	ra = 0
 	rb = 0
 	rp = 0
@@ -32,8 +44,21 @@ def parse(scout):
 	return (ra,rb,rp,nc,st)
 
 
-# Test with a goal selector
 def test_goal_selector(goalselector, options):
+	"""Test with a given goal selector
+
+	   in:
+	       goalselector:	as in Scyther docs.
+	       options:		options record (formatted as in optparse module)
+	   out:
+	       (attacks,bounds,proofs,claims,np,states)
+	       attacks:	number of failed claims
+	       bounds:	number of bounded proofs
+	       proofs:	number of complete proofs
+	       np:	number of protocols tested
+	       states:	total number of states explored.
+	"""
+
 	import protocollist
 
 	scythertest.set_extra_parameters("--goal-select=" + str(goalselector))
@@ -61,12 +86,33 @@ def test_goal_selector(goalselector, options):
 
 # Max
 class maxor:
+	"""Class for a dynamic maximum determination and corresponding formatting
+	"""
+
 	def __init__(self,dir=0,mymin=99999999, mymax=-99999999):
+		"""Init
+
+		   in:
+			dir:	bit 0 is set : notify of increase
+				bit 1 is set : notify of decrease
+			mymin:	initial minimum
+			mymax:	initial maximum
+		"""
+
 		self.dir = dir
 		self.min = mymin
 		self.max = mymax
 	
 	def reg(self,data):
+		"""Store a new data element
+
+		   in:
+		   	element to be stored
+		   out:
+		   	formatted element, plus increase/decrease
+			notifications according to initial settings.
+		"""
+
 		res = ""
 		if self.min >= data:
 			self.min = data
