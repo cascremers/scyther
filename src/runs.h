@@ -134,6 +134,7 @@ struct run
   Knowledge know;	//!< Current knowledge of the run.
   Termlist locals;	//!< Locals of the run.
   int prevSymmRun;	//!< Used for symmetry reduction. Either -1, or the previous run with the same role def and at least a single parameter.
+  int firstNonAgentRead; //!< Used for symmetry reductions for equal agents runs; -1 if there is no candidate.
 };
 
 //! Shorthand for run pointer.
@@ -208,6 +209,7 @@ struct system
   int porparam;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
   int switchStatespace;		//!< Output statespace for dot package
   int switchForceChoose;	//!< Force chooses for each run, even if involved in first read
+  int switchReadSymm;		//!< Enable read symmetry reduction
   //! Latex output switch.
   /**
    * Obsolete. Use globalLatex instead.

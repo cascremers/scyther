@@ -91,6 +91,8 @@ traverse (const System sys)
       return traversePOR4 (sys);
     case 9:
       return traversePOR5 (sys);
+    case 10:
+      return traversePOR6 (sys);
     default:
       debug (2, "This is NOT an existing traversal method !");
       exit (1);
@@ -347,6 +349,7 @@ explorify (const System sys, const int run)
 
       roleCap = removeIrrelevant (sys, run, rd);
 
+
       /* Special check x: if all agents in each run send only encrypted stuff, and all agents are trusted,
        * there is no way for the intruder to learn anything else than encrypted terms, so secrecy claims will not
        * be violated anymore if they contain no terms that are encrypted with such keys */
@@ -363,6 +366,63 @@ explorify (const System sys, const int run)
 	  rid++;
 	}
 	*/
+    }
+
+  /* 
+   * Special check b1: symmetry reduction part II on similar read events for equal roles.
+   */
+
+  if (sys->switchReadSymm)
+    {
+      if (sys->runs[run].firstNonAgentRead == myStep)
+	{
+	  /* Apparently, we have a possible ordering with our symmetrical friend.
+	   * Check if it has progressed enough, and has the same agents.
+	   */
+	  int ridSymm;
+     
+	  if (rd->type != READ)
+	    {
+	      error ("firstNonAgentRead is not a read?!");
+	    }
+	  ridSymm = sys->runs[run].prevSymmRun;
+	  if (isTermlistEqual (sys->runs[run].agents, sys->runs[ridSymm].agents))
+	    {
+	      /* same agents, so relevant */
+	      if (myStep > 0 && sys->runs[ridSymm].step < myStep)
+		{
+		  // warning ("Symmetrical firstread dependency #%i (for run #%i) has not chosen yet!", ridSymm, run);
+		}
+	      else
+		{
+		  if (sys->runs[ridSymm].step <= myStep)
+		    {
+		      // warning ("Symmetrical firstread dependency #%i (for run #%i) has not read it's firstNonAgentRead %i yet, as it is only at %i!", ridSymm, run, myStep, sys->runs[ridSymm].step);
+		    }
+		  else
+		    {
+		      /* read was done, so we can compare them */
+		      int i;
+		      Roledef rdSymm;
+
+		      rdSymm = sys->runs[ridSymm].start;
+		      i = myStep;
+		      while (i > 0)
+			{
+			  rdSymm = rdSymm->next;
+			  i--;
+			}
+		      /* rdSymm now points to the instance of the symmetrical read */
+		      i = termOrder (rdSymm->message, rd->message);
+		      if (i < 0)
+			{
+			  /* only explore symmetrical variant */
+			  return;
+			}
+		    }
+		}
+	    }
+	}
     }
 
   /* Apparently, all is well, and we can explore further */
@@ -1086,6 +1146,121 @@ traversePOR5 (const System sys)
   for (i = 0; i < sys->maxruns && !flag; i++)
     {
       run = (i + offset) % sys->maxruns;
+      rd = runPointerGet (sys, run);
+
+      if (rd != NULL)
+	{
+	  switch (rd->type)
+	    {
+	    case CLAIM:
+	    case SEND:
+	      executeTry (sys, run);
+	      flag = 1;
+	      break;
+
+	    case READ:
+	      /* the sendsdone check only prevent
+	       * some unneccessary inKnowledge tests,
+	       * and branch tests, still improves
+	       * about 15% */
+	      if (sys->knowPhase > rd->knowPhase)
+		{
+		  /* apparently there has been a new knowledge item since the
+		   * previous check */
+
+		  /* implicit check for enabledness */
+		  flag = executeTry (sys, run);
+
+		  /* if it was enabled (flag) we postpone it if it makes sense
+		   * to do so (hasVariable, non internal) */
+		  if (flag && hasTermVariable (rd->message) && !rd->internal)
+		    {
+		      int stackKnowPhase = rd->knowPhase;
+
+		      rd->knowPhase = sys->knowPhase;
+		      if (sys->clp)
+			{
+			  block_clp (sys, run);
+			}
+		      else
+			{
+			  block_basic (sys, run);
+			}
+		      rd->knowPhase = stackKnowPhase;
+		    }
+		}
+	      break;
+
+	    default:
+	      fprintf (stderr, "Encountered unknown event type %i.\n", rd->type);
+	      exit (1);
+	    }
+	}
+    }
+  return flag;
+}
+
+/*
+ * POR6
+ *
+ * POR5 but has a left-oriented scan instead of working from the current run.
+ */
+
+int
+traversePOR6 (const System sys)
+{
+  Roledef rd;
+  int flag = 0;
+  int run;
+  int i;
+  int offset;
+
+  /* Previously we did the sends first. This does not always improve things,
+   * depending on the protocol.
+   */
+  // if (nonReads (sys)) return 1;
+
+  /* a choice for choose */
+
+  /* The 'choose' implemented here is the following:
+   *
+   * choose ev#rid
+   * where rid = min(r: ev#r in enabled(sys): (r-lastrun) mod maxruns)
+   * and where lastrun is the runid of the previous event 
+   * in the trace, or 0 if there was none.
+   */
+
+  /* First pick out any choose events */
+  for (run = 0; run < sys->maxruns && !flag; run++)
+    {
+      rd = runPointerGet (sys, run);
+
+      if (rd != NULL)
+	{
+	  switch (rd->type)
+	    {
+	    case CLAIM:
+	    case SEND:
+	      break;
+
+	    case READ:
+	      if (rd->internal)
+		{
+		  flag = executeTry (sys, run);
+		}
+	      break;
+
+	    default:
+	      fprintf (stderr, "Encountered unknown event type %i.\n", rd->type);
+	      exit (1);
+	    }
+	}
+    }
+
+  /* Try all events (implicitly we only handle enabled ones) starting with our
+   * first choice.  If one was chosen, flag is set, and the loop aborts. */
+  for (run = 0; run < sys->maxruns && !flag; run++)
+    {
       rd = runPointerGet (sys, run);
 
       if (rd != NULL)

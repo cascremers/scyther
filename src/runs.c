@@ -65,6 +65,7 @@ systemInit ()
   sys->latex = 0;		// latex output?
   sys->switchStatespace = 0;
   sys->switchForceChoose = 0;	// don't force explicit chooses by default
+  sys->switchReadSymm = 0;	// don't force read symmetries by default:w
 
   /* set illegal traversal by default, to make sure it is set
      later */
@@ -255,6 +256,7 @@ ensureValidRun (System sys, int run)
       myrun.start = NULL;
       myrun.know = knowledgeDuplicate (sys->know);
       myrun.prevSymmRun = -1;
+      myrun.firstNonAgentRead = -1;
     }
 }
 
@@ -521,6 +523,36 @@ int staticRunSymmetry (const System sys,const int rid)
   return -1;	// signal that no symmetrical run was found
 }
 
+//! Determine first read with variables besides agents
+/**
+ *@todo For now, we assume it is simply the first read after the choose, if there is one.
+ */
+int firstNonAgentRead (const System sys, int rid)
+{
+  int step;
+  Roledef rd;
+
+  if (sys->runs[rid].prevSymmRun == -1)
+    {
+      /* if there is no symmetrical run, then this doesn't apply at all */
+      return -1;
+    }
+  rd = sys->runs[rid].start;
+  step = 0;
+  while (rd != NULL && rd->internal && rd->type == READ)	// assumes lazy LR eval
+    {
+      rd = rd->next;
+      step++;
+    }
+  if (rd != NULL && !rd->internal && rd->type == READ)		// assumes lazy LR eval
+    {
+      warning ("First read %i with dependency on symmetrical found in run %i.", step, rid);
+      return step;
+    }
+  /* no such read */
+  return -1;
+}
+
 
 //! Instantiate a role by making a new run.
 /**
@@ -647,7 +679,11 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
   termlistDelete (fromlist);
   runs[rid].locals = tolist;
 
+  /* Determine symmetric run */
   runs[rid].prevSymmRun = staticRunSymmetry (sys, rid);		// symmetry reduction static analysis
+
+  /* Determine first read with variables besides agents */
+  runs[rid].firstNonAgentRead = firstNonAgentRead (sys, rid);	// symmetry reduction type II
 }
 
 //! Make a new role event with the specified parameters.

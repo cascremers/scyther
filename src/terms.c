@@ -761,7 +761,7 @@ termDistance(Term t1, Term t2)
 }
 
 /**
- * Enforce a (arbitrary) ordering on basic terms
+ * Enforce a (arbitrary) ordering on terms
  * <0 means a<b, 0 means a=b, >0 means a>b.
  */
 int termOrder (Term t1, Term t2)
@@ -771,25 +771,72 @@ int termOrder (Term t1, Term t2)
 
   t1 = deVar (t1);
   t2 = deVar (t2);
-  if (!(realTermLeaf (t1) && realTermLeaf (t2)))
-    {
-      error ("'termOrder' can only be applied to two basic terms.");
-    }
   if (isTermEqual (t1,t2))
     {
       /* equal terms */
       return 0;
     }
+
+  /* differ */
   if (t1->type != t2->type)
     {
-      /* unequal types (can this even occur?) */
+      /* different types, so ordering on types first */
       if (t1->type < t2->type)
 	  return -1;
       else
 	  return 1;
     }
-  /* same type, compare names */
-  name1 = t1->left.symb->text;
-  name2 = t2->left.symb->text;
-  return strcmp (name1,name2);
+
+  /* same type
+   * distinguish cases
+   */
+  if (realTermLeaf (t1))
+    {
+      /* compare names */
+      int comp;
+
+      name1 = t1->left.symb->text;
+      name2 = t2->left.symb->text;
+      comp = strcmp (name1,name2);
+      if (comp != 0)
+	{
+	  /* names differ */
+	  return comp;
+	}
+      else
+	{
+	  /* equal names, compare run identifiers */
+	  if (t1->right.runid == t2->right.runid)
+	    {
+	      error ("termOrder: two terms seem to be identical although local precondition says they aren't.");
+	    }
+	  else
+	    {
+	      if (t1->right.runid < t2->right.runid)
+		  return -1;
+	      else
+		  return 1;
+	    }
+	}
+    }
+  else
+    {
+      /* non-leaf */
+      int compL,compR;
+
+      if (isTermEncrypt (t1))
+	{
+	  compL = termOrder (t1->left.op,   t2->left.op);
+	  compR = termOrder (t1->right.key, t2->right.key);
+	}
+      else
+	{
+	  compL = termOrder (t1->left.op1,  t2->left.op1);
+	  compR = termOrder (t1->right.op2, t2->right.op2);
+	}
+      if (compL != 0)
+	  return compL;
+      else
+	  return compR;
+    }
 }
