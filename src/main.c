@@ -129,7 +129,7 @@ main (int argc, char **argv)
   struct arg_lit *switch_incremental_runs = arg_lit0 (NULL, "increment-runs",
 						      "incremental search using the number of runs");
   struct arg_int *switch_goal_select_method =
-    arg_int0 (NULL, "goal-select", NULL, "use goal selection method <int> (default 0)");
+    arg_int0 (NULL, "goal-select", NULL, "use goal selection method <int> (default 3)");
   struct arg_lit *switch_latex_output =
     arg_lit0 (NULL, "latex", "output attacks in LaTeX format");
   struct arg_lit *switch_empty =
