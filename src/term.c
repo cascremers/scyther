@@ -19,7 +19,6 @@
 #include "memory.h"
 #include "ctype.h"
 
-
 /* external definitions */
 
 extern Term TERM_Function;
@@ -285,7 +284,7 @@ termPrint (Term term)
 {
   if (term == NULL)
     {
-      printf ("Empty term");
+      eprintf ("Empty term");
       return;
     }
 #ifdef DEBUG
@@ -300,28 +299,28 @@ termPrint (Term term)
     {
       symbolPrint (term->left.symb);
       if (realTermVariable (term))
-	printf ("V");
+	eprintf ("V");
       if (term->right.runid >= 0)
 	{
-	  if (globalLatex)
-	    printf ("\\sharp%i", term->right.runid);
+	  if (globalLatex && globalError == 0)
+	    eprintf ("\\sharp%i", term->right.runid);
 	  else
-	    printf ("#%i", term->right.runid);
+	    eprintf ("#%i", term->right.runid);
 	}
       if (term->subst != NULL)
 	{
 	  if (globalLatex)
-	    printf ("\\rightarrow");
+	    eprintf ("\\rightarrow");
 	  else
-	    printf ("->");
+	    eprintf ("->");
 	  termPrint (term->subst);
 	}
     }
   if (realTermTuple (term))
     {
-      printf ("(");
+      eprintf ("(");
       termTuplePrint(term);
-      printf (")");
+      eprintf (")");
       return;
     }
   if (realTermEncrypt (term))
@@ -331,26 +330,26 @@ termPrint (Term term)
 	{
 	  /* function application */
 	  termPrint (term->right.key);
-	  printf ("(");
+	  eprintf ("(");
 	  termTuplePrint (term->left.op);
-	  printf (")");
+	  eprintf (")");
 	}
       else
 	{
 	  /* normal encryption */
 	  if (globalLatex)
 	    {
-	      printf ("\\{");
+	      eprintf ("\\{");
 	      termTuplePrint (term->left.op);
-	      printf ("\\}_{");
+	      eprintf ("\\}_{");
 	      termPrint (term->right.key);
-	      printf ("}");
+	      eprintf ("}");
 	    }
 	  else
 	    {
-	      printf ("{");
+	      eprintf ("{");
 	      termTuplePrint (term->left.op);
-	      printf ("}");
+	      eprintf ("}");
 	      termPrint (term->right.key);
 	    }
 	}
@@ -368,7 +367,7 @@ termTuplePrint (Term term)
 {
   if (term == NULL)
     {
-      printf ("Empty term");
+      eprintf ("Empty term");
       return;
     }
   term = deVar(term);
@@ -376,7 +375,7 @@ termTuplePrint (Term term)
     {
       // To remove any brackets, change this into termTuplePrint.
       termPrint (term->left.op1);
-      printf (",");
+      eprintf (",");
       term = deVar(term->right.op2);
     }
   termPrint(term);

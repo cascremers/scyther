@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "symbol.h"
 #include "memory.h"
@@ -11,6 +12,12 @@
    Implementation uses a hashtable, the size of which is defined in
    symbols.h.
 */
+
+/* accessible for externals */
+
+int globalError;		//!< If >0, stdout output goes to stderr (for e.g. terms)
+
+/* external declarations */
 
 extern int yylineno;
 
@@ -35,6 +42,7 @@ symbolsInit (void)
     symbtab[i] = NULL;
   symb_list = NULL;
   symb_alloc = NULL;
+  globalError = 0;
 }
 
 //! Close symbols code.
@@ -145,7 +153,7 @@ symbolPrint (Symbol s)
     return;
 
   /* TODO maybe action depending on type? */
-  printf ("%s", s->text);
+  eprintf ("%s", s->text);
 }
 
 //! Insert a string into the symbol table, if it wasn't there yet.
@@ -167,4 +175,22 @@ symbolSysConst (char *str)
       symb->text = str;
     }
   return symb;
+}
+
+//! Print out according to globalError
+/**
+ * Input is comparable to printf, only depends on globalError. This should be used by any function trying to do output.
+ *\sa globalError
+ */
+void
+eprintf (char *fmt, ... )
+{
+  va_list args;
+
+  va_start (args, fmt);
+  if (globalError == 0)
+  	vfprintf (stdout, fmt, args);
+  else
+  	vfprintf (stderr, fmt, args);
+  va_end (args);
 }

@@ -65,6 +65,7 @@ systemInit ()
   sys->switchSymmOrder = 0;	// don't force symmetry order reduction by default
   sys->switchNomoreClaims = 1;	// default cutter when there are no more claims
   sys->switchReduceEndgame = 1;	// default cutter of last events in a trace
+  sys->switchClaims = 0;	// default don't report on claims
 
   /* set illegal traversal by default, to make sure it is set
      later */

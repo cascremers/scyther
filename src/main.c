@@ -113,6 +113,7 @@ main (int argc, char **argv)
   struct arg_lit *switch_enable_symmetry_order = arg_lit0 (NULL, "symm-order", "enable ordering symmetry reductions");
   struct arg_lit *switch_disable_noclaims_reductions = arg_lit0 (NULL, "no-noclaims-red", "disable no more claims reductions");
   struct arg_lit *switch_disable_endgame_reductions = arg_lit0 (NULL, "no-endgame-red", "disable endgame reductions");
+  struct arg_lit *switch_claims = arg_lit0 (NULL, "claims", "show claims report");
 #ifdef DEBUG
   struct arg_int *switch_por_parameter = arg_int0 (NULL, "pp", NULL, "POR parameter");
   struct arg_lit *switch_debug_indent = arg_lit0 ("I", "debug-indent",
@@ -132,6 +133,7 @@ main (int argc, char **argv)
     switch_scenario,
     switch_latex_output,
     switch_progress_bar, 
+    switch_claims,
 
     switch_traversal_method, 
     switch_match_method, 
@@ -323,6 +325,8 @@ main (int argc, char **argv)
       sys->switchNomoreClaims = 0;	/* disable no more claims cutter */
   if (switch_disable_endgame_reductions->count > 0)
       sys->switchReduceEndgame = 0;	/* disable endgame cutter */
+  if (switch_claims->count > 0)
+      sys->switchClaims = 1;		/* claims report */
 
   /*
    * The scenario selector has an important side effect; when it is non-null,
@@ -613,30 +617,50 @@ timersPrint (const System sys)
   fprintf (stderr, "\n");
 #endif
 
-  /* print also individual claims */
-  cl_scan = sys->claimlist;
-  anyclaims = 0;
-  while (cl_scan != NULL)
+  if (sys->switchClaims)
     {
-      /**
-       * for now, we don't print the actual claim label.
-       *@todo When termPrint can also go to stderr, fix this.
+      /* Print also individual claims */
+      /* Note that if the output is set to empty, the claim output is redirected to stdout (for e.g. processing)
        */
+      if (sys->output != EMPTY)
+          globalError++;
+      cl_scan = sys->claimlist;
+      anyclaims = 0;
+      while (cl_scan != NULL)
+	{
+	  /**
+	   * for now, we don't print the actual claim label.
+	   *@todo When termPrint can also go to stderr, fix this.
+	   */
+	  if (!anyclaims)
+	    {
+	      eprintf ("Claim\tOccurrences\n");
+	      anyclaims = 1;
+	    }
+
+	  termPrint (cl_scan->rolename);
+	  eprintf (":");
+	  termPrint (cl_scan->label);
+	  eprintf ("\t");
+	  statesFormat (stderr, cl_scan->count);
+	  if (cl_scan->count > 0)
+	    {
+	      eprintf ("\t");
+	      if (cl_scan->failed > 0)
+		{
+		  statesFormat (stderr, cl_scan->failed);
+		  eprintf (" failed");
+		}
+	    }
+	  eprintf ("\n");
+	  cl_scan = cl_scan->next;
+	}
       if (!anyclaims)
 	{
-	  fprintf (stderr, "Claim\tCount\tFailed\n");
-	  anyclaims = 1;
+	  warning ("No claims in system.");
 	}
-      fprintf (stderr, "-\t");
-      statesFormat (stderr, cl_scan->count);
-      fprintf (stderr, "\t");
-      statesFormat (stderr, cl_scan->failed);
-      fprintf (stderr, "\n");
-      cl_scan = cl_scan->next;
-    }
-  if (!anyclaims)
-    {
-      warning ("No claims in system.");
+      if (sys->output != EMPTY)
+          globalError--;
     }
 }
 

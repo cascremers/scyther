@@ -352,18 +352,18 @@ termlistPrint (Termlist tl)
 {
   if (tl == NULL)
     {
-      printf ("[Empty]");
+      eprintf ("[Empty]");
       return;
     }
-  printf ("[");
+  eprintf ("[");
   while (tl != NULL)
     {
       termPrint (tl->term);
       tl = tl->next;
       if (tl != NULL)
-	  printf(", ");
+	  eprintf(", ");
     }
-  printf ("]");
+  eprintf ("]");
 }
 
 //! Append all open variables in a term to a list.

@@ -40,4 +40,8 @@ Symbol lookup (char *s);
 void symbolPrint (Symbol s);
 Symbol symbolSysConst (char *str);
 
+void eprintf (char *fmt, ... );
+
+extern int globalError;
+
 #endif

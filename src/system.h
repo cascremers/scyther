@@ -128,6 +128,7 @@ struct system
   int switchSymmOrder;		//!< Enable symmetry order reduction
   int switchNomoreClaims;	//!< Enable no more claims cutter
   int switchReduceEndgame;	//!< Enable endgame cutter
+  int switchClaims;		//!< Enable clails report
 
   //! Latex output switch.
   /**
