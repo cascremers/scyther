@@ -415,7 +415,7 @@ bind_goal_regular (const Goal goal)
 	termPrint (p->nameterm);
 	eprintf (", ");
 	termPrint (r->nameterm);
-	eprintf (", index%i\n");
+	eprintf (", index %i\n", index);
 #endif
 	return termMguInTerm (goal.rd->message, rd->message,
 			      bind_this_unification);

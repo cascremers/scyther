@@ -254,3 +254,4 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (),
     }
   return flag;
 }
+
