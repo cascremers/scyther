@@ -102,8 +102,8 @@ main (int argc, char **argv)
   struct arg_lit *switch_incremental_runs = arg_lit0 (NULL, "increment-runs",
 				      "incremental search using the number of runs");
   struct arg_lit *switch_latex_output = arg_lit0 (NULL, "latex", "output in LaTeX format");
-  struct arg_lit *switch_disable_violations_report =
-    arg_lit0 ("d", "disable-report", "don't report violations");
+  struct arg_lit *switch_empty =
+    arg_lit0 ("e", "empty", "do not generate output");
   struct arg_lit *switch_no_progress_bar = arg_lit0 (NULL, "no-progress", "suppress progress bar");
   struct arg_lit *switch_state_space_graph = arg_lit0 (NULL, "state-space", "output state space graph");
   struct arg_lit *switch_implicit_choose = arg_lit0 (NULL, "implicit-choose", "allow implicit choose events (useful for few runs)");
@@ -135,7 +135,7 @@ main (int argc, char **argv)
     switch_prune_trace_length, switch_incremental_trace_length,
     switch_maximum_runs, switch_incremental_runs,
     switch_latex_output,
-    switch_disable_violations_report,
+    switch_empty,
     switch_no_progress_bar, 
     switch_state_space_graph,
     switch_implicit_choose,
@@ -327,6 +327,10 @@ main (int argc, char **argv)
    * any scenario traversing selects chooses first.
    */
   sys->switchScenario = switch_scenario->ival[0];	/* scenario selector */
+  if (sys->switchScenario < 0)
+    {
+      sys->output = SCENARIOS;
+    }
   if (sys->switchScenario != 0)
     {
 #ifdef DEBUG
@@ -396,15 +400,12 @@ main (int argc, char **argv)
   if (switch_state_space_graph->count > 0)
     {
       /* enable state space graph output */
-      sys->switchStatespace = 1;
+      sys->output = STATESPACE;		//!< New method
     }
-
-  /* TODO for now, warning for -m2 and non-clp */
-  if (sys->match == 2 && !sys->clp)
-    {
-      printf
-	("Warning: -m2 is only supported for constraint logic programming.\n");
-    }
+  if (switch_empty->count > 0)
+    sys->output = EMPTY;
+  if (switch_prune_trace_length->ival[0] >= 0)
+    sys->switch_maxtracelength = switch_prune_trace_length->ival[0];
 #ifdef DEBUG
   /* in debugging mode, some extra switches */
   if (switch_debug_indent->count > 0)
@@ -415,10 +416,42 @@ main (int argc, char **argv)
   /* non-debug defaults */
   sys->switchM = 0;
 #endif
-  if (switch_disable_violations_report->count > 0)
-    sys->report = 0;
-  if (switch_prune_trace_length->ival[0] >= 0)
-    sys->switch_maxtracelength = switch_prune_trace_length->ival[0];
+
+  /*
+   * ---------------------------------------
+   *  Switches consistency checking.
+   * ---------------------------------------
+   */
+
+  /* Latex only makes sense for attacks */
+  if (sys->latex && sys->output != ATTACK)
+    {
+      error ("Scyther can only generate LaTeX output for attacks.");
+    }
+  /* Incremental stuff only works for attack locating */
+  if (switch_incremental_runs->count > 0 ||
+      switch_incremental_trace_length->count > 0)
+    {
+      if (sys->output != ATTACK &&
+	  sys->output != EMPTY)
+	{
+	  error ("Incremental traversal only for empty or attack output.");
+	}
+    }
+  /* TODO for now, warning for -m2 and non-clp */
+  if (sys->match == 2 && !sys->clp)
+    {
+      warning ("-m2 is only supported for constraint logic programming.");
+    }
+
+#ifdef DEBUG
+  warning ("Selected output method is %i", sys->output);
+#endif
+  /*
+   * ---------------------------------------
+   *  Start real stuff
+   * ---------------------------------------
+   */
 
   /* latex header? */
   if (sys->latex)
@@ -427,7 +460,7 @@ main (int argc, char **argv)
   /* model check system */
 #ifdef DEBUG
   if (DEBUGL (1))
-    printf ("Start modelchecking system.\n");
+    warning ("Start modelchecking system.");
 #endif
   if (switch_incremental_runs->count > 0)
     {
@@ -449,7 +482,10 @@ main (int argc, char **argv)
 
   if (sys->attack != NULL && sys->attack->length != 0)
     {
-      attackDisplay(sys);
+      if (sys->output == ATTACK)
+	{
+      	  attackDisplay(sys);
+	}
       /* mark exit code */
       exitcode = 3;
     }
@@ -563,12 +599,6 @@ timersPrint (const System sys)
 
   fprintf (stderr, "\n");
 #endif
-  
-  /* if scenario counting, display */
-  if (sys->switchScenario < 0)
-    {
-      fprintf (stderr, "Number of scenarios found: %i\n", sys->countScenario);
-    }
 }
 
 //! Analyse the model by incremental runs.
@@ -697,7 +727,7 @@ MC_single (const System sys)
 int
 modelCheck (const System sys)
 {
-  if (sys->switchStatespace)
+  if (sys->output == STATESPACE)
     {
       graphInit (sys);
     }
@@ -713,7 +743,7 @@ modelCheck (const System sys)
     }
 
   timersPrint (sys);
-  if (sys->switchStatespace)
+  if (sys->output == STATESPACE)
     {
       graphDone (sys);
     }

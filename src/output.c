@@ -481,9 +481,6 @@ attackDisplayAscii (const System sys)
 void
 attackDisplay (const System sys)
 {
-  if (!sys->report || sys->switchStatespace)
-      return;
-
   if (sys->latex)
     {
       attackDisplayLatex (sys);

@@ -218,7 +218,7 @@ executeStep (const System sys, const int run)
   /* store new node numbder */
   sys->traceNode[sys->step] = sys->states;
   /* the construction below always assumes MAX_GRAPH_STATES to be smaller than the unsigned long it, which seems realistic. */
-  if (sys->switchStatespace && statesSmallerThan (sys->states, MAX_GRAPH_STATES))
+  if (sys->output == STATESPACE && statesSmallerThan (sys->states, MAX_GRAPH_STATES))
     {
       /* display graph */
       graphNode (sys);
@@ -566,21 +566,19 @@ explorify (const System sys, const int run)
 		{
       	          sys->countScenario++;
 		}
-#ifdef DEBUG
-	      /* If we are counting and debug, print it */
-	      if (sys->switchScenario < 0)
+	      /* If we are displaying scenarios, print it */
+	      if (sys->output == SCENARIOS)
 		{
-		  printf ("// Scenario %i: ", sys->countScenario);
+		  printf ("%i\t", sys->countScenario);
 		  scenarioPrint (sys);
 		  printf ("\n");
 		}
-#endif
 	      /* If it is not the selected one, abort */
 	      if (sys->switchScenario != sys->countScenario)
 		{
 		  /* this branch is not interesting */
 		  /* unfortunately, it is also not drawn in the state graph because of this */
-		  if (sys->switchStatespace)
+		  if (sys->output == STATESPACE)
 		    {
 		      graphScenario (sys, run, rd);
 		    }
@@ -1188,7 +1186,7 @@ violateClaim (const System sys, int length, int claimev, Termlist reqt)
   sys->failed = statesIncrease (sys->failed);
 
   /* mark the path in the state graph? */
-  if (sys->switchStatespace)
+  if (sys->output == STATESPACE)
     {
       graphPath (sys, length);
     }

@@ -54,10 +54,10 @@ systemInit ()
   sys->attack = tracebufInit();
 
   /* switches */
+  sys->output = ATTACK;		// default is to show the attacks
   sys->porparam = 0;		// multi-purpose parameter
   sys->latex = 0;		// latex output?
   sys->switchScenario = 0;
-  sys->switchStatespace = 0;
   sys->switchForceChoose = 1;	// force explicit chooses by default
   sys->switchChooseFirst = 0;	// no priority to chooses by default
   sys->switchReadSymm = 0;	// don't force read symmetries by default
@@ -69,7 +69,6 @@ systemInit ()
   /* set illegal traversal by default, to make sure it is set
      later */
   sys->traverse = 0;
-  sys->report = 1;
   sys->switch_maxtracelength = INT_MAX;
   sys->maxtracelength = INT_MAX;
 

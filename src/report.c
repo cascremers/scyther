@@ -58,7 +58,7 @@ reportEnd (const System sys)
 void
 reportSecrecy (const System sys, Term t)
 {
-  if (!sys->report)
+  if (sys->output != ATTACK)
     {
       reportQuit (sys);
       return;

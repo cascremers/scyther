@@ -91,6 +91,8 @@ struct tracebuf
   Varbuf	variables;
 };
 
+enum outputs { EMPTY, ATTACK, STATESPACE, SCENARIOS };
+
 //! The main state structure.
 struct system
 {
@@ -109,6 +111,7 @@ struct system
   int shortestattack;		//!< Length of shortest attack trace.
 
   /* switches */
+  int output;			//!< From enum outputs: what should be produced. Default ATTACK.
   int report;
   int prune;			//!< Type of pruning.
   int switch_maxtracelength;	//!< Helps to remember the length of the last trace.
@@ -118,7 +121,6 @@ struct system
   int switchS;			//!< Progress display switch. (traversed states)
   int porparam;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
   int switchScenario;		//!< -1 to count, 0 for disable, 1-n to select the choose scenario
-  int switchStatespace;		//!< Output statespace for dot package
   int switchForceChoose;	//!< Force chooses for each run, even if involved in first read
   int switchChooseFirst;	//!< Priority to chooses, implicit and explicit
   int switchReadSymm;		//!< Enable read symmetry reduction
