@@ -451,7 +451,7 @@ explorify (const System sys, const int run)
 	    }
 	}
 
-      /* Special check 3: if after choosing, this run ends on (read|skippedclaim)*, we can remove that part already.
+      /* Special check 3: if after choosing, this run is untrusted and ends on (read|skippedclaim)*, we can remove that part already.
        */
 
       if (sys->switchReduceEndgame && roleCap == NULL)
