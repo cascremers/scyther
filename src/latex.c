@@ -258,7 +258,7 @@ latexMSCStart (Termlist protocolnames)
     printf ("\\begin{landscape}\n");
 
   printf ("\\begin{msc}{attack on $");
-  termlistPrint(protocolnames);
+  termlistPrint (protocolnames);
   printf ("$}\n");
 }
 
@@ -651,7 +651,7 @@ knowledgePrintLatex (Knowledge know)
   else
     {
       tl = knowledgeSet (know);
-      latexTermlistPrint (tl,NULL);
+      latexTermlistPrint (tl, NULL);
       termlistDelete (tl);
     }
 }
@@ -891,9 +891,9 @@ attackDisplayLatex (System sys)
       if (runPosition[i] > 0)
 	{
 	  pname = sys->runs[i].protocol->nameterm;
-	  if (!inTermlist(protocolnames, pname))
+	  if (!inTermlist (protocolnames, pname))
 	    {
-	      protocolnames = termlistAppend(protocolnames, pname);
+	      protocolnames = termlistAppend (protocolnames, pname);
 	    }
 	}
     }
@@ -908,8 +908,8 @@ attackDisplayLatex (System sys)
 	latexDeclInst (sys, i);
     }
   /* Add the intruder instance */
-  printf("\\declinst{eve}{Eve}{Intruder}\n");
-  printf("\n\n");
+  printf ("\\declinst{eve}{Eve}{Intruder}\n");
+  printf ("\n\n");
 
   /* Print the initial intruder knowledge */
 
@@ -974,7 +974,7 @@ attackDisplayLatex (System sys)
 		  printf ("$}{eve}\n");
 		  printf ("\\nextlevel[1]\n");
 		}
-	      
+
 	      termlistDelete (highlights);
 
 	      break;
