@@ -508,7 +508,6 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
   Termlist tolist = NULL;
   Termlist artefacts = NULL;
   Term extterm = NULL;
-  Term newvar;
 
   /* claim runid, allocate space */
   rid = sys->maxruns;
@@ -538,6 +537,8 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	  if (scanto->term->stype != NULL &&
 	      inTermlist (scanto->term->stype, TERM_Type))
 	    {
+	      Term newvar;
+
 	      /* There is a TYPE constant in the parameter list.
 	       * Generate a new local variable for this run, with this type */
 	      newvar =

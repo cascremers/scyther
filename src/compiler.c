@@ -513,6 +513,10 @@ commEvent (int event, Tac tc)
 
       /* store claim in claim list */
 
+      if (label == NULL)
+	{
+	  error ("Claim should have label on line %i.", trip->next->lineno);
+	}
       // First check whether label is unique
       cl = sys->claimlist;
       while (cl != NULL)

@@ -232,6 +232,12 @@ symbol_fix_keylevels (void)
 	  if (sym->keylevel == INT_MAX)
 	    {
 	      // Nothing currently, this simply does not originate on a strand.
+#ifdef DEBUG
+	      if (DEBUGL (5))
+		{
+		  eprintf (" doesn't have a keylevel yet.\n");
+		}
+#endif
 	    }
 #ifdef DEBUG
 	  else

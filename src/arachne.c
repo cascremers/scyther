@@ -175,7 +175,7 @@ int
 isTermFunctionName (Term t)
 {
   t = deVar (t);
-  if (t != NULL && isTermLeaf(t) && inTermlist (t->stype, TERM_Function))
+  if (t != NULL && isTermLeaf(t) && t->stype != NULL && inTermlist (t->stype, TERM_Function))
     return 1;
   return 0;
 }
@@ -1470,6 +1470,10 @@ prune_theorems ()
       Term agent;
 
       agent = deVar (tl->term);
+      if (agent == NULL)
+	{
+	  error ("Agent of run 0 is NULL");
+	}
       if (!realTermLeaf (agent))
 	{
 	  if (sys->output == PROOF)
@@ -1511,16 +1515,38 @@ prune_theorems ()
 	{
 	  if (sys->runs[run].protocol != INTRUDER)
 	    {
-	      Term actor;
-
-	      actor = agentOfRun(sys, run);
-	      if (inTermlist (sys->untrusted, actor))
+	      if (sys->runs[run].agents != NULL)
 		{
-		  if (sys->output == PROOF)
+	          Term actor;
+
+		  actor = agentOfRun(sys, run);
+		  if (actor == NULL)
 		    {
-		      indentPrint ();
-		      eprintf ("Pruned because the actor of run %i is untrusted.\n", run);
+		      error ("Agent of run %i is NULL", run);
 		    }
+		  if (inTermlist (sys->untrusted, actor))
+		    {
+		      if (sys->output == PROOF)
+			{
+			  indentPrint ();
+			  eprintf ("Pruned because the actor of run %i is untrusted.\n", run);
+			}
+		    }
+		}
+	      else
+		{
+		  Protocol p;
+
+		  globalError++;
+		  eprintf ("Run %i: ", run);
+                  role_name_print (run);
+		  eprintf (" has an empty agents list.\n");
+		  eprintf ("protocol->rolenames: ");
+		  p = (Protocol) sys->runs[run].protocol;
+		  termlistPrint (p->rolenames);
+		  eprintf ("\n");
+		  error ("Aborting.");
+		  globalError--;
 		}
 	    }
 	  run++;
