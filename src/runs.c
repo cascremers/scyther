@@ -515,7 +515,9 @@ int staticRunSymmetry (const System sys,const int rid)
 	  if (al == NULL && isEqual)
 	    {
 	      /* this candidate is allright */
+#ifdef DEBUG
   	      warning ("Symmetry detection. #%i can depend on #%i.",rid,ridSymm);
+#endif
 	      return ridSymm;
 	    }
 	}
@@ -547,7 +549,9 @@ int firstNonAgentRead (const System sys, int rid)
     }
   if (rd != NULL && !rd->internal && rd->type == READ)		// assumes lazy LR eval
     {
+#ifdef DEBUG
       warning ("First read %i with dependency on symmetrical found in run %i.", step, rid);
+#endif
       return step;
     }
   /* no such read */

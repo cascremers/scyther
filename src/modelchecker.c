@@ -93,6 +93,8 @@ traverse (const System sys)
       return traversePOR5 (sys);
     case 10:
       return traversePOR6 (sys);
+    case 11:
+      return traversePOR7 (sys);
     default:
       debug (2, "This is NOT an existing traversal method !");
       exit (1);
@@ -277,7 +279,7 @@ explorify (const System sys, const int run)
        * need to be evaluated, then we can skip
        * further traversal.
        */
-      //!@todo This implementation relies on the fact that there are only secrecy, sychnr and agreement properties.
+      //!@todo This implementation relies on the fact that there are only secrecy, synchr and agreement properties.
       if (sys->secrets == NULL)
 	{ /* there are no remaining secrecy claims to be checked */
 	  Roledef rdscan;
@@ -1259,6 +1261,146 @@ traversePOR6 (const System sys)
    */
 
   /* Try all events (implicitly we only handle enabled ones) left-to-right.
+   * If one was chosen, flag is set, and the loop aborts. */
+  for (run = 0; run < sys->maxruns && !flag; run++)
+    {
+      rd = runPointerGet (sys, run);
+
+      if (rd != NULL)
+	{
+	  switch (rd->type)
+	    {
+	    case CLAIM:
+	    case SEND:
+	      executeTry (sys, run);
+	      flag = 1;
+	      break;
+
+	    case READ:
+	      /* the sendsdone check only prevent
+	       * some unneccessary inKnowledge tests,
+	       * and branch tests, still improves
+	       * about 15% */
+	      if (sys->knowPhase > rd->knowPhase)
+		{
+		  /* apparently there has been a new knowledge item since the
+		   * previous check */
+
+		  /* implicit check for enabledness */
+		  flag = executeTry (sys, run);
+
+		  /* if it was enabled (flag) we postpone it if it makes sense
+		   * to do so (hasVariable, non internal) */
+		  if (flag && hasTermVariable (rd->message) && !rd->internal)
+		    {
+		      int stackKnowPhase = rd->knowPhase;
+
+		      rd->knowPhase = sys->knowPhase;
+		      if (sys->clp)
+			{
+			  block_clp (sys, run);
+			}
+		      else
+			{
+			  block_basic (sys, run);
+			}
+		      rd->knowPhase = stackKnowPhase;
+		    }
+		}
+	      break;
+
+	    default:
+	      fprintf (stderr, "Encountered unknown event type %i.\n", rd->type);
+	      exit (1);
+	    }
+	}
+    }
+  return flag;
+}
+
+/*
+ * POR7
+ *
+ * Left-oriented scan, to ensure reductions. However, first does all initial actions.
+ */
+
+int
+traversePOR7 (const System sys)
+{
+  Roledef rd;
+  int flag = 0;
+  int run;
+  int i;
+  int offset;
+
+  /* Previously we did the sends first. This does not always improve things,
+   * depending on the protocol.
+   */
+  // if (nonReads (sys)) return 1;
+
+  /* a choice for choose */
+
+  /* The 'choose' implemented here is the following:
+   *
+   * choose ev#rid
+   * where rid = min(r: ev#r in enabled(sys): r)
+   */
+
+  /* Try all first events (implicitly we only handle enabled ones) left-to-right.
+   * If one was chosen, flag is set, and the loop aborts. */
+  for (run = 0; run < sys->maxruns && !flag; run++)
+    {
+      rd = runPointerGet (sys, run);
+      if (rd == sys->runs[run].start)
+	{
+	  switch (rd->type)
+	    {
+	    case CLAIM:
+	    case SEND:
+	      executeTry (sys, run);
+	      flag = 1;
+	      break;
+
+	    case READ:
+	      /* the sendsdone check only prevent
+	       * some unneccessary inKnowledge tests,
+	       * and branch tests, still improves
+	       * about 15% */
+	      if (sys->knowPhase > rd->knowPhase)
+		{
+		  /* apparently there has been a new knowledge item since the
+		   * previous check */
+
+		  /* implicit check for enabledness */
+		  flag = executeTry (sys, run);
+
+		  /* if it was enabled (flag) we postpone it if it makes sense
+		   * to do so (hasVariable, non internal) */
+		  if (flag && hasTermVariable (rd->message) && !rd->internal)
+		    {
+		      int stackKnowPhase = rd->knowPhase;
+
+		      rd->knowPhase = sys->knowPhase;
+		      if (sys->clp)
+			{
+			  block_clp (sys, run);
+			}
+		      else
+			{
+			  block_basic (sys, run);
+			}
+		      rd->knowPhase = stackKnowPhase;
+		    }
+		}
+	      break;
+
+	    default:
+	      fprintf (stderr, "Encountered unknown event type %i.\n", rd->type);
+	      exit (1);
+	    }
+	}
+    }
+  /* Try all other events (implicitly we only handle enabled ones) left-to-right.
    * If one was chosen, flag is set, and the loop aborts. */
   for (run = 0; run < sys->maxruns && !flag; run++)
     {
