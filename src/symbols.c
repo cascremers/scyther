@@ -16,12 +16,16 @@ extern int yylineno;
 
 /* global declarations */
 
+//! Symbol hash table.
 Symbol symbtab[HASHSIZE];
+//! List of available (freed) symbol blocks.
 Symbol symb_list;
+//! List of all allocated symbol blocks.
 Symbol symb_alloc;
 
 /* main code */
 
+//! Open symbols code.
 void
 symbolsInit (void)
 {
@@ -33,6 +37,7 @@ symbolsInit (void)
   symb_alloc = NULL;
 }
 
+//! Close symbols code.
 void
 symbolsDone (void)
 {
@@ -46,6 +51,11 @@ symbolsDone (void)
     }
 }
 
+//! Create a memory block for a symbol.
+/**
+ * Internal memory management is used.
+ *@return A pointer to a memory block of size struct.
+ */
 Symbol
 get_symb (void)
 {
@@ -64,6 +74,7 @@ get_symb (void)
   return t;
 }
 
+//! Declare a symbol to be freed.
 void
 free_symb (Symbol s)
 {
@@ -73,6 +84,7 @@ free_symb (Symbol s)
   symb_list = s;
 }
 
+//! Return the index in the hash table for the string.
 int
 hash (char *s)
 {
@@ -88,6 +100,7 @@ hash (char *s)
   return hv % HASHSIZE;
 }
 
+//! Insert a string into the hash table.
 void
 insert (Symbol s)
 {
@@ -99,6 +112,7 @@ insert (Symbol s)
   symbtab[hv] = s;
 }
 
+//! Find a string in the hash table.
 Symbol
 lookup (char *s)
 {
@@ -118,6 +132,7 @@ lookup (char *s)
   return t;
 }
 
+//! Print a symbol.
 void
 symbolPrint (Symbol s)
 {
@@ -128,6 +143,11 @@ symbolPrint (Symbol s)
   printf ("%s", s->text);
 }
 
+//! Insert a string into the symbol table, if it wasn't there yet.
+/**
+ * Also sets line numbers and type.
+ *\sa T_SYSCONST
+ */
 Symbol
 symbolSysConst (char *str)
 {

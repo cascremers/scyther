@@ -1,7 +1,9 @@
 #ifndef SYMBOLS
 #define SYMBOLS
 
-/* Size of hashtable: optimistically large. */
+//! Size of symbol hashtable.
+/** Optimistically large. Should be a prime, says theory.
+ */
 #define HASHSIZE 997
 
 #define T_UNDEF		-1
@@ -14,10 +16,18 @@
 
 struct symbol
 {
+  //! Type of symbol.
+  /**
+   *\sa T_UNDEF, T_PROTOCOL, T_CONST, T_VAR, T_SYSCONST
+   */
   int type;
+  //! Line number at which it occurred.
   int lineno;
+  //! Ascii string with name of the symbol.
   char *text;
+  //! Possible next pointer.
   struct symbol *next;
+  //! Used for linking all symbol blocks, freed or in use.
   struct symbol *allocnext;
 };
 

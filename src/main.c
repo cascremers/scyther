@@ -15,6 +15,14 @@
  * \section install Installation
  *
  * How to install Scyther.
+ *
+ * \section coding Coding convertions
+ *
+ * Usually, each source file except main.c has an myfileInit() and myfileDone() function
+ * available. These allow any initialisation and destruction of required structures.
+ *
+ * GNU indent rules are used, but K&R derivatives are allowed as well. Conversion can
+ * be done for any style using the GNU indent program.
  */
 
 #include <stdlib.h>
