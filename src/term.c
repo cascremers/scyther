@@ -433,7 +433,7 @@ termDuplicate (const Term term)
     return term;
 
   newterm = (Term) memAlloc (sizeof (struct term));
-  newterm->type = term->type;
+  memcpy (newterm, term, sizeof (struct term));
   if (realTermEncrypt (term))
     {
       newterm->left.op = termDuplicate (term->left.op);
@@ -464,13 +464,9 @@ termDuplicateDeep (const Term term)
     return NULL;
 
   newterm = (Term) memAlloc (sizeof (struct term));
-  if (realTermLeaf (term))
+  memcpy (newterm, term, sizeof (struct term));
+  if (!realTermLeaf (term))
     {
-      memcpy (newterm, term, sizeof (struct term));
-    }
-  else
-    {
-      newterm->type = term->type;
       if (realTermEncrypt (term))
 	{
 	  newterm->left.op = termDuplicateDeep (term->left.op);
@@ -496,14 +492,14 @@ termDuplicateUV (Term term)
 {
   Term newterm;
 
+  term = deVar (term);
   if (term == NULL)
     return NULL;
-  term = deVar (term);
   if (realTermLeaf (term))
     return term;
 
   newterm = (Term) memAlloc (sizeof (struct term));
-  newterm->type = term->type;
+  memcpy (newterm, term, sizeof (struct term));
   if (realTermEncrypt (term))
     {
       newterm->left.op = termDuplicateUV (term->left.op);
@@ -676,7 +672,7 @@ tupleCount (Term tt)
     }
   else
     {
-      deVar (tt);
+      tt = deVar (tt);
       if (!realTermTuple (tt))
 	{
 	  return 1;
@@ -702,7 +698,7 @@ tupleProject (Term tt, int n)
     {
       return NULL;
     }
-  deVar (tt);
+  tt = deVar (tt);
   if (!realTermTuple (tt))
     {
       if (n > 0)
@@ -956,32 +952,62 @@ term_iterate (const Term term, int (*leaf) (), int (*nodel) (),
 
 	  if (noder != NULL)
 	    flag = flag && noder (term);
+
+	  return flag;
 	}
     }
   return 1;
 }
 
-//! Generic term iteration with deVar
+//! Generic term iteration
 int
-term_iterate_deVar (const Term term, int (*leaf) (), int (*nodel) (),
-		    int (*nodem) (), int (*noder) ())
+term_iterate_deVar (Term term, int (*leaf) (), int (*nodel) (),
+	      int (*nodem) (), int (*noder) ())
 {
-  int deVar_leaf (const Term term)
-  {
-    if (substVar (term))
-      {
-	return term_iterate_deVar (term->subst, deVar_leaf, nodel, nodem,
-				   noder);
-      }
-    else
-      {
-	if (leaf == NULL)
-	  return 1;
-	else
-	  return leaf (term);
-      }
-  }
-  return term_iterate (term, deVar_leaf, nodel, nodem, noder);
+  term = deVar (term);
+  if (term != NULL)
+    {
+      if (realTermLeaf (term))
+	{
+	  // Leaf
+	  if (leaf != NULL)
+	    {
+	      return leaf (term);
+	    }
+	}
+      else
+	{
+	  int flag;
+
+	  flag = 1;
+
+	  if (nodel != NULL)
+	    flag = flag && nodel (term);
+
+	  if (realTermTuple (term))
+	    flag = flag
+	      && (term_iterate_deVar (term->left.op1, leaf, nodel, nodem, noder));
+	  else
+	    flag = flag
+	      && (term_iterate_deVar (term->left.op, leaf, nodel, nodem, noder));
+
+	  if (nodem != NULL)
+	    flag = flag && nodem (term);
+
+	  if (realTermTuple (term))
+	    flag = flag
+	      && (term_iterate_deVar (term->left.op1, leaf, nodel, nodem, noder));
+	  else
+	    flag = flag
+	      && (term_iterate_deVar (term->left.op, leaf, nodel, nodem, noder));
+
+	  if (noder != NULL)
+	    flag = flag && noder (term);
+
+	  return flag;
+	}
+    }
+  return 1;
 }
 
 //! Iterate over the leaves in a term
@@ -1082,26 +1108,36 @@ term_constrain_level (const Term term)
   int structure;
   int flag;
 
-  int leaf (const Term t)
-  {
-    structure++;
-    if (realTermVariable (t))
-      vars++;
-    return 1;
-  }
-  int nodel (const Term t)
-  {
-    structure++;
-    if (realTermTuple (t))
-	structure++;
-    return 1;
-  }
+  void
+  tcl_iterate (Term t)
+    {
+      t = deVar (t);
+      structure++;
+      if (realTermLeaf (t))
+	{
+	  if (realTermVariable (t))
+	      vars++;
+	}
+      else
+	{
+	  if (realTermTuple (t))
+	    {
+	      tcl_iterate (t->left.op1);
+	      tcl_iterate (t->right.op2);
+	    }
+	  else
+	    {
+	      tcl_iterate (t->left.op);
+	      tcl_iterate (t->right.key);
+	    }
+	}
+    }
 
   if (term == NULL)
     error ("Cannot determine constrain level of empty term.");
 
   vars = 0;
   structure = 0;
-  flag = term_iterate_deVar (term, leaf, nodel, NULL, NULL);
+  tcl_iterate (term);
   return ((float) vars / (float) structure);
 }

@@ -111,7 +111,7 @@ arachneInit (const System mysys)
   add_event (READ, NULL);
   add_event (READ, NULL);
   add_event (SEND, NULL);
-  I_RRS = add_role ("I_D: Encrypt");
+  I_RRS = add_role ("I_E: Encrypt");
 
   return;
 }
@@ -172,12 +172,12 @@ semiRunCreate (const Protocol p, const Role r)
 {
   int run;
 
-  run = sys->maxruns;
   if (p == INTRUDER)
     num_intruder_runs++;
   else
     num_regular_runs++;
   roleInstance (sys, p, r, NULL, NULL);
+  run = sys->maxruns-1;
   sys->runs[run].length = 0;
   return run;
 }
@@ -186,14 +186,17 @@ semiRunCreate (const Protocol p, const Role r)
 void
 semiRunDestroy ()
 {
-  Protocol p;
+  if (sys->maxruns > 0)
+    {
+      Protocol p;
 
-  p = sys->runs[sys->maxruns - 1].protocol;
-  roleInstanceDestroy (sys);
-  if (p == INTRUDER)
-    num_intruder_runs--;
-  else
-    num_regular_runs--;
+      p = sys->runs[sys->maxruns - 1].protocol;
+      roleInstanceDestroy (sys);
+      if (p == INTRUDER)
+	num_intruder_runs--;
+      else
+	num_regular_runs--;
+    }
 }
 
 //! After a role instance, or an extension of a run, we might need to add some goals
@@ -765,6 +768,7 @@ bind_goal_new_m0 (const Binding b)
 	  goal_unbind (b);
 	  indentDepth--;
 	  semiRunDestroy ();
+
 	  termlistSubstReset (subst);
 	  termlistDelete (subst);
 	}
@@ -792,9 +796,11 @@ bind_goal_new_encrypt (const Binding b)
 {
   Term term;
   int flag;
+  int can_be_encrypted;
 
   flag = 1;
-  term = b->term;
+  term = deVar(b->term);
+  can_be_encrypted = 0;
 
   if (!realTermLeaf (term))
     {
@@ -804,7 +810,7 @@ bind_goal_new_encrypt (const Binding b)
       Roledef rd;
       Term t1, t2;
 
-      if (realTermTuple (term))
+      if (!realTermEncrypt (term))
 	{
 	  // tuple construction
 	  error ("Goal that is a tuple should not occur!");
@@ -814,41 +820,47 @@ bind_goal_new_encrypt (const Binding b)
       t1 = term->left.op;
       t2 = term->right.key;
 
-      run = semiRunCreate (INTRUDER, I_RRS);
-      rd = sys->runs[run].start;
-      rd->message = termDuplicate (t1);
-      rd->next->message = termDuplicate (t2);
-      rd->next->next->message = termDuplicate (term);
-      index = 2;
-      proof_suppose_run (run, 0, index + 1);
-      if (sys->output == PROOF)
+      if (t2 != TERM_Hidden)
 	{
-	  indentPrint ();
-	  eprintf ("* Encrypting ");
-	  termPrint (term);
-	  eprintf (" using term ");
-	  termPrint (t1);
-	  eprintf (" and key ");
-	  termPrint (t2);
-	  eprintf ("\n");
+	  can_be_encrypted = 1;
+	  run = semiRunCreate (INTRUDER, I_RRS);
+	  rd = sys->runs[run].start;
+	  //rd->message = termDuplicateUV (t1);
+	  //rd->next->message = termDuplicateUV (t2);
+	  rd->next->next->message = termDuplicateUV (term);
+	  index = 2;
+	  proof_suppose_run (run, 0, index + 1);
+	  if (sys->output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("* Encrypting ");
+	      termPrint (term);
+	      eprintf (" using term ");
+	      termPrint (t1);
+	      eprintf (" and key ");
+	      termPrint (t2);
+	      eprintf ("\n");
+	    }
+	  newgoals = add_read_goals (run, 0, index + 1);
+	  
+	  indentDepth++;
+	  if (goal_bind (b, run, index))
+	    {
+	      proof_suppose_binding (b);
+	      flag = flag && iterate ();
+	    }
+	  else
+	    {
+	      proof_cannot_bind (b, run, index);
+	    }
+	  goal_unbind (b);
+	  indentDepth--;
+	  remove_read_goals (newgoals);
+	  semiRunDestroy ();
 	}
-      newgoals = add_read_goals (run, 0, index + 1);
-      indentDepth++;
-      if (goal_bind (b, run, index))
-	{
-	  proof_suppose_binding (b);
-	  flag = flag && iterate ();
-	}
-      else
-	{
-	  proof_cannot_bind (b, run, index);
-	}
-      goal_unbind (b);
-      indentDepth--;
-      remove_read_goals (newgoals);
-      semiRunDestroy ();
     }
-  else
+
+  if (!can_be_encrypted)
     {
       if (sys->output == PROOF)
 	{
@@ -1375,26 +1387,25 @@ arachne ()
 	  proof_suppose_run (run, 0, cl->ev + 1);
 	  add_read_goals (run, 0, cl->ev + 1);
 
-
 	  /**
 	   * Add specific goal info
 	   */
 	  add_claim_specifics (cl,
 			       roledef_shift (sys->runs[run].start, cl->ev));
-
 #ifdef DEBUG
 	  if (DEBUGL (5))
 	    {
 	      printSemiState ();
 	    }
 #endif
-
-	  /*
-	   * iterate
-	   */
+	  // Iterate
 	  iterate ();
 
 	  //! Destroy
+	  while (sys->bindings != NULL)
+	    {
+	      remove_read_goals (1);
+	    }
 	  while (sys->maxruns > 0)
 	    {
 	      semiRunDestroy ();
