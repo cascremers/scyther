@@ -45,7 +45,7 @@ binding_destroy (Binding b)
 {
   if (b->done)
     {
-      goal_unbind ();
+      goal_unbind (b);
     }
   memFree (b, sizeof (struct binding));
 }
@@ -75,6 +75,16 @@ bindingDone ()
   }
   list_iterate (sys->bindings, delete);
   list_destroy (sys->bindings);
+}
+
+//! Destroy graph
+void goal_graph_destroy ()
+{
+  if (graph != NULL)
+    {
+      memFree (graph, (nodes * nodes) * sizeof (int));
+      graph = NULL;
+    }
 }
 
 //! Compute unclosed graph
@@ -119,16 +129,6 @@ void goal_graph_create ()
       graph[graph_nodes (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to)]
 	= 1;
       bl = bl->next;
-    }
-}
-
-//! Destroy graph
-void goal_graph_destroy ()
-{
-  if (graph != NULL)
-    {
-      memFree (graph, (nodes * nodes) * sizeof (int));
-      graph = NULL;
     }
 }
 
@@ -318,7 +318,7 @@ int bindings_c_minimal ()
     {
       Binding b;
       int run;
-      int node_to;
+      int node_from;
 
       b = (Binding) bl->data;
       node_from = node_number (b->run_from, b->ev_from);

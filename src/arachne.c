@@ -169,7 +169,7 @@ add_read_goals (const int run, int old, int new)
 
   sys->runs[run].length = new;
   i = old;
-  rd = roledef_shift (sys->runs[run], i);
+  rd = roledef_shift (sys->runs[run].start, i);
   while (i < new)
     {
       if (rd->type == READ)
@@ -297,12 +297,12 @@ bind_existing_to_goal (const Binding b, const int index, const int run,
   Roledef rd;
   int flag;
   int old_length;
+  int newgoals;
 
   int subterm_iterate (Termlist substlist, Termlist keylist)
   {
     int keycount;
     int flag;
-
 
 #ifdef DEBUG
     if (DEBUGL (5))
@@ -319,17 +319,14 @@ bind_existing_to_goal (const Binding b, const int index, const int run,
       {
 	int keyrun;
 
-	keyrun = create_intruder_goal (keylist->term);
-	if (!binding_add (keyrun, 0, goal.run, goal.index, keylist->term))
-	  flag = 0;
+	goal_add (keylist->term, b->run_to, b->ev_to);
 	keylist = keylist->next;
 	keycount++;
       }
     flag = flag && iterate ();
     while (keycount > 0)
       {
-	binding_remove_last ();
-	roleInstanceDestroy (sys);
+	goal_remove_last ();
 	keycount--;
       }
     termlistDestroy (keylist);
@@ -348,27 +345,32 @@ bind_existing_to_goal (const Binding b, const int index, const int run,
   // Fix length
   old_length = sys->runs[run].length;
   if ((index + 1) > old_length)
-    sys->runs[run].length = index + 1;
+    {
+      newgoals = add_read_goals (run, old_length, index+1);
+    }
+  else
+    {
+      newgoals = 0;
+    }
 
 #ifdef DEBUG
   if (DEBUGL (3))
     {
       explanation = "Bind existing run (generic) ";
       e_run = run;
-      e_term1 = goal.rd->message;
-      e_term2 = rd->message;
+      e_term1 = b->term;
     }
 #endif
-  if (binding_add (run, index, goal.run, goal.index, goal.rd->message))
+  if (goal_bind (b, run, index))
     {
       if (subterm)
 	{
-	  flag = termMguSubTerm (goal.rd->message, rd->message,
+	  flag = termMguSubTerm (b->term, rd->message,
 				 subterm_iterate, sys->know->inverses, NULL);
 	}
       else
 	{
-	  flag = termMguInTerm (goal.rd->message, rd->message,
+	  flag = termMguInTerm (b->term, rd->message,
 				interm_iterate);
 	}
     }
@@ -382,15 +384,16 @@ bind_existing_to_goal (const Binding b, const int index, const int run,
 	}
 #endif
     }
-  binding_remove_last ();
+  goal_unbind (b);
   // Reset length
+  remove_read_goals (newgoals);
   sys->runs[run].length = old_length;
   return flag;
 }
 
 //! Bind a goal to an existing regular run, if possible
 int
-bind_existing_run (const Goal goal, const Protocol p, const Role r,
+bind_existing_run (const Binding b, const Protocol p, const Role r,
 		   const int index, const int subterm)
 {
   int run, flag;
@@ -400,7 +403,7 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
     {
       indentPrint ();
       eprintf ("Trying to bind ");
-      termPrint (goal.rd->message);
+      termPrint (b->term);
       eprintf (" to an existing instance of ");
       termPrint (p->nameterm);
       eprintf (", ");
@@ -413,7 +416,7 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
     {
       if (sys->runs[run].protocol == p && sys->runs[run].role == r)
 	{
-	  flag = flag && bind_existing_to_goal (goal, index, run, subterm);
+	  flag = flag && bind_existing_to_goal (b, index, run, subterm);
 	}
     }
   return flag;
@@ -421,20 +424,22 @@ bind_existing_run (const Goal goal, const Protocol p, const Role r,
 
 //! Bind a goal to a new run
 int
-bind_new_run (const Goal goal, const Protocol p, const Role r,
+bind_new_run (const Binding b, const Protocol p, const Role r,
 	      const int index, const int subterm)
 {
   int run;
   int flag;
+  int newgoals;
 
   roleInstance (sys, p, r, NULL, NULL);
   run = sys->maxruns - 1;
+  newgoals = add_read_goals (run, 0, index+1);
 #ifdef DEBUG
   if (DEBUGL (4))
     {
       indentPrint ();
       eprintf ("Trying to bind ");
-      termPrint (goal.rd->message);
+      termPrint (b->term);
       eprintf (" to a new instance of ");
       termPrint (p->nameterm);
       eprintf (", ");
@@ -442,8 +447,9 @@ bind_new_run (const Goal goal, const Protocol p, const Role r,
       eprintf (", run %i (subterm:%i)\n", run, subterm);
     }
 #endif
-  flag = bind_existing_to_goal (goal, index, run, subterm);
+  flag = bind_existing_to_goal (b, index, run, subterm);
   roleInstanceDestroy (sys);
+  remove_read_goals (newgoals);
   return flag;
 }
 
@@ -525,41 +531,32 @@ printSemiState ()
 /**
  * Should be ordered to prefer most constrained; for now, it is simply the first one encountered.
  */
-Goal
+Binding
 select_goal ()
 {
-  Goal goal;
-  int run;
+  List bl;
+  Binding best;
 
-  goal.run = INVALID;
-  goal.rd = NULL;
-  for (run = 0; run < sys->maxruns; run++)
+  best = NULL;
+  bl = sys->bindings;
+  while (bl != NULL)
     {
-      Roledef rd;
-      int index;
+      Binding b;
 
-      index = 0;
-      rd = sys->runs[run].start;
-      while (rd != NULL && index < sys->runs[run].length)
+      b = (Binding) bl->data;
+      if (!b->done)
 	{
-	  if (isGoal (rd) && !isBound (rd))
-	    {
-	      // Return this goal
-	      goal.run = run;
-	      goal.index = index;
-	      goal.rd = rd;
-	      return goal;
-	    }
-	  index++;
-	  rd = rd->next;
+	  // For now, we simply take the first encountered goal
+	  return b;
 	}
+      bl = bl->next;
     }
-  return goal;
+  return best;
 }
 
 //! Bind a regular goal
 int
-bind_goal_regular (const Goal goal)
+bind_goal_regular (const Binding b)
 {
   int flag;
   /*
@@ -594,7 +591,7 @@ bind_goal_regular (const Goal goal)
 	    eprintf (", index %i\n", index);
 	  }
 #endif
-	if (!termMguInTerm (goal.rd->message, rd->message, test_unification))
+	if (!termMguInTerm (b->term, rd->message, test_unification))
 	  {
 	    // A good candidate
 #ifdef DEBUG
@@ -602,14 +599,14 @@ bind_goal_regular (const Goal goal)
 	      {
 		indentPrint ();
 		eprintf ("Term ");
-		termPrint (goal.rd->message);
+		termPrint (b->term);
 		eprintf (" can possibly be bound by role ");
 		termPrint (r->nameterm);
 		eprintf (", index %i\n", index);
 	      }
 #endif
-	    return (bind_new_run (goal, p, r, index, 0) &&
-		    bind_existing_run (goal, p, r, index, 0));
+	    return (bind_new_run (b, p, r, index, 0) &&
+		    bind_existing_run (b, p, r, index, 0));
 	  }
 	else
 	  {
@@ -635,12 +632,13 @@ bind_goal_regular (const Goal goal)
       eprintf ("Try intruder send.\n");
     }
 #endif
-  return (flag && add_intruder_goal_iterate (goal));
+  return flag;
+  // return (flag && add_intruder_goal_iterate (b));
 }
 
 //! Bind an intruder goal to a regular run
 int
-bind_intruder_to_regular (Goal goal)
+bind_intruder_to_regular (Binding b)
 {
   int bind_this_roleevent (Protocol p, Role r, Roledef rd, int index)
   {
@@ -662,7 +660,7 @@ bind_intruder_to_regular (Goal goal)
     else
       {				// Test for subterm unification
 	if (termMguSubTerm
-	    (goal.rd->message, rd->message, test_unification,
+	    (b->term, rd->message, test_unification,
 	     sys->know->inverses, NULL))
 	  {
 	    // cannot unify
@@ -673,8 +671,8 @@ bind_intruder_to_regular (Goal goal)
 	      /**
 	       * Either from an existing, or from a new run.
 	       */
-	    return (bind_new_run (goal, p, r, index, 1)
-		    && bind_existing_run (goal, p, r, index, 1));
+	    return (bind_new_run (b, p, r, index, 1)
+		    && bind_existing_run (b, p, r, index, 1));
 	  }
       }
   }
@@ -688,7 +686,7 @@ bind_intruder_to_regular (Goal goal)
  * Handles the case where the intruder constructs a composed term himself.
  */
 int
-bind_intruder_to_construct (const Goal goal)
+bind_intruder_to_construct (const Binding b)
 {
   Term term;
   Termlist m0tl;
@@ -696,7 +694,7 @@ bind_intruder_to_construct (const Goal goal)
   int run;
 
   flag = 1;
-  term = goal.rd->message;
+  term = b->term;
   /**
    * Two options.
    *
@@ -719,19 +717,11 @@ bind_intruder_to_construct (const Goal goal)
 	  t2 = term->right.key;
 	}
 
-      run = create_intruder_goal (t1);
-      if (binding_add (run, 0, goal.run, goal.index, t1))
-	{
-	  run = create_intruder_goal (t2);
-	  if (binding_add (run, 0, goal.run, goal.index, t2))
-	    {
-	      flag = flag && iterate ();
-	    }
-	  binding_remove_last ();
-	  roleInstanceDestroy (sys);
-	}
-      binding_remove_last ();
-      roleInstanceDestroy (sys);
+      goal_add (t1, b->run_to, b->ev_to);
+      goal_add (t2, b->run_to, b->ev_to);
+      flag = flag && iterate ();
+      goal_remove_last ();
+      goal_remove_last ();
     }
   /**
    * 2. Retrieved from M_0
@@ -752,7 +742,7 @@ bind_intruder_to_construct (const Goal goal)
 	  run = sys->maxruns - 1;
 	  sys->runs[run].start->message = termDuplicate (term);
 	  sys->runs[run].length = 1;
-	  if (binding_add (run, 0, goal.run, goal.index, term))
+	  if (goal_bind (b, run, 0))
 	    {
 #ifdef DEBUG
 	      if (DEBUGL (3))
@@ -765,8 +755,7 @@ bind_intruder_to_construct (const Goal goal)
 #endif
 	      iterate ();
 	    }
-	  binding_remove_last ();
-	  roleInstanceDestroy (sys);
+	  goal_unbind (b);
 	  termlistSubstReset (subst);
 	  termlistDelete (subst);
 	}
@@ -786,7 +775,7 @@ bind_intruder_to_construct (const Goal goal)
  * Computes F2 as in Athena explanations.
  */
 int
-bind_goal_intruder (const Goal goal)
+bind_goal_intruder (const Binding b)
 {
   /**
    * Special case: when the intruder can bind it to the initial knowledge.
@@ -801,7 +790,7 @@ bind_goal_intruder (const Goal goal)
       int hasvars;
       Termlist substlist;
 
-      substlist = termMguTerm (tl->term, goal.rd->message);
+      substlist = termMguTerm (tl->term, b->term);
       if (substlist != MGUFAIL)
 	{
 	  // This seems to work
@@ -812,27 +801,25 @@ bind_goal_intruder (const Goal goal)
       tl = tl->next;
     }
   termlistDelete (tl);
-  return (flag && bind_intruder_to_regular (goal) &&
-	  bind_intruder_to_construct (goal));
+  return (flag && bind_intruder_to_regular (b) &&
+	  bind_intruder_to_construct (b));
 }
 
 //! Bind a goal in all possible ways
 int
-bind_goal (const Goal goal)
+bind_goal (const Binding b)
 {
-  if (!goal.rd->bound)
+  if (!b->done)
     {
       int flag;
-      goal.rd->bound = 1;
-      if (sys->runs[goal.run].protocol == INTRUDER)
+      if (sys->runs[b->run_to].protocol == INTRUDER)
 	{
-	  flag = bind_goal_intruder (goal);
+	  flag = bind_goal_intruder (b);
 	}
       else
 	{
-	  flag = bind_goal_regular (goal);
+	  flag = bind_goal_regular (b);
 	}
-      goal.rd->bound = 0;
       return flag;
     }
   else
@@ -923,14 +910,14 @@ prune ()
 }
 
 //! Setup system for specific claim test
-add_claim_specifics (Claimlist cl, Roledef rd)
+add_claim_specifics (const Claimlist cl, const Roledef rd)
 {
   if (cl->type == CLAIM_Secret)
     {
       /**
        * Secrecy claim
        */
-      create_intruder_goal (rd->message);
+      goal_add (rd->message, 0, cl->ev);	// Assumption that all claims are in run 0
     }
 }
 
@@ -943,12 +930,13 @@ int
 iterate ()
 {
   int flag;
-  Goal goal;
 
   flag = 1;
   indentDepth++;
   if (!prune ())
     {
+      Binding b;
+
       /**
        * Not pruned: count
        */
@@ -987,8 +975,8 @@ iterate ()
        * Check whether its a final state (i.e. all goals bound)
        */
 
-      goal = select_goal ();
-      if (goal.run == INVALID)
+      b = select_goal ();
+      if (b != NULL)
 	{
 	  /*
 	   * all goals bound, check for property
@@ -1009,14 +997,14 @@ iterate ()
 	    {
 	      indentPrint ();
 	      eprintf ("Trying to bind goal ");
-	      termPrint (goal.rd->message);
-	      eprintf (" from run %i, index %i.\n", goal.run, goal.index);
+	      termPrint (b->term);
+	      eprintf (" from run %i, index %i.\n", b->run_to, b->ev_to);
 	    }
 #endif
 	  /*
 	   * bind this goal in all possible ways and iterate
 	   */
-	  flag = bind_goal (goal);
+	  flag = bind_goal (b);
 	}
     }
 #ifdef DEBUG
@@ -1105,7 +1093,7 @@ arachne ()
 #endif
 
 	  roleInstance (sys, p, r, NULL, NULL);
-	  sys->runs[0].length = cl->ev + 1;
+	  add_read_goals (sys->maxruns - 1, 0, cl->ev + 1);
 
 	  /**
 	   * Add specific goal info
