@@ -477,6 +477,7 @@ commEvent (int event, Tac tc)
       cl->role = thisRole;
       cl->roledef = NULL;
       cl->count = 0;
+      cl->complete = 0;
       cl->failed = 0;
       cl->prec = NULL;
       cl->next = sys->claimlist;

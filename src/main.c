@@ -92,7 +92,8 @@ main (int argc, char **argv)
 					"output file (default is stdout)");
   struct arg_lit *switch_arachne =
     arg_lit0 ("a", "arachne", "use Arachne engine");
-  struct arg_lit *switch_proof = arg_lit0 ("P", "proof", "generate proof output");
+  struct arg_lit *switch_proof =
+    arg_lit0 ("P", "proof", "generate proof output");
   struct arg_str *switch_check = arg_str0 (NULL, "check", "CLAIM",
 					   "claim type to check (default is all)");
   struct arg_int *switch_scenario = arg_int0 ("s", "scenario", NULL,
@@ -362,7 +363,7 @@ main (int argc, char **argv)
     }
 
   /* handle switches */
-  
+
   sys->switchRuns = switch_maximum_runs->ival[0];	/* maximum number of runs */
   if (switch_implicit_choose->count > 0)
     /* allow implicit chooses */
@@ -389,7 +390,7 @@ main (int argc, char **argv)
   if (switch_summary->count > 0)
     sys->output = SUMMARY;	/* report summary on stdout */
   if (switch_proof->count > 0)
-      sys->output = PROOF;	/* report proof on stdout (for arachne only) */
+    sys->output = PROOF;	/* report proof on stdout (for arachne only) */
 
   /*
    * The scenario selector has an important side effect; when it is non-null,
@@ -774,6 +775,14 @@ timersPrint (const System sys)
 	      eprintf ("\t");
 	      eprintf ("failed:\t");
 	      statesFormat (cl_scan->failed);
+	    }
+	  else
+	    {
+	      eprintf ("\tcorrect: ");
+	      if (cl_scan->complete)
+		eprintf ("complete proof");
+	      else
+		eprintf ("bounded proof");
 	    }
 	}
       eprintf ("\n");

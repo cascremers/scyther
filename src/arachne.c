@@ -167,31 +167,33 @@ binding_indent_print (Binding b, int flag)
 /**
  *@return Returns the run number
  */
-int semiRunCreate (const Protocol p, const Role r)
+int
+semiRunCreate (const Protocol p, const Role r)
 {
   int run;
 
   run = sys->maxruns;
   if (p == INTRUDER)
-      num_intruder_runs++;
+    num_intruder_runs++;
   else
-      num_regular_runs++;
+    num_regular_runs++;
   roleInstance (sys, p, r, NULL, NULL);
   sys->runs[run].length = 0;
   return run;
 }
 
 //! Wrapper for roleDestroy
-void semiRunDestroy ()
+void
+semiRunDestroy ()
 {
   Protocol p;
 
-  p = sys->runs[sys->maxruns-1].protocol;
+  p = sys->runs[sys->maxruns - 1].protocol;
   roleInstanceDestroy (sys);
   if (p == INTRUDER)
-      num_intruder_runs--;
+    num_intruder_runs--;
   else
-      num_regular_runs--;
+    num_regular_runs--;
 }
 
 //! After a role instance, or an extension of a run, we might need to add some goals
@@ -528,7 +530,8 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
       indentPrint ();
       eprintf ("Cannot bind ");
       termPrint (b->term);
-      eprintf (" to run %i, index %i because it does not subterm-unify.\n", run, index);
+      eprintf (" to run %i, index %i because it does not subterm-unify.\n",
+	       run, index);
     }
   // Reset length
   remove_read_goals (newgoals);
@@ -931,7 +934,8 @@ bind_goal_regular_run (const Binding b)
 	    indentPrint ();
 	    eprintf ("The term ", found);
 	    termPrint (b->term);
-	    eprintf (" matches patterns from the role definitions. Investigate.\n");
+	    eprintf
+	      (" matches patterns from the role definitions. Investigate.\n");
 	  }
 	if (sys->output == PROOF)
 	  {
@@ -999,11 +1003,12 @@ bind_goal_old_intruder_run (Binding b)
 		  if (sys->output == PROOF && found == 1)
 		    {
 		      indentPrint ();
-		      eprintf ("Suppose it is from an existing intruder run.\n");
+		      eprintf
+			("Suppose it is from an existing intruder run.\n");
 		    }
-                  indentDepth++;
+		  indentDepth++;
 		  flag = flag && bind_existing_to_goal (b, run, ev);
-                  indentDepth--;
+		  indentDepth--;
 		}
 	      rd = rd->next;
 	      ev++;
@@ -1040,36 +1045,15 @@ bind_goal (const Binding b)
     }
 }
 
-//! Prune determination
+//! Prune determination because of theorems
 /**
- *@returns true iff this state is invalid for some reason
+ *@returns true iff this state is invalid because of a theorem
  */
 int
-prune ()
+prune_theorems ()
 {
   Termlist tl;
   List bl;
-
-  if (indentDepth > 20)
-    {
-      // Hardcoded limit on iterations
-      if (sys->output == PROOF)
-	{
-	  indentPrint ();
-	  eprintf ("Pruned because too many iteration levels.\n");
-	}
-      return 1;
-    }
-  if (sys->maxruns > sys->switchRuns)
-    {
-      // Hardcoded limit on runs
-      if (sys->output == PROOF)
-	{
-	  indentPrint ();
-	  eprintf ("Pruned because too many runs.\n");
-	}
-      return 1;
-    }
 
   // Check if all agents are valid
   tl = sys->runs[0].agents;
@@ -1145,6 +1129,39 @@ prune ()
   return 0;
 }
 
+//! Prune determination for bounds
+/**
+ *@returns true iff this state is invalid for some reason
+ */
+int
+prune_bounds ()
+{
+  Termlist tl;
+  List bl;
+
+  if (indentDepth > 20)
+    {
+      // Hardcoded limit on iterations
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("Pruned because too many iteration levels.\n");
+	}
+      return 1;
+    }
+  if (num_regular_runs > sys->switchRuns)
+    {
+      // Hardcoded limit on runs
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("Pruned because too many regular runs.\n");
+	}
+      return 1;
+    }
+  return 0;
+}
+
 //! Setup system for specific claim test
 add_claim_specifics (const Claimlist cl, const Roledef rd)
 {
@@ -1163,6 +1180,12 @@ add_claim_specifics (const Claimlist cl, const Roledef rd)
 	  eprintf
 	    ("* If all goals can be bound, this constitutes an attack.\n");
 	}
+
+      /**
+       * We say that a state exists for secrecy, but we don't really test wheter the claim can
+       * be reached (without reaching the attack).
+       */
+      cl->count = statesIncrease (cl->count);
       goal_add (rd->message, 0, cl->ev);	// Assumption that all claims are in run 0
     }
 }
@@ -1205,41 +1228,49 @@ iterate ()
   int flag;
 
   flag = 1;
-  if (!prune ())
+  if (!prune_theorems ())
     {
-      Binding b;
-
-      /**
-       * Not pruned: count
-       */
-
-      sys->states = statesIncrease (sys->states);
-
-      /**
-       * Check whether its a final state (i.e. all goals bound)
-       */
-
-      b = select_goal ();
-      if (b == NULL)
+      if (!prune_bounds ())
 	{
-	  /*
-	   * all goals bound, check for property
+	  Binding b;
+
+	  /**
+	   * Not pruned: count
 	   */
-	  if (sys->output == PROOF)
+
+	  sys->states = statesIncrease (sys->states);
+
+	  /**
+	   * Check whether its a final state (i.e. all goals bound)
+	   */
+
+	  b = select_goal ();
+	  if (b == NULL)
 	    {
-	      indentPrint ();
-	      eprintf ("All goals are now bound.\n");
+	      /*
+	       * all goals bound, check for property
+	       */
+	      if (sys->output == PROOF)
+		{
+		  indentPrint ();
+		  eprintf ("All goals are now bound.\n");
+		}
+	      sys->claims = statesIncrease (sys->claims);
+	      current_claim->count = statesIncrease (current_claim->count);
+	      flag = property_check ();
 	    }
-	  sys->claims = statesIncrease (sys->claims);
-	  current_claim->count = statesIncrease (current_claim->count);
-	  flag = flag && property_check ();
+	  else
+	    {
+	      /*
+	       * bind this goal in all possible ways and iterate
+	       */
+	      flag = bind_goal (b);
+	    }
 	}
       else
 	{
-	  /*
-	   * bind this goal in all possible ways and iterate
-	   */
-	  flag = bind_goal (b);
+	  // Pruned because of bound!
+	  current_claim->complete = 0;
 	}
     }
 
@@ -1324,6 +1355,7 @@ arachne ()
 	  int run;
 
 	  current_claim = cl;
+	  cl->complete = 1;
 	  p = (Protocol) cl->protocol;
 	  r = (Role) cl->role;
 
@@ -1339,7 +1371,7 @@ arachne ()
 	      eprintf (" at index %i.\n", cl->ev);
 	    }
 	  indentDepth++;
-	  run = semiRunCreate (p,r);
+	  run = semiRunCreate (p, r);
 	  proof_suppose_run (run, 0, cl->ev + 1);
 	  add_read_goals (run, 0, cl->ev + 1);
 

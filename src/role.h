@@ -30,6 +30,9 @@ struct claimlist
   states_t count;
   //! Number of occurrences that failed.
   states_t failed;
+  //! Whether the result is complete or not (failings always are!)
+  int complete;
+
   int r;			//!< role number for mapping
   int ev;			//!< event index in role
   //! Preceding label list
