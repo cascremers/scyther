@@ -1,3 +1,7 @@
+- Arachne AgentOfRun is playing up. Investigate start diamonds, and then
+  reinstate the untrusted actor pruning theorem. Probably the cause is in the
+  new roleInstance. Signals of this should be in a correct impl. of
+  agentOfRun.
 - Add some bug tracking thing to all this, because this list is becoming too
   big.
 - PRIO 1 : fix Arachne Dot output. Start by having dot-comments with the
