@@ -30,7 +30,7 @@ import copy
 # ***********************
 
 # Tuple width (number of concurrent protocols)
-TupleWidth = "3"
+TupleWidth = "2"
 
 # Temporary files
 TempFileList = "scyther-blap.tmp"
@@ -42,8 +42,8 @@ ScytherProgram = "../src/scyther"
 
 # Scyther parameters
 ScytherDefaults	= "--summary"
-ScytherMethods	= "--match=0 --arachne"
-ScytherBounds	= "--timer=10 --max-runs=5 --max-length=20"
+ScytherMethods	= "--match=1 --arachne"
+ScytherBounds	= "--timer=5 --max-runs=5 --max-length=20"
 
 # Build a large part of the command line (for Scyther) already
 ScytherArgs = ScytherDefaults + " " + ScytherMethods + " " + ScytherBounds
@@ -227,6 +227,30 @@ def ClearProgress (n,txt):
 	sys.stderr.flush()
 
 
+def DescribeContextBrief (filep, protocols, claim, prefix):
+
+	filep.write (prefix)
+
+	prlist = []
+	for prfile in protocols:
+		prnames = GetKeys (ProtocolToFileMap, prfile)
+		prlist = prlist + prnames
+	newprname = claim.split()[0]
+	filep.write ("\t" + newprname)
+
+	filep.write ("\t" + claim)
+
+	prlistclean = []
+	prliststr = ""
+	for pn in prlist:
+		if pn not in prlistclean:
+			if pn != newprname:
+				prlistclean.append(pn)
+				prliststr = prliststr + "\t" + pn
+	filep.write (prliststr)
+
+	filep.write ("\n")
+
 def DescribeContext (filep, protocols, claim):
 	def DC_Claim(cl,v):
 		if v == 0:
@@ -345,15 +369,14 @@ def SignalAttack (protocols, claim):
 		return 0
 
 	ClearProgress (TupleCount, safetxt)
-	print "-" * 40
-	print "New attack [[", newattacks, "]] at", processed, "/", TupleCount, ":", claim, " using",CommandLine( protocols)
+	outs = "***\t" + str(newattacks)
+	outs = outs + "\t" + str(processed) + "/" + str(TupleCount)
 	for helper in GetListKeys (ProtocolToFileMap, protocols):
 		clprname = claim.split()[0]
 		if helper <> clprname:
 			if helper not in ProtocolToEffectsMap.keys():
 				# new
 				ProtocolToEffectsMap[helper] = [clprname]
-				print "% Detected a new flaw helper:", helper
 			else:
 				# already noted as helper, add destruction now
 				if clprname not in ProtocolToEffectsMap[helper]:
@@ -366,7 +389,7 @@ def SignalAttack (protocols, claim):
 	# error log thingy. Furthermore,
 	# explicitly recreate the commandline
 	# and the claim that is newly violated
-	DescribeContext (sys.stdout, protocols, claim)
+	DescribeContextBrief (sys.stdout, protocols, claim, outs)
 
 	return 1
 
