@@ -42,6 +42,8 @@ Role I_RRS;
 
 static int indentDepth;
 static int max_encryption_level;
+static int num_regular_runs;
+static int num_intruder_runs;
 
 struct goalstruct
 {
@@ -161,6 +163,36 @@ binding_indent_print (Binding b, int flag)
   eprintf ("\n");
 }
 
+//! Wrapper for roleInstance
+/**
+ *@return Returns the run number
+ */
+int semiRunCreate (const Protocol p, const Role r)
+{
+  int run;
+
+  run = sys->maxruns;
+  if (p == INTRUDER)
+      num_intruder_runs++;
+  else
+      num_regular_runs++;
+  roleInstance (sys, p, r, NULL, NULL);
+  sys->runs[run].length = 0;
+  return run;
+}
+
+//! Wrapper for roleDestroy
+void semiRunDestroy ()
+{
+  Protocol p;
+
+  p = sys->runs[sys->maxruns-1].protocol;
+  roleInstanceDestroy (sys);
+  if (p == INTRUDER)
+      num_intruder_runs--;
+  else
+      num_regular_runs--;
+}
 
 //! After a role instance, or an extension of a run, we might need to add some goals
 /**
@@ -559,15 +591,14 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
   int flag;
   int newgoals;
 
-  roleInstance (sys, p, r, NULL, NULL);
-  run = sys->maxruns - 1;
+  run = semiRunCreate (p, r);
   proof_suppose_run (run, 0, index + 1);
   newgoals = add_read_goals (run, 0, index + 1);
   indentDepth++;
   flag = bind_existing_to_goal (b, run, index);
   indentDepth--;
   remove_read_goals (newgoals);
-  roleInstanceDestroy (sys);
+  semiRunDestroy ();
   return flag;
 }
 
@@ -706,8 +737,7 @@ bind_goal_new_m0 (const Binding b)
 	{
 	  int run;
 
-	  roleInstance (sys, INTRUDER, I_M, NULL, NULL);
-	  run = sys->maxruns - 1;
+	  run = semiRunCreate (INTRUDER, I_M);
 	  proof_suppose_run (run, 0, 1);
 	  sys->runs[run].start->message = termDuplicate (b->term);
 	  sys->runs[run].length = 1;
@@ -731,7 +761,7 @@ bind_goal_new_m0 (const Binding b)
 	    }
 	  goal_unbind (b);
 	  indentDepth--;
-	  roleInstanceDestroy (sys);
+	  semiRunDestroy ();
 	  termlistSubstReset (subst);
 	  termlistDelete (subst);
 	}
@@ -781,8 +811,7 @@ bind_goal_new_encrypt (const Binding b)
       t1 = term->left.op;
       t2 = term->right.key;
 
-      roleInstance (sys, INTRUDER, I_RRS, NULL, NULL);
-      run = sys->maxruns - 1;
+      run = semiRunCreate (INTRUDER, I_RRS);
       rd = sys->runs[run].start;
       rd->message = termDuplicate (t1);
       rd->next->message = termDuplicate (t2);
@@ -814,7 +843,7 @@ bind_goal_new_encrypt (const Binding b)
       goal_unbind (b);
       indentDepth--;
       remove_read_goals (newgoals);
-      roleInstanceDestroy (sys);
+      semiRunDestroy ();
     }
   else
     {
@@ -1233,14 +1262,6 @@ int
 arachne ()
 {
   Claimlist cl;
-  /*
-   * set up claim role(s)
-   */
-
-  if (sys->maxruns > 0)
-    {
-      error ("Something is wrong, number of runs >0.");
-    }
 
   int print_send (Protocol p, Role r, Roledef rd, int index)
   {
@@ -1263,6 +1284,18 @@ arachne ()
       max_encryption_level = tlevel;
     return 1;
   }
+
+  /*
+   * set up claim role(s)
+   */
+
+  if (sys->maxruns > 0)
+    {
+      error ("Something is wrong, number of runs >0.");
+    }
+
+  num_regular_runs = 0;
+  num_intruder_runs = 0;
 
   max_encryption_level = 0;
   iterate_role_sends (determine_encrypt_max);
@@ -1288,6 +1321,8 @@ arachne ()
       if (sys->switchClaimToCheck == NULL
 	  || sys->switchClaimToCheck == cl->type)
 	{
+	  int run;
+
 	  current_claim = cl;
 	  p = (Protocol) cl->protocol;
 	  r = (Role) cl->role;
@@ -1304,16 +1339,16 @@ arachne ()
 	      eprintf (" at index %i.\n", cl->ev);
 	    }
 	  indentDepth++;
-	  roleInstance (sys, p, r, NULL, NULL);
-	  proof_suppose_run (0, 0, cl->ev + 1);
-	  add_read_goals (sys->maxruns - 1, 0, cl->ev + 1);
+	  run = semiRunCreate (p,r);
+	  proof_suppose_run (run, 0, cl->ev + 1);
+	  add_read_goals (run, 0, cl->ev + 1);
 
 
 	  /**
 	   * Add specific goal info
 	   */
 	  add_claim_specifics (cl,
-			       roledef_shift (sys->runs[0].start, cl->ev));
+			       roledef_shift (sys->runs[run].start, cl->ev));
 
 #ifdef DEBUG
 	  if (DEBUGL (5))
@@ -1330,7 +1365,7 @@ arachne ()
 	  //! Destroy
 	  while (sys->maxruns > 0)
 	    {
-	      roleInstanceDestroy (sys);
+	      semiRunDestroy ();
 	    }
 	  indentDepth--;
 	}
