@@ -533,10 +533,9 @@ termlistLength (Termlist tl)
  * by the termlist, which is a list of key1,key1inv, key2, key2inv, etc...
  *@param inverses The list of inverses, typically from the knowledge.
  *@param key Any term of which the inverse will be determined.
- *@return A pointer to a duplicate of the inverse key term.
+ *@return A pointer to a duplicate of the inverse key term. Use termDelete to remove it.
  *\sa termDuplicate(), knowledge::inverses
  */
-
 
 Term
 inverseKey (Termlist inverses, Term key)
