@@ -596,12 +596,13 @@ inverseKey (Termlist inverses, Term key)
  *\sa termlistLocal()
  */
 Term
-termLocal (const Term t, Termlist fromlist, Termlist tolist,
+termLocal (Term t, Termlist fromlist, Termlist tolist,
 	   const Termlist locals, const int runid)
 {
   if (t == NULL)
     return NULL;
 
+  deVar (t);			// remove any instantiated variables from the term.
   if (realTermLeaf (t))
     {
       while (fromlist != NULL && tolist != NULL)

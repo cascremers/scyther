@@ -18,6 +18,11 @@ static System sys;
 static Protocol INTRUDER;	// Pointers, to be set by the Init
 static Role I_GOAL;		// Same here.
 
+#ifdef DEBUG
+static explanation;		// Pointer to a string that describes what we just tried to do
+static indent;			// Integer indicating iteration depth 0..
+#endif
+
 struct goalstruct
 {
   int run;
@@ -133,12 +138,95 @@ iterate_role_sends (int (*func) ())
   return 1;
 }
 
-//! Generates a new intruder goal, yields runid
+//! Generates a new intruder goal, iterates
+/**
+ * Sloppy, does not unify term but hardcodes it into the stuff.
+ */
 int
-add_intruder_goal (Term t)
+add_intruder_goal (Goal goal)
 {
+  int run;
+  int flag;
+  Roledef rd;
+
   roleInstance (sys, INTRUDER, I_GOAL, NULL);
-  return (sys->maxruns - 1);
+  run = sys->maxruns - 1;
+  goal.rd->bind_run = run;
+  goal.rd->bind_index = 0;
+  rd = sys->runs[run].start;
+  termDelete (rd->message);
+  rd->message = goal.rd->message;
+
+#ifdef DEBUG
+  explanation = "Adding intruder goal";
+#endif
+  flag = iterate ();
+
+  roleInstanceDestroy (sys);	// destroy the created run
+  goal.rd->bind_run = INVALID;
+  return flag;
+}
+
+//! Bind a goal to an existing regular run, if possible
+int
+bind_existing_run (const Goal goal, const Protocol p, const Role r,
+		   const int index)
+{
+  int run, flag;
+
+  flag = 1;
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      if (sys->runs[run].protocol == p && sys->runs[run].role == r)
+	{
+	  int i;
+	  int old_length;
+	  Roledef rd;
+
+	  // find roledef entry
+	  rd = sys->runs[run].start;
+	  for (i = 0; i < index; i++)
+	    rd = rd->next;
+
+	  // mgu and iterate
+	  old_length = sys->runs[run].length;
+	  if (index >= old_length)
+	    sys->runs[run].length = index + 1;
+#ifdef DEBUG
+          explanation = "Bind existing run";
+#endif
+	  flag =
+	    flag & termMguInTerm (goal.rd->message, rd->message, mgu_iterate);
+	  sys->runs[run].length = old_length;
+	}
+    }
+  return flag;
+}
+
+//! Bind a goal to a new run
+int
+bind_new_run (const Goal goal, const Protocol p, const Role r,
+	      const int index)
+{
+  int run;
+  int flag;
+  Roledef rd;
+
+  roleInstance (sys, p, r, NULL);
+  run = sys->maxruns-1;
+  sys->runs[run].length = index+1;
+  goal.rd->bind_run = run;
+  goal.rd->bind_index = index;
+  rd = roledef_shift (sys->runs[run].start, index);
+#ifdef DEBUG
+  explanation = "Bind new run";
+#endif
+
+  iterate ();
+
+  goal.rd->bind_run = INVALID;
+  roleInstanceDestroy (sys);
+  return flag;
 }
 
 //------------------------------------------------------------------------
@@ -181,67 +269,6 @@ select_goal ()
   return goal;
 }
 
-//! Bind a goal to an existing regular run, if possible
-int
-bind_existing_run (const Goal goal, const Protocol p, const Role r,
-		   const int index)
-{
-  int run, flag;
-
-  flag = 1;
-  for (run = 0; run < sys->maxruns; run++)
-    {
-      if (sys->runs[run].protocol == p && sys->runs[run].role == r)
-	{
-	  int i;
-	  int old_length;
-	  Roledef rd;
-
-	  // find roledef entry
-	  rd = sys->runs[run].start;
-	  for (i = 0; i < index; i++)
-	    rd = rd->next;
-
-	  // mgu and iterate
-	  old_length = sys->runs[run].length;
-	  if (index >= old_length)
-	    sys->runs[run].length = index + 1;
-	  flag =
-	    flag & termMguInTerm (goal.rd->message, rd->message, mgu_iterate);
-	  sys->runs[run].length = old_length;
-	}
-    }
-  return flag;
-}
-
-//! Bind a goal to a new run
-int
-bind_new_run (const Goal goal, const Protocol p, const Role r,
-	      const int index)
-{
-  int run;
-  int flag;
-  Roledef rd;
-
-  roleInstance (sys, p, r, NULL);
-  run = sys->maxruns-1;
-  sys->runs[run].length = index+1;
-  goal.rd->bind_run = run;
-  goal.rd->bind_index = index;
-  rd = roledef_shift (sys->runs[run].start, index);
-
-  // Possibly double recursion (overkill) because of interm construct. Find a way to maintain this over instances/
-  /**
-   *@todo We should have the roleInstance carry over any instantiated vars from the roledef, and then undo the instatiations on the original.
-   * Then this could simply iterate, which is much better.
-   */
-  flag = termMguInTerm (goal.rd->message, rd->message, mgu_iterate);
-
-  goal.rd->bind_run = INVALID;
-  roleInstanceDestroy (sys);
-  return flag;
-}
-
 //! Bind a regular goal
 int
 bind_goal_regular (const Goal goal)
@@ -255,13 +282,18 @@ bind_goal_regular (const Goal goal)
   {
     int element_f1 (Termlist substlist)
     {
-	  /**
-	   * Two options; as this, it is from an existing run,
-	   * or from a new one.
-	   */
+      /**
+       * Two options; as this, it is from an existing run,
+       * or from a new one.
+       *
+       * Note that we only bind to regular runs here
+       */
       int flag;
 
-      termlistSubstReset (substlist);	// undo, we don't really need that
+      if (p == INTRUDER)
+	{
+	  return 1;	// don't abort scans
+	}
       flag = bind_existing_run (goal, p, r, index);
       if (flag)
 	{
@@ -279,15 +311,7 @@ bind_goal_regular (const Goal goal)
   // Bind to an intruder node?
   if (flag)
     {
-      int run;
-
-      goal.rd->bind_run = add_intruder_goal (goal.rd->message);	// creates a new run
-      goal.rd->bind_index = 0;	// such a run only has a simple read;
-
-      flag = iterate ();
-
-      roleInstanceDestroy (sys);	// destroy the created run
-      goal.rd->bind_run = INVALID;
+      add_intruder_goal (goal);	// creates a new run
     }
   return flag;
 }
@@ -331,40 +355,56 @@ prune ()
 int
 iterate ()
 {
+  int flag;
   Goal goal;
 
-  /**
-   * Possibly prune this state
-   */
-
+  flag = 1;
+#ifdef DEBUG
+  indent++;
+#endif
   if (prune ())
-    return 0;
-
-  /**
-   * Not pruned: count
-   */
-
-  sys->states = statesIncrease (sys->states);
-
-  /**
-   * Check whether its a final state (i.e. all goals bound)
-   */
-
-  goal = select_goal ();
-  if (goal.run == INVALID)
     {
-      /*
-       * all goals bound, check for property
+      /**
+       * Not pruned: count
        */
-      return 1;
-    }
-  else
-    {
-      /*
-       * bind this goal in all possible ways and iterate
+
+      sys->states = statesIncrease (sys->states);
+#ifdef DEBUG
+      if (explanation != NULL)
+	{
+	  int i;
+
+	  for (i = 0; i < indent; i++)
+	      eprintf ("   ");
+	  eprintf ("%s\n", explanation);
+      	  explanation = NULL;
+	}
+#endif
+
+      /**
+       * Check whether its a final state (i.e. all goals bound)
        */
-      return bind_goal (goal);
+
+      goal = select_goal ();
+      if (goal.run == INVALID)
+	{
+	  /*
+	   * all goals bound, check for property
+	   */
+	  //!@todo Property check in Arachne.
+	}
+      else
+	{
+	  /*
+	   * bind this goal in all possible ways and iterate
+	   */
+	  flag = bind_goal (goal);
+	}
     }
+#ifdef DEBUG
+  indent--;
+#endif
+  return flag;
 }
 
 //! Main code for Arachne
@@ -377,6 +417,10 @@ arachne ()
   /*
    * set up claim role(s)
    */
+#ifdef DEBUG
+  explanation = NULL;
+  indent = -1;
+#endif
 
   /*
    * iterate
