@@ -374,18 +374,12 @@ bind_goal_regular (const Goal goal)
        *
        * Note that we only bind to regular runs here
        */
-      int flag;
-
       if (p == INTRUDER)
 	{
 	  return 1;		// don't abort scans
 	}
-      flag = bind_existing_run (goal, p, r, index);
-      if (flag)
-	{
-	  flag = bind_new_run (goal, p, r, index);
-	}
-      return flag;
+      return (bind_existing_run (goal, p, r, index)
+	      && bind_new_run (goal, p, r, index));
     }
 
     // Test for interm unification
@@ -397,78 +391,109 @@ bind_goal_regular (const Goal goal)
 }
 
 //! Bind an intruder goal to a regular run
+/**
+ * A bit of a problem child, this one.
+ */
 int
-bind_intruder_to_regular (const Goal goal)
+bind_intruder_to_regular (Goal goal)
 {
-  int bind_this_f2 (Protocol p, Role r, Roledef rd, int index)
+  int bind_this_roleevent (Protocol p, Role r, Roledef rd, int index)
   {
-    int element_f2 (Termlist substlist, Termlist keylist)
+    int bind_this_unification (Termlist substlist, Termlist keylist)
     {
       int flag;
+      int keygoals;
+      Termlist tl;
 
       /**
-       * Note that we only bind to regular runs here
+       * the list of keys is added as a new goal.
        */
-      if (p == INTRUDER)
+      keygoals = 0;
+      tl = keylist;
+      while (tl != NULL)
 	{
-	  return 1;		// don't abort scans
+	  keygoals++;
+	  create_intruder_goal (tl->term);
+	  //!@todo This needs a mapping Pi relation as well.
+
+	  tl = tl->next;
 	}
-      else
+      /**
+       * Two options; as this, it is from an existing run,
+       * or from a new one.
+       */
+
+      flag = (bind_existing_run (goal, p, r, index)
+	      && bind_new_run (goal, p, r, index));
+
+      /**
+       * deconstruct key list goals
+       */
+      while (keygoals > 0)
 	{
-	  int keygoals;
-
-	  /**
-	   * In any case, the list of keys is added as a new goal.
-	   */
-	  int add_key_goal (Term t)
-	  {
-	    keygoals++;
-	    create_intruder_goal (t);
-	    //!@todo This needs a mapping Pi relation as well.
-	    return 1;
-	  }
-
-	  keygoals = 0;
-	  termlist_iterate (keylist, add_key_goal);
-	  /**
-	   * Two options; as this, it is from an existing run,
-	   * or from a new one.
-	   */
-
-	  /**
-	   * This code has a major bug (memory destruction)
-	   * in both branches
-	   *@todo FIX!!
-	   */
-	  flag = (bind_existing_run (goal, p, r, index)
-		  && bind_new_run (goal, p, r, index));
-
-	  /**
-	   * deconstruct key list goals
-	   */
-	  while (keygoals > 0)
-	    {
-	      roleInstanceDestroy (sys);
-	      keygoals--;
-	    }
-
-	  return flag;
+	  roleInstanceDestroy (sys);
+	  keygoals--;
 	}
+
+      return flag;
     }
 
-    // Test for subterm unification
-    return termMguSubTerm (goal.rd->message, rd->message, element_f2,
-			   sys->traceKnow[0]->inverses, NULL);
+  /**
+   * Note that we only bind to regular runs here
+   */
+    if (p == INTRUDER)
+      {
+	return 1;		// don't abort scans
+      }
+    else
+      {				// Test for subterm unification
+	return termMguSubTerm (goal.rd->message, rd->message,
+			       bind_this_unification, sys->know->inverses,
+			       NULL);
+      }
   }
 
   // Bind to all possible sends?
-  return iterate_role_sends (bind_this_f2);
+  return iterate_role_sends (bind_this_roleevent);
 }
 
 //! Bind an intruder goal by intruder construction
 int
 bind_intruder_to_construct (const Goal goal)
 {
+  Term term;
+
+  term = goal.rd->message;
+  if (!realTermLeaf (term))
+    {
+      Term t1, t2;
+      int flag;
+
+      if (realTermTuple (term))
+	{
+	  // tuple construction
+	  t1 = term->left.op1;
+	  t2 = term->right.op2;
+	}
+      else
+	{
+	  // must be encryption
+	  t1 = term->left.op;
+	  t2 = term->right.key;
+	}
+      create_intruder_goal (t1);
+      create_intruder_goal (t2);
+
+      flag = iterate ();
+
+      roleInstanceDestroy (sys);
+      roleInstanceDestroy (sys);
+      return flag;
+    }
+  else
+    {
+      return 1;
+    }
 }
 
 
@@ -504,7 +529,7 @@ bind_goal (const Goal goal)
 int
 prune ()
 {
-  if (indentDepth > 2)
+  if (indentDepth > 10)
     {
       // Hardcoded limit on iterations
 #ifdef DEBUG
@@ -569,11 +594,6 @@ iterate ()
 	      eprintf (" ");
 	    }
 	  eprintf ("\n");
-	  explanation = NULL;
-	  e_run = INVALID;
-	  e_term1 = NULL;
-	  e_term2 = NULL;
-	  e_term3 = NULL;
 	}
 #endif
 
@@ -605,6 +625,13 @@ iterate ()
 	  flag = bind_goal (goal);
 	}
     }
+#ifdef DEBUG
+  explanation = NULL;
+  e_run = INVALID;
+  e_term1 = NULL;
+  e_term2 = NULL;
+  e_term3 = NULL;
+#endif
   indentDepth--;
   return flag;
 }

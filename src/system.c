@@ -596,8 +596,9 @@ roleInstance (const System sys, const Protocol protocol, const Role role,
 	    {
 	      // Make new var for this run
 	      newt = makeTermType (VARIABLE, newt->left.symb, rid);
-	      newt->subst = oldt->subst;
 	      artefacts = termlistAdd (artefacts, newt);
+	      // Copy substitution
+	      newt->subst = oldt->subst;
 	    }
 	  // Add to agent list, possibly
 	  if (inTermlist (protocol->rolenames, oldt))

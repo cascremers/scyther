@@ -73,7 +73,7 @@ termMguTerm (Term t1, Term t2)
     }
 
   /* symmetrical tests for single variable */
-  if (isTermVariable (t1))
+  if (realTermVariable (t1))
     {
       if (termOccurs (t2, t1))
 	return MGUFAIL;
@@ -86,7 +86,7 @@ termMguTerm (Term t1, Term t2)
 	  return termlistAdd (NULL, t1);
 	}
     }
-  if (isTermVariable (t2))
+  if (realTermVariable (t2))
     {
       if (termOccurs (t1, t2))
 	return MGUFAIL;
@@ -106,7 +106,7 @@ termMguTerm (Term t1, Term t2)
 
   /* identical compounds */
   /* encryption first */
-  if (isTermEncrypt (t1))
+  if (realTermEncrypt (t1))
     {
       Termlist tl1, tl2;
 
@@ -175,7 +175,7 @@ termMguInTerm (Term t1, Term t2, int (*iterator) ())
   t2 = deVar (t2);
   if (t2 != NULL)
     {
-      if (isTermTuple (t2))
+      if (realTermTuple (t2))
 	{
 	  // t2 is a tuple, consider interm options as well.
 	  flag = flag && termMguInTerm (t1, t2->left.op1, iterator);
@@ -210,9 +210,9 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (),
   t2 = deVar (t2);
   if (t2 != NULL)
     {
-      if (!isTermLeaf (t2))
+      if (!realTermLeaf (t2))
 	{
-	  if (isTermTuple (t2))
+	  if (realTermTuple (t2))
 	    {
 	      // 'simple' tuple
 	      flag =

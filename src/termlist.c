@@ -601,7 +601,7 @@ termLocal (Term t, Termlist fromlist, Termlist tolist, const int runid)
   if (t == NULL)
     return NULL;
 
-  deVar (t);			// remove any instantiated variables from the term.
+  // deVar (t);                 // remove any instantiated variables from the term.
   if (realTermLeaf (t))
     {
       while (fromlist != NULL && tolist != NULL)
