@@ -1,3 +1,5 @@
+- Add some bug tracking thing to all this, because this list is becoming too
+  big.
 - PRIO 1 : fix Arachne Dot output. Start by having dot-comments with the
   actual bindings list, to debug the stuff that happens.
 - PRIO 2 : resolve Arachne memory usage issue. Why is it using so much memory?
