@@ -1,9 +1,9 @@
 /*
- * Yahalom Lowe
+ * Yahalom Paulson-strengthened
  * As in Sjouke's list
  */
 
-usertype Sessionkey;
+usertype Sessionkey, Ticket;
 
 const Alice,Bob,Simon,Eve : Agent;
 secret k : Function;
@@ -20,11 +20,14 @@ protocol yahalomlowe(I,R,S)
 		const ni: Nonce;
 		var nr: Nonce;
 		var kir: Sessionkey;
+		var T: Ticket;
 
 		send_1(I,R, I,ni);
-		read_3(S,I, {R,kir,ni,nr}k(I,S) );
-		send_5(I,R, {I,R,S,nr}kir );
+		read_3(S,I, nr, {R,kir,ni}k(I,S), T );
+		send_4(I,R, T, {nr}kir );
+
 		claim_8(I, Secret,kir);
+		claim_9(I, Nisynch);
 	}
 
 	role R
@@ -34,11 +37,11 @@ protocol yahalomlowe(I,R,S)
 		var kir: Sessionkey;
 
 		read_1(I,R, I,ni);
-		send_2(R,S, {I,ni,nr}k(R,S) );
-		read_4(S,R, {I,kir}k(R,S) );
-		read_5(I,R, {I,R,S,nr}kir );
-		claim_9(R, Secret,kir);
-		claim_10(R, Nisynch);
+		send_2(R,S, R,nr,{I,ni}k(R,S) );
+		read_4(I,R, {I,R,kir,nr}k(R,S), {nr}kir );
+
+		claim_10(R, Secret,kir);
+		claim_11(R, Nisynch);
 	}
 
 	role S
@@ -46,9 +49,8 @@ protocol yahalomlowe(I,R,S)
 		const kir: Sessionkey;
 		var ni,nr: Nonce;
 
-		read_2(R,S, {I,ni,nr}k(R,S) );
-		send_3(S,I, {R,kir,ni,nr}k(I,S) );
-		send_4(S,R, {I,kir}k(R,S) );
+		read_2(R,S, R,nr, {I,ni}k(R,S) );
+		send_3(S,I, nr, { R,kir,ni }k(I,S), {I,R,kir,nr}k(R,S) );
 	}
 }
 

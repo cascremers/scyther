@@ -1,3 +1,7 @@
+/*
+ * Woo-lam version from Spore, as it is in Sjouke's list
+ */
+
 usertype Server, SessionKey, Token, Ticket;
 secret k: Function;
 

@@ -15,6 +15,7 @@ broken1.spdl
 carkey-ni2.spdl
 carkey-ni.spdl
 ccitt509-ban.spdl
+denning-sacco-shared.spdl
 five-run-bound.spdl
 #gong-nonce-b.spdl
 #gong-nonce.spdl
@@ -22,6 +23,8 @@ helloworld.spdl
 isoiec11770-2-13.spdl
 #kaochow-palm.spdl
 kaochow.spdl
+ns-symmetric.spdl
+ns-symmetric-amended.spdl
 ns3-brutus.spdl
 ns3.spdl
 nsl3-nisynch-rep.spdl
@@ -45,4 +48,5 @@ woolam-ce.spdl
 woolam-cmv.spdl
 yahalom-ban.spdl
 yahalom-lowe.spdl
+yahalom-paulson.spdl
 yahalom.spdl

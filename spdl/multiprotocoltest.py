@@ -36,7 +36,7 @@ ScytherProgram = "../src/scyther"
 
 # Scyther parameters
 ScytherDefaults	= "--summary"
-ScytherMethods	= "--match=1 --arachne"
+ScytherMethods	= "--match=0 --arachne"
 ScytherBounds	= "--timer=300 --max-runs=5 --max-depth=25 --max-length=30"
 
 # Build a large part of the command line (for Scyther) already
