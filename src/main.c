@@ -70,6 +70,11 @@ const char *progname = "scyther";
  */
 const char *releasetag = "alpha2-devel";
 
+int yywrap (void)
+{
+  return 0;
+}
+
 //! The main body, as called by the environment.
 int
 main (int argc, char **argv)
