@@ -533,7 +533,6 @@ MC_incTraces (const System sys)
     tracelen -= tracestep;
 
   flag = 1;
-  res;
 
   do
     {
