@@ -67,6 +67,7 @@ typedef struct goalstruct Goal;
  */
 
 int iterate ();
+void printSemiState ();
 
 /**
  * Program code
@@ -148,15 +149,25 @@ arachneDone ()
 void
 indentPrint ()
 {
-  int i;
-
-  for (i = 0; i < indentDepth; i++)
+  if (sys->output == ATTACK && globalError == 0)
     {
-      if (i % 3 == 0)
-	eprintf ("|");
-      else
-	eprintf (" ");
-      eprintf (" ");
+      // Arachne, attack, not an error
+      // We assume that means DOT output
+      eprintf ("// ");
+    }
+  else
+    {
+      // If it is not to stdout, or it is not an attack...
+      int i;
+
+      for (i = 0; i < indentDepth; i++)
+	{
+	  if (i % 3 == 0)
+	    eprintf ("|");
+	  else
+	    eprintf (" ");
+	  eprintf (" ");
+	}
     }
 }
 
@@ -265,8 +276,7 @@ add_read_goals (const int run, const int old, const int new)
 		}
 	      termPrint (rd->message);
 	    }
-	  goal_add (rd->message, run, i, 0);
-	  count++;
+	  count = count + goal_add (rd->message, run, i, 0);
 	}
       rd = rd->next;
       i++;
@@ -276,17 +286,6 @@ add_read_goals (const int run, const int old, const int new)
       eprintf ("\n");
     }
   return count;
-}
-
-//! Remove n goals
-void
-remove_read_goals (int n)
-{
-  while (n > 0)
-    {
-      goal_remove_last ();
-      n--;
-    }
 }
 
 //! Determine the run that follows from a substitution.
@@ -529,7 +528,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
      */
     if (goal_bind (b, run, index))
       {
-	int keycount;
+	int newgoals;
 	Termlist tl;
 
 	proof_suppose_binding (b);
@@ -541,7 +540,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	    termlistPrint (keylist);
 	    eprintf ("\n");
 	  }
-	keycount = 0;
+	newgoals = 0;
 	tl = keylist;
 	while (tl != NULL)
 	  {
@@ -561,20 +560,15 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 		  }
 	      }
 	    /* add the key as a goal */
-	    goal_add (tl->term, b->run_to, b->ev_to, prioritylevel);
+	    newgoals = newgoals + goal_add (tl->term, b->run_to, b->ev_to, prioritylevel);
 	    tl = tl->next;
-	    keycount++;
 	  }
 
 	indentDepth++;
 	flag = flag && iterate ();
 	indentDepth--;
 
-	while (keycount > 0)
-	  {
-	    goal_remove_last ();
-	    keycount--;
-	  }
+	goal_remove_last (newgoals);
       }
     else
       {
@@ -609,7 +603,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	       run, index);
     }
   // Reset length
-  remove_read_goals (newgoals);
+  goal_remove_last (newgoals);
   sys->runs[run].length = old_length;
   return flag;
 }
@@ -675,7 +669,7 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
   indentDepth++;
   flag = bind_existing_to_goal (b, run, index);
   indentDepth--;
-  remove_read_goals (newgoals);
+  goal_remove_last (newgoals);
   semiRunDestroy ();
   return flag;
 }
@@ -718,6 +712,15 @@ dotSemiState ()
   eprintf (", claim type ");
   termPrint (current_claim->type);
   eprintf ("\";\n");
+
+  // Needed for the bindings later on: create graph
+  goal_graph_create ();		// create graph
+  warshall (graph, nodes);	// determine closure
+
+#ifdef DEBUG
+  // For debugging purposes, we also display an ASCII version of some stuff in the comments
+  printSemiState ();
+#endif
 
   // Draw graph
   // First, all simple runs
@@ -838,8 +841,6 @@ dotSemiState ()
 
   // Second, all bindings.
   // We now determine them ourselves between existing runs
-  goal_graph_create ();		// create graph
-  warshall (graph, nodes);	// determine closure
   run = 0;
   while (run < sys->maxruns)
     {
@@ -1227,7 +1228,7 @@ bind_goal_new_encrypt (const Binding b)
 	    }
 	  goal_unbind (b);
 	  indentDepth--;
-	  remove_read_goals (newgoals);
+	  goal_remove_last (newgoals);
 	  semiRunDestroy ();
 	}
     }
@@ -2017,7 +2018,7 @@ arachne ()
 	  //! Destroy
 	  while (sys->bindings != NULL)
 	    {
-	      remove_read_goals (1);
+	      goal_remove_last (1);
 	    }
 	  while (sys->maxruns > 0)
 	    {

@@ -379,9 +379,12 @@ binding_print (const Binding b)
  * The int parameter 'level' is just to store additional info. Here, it stores priorities for a goal.
  * Higher level goals will be selected first. Typically, a normal goal is level 0, a key is 1.
  */
-void
+int
 goal_add (Term term, const int run, const int ev, const int level)
 {
+  int sum;
+
+  sum = 0;
   term = deVar (term);
 #ifdef DEBUG
   if (term == NULL)
@@ -403,7 +406,7 @@ goal_add (Term term, const int run, const int ev, const int level)
       i = 0;
       while (i < width)
 	{
-	  goal_add (tupleProject (term, i), run, ev, level);
+	  sum = sum + goal_add (tupleProject (term, i), run, ev, level);
 	  if (i > 0)
 	    {
 	      Binding b;
@@ -416,28 +419,52 @@ goal_add (Term term, const int run, const int ev, const int level)
     }
   else
     {
-      Binding b;
+      // Determine whether we already had it
+      int nope;
 
-      b = binding_create (term, run, ev);
-      b->level = level;
-      sys->bindings = list_insert (sys->bindings, b);
+      int testSame (void *data)
+	{
+	  Binding b;
+
+	  b = (Binding) data;
+	  if (isTermEqual (b->term, term) &&
+	      run == b->run_to &&
+	      ev == b->ev_to)
+	    { // abort scan, report
+	      return 0;
+	    }
+	  else
+	    { // proceed with scan
+	      return 1;
+	    }
+	}
+
+      nope = list_iterate (sys->bindings, testSame);
+      if (nope)
+	{
+	  // Add a new binding
+	  Binding b;
+	  b = binding_create (term, run, ev);
+	  b->level = level;
+	  sys->bindings = list_insert (sys->bindings, b);
+	  sum = sum + 1;
+	}
     }
+  return sum;
 }
 
 //! Remove a goal
 void
-goal_remove_last ()
+goal_remove_last (int n)
 {
-  Binding b;
-  int child;
-
-  child = 1;
-  while (child && (sys->bindings != NULL))
+  while (n > 0 && (sys->bindings != NULL))
     {
+      Binding b;
+
       b = (Binding) sys->bindings->data;
-      child = b->child;
       binding_destroy (b);
       sys->bindings = list_delete (sys->bindings);
+      n--;
     }
 }
 
