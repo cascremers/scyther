@@ -571,26 +571,38 @@ void graphNode (const System sys)
   printf (";\n");
 }
 
-void graphPath (const System sys, const char* nodepar, const char* edgepar)
+void graphNodePath (const System sys, const int length, const char* nodepar)
 {
   int i;
+  unsigned long int thisNode;
 
   i = 0;
-  while (i < sys->step)
+  while (i < length)
     {
+      /* determine node number */
+      thisNode = sys->traceNode[i];
+
       /* color node */
-      if (nodepar != NULL)
-	{
-          printf ("\tn%li [%s];\n", sys->traceNode[i], nodepar);
-	}
+      printf ("\tn%li [%s];\n", thisNode, nodepar);
+      i++;
+    }
+}
+
+void graphEdgePath (const System sys, const int length, const char* edgepar)
+{
+  int i;
+  unsigned long int thisNode, prevNode;
+
+  i = 0;
+  prevNode = sys->traceNode[i];
+  while (i < length)
+    {
+      /* determine node number */
+      thisNode = sys->traceNode[i+1];
+
       /* color edge */
-      if (edgepar != NULL)
-	{
-      	  printf ("\tn%li -> n%li [%s];\n",
-	          sys->traceNode[i], 
-	          sys->traceNode[i+1],
-	          edgepar);
-	}
+      printf ("\tn%li -> n%li [%s];\n", prevNode, thisNode, edgepar);
+      prevNode = thisNode;
       i++;
     }
 }

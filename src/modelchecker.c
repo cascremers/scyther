@@ -176,6 +176,8 @@ executeStep (const System sys, const int run)
 	}
     }
 
+  /* store new node numbder */
+  sys->traceNode[sys->step] = sys->statesLow;
   /* the construction below always assumes MAX_GRAPH_STATES to be smaller than the unsigned long it, which seems realistic. */
   if (sys->switchStatespace && sys->statesHigh == 0 && sys->statesLow < MAX_GRAPH_STATES)
     {
@@ -208,15 +210,8 @@ explorify (const System sys, const int run)
   if (executeStep (sys, run))
     {
       /* traverse the system after the step */
-      /* be sure to do bookkeeping for the parent state */
-      unsigned long int parentBuffer;
-
-      parentBuffer = sys->traceNode[sys->step];
-      sys->traceNode[sys->step] = sys->statesLow;
 
       flag = traverse (sys);
-
-      sys->traceNode[sys->step] = parentBuffer;
     }
   else
     {
@@ -1048,7 +1043,8 @@ violateClaim (const System sys, int length, int claimev, Termlist reqt)
   /* mark the path in the state graph? */
   if (sys->switchStatespace)
     {
-      graphPath (sys,"shape=doubleoctagon,color=red","color=red");
+      graphNodePath (sys,length,"shape=parallelogram,color=red");
+      graphEdgePath (sys,length-1,"color=red");
     }
 
   /* Copy the current trace to the buffer, if the new one is shorter than the previous one. */
@@ -1084,7 +1080,7 @@ executeTry (const System sys, int run)
 
   runPoint = runPointerGet (sys, run);
   sys->traceEvent[sys->step] = runPoint;	// store for later usage, problem: variables are substituted later...
-  sys->traceRun[sys->step] = run;	// same
+  sys->traceRun[sys->step] = run;		// same
 
   if (runPoint == NULL)
     {
