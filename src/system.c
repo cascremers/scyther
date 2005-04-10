@@ -76,10 +76,8 @@ systemInit ()
   sys->switchClaims = 0;	// default don't report on claims
   sys->switchClaimToCheck = NULL;	// default check all claims
   sys->switchGoalSelectMethod = 3;	// default goal selection method
+  sys->traverse = 12;			// default traversal method
 
-  /* set illegal traversal by default, to make sure it is set
-     later */
-  sys->traverse = 0;
   sys->switch_maxproofdepth = INT_MAX;
   sys->switch_maxtracelength = INT_MAX;
   sys->maxtracelength = INT_MAX;
