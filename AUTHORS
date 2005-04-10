@@ -16,14 +16,9 @@ Scyther compilation depends on a few external items:
 
 - A C compiler (gcc or anything modern *nixy will do)
 - The Flex and Bison scanner/compiler generation tools.
-- The argtable 2 library.
 
-The first two requirements are usually met by default by any modern *nix
+These two requirements are usually met by default by any modern *nix
 variant, such as GNU/Linux. 
-
-The argtable2 library is available under the LGPL license from
-http://argtable.sourceforge.net/doc/argtable2.html. Make sure the paths
-in the Makefile include the path to this library.
 
 If you want LaTeX output we need
 

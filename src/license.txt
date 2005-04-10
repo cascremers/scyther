@@ -1,4 +1,3 @@
 - GNU getopt
 - GNU bison/flex
-- ARGTABLE	http://argtable.sourceforge.net/
 - de rest (c) Cas

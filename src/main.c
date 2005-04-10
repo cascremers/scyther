@@ -60,8 +60,6 @@ enum exittypes
 #include "binding.h"
 #include "switches.h"
 
-#include "argtable2.h"
-
 // The global system state
 System sys;
 
@@ -277,8 +275,6 @@ main (int argc, char **argv)
   memDone ();
 
 exit:
-  /* deallocate each non-null entry in argtable[] */
-
   return exitcode;
 }
 
