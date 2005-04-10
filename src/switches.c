@@ -134,10 +134,6 @@ switcher (const int process, const System sys, int index)
 	  }
       }
     // Allright, this is the right option
-#ifdef DEBUG
-    // [x] TODO remove
-    printf ("%% Detected switch: [%c] %s\n", shortopt, longopt);
-#endif
     // Enough arguments left?
     return enough_arguments_left (args, shortopt, longopt);
   }
