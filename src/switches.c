@@ -478,7 +478,7 @@ switcher (const int process, const System sys, int index)
     {
       if (!process)
 	{
-	  helptext ("-o,--output=<int>", "output file [stdout]");
+	  helptext ("-o,--output=<FILE>", "output file [stdout]");
 	}
       else
 	{
