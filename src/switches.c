@@ -169,23 +169,33 @@ switcher (const int process, const System sys, int index)
    * -------------------------------------------------------------
    */
 
-  if (detect ('o', "output", 1))
+  /* ==================
+   *  Generic options
+   */
+  if (detect ('a', "arachne", 0))
     {
       if (!process)
 	{
-	  helptext ("-o,--output=<int>", "output file [stdout]");
+	  helptext ("-a,--arachne", "select Arachne engine [modelchecker]");
 	}
       else
 	{
-	  // Set output file name
-	  /* try to open */
-	  if (!freopen (arg_pointer, "w", stdout))
-	    {
-	      fprintf (stderr, "Could not create output file '%s'.\n",
-		       arg_pointer);
-	      exit (1);
-	    }
-	  arg_next ();
+	  // Select arachne engine
+	  sys->engine = ARACHNE_ENGINE;
+	  bindingInit (sys);
+	  return index;
+	}
+    }
+
+  if (detect ('m', "match", 1))
+    {
+      if (!process)
+	{
+	  helptext ("-m,--match=<int>", "matching method [0]");
+	}
+      else
+	{
+	  sys->match = integer_argument ();
 	  return index;
 	}
     }
@@ -194,12 +204,13 @@ switcher (const int process, const System sys, int index)
     {
       if (!process)
 	{
-	  helptext ("-T,--timer=<int>",
-		    "maximum time in seconds");
+	  /* Not shown in from help, as we don't want to encourage this
+	     helptext ("-T,--timer=<int>", "maximum time in seconds [inf]");
+	   */
 	}
       else
 	{
-  	  set_time_limit (integer_argument ());
+	  set_time_limit (integer_argument ());
 	  return index;
 	}
     }
@@ -209,7 +220,7 @@ switcher (const int process, const System sys, int index)
       if (!process)
 	{
 	  helptext ("-r,--max-runs=<int>",
-		    "Maximum number of runs in the system");
+		    "maximum number of runs in the system [inf]");
 	}
       else
 	{
@@ -218,11 +229,122 @@ switcher (const int process, const System sys, int index)
 	}
     }
 
+  if (detect ('l', "max-length", 1))
+    {
+      if (!process)
+	{
+	  helptext ("-l,--max-length=<int>",
+		    "prune traces longer than <int> events [inf]");
+	}
+      else
+	{
+	  sys->switch_maxtracelength = integer_argument ();
+	  return index;
+	}
+    }
+
+  if (detect ('p', "prune", 1))
+    {
+      if (!process)
+	{
+	  /* not very important
+	     helptext ("-p,--prune=<int>", "pruning method when an attack is found [0]");
+	   */
+	}
+      else
+	{
+	  sys->prune = integer_argument ();
+	  return index;
+	}
+    }
+
+  /* ==================
+   *  Modelchecker only
+   */
+  if (!process)
+    {
+      printf ("Switches for modelchecking engine:\n");
+    }
+
+  if (detect ('L', "latex", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-L,--latex", "output attacks in LaTeX format [ASCII]");
+	}
+      else
+	{
+	  sys->latex = 1;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "state-space", 0))
+    {
+      if (!process)
+	{
+	  helptext ("--state-space",
+		    "output state space graph (in DOT format)");
+	}
+      else
+	{
+	  sys->output = STATESPACE;
+	  return index;
+	}
+    }
+
+  /* ==================
+   *  Arachne only
+   */
+  if (!process)
+    {
+      printf ("Switches for Arachne engine:\n");
+      helptext ("(fixed)", "output attacks in DOT format");
+    }
+
+  if (detect ('G', "goal-select", 1))
+    {
+      if (!process)
+	{
+	  /* discourage: hide
+	     helptext ("-G,--goal-select=<int>",
+	     "use goal selection method <int> [3]");
+	   */
+	}
+      else
+	{
+	  sys->switchGoalSelectMethod = integer_argument ();
+	  return index;
+	}
+    }
+
+  if (detect ('P', "proof", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-P,--proof", "show explicit proof");
+	}
+      else
+	{
+	  // Proof
+	  sys->output = PROOF;
+	  return index;
+	}
+    }
+
+  /* ==================
+   *  External options
+   */
+  if (!process)
+    printf ("Misc. switches:\n");
+
   if (detect ('E', "echo", 0))
     {
       if (!process)
 	{
-	  helptext ("-E,--echo", "echo command line to stdout");
+	  /* not very important
+	     helptext ("-E,--echo", "echo command line");
+	   */
 	}
       else
 	{
@@ -238,7 +360,7 @@ switcher (const int process, const System sys, int index)
     {
       if (!process)
 	{
-	  helptext ("--summary", "show summary on stdout");
+	  helptext ("--summary", "show summary only: omit attack details");
 	}
       else
 	{
@@ -247,24 +369,13 @@ switcher (const int process, const System sys, int index)
 	}
     }
 
-  if (detect (' ', "state-space", 0))
-    {
-      if (!process)
-	{
-	  helptext ("--state-space", "output state space graph (modelchecker)");
-	}
-      else
-	{
-	  sys->output = STATESPACE;
-	  return index;
-	}
-    }
-
   if (detect ('b', "progress-bar", 0))
     {
       if (!process)
 	{
-	  helptext ("-b,--progress-bar", "show progress bar");
+	  /* discourage: do not show in help text 
+	     helptext ("-b,--progress-bar", "show progress bar");
+	   */
 	}
       else
 	{
@@ -277,7 +388,9 @@ switcher (const int process, const System sys, int index)
     {
       if (!process)
 	{
-	  helptext ("-e,--empty", "do not generate output");
+	  /* not very important
+	     helptext ("-e,--empty", "do not generate output");
+	   */
 	}
       else
 	{
@@ -286,104 +399,14 @@ switcher (const int process, const System sys, int index)
 	}
     }
 
-  if (detect ('L', "latex", 0))
-    {
-      if (!process)
-	{
-	  helptext ("-L,--latex", "output attacks in LaTeX format");
-	}
-      else
-	{
-	  sys->latex = 1;
-	  return index;
-	}
-    }
-
-  if (detect ('G', "goal-select", 1))
-    {
-      if (!process)
-	{
-	  helptext ("-G,--goal-select=<int>", "use goal selection method <int> (default is 3)");
-	}
-      else
-	{
-	  sys->switchGoalSelectMethod = integer_argument ();
-	  return index;
-	}
-    }
-
-  if (detect ('l', "max-length", 1))
-    {
-      if (!process)
-	{
-	  helptext ("-l,--max-length=<int>", "prune traces longer than <int> events.");
-	}
-      else
-	{
-	  sys->switch_maxtracelength = integer_argument ();
-	  return index;
-	}
-    }
-
-  if (detect ('p', "prune", 1))
-    {
-      if (!process)
-	{
-	  helptext ("-p,--prune", "pruning method");
-	}
-      else
-	{
-	  sys->prune = integer_argument ();
-	  return index;
-	}
-    }
-
-  if (detect ('m', "match", 1))
-    {
-      if (!process)
-	{
-	  helptext ("-m,--match", "matching method");
-	}
-      else
-	{
-	  sys->match = integer_argument ();
-	  return index;
-	}
-    }
-
-  if (detect ('P', "proof", 0))
-    {
-      if (!process)
-	{
-	  helptext ("-P,--proof", "construct explicit proof");
-	}
-      else
-	{
-	  // Proof
-	  sys->output = PROOF;
-	  return index;
-	}
-    }
-
-  if (detect ('a', "arachne", 0))
-    {
-      if (!process)
-	{
-	  helptext ("-a,--arachne", "select Arachne engine");
-	}
-      else
-	{
-	  // Select arachne engine
-	  sys->engine = ARACHNE_ENGINE;
-	  bindingInit (sys);
-	  return index;
-	}
-    }
-
   if (detect ('v', "version", 0))
     {
       if (!process)
-	helptext ("-v,--version", "version information");
+	{
+	  /* not very important: hide
+	     helptext ("-v,--version", "version information");
+	   */
+	}
       else
 	{
 	  printf ("'%s' model checker for security protocols.\n", progname);
@@ -418,7 +441,7 @@ switcher (const int process, const System sys, int index)
     {
       if (!process)
 	{
-	  helptext ("-D,--debug=<int>", "set debug (verbosity) level.");
+	  helptext ("-D,--debug=<int>", "set debug (verbosity) level. [0]");
 	}
       else
 	{
@@ -427,6 +450,27 @@ switcher (const int process, const System sys, int index)
 	}
     }
 #endif
+
+  if (detect ('o', "output", 1))
+    {
+      if (!process)
+	{
+	  helptext ("-o,--output=<int>", "output file [stdout]");
+	}
+      else
+	{
+	  // Set output file name
+	  /* try to open */
+	  if (!freopen (arg_pointer, "w", stdout))
+	    {
+	      fprintf (stderr, "Could not create output file '%s'.\n",
+		       arg_pointer);
+	      exit (1);
+	    }
+	  arg_next ();
+	  return index;
+	}
+    }
 
   // If the option is not recognized, it means a file name.
   if (!process)
