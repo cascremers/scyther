@@ -33,6 +33,8 @@ int
 switcher (const int process, const System sys, int index)
 {
   char *this_arg;		// just a shortcut
+  int this_arg_length;		// same here
+
   int argc;
   char **argv;
 
@@ -89,7 +91,7 @@ switcher (const int process, const System sys, int index)
 	return 1;
       }
     // Is it this option anyway?
-    if (strlen (this_arg) < 2 || this_arg[0] != '-')
+    if (this_arg_length < 2 || this_arg[0] != '-')
       {
 	// No option
 	return 0;
@@ -99,15 +101,33 @@ switcher (const int process, const System sys, int index)
       {
 	int optlength;
 
-	// Long variant
+	// This seems to be a long switch, so we handle it accordingly
+
 	optlength = strlen (longopt);
 	if (strncmp (this_arg + 2, longopt, optlength))
 	  return 0;
-	if ((optlength + 2 < strlen (this_arg)) &&
-	    this_arg[2 + optlength] == '=')
+	if (optlength + 2 < this_arg_length)
 	  {
 	    // This has an additional thing!
-	    arg_pointer = this_arg + 2 + optlength + 1;
+	    if (args > 0 && this_arg[2 + optlength] == '=')
+	      {
+		// It's the right thing
+		if (optlength + 3 < this_arg_length)
+		  {
+	            arg_pointer = this_arg + 2 + optlength + 1;
+		  }
+		else
+		  {
+		    // arg = next
+		    index++;
+		    arg_pointer = argv[index];
+		  }
+	      }
+	    else
+	      {
+		// It's not this option
+		return 0;
+	      }
 	  }
 	else
 	  {
@@ -119,11 +139,12 @@ switcher (const int process, const System sys, int index)
     else
       {
 	// Short variant
-	if (strlen (this_arg) < 2 || this_arg[1] != shortopt)
+	if (this_arg_length < 2 || this_arg[1] != shortopt)
 	  return 0;
-	if (strlen (this_arg) > 2)
+	if (args > 0 && this_arg_length > 2)
 	  {
 	    // This has an additional thing!
+	    // We assume the argument follows immediately (no appended '=')
 	    arg_pointer = this_arg + 2;
 	  }
 	else
@@ -156,11 +177,13 @@ switcher (const int process, const System sys, int index)
 	}
 #endif
       this_arg = argv[index];
+      this_arg_length = strlen(this_arg);
     }
   else
     {
       // Just doing help
       this_arg = NULL;
+      this_arg_length = 0;
     }
 
   /*
@@ -416,7 +439,7 @@ switcher (const int process, const System sys, int index)
 #else
 	  printf ("Revision %s\n", SVNVERSION);
 #endif
-	  printf ("December 2003--, Cas Cremers\n");
+	  printf ("Code by Cas Cremers\n");
 	  exit (0);
 	}
     }
@@ -488,7 +511,15 @@ switcher (const int process, const System sys, int index)
 	  // not '-' input: change stdin to come from this file
 	  if (!freopen (this_arg, "r", stdin))
 	    {
-	      fprintf (stderr, "Could not open input file '%s'.\n", this_arg);
+	      // The file was not found. We have two options...
+	      if (this_arg[0] == '-')
+		{
+		  fprintf (stderr, "Unknown switch '%s'.\n", this_arg);
+		}
+		  else
+		{
+		  fprintf (stderr, "Could not open input file '%s'.\n", this_arg);
+		}
 	      exit (1);
 	    }
 	  return index + 1;
@@ -505,7 +536,8 @@ process_switches (const System sys)
 
   if (sys->argc == 1)
     {
-      printf ("Try '%s --help' for more information.\n", progname);
+      printf ("Try '%s --help' for more information, or visit:\n", progname);
+      printf (" http://www.win.tue.nl/~ccremers/scyther/index.html\n");
       exit (0);
     }
 
