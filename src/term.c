@@ -1079,21 +1079,33 @@ term_rolelocals_are_variables ()
 int
 term_encryption_level (const Term term)
 {
-  int iter_maxencrypt (Term term)
+  int iter_maxencrypt (Term t)
   {
-    term = deVar (term);
-    if (realTermLeaf (term))
+    t = deVar (t);
+    if (t == NULL)
+      {
+#ifdef DEBUG
+	if (DEBUGL(2))
+	  {
+	    eprintf ("Warning: Term encryption level finds a NULL for term ");
+	    termPrint (term);
+	    eprintf ("\n");
+	  }
+#endif
+	return 0;
+      }
+    if (realTermLeaf (t))
       {
 	return 0;
       }
     else
       {
-	if (realTermTuple (term))
+	if (realTermTuple (t))
 	  {
 	    int l, r;
 
-	    l = iter_maxencrypt (TermOp1 (term));
-	    r = iter_maxencrypt (TermOp2 (term));
+	    l = iter_maxencrypt (TermOp1 (t));
+	    r = iter_maxencrypt (TermOp2 (t));
 	    if (l > r)
 	      return l;
 	    else
@@ -1102,7 +1114,7 @@ term_encryption_level (const Term term)
 	else
 	  {
 	    // encrypt
-	    return 1 + iter_maxencrypt (TermOp (term));
+	    return 1 + iter_maxencrypt (TermOp (t));
 	  }
       }
   }

@@ -109,19 +109,17 @@ termlistDestroy (Termlist tl)
 
 //! Determine whether a term is an element of a termlist.
 /**
- * Term must be non-null.
+ * The NULL term is not an element of any list. (Not even of the NULL list)
  *
  *@return True iff the term is an element of the termlist.
  */
 __inline__ int
 inTermlist (Termlist tl, const Term term)
 {
-#ifdef DEBUG
   if (term == NULL)
     {
-      error ("Trying to do inTermlist for a NULL term.");
+      return 0;
     }
-#endif
   while (tl != NULL)
     {
       if (isTermEqual (tl->term, term))

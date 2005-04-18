@@ -562,13 +562,13 @@ proof_suppose_binding (Binding b)
 // Sub
 //------------------------------------------------------------------------
 
-//! Iterate over all send types in the roles (including the intruder ones)
+//! Iterate over all events in the roles (including the intruder ones)
 /**
  * Function is called with (protocol pointer, role pointer, roledef pointer, index)
  * and returns an integer. If it is false, iteration aborts.
  */
 int
-iterate_role_sends (int (*func) ())
+iterate_role_events (int (*func) ())
 {
   Protocol p;
 
@@ -587,11 +587,8 @@ iterate_role_sends (int (*func) ())
 	  index = 0;
 	  while (rd != NULL)
 	    {
-	      if (rd->type == SEND)
-		{
-		  if (!func (p, r, rd, index))
-		    return 0;
-		}
+	      if (!func (p, r, rd, index))
+		return 0;
 	      index++;
 	      rd = rd->next;
 	    }
@@ -600,6 +597,29 @@ iterate_role_sends (int (*func) ())
       p = p->next;
     }
   return 1;
+}
+
+//! Iterate over all send types in the roles (including the intruder ones)
+/**
+ * Function is called with (protocol pointer, role pointer, roledef pointer, index)
+ * and returns an integer. If it is false, iteration aborts.
+ */
+int
+iterate_role_sends (int (*func) ())
+{
+  int send_wrapper (Protocol p, Role r, Roledef rd, int i)
+    {
+      if (rd->type == SEND)
+	{
+	  return func (p,r,rd,i);
+	}
+      else
+	{
+	  return 1;
+	}
+    }
+
+  return iterate_role_events (send_wrapper);
 }
 
 //! Try to bind a specific existing run to a goal.
@@ -2969,8 +2989,16 @@ arachne ()
   int determine_encrypt_max (Protocol p, Role r, Roledef rd, int index)
   {
     int tlevel;
-
+	
     tlevel = term_encryption_level (rd->message);
+#ifdef DEBUG
+    if (DEBUGL(3))
+      {
+	eprintf ("Encryption level %i found for term ", tlevel);
+	termPrint (rd->message);
+	eprintf ("\n");
+      }
+#endif
     if (tlevel > max_encryption_level)
       max_encryption_level = tlevel;
     return 1;
@@ -2995,17 +3023,15 @@ arachne ()
   num_intruder_runs = 0;
 
   max_encryption_level = 0;
-  iterate_role_sends (determine_encrypt_max);
-
-  fixAgentKeylevels ();
-
+  iterate_role_events (determine_encrypt_max);
 #ifdef DEBUG
   if (DEBUGL (1))
     {
       eprintf ("Maximum encryption level: %i\n", max_encryption_level);
-      iterate_role_sends (print_send);
     }
 #endif
+
+  fixAgentKeylevels ();
 
   indentDepth = 0;
   proofDepth = 0;
