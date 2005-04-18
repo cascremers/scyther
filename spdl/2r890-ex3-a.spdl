@@ -1,0 +1,52 @@
+/*
+ * Course 2r890
+ *
+ * Assignment 0405-3
+ *
+ * Protocol a
+ *
+ * nisynch, niagree
+ */
+const pk: Function;
+secret sk: Function;
+inversekeys (pk,sk);
+
+protocol course2r890year0405ex3(X,Y,I)
+{
+	role I
+	{
+		const nx: Nonce;
+		const ny: Nonce;
+
+		send_1(I,X, nx );
+		read_2(X,I, { nx,I }sk(X) );
+		send_3(I,Y, ny );
+		read_4(Y,I, { I,ny }sk(Y) );
+
+		claim_i1(I,Niagree);
+		claim_i2(I,Nisynch);
+	}	
+	
+	role X
+	{
+		var nx: Nonce;
+
+		read_1(I,X, nx );
+		send_2(X,I, { nx,I }sk(X) );
+	}
+
+	role Y
+	{
+		var ny: Nonce;
+
+		read_3(I,Y, ny );
+		send_4(Y,I, { I,ny }sk(Y) );
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+
