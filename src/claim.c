@@ -453,7 +453,7 @@ check_claim_niagree (const System sys, const int i)
     {
       cl->failed = statesIncrease (cl->failed);
 
-//#ifdef DEBUG 
+#ifdef DEBUG 
       warning ("Claim has failed!");
       printf ("To be exact, claim label ");
       termPrint (cl->label);
@@ -465,7 +465,7 @@ check_claim_niagree (const System sys, const int i)
       printf ("\ng: ");
       termmapPrint (g);
       printf ("\n");
-//#endif
+#endif
 
     }
   termmapDelete (f);

@@ -2362,7 +2362,7 @@ bind_goal (const Binding b)
 		      eprintf ("* Because ");
 		      termPrint (b->term);
 		      eprintf
-			(" is never sent from a regular run (STILL NEEDS LEMMA!), we only intruder construct it.\n");
+			(" is never sent from a regular run, so we only intruder construct it.\n");
 		    }
 		  know_only = 1;
 		}
