@@ -19,9 +19,9 @@ protocol course2r890year0405ex3(X,Y,I)
 		const ny: Nonce;
 
 		send_1(I,X, nx );
-		read_2(X,I, { nx,I }sk(X) );
+		read_2(X,I, { I,nx }sk(X) );
 		send_3(I,Y, ny );
-		read_4(Y,I, { I,ny }sk(Y) );
+		read_4(Y,I, { ny,I }sk(Y) );
 
 		claim_i1(I,Niagree);
 		claim_i2(I,Nisynch);
@@ -32,7 +32,7 @@ protocol course2r890year0405ex3(X,Y,I)
 		var nx: Nonce;
 
 		read_1(I,X, nx );
-		send_2(X,I, { nx,I }sk(X) );
+		send_2(X,I, { I,nx }sk(X) );
 	}
 
 	role Y
@@ -40,7 +40,7 @@ protocol course2r890year0405ex3(X,Y,I)
 		var ny: Nonce;
 
 		read_3(I,Y, ny );
-		send_4(Y,I, { I,ny }sk(Y) );
+		send_4(Y,I, { ny,I }sk(Y) );
 	}
 }
 

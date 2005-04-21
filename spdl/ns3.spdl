@@ -56,4 +56,12 @@ compromised sk(Eve);
 
 run ns3.I(Agent,Agent);
 run ns3.R(Agent,Agent);
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
 
