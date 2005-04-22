@@ -104,8 +104,8 @@ main (int argc, char **argv)
   sys->argc = argc;
   sys->argv = argv;
 
-  process_switches(sys);
-  // exit (0);	// TODO FIX weghalen [x][cc]
+  process_switches (sys);
+  // exit (0);  // TODO FIX weghalen [x][cc]
 
   /* init compiler for this system */
   compilerInit (sys);
@@ -410,7 +410,7 @@ timersPrint (const System sys)
 		{
 		  eprintf ("bounded_proof");
 		  if (cl_scan->timebound)
-		    eprintf ("\ttime=%i", get_time_limit());
+		    eprintf ("\ttime=%i", get_time_limit ());
 		}
 	    }
 	}
@@ -571,7 +571,10 @@ modelCheck (const System sys)
   switch (sys->engine)
     {
     case POR_ENGINE:
-      traverse (sys);
+      if (sys->maxruns > 0)
+	traverse (sys);
+      else
+	warning ("Model checking system with empty scenario.");
       break;
     case ARACHNE_ENGINE:
       arachne ();
