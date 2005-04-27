@@ -1233,12 +1233,15 @@ int
 violateClaim (const System sys, int length, int claimev, Termlist reqt)
 {
   int flag;
+  Claimlist clinfo;
 
   /* default = no adaption of pruning, continue search */
   flag = 1;
 
   /* Count the violations */
   sys->failed = statesIncrease (sys->failed);
+  clinfo = sys->traceEvent[claimev]->claiminfo;
+  clinfo->failed = statesIncrease (clinfo->failed);	// note: for modelchecking secrecy, this can lead to more fails (at further events in branches of the tree) than claim encounters
 
   /* mark the path in the state graph? */
   if (sys->output == STATESPACE)
