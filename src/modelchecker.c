@@ -1387,7 +1387,6 @@ executeTry (const System sys, int run)
 		  /* violation */
 		  Termlist tl;
 
-		  runPoint->claiminfo->failed++;
 		  tl = claimViolationDetails (sys, run, runPoint, sys->know);
 		  if (violateClaim (sys, sys->step + 1, sys->step, tl))
 		    flag = explorify (sys, run);
