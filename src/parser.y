@@ -226,9 +226,8 @@ typeinfoN	: /* empty */
 		  }
 		;
 
-label		: /* empty */
-		  { $$ = NULL; }
-		| '_' ID
+/* Previously, the label could be omitted. It is now required. */
+label		: '_' ID
 		  { $$ = $2; }
 		;
 
