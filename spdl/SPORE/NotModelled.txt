@@ -1,0 +1,6 @@
+The following protocols have not been modelled for use in Scyther:
+
+- CAM http://www.lsv.ens-cachan.fr/spore/cam.html
+This protocol only consists of one message and corresponding database actions.
+The description given in SPORE is unsuitable for formalisation.
+

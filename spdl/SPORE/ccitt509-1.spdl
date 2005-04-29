@@ -1,0 +1,51 @@
+# CCITT X.509 (1)
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/ccittx509_1.html
+#
+# Note:
+# The attack in SPORE is not found as this is not an attack against
+# synchronisation, but an attack against the freshness of Xa and Ya
+# which can currently not be modelled in scyther
+#
+
+const pk: Function;
+secret sk: Function;
+inversekeys(pk,sk);
+usertype Timestamp;
+
+protocol ccitt5091(I,R)
+{
+	role I
+	{
+		const Ta: Timestamp;
+        const Na,Xa,Ya: Nonce;
+		send_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
+        # claim_2(I,Nisynch);
+        # This claim is useless as there are no preceding read events
+	}	
+	
+	role R
+	{
+		var Ta: Timestamp;
+        var Na,Xa,Ya: Nonce;
+
+		read_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
+		claim_3(R,Nisynch);
+        # There should also be Fresh Xa and Fresh Ya claims here
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const te: Timestamp;
+compromised sk(Eve);
+
+# General scenario, 2 parallel runs of the protocol
+
+run ccitt5091.I(Agent,Agent);
+run ccitt5091.R(Agent,Agent);
+run ccitt5091.I(Agent,Agent);
+run ccitt5091.R(Agent,Agent);
