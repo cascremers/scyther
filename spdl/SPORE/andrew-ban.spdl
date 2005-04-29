@@ -1,0 +1,66 @@
+# BAN modified Andrew Secure RPC
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/andrewBAN.html
+#
+# Note:
+# The shared key between I and R is modelled as k(I,R) currently
+# there is no way to express that this key is equal to k(R,I)
+# So it is possile that certain attacks that use this property are not found
+# 
+# Note:
+# According to SPORE there are no known attacks on this protocol
+#
+usertype SessionKey;
+secret k: Function;
+
+protocol andrewBan(I,R)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr,nr2: Nonce;
+		var kir: SessionKey;
+
+		send_1(I,R, I,{ni}k(I,R) );
+		read_2(R,I, {ni,nr}k(I,R) );
+		send_3(I,R, {nr}k(I,R) );
+		read_4(R,I, {kir,nr2,ni}k(I,R) );
+		claim_5(I,Nisynch);
+		claim_5b(I,Niagree);
+		claim_6(I,Secret, kir);
+		claim_7(I,Secret, k(I,R));
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		const nr,nr2: Nonce;
+		const kir: SessionKey;
+
+		read_1(I,R, I,{ni}k(I,R) );
+		send_2(R,I, {ni,nr}k(I,R) );
+		read_3(I,R, {nr}k(I,R) );
+		send_4(R,I, {kir,nr2,ni}k(I,R) );
+		claim_8(R,Nisynch);
+		claim_8b(R,Niagree);
+		claim_9(R,Secret, kir);
+		claim_10(R,Secret, k(I,R));
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const kee: SessionKey;
+compromised k(Eve,Eve);
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
+
+run andrewBan.I(Agent,Agent);
+run andrewBan.R(Agent,Agent);
+run andrewBan.I(Agent,Agent);
+run andrewBan.R(Agent,Agent);

@@ -1,0 +1,70 @@
+# BAN concrete Andrew Secure RPC
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/andrewBAN2.html
+#
+# Note:
+# The shared key between I and R is modelled as k(I,R) currently
+# there is no way to express that this key is equal to k(R,I)
+# So it is possile that certain attacks that use this property are not found
+#
+# Note:
+# The attack mentioned in SPORE is not found because of the property in the
+# previous note
+#
+# Note:
+# Read 4 by the Initatior has been placed after the synchronisation claim
+# as it allows trivial synchronisation attacks otherwise (the message is 
+# completely fresh and can therefore always be replaced by an arbitrary value 
+# created by the intruder) which are not considered in SPORE
+#
+
+usertype SessionKey;
+secret k: Function;
+
+protocol andrewConcrete(I,R)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+        var kir: SessionKey;
+        
+		send_1(I,R, I,ni );
+		read_2(R,I, {ni,kir}k(I,R) );
+		send_3(I,R, {ni}kir);
+        claim_4(I,Secret,kir);
+		claim_5(I,Nisynch);
+		read_6(R,I, nr);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		const nr: Nonce;
+        const kir: SessionKey;
+
+		read_1(I,R, I,ni );
+		send_2(R,I, {ni,kir}k(I,R) );
+		read_3(I,R, {ni}kir);
+		send_6(R,I, nr);
+		claim_7(R,Secret,kir);
+		claim_8(R,Nisynch);
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const kee: SessionKey;
+
+# This scenario should find the attack in SPORE
+# run andrewConcrete.I(Alice,Bob);
+# run andrewConcrete.R(Bob,Alice);
+
+# This is the original scenario
+run andrewConcrete.I(Agent,Agent);
+run andrewConcrete.R(Agent,Agent);
+run andrewConcrete.I(Agent,Agent);
+run andrewConcrete.R(Agent,Agent);

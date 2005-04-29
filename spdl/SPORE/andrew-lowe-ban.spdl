@@ -1,0 +1,71 @@
+# Lowe modified BAN concrete Andrew Secure RPC
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/andrewLowe.html
+#
+# Note:
+# The shared key between I and R is modelled as k(I,R) currently
+# there is no way to express that this key is equal to k(R,I)
+# So it is possile that certain attacks that use this property are not found
+#
+# Note:
+# Read 4 by the Initatior has been placed after the synchronisation claim
+# as it allows trivial synchronisation attacks otherwise (the message is
+# completely fresh and can therefore always be replaced by an arbitrary value
+# created by the intruder) which are not considered in SPORE
+#
+# Note:
+# According to SPORE there are no known attacks on this protocol
+#
+
+usertype SessionKey;
+secret k: Function;
+
+protocol andrewLoweBan(I,R)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+		var kir: SessionKey;
+
+		send_1(I,R, I,ni );
+		read_2(R,I, {ni,kir,R}k(I,R) );
+		send_3(I,R, {ni}kir );
+		claim_5(I,Nisynch);
+		claim_6(I,Secret, kir);
+		read_4(R,I, nr );
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		const nr: Nonce;
+		const kir: SessionKey;
+
+		read_1(I,R, I,ni );
+		send_2(R,I, {ni,kir,R}k(I,R) );
+		read_3(I,R, {ni}kir );
+		send_4(R,I, nr );
+		claim_8(R,Nisynch);
+		claim_9(R,Secret, kir);
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const kee: SessionKey;
+compromised k(Eve,Eve);
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
+
+
+
+run andrewLoweBan.I(Agent,Agent);
+run andrewLoweBan.R(Agent,Agent);
+run andrewLoweBan.I(Agent,Agent);
+run andrewLoweBan.R(Agent,Agent);

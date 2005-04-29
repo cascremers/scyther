@@ -1,0 +1,72 @@
+# Andrew Secure RPC
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/andrew.html
+#
+# Note:
+# The shared key between I and R is modelled as k(I,R) currently
+# there is no way to express that this key is equal to k(R,I)
+# So it is possile that certain attacks that use this property are not found
+#
+
+usertype SessionKey;
+secret k: Function;
+const succ: Function;
+
+protocol andrew(I,R)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr,nr2: Nonce;
+		var kir: SessionKey;
+
+		send_1(I,R, I,{ni}k(I,R) );
+		read_2(R,I, {succ(ni),nr}k(I,R) );
+		send_3(I,R, {succ(nr)}k(I,R) );
+		read_4(R,I, {kir,nr2}k(I,R) );
+		claim_5(I,Secret,kir);
+		claim_6(I,Nisynch);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		const nr,nr2: Nonce;
+		const kir: SessionKey;
+
+		read_1(I,R, I,{ni}k(I,R) );
+		send_2(R,I, {succ(ni),nr}k(I,R) );
+		read_3(I,R, {succ(nr)}k(I,R) );
+		send_4(R,I, {kir,nr2}k(I,R) );
+		claim_7(R,Secret,kir);
+		claim_8(R,Nisynch);
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const kee: SessionKey;
+compromised k(Eve,Eve);
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
+
+
+
+# This scenario should recreate the first attack in SPORE when running
+# scyther in model checker mode
+#run andrew.I(Alice,Bob);
+#run andrew.R(Alice,Bob);
+#run andrew.I(Alice,Bob);
+#run andrew.R(Alice,Bob);
+
+# General scenario, 2 parallel runs of the protocol
+
+run andrew.I(Agent,Agent);
+run andrew.R(Agent,Agent);
+run andrew.I(Agent,Agent);
+run andrew.R(Agent,Agent);
