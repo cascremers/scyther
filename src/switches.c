@@ -114,7 +114,7 @@ switcher (const int process, const System sys, int index)
 		// It's the right thing
 		if (optlength + 3 < this_arg_length)
 		  {
-	            arg_pointer = this_arg + 2 + optlength + 1;
+		    arg_pointer = this_arg + 2 + optlength + 1;
 		  }
 		else
 		  {
@@ -177,7 +177,7 @@ switcher (const int process, const System sys, int index)
 	}
 #endif
       this_arg = argv[index];
-      this_arg_length = strlen(this_arg);
+      this_arg_length = strlen (this_arg);
     }
   else
     {
@@ -206,6 +206,19 @@ switcher (const int process, const System sys, int index)
 	  // Select arachne engine
 	  sys->engine = ARACHNE_ENGINE;
 	  bindingInit (sys);
+	  return index;
+	}
+    }
+
+  if (detect ('x', "xml-output", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-x,--xml-output", "show attack output in XML format");
+	}
+      else
+	{
+	  sys->switchXMLoutput = 1;
 	  return index;
 	}
     }
@@ -517,9 +530,10 @@ switcher (const int process, const System sys, int index)
 		{
 		  fprintf (stderr, "Unknown switch '%s'.\n", this_arg);
 		}
-		  else
+	      else
 		{
-		  fprintf (stderr, "Could not open input file '%s'.\n", this_arg);
+		  fprintf (stderr, "Could not open input file '%s'.\n",
+			   this_arg);
 		}
 	      exit (1);
 	    }

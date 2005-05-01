@@ -75,8 +75,9 @@ systemInit ()
   sys->switchReduceClaims = 1;	// default remove claims from duplicate instance choosers
   sys->switchClaims = 0;	// default don't report on claims
   sys->switchClaimToCheck = NULL;	// default check all claims
+  sys->switchXMLoutput = 0;	// default no xml output
   sys->switchGoalSelectMethod = 3;	// default goal selection method
-  sys->traverse = 12;			// default traversal method
+  sys->traverse = 12;		// default traversal method
 
   sys->switch_maxproofdepth = INT_MAX;
   sys->switch_maxtracelength = INT_MAX;
@@ -262,7 +263,8 @@ ensureValidRun (const System sys, int run)
   /* update size parameter */
   oldsize = sys->maxruns;
   sys->maxruns = run + 1;
-  sys->runs = (Run) memRealloc (sys->runs, sizeof (struct run) * (sys->maxruns));
+  sys->runs =
+    (Run) memRealloc (sys->runs, sizeof (struct run) * (sys->maxruns));
 
   /* create runs, set the new pointer(s) to NULL */
   for (i = oldsize; i < sys->maxruns; i++)
@@ -369,7 +371,7 @@ agentOfRunRole (const System sys, const int run, const Term role)
       // Non-arachne
       Termlist roles;
       Termlist agents;
-      
+
       roles = sys->runs[run].protocol->rolenames;
       agents = sys->runs[run].agents;
 
@@ -408,7 +410,7 @@ agentOfRunRole (const System sys, const int run, const Term role)
 	  Term agent;
 
 	  agent = agents->term;
-	  if (TermSymb(role) == TermSymb(agent))
+	  if (TermSymb (role) == TermSymb (agent))
 	    {
 	      return agent;
 	    }
@@ -671,15 +673,15 @@ roleInstanceArachne (const System sys, const Protocol protocol,
   Run runs;
   Roledef rd;
   Termlist scanfrom, scanto;
-  Termlist fromlist = NULL;		// deleted at the end
-  Termlist tolist = NULL;		// -> .locals
-  Termlist artefacts = NULL;		// -> .artefacts
-  Term extterm = NULL;			// construction thing (will go to artefacts)
+  Termlist fromlist = NULL;	// deleted at the end
+  Termlist tolist = NULL;	// -> .locals
+  Termlist artefacts = NULL;	// -> .artefacts
+  Term extterm = NULL;		// construction thing (will go to artefacts)
 
   /* claim runid, allocate space */
   rid = sys->maxruns;
-  ensureValidRun (sys, rid);		// creates a new block
-  runs = sys->runs;			// simple structure pointer transfer (shortcut)
+  ensureValidRun (sys, rid);	// creates a new block
+  runs = sys->runs;		// simple structure pointer transfer (shortcut)
 
   /* duplicate roledef in buffer rd */
   /* Notice that it is not stored (yet) in the run structure,
@@ -712,7 +714,7 @@ roleInstanceArachne (const System sys, const Protocol protocol,
        * of it again.
        */
       oldt = scanfrom->term;
-      newt = deVar(oldt);
+      newt = deVar (oldt);
       if (realTermVariable (newt))
 	{
 	  /* This is a variable of the role, that is not instantiated yet.
@@ -735,7 +737,7 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 	  if (isTermVariable (newt))
 	    {
 	      // It is a protocol role name
-	      
+
 	      // Flag this
 	      newt->roleVar = 1;
 	      newt->stype = termlistAddNew (newt->stype, TERM_Agent);
@@ -1035,31 +1037,31 @@ roleInstanceDestroy (const System sys)
 	    }
 	  substlist = substlist->next;
 	}
-      termlistDelete(myrun.substitutions);
+      termlistDelete (myrun.substitutions);
 
       // sys->variables might contain locals from the run: remove them
-        {
-	  Termlist tl;
+      {
+	Termlist tl;
 
-	  tl = sys->variables;
-	  while (tl != NULL)
-	    {
-	      Term t;
+	tl = sys->variables;
+	while (tl != NULL)
+	  {
+	    Term t;
 
-	      t = tl->term;
-	      if (realTermLeaf(t) && TermRunid(t) == runid)
-		{
-		  // remove from list; return pointer to head
-		  sys->variables = termlistDelTerm (tl);
-		  tl = sys->variables;
-		}
-	      else
-		{
-		  // proceed
-	          tl = tl->next;
-		}
-	    }
-	}
+	    t = tl->term;
+	    if (realTermLeaf (t) && TermRunid (t) == runid)
+	      {
+		// remove from list; return pointer to head
+		sys->variables = termlistDelTerm (tl);
+		tl = sys->variables;
+	      }
+	    else
+	      {
+		// proceed
+		tl = tl->next;
+	      }
+	  }
+      }
 
       // remove lists
       termlistDelete (myrun.artefacts);
@@ -1069,7 +1071,8 @@ roleInstanceDestroy (const System sys)
       // Destroy run struct allocation in array using realloc
       // Reduce run count
       sys->maxruns = sys->maxruns - 1;
-      sys->runs = (Run) memRealloc (sys->runs, sizeof (struct run) * (sys->maxruns));
+      sys->runs =
+	(Run) memRealloc (sys->runs, sizeof (struct run) * (sys->maxruns));
     }
 }
 

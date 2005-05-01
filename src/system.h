@@ -143,6 +143,7 @@ struct system
   int switchClaims;		//!< Enable clails report
   int switchGoalSelectMethod;	//!< Goal selection method for Arachne engine
   Term switchClaimToCheck;	//!< Which claim should be checked?
+  int switchXMLoutput;		//!< xml output
 
   //! Latex output switch.
   /**

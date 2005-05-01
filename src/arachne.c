@@ -437,7 +437,7 @@ determine_unification_run (Termlist tl)
 
 //! Determine trace length
 int
-get_trace_length ()
+get_semitrace_length ()
 {
   int run;
   int length;
@@ -608,16 +608,16 @@ int
 iterate_role_sends (int (*func) ())
 {
   int send_wrapper (Protocol p, Role r, Roledef rd, int i)
-    {
-      if (rd->type == SEND)
-	{
-	  return func (p,r,rd,i);
-	}
-      else
-	{
-	  return 1;
-	}
-    }
+  {
+    if (rd->type == SEND)
+      {
+	return func (p, r, rd, i);
+      }
+    else
+      {
+	return 1;
+      }
+  }
 
   return iterate_role_events (send_wrapper);
 }
@@ -1571,7 +1571,7 @@ printSemiState ()
   indentPrint ();
   eprintf ("!!\n");
   indentPrint ();
-  eprintf ("!! Trace length: %i\n", get_trace_length ());
+  eprintf ("!! Trace length: %i\n", get_semitrace_length ());
   open = 0;
   for (run = 0; run < sys->maxruns; run++)
     {
@@ -1718,7 +1718,8 @@ isOpenNonceVar (Term t)
 //! Count unique open variables in term
 /**
  */
-int count_open_variables (const Term t)
+int
+count_open_variables (const Term t)
 {
   Termlist tl;
   int n;
@@ -1758,7 +1759,7 @@ term_noncevariables_level (const Term t)
     }
   else
     {
-      return 1 - (onv/enough);
+      return 1 - (onv / enough);
     }
 }
 
@@ -1880,13 +1881,13 @@ select_goal ()
 	      }
 
 	      void erode (const int w, const float fl)
-		{
-		  if (smode & 1)
-		    {
-		      adapt (w,fl);
-		    }
-		  smode = smode / 2;
-		}
+	      {
+		if (smode & 1)
+		  {
+		    adapt (w, fl);
+		  }
+		smode = smode / 2;
+	      }
 
 	      // buf_constrain is the addition of the factors before division by weight
 	      buf_constrain = 0;
@@ -1900,15 +1901,15 @@ select_goal ()
 
 	      // Determine buf_constrain levels
 	      // Bit 0: 1 constrain level
-		erode (1, term_constrain_level (b->term));
+	      erode (1, term_constrain_level (b->term));
 	      // Bit 1: 2 key level (inverted)
-		erode (1, 0.5 * (1 - b->level));
+	      erode (1, 0.5 * (1 - b->level));
 	      // Bit 2: 4 consequence level
-		erode (1, termBindConsequences (b->term));
+	      erode (1, termBindConsequences (b->term));
 	      // Bit 3: 8 single variables first
-		erode (1, 1 - isTermVariable (b->term));
+	      erode (1, 1 - isTermVariable (b->term));
 	      // Bit 4: 16 nonce variables level (Cf. what I think is in Athena)
-	        erode (1, term_noncevariables_level (b->term));
+	      erode (1, term_noncevariables_level (b->term));
 	      // Define legal range
 	      if (smode > 0)
 		error ("--goal-select mode %i is illegal", mode);
@@ -2725,7 +2726,7 @@ prune_bounds ()
     }
 
   // Limit on exceeding any attack length
-  if (sys->prune == 2 && get_trace_length () >= attack_length)
+  if (sys->prune == 2 && get_semitrace_length () >= attack_length)
     {
       if (sys->output == PROOF)
 	{
@@ -2835,17 +2836,24 @@ property_check ()
   count_false ();
   if (sys->output == ATTACK)
     {
-      if (sys->latex == 1)
+      if (sys->switchXMLoutput)
 	{
-	  latexSemiState ();
+	  xmlOutSemitrace (sys);
 	}
       else
 	{
-	  dotSemiState ();
+	  if (sys->latex == 1)
+	    {
+	      latexSemiState ();
+	    }
+	  else
+	    {
+	      dotSemiState ();
+	    }
 	}
     }
   // Store attack length if shorter
-  attack_this = get_trace_length ();
+  attack_this = get_semitrace_length ();
   if (attack_this < attack_length)
     {
       // Shortest attack
@@ -2989,10 +2997,10 @@ arachne ()
   int determine_encrypt_max (Protocol p, Role r, Roledef rd, int index)
   {
     int tlevel;
-	
+
     tlevel = term_encryption_level (rd->message);
 #ifdef DEBUG
-    if (DEBUGL(3))
+    if (DEBUGL (3))
       {
 	eprintf ("Encryption level %i found for term ", tlevel);
 	termPrint (rd->message);

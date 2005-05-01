@@ -6,5 +6,6 @@
 void arachneInit (const System sys);
 void arachneDone ();
 int arachne ();
+int get_semitrace_length ();
 
 #endif
