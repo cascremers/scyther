@@ -1,0 +1,82 @@
+# KSL
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/ksl.html
+#
+# Note:
+# This protocol uses a ticket so scyther will only be able to verify
+# the protocol using the ARACHNE engine (-a) and type 2 matching (-m2)
+#
+
+
+usertype Server, SessionKey, GeneralizedTimestamp, Ticket, TicketKey;
+secret k: Function;
+
+const a, b, e: Agent;
+const s: Server;
+
+const ne: Nonce;
+const kee: SessionKey;
+untrusted e;
+compromised k(e,s);
+
+protocol ksl(A,B,S)
+{
+	role A
+	{
+		const Na, Ma: Nonce;
+		var Nc, Mb: Nonce;
+		var T: Ticket;
+		var Kab: SessionKey;
+		
+		send_1(A,B, Na, A);
+		read_4(B,A, { Na,B,Kab }k(A,S), T, Nc, {Na}Kab );
+		send_5(A,B, { Nc }Kab );
+		
+		send_6(A,B, Ma,T );
+		read_7(B,A, Mb,{Ma}Kab );
+		send_8(A,B, {Mb}Kab );
+
+		claim_A1(A,Secret, Kab);
+		claim_A2(A,Niagree);
+		claim_A3(A,Nisynch);
+	}
+
+	role B
+	{
+		var Na,Ma: Nonce;
+		const Nb,Nc,Mb: Nonce;
+		var Kab: SessionKey;
+		const Kbb: TicketKey;
+		const Tb: GeneralizedTimestamp;
+		var T: Ticket;
+		
+		read_1(A,B, Na, A);
+		send_2(B,S, Na, A, Nb, B );
+		read_3(S,B, { Nb, A, Kab }k(B,S), T );
+		send_4(B,A, T, { Tb, A, Kab }Kbb, Nc, {Na}Kab );
+		read_5(A,B, { Nc }Kab );
+		
+		read_6(A,B, Ma,{ Tb, A, Kab }Kbb );
+		send_7(B,A, Mb,{Ma}Kab );
+		read_8(A,B, {Mb}Kab );
+
+		claim_B1(B,Secret, Kab);
+		claim_B2(B,Niagree);
+		claim_B3(B,Nisynch);
+	}
+
+	role S
+	{
+		var Na, Nb: Nonce;
+		const Kab: SessionKey;
+
+		read_2(B,S, Na, A, Nb, B );
+		send_3(S,B, { Nb, A, Kab }k(B,S), { Na,B,Kab }k(A,S) );
+	}
+}
+
+run ksl.A(a,b,s);
+run ksl.B(a,b,s);
+run ksl.S(a,b,s);
+
