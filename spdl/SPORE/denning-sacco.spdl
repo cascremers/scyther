@@ -1,0 +1,69 @@
+# Denning-Sacco shared key
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/denningSacco.html
+#
+# Note:
+# This protocol uses a ticket so scyther will only be able to verify
+# the protocol using the ARACHNE engine (-a) and type 2 matching (-m2)
+#
+
+usertype Key;
+usertype Ticket;
+usertype SessionKey;
+usertype TimeStamp;
+secret k: Function;
+
+protocol denningSacco(I,R,S)
+{
+	role I
+	{
+        var W: Ticket;
+		var Kir: SessionKey;
+        var T: TimeStamp;
+
+		send_1(I,S, I,R );
+		read_2(S,I, {R, Kir, T, W}k(I,S) );
+		send_3(I,R, W);
+		claim_4(I,Nisynch);
+	}	
+	
+	role R
+	{
+        var Kir: SessionKey;
+        var T: TimeStamp;
+
+		read_3(I,R, {Kir,I,T}k(R,S));
+		claim_8(R,Nisynch);
+	}
+	
+    role S
+	{
+        var W: Ticket;
+		const Kir: SessionKey;
+        const T: TimeStamp;
+
+		read_1(I,S, I,R );
+		send_2(S,I, {R, Kir, T, {Kir, I,T}k(R,S)}k(I,S));
+	}	
+}
+
+const Alice,Bob,Simon,Eve: Agent;
+
+untrusted Eve;
+const kee: SessionKey;
+const tee: TimeStamp;
+compromised k(Eve,Simon);
+
+
+
+# General scenario, 2 parallel runs of the protocol
+# Note because the modelchecker does not support tickets this might not
+# be very useful
+
+run denningSacco.I(Agent,Agent,Simon);
+run denningSacco.R(Agent,Agent,Simon);
+run denningSacco.S(Agent,Agent,Simon);
+run denningSacco.I(Agent,Agent,Simon);
+run denningSacco.R(Agent,Agent,Simon);
+run denningSacco.S(Agent,Agent,Simon);
