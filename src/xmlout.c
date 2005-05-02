@@ -109,6 +109,25 @@ xmlAttrTerm (const char *tag, const Term term)
     }
 }
 
+//! Print a term, known to be a role name
+/**
+ * Arachne turns all role names into variables for convenience. Here we
+ * temporarily undo it for pretty-printing.
+ */
+void
+roleTermPrint (const Term t)
+{
+  if (t != NULL)
+    {
+      int typebuffer;
+
+      typebuffer = t->type;
+      t->type = GLOBAL;
+      termPrint (t);
+      t->type = typebuffer;
+    }
+}
+
 //! Global system info
 /**
  * To be used by concrete trace as well as semitrace output
@@ -136,10 +155,34 @@ xmlOutSysInfo (const System sys)
   xmlPrint ("</system>");
 }
 
+//! Nicely format the role and agents we think we're talking to.
+void
+xmlAgentsOfRunPrint (const System sys, const int run)
+{
+  Termlist roles;
+
+  xmlPrint ("<roleagents>");
+  xmlindent++;
+
+  roles = sys->runs[run].protocol->rolenames;
+  while (roles != NULL)
+    {
+      xmlIndentPrint ();
+      printf ("<");
+      roleTermPrint (roles->term);
+      printf (">");
+      termPrint (agentOfRunRole (sys, run, roles->term));
+      printf ("</");
+      roleTermPrint (roles->term);
+      printf (">\n");
+      roles = roles->next;
+    }
+
+  xmlindent--;
+  xmlPrint ("</roleagents>");
+}
+
 //! Static information about a run
-/**
- * TODO: Does not output any sigma info yet (role->agent mappings), which is very important.
- */
 void
 xmlRunInfo (const System sys, const int run)
 {
@@ -155,13 +198,17 @@ xmlRunInfo (const System sys, const int run)
    * more generic. */
   oldagent = r->nameterm->subst;
   r->nameterm->subst = NULL;
-  xmlOutTerm ("role", r->nameterm);
+  xmlIndentPrint ();
+  printf ("<role>");
+  roleTermPrint (r->nameterm);
+  printf ("</role>\n");
   /* reinstate substitution */
   r->nameterm->subst = oldagent;
   if (oldagent != NULL)
     {
       xmlOutTerm ("agent", r->nameterm);
     }
+  xmlAgentsOfRunPrint (sys, run);
 }
 
 //! Show a single event from a run
@@ -309,22 +356,27 @@ xmlOutTrace (const System sys)
 
 //! Output for a semitrace (from arachne method)
 /**
- * Note: Uses get_trace_length(), which is defined for the arachne method only.
- *
- * TODO does not show violated claim yet, this must now be guessed by the
- * reader.
+ * Note: Uses get_trace_length(), which is defined for the arachne method
+ * only.
  */
 void
 xmlOutSemitrace (const System sys)
 {
   xmlIndentPrint ();
   printf ("<attack");
+  /* mention the broken claim in the attributes */
+  if (sys->current_claim != NULL)
+    {
+      xmlAttrTerm ("claim", sys->current_claim->type);
+      xmlAttrTerm ("label", sys->current_claim->label);
+    }
   /* add trace length attribute */
   printf (" tracelength=\"%i\"", get_semitrace_length ());
   printf (">\n");
   xmlindent++;
   /* any global information about the system */
   xmlOutSysInfo (sys);
+  /* semitrace */
   xmlPrint ("<semitrace>");
   xmlindent++;
   xmlOutRuns (sys);

@@ -195,6 +195,7 @@ struct system
 
   /* Arachne assistance */
   List bindings;		//!< List of bindings
+  Claimlist current_claim;	//!< The claim under current investigation
 
   //! Shortest attack storage.
   struct tracebuf *attack;

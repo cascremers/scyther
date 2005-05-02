@@ -43,7 +43,6 @@ extern int nodes;
 extern int graph_uordblks;
 
 static System sys;
-static Claimlist current_claim;
 static int attack_length;
 
 Protocol INTRUDER;		// Pointers, to be set by the Init
@@ -1042,12 +1041,12 @@ latexSemiState ()
   // Open graph
   attack_number++;
   eprintf ("\\begin{msc}{Attack on ");
-  p = (Protocol) current_claim->protocol;
+  p = (Protocol) sys->current_claim->protocol;
   termPrint (p->nameterm);
   eprintf (", role ");
-  termPrint (current_claim->rolename);
+  termPrint (sys->current_claim->rolename);
   eprintf (", claim type ");
-  termPrint (current_claim->type);
+  termPrint (sys->current_claim->type);
   eprintf ("}\n%% Attack number %i\n", attack_number);
   eprintf ("\n");
 
@@ -1218,12 +1217,12 @@ dotSemiState ()
   attack_number++;
   eprintf ("digraph semiState%i {\n", attack_number);
   eprintf ("\tlabel = \"Protocol ");
-  p = (Protocol) current_claim->protocol;
+  p = (Protocol) sys->current_claim->protocol;
   termPrint (p->nameterm);
   eprintf (", role ");
-  termPrint (current_claim->rolename);
+  termPrint (sys->current_claim->rolename);
   eprintf (", claim type ");
-  termPrint (current_claim->type);
+  termPrint (sys->current_claim->type);
   eprintf ("\";\n");
 
   // Needed for the bindings later on: create graph
@@ -1334,7 +1333,7 @@ dotSemiState ()
 	      eprintf ("\t\t");
 	      node (run, index);
 	      eprintf (" [");
-	      if (run == 0 && index == current_claim->ev)
+	      if (run == 0 && index == sys->current_claim->ev)
 		{
 		  eprintf
 		    ("style=filled,fillcolor=mistyrose,color=salmon,shape=doubleoctagon,");
@@ -2648,7 +2647,7 @@ prune_bounds ()
 		   get_time_limit ());
 	}
       // Pruned because of time bound!
-      current_claim->timebound = 1;
+      sys->current_claim->timebound = 1;
       return 1;
     }
 
@@ -2751,11 +2750,11 @@ prune_bounds ()
 int
 prune_claim_specifics ()
 {
-  if (current_claim->type == CLAIM_Niagree)
+  if (sys->current_claim->type == CLAIM_Niagree)
     {
-      if (arachne_claim_niagree (sys, 0, current_claim->ev))
+      if (arachne_claim_niagree (sys, 0, sys->current_claim->ev))
 	{
-	  current_claim->count = statesIncrease (current_claim->count);
+	  sys->current_claim->count = statesIncrease (sys->current_claim->count);
 	  if (sys->output == PROOF)
 	    {
 	      indentPrint ();
@@ -2765,11 +2764,11 @@ prune_claim_specifics ()
 	  return 1;
 	}
     }
-  if (current_claim->type == CLAIM_Nisynch)
+  if (sys->current_claim->type == CLAIM_Nisynch)
     {
-      if (arachne_claim_nisynch (sys, 0, current_claim->ev))
+      if (arachne_claim_nisynch (sys, 0, sys->current_claim->ev))
 	{
-	  current_claim->count = statesIncrease (current_claim->count);
+	  sys->current_claim->count = statesIncrease (sys->current_claim->count);
 	  if (sys->output == PROOF)
 	    {
 	      indentPrint ();
@@ -2814,7 +2813,7 @@ add_claim_specifics (const Claimlist cl, const Roledef rd)
 void
 count_false ()
 {
-  current_claim->failed = statesIncrease (current_claim->failed);
+  sys->current_claim->failed = statesIncrease (sys->current_claim->failed);
 }
 
 //------------------------------------------------------------------------
@@ -2940,8 +2939,8 @@ iterate ()
 			  eprintf ("All goals are now bound.\n");
 			}
 		      sys->claims = statesIncrease (sys->claims);
-		      current_claim->count =
-			statesIncrease (current_claim->count);
+		      sys->current_claim->count =
+			statesIncrease (sys->current_claim->count);
 		      flag = property_check ();
 		    }
 		  else
@@ -2956,7 +2955,7 @@ iterate ()
 	  else
 	    {
 	      // Pruned because of bound!
-	      current_claim->complete = 0;
+	      sys->current_claim->complete = 0;
 	    }
 	}
     }
@@ -3057,7 +3056,7 @@ arachne ()
 	{
 	  int run;
 
-	  current_claim = cl;
+	  sys->current_claim = cl;
 	  attack_length = INT_MAX;
 	  cl->complete = 1;
 	  p = (Protocol) cl->protocol;

@@ -104,6 +104,10 @@ systemInit ()
   /* matching CLP */
   sys->constraints = NULL;	// no initial constraints
 
+  /* Arachne assist */
+  sys->bindings = NULL;
+  sys->current_claim = NULL;
+
   /* reset global counters */
   systemReset (sys);
 
