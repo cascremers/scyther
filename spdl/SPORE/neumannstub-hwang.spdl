@@ -1,0 +1,82 @@
+# Hwang modified Neumann Stubblebine
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/neumannStubblebineHwang.html
+#
+# Note:
+# This protocol uses a ticket so scyther will only be able to verify
+# the protocol using the ARACHNE engine (-a) and type 2 matching (-m2)
+#
+# Note:
+# According to SPORE there are no attacks on this protocol, scyther
+# finds one however. This has to be investigated further.
+
+
+usertype Server, SessionKey, TimeStamp, Ticket, TicketKey;
+secret k: Function;
+
+const a, b, e: Agent;
+const s: Server;
+
+const ne: Nonce;
+const kee: SessionKey;
+untrusted e;
+compromised k(e,s);
+
+protocol neustubHwang(I,R,S)
+{
+	role I
+	{
+		const Ni,Mi: Nonce;
+		var Nr,Mr: Nonce;
+		var T: Ticket;
+        var Tb: TimeStamp;
+		var Kir: SessionKey;
+		
+		send_1(I,R, I, Ni);
+		read_3(S,I, { R,Ni,Kir,Tb}k(I,S), T, Nr);
+        send_4(I,R,T,{Nr}Kir);
+        send_5(I,R,Mi,T);
+		read_6(R,I,Mr,{Mr}Kir);
+		send_7(I,R,{Mr}Kir);
+		
+		claim_I1(I,Secret, Kir);
+		claim_I2(I,Niagree);
+		claim_I3(I,Nisynch);
+	}
+
+	role R
+	{
+		var Ni,Mi: Nonce;
+		const Nr,Mr: Nonce;
+		var Kir: SessionKey;
+		const Tb: TimeStamp;
+		var T: Ticket;
+		
+        read_1(I,R, I, Ni);
+        send_2(R,S, R, {I, Ni, Tb, Nr}k(R,S));
+        read_4(I,R,{I,Kir,Tb}k(R,S),{Nr}Kir);
+        read_5(I,R,Mi,T);
+		send_6(R,I,Mr,{Mr}Kir);
+		read_7(I,R,{Mr}Kir);
+	
+		claim_R1(R,Secret, Kir);
+		claim_R2(R,Niagree);
+		claim_R3(R,Nisynch);
+	}
+
+	role S
+	{
+		var Ni, Nr: Nonce;
+		const Kir: SessionKey;
+        var Tb: TimeStamp;
+
+		read_2(R,S, R, {I,Ni,Tb,Nr}k(R,S));
+		send_3(S,I, { R, Ni, Kir, Tb}k(I,S), { I,Kir,Tb}k(R,S),Nr );
+	}
+}
+
+run neustubHwang.A(a,b,s);
+run neustubHwang.B(a,b,s);
+run neustubHwang.S(a,b,s);
+
