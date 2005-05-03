@@ -105,7 +105,6 @@ main (int argc, char **argv)
   sys->argv = argv;
 
   process_switches (sys);
-  // exit (0);  // TODO FIX weghalen [x][cc]
 
   /* init compiler for this system */
   compilerInit (sys);
@@ -192,6 +191,10 @@ main (int argc, char **argv)
    * ---------------------------------------
    */
 
+  /* xml init */
+  if (sys->switchXMLoutput)
+    xmlOutInit ();
+
   /* latex header? */
   if (sys->latex)
     latexInit (sys, argc, argv);
@@ -241,6 +244,10 @@ main (int argc, char **argv)
   /* latex closeup */
   if (sys->latex)
     latexDone (sys);
+
+  /* xml closeup */
+  if (sys->switchXMLoutput)
+    xmlOutDone ();
 
   /* Transfer any scenario counting to the exit code,
    * assuming that there is no error. */

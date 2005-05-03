@@ -33,13 +33,15 @@ static int xmlindent;		// indent level for xml elements in output
 void
 xmlOutInit (void)
 {
-  xmlindent = 0;
+  printf ("<scyther>\n");
+  xmlindent = 1;
 }
 
 //! Close up
 void
 xmlOutDone (void)
 {
+  printf ("</scyther>\n");
 }
 
 /*
@@ -55,7 +57,7 @@ xmlIndentPrint ()
   i = xmlindent;
   while (i > 0)
     {
-      printf ("   ");
+      printf ("  ");
       i--;
     }
 }
@@ -319,7 +321,7 @@ xmlOutBindings (const System sys)
     xmlIndentPrint ();
     printf ("<binding term=\"");
     termPrint (b->term);
-    printf ("\" />\n");
+    printf ("\" >\n");
     xmlindent++;
     if (b->done)
       xmlRunIndex ("from", b->run_from, b->ev_from);
