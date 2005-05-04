@@ -290,7 +290,7 @@ xmlOutRuns (const System sys)
 
 	index = 0;
 	rd = sys->runs[run].start;
-	while (rd != NULL)
+	while (rd != NULL && index < sys->runs[run].step)
 	  {
 	    xmlOutEvent (sys, rd, -1, index);
 	    index++;
