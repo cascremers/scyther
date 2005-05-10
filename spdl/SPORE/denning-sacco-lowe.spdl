@@ -19,7 +19,7 @@ secret k: Function;
 usertype PseudoFunction;
 const dec: PseudoFunction;
 
-protocol denningSacco(I,R,S)
+protocol denningSaccoLowe(I,R,S)
 {
 	role I
 	{
@@ -72,9 +72,9 @@ compromised k(Eve,Simon);
 # Note because the modelchecker does not support tickets this might not
 # be very useful
 
-run denningSacco.I(Agent,Agent,Simon);
-run denningSacco.R(Agent,Agent,Simon);
-run denningSacco.S(Agent,Agent,Simon);
-run denningSacco.I(Agent,Agent,Simon);
-run denningSacco.R(Agent,Agent,Simon);
-run denningSacco.S(Agent,Agent,Simon);
+run denningSaccoLowe.I(Agent,Agent,Simon);
+run denningSaccoLowe.R(Agent,Agent,Simon);
+run denningSaccoLowe.S(Agent,Agent,Simon);
+run denningSaccoLowe.I(Agent,Agent,Simon);
+run denningSaccoLowe.R(Agent,Agent,Simon);
+run denningSaccoLowe.S(Agent,Agent,Simon);
