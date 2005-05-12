@@ -98,7 +98,7 @@ xmlTermPrintInner (const Term term)
 {
   if (term != NULL)
     {
-      if (realTermLeaf(term))
+      if (realTermLeaf (term))
 	{
 	  // Variable?
 	  if (realTermVariable (term))
@@ -109,7 +109,7 @@ xmlTermPrintInner (const Term term)
 	      if (term->subst == NULL)
 		{
 		  // Free variable
-	          termPrint (term);			// Must be a normal termPrint
+		  termPrint (term);	// Must be a normal termPrint
 		  printf ("\" free=\"true\" />");
 		}
 	      else
@@ -117,7 +117,7 @@ xmlTermPrintInner (const Term term)
 		  // Bound variable
 		  substbuffer = term->subst;	// Temporarily unsubst for printing
 		  term->subst = NULL;
-		  termPrint (term);			// Must be a normal termPrint
+		  termPrint (term);	// Must be a normal termPrint
 		  term->subst = substbuffer;
 		  printf ("\">");
 		  xmlTermPrintInner (term->subst);
@@ -127,13 +127,13 @@ xmlTermPrintInner (const Term term)
 	  else
 	    {
 	      // Constant
-	      termPrint (term);			// Must be a normal termPrint
+	      termPrint (term);	// Must be a normal termPrint
 	    }
 	}
       else
 	{
 	  // Node
-	  if (realTermEncrypt(term))
+	  if (realTermEncrypt (term))
 	    {
 	      if (isTermLeaf (TermKey (term))
 		  && inTermlist (TermKey (term)->stype, TERM_Function))
@@ -147,20 +147,20 @@ xmlTermPrintInner (const Term term)
 		}
 	      else
 		{
-		      printf ("<encrypt><op>");
-		      xmlTermPrintInner (TermOp(term));
-		      printf ("</op><key>");
-		      xmlTermPrintInner (TermKey(term));
-		      printf ("</key></encrypt>");
+		  printf ("<encrypt><op>");
+		  xmlTermPrintInner (TermOp (term));
+		  printf ("</op><key>");
+		  xmlTermPrintInner (TermKey (term));
+		  printf ("</key></encrypt>");
 		}
 	    }
 	  else
 	    {
 	      // Assume tuple
 	      printf ("<tuple><op1>");
-	      xmlTermPrintInner (TermOp1(term));
+	      xmlTermPrintInner (TermOp1 (term));
 	      printf ("</op1><op2>");
-	      xmlTermPrintInner (TermOp2(term));
+	      xmlTermPrintInner (TermOp2 (term));
 	      printf ("</op2></tuple>");
 	    }
 	}
@@ -261,7 +261,7 @@ xmlAgentsOfRunPrint (const System sys, const int run)
     {
       xmlPrint ("<role>");
       xmlOutTerm ("name", roles->term);
-      xmlOutTerm ("agent",deVar(agentOfRunRole (sys, run, roles->term)));
+      xmlOutTerm ("agent", deVar (agentOfRunRole (sys, run, roles->term)));
       xmlPrint ("</role>");
       roles = roles->next;
     }
@@ -360,64 +360,64 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 
 
   // Display any incoming bindings
+  {
+    int incomingArrows;
+
+    int xmlBindingState (void *dt)
     {
-      int incomingArrows;
+      Binding b;
 
-      int xmlBindingState (void *dt)
+      void xmlRunIndex (char *desc, const int run, const int index)
       {
-	Binding b;
-
-	void xmlRunIndex (char *desc, const int run, const int index)
-	{
-	  xmlPrint ("<%s run=\"%i\" index=\"%i\" />", desc, run, index);
-	}
-
-	b = (Binding) dt;
-	if (b->run_to == run && b->ev_to == index)
-	  {
-	    if (isTermVariable (b->term) && ! b->done)
-	      {
-		// Generate from m0
-		xmlPrint ("<choose>");
-
-		xmlindent++;
-		xmlIndentPrint ();
-		xmlTermPrint (b->term);
-		printf ("\n");
-		xmlindent--;
-
-		xmlPrint ("</choose>");
-	      }
-	    else
-	      {
-		// Normal binding
-		xmlPrint ("<follows>");
-
-		xmlindent++;
-		if (b->done)
-		  xmlRunIndex ("after", b->run_from, b->ev_from);
-		else
-		  xmlPrint ("<unbound />");
-		if (b->blocked)
-		  printf ("<blocked />");
-		xmlIndentPrint ();
-		xmlTermPrint (b->term);
-		printf ("\n");
-		xmlindent--;
-
-		xmlPrint ("</follows>");
-	      }
-	  }
-	return 1;
+	xmlPrint ("<%s run=\"%i\" index=\"%i\" />", desc, run, index);
       }
 
-      xmlindent++;
-      if (sys->bindings != NULL)
+      b = (Binding) dt;
+      if (b->run_to == run && b->ev_to == index)
 	{
-	  list_iterate (sys->bindings, xmlBindingState);
+	  if (isTermVariable (b->term) && !b->done)
+	    {
+	      // Generate from m0
+	      xmlPrint ("<choose>");
+
+	      xmlindent++;
+	      xmlIndentPrint ();
+	      xmlTermPrint (b->term);
+	      printf ("\n");
+	      xmlindent--;
+
+	      xmlPrint ("</choose>");
+	    }
+	  else
+	    {
+	      // Normal binding
+	      xmlPrint ("<follows>");
+
+	      xmlindent++;
+	      if (b->done)
+		xmlRunIndex ("after", b->run_from, b->ev_from);
+	      else
+		xmlPrint ("<unbound />");
+	      if (b->blocked)
+		printf ("<blocked />");
+	      xmlIndentPrint ();
+	      xmlTermPrint (b->term);
+	      printf ("\n");
+	      xmlindent--;
+
+	      xmlPrint ("</follows>");
+	    }
 	}
-      xmlindent--;
+      return 1;
     }
+
+    xmlindent++;
+    if (sys->bindings != NULL)
+      {
+	list_iterate (sys->bindings, xmlBindingState);
+      }
+    xmlindent--;
+  }
 
   xmlindent--;
   xmlPrint ("</event>");
