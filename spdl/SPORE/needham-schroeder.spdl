@@ -1,0 +1,67 @@
+# Needham Schroeder Public Key
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/nspk.html
+#
+#
+# Note:
+# The modelling in SPORE includes a server to distribute the public keys
+# of the agents, this is not necessary and it allows for attacks against
+# synchronisation and agreement, because the keys that the server sends
+# out can be replayed.
+
+const pk: Function;
+secret sk: Function;
+inversekeys(pk,sk);
+
+protocol needhamschroederpk(I,R,S)
+{
+	role I
+	{
+        const Ni: Nonce;
+        var Nr: Nonce;
+
+		send_1(I,S, (I,R));
+        read_2(S,I, {pk(R), R}sk(S));
+        send_3(I,R,{Ni,I}pk(R));
+        read_6(R,I, {Ni, Nr}pk(I));
+        send_7(I,R, {Nr}pk(R));
+        claim_I1(I,Secret,Ni);
+        claim_I2(I,Secret,Nr);
+	}	
+	
+	role R
+	{
+        const Nr: Nonce;
+        var Ni: Nonce;
+        
+        read_3(I,R,{Ni,I}pk(R));
+        send_4(R,S,(R,I));
+        read_5(S,R,{pk(I),I}sk(S));
+        send_6(R,I,{Ni,Nr}pk(I));
+        read_7(I,R,{Nr}pk(R));
+        claim_R1(R,Secret,Nr);
+        claim_R2(R,Secret,Ni);
+	}
+
+    role S
+    {
+        read_1(I,S,(I,R));
+        send_2(S,I,{pk(R),R}sk(S));
+        read_4(R,S,(R,I));
+        send_5(S,R,{pk(I),I}sk(S));
+    }
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+
+# General scenario, 2 parallel runs of the protocol
+ 
+run needhamschroederpk.I(Agent,Agent);
+run needhamschroederpk.R(Agent,Agent);
+run needhamschroederpk.I(Agent,Agent);
+run needhamschroederpk.R(Agent,Agent);
