@@ -1,0 +1,82 @@
+# Amended Needham Schroeder Symmetric Key
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/nssk_amended.html
+#
+#
+# Note:
+# This protocol uses a ticket so scyther will only be able to verify
+# the protocol using the ARACHNE engine (-a) and type 2 matching (-m2)
+#
+# Note:
+# According to SPORE there are no attacks on this protocol, scyther
+# finds one however. This has to be investigated further.
+
+
+
+secret k: Function;
+# Model dec that is invertible by inc
+const dec,inc: Function;
+inversekeys(dec,inc);
+usertype SessionKey;
+usertype Ticket;
+
+protocol needhamschroederskamend(I,R,S)
+{
+	role I
+	{
+        const Ni: Nonce;
+        var Nr: Nonce;
+        var Kir: SessionKey;
+        var T,T2: Ticket;
+        
+        send_1(I,R,I);
+        read_2(R,I,T);
+        send_3(I,S,(I,R,Ni,T));
+        read_4(S,I, {Ni,R,Kir,T2}k(I,S));
+        send_5(I,R,T2);
+        read_6(R,I,{Nr}Kir);
+        send_7(I,R,{{Nr}dec}Kir);
+        
+        claim_I2(I,Secret,Kir);
+        claim_I3(I,Nisynch);
+	}	
+	
+	role R
+	{
+        const Nr: Nonce;
+        var Kir: SessionKey;
+        
+        read_1(I,R,I);
+        send_2(R,I,{I,Nr}k(R,S));
+        read_5(I,R,{Kir,Nr,I}k(R,S));
+        send_6(R,I,{Nr}Kir);
+        read_7(I,R,{{Nr}dec}Kir);
+        claim_R1(R,Secret,Nr);
+        claim_R3(R,Nisynch);
+	}
+
+    role S
+    {
+        var Ni,Nr: Nonce;
+        const Kir: SessionKey;
+        read_3(I,S,(I,R,Ni,{I,Nr}k(R,S)));
+        send_4(S,I,{Ni,R,Kir,{Kir,Nr,I}k(R,S)}k(I,S));
+    }
+    
+}
+
+const Alice,Bob,Simon,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+compromised k(Eve,Simon);
+
+# General scenario, 2 parallel runs of the protocol
+ 
+run needhamschroederskamend.I(Agent,Agent,Simon);
+run needhamschroederskamend.R(Agent,Agent,Simon);
+run needhamschroederskamend.S(Agent,Agent,Simon);
+run needhamschroederskamend.I(Agent,Agent,Simon);
+run needhamschroederskamend.R(Agent,Agent,Simon);
+run needhamschroederskamend.S(Agent,Agent,Simon);
