@@ -95,6 +95,7 @@ systemInit ()
   sys->secrets = NULL;		// list of claimed secrets
   sys->synchronising_labels = NULL;
   sys->attack = NULL;
+  sys->prune = 2;		// default pruning method
   /* no protocols => no protocol preprocessed */
   sys->rolecount = 0;
   sys->roleeventmax = 0;
