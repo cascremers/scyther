@@ -21,6 +21,12 @@
 #include "xmlout.h"
 
 /*
+ * Externally defined
+ */
+extern Protocol INTRUDER;	// from arachne.c
+extern Term TERM_Function;	// from termlist.c
+
+/*
  * Global/static stuff.
  */
 static int xmlindent;		// indent level for xml elements in output
@@ -86,6 +92,90 @@ xmlOutInteger (const char *tag, const int value)
   xmlPrint ("<%s>%i</%s>", tag, value, tag);
 }
 
+//! Print a term in XML form (iteration inner)
+void
+xmlTermPrintInner (const Term term)
+{
+  if (term != NULL)
+    {
+      if (realTermLeaf(term))
+	{
+	  // Variable?
+	  if (realTermVariable (term))
+	    {
+	      Term substbuffer;
+
+	      printf ("<var name=\"");
+	      if (term->subst == NULL)
+		{
+		  // Free variable
+	          termPrint (term);			// Must be a normal termPrint
+		  printf ("\" free=\"true\" />");
+		}
+	      else
+		{
+		  // Bound variable
+		  substbuffer = term->subst;	// Temporarily unsubst for printing
+		  term->subst = NULL;
+		  termPrint (term);			// Must be a normal termPrint
+		  term->subst = substbuffer;
+		  printf ("\">");
+		  xmlTermPrintInner (term->subst);
+		  printf ("</var>");
+		}
+	    }
+	  else
+	    {
+	      // Constant
+	      termPrint (term);			// Must be a normal termPrint
+	    }
+	}
+      else
+	{
+	  // Node
+	  if (realTermEncrypt(term))
+	    {
+	      if (isTermLeaf (TermKey (term))
+		  && inTermlist (TermKey (term)->stype, TERM_Function))
+		{
+		  /* function application */
+		  printf ("<apply><function>");
+		  xmlTermPrintInner (TermKey (term));
+		  printf ("</function><arg>");
+		  xmlTermPrintInner (TermOp (term));
+		  printf ("</arg></apply>");
+		}
+	      else
+		{
+		      printf ("<encrypt><op>");
+		      xmlTermPrintInner (TermOp(term));
+		      printf ("</op><key>");
+		      xmlTermPrintInner (TermKey(term));
+		      printf ("</key></encrypt>");
+		}
+	    }
+	  else
+	    {
+	      // Assume tuple
+	      printf ("<tuple><op1>");
+	      xmlTermPrintInner (TermOp1(term));
+	      printf ("</op1><op2>");
+	      xmlTermPrintInner (TermOp2(term));
+	      printf ("</op2></tuple>");
+	    }
+	}
+    }
+}
+
+//! Print a term in XML form (wrapper)
+void
+xmlTermPrint (const Term term)
+{
+  printf ("<term>");
+  xmlTermPrintInner (term);
+  printf ("</term>");
+}
+
 //! Print a term for an element
 void
 xmlOutTerm (const char *tag, const Term term)
@@ -94,7 +184,7 @@ xmlOutTerm (const char *tag, const Term term)
     {
       xmlIndentPrint ();
       printf ("<%s>", tag);
-      termPrint (term);
+      xmlTermPrint (term);
       printf ("</%s>\n", tag);
     }
 }
@@ -106,7 +196,7 @@ xmlAttrTerm (const char *tag, const Term term)
   if (term != NULL)
     {
       printf (" %s=\"", tag);
-      termPrint (term);
+      xmlTermPrint (term);
       printf ("\"");
     }
 }
@@ -125,7 +215,7 @@ roleTermPrint (const Term t)
 
       typebuffer = t->type;
       t->type = GLOBAL;
-      termPrint (t);
+      xmlTermPrint (t);
       t->type = typebuffer;
     }
 }
@@ -169,14 +259,10 @@ xmlAgentsOfRunPrint (const System sys, const int run)
   roles = sys->runs[run].protocol->rolenames;
   while (roles != NULL)
     {
-      xmlIndentPrint ();
-      printf ("<");
-      roleTermPrint (roles->term);
-      printf (">");
-      termPrint (agentOfRunRole (sys, run, roles->term));
-      printf ("</");
-      roleTermPrint (roles->term);
-      printf (">\n");
+      xmlPrint ("<role>");
+      xmlOutTerm ("name", roles->term);
+      xmlOutTerm ("agent",deVar(agentOfRunRole (sys, run, roles->term)));
+      xmlPrint ("</role>");
       roles = roles->next;
     }
 
@@ -192,7 +278,15 @@ xmlRunInfo (const System sys, const int run)
   Term oldagent;
 
   xmlOutInteger ("runid", run);
-  xmlOutTerm ("protocol", sys->runs[run].protocol->nameterm);
+  xmlIndentPrint ();
+  printf ("<protocol");
+  if (sys->runs[run].protocol == INTRUDER)
+    {
+      printf (" intruder=\"true\"");
+    }
+  printf (">");
+  xmlTermPrint (sys->runs[run].protocol->nameterm);
+  printf ("</protocol>\n");
   r = sys->runs[run].role;
 
   /* undo substitution temporarily to retrieve role name */
@@ -216,13 +310,15 @@ xmlRunInfo (const System sys, const int run)
 //! Show a single event from a run
 /**
  * run and index will only be output if they are nonnegative.
+ * Also prints any bindings, if this events follows some other events
+ * (typically when this is a read).
  */
 void
 xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 {
   xmlIndentPrint ();
 
-  printf ("<");
+  printf ("<event type=\"");
   switch (rd->type)
     {
       /* Read or send types are fairly similar.
@@ -242,31 +338,89 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
       break;
     }
 
-  xmlAttrTerm ("label", rd->label);
+  printf ("\"");
+  printf (" index=\"%i\"", index);
+  printf (">\n");
+  xmlindent++;
+  xmlOutTerm ("label", rd->label);
   if (rd->type != CLAIM)
     {
       /* read or send */
-      xmlAttrTerm ("from", rd->from);
-      xmlAttrTerm ("to", rd->to);
-      xmlAttrTerm ("message", rd->message);
+      xmlOutTerm ("from", rd->from);
+      xmlOutTerm ("to", rd->to);
+      xmlOutTerm ("message", rd->message);
     }
   else
     {
       /* claim */
-      xmlAttrTerm ("role", rd->from);
-      xmlAttrTerm ("type", rd->to);
-      xmlAttrTerm ("argument", rd->message);
+      xmlOutTerm ("role", rd->from);
+      xmlOutTerm ("type", rd->to);
+      xmlOutTerm ("argument", rd->message);
     }
 
-  if (run >= 0)
+
+  // Display any incoming bindings
     {
-      printf (" run=\"%i\"", run);
+      int incomingArrows;
+
+      int xmlBindingState (void *dt)
+      {
+	Binding b;
+
+	void xmlRunIndex (char *desc, const int run, const int index)
+	{
+	  xmlPrint ("<%s run=\"%i\" index=\"%i\" />", desc, run, index);
+	}
+
+	b = (Binding) dt;
+	if (b->run_to == run && b->ev_to == index)
+	  {
+	    if (isTermVariable (b->term) && ! b->done)
+	      {
+		// Generate from m0
+		xmlPrint ("<choose>");
+
+		xmlindent++;
+		xmlIndentPrint ();
+		xmlTermPrint (b->term);
+		printf ("\n");
+		xmlindent--;
+
+		xmlPrint ("</choose>");
+	      }
+	    else
+	      {
+		// Normal binding
+		xmlPrint ("<follows>");
+
+		xmlindent++;
+		if (b->done)
+		  xmlRunIndex ("after", b->run_from, b->ev_from);
+		else
+		  xmlPrint ("<unbound />");
+		if (b->blocked)
+		  printf ("<blocked />");
+		xmlIndentPrint ();
+		xmlTermPrint (b->term);
+		printf ("\n");
+		xmlindent--;
+
+		xmlPrint ("</follows>");
+	      }
+	  }
+	return 1;
+      }
+
+      xmlindent++;
+      if (sys->bindings != NULL)
+	{
+	  list_iterate (sys->bindings, xmlBindingState);
+	}
+      xmlindent--;
     }
-  if (index >= 0)
-    {
-      printf (" index=\"%i\"", index);
-    }
-  printf (" />\n");
+
+  xmlindent--;
+  xmlPrint ("</event>");
 }
 
 //! Display runs
@@ -292,7 +446,7 @@ xmlOutRuns (const System sys)
 	rd = sys->runs[run].start;
 	while (rd != NULL && index < sys->runs[run].step)
 	  {
-	    xmlOutEvent (sys, rd, -1, index);
+	    xmlOutEvent (sys, rd, run, index);
 	    index++;
 	    rd = rd->next;
 	  }
@@ -304,46 +458,6 @@ xmlOutRuns (const System sys)
     }
 }
 
-
-//! Output list of bindings
-void
-xmlOutBindings (const System sys)
-{
-  int xmlBindingState (void *dt)
-  {
-    Binding b;
-    void xmlRunIndex (char *desc, const int run, const int index)
-    {
-      xmlPrint ("<%s run=\"%i\" index=\"%i\" />", desc, run, index);
-    }
-
-    b = (Binding) dt;
-    xmlIndentPrint ();
-    printf ("<binding term=\"");
-    termPrint (b->term);
-    printf ("\" >\n");
-    xmlindent++;
-    if (b->done)
-      xmlRunIndex ("from", b->run_from, b->ev_from);
-    else
-      xmlPrint ("<unbound />");
-    xmlRunIndex ("to", b->run_to, b->ev_to);
-    if (b->blocked)
-      printf ("<blocked />");
-    xmlindent--;
-    xmlPrint ("</binding>");
-    return 1;
-  }
-
-  xmlPrint ("<bindinglist>");
-  xmlindent++;
-  if (sys->bindings != NULL)
-    {
-      list_iterate (sys->bindings, xmlBindingState);
-    }
-  xmlindent--;
-  xmlPrint ("</bindinglist>");
-}
 
 /*
  * -----------------------------------------------------------------------------------
@@ -366,23 +480,27 @@ xmlOutSemitrace (const System sys)
 {
   xmlIndentPrint ();
   printf ("<attack");
-  /* mention the broken claim in the attributes */
-  if (sys->current_claim != NULL)
-    {
-      xmlAttrTerm ("claim", sys->current_claim->type);
-      xmlAttrTerm ("label", sys->current_claim->label);
-    }
   /* add trace length attribute */
   printf (" tracelength=\"%i\"", get_semitrace_length ());
   printf (">\n");
   xmlindent++;
+
+  /* mention the broken claim */
+  if (sys->current_claim != NULL)
+    {
+      xmlPrint ("<broken>");
+      xmlindent++;
+      xmlOutTerm ("claim", sys->current_claim->type);
+      xmlOutTerm ("label", sys->current_claim->label);
+      xmlindent--;
+      xmlPrint ("</broken>");
+    }
   /* any global information about the system */
   xmlOutSysInfo (sys);
   /* semitrace */
   xmlPrint ("<semitrace>");
   xmlindent++;
   xmlOutRuns (sys);
-  xmlOutBindings (sys);
   xmlindent--;
   xmlPrint ("</semitrace>");
   xmlindent--;
