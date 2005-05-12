@@ -176,6 +176,23 @@ xmlTermPrint (const Term term)
   printf ("</term>");
 }
 
+//! Print a termlist in XML form
+void
+xmlTermlistPrint (Termlist tl)
+{
+  xmlPrint ("<termlist>");
+  xmlindent++;
+  while (tl != NULL)
+    {
+      xmlIndentPrint ();
+      xmlTermPrint (tl->term);
+      printf ("\n");
+      tl = tl->next;
+    }
+  xmlindent--;
+  xmlPrint ("</termlist>");
+}
+
 //! Print a term for an element
 void
 xmlOutTerm (const char *tag, const Term term)
@@ -220,91 +237,37 @@ roleTermPrint (const Term t)
     }
 }
 
-//! Global system info
-/**
- * To be used by concrete trace as well as semitrace output
- */
+//! Show initial knowledge
 void
-xmlOutSysInfo (const System sys)
+xmlInitialKnowledge (const System sys)
 {
-  xmlPrint ("<system>");
+  Termlist knowlist;
+
+  xmlPrint ("<initialknowledge>");
   xmlindent++;
-
-  {
-    Protocol p;
-
-    p = sys->protocols;
-    while (p != NULL)
-      {
-	xmlOutTerm ("protocol", p->nameterm);
-	p = p->next;
-      }
-  }
-
-  xmlOutInteger ("match", sys->match);
-
+  knowlist = knowledgeSet (sys->know);
+  xmlTermlistPrint (knowlist);
+  termlistDelete (knowlist);
   xmlindent--;
-  xmlPrint ("</system>");
+  xmlPrint ("</initialknowledge>");
 }
 
-//! Nicely format the role and agents we think we're talking to.
-void
-xmlAgentsOfRunPrint (const System sys, const int run)
+//! Determine whether a protocol is involved in the current semitrace.
+int
+isProtocolInvolved (const System sys, const Protocol p)
 {
-  Termlist roles;
+  int run;
 
-  xmlPrint ("<roleagents>");
-  xmlindent++;
-
-  roles = sys->runs[run].protocol->rolenames;
-  while (roles != NULL)
+  run = 0;
+  while (run < sys->maxruns)
     {
-      xmlPrint ("<role>");
-      xmlOutTerm ("name", roles->term);
-      xmlOutTerm ("agent", deVar (agentOfRunRole (sys, run, roles->term)));
-      xmlPrint ("</role>");
-      roles = roles->next;
+      if (sys->runs[run].protocol == p)
+	{
+	  return 1;
+	}
+      run++;
     }
-
-  xmlindent--;
-  xmlPrint ("</roleagents>");
-}
-
-//! Static information about a run
-void
-xmlRunInfo (const System sys, const int run)
-{
-  Role r;
-  Term oldagent;
-
-  xmlOutInteger ("runid", run);
-  xmlIndentPrint ();
-  printf ("<protocol");
-  if (sys->runs[run].protocol == INTRUDER)
-    {
-      printf (" intruder=\"true\"");
-    }
-  printf (">");
-  xmlTermPrint (sys->runs[run].protocol->nameterm);
-  printf ("</protocol>\n");
-  r = sys->runs[run].role;
-
-  /* undo substitution temporarily to retrieve role name */
-  /* Note that this is fairly tailored towards the Arachne method, TODO: make
-   * more generic. */
-  oldagent = r->nameterm->subst;
-  r->nameterm->subst = NULL;
-  xmlIndentPrint ();
-  printf ("<role>");
-  roleTermPrint (r->nameterm);
-  printf ("</role>\n");
-  /* reinstate substitution */
-  r->nameterm->subst = oldagent;
-  if (oldagent != NULL)
-    {
-      xmlOutTerm ("agent", r->nameterm);
-    }
-  xmlAgentsOfRunPrint (sys, run);
+  return 0;
 }
 
 //! Show a single event from a run
@@ -312,6 +275,8 @@ xmlRunInfo (const System sys, const int run)
  * run and index will only be output if they are nonnegative.
  * Also prints any bindings, if this events follows some other events
  * (typically when this is a read).
+ *
+ * If run < 0, it is assumed to be a role event, and thus no bindings will be shown.
  */
 void
 xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
@@ -412,7 +377,8 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
     }
 
     xmlindent++;
-    if (sys->bindings != NULL)
+    // Only if real run, and not a roledef
+    if (run >= 0 && sys->bindings != NULL)
       {
 	list_iterate (sys->bindings, xmlBindingState);
       }
@@ -421,6 +387,130 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 
   xmlindent--;
   xmlPrint ("</event>");
+}
+
+//! Print a list of role events, from a roledef pointer
+void
+xmlRoleEventlist (const System sys, Roledef rd, int index)
+{
+  while (rd != NULL)
+    {
+      xmlOutEvent (sys, rd, -1, index);
+      index++;
+      rd = rd->next;
+    }
+}
+
+//! Show all protocol roles that are in the attack.
+void
+xmlInvolvedProtocolRoles (const System sys)
+{
+  Protocol p;
+
+  p = sys->protocols;
+  while (p != NULL)
+    {
+      if (isProtocolInvolved (sys, p))
+	{
+	  Role r;
+
+	  xmlPrint ("<protocol>");
+	  xmlindent++;
+	  xmlOutTerm ("name", p->nameterm);
+	  r = p->roles;
+	  while (r != NULL)
+	    {
+	      xmlPrint ("<role>");
+	      xmlindent++;
+	      xmlOutTerm ("name", r->nameterm);
+	      xmlRoleEventlist (sys, r->roledef, 0);
+	      xmlindent--;
+	      xmlPrint ("</role>");
+	      r = r->next;
+	    }
+	  xmlindent--;
+	  xmlPrint ("</protocol>");
+	}
+      p = p->next;
+    }
+}
+
+//! Global system info
+/**
+ * To be used by concrete trace as well as semitrace output
+ */
+void
+xmlOutSysInfo (const System sys)
+{
+  xmlPrint ("<system>");
+  xmlindent++;
+
+  xmlOutInteger ("match", sys->match);
+
+  xmlInitialKnowledge (sys);
+  xmlInvolvedProtocolRoles (sys);
+  xmlindent--;
+  xmlPrint ("</system>");
+}
+
+//! Nicely format the role and agents we think we're talking to.
+void
+xmlAgentsOfRunPrint (const System sys, const int run)
+{
+  Termlist roles;
+
+  xmlPrint ("<roleagents>");
+  xmlindent++;
+
+  roles = sys->runs[run].protocol->rolenames;
+  while (roles != NULL)
+    {
+      xmlPrint ("<role>");
+      xmlOutTerm ("name", roles->term);
+      xmlOutTerm ("agent", deVar (agentOfRunRole (sys, run, roles->term)));
+      xmlPrint ("</role>");
+      roles = roles->next;
+    }
+
+  xmlindent--;
+  xmlPrint ("</roleagents>");
+}
+
+//! Static information about a run
+void
+xmlRunInfo (const System sys, const int run)
+{
+  Role r;
+  Term oldagent;
+
+  xmlOutInteger ("runid", run);
+  xmlIndentPrint ();
+  printf ("<protocol");
+  if (sys->runs[run].protocol == INTRUDER)
+    {
+      printf (" intruder=\"true\"");
+    }
+  printf (">");
+  xmlTermPrint (sys->runs[run].protocol->nameterm);
+  printf ("</protocol>\n");
+  r = sys->runs[run].role;
+
+  /* undo substitution temporarily to retrieve role name */
+  /* Note that this is fairly tailored towards the Arachne method, TODO: make
+   * more generic. */
+  oldagent = r->nameterm->subst;
+  r->nameterm->subst = NULL;
+  xmlIndentPrint ();
+  printf ("<role>");
+  roleTermPrint (r->nameterm);
+  printf ("</role>\n");
+  /* reinstate substitution */
+  r->nameterm->subst = oldagent;
+  if (oldagent != NULL)
+    {
+      xmlOutTerm ("agent", r->nameterm);
+    }
+  xmlAgentsOfRunPrint (sys, run);
 }
 
 //! Display runs

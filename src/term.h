@@ -3,6 +3,9 @@
 
 #include "symbol.h"
 
+#define false 0
+#define true 1
+
 // type <= LEAF means it's a leaf, nkay?
 enum termtypes
 { GLOBAL, VARIABLE, LEAF, ENCRYPT, TUPLE };
