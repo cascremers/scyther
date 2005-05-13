@@ -30,6 +30,7 @@ extern Term TERM_Function;	// from termlist.c
  * Global/static stuff.
  */
 static int xmlindent;		// indent level for xml elements in output
+static Term only_claim_label;	// if NULL, show all claims in xml event lists. Otherwise, only this one.
 
 /*
  * Default external interface: init/done
@@ -41,6 +42,7 @@ xmlOutInit (void)
 {
   printf ("<scyther>\n");
   xmlindent = 1;
+  only_claim_label = NULL;
 }
 
 //! Close up
@@ -270,6 +272,32 @@ isProtocolInvolved (const System sys, const Protocol p)
   return 0;
 }
 
+//! Determine whether to show an event
+int
+isEventInteresting (const Roledef rd)
+{
+  if (rd->type != CLAIM)
+    {
+      return 1;
+    }
+  else
+    {
+      // A claim
+      if (only_claim_label == NULL)
+	{
+	  return 1;
+	}
+      else
+	{
+	  if (isTermEqual (only_claim_label, rd->label))
+	    {
+	      return 1;
+	    }
+	}
+    }
+  return 0;
+}
+
 //! Show a single event from a run
 /**
  * run and index will only be output if they are nonnegative.
@@ -281,6 +309,11 @@ isProtocolInvolved (const System sys, const Protocol p)
 void
 xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 {
+  if (!isEventInteresting (rd))
+    {
+      return;
+    }
+
   xmlIndentPrint ();
 
   printf ("<event type=\"");
@@ -568,6 +601,8 @@ xmlOutTrace (const System sys)
 void
 xmlOutSemitrace (const System sys)
 {
+  Term buffer_only_claim_label;
+
   xmlIndentPrint ();
   printf ("<attack");
   /* add trace length attribute */
@@ -576,6 +611,7 @@ xmlOutSemitrace (const System sys)
   xmlindent++;
 
   /* mention the broken claim */
+  buffer_only_claim_label = only_claim_label;
   if (sys->current_claim != NULL)
     {
       xmlPrint ("<broken>");
@@ -584,6 +620,11 @@ xmlOutSemitrace (const System sys)
       xmlOutTerm ("label", sys->current_claim->label);
       xmlindent--;
       xmlPrint ("</broken>");
+      only_claim_label = sys->current_claim->label;
+    }
+  else
+    {
+      only_claim_label = NULL;
     }
   /* any global information about the system */
   xmlOutSysInfo (sys);
@@ -595,4 +636,7 @@ xmlOutSemitrace (const System sys)
   xmlPrint ("</semitrace>");
   xmlindent--;
   xmlPrint ("</attack>");
+
+  /* restore only claim buffer */
+  only_claim_label = buffer_only_claim_label;
 }
