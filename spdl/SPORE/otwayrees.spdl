@@ -1,0 +1,71 @@
+# Otway Rees
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/otwayRees.html
+#
+#
+# Note:
+# This protocol uses a ticket so scyther will only be able to verify
+# the protocol using the ARACHNE engine (-a) and type 2 matching (-m2)
+#
+
+
+secret const k : Function;
+
+usertype String,SessionKey,Ticket;
+
+protocol otwayrees(I,R,S)
+{
+	role I
+	{
+		const Ni : Nonce;
+		const M : String;
+		var Kir : SessionKey;
+
+		send_1(I,R, M,I,R,{Ni,M,I,R}k(I,S) );
+		read_4(R,I, M,{Ni,Kir}k(I,S) );
+
+		claim_I1(I, Secret,Kir);
+        #claim_I2(I, Nisynch);
+	}
+
+	role R
+	{
+		var M : String;
+		const Nr : Nonce;
+		var Kir : SessionKey;
+		var T1,T2: Ticket;
+
+		read_1(I,R, M,I,R, T1 );
+		send_2(R,S, M,I,R, T1, { Nr,M,I,R }k(R,S) );
+		read_3(S,R, M, T2, { Nr,Kir }k(R,S) );
+		send_4(R,I, M, T2 );
+
+		claim_R1(R, Secret,Kir);
+        #claim_R2(R, Nisynch);
+	}
+
+	role S
+	{
+		var Ni,Nr : Nonce;
+		var M : String;
+		const Kir : SessionKey;
+		
+		read_2(R,S, M,I,R, { Ni,M,I,R}k(I,S), { Nr,M,I,R }k(R,S) );
+		send_3(S,R, M, { Ni,Kir }k(I,S) , { Nr,Kir }k(R,S) );
+	}
+}
+
+const Alice, Bob, Eve, Simon: Agent;
+
+untrusted Eve;
+compromised k(Eve,Simon);
+
+run otwayrees.A(Alice, Agent, Simon);
+run otwayrees.B(Agent, Bob, Simon);
+run otwayrees.S(Agent, Agent, Simon);
+
+run otwayrees.A(Agent, Agent, Simon);
+run otwayrees.B(Agent, Agent, Simon);
+run otwayrees.S(Agent, Agent, Simon);
+

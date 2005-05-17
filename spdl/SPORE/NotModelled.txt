@@ -16,3 +16,8 @@ not be modelled in scyther.
 This protocol relies on algebraic properties that can not be modelled in
 scyther.
 
+- SK3
+This protocol relies on algebraic properties that can not be modelled in
+scyther. It also has the notion of channels that can not be attacked,
+which can not be modelled in scyther either.
+
