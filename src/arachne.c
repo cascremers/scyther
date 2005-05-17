@@ -7,6 +7,7 @@
  *
  */
 
+#include <stdlib.h>
 #include <limits.h>
 #include <float.h>
 #ifdef DEBUG
@@ -48,6 +49,7 @@ static int attack_length;
 Protocol INTRUDER;		// Pointers, to be set by the Init
 Role I_M;			// Same here.
 Role I_RRS;
+Role I_RRSD;
 
 static int indentDepth;
 static int proofDepth;
@@ -124,6 +126,15 @@ arachneInit (const System mysys)
   add_event (READ, NULL);
   add_event (SEND, NULL);
   I_RRS = add_role ("I_E: Encrypt");
+
+  add_event (READ, NULL);
+  add_event (READ, NULL);
+  add_event (SEND, NULL);
+  I_RRSD = add_role ("I_D: Decrypt");
+
+  num_regular_runs = 0;
+  num_intruder_runs = 0;
+  max_encryption_level = 0;
 
   return;
 }
@@ -621,9 +632,76 @@ iterate_role_sends (int (*func) ())
   return iterate_role_events (send_wrapper);
 }
 
+//! Create decryption role instance
+/**
+ * Note that this does not add any bindings for the reads.
+ *
+ *@param term	The term to be decrypted (implies decryption key)
+ *
+ *@returns The run id of the decryptor instance
+ */
+int
+create_decryptor (const Term term, const Term key)
+{
+  if (term != NULL && isTermEncrypt (term))
+    {
+      Roledef rd;
+      Term tempkey;
+      int run;
+
+      run = semiRunCreate (INTRUDER, I_RRSD);
+      rd = sys->runs[run].start;
+      rd->message = termDuplicateUV (term);
+      rd->next->message = termDuplicateUV (key);
+      rd->next->next->message = termDuplicateUV (TermOp (term));
+      sys->runs[run].step = 3;
+      proof_suppose_run (run, 0, 3);
+
+      return run;
+    }
+  else
+    {
+      globalError++;
+      printf ("Term for which a decryptor instance is requested: ");
+      termPrint (term);
+      printf ("\n");
+      error
+	("Trying to build a decryptor instance for a non-encrypted term.");
+    }
+}
+
+//! Get the priority level of a key that is needed for a term (typical pk/sk distinction)
+int
+getPriorityOfNeededKey (const System sys, const Term keyneeded)
+{
+  int prioritylevel;
+
+  /* Normally, a key gets higher priority, but unfortunately this is not propagated at the moment. Maybe later.
+   */
+  prioritylevel = 1;
+  if (realTermEncrypt (keyneeded))
+    {
+      /* the key is a construction itself */
+      if (inKnowledge (sys->know, TermKey (keyneeded)))
+	{
+	  /* the key is constructed by a public thing */
+	  /* typically, this is a public key, so we postpone it  */
+	  prioritylevel = -1;
+	}
+    }
+  return prioritylevel;
+}
+
 //! Try to bind a specific existing run to a goal.
 /**
  * The key goals are bound to the goal.
+ *
+ *@todo This is currently NOT correct. The point is that the key chain
+ * cannot uniquely define a path through a term in general, and
+ * a rewrite of termMguSubterm is needed. It should not yield the
+ * needed keys, but simply the path throught the term. This would enable
+ * reconstruction of the keys anyway. TODO
+ *      
  *@param subterm determines whether it is a subterm unification or not.
  */
 int
@@ -635,7 +713,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
   int newgoals;
   int found;
 
-  int subterm_iterate (Termlist substlist, Termlist keylist)
+  int subterm_iterate (Termlist substlist, Termlist cryptlist)
   {
     int flag;
 
@@ -644,55 +722,148 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
     /**
      * Now create the new bindings
      */
-    if (goal_bind (b, run, index))
+    int newgoals;
+    int newruns;
+    int stillvalid;
+
+    Binding smalltermbinding;
+
+    stillvalid = true;		// New stuff is valid (no cycles)
+    newgoals = 0;		// No new goals introduced (yet)
+    newruns = 0;		// New runs introduced
+    smalltermbinding = b;	// Start off with destination binding
+
+#ifdef DEBUG
+    if (DEBUGL (4))
       {
-	int newgoals;
-	Termlist tl;
-
-	proof_suppose_binding (b);
-	if (keylist != NULL && sys->output == PROOF)
-	  {
-	    indentPrint ();
-	    eprintf
-	      ("This introduces the obligation to produce the following keys: ");
-	    termlistPrint (keylist);
-	    eprintf ("\n");
-	  }
-	newgoals = 0;
-	tl = keylist;
-	while (tl != NULL)
-	  {
-	    int keyrun;
-	    int prioritylevel;
-
-	    /* normally, a key gets higher priority */
-	    prioritylevel = 1;
-	    if (realTermEncrypt (tl->term))
-	      {
-		/* the key is a construction itself */
-		if (inKnowledge (sys->know, TermKey (tl->term)))
-		  {
-		    /* the key is constructed by a public thing */
-		    /* typically, this is a public key, so we postpone it  */
-		    prioritylevel = -1;
-		  }
-	      }
-	    /* add the key as a goal */
-	    newgoals =
-	      newgoals + goal_add (tl->term, b->run_to, b->ev_to,
-				   prioritylevel);
-	    tl = tl->next;
-	  }
-
-	indentDepth++;
-	flag = flag && iterate ();
-	indentDepth--;
-
-	goal_remove_last (newgoals);
+	printf ("Trying to bind the small term ");
+	termPrint (b->term);
+	printf (" as coming from the big send ");
+	termPrint (rd->message);
+	printf (" , binding ");
+	termPrint (b->term);
+	printf ("\nCrypted list needed: ");
+	termlistPrint (cryptlist);
+	printf ("\n");
       }
-    else
+#endif
+    if (cryptlist != NULL && sys->output == PROOF)
       {
-	proof_cannot_bind (b, run, index);
+	indentPrint ();
+	eprintf
+	  ("This introduces the obligation to decrypted the following encrypted subterms: ");
+	termlistPrint (cryptlist);
+	eprintf ("\n");
+      }
+
+    /* The order of the cryptlist is inner -> outer */
+    while (stillvalid && cryptlist != NULL && smalltermbinding != NULL)
+      {
+	/*
+	 * Invariants:
+	 *
+	 * smalltermbinding     binding to be satisfied next (and for which a decryptor is needed)
+	 */
+	Term keyneeded;
+	int prioritylevel;
+	int smallrun;
+	int count;
+	Roledef rddecrypt;
+	Binding bnew;
+	int res;
+
+	/*
+	 * 1. Add decryptor
+	 */
+
+	keyneeded =
+	  inverseKey (sys->know->inverses, TermKey (cryptlist->term));
+	prioritylevel = getPriorityOfNeededKey (sys, keyneeded);
+	smallrun = create_decryptor (cryptlist->term, keyneeded);
+	rddecrypt = sys->runs[smallrun].start;
+	termDelete (keyneeded);
+	newruns++;
+
+	/*
+	 * 2. Add goal bindings
+	 */
+
+	count = goal_add (rddecrypt->message, smallrun, 0, 0);
+	newgoals = newgoals + count;
+	if (count >= 0)
+	  {
+	    if (count > 1)
+	      {
+		error
+		  ("Added more than one goal for decryptor goal 1, weird.");
+	      }
+	    else
+	      {
+		// This is the unique new goal then
+		bnew = (Binding) sys->bindings->data;
+	      }
+	  }
+	else
+	  {
+	    // No new binding? Weird, but fair enough
+	    bnew = NULL;
+	  }
+	newgoals =
+	  newgoals + goal_add (rddecrypt->next->message, smallrun, 1,
+			       prioritylevel);
+
+	/*
+	 * 3. Bind open goal to decryptor
+	 */
+
+	res = goal_bind (smalltermbinding, smallrun, 2);	// returns 0 iff invalid
+	if (res != 0)
+	  {
+	    // Allright, good binding, proceed with next
+	    smalltermbinding = bnew;
+	  }
+	else
+	  {
+	    stillvalid = false;
+	  }
+
+	/* progression */
+	cryptlist = cryptlist->next;
+      }
+
+    /*
+     * Decryptors for any nested keys have been added. Now we can fill the
+     * final binding.
+     */
+
+    if (stillvalid)
+      {
+	if (goal_bind (smalltermbinding, run, index))
+	  {
+	    proof_suppose_binding (b);
+#ifdef DEBUG
+	    if (DEBUGL (4))
+	      {
+		indentPrint ();
+		eprintf ("Added %i new goals, iterating.\n", newgoals);
+	      }
+#endif
+	    /* Iterate process */
+	    indentDepth++;
+	    flag = flag && iterate ();
+	    indentDepth--;
+	  }
+	else
+	  {
+	    proof_cannot_bind (b, run, index);
+	  }
+      }
+
+    goal_remove_last (newgoals);
+    while (newruns > 0)
+      {
+	semiRunDestroy ();
+	newruns--;
       }
     goal_unbind (b);
     return flag;
@@ -2754,7 +2925,8 @@ prune_claim_specifics ()
     {
       if (arachne_claim_niagree (sys, 0, sys->current_claim->ev))
 	{
-	  sys->current_claim->count = statesIncrease (sys->current_claim->count);
+	  sys->current_claim->count =
+	    statesIncrease (sys->current_claim->count);
 	  if (sys->output == PROOF)
 	    {
 	      indentPrint ();
@@ -2768,7 +2940,8 @@ prune_claim_specifics ()
     {
       if (arachne_claim_nisynch (sys, 0, sys->current_claim->ev))
 	{
-	  sys->current_claim->count = statesIncrease (sys->current_claim->count);
+	  sys->current_claim->count =
+	    statesIncrease (sys->current_claim->count);
 	  if (sys->output == PROOF)
 	    {
 	      indentPrint ();

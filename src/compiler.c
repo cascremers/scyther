@@ -1018,9 +1018,13 @@ order_label_roles (const Claimlist cl)
       int scan_label (void *data)
       {
 	Labelinfo linfo;
+	Termlist tl;
 
 	linfo = (Labelinfo) data;
-	if (inTermlist (cl->prec, linfo->label))
+	if (linfo == NULL)
+	  return 1;
+	tl = cl->prec;
+	if (inTermlist (tl, linfo->label))
 	  {
 	    if (linfo->protocol == cl->protocol)
 	      {

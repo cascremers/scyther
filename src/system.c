@@ -101,6 +101,7 @@ systemInit ()
   sys->roleeventmax = 0;
   sys->claimlist = NULL;
   sys->labellist = NULL;
+  sys->match = 0;		// default matching
 
   /* matching CLP */
   sys->constraints = NULL;	// no initial constraints

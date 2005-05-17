@@ -272,7 +272,8 @@ termlistConcat (Termlist tl1, Termlist tl2)
 
 //! Remove the pointed at element from the termlist.
 /**
- * Easier because of the double linked list.
+ * Easier because of the double linked list. Note: does not do termDelete on the term.
+ *
  *@param tl The pointer to the termlist node to be deleted from the list.
  *@return The possibly new head pointer to the termlist.
  */
@@ -667,8 +668,7 @@ termlistLocal (Termlist tl, const Termlist fromlist, const Termlist tolist)
 
   while (tl != NULL)
     {
-      newtl =
-	termlistAdd (newtl, termLocal (tl->term, fromlist, tolist));
+      newtl = termlistAdd (newtl, termLocal (tl->term, fromlist, tolist));
       tl = tl->next;
     }
   return newtl;

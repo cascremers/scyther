@@ -60,32 +60,32 @@ goodsubst (Term tvar, Term tsubst)
 {
   // function to test compatibility
   __inline__ int compatibleTypes ()
-    {
-      if (tvar->stype == NULL)
-	{
-	  // If the variable type is unspecified, anything goes
-	  return 1;
-	}
-      else
-	{
-	  // There are variable types.
-	  // At least one of them should match a type of the constant.
-	  Termlist tl;
+  {
+    if (tvar->stype == NULL)
+      {
+	// If the variable type is unspecified, anything goes
+	return 1;
+      }
+    else
+      {
+	// There are variable types.
+	// At least one of them should match a type of the constant.
+	Termlist tl;
 
-	  tl = tvar->stype;
-	  while (tl != NULL)
-	    {
-	      if (inTermlist (tsubst->stype, tl->term))
-		{
-		  // One type matches
-		  return 1;
-		}
-	      tl = tl->next;
-	    }
-	  // No matches
-	  return 0;
-	}
-    }
+	tl = tvar->stype;
+	while (tl != NULL)
+	  {
+	    if (inTermlist (tsubst->stype, tl->term))
+	      {
+		// One type matches
+		return 1;
+	      }
+	    tl = tl->next;
+	  }
+	// No matches
+	return 0;
+      }
+  }
 
   if (mgu_match == 2)
     {
@@ -104,8 +104,7 @@ goodsubst (Term tvar, Term tsubst)
       else
 	{
 	  // It's a leaf, but what type?
-	  if (mgu_match == 1
-	      || compatibleTypes ())
+	  if (mgu_match == 1 || compatibleTypes ())
 	    {
 	      return 1;
 	    }
@@ -305,68 +304,69 @@ termMguInTerm (Term t1, Term t2, int (*iterator) (Termlist))
   return flag;
 }
 
-//! Most general subterm unifiers of t1 subterm t2
+//! Most general subterm unifiers of smallterm subterm bigterm
 /**
  * Try to determine the most general subterm unifiers of two terms.
- *@returns Nothing. Iteration gets termlist of subst, and list of keys needed to decrypt.
+ *@returns Nothing. Iteration gets termlist of subst, and list of keys needed
+ *  to decrypt. This termlist does not need to be deleted, because it is handled
+ *  by the mguSubTerm itself.
  */
 int
-termMguSubTerm (Term t1, Term t2, int (*iterator) (Termlist, Termlist),
-		Termlist inverses, Termlist keylist)
+termMguSubTerm (Term smallterm, Term bigterm,
+		int (*iterator) (Termlist, Termlist), Termlist inverses,
+		Termlist cryptlist)
 {
   int flag;
 
   flag = 1;
-  t1 = deVar (t1);
-  t2 = deVar (t2);
-  if (t2 != NULL)
+  smallterm = deVar (smallterm);
+  bigterm = deVar (bigterm);
+  if (bigterm != NULL)
     {
       Termlist tl;
 
-      if (!realTermLeaf (t2))
+      if (!realTermLeaf (bigterm))
 	{
-	  if (realTermTuple (t2))
+	  if (realTermTuple (bigterm))
 	    {
 	      // 'simple' tuple
 	      flag =
-		flag && termMguSubTerm (t1, TermOp1 (t2), iterator, inverses,
-					keylist);
-	      flag =
-		flag && termMguSubTerm (t1, TermOp2 (t2), iterator, inverses,
-					keylist);
+		flag
+		&& termMguSubTerm (smallterm, TermOp1 (bigterm), iterator,
+				   inverses, cryptlist);
+	      flag = flag
+		&& termMguSubTerm (smallterm, TermOp2 (bigterm), iterator,
+				   inverses, cryptlist);
 	    }
 	  else
 	    {
 	      // Must be encryption
-	      // So, we need the key, and try to get the rest
-	      Term newkey;
+	      Term keyneeded;
 
-	      newkey = inverseKey (inverses, TermKey (t2));
+	      keyneeded = inverseKey (inverses, TermKey (bigterm));
 	      // We can never produce the TERM_Hidden key, thus, this is not a valid iteration.
-	      if (!isTermEqual (newkey, TERM_Hidden))
+	      if (!isTermEqual (keyneeded, TERM_Hidden))
 		{
-		  Termlist keylist_new;
-
-		  keylist_new = termlistShallow (keylist);
-		  keylist_new = termlistAdd (keylist_new, newkey);
+		  cryptlist = termlistAdd (cryptlist, bigterm);	// Append, so the last encrypted term in the list is the most 'inner' one, and the first is the outer one.
 
 		  // Recurse
 		  flag =
 		    flag
-		    && termMguSubTerm (t1, TermOp (t2), iterator, inverses,
-				       keylist_new);
+		    && termMguSubTerm (smallterm, TermOp (bigterm), iterator,
+				       inverses, cryptlist);
 
-		  termlistDelete (keylist_new);
+
+		  cryptlist = termlistDelTerm (cryptlist);
 		}
-	      termDelete (newkey);
+	      termDelete (keyneeded);
 	    }
 	}
       // simple clause or combined
-      tl = termMguTerm (t1, t2);
+      tl = termMguTerm (smallterm, bigterm);
       if (tl != MGUFAIL)
 	{
 	  // Iterate
-	  flag = flag && iterator (tl, keylist);
+	  flag = flag && iterator (tl, cryptlist);
 	  // Reset variables
 	  termlistSubstReset (tl);
 	  // Remove list
@@ -375,7 +375,7 @@ termMguSubTerm (Term t1, Term t2, int (*iterator) (Termlist, Termlist),
     }
   else
     {
-      if (t1 != NULL)
+      if (smallterm != NULL)
 	{
 	  flag = 0;
 	}

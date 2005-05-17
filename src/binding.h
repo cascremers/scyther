@@ -43,6 +43,8 @@ int binding_print (Binding b);
 int valid_binding (Binding b);
 
 int goal_add (Term term, const int run, const int ev, const int level);
+int goal_add_fixed (Term term, const int run, const int ev, const int fromrun,
+		    const int fromev);
 void goal_remove_last (int n);
 int goal_bind (const Binding b, const int run, const int ev);
 void goal_unbind (const Binding b);

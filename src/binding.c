@@ -47,7 +47,7 @@ binding_create (Term term, int run_to, int ev_to)
   b->ev_from = -1;
   b->run_to = run_to;
   b->ev_to = ev_to;
-  goal_graph_destroy();
+  goal_graph_destroy ();
   b->term = term;
   b->level = 0;
   return b;
@@ -104,15 +104,15 @@ goal_graph_destroy ()
       struct mallinfo mi_free;
       int mem_free;
 
-      mi_free = mallinfo();
+      mi_free = mallinfo ();
       mem_free = mi_free.uordblks;
 #endif
       memFree (graph, (nodes * nodes) * sizeof (int));
       graph = NULL;
 #ifdef DEBUG
-      mi_free = mallinfo();
+      mi_free = mallinfo ();
       if (mem_free - mi_free.uordblks != graph_uordblks)
-	  error ("Freeing gave a weird result.");
+	error ("Freeing gave a weird result.");
 #endif
       graph_uordblks = 0;
       nodes = 0;
@@ -132,211 +132,217 @@ goal_graph_create ()
   // Setup graph
   nodes = node_count ();
 
-    {
-      struct mallinfo create_mi;
-      int create_mem_before;
+  {
+    struct mallinfo create_mi;
+    int create_mem_before;
 
-      if (graph_uordblks != 0)
-	  error ("Trying to create graph stuff without 0 uordblks for it first, but it is %i.", graph_uordblks);
-      create_mi = mallinfo();
-      create_mem_before = create_mi.uordblks;
-      graph = memAlloc ((nodes * nodes) * sizeof (int));
-      create_mi = mallinfo();
-      graph_uordblks = create_mi.uordblks - create_mem_before;
-    }
+    if (graph_uordblks != 0)
+      error
+	("Trying to create graph stuff without 0 uordblks for it first, but it is %i.",
+	 graph_uordblks);
+    create_mi = mallinfo ();
+    create_mem_before = create_mi.uordblks;
+    graph = memAlloc ((nodes * nodes) * sizeof (int));
+    create_mi = mallinfo ();
+    graph_uordblks = create_mi.uordblks - create_mem_before;
+  }
 
-    {
+  {
 
-      graph_fill (graph, nodes, 0);
+    graph_fill (graph, nodes, 0);
 
-        // Setup run order
-      run = 0;
-      last_m = -1;			// last I_M run
-      while (run < sys->maxruns)
-	{
-	  ev = 1;
-	  //!@todo This now reference to step, but we intend "length" as in Arachne.
-	  while (ev < sys->runs[run].step)
-	    {
-	      graph[graph_nodes (nodes, run, ev - 1, run, ev)] = 1;
-	      ev++;
-	    }
-	  // Enforce I_M ordering
-	  if (sys->runs[run].protocol == INTRUDER && sys->runs[run].role == I_M)
-	    {
-	      if (last_m != -1)
-		{
-		  graph[graph_nodes (nodes, last_m, 0, run, 0)] = 1;
-		}
-	      last_m = run;
-	    }
-	  // Next
-	  run++;
-	}
-      // Setup bindings order
-      bl = sys->bindings;
-      while (bl != NULL)
-	{
-	  Binding b;
+    // Setup run order
+    run = 0;
+    last_m = -1;		// last I_M run
+    while (run < sys->maxruns)
+      {
+	ev = 1;
+	//!@todo This now reference to step, but we intend "length" as in Arachne.
+	while (ev < sys->runs[run].step)
+	  {
+	    graph[graph_nodes (nodes, run, ev - 1, run, ev)] = 1;
+	    ev++;
+	  }
+	// Enforce I_M ordering
+	if (sys->runs[run].protocol == INTRUDER && sys->runs[run].role == I_M)
+	  {
+	    if (last_m != -1)
+	      {
+		graph[graph_nodes (nodes, last_m, 0, run, 0)] = 1;
+	      }
+	    last_m = run;
+	  }
+	// Next
+	run++;
+      }
+    // Setup bindings order
+    bl = sys->bindings;
+    while (bl != NULL)
+      {
+	Binding b;
 
-	  b = (Binding) bl->data;
-	  if (valid_binding (b))
-	    {
+	b = (Binding) bl->data;
+	if (valid_binding (b))
+	  {
 #ifdef DEBUG
-	      if (graph_nodes
-		  (nodes, b->run_from, b->ev_from, b->run_to,
-		   b->ev_to) >= (nodes * nodes))
-		error ("Node out of scope for %i,%i -> %i,%i.\n", b->run_from,
-		       b->ev_from, b->run_to, b->ev_to);
+	    if (graph_nodes
+		(nodes, b->run_from, b->ev_from, b->run_to,
+		 b->ev_to) >= (nodes * nodes))
+	      error ("Node out of scope for %i,%i -> %i,%i.\n", b->run_from,
+		     b->ev_from, b->run_to, b->ev_to);
 #endif
-	      graph[graph_nodes
-		    (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to)] = 1;
-	    }
-	  bl = bl->next;
-	}
-      // Setup local constants order
-      run = 0;
-      while (run < sys->maxruns)
-	{
-	  if (sys->runs[run].protocol != INTRUDER)
-	    {
-	      int run2;
+	    graph[graph_nodes
+		  (nodes, b->run_from, b->ev_from, b->run_to, b->ev_to)] = 1;
+	  }
+	bl = bl->next;
+      }
+    // Setup local constants order
+    run = 0;
+    while (run < sys->maxruns)
+      {
+	if (sys->runs[run].protocol != INTRUDER)
+	  {
+	    int run2;
 
-	      run2 = 0;
-	      while (run2 < sys->maxruns)
-		{
-		  if (sys->runs[run].protocol != INTRUDER && run != run2)
-		    {
-		      // For these two runs, we check whether run has any variables that are mapped
-		      // to constants from run2
-		      Termlist tl;
+	    run2 = 0;
+	    while (run2 < sys->maxruns)
+	      {
+		if (sys->runs[run].protocol != INTRUDER && run != run2)
+		  {
+		    // For these two runs, we check whether run has any variables that are mapped
+		    // to constants from run2
+		    Termlist tl;
 
-		      tl = sys->runs[run].locals;
-		      while (tl != NULL)
-			{
-			  Term t;
+		    tl = sys->runs[run].locals;
+		    while (tl != NULL)
+		      {
+			Term t;
 
-			  t = tl->term;
-			  if (t->type == VARIABLE && TermRunid (t) == run
-			      && t->subst != NULL)
-			    {
-			      // t is a variable of run
-			      Termlist tl2;
+			t = tl->term;
+			if (t->type == VARIABLE && TermRunid (t) == run
+			    && t->subst != NULL)
+			  {
+			    // t is a variable of run
+			    Termlist tl2;
 
-			      tl2 = sys->runs[run2].locals;
-			      while (tl2 != NULL)
-				{
-				  Term t2;
+			    tl2 = sys->runs[run2].locals;
+			    while (tl2 != NULL)
+			      {
+				Term t2;
 
-				  t2 = tl2->term;
-				  if (realTermLeaf (t2) && t2->type != VARIABLE
-				      && TermRunid (t2) == run2)
-				    {
-				      // t2 is a constant of run2
-				      if (isTermEqual (t, t2))
-					{
-					  // Indeed, run depends on the run2 constant t2. Thus we must store this order.
-					  // The first send of t2 in run2 must be before the first (read) event in run with t2.
-					  int ev2;
-					  int done;
-					  Roledef rd2;
+				t2 = tl2->term;
+				if (realTermLeaf (t2) && t2->type != VARIABLE
+				    && TermRunid (t2) == run2)
+				  {
+				    // t2 is a constant of run2
+				    if (isTermEqual (t, t2))
+				      {
+					// Indeed, run depends on the run2 constant t2. Thus we must store this order.
+					// The first send of t2 in run2 must be before the first (read) event in run with t2.
+					int ev2;
+					int done;
+					Roledef rd2;
 
-					  done = 0;
-					  ev2 = 0;
-					  rd2 = sys->runs[run2].start;
-					  while (!done
-						 && ev2 < sys->runs[run2].step)
-					    {
-					      if (rd2->type == SEND
-						  && termSubTerm (rd2->message,
-								  t2))
-						{
-						  // Allright, we send it here at ev2 first
-						  int ev;
-						  Roledef rd;
+					done = 0;
+					ev2 = 0;
+					rd2 = sys->runs[run2].start;
+					while (!done
+					       && ev2 < sys->runs[run2].step)
+					  {
+					    if (rd2->type == SEND
+						&& termSubTerm (rd2->message,
+								t2))
+					      {
+						// Allright, we send it here at ev2 first
+						int ev;
+						Roledef rd;
 
-						  ev = 0;
-						  rd = sys->runs[run].start;
-						  while (!done
-							 && ev <
-							 sys->runs[run].step)
-						    {
-						      if (termSubTerm
-							  (rd->message, t2))
-							{
-							  // Term occurs here in run
-							  if (rd->type == READ)
-							    {
-							      // It's read here first.
-							      // Order and be done with it.
-							      graph[graph_nodes
-								    (nodes, run2,
-								     ev2, run,
-								     ev)] = 1;
+						ev = 0;
+						rd = sys->runs[run].start;
+						while (!done
+						       && ev <
+						       sys->runs[run].step)
+						  {
+						    if (termSubTerm
+							(rd->message, t2))
+						      {
+							// Term occurs here in run
+							if (rd->type == READ)
+							  {
+							    // It's read here first.
+							    // Order and be done with it.
+							    graph[graph_nodes
+								  (nodes,
+								   run2, ev2,
+								   run, ev)] =
+							      1;
 #ifdef DEBUG
-							      if (DEBUGL (5))
-								{
-								  eprintf
-								    ("* [local originator] term ");
-								  termPrint (t2);
-								  eprintf
-								    (" is bound using %i, %i before %i,%i\n",
-								     run2, ev2,
-								     run, ev);
-								}
+							    if (DEBUGL (5))
+							      {
+								eprintf
+								  ("* [local originator] term ");
+								termPrint
+								  (t2);
+								eprintf
+								  (" is bound using %i, %i before %i,%i\n",
+								   run2, ev2,
+								   run, ev);
+							      }
 #endif
-							      done = 1;
-							    }
-							  else
-							    {
-							      // It doesn't occur first in a READ, which shouldn't be happening
-							      if (sys->output ==
-								  PROOF)
-								{
-								  eprintf
-								    ("Term ");
-								  termPrint (t2);
-								  eprintf
-								    (" from run %i occurs in run %i, term ",
-								     run2, run);
-								  termPrint (t);
-								  eprintf
-								    (" before it is read?\n");
-								}
-							      // Thus, we create an artificial loop
-							      if (sys->runs[0].
-								  step > 1)
-								{
-								  // This forces a loop, and thus prunes
-								  graph
-								    [graph_nodes
-								     (nodes, 0, 1,
-								      0, 0)] = 1;
-								}
-							    }
-							}
-						      rd = rd->next;
-						      ev++;
-						    }
-						  done = 1;
-						}
-					      rd2 = rd2->next;
-					      ev2++;
-					    }
-					}
-				    }
-				  tl2 = tl2->next;
-				}
-			    }
-			  tl = tl->next;
-			}
-		    }
-		  run2++;
-		}
-	    }
-	  run++;
-	}
-    }
+							    done = 1;
+							  }
+							else
+							  {
+							    // It doesn't occur first in a READ, which shouldn't be happening
+							    if (sys->output ==
+								PROOF)
+							      {
+								eprintf
+								  ("Term ");
+								termPrint
+								  (t2);
+								eprintf
+								  (" from run %i occurs in run %i, term ",
+								   run2, run);
+								termPrint (t);
+								eprintf
+								  (" before it is read?\n");
+							      }
+							    // Thus, we create an artificial loop
+							    if (sys->runs[0].
+								step > 1)
+							      {
+								// This forces a loop, and thus prunes
+								graph
+								  [graph_nodes
+								   (nodes, 0,
+								    1, 0,
+								    0)] = 1;
+							      }
+							  }
+						      }
+						    rd = rd->next;
+						    ev++;
+						  }
+						done = 1;
+					      }
+					    rd2 = rd2->next;
+					    ev2++;
+					  }
+				      }
+				  }
+				tl2 = tl2->next;
+			      }
+			  }
+			tl = tl->next;
+		      }
+		  }
+		run2++;
+	      }
+	  }
+	run++;
+      }
+  }
 }
 
 
@@ -432,9 +438,6 @@ binding_print (const Binding b)
 int
 goal_add (Term term, const int run, const int ev, const int level)
 {
-  int sum;
-
-  sum = 0;
   term = deVar (term);
 #ifdef DEBUG
   if (term == NULL)
@@ -447,9 +450,8 @@ goal_add (Term term, const int run, const int ev, const int level)
 #endif
   if (realTermTuple (term))
     {
-      sum = sum + 
-	  goal_add (TermOp1 (term), run, ev, level) + 
-	  goal_add (TermOp2 (term), run, ev, level);
+      return goal_add (TermOp1 (term), run, ev, level) +
+	goal_add (TermOp2 (term), run, ev, level);
     }
   else
     {
@@ -479,24 +481,81 @@ goal_add (Term term, const int run, const int ev, const int level)
 	  b = binding_create (term, run, ev);
 	  b->level = level;
 	  sys->bindings = list_insert (sys->bindings, b);
-	  sum = sum + 1;
+#ifdef DEBUG
+	  if (DEBUGL (3))
+	    {
+	      eprintf ("Adding new binding for ");
+	      termPrint (term);
+	      eprintf (" to run %i, ev %i.\n", run, ev);
+	    }
+#endif
+	  return 1;
 	}
     }
-  return sum;
+  return 0;
+}
+
+//! Add a goal, and bind it immediately.
+// If the result is negative, no goals will have been added, as the resulting state must be pruned (cycle) */
+int
+goal_add_fixed (Term term, const int run, const int ev, const int fromrun,
+		const int fromev)
+{
+  int newgoals, n;
+  List l;
+  int res;
+
+  newgoals = goal_add (term, run, ev, 0);
+  l = sys->bindings;
+  n = newgoals;
+  res = 1;
+  while (res != 0 && n > 0 && l != NULL)
+    {
+      Binding b;
+
+      b = (Binding) l->data;
+      if (b->done)
+	{
+	  globalError++;
+	  binding_print (b);
+	  error (" problem with new fixed binding!");
+	}
+      res = goal_bind (b, fromrun, fromev);	// returns 0 if it must be pruned
+      l = l->next;
+      n--;
+    }
+  if (res != 0)
+    {
+      return newgoals;
+    }
+  else
+    {
+      goal_remove_last (newgoals);
+      return -1;
+    }
 }
 
 //! Remove a goal
 void
 goal_remove_last (int n)
 {
-  while (n > 0 && (sys->bindings != NULL))
+  while (n > 0)
     {
-      Binding b;
+      if (sys->bindings != NULL)
+	{
+	  Binding b;
 
-      b = (Binding) sys->bindings->data;
-      binding_destroy (b);
-      sys->bindings = list_delete (sys->bindings);
-      n--;
+	  b = (Binding) sys->bindings->data;
+	  binding_destroy (b);
+	  sys->bindings = list_delete (sys->bindings);
+	  n--;
+	}
+      else
+	{
+	  error
+	    ("goal_remove_last error: trying to remove %i too many bindings.",
+	     n);
+	}
     }
 }
 
@@ -522,6 +581,8 @@ goal_bind (const Binding b, const int run, const int ev)
     }
   else
     {
+      globalError++;
+      binding_print (b);
       error ("Trying to bind a bound goal again.");
     }
 }
@@ -545,7 +606,8 @@ goal_unbind (const Binding b)
 /**
  * Especially made for tuple expansion
  */
-int binding_block (Binding b)
+int
+binding_block (Binding b)
 {
   if (!b->blocked)
     {
@@ -559,7 +621,8 @@ int binding_block (Binding b)
 }
 
 //! Unblock a binding
-int binding_unblock (Binding b)
+int
+binding_unblock (Binding b)
 {
   if (b->blocked)
     {
@@ -630,12 +693,13 @@ labels_ordered (Termmap runs, Termlist labels)
 }
 
 //! Check whether the binding denotes a sensible thing such that we can use run_from and ev_from
-int valid_binding (Binding b)
+int
+valid_binding (Binding b)
 {
   if (b->done && !b->blocked)
-      return 1;
+    return 1;
   else
-      return 0;
+    return 0;
 }
 
 //! Prune invalid state w.r.t. <=C minimal requirement
@@ -656,7 +720,19 @@ bindings_c_minimal ()
       // Recompute closure; does that work?
       if (!warshall (graph, nodes))
 	{
-	  // Hmm, cycle
+	  List l;
+
+	  globalError++;
+	  l = sys->bindings;
+	  while (l != NULL)
+	    {
+	      Binding b;
+
+	      b = (Binding) l->data;
+	      binding_print (b);
+	      eprintf ("\n");
+	      l = l->next;
+	    }
 	  error ("Detected a cycle when testing for c-minimality");
 	}
     }
@@ -669,7 +745,7 @@ bindings_c_minimal ()
 
       b = (Binding) bl->data;
       // Check for a valid binding; it has to be 'done' and sensibly bound (not as in tuple expanded stuff)
-      if (valid_binding(b))
+      if (valid_binding (b))
 	{
 	  int run;
 	  int node_from;

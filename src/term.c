@@ -683,7 +683,7 @@ tupleCount (Term tt)
 //! Yield the projection Pi(n) of a term.
 /**
  *@param tt Term
- *@param n The index in the tuple.
+ *@param n The index in the tuple [0..tupleCount-1]
  *@return Returns either a pointer to a term, or NULL if the index is out of range.
  *\sa tupleCount()
  */
@@ -1085,7 +1085,7 @@ term_encryption_level (const Term term)
     if (t == NULL)
       {
 #ifdef DEBUG
-	if (DEBUGL(2))
+	if (DEBUGL (2))
 	  {
 	    eprintf ("Warning: Term encryption level finds a NULL for term ");
 	    termPrint (term);
