@@ -196,15 +196,21 @@ xmlTermlistPrint (Termlist tl)
 }
 
 //! Print a term for an element
+/**
+ * If the first parameter (the tag) is NULL then only the term is printed without a wrapper tag.
+ */
 void
 xmlOutTerm (const char *tag, const Term term)
 {
   if (term != NULL)
     {
       xmlIndentPrint ();
-      printf ("<%s>", tag);
+      if (tag != NULL)
+	printf ("<%s>", tag);
       xmlTermPrint (term);
-      printf ("</%s>\n", tag);
+      if (tag != NULL)
+	printf ("</%s>", tag);
+      printf ("\n");
     }
 }
 
@@ -239,6 +245,30 @@ roleTermPrint (const Term t)
     }
 }
 
+//! Show inverses
+void
+xmlInverses (const System sys)
+{
+  Termlist invlist;
+
+  xmlPrint ("<inversekeys>");
+  xmlindent++;
+  invlist = sys->know->inverses;
+  while (invlist != NULL && invlist->next != NULL)
+    {
+      xmlPrint ("<keypair>");
+      xmlindent++;
+      xmlOutTerm (NULL, invlist->term);
+      xmlOutTerm (NULL, invlist->next->term);
+      xmlindent--;
+      xmlPrint ("</keypair>");
+
+      invlist = invlist->next->next;
+    }
+  xmlindent--;
+  xmlPrint ("</inversekeys>");
+}
+
 //! Show initial knowledge
 void
 xmlInitialKnowledge (const System sys)
@@ -252,6 +282,7 @@ xmlInitialKnowledge (const System sys)
   termlistDelete (knowlist);
   xmlindent--;
   xmlPrint ("</initialknowledge>");
+  xmlInverses (sys);
 }
 
 //! Determine whether a protocol is involved in the current semitrace.
