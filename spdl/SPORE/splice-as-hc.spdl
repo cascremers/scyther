@@ -13,7 +13,7 @@ inversekeys (pk,sk);
 const inc,dec: Function;
 inversekeys (inc,dec);
 
-protocol spliceAS(I,R,S)
+protocol spliceASHC(I,R,S)
 {
         role I
 	{
@@ -23,7 +23,7 @@ protocol spliceAS(I,R,S)
 
 		send_1(I,S,  I, R, N1 );
 		read_2(S,I,  S, {S, I, N1, R, pk(R)}sk(S) );
-		send_3(I,R,  I, R, {I, T, L, {N2}pk(R)}sk(R) );
+		send_3(I,R,  I, R, {I, T, L, {N2}pk(R)}sk(I) );
 		read_6(R,I,  R, I, {R, {N2}inc}pk(I) );
 
 		claim_7(I, Secret, N2);
@@ -62,14 +62,18 @@ protocol spliceAS(I,R,S)
 	}
 }
 
-const Al,Bo,Eve: Agent;
+const Alice,Bob,Simon,Eve: Agent;
 
 untrusted Eve;
 const ne: Nonce;
 compromised sk(Eve);
 
-run spliceAS.I(Agent,Agent,Agent);
-run spliceAS.R(Agent,Agent,Agent);
-run spliceAS.S(Agent,Agent,Agent);
+#run spliceASHC.I(Alice,Bob,Simon);
+#run spliceASHC.R(Alice,Bob,Simon);
+#run spliceASHC.S(Alice,Bob,Simon);
+
+run spliceASHC.I(Agent,Agent,Agent);
+run spliceASHC.R(Agent,Agent,Agent);
+run spliceASHC.S(Agent,Agent,Agent);
 
 

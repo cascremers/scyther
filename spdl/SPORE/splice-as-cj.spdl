@@ -1,7 +1,7 @@
-# SPLICE/AS
+# Clark and Jacob modified Hwang and Chen modified SPLICE/AS
 #
 # Modelled after the description in the SPORE library
-# http://www.lsv.ens-cachan.fr/spore/spliceas.html
+# http://www.lsv.ens-cachan.fr/spore/spliceas3.html
 #
 # Note:
 # The assumptions made here do not comply with those in SPORE 
@@ -18,7 +18,7 @@ inversekeys (pk,sk);
 const inc,dec: Function;
 inversekeys (inc,dec);
 
-protocol spliceAS(I,R,S)
+protocol spliceASCJ(I,R,S)
 {
         role I
 	{
@@ -27,9 +27,9 @@ protocol spliceAS(I,R,S)
 		const L: LifeTime;
 
 		send_1(I,S,  I, R, N1 );
-		read_2(S,I,  S, {S, I, N1, pk(R)}sk(S) );
-		send_3(I,R,  I, R, {I, T, L, {N2}pk(R)}sk(I) );
-		read_6(R,I,  R, I, {R, {N2}inc}pk(I) );
+		read_2(S,I,  S, {S, I, N1, R, pk(R)}sk(S) );
+		send_3(I,R,  I, R, {T, L, {I, N2}pk(R)}sk(I) );
+		read_6(R,I,  R, I, {{N2}inc}pk(I) );
 
 		claim_7(I, Secret, N2);
 		claim_9(I, Niagree);
@@ -41,7 +41,7 @@ protocol spliceAS(I,R,S)
 		var N1,N3: Nonce;
 
 		read_1(I,S,  I, R, N1 );
-		send_2(S,I,  S, {S, I, N1, pk(R)}sk(S) );
+		send_2(S,I,  S, {S, I, N1, R, pk(R)}sk(S) );
 		read_4(R,S, R, I, N3 );
 		send_5(S,R,  S, {S, R, N3, pk(I)}sk(S) );
 	}
@@ -56,10 +56,10 @@ protocol spliceAS(I,R,S)
 		var ni: Nonce;
 		const nr: Nonce;
 
-		read_3(I,R, I, R, {I, T, L, {N2}pk(R)}sk(I) );
+		read_3(I,R, I, R, {T, L, {I, N2}pk(R)}sk(I) );
 		send_4(R,S, R, I, N3 );
 		read_5(S,R, S, {S, R, N3, pk(I)}sk(S) );
-		send_6(R,I, R, I, {R, {N2}inc}pk(I) );
+		send_6(R,I, R, I, {{N2}inc}pk(I) );
 
 		claim_8(R, Secret, N2);
 		claim_11(R, Niagree);
@@ -73,11 +73,11 @@ untrusted Eve;
 const ne: Nonce;
 compromised sk(Eve);
 
-run spliceAS.I(Agent,Agent,Agent);
-run spliceAS.R(Agent,Agent,Agent);
-run spliceAS.S(Agent,Agent,Agent);
+run spliceASCJI(Agent,Agent,Agent);
+run spliceASCJR(Agent,Agent,Agent);
+run spliceASCJS(Agent,Agent,Agent);
 
-#run spliceAS.I(Alice,Bob,Simon);
-#run spliceAS.R(Alice,Bob,Simon);
-#run spliceAS.S(Alice,Bob,Simon);
+#run spliceASCJ.I(Alice,Bob,Simon);
+#run spliceASCJ.R(Alice,Bob,Simon);
+#run spliceASCJ.S(Alice,Bob,Simon);
 
