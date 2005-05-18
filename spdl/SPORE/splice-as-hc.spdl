@@ -1,0 +1,75 @@
+# Hwang and Chen Modified SPLICE/AS
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/spliceas2.html
+#
+
+
+usertype TimeStamp, LifeTime;
+
+const pk: Function;
+secret sk: Function;
+inversekeys (pk,sk);
+const inc,dec: Function;
+inversekeys (inc,dec);
+
+protocol spliceAS(I,R,S)
+{
+        role I
+	{
+		const N1,N2: Nonce;
+		const T: TimeStamp;
+		const L: LifeTime;
+
+		send_1(I,S,  I, R, N1 );
+		read_2(S,I,  S, {S, I, N1, R, pk(R)}sk(S) );
+		send_3(I,R,  I, R, {I, T, L, {N2}pk(R)}sk(R) );
+		read_6(R,I,  R, I, {R, {N2}inc}pk(I) );
+
+		claim_7(I, Secret, N2);
+		claim_9(I, Niagree);
+		claim_10(I, Nisynch);
+	}
+
+	role S
+	{
+		var N1,N3: Nonce;
+
+		read_1(I,S,  I, R, N1 );
+		send_2(S,I,  S, {S, I, N1, R, pk(R)}sk(S) );
+		read_4(R,S, R, I, N3 );
+		send_5(S,R,  S, {S, R, N3, I, pk(I)}sk(S) );
+	}
+
+	role R
+	{
+		const N3: Nonce;
+		var N2: Nonce;
+		var T: TimeStamp;
+		var L: LifeTime;
+
+		var ni: Nonce;
+		const nr: Nonce;
+
+		read_3(I,R, I, R, {I, T, L, {N2}pk(R)}sk(I) );
+		send_4(R,S, R, I, N3 );
+		read_5(S,R, S, {S, R, N3, I, pk(I)}sk(S) );
+		send_6(R,I, R, I, {R, {N2}inc}pk(I) );
+
+		claim_8(R, Secret, N2);
+		claim_11(R, Niagree);
+		claim_12(R, Nisynch);
+	}
+}
+
+const Al,Bo,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+
+run spliceAS.I(Agent,Agent,Agent);
+run spliceAS.R(Agent,Agent,Agent);
+run spliceAS.S(Agent,Agent,Agent);
+
+
