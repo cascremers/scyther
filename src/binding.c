@@ -12,6 +12,7 @@
 #include "debug.h"
 #include "term.h"
 #include "termmap.h"
+#include "arachne.h"
 #include <malloc.h>
 
 static System sys;
@@ -771,6 +772,20 @@ bindings_c_minimal ()
 		      if (termInTerm (rd->message, b->term))
 			{
 			  // This term already occurs as interm in a previous node!
+#ifdef DEBUG
+			  if (DEBUGL (4))
+			    {
+			      // Report this
+			      indentPrint ();
+			      eprintf ("Binding for ");
+			      termPrint (b->term);
+			      eprintf
+				(" at r%i i%i is not c-minimal because it occurred before at r%i i%i in ",
+				 b->run_from, b->ev_from, run, ev);
+			      termPrint (rd->message);
+			      eprintf ("\n");
+			    }
+#endif
 			  return 0;
 			}
 		    }

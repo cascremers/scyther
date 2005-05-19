@@ -52,6 +52,8 @@ Role I_RRS;
 Role I_RRSD;
 
 static int indentDepth;
+static int prevIndentDepth;
+static int indentDepthChanges;
 static int proofDepth;
 static int max_encryption_level;
 static int num_regular_runs;
@@ -136,6 +138,10 @@ arachneInit (const System mysys)
   num_intruder_runs = 0;
   max_encryption_level = 0;
 
+  indentDepth = 0;
+  prevIndentDepth = 0;
+  indentDepthChanges = 0;
+
   return;
 }
 
@@ -159,22 +165,23 @@ arachneDone ()
 #define isBound(rd)	(rd->bound)
 #define length		step
 
-//! Indent print
+//! Indent prefix print
 void
-indentPrint ()
+indentPrefixPrint (const int annotate, const int jumps)
 {
   if (sys->output == ATTACK && globalError == 0)
     {
       // Arachne, attack, not an error
       // We assume that means DOT output
-      eprintf ("// ");
+      eprintf ("// %i\t", annotate);
     }
   else
     {
       // If it is not to stdout, or it is not an attack...
       int i;
 
-      for (i = 0; i < indentDepth; i++)
+      eprintf ("%i\t", annotate);
+      for (i = 0; i < jumps; i++)
 	{
 	  if (i % 3 == 0)
 	    eprintf ("|");
@@ -183,6 +190,35 @@ indentPrint ()
 	  eprintf (" ");
 	}
     }
+}
+
+//! Indent print
+/**
+ * More subtle than before. Indentlevel changes now cause a counter to be increased, which is printed. Nice to find stuff in attacks.
+ */
+void
+indentPrint ()
+{
+  if (indentDepth != prevIndentDepth)
+    {
+      indentDepthChanges++;
+      while (indentDepth != prevIndentDepth)
+	{
+	  if (prevIndentDepth < indentDepth)
+	    {
+	      indentPrefixPrint (indentDepthChanges, prevIndentDepth);
+	      eprintf ("{\n");
+	      prevIndentDepth++;
+	    }
+	  else
+	    {
+	      prevIndentDepth--;
+	      indentPrefixPrint (indentDepthChanges, prevIndentDepth);
+	      eprintf ("}\n");
+	    }
+	}
+    }
+  indentPrefixPrint (indentDepthChanges, indentDepth);
 }
 
 //! Print indented binding
@@ -733,6 +769,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
     newruns = 0;		// New runs introduced
     smalltermbinding = b;	// Start off with destination binding
 
+    indentDepth++;
 #ifdef DEBUG
     if (DEBUGL (4))
       {
@@ -751,7 +788,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
       {
 	indentPrint ();
 	eprintf
-	  ("This introduces the obligation to decrypted the following encrypted subterms: ");
+	  ("This introduces the obligation to decrypt the following encrypted subterms: ");
 	termlistPrint (cryptlist);
 	eprintf ("\n");
       }
@@ -866,6 +903,8 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	newruns--;
       }
     goal_unbind (b);
+
+    indentDepth--;
     return flag;
   }
 
@@ -2399,12 +2438,12 @@ bind_goal_regular_run (const Binding b)
 	    eprintf (", at %i\n", index);
 	  }
 	indentDepth++;
+
 	// Bind to existing run
 	sflag = bind_existing_run (b, p, r, index);
 	// bind to new run
-	{
-	  sflag = sflag && bind_new_run (b, p, r, index);
-	}
+	sflag = sflag && bind_new_run (b, p, r, index);
+
 	indentDepth--;
 	return sflag;
       }
@@ -2627,20 +2666,51 @@ prune_theorems ()
 	    {
 	      error ("Agent of run %i is NULL", run);
 	    }
-	  if (!realTermLeaf (agent)
-	      || agent->stype == NULL
-	      || (agent->stype != NULL
-		  && !inTermlist (agent->stype, TERM_Agent)))
-	    {
-	      if (sys->output == PROOF)
-		{
-		  indentPrint ();
-		  eprintf ("Pruned because the agent ");
-		  termPrint (agent);
-		  eprintf (" of run %i is not of a compatible type.\n", run);
-		}
-	      return 1;
-	    }
+	  /**
+	   * Check whether the agent of the run is of a sensible type.
+	   *
+	   * @TODO Note that this still needs a lemma.
+	   */
+	  {
+	    int sensibleagent;
+
+	    sensibleagent = true;
+
+	    if (!realTermLeaf (agent))
+	      {			// not a leaf
+		sensibleagent = false;
+	      }
+	    else
+	      {			// real leaf
+		if (sys->match == 0 || !isTermVariable (agent))
+		  {		// either strict matching, or not a variable, so we should check matching types
+		    if (agent->stype == NULL)
+		      {		// Too generic
+			sensibleagent = false;
+		      }
+		    else
+		      {		// Has a type
+			if (!inTermlist (agent->stype, TERM_Agent))
+			  {	// but not the right type
+			    sensibleagent = false;
+			  }
+		      }
+		  }
+	      }
+
+	    if (!sensibleagent)
+	      {
+		if (sys->output == PROOF)
+		  {
+		    indentPrint ();
+		    eprintf ("Pruned because the agent ");
+		    termPrint (agent);
+		    eprintf (" of run %i is not of a compatible type.\n",
+			     run);
+		  }
+		return 1;
+	      }
+	  }
 	  agl = agl->next;
 	}
       run++;
@@ -3274,7 +3344,15 @@ arachne ()
 	    {
 	      semiRunDestroy ();
 	    }
+
+	  //! Indent back
 	  indentDepth--;
+
+	  if (sys->output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("Proof complete for this claim.\n");
+	    }
 	}
       // next
       cl = cl->next;
