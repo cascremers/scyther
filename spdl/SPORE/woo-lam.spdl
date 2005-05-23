@@ -1,0 +1,79 @@
+# Woo and Lam Mutual Authentication
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/wooLamMutual.html
+#
+# Note:
+# This protocol uses a ticket so scyther will only be able to verify
+# the protocol using the ARACHNE engine (-a) and type 2 matching (-m2)
+#
+
+
+usertype Key;
+usertype Ticket;
+
+secret k: Function;
+
+protocol woolam(I,R,S)
+{
+	role I
+	{
+        const N1: Nonce;
+        var Kir: Key;
+		var N2: Nonce;
+
+		send_1(I,R, I, N1); 
+        read_2(R,I, R, N2);
+        send_3(I,R, {I, R, N1, N2}k(I,S));
+        read_6(R,I, {R, N1, N2, Kir}k(I,S), {N1,N2}Kir);
+        send_7(I,R, {N2}Kir);
+        
+
+		claim_I1(I,Secret,Kir);
+        claim_I2(I,Nisynch);
+	}	
+	
+	role R
+	{
+        const N2: Nonce;
+        var N1: Nonce;
+        var Kir: Key;
+        var T1,T2: Ticket;
+
+        read_1(I,R, I, N1);
+        send_2(R,I, R, N2);
+        read_3(I,R, T1);
+        send_4(R,S, T1, {I, R, N1, N2}k(R,S));
+        read_5(S,R, T2, {I, N1, N2, Kir}k(R,S));
+        send_6(R,I, T2, {N1,N2}Kir);
+        read_7(I,R, {N2}Kir);
+        
+		claim_R1(R,Secret,Kir);
+        claim_R2(R,Nisynch);
+	}
+
+	role S
+	{
+		const Kir: Key;
+        var N1,N2: Nonce;
+
+        read_4(R,S, {I, R, N1, N2}k(I,S), {I, R, N1, N2}k(R,S));
+        send_5(S,R, {R, N1, N2, Kir}k(I,S), {I, N1, N2, Kir}k(R,S));
+	}
+}
+
+const Alice,Bob,Eve,Simon: Agent;
+const Ke: Key;
+const Te: Ticket;
+const Ne: Nonce;
+
+
+untrusted Eve;
+compromised k(Eve,Simon);
+
+run woolam.I (Agent,Agent,Simon);
+run woolam.R (Agent,Agent,Simon);
+run woolam.S (Agent,Agent,Simon);
+
+
+
