@@ -2,7 +2,9 @@
  * Generalized Needham-Schroeder-Lowe protocol.
  * Four-party version.
  *
- * Vulnerable to a typeflaw attack but otherwise okay.
+ * Specific order of interleaving in message 1-4 is required to (a)
+ * avoid type flaws whilst (b) retaining NSL structure for the simple
+ * case.
  *
  * Mon May 23 11:49:29 CEST 2005
  */
@@ -18,7 +20,7 @@ protocol nslgen4(R1,R2,R3,R4)
 		const n1: Nonce;
 		var n2,n3,n4: Nonce;
 
-		send_1(R1,R2, {R1,R3,R4,n1}pk(R2) );
+		send_1(R1,R2, {n1,R1,R3,R4}pk(R2) );
 		read_4(R4,R1, {n1,n2,n3,n4,R2,R3,R4}pk(R1) );
 		send_5(R1,R2, {n2,n3,n4}pk(R2) );
 
@@ -36,8 +38,8 @@ protocol nslgen4(R1,R2,R3,R4)
 		const n2: Nonce;
 		var n1,n3,n4: Nonce;
 
-		read_1(R1,R2, {R1,R3,R4,n1}pk(R2) );
-		send_2(R2,R3, {n1,n2,R1,R2,R4}pk(R3) );
+		read_1(R1,R2, {n1,R1,R3,R4}pk(R2) );
+		send_2(R2,R3, {n1,R1,n2,R2,R4}pk(R3) );
 		read_5(R1,R2, {n2,n3,n4}pk(R2) );
 		send_6(R2,R3, {n3,n4}pk(R3) );
 
@@ -55,8 +57,8 @@ protocol nslgen4(R1,R2,R3,R4)
 		const n3: Nonce;
 		var n1,n2,n4: Nonce;
 
-		read_2(R2,R3, {n1,n2,R1,R2,R4}pk(R3) );
-		send_3(R3,R4, {n1,n2,n3,R1,R2,R3}pk(R4) );
+		read_2(R2,R3, {n1,R1,n2,R2,R4}pk(R3) );
+		send_3(R3,R4, {n1,R1,n2,R2,n3,R3}pk(R4) );
 		read_6(R2,R3, {n3,n4}pk(R3) );
 		send_7(R3,R4, {n4}pk(R4) );
 
@@ -74,7 +76,7 @@ protocol nslgen4(R1,R2,R3,R4)
 		const n4: Nonce;
 		var n1,n2,n3: Nonce;
 
-		read_3(R3,R4, {n1,n2,n3,R1,R2,R3}pk(R4) );
+		read_3(R3,R4, {n1,R1,n2,R2,n3,R3}pk(R4) );
 		send_4(R4,R1, {n1,n2,n3,n4,R2,R3,R4}pk(R1) );
 		read_7(R3,R4, {n4}pk(R4) );
 
