@@ -1,17 +1,19 @@
 /*
- * Generalized Needham-Schroeder-Lowe protocol.
+ * Generalized Bilateral Key Exchange protocol.
  * Four-party version.
  *
  * Vulnerable to a typeflaw attack but otherwise okay.
  *
- * Mon May 23 11:49:29 CEST 2005
+ * Cas Cremers
+ * Mon May 23 15:15:37 CEST 2005
  */
 
+const zero;
 const pk: Function;
 secret sk: Function;
 inversekeys (pk,sk);
 
-protocol nslgen4(R1,R2,R3,R4)
+protocol bkegen4(R1,R2,R3,R4)
 {
 	role R1
 	{
@@ -20,7 +22,7 @@ protocol nslgen4(R1,R2,R3,R4)
 
 		send_1(R1,R2, {R1,R3,R4,n1}pk(R2) );
 		read_4(R4,R1, {n1,n2,n3,n4,R2,R3,R4}pk(R1) );
-		send_5(R1,R2, {n2,n3,n4}pk(R2) );
+		send_5(R1,R2, {n2,n3}n4 );
 
 		claim_r1a(R1,Secret,n1);
 		claim_r1b(R1,Secret,n2);
@@ -38,8 +40,8 @@ protocol nslgen4(R1,R2,R3,R4)
 
 		read_1(R1,R2, {R1,R3,R4,n1}pk(R2) );
 		send_2(R2,R3, {n1,n2,R1,R2,R4}pk(R3) );
-		read_5(R1,R2, {n2,n3,n4}pk(R2) );
-		send_6(R2,R3, {n3,n4}pk(R3) );
+		read_5(R1,R2, {n2,n3}n4 );
+		send_6(R2,R3, {n3}n4 );
 
 		claim_r2a(R2,Secret,n1);
 		claim_r2b(R2,Secret,n2);
@@ -57,8 +59,8 @@ protocol nslgen4(R1,R2,R3,R4)
 
 		read_2(R2,R3, {n1,n2,R1,R2,R4}pk(R3) );
 		send_3(R3,R4, {n1,n2,n3,R1,R2,R3}pk(R4) );
-		read_6(R2,R3, {n3,n4}pk(R3) );
-		send_7(R3,R4, {n4}pk(R4) );
+		read_6(R2,R3, {n3}n4 );
+		send_7(R3,R4, {zero}n4 );
 
 		claim_r3a(R3,Secret,n1);
 		claim_r3b(R3,Secret,n2);
@@ -76,7 +78,7 @@ protocol nslgen4(R1,R2,R3,R4)
 
 		read_3(R3,R4, {n1,n2,n3,R1,R2,R3}pk(R4) );
 		send_4(R4,R1, {n1,n2,n3,n4,R2,R3,R4}pk(R1) );
-		read_7(R3,R4, {n4}pk(R4) );
+		read_7(R3,R4, {zero}n4 );
 
 		claim_r4a(R4,Secret,n1);
 		claim_r4b(R4,Secret,n2);
@@ -94,7 +96,7 @@ untrusted Eve;
 const ne: Nonce;
 compromised sk(Eve);
 
-run nslgen4.R1(Agent,Agent,Agent,Agent);
-run nslgen4.R2(Agent,Agent,Agent,Agent);
-run nslgen4.R3(Agent,Agent,Agent,Agent);
-run nslgen4.R4(Agent,Agent,Agent,Agent);
+run bkegen4.R1(Agent,Agent,Agent,Agent);
+run bkegen4.R2(Agent,Agent,Agent,Agent);
+run bkegen4.R3(Agent,Agent,Agent,Agent);
+run bkegen4.R4(Agent,Agent,Agent,Agent);
