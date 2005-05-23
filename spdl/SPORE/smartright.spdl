@@ -25,9 +25,9 @@ const Vor: XorKey;
 
 protocol smartright(I,R)
 {
-	role I
-	{
-		const VoKey: SessionKey;
+    role I
+    {
+        const VoKey: SessionKey;
         const VoR: XorKey;
         const CW;
         var VoRi: Nonce;
@@ -35,10 +35,10 @@ protocol smartright(I,R)
         send_1(I,R, {VoKey,{CW}VoR}k(I,R));
         read_2(R,I, VoRi);
         send_3(I,R, VoR, {{VoRi}hash}VoKey);
-	}	
-	
-	role R
-	{
+    }    
+    
+    role R
+    {
         var T: Ticket;
         var VoR: XorKey;
         var VoKey: SessionKey;
@@ -48,8 +48,8 @@ protocol smartright(I,R)
         send_2(R,I, VoRi);
         read_3(I,R, VoR,{{VoRi}hash}VoKey);
 
-		claim_R1(R,Nisynch);
-	}
+        claim_R1(R,Nisynch);
+    }
 }
 
 const Alice,Bob,Eve: Agent;

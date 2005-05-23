@@ -16,24 +16,24 @@ usertype Timestamp;
 
 protocol ccitt5091(I,R)
 {
-	role I
-	{
-		const Ta: Timestamp;
+    role I
+    {
+        const Ta: Timestamp;
         const Na,Xa,Ya: Nonce;
-		send_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
+        send_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
         # claim_2(I,Nisynch);
         # This claim is useless as there are no preceding read events
-	}	
-	
-	role R
-	{
-		var Ta: Timestamp;
+    }    
+    
+    role R
+    {
+        var Ta: Timestamp;
         var Na,Xa,Ya: Nonce;
 
-		read_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
-		claim_3(R,Nisynch);
+        read_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
+        claim_3(R,Nisynch);
         # There should also be Fresh Xa and Fresh Ya claims here
-	}
+    }
 }
 
 const Alice,Bob,Eve: Agent;

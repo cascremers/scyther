@@ -11,37 +11,37 @@ secret k: Function;
 
 protocol wmf(I,R,S)
 {
-	role I
-	{
-		const Kir: Key;
+    role I
+    {
+        const Kir: Key;
         const Ti: TimeStamp;
-		var Kr: Key;
+        var Kr: Key;
 
-		send_1(I,S, I, {Ti, R, Kir}k(I,S)); 
+        send_1(I,S, I, {Ti, R, Kir}k(I,S)); 
 
-		claim_I1(I,Secret,Kir);
-	}	
-	
-	role R
-	{
+        claim_I1(I,Secret,Kir);
+    }    
+    
+    role R
+    {
         var Ts: TimeStamp;
         var Kir: Key;
 
-		read_2(S,R, {Ts, I, Kir}k(R,S) );
+        read_2(S,R, {Ts, I, Kir}k(R,S) );
 
-		claim_R1(R,Secret,Kir);
+        claim_R1(R,Secret,Kir);
         claim_R2(R,Nisynch);
-	}
+    }
 
-	role S
-	{
-		var Kir: Key;
+    role S
+    {
+        var Kir: Key;
         const Ts: TimeStamp;
         var Ti: TimeStamp;
 
-		read_1(I,S, I,{Ti, R, Kir}k(I,S) );
+        read_1(I,S, I,{Ti, R, Kir}k(I,S) );
         send_2(S,R, {Ts, I, Kir}k(R,S));
-	}
+    }
 }
 
 const Alice,Bob,Eve,Simon: Agent;

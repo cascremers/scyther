@@ -12,37 +12,37 @@ inversekeys(pk,sk);
 
 protocol tmn(I,R,S)
 {
-	role I
-	{
-		const Ki: Key;
-		var Kr: Key;
+    role I
+    {
+        const Ki: Key;
+        var Kr: Key;
 
-		send_1(I,S, R,{Ki}pk(S) );
-		read_4(S,I, R,{Kr}Ki );
+        send_1(I,S, R,{Ki}pk(S) );
+        read_4(S,I, R,{Kr}Ki );
 
-		claim_I1(I,Secret,Ki);
-		claim_I2(I,Secret,Kr);
-	}	
-	
-	role R
-	{
-		const Kr: Key;
+        claim_I1(I,Secret,Ki);
+        claim_I2(I,Secret,Kr);
+    }    
+    
+    role R
+    {
+        const Kr: Key;
 
-		read_2(S,R, I );
-		send_3(R,S, I, { Kr }pk(S) );
+        read_2(S,R, I );
+        send_3(R,S, I, { Kr }pk(S) );
 
-		claim_R1(R,Secret,Kr);
-	}
+        claim_R1(R,Secret,Kr);
+    }
 
-	role S
-	{
-		var Ki,Kr: Key;
+    role S
+    {
+        var Ki,Kr: Key;
 
-		read_1(I,S, R,{Ki}pk(S) );
-		send_2(S,R, I );
-		read_3(R,S, I, { Kr }pk(S) );
-		send_4(S,I, R,{Kr}Ki );
-	}
+        read_1(I,S, R,{Ki}pk(S) );
+        send_2(S,R, I );
+        read_3(R,S, I, { Kr }pk(S) );
+        send_4(S,I, R,{Kr}Ki );
+    }
 }
 
 const Alice,Bob,Eve,Simon: Agent;

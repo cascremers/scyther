@@ -14,18 +14,18 @@ secret k: Function;
 
 protocol woolamPif(I,R,S)
 {
-	role I
-	{
-		var Nr: Nonce;
+    role I
+    {
+        var Nr: Nonce;
 
-		send_1(I,R, I); 
+        send_1(I,R, I); 
         read_2(R,I, Nr);
         send_3(I,R, {I,R,Nr}k(I,S));
 
-	}	
-	
-	role R
-	{
+    }    
+    
+    role R
+    {
         const Nr: Nonce;
         var T: Ticket;
 
@@ -36,15 +36,15 @@ protocol woolamPif(I,R,S)
         read_5(S,R, {I, R, Nr}k(R,S));
         
         claim_R1(R,Nisynch);
-	}
+    }
 
-	role S
-	{
+    role S
+    {
         var Nr: Nonce;
         
         read_4(R,S, {I, R, Nr,{I,R,Nr}k(I,S)}k(R,S));
         send_5(S,R, {I, R, Nr}k(R,S));
-	}
+    }
 }
 
 const Alice,Bob,Eve,Simon: Agent;

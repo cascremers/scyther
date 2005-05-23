@@ -15,44 +15,44 @@ usertype Ticket, Key;
 
 protocol yahalom(I,R,S)
 {
-	role I
-	{
-		const Ni: Nonce;
-		var Nr: Nonce;
-		var T: Ticket;
-		var Kir: Key;
+    role I
+    {
+        const Ni: Nonce;
+        var Nr: Nonce;
+        var T: Ticket;
+        var Kir: Key;
 
-		send_1(I,R, I,Ni);
-		read_3(S,I, {R,Kir,Ni,Nr}k(I,S), T );
-		send_4(I,R, T, {Nr}Kir );
+        send_1(I,R, I,Ni);
+        read_3(S,I, {R,Kir,Ni,Nr}k(I,S), T );
+        send_4(I,R, T, {Nr}Kir );
 
-		claim_I1(I, Secret,Kir);
-		claim_I2(I, Nisynch);
-	}
+        claim_I1(I, Secret,Kir);
+        claim_I2(I, Nisynch);
+    }
 
-	role R
-	{
-		const Nr: Nonce;
-		var Ni: Nonce;
-		var T: Ticket;
-		var Kir: Key;
+    role R
+    {
+        const Nr: Nonce;
+        var Ni: Nonce;
+        var T: Ticket;
+        var Kir: Key;
 
-		read_1(I,R, I,Ni);
-		send_2(R,S, R, {I,Ni,Nr}k(R,S) );
-		read_4(I,R, {I,Kir}k(R,S) , {Nr}Kir );
+        read_1(I,R, I,Ni);
+        send_2(R,S, R, {I,Ni,Nr}k(R,S) );
+        read_4(I,R, {I,Kir}k(R,S) , {Nr}Kir );
 
-		claim_R1(R, Secret,Kir);
+        claim_R1(R, Secret,Kir);
         claim_R2(R, Nisynch);
-	}
+    }
 
-	role S
-	{
-		const Kir: Key;
-		var Ni,Nr: Nonce;
+    role S
+    {
+        const Kir: Key;
+        var Ni,Nr: Nonce;
 
-		read_2(R,S, R, {I,Ni,Nr}k(R,S) );
-		send_3(S,I, {R,Kir,Ni,Nr}k(I,S), {I,Kir}k(R,S) );
-	}
+        read_2(R,S, R, {I,Ni,Nr}k(R,S) );
+        send_3(S,I, {R,Kir,Ni,Nr}k(I,S), {I,Kir}k(R,S) );
+    }
 }
 
 const Alice,Bob,Simon : Agent;

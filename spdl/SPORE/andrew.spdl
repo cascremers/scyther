@@ -15,33 +15,33 @@ const succ: Function;
 
 protocol andrew(I,R)
 {
-	role I
-	{
-		const ni: Nonce;
-		var nr,nr2: Nonce;
-		var kir: SessionKey;
+    role I
+    {
+        const ni: Nonce;
+        var nr,nr2: Nonce;
+        var kir: SessionKey;
 
-		send_1(I,R, I,{ni}k(I,R) );
-		read_2(R,I, {succ(ni),nr}k(I,R) );
-		send_3(I,R, {succ(nr)}k(I,R) );
-		read_4(R,I, {kir,nr2}k(I,R) );
-		claim_5(I,Secret,kir);
-		claim_6(I,Nisynch);
-	}	
-	
-	role R
-	{
-		var ni: Nonce;
-		const nr,nr2: Nonce;
-		const kir: SessionKey;
+        send_1(I,R, I,{ni}k(I,R) );
+        read_2(R,I, {succ(ni),nr}k(I,R) );
+        send_3(I,R, {succ(nr)}k(I,R) );
+        read_4(R,I, {kir,nr2}k(I,R) );
+        claim_5(I,Secret,kir);
+        claim_6(I,Nisynch);
+    }    
+    
+    role R
+    {
+        var ni: Nonce;
+        const nr,nr2: Nonce;
+        const kir: SessionKey;
 
-		read_1(I,R, I,{ni}k(I,R) );
-		send_2(R,I, {succ(ni),nr}k(I,R) );
-		read_3(I,R, {succ(nr)}k(I,R) );
-		send_4(R,I, {kir,nr2}k(I,R) );
-		claim_7(R,Secret,kir);
-		claim_8(R,Nisynch);
-	}
+        read_1(I,R, I,{ni}k(I,R) );
+        send_2(R,I, {succ(ni),nr}k(I,R) );
+        read_3(I,R, {succ(nr)}k(I,R) );
+        send_4(R,I, {kir,nr2}k(I,R) );
+        claim_7(R,Secret,kir);
+        claim_8(R,Nisynch);
+    }
 }
 
 const Alice,Bob,Eve: Agent;

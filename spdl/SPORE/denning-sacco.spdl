@@ -16,36 +16,36 @@ secret k: Function;
 
 protocol denningSacco(I,R,S)
 {
-	role I
-	{
+    role I
+    {
         var W: Ticket;
-		var Kir: SessionKey;
-        var T: TimeStamp;
-
-		send_1(I,S, I,R );
-		read_2(S,I, {R, Kir, T, W}k(I,S) );
-		send_3(I,R, W);
-		claim_4(I,Nisynch);
-	}	
-	
-	role R
-	{
         var Kir: SessionKey;
         var T: TimeStamp;
 
-		read_3(I,R, {Kir,I,T}k(R,S));
-		claim_8(R,Nisynch);
-	}
-	
+        send_1(I,S, I,R );
+        read_2(S,I, {R, Kir, T, W}k(I,S) );
+        send_3(I,R, W);
+        claim_4(I,Nisynch);
+    }    
+    
+    role R
+    {
+        var Kir: SessionKey;
+        var T: TimeStamp;
+
+        read_3(I,R, {Kir,I,T}k(R,S));
+        claim_8(R,Nisynch);
+    }
+    
     role S
-	{
+    {
         var W: Ticket;
-		const Kir: SessionKey;
+        const Kir: SessionKey;
         const T: TimeStamp;
 
-		read_1(I,S, I,R );
-		send_2(S,I, {R, Kir, T, {Kir, I,T}k(R,S)}k(I,S));
-	}	
+        read_1(I,S, I,R );
+        send_2(S,I, {R, Kir, T, {Kir, I,T}k(R,S)}k(I,S));
+    }    
 }
 
 const Alice,Bob,Simon,Eve: Agent;

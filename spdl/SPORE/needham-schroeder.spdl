@@ -16,22 +16,22 @@ inversekeys(pk,sk);
 
 protocol needhamschroederpk(I,R,S)
 {
-	role I
-	{
+    role I
+    {
         const Ni: Nonce;
         var Nr: Nonce;
 
-		send_1(I,S,(I,R));
+        send_1(I,S,(I,R));
         read_2(S,I, {pk(R), R}sk(S));
         send_3(I,R,{Ni,I}pk(R));
         read_6(R,I, {Ni, Nr}pk(I));
         send_7(I,R, {Nr}pk(R));
         claim_I1(I,Secret,Ni);
         claim_I2(I,Secret,Nr);
-	}	
-	
-	role R
-	{
+    }    
+    
+    role R
+    {
         const Nr: Nonce;
         var Ni: Nonce;
         
@@ -42,7 +42,7 @@ protocol needhamschroederpk(I,R,S)
         read_7(I,R,{Nr}pk(R));
         claim_R1(R,Secret,Nr);
         claim_R2(R,Secret,Ni);
-	}
+    }
 
     role S
     {

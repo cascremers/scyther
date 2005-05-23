@@ -22,55 +22,55 @@ compromised k(e,s);
 
 protocol neustub(I,R,S)
 {
-	role I
-	{
-		const Ni,Mi: Nonce;
-		var Nr,Mr: Nonce;
-		var T: Ticket;
+    role I
+    {
+        const Ni,Mi: Nonce;
+        var Nr,Mr: Nonce;
+        var T: Ticket;
         var Tb: TimeStamp;
-		var Kir: SessionKey;
-		
-		send_1(I,R, I, Ni);
-		read_3(S,I, { R,Ni,Kir,Tb}k(I,S), T, Nr);
+        var Kir: SessionKey;
+        
+        send_1(I,R, I, Ni);
+        read_3(S,I, { R,Ni,Kir,Tb}k(I,S), T, Nr);
         send_4(I,R,T,{Nr}Kir);
         send_5(I,R,Mi,T);
-		read_6(R,I,Mr,{Mi}Kir);
-		send_7(I,R,{Mr}Kir);
-		
-		claim_I1(I,Secret, Kir);
-		claim_I2(I,Niagree);
-		claim_I3(I,Nisynch);
-	}
+        read_6(R,I,Mr,{Mi}Kir);
+        send_7(I,R,{Mr}Kir);
+        
+        claim_I1(I,Secret, Kir);
+        claim_I2(I,Niagree);
+        claim_I3(I,Nisynch);
+    }
 
-	role R
-	{
-		var Ni,Mi: Nonce;
-		const Nr,Mr: Nonce;
-		var Kir: SessionKey;
-		const Tb: TimeStamp;
-		var T: Ticket;
-		
+    role R
+    {
+        var Ni,Mi: Nonce;
+        const Nr,Mr: Nonce;
+        var Kir: SessionKey;
+        const Tb: TimeStamp;
+        var T: Ticket;
+        
         read_1(I,R, I, Ni);
         send_2(R,S, R, {I, Ni, Tb}k(R,S),Nr);
         read_4(I,R,{I,Kir,Tb}k(R,S),{Nr}Kir);
         read_5(I,R,Mi,T);
-		send_6(R,I,Mr,{Mi}Kir);
-		read_7(I,R,{Mr}Kir);
-	
-		claim_R1(R,Secret, Kir);
-		claim_R2(R,Niagree);
-		claim_R3(R,Nisynch);
-	}
+        send_6(R,I,Mr,{Mi}Kir);
+        read_7(I,R,{Mr}Kir);
+    
+        claim_R1(R,Secret, Kir);
+        claim_R2(R,Niagree);
+        claim_R3(R,Nisynch);
+    }
 
-	role S
-	{
-		var Ni, Nr: Nonce;
-		const Kir: SessionKey;
+    role S
+    {
+        var Ni, Nr: Nonce;
+        const Kir: SessionKey;
         var Tb: TimeStamp;
 
-		read_2(R,S, R, {I,Ni,Tb}k(R,S), Nr);
-		send_3(S,I, { R, Ni, Kir, Tb}k(I,S), { I,Kir,Tb}k(R,S),Nr );
-	}
+        read_2(R,S, R, {I,Ni,Tb}k(R,S), Nr);
+        send_3(S,I, { R, Ni, Kir, Tb}k(I,S), { I,Kir,Tb}k(R,S),Nr );
+    }
 }
 
 run neustub.A(a,b,s);

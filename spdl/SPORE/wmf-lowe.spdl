@@ -18,44 +18,44 @@ secret k: Function;
 
 protocol wmfLowe(I,R,S)
 {
-	role I
-	{
-		const Kir: Key;
+    role I
+    {
+        const Kir: Key;
         const Ti: TimeStamp;
-		var Kr: Key;
+        var Kr: Key;
         var Nr: Nonce;
 
-		send_1(I,S, I, {Ti, R, Kir}k(I,S)); 
+        send_1(I,S, I, {Ti, R, Kir}k(I,S)); 
         read_3(R,I,{Nr}Kir);
         send_4(I,R,{{Nr}succ}Kir);
 
-		claim_I1(I,Secret,Kir);
+        claim_I1(I,Secret,Kir);
         claim_I2(I,Nisynch);
-	}	
-	
-	role R
-	{
+    }    
+    
+    role R
+    {
         var Ts: TimeStamp;
         var Kir: Key;
         const Nr: Nonce;
 
-		read_2(S,R, {Ts, I, Kir}k(R,S) );
+        read_2(S,R, {Ts, I, Kir}k(R,S) );
         send_3(R,I, {Nr}Kir);
         read_4(I,R, {{Nr}succ}Kir);
 
-		claim_R1(R,Secret,Kir);
+        claim_R1(R,Secret,Kir);
         claim_R2(R,Nisynch);
-	}
+    }
 
-	role S
-	{
-		var Kir: Key;
+    role S
+    {
+        var Kir: Key;
         const Ts: TimeStamp;
         var Ti: TimeStamp;
 
-		read_1(I,S, I,{Ti, R, Kir}k(I,S) );
+        read_1(I,S, I,{Ti, R, Kir}k(I,S) );
         send_2(S,R, {Ts, I, Kir}k(R,S));
-	}
+    }
 }
 
 const Alice,Bob,Eve,Simon: Agent;

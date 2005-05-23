@@ -23,33 +23,33 @@ secret k: Function;
 
 protocol andrewLoweBan(I,R)
 {
-	role I
-	{
-		const ni: Nonce;
-		var nr: Nonce;
-		var kir: SessionKey;
+    role I
+    {
+        const ni: Nonce;
+        var nr: Nonce;
+        var kir: SessionKey;
 
-		send_1(I,R, I,ni );
-		read_2(R,I, {ni,kir,R}k(I,R) );
-		send_3(I,R, {ni}kir );
-		claim_5(I,Nisynch);
-		claim_6(I,Secret, kir);
-		read_4(R,I, nr );
-	}	
-	
-	role R
-	{
-		var ni: Nonce;
-		const nr: Nonce;
-		const kir: SessionKey;
+        send_1(I,R, I,ni );
+        read_2(R,I, {ni,kir,R}k(I,R) );
+        send_3(I,R, {ni}kir );
+        claim_5(I,Nisynch);
+        claim_6(I,Secret, kir);
+        read_4(R,I, nr );
+    }    
+    
+    role R
+    {
+        var ni: Nonce;
+        const nr: Nonce;
+        const kir: SessionKey;
 
-		read_1(I,R, I,ni );
-		send_2(R,I, {ni,kir,R}k(I,R) );
-		read_3(I,R, {ni}kir );
-		send_4(R,I, nr );
-		claim_8(R,Nisynch);
-		claim_9(R,Secret, kir);
-	}
+        read_1(I,R, I,ni );
+        send_2(R,I, {ni,kir,R}k(I,R) );
+        read_3(I,R, {ni}kir );
+        send_4(R,I, nr );
+        claim_8(R,Nisynch);
+        claim_9(R,Secret, kir);
+    }
 }
 
 const Alice,Bob,Eve: Agent;

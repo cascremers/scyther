@@ -24,33 +24,33 @@ secret k: Function;
 
 protocol andrewConcrete(I,R)
 {
-	role I
-	{
-		const ni: Nonce;
-		var nr: Nonce;
+    role I
+    {
+        const ni: Nonce;
+        var nr: Nonce;
         var kir: SessionKey;
         
-		send_1(I,R, I,ni );
-		read_2(R,I, {ni,kir}k(I,R) );
-		send_3(I,R, {ni}kir);
+        send_1(I,R, I,ni );
+        read_2(R,I, {ni,kir}k(I,R) );
+        send_3(I,R, {ni}kir);
         claim_4(I,Secret,kir);
-		claim_5(I,Nisynch);
-		read_6(R,I, nr);
-	}	
-	
-	role R
-	{
-		var ni: Nonce;
-		const nr: Nonce;
+        claim_5(I,Nisynch);
+        read_6(R,I, nr);
+    }    
+    
+    role R
+    {
+        var ni: Nonce;
+        const nr: Nonce;
         const kir: SessionKey;
 
-		read_1(I,R, I,ni );
-		send_2(R,I, {ni,kir}k(I,R) );
-		read_3(I,R, {ni}kir);
-		send_6(R,I, nr);
-		claim_7(R,Secret,kir);
-		claim_8(R,Nisynch);
-	}
+        read_1(I,R, I,ni );
+        send_2(R,I, {ni,kir}k(I,R) );
+        read_3(I,R, {ni}kir);
+        send_6(R,I, nr);
+        claim_7(R,Secret,kir);
+        claim_8(R,Nisynch);
+    }
 }
 
 const Alice,Bob,Eve: Agent;

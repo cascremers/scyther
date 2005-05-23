@@ -23,8 +23,8 @@ usertype Ticket;
 
 protocol needhamschroederskamend(I,R,S)
 {
-	role I
-	{
+    role I
+    {
         const Ni: Nonce;
         var Nr: Nonce;
         var Kir: SessionKey;
@@ -40,10 +40,10 @@ protocol needhamschroederskamend(I,R,S)
         
         claim_I2(I,Secret,Kir);
         claim_I3(I,Nisynch);
-	}	
-	
-	role R
-	{
+    }    
+    
+    role R
+    {
         const Nr: Nonce;
         var Kir: SessionKey;
         
@@ -54,7 +54,7 @@ protocol needhamschroederskamend(I,R,S)
         read_7(I,R,{{Nr}dec}Kir);
         claim_R1(R,Secret,Nr);
         claim_R3(R,Nisynch);
-	}
+    }
 
     role S
     {

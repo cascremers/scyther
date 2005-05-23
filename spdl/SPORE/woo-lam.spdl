@@ -16,25 +16,25 @@ secret k: Function;
 
 protocol woolam(I,R,S)
 {
-	role I
-	{
+    role I
+    {
         const N1: Nonce;
         var Kir: Key;
-		var N2: Nonce;
+        var N2: Nonce;
 
-		send_1(I,R, I, N1); 
+        send_1(I,R, I, N1); 
         read_2(R,I, R, N2);
         send_3(I,R, {I, R, N1, N2}k(I,S));
         read_6(R,I, {R, N1, N2, Kir}k(I,S), {N1,N2}Kir);
         send_7(I,R, {N2}Kir);
         
 
-		claim_I1(I,Secret,Kir);
+        claim_I1(I,Secret,Kir);
         claim_I2(I,Nisynch);
-	}	
-	
-	role R
-	{
+    }    
+    
+    role R
+    {
         const N2: Nonce;
         var N1: Nonce;
         var Kir: Key;
@@ -48,18 +48,18 @@ protocol woolam(I,R,S)
         send_6(R,I, T2, {N1,N2}Kir);
         read_7(I,R, {N2}Kir);
         
-		claim_R1(R,Secret,Kir);
+        claim_R1(R,Secret,Kir);
         claim_R2(R,Nisynch);
-	}
+    }
 
-	role S
-	{
-		const Kir: Key;
+    role S
+    {
+        const Kir: Key;
         var N1,N2: Nonce;
 
         read_4(R,S, {I, R, N1, N2}k(I,S), {I, R, N1, N2}k(R,S));
         send_5(S,R, {R, N1, N2, Kir}k(I,S), {I, N1, N2, Kir}k(R,S));
-	}
+    }
 }
 
 const Alice,Bob,Eve,Simon: Agent;
