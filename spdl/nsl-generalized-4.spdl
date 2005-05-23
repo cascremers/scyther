@@ -19,7 +19,7 @@ protocol nslgen4(R1,R2,R3,R4)
 
 		send_1(R1,R2, {R1,R3,R4,n1}pk(R2) );
 		read_4(R4,R1, {n1,n2,n3,n4,R2,R3,R4}pk(R1) );
-		send_5(R1,R2, {n2,n3,n4,R3,R4}pk(R2) );
+		send_5(R1,R2, {n2,n3,n4}pk(R2) );
 
 		claim_r1a(R1,Secret,n1);
 		claim_r1b(R1,Secret,n2);
@@ -37,8 +37,8 @@ protocol nslgen4(R1,R2,R3,R4)
 
 		read_1(R1,R2, {R1,R3,R4,n1}pk(R2) );
 		send_2(R2,R3, {n1,n2,R1,R2,R4}pk(R3) );
-		read_5(R1,R2, {n2,n3,n4,R3,R4}pk(R2) );
-		send_6(R2,R3, {n3,n4,R4}pk(R3) );
+		read_5(R1,R2, {n2,n3,n4}pk(R2) );
+		send_6(R2,R3, {n3,n4}pk(R3) );
 
 		claim_r2a(R2,Secret,n1);
 		claim_r2b(R2,Secret,n2);
@@ -56,7 +56,7 @@ protocol nslgen4(R1,R2,R3,R4)
 
 		read_2(R2,R3, {n1,n2,R1,R2,R4}pk(R3) );
 		send_3(R3,R4, {n1,n2,n3,R1,R2,R3}pk(R4) );
-		read_6(R2,R3, {n3,n4,R4}pk(R3) );
+		read_6(R2,R3, {n3,n4}pk(R3) );
 		send_7(R3,R4, {n4}pk(R4) );
 
 		claim_r3a(R3,Secret,n1);
