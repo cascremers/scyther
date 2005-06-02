@@ -5,12 +5,12 @@
 #
 # Note:
 # This protocol uses a ticket so scyther will only be able to verify
-# the protocol using the ARACHNE engine (-a) and type 2 matching (-m2)
+# the protocol using the ARACHNE engine (-a) 
 #
 
 secret k : Function;
 
-usertype Ticket, Key;
+usertype Key;
 
 
 protocol yahalom(I,R,S)

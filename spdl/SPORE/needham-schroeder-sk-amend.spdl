@@ -6,7 +6,7 @@
 #
 # Note:
 # This protocol uses a ticket so scyther will only be able to verify
-# the protocol using the ARACHNE engine (-a) and type 2 matching (-m2)
+# the protocol using the ARACHNE engine (-a)
 #
 # Note:
 # According to SPORE there are no attacks on this protocol, scyther
@@ -19,7 +19,6 @@ secret k: Function;
 const dec,inc: Function;
 inversekeys(dec,inc);
 usertype SessionKey;
-usertype Ticket;
 
 protocol needhamschroederskamend(I,R,S)
 {

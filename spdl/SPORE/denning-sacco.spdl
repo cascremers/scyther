@@ -5,11 +5,10 @@
 #
 # Note:
 # This protocol uses a ticket so scyther will only be able to verify
-# the protocol using the ARACHNE engine (-a) and type 2 matching (-m2)
+# the protocol using the ARACHNE engine (-a) 
 #
 
 usertype Key;
-usertype Ticket;
 usertype SessionKey;
 usertype TimeStamp;
 secret k: Function;
@@ -25,7 +24,8 @@ protocol denningSacco(I,R,S)
         send_1(I,S, I,R );
         read_2(S,I, {R, Kir, T, W}k(I,S) );
         send_3(I,R, W);
-        claim_4(I,Nisynch);
+        claim_I1(I,Niagree);
+        claim_I2(I,Nisynch);
     }    
     
     role R
@@ -34,7 +34,9 @@ protocol denningSacco(I,R,S)
         var T: TimeStamp;
 
         read_3(I,R, {Kir,I,T}k(R,S));
-        claim_8(R,Nisynch);
+        claim_R1(R,Niagree);
+        claim_R2(R,Nisynch);
+
     }
     
     role S
