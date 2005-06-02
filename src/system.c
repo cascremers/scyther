@@ -76,7 +76,7 @@ systemInit ()
   sys->switchClaims = 0;	// default don't report on claims
   sys->switchClaimToCheck = NULL;	// default check all claims
   sys->switchXMLoutput = 0;	// default no xml output
-  sys->switchHuman = false;		// not human friendly by default
+  sys->switchHuman = false;	// not human friendly by default
   sys->switchGoalSelectMethod = 3;	// default goal selection method
   sys->traverse = 12;		// default traversal method
 

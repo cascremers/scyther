@@ -58,14 +58,14 @@ roledefPrintGeneric (Roledef rd, int print_actor)
       Term label;
 
       /* Old version: sometimes prints protocol stuff (really unique labels)
+         label = deVar (rd->label);
+         if (protocolCount < 2 && realTermTuple (label))
+         {
+         // Only one protocol, so we don't need to show the extra label info
+         label = TermOp2 (label);
+         }
+       */
       label = deVar (rd->label);
-      if (protocolCount < 2 && realTermTuple (label))
-	{
-	  // Only one protocol, so we don't need to show the extra label info
-	  label = TermOp2 (label);
-	}
-      */
-      label = deVar(rd->label);
       if (realTermTuple (label))
 	{
 	  label = TermOp2 (label);

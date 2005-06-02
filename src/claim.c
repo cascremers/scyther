@@ -449,7 +449,7 @@ check_claim_niagree (const System sys, const int i)
   result = oki_nisynch (sys, i, f, g);
   if (!result)
     {
-#ifdef DEBUG 
+#ifdef DEBUG
       warning ("Claim has failed!");
       printf ("To be exact, claim label ");
       termPrint (cl->label);

@@ -10,7 +10,8 @@ static clock_t endwait = 0;
 /**
  * <= 0 means none.
  */
-void set_time_limit (int seconds)
+void
+set_time_limit (int seconds)
 {
   if (seconds > 0)
     {
@@ -25,13 +26,15 @@ void set_time_limit (int seconds)
 }
 
 //! Retrieve time limit
-int get_time_limit ()
+int
+get_time_limit ()
 {
   return time_max_seconds;
 }
 
 //! Check whether time limit has passed.
-int passed_time_limit ()
+int
+passed_time_limit ()
 {
   if (endwait <= 0)
     {
@@ -41,11 +44,10 @@ int passed_time_limit ()
     {
       struct tms t;
 
-      times(&t);
+      times (&t);
       if (t.tms_utime > endwait)
-	  return 1;
+	return 1;
       else
-	  return 0;
+	return 0;
     }
 }
-
