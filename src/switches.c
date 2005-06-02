@@ -295,6 +295,20 @@ switcher (const int process, const System sys, int index)
 	}
     }
 
+  if (detect ('H', "human-readable", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-H,--human-readable",
+		    "try to make the output human-friendly (e.g. in XML)");
+	}
+      else
+	{
+	  sys->switchHuman = true;
+	  return index;
+	}
+    }
+
   /* ==================
    *  Modelchecker only
    */

@@ -31,6 +31,7 @@ extern Term TERM_Function;	// from termlist.c
  */
 static int xmlindent;		// indent level for xml elements in output
 static Term only_claim_label;	// if NULL, show all claims in xml event lists. Otherwise, only this one.
+static int show_substitution_path;	// is only set to true for variable printing, normally false.
 
 /*
  * Default external interface: init/done
@@ -43,6 +44,7 @@ xmlOutInit (void)
   printf ("<scyther>\n");
   xmlindent = 1;
   only_claim_label = NULL;
+  show_substitution_path = false;
 }
 
 //! Close up
@@ -96,10 +98,18 @@ xmlOutInteger (const char *tag, const int value)
 
 //! Print a term in XML form (iteration inner)
 void
-xmlTermPrintInner (const Term term)
+xmlTermPrintInner (Term term)
 {
   if (term != NULL)
     {
+      if (!show_substitution_path)
+	{
+	  /* In a normal situation, variables are immediately substituted, and
+	   * only the result is output.
+	   */
+	  term = deVar (term);
+	}
+
       if (realTermLeaf (term))
 	{
 	  // Variable?
@@ -129,7 +139,9 @@ xmlTermPrintInner (const Term term)
 	  else
 	    {
 	      // Constant
+	      printf ("<const>");
 	      termPrint (term);	// Must be a normal termPrint
+	      printf ("</const>");
 	    }
 	}
       else
@@ -170,12 +182,17 @@ xmlTermPrintInner (const Term term)
 }
 
 //! Print a term in XML form (wrapper)
+/**
+ * In the original setupt, a <term> wrapper was added. It is disabled for now.
+ * If this turns out to be the preferred situation, xmlTermPrintInner can be
+ * renamed to xmlTermPrint and all will be well.
+ */
 void
 xmlTermPrint (const Term term)
 {
-  printf ("<term>");
+  // printf ("<term>");
   xmlTermPrintInner (term);
-  printf ("</term>");
+  // printf ("</term>");
 }
 
 //! Print a termlist in XML form
@@ -240,9 +257,96 @@ roleTermPrint (const Term t)
 
       typebuffer = t->type;
       t->type = GLOBAL;
-      xmlTermPrint (t);
+      termPrint (t);
       t->type = typebuffer;
     }
+}
+
+//! Print a role term with <rolename> tag and indenting etc.
+void
+xmlRoleTermPrint (const Term t)
+{
+  xmlIndentPrint ();
+  printf ("<rolename>");
+  roleTermPrint (t);
+  printf ("</rolename>\n");
+}
+
+//! Show a single variable instantiation, depth one
+void
+xmlVariableDepthOne (const Term variable)
+{
+  /*
+   * To print a variable, we would wish to see only the first substitution.
+   * Therefore, we temporarily undo any further substitutions, and reset
+   * them at the end.
+   */
+  Term varsubst;		// substitution shortcut
+  Term nextsubst;		// temporary buffer
+
+  varsubst = variable->subst;
+  if (varsubst != NULL && realTermVariable (varsubst))
+    {
+      nextsubst = varsubst->subst;
+      varsubst->subst = NULL;
+    }
+  else
+    {
+      nextsubst = NULL;
+    }
+
+  // Print the actual term
+  xmlIndentPrint ();
+  xmlTermPrint (variable);
+  printf ("\n");
+
+  if (nextsubst != NULL)
+    {
+      varsubst->subst = nextsubst;
+    }
+
+}
+
+//! Show variable instantiations
+/**
+ * Show the instantiations of all variables. Maybe we need to restrict this,
+ * and scan only for those variables that actually occur in the semitrace.
+ */
+void
+xmlVariables (const System sys)
+{
+  int prev_mode;		// buffer for show mode
+  int run;			// for loop
+
+  prev_mode = show_substitution_path;
+  show_substitution_path = true;
+  xmlPrint ("<variables>");
+  xmlindent++;
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      if (sys->runs[run].protocol != INTRUDER)
+	{
+	  Termlist varlist;
+
+	  varlist = sys->runs[run].locals;
+	  while (varlist != NULL)
+	    {
+	      if (realTermVariable (varlist->term))
+		{
+		  // xmlVariableDepthOne (varlist->term);
+		  xmlIndentPrint ();
+		  xmlTermPrint (varlist->term);
+		  printf ("\n");
+		}
+	      varlist = varlist->next;
+	    }
+	}
+      run++;
+    }
+  xmlindent--;
+  xmlPrint ("</variables>");
+  show_substitution_path = prev_mode;
 }
 
 //! Show inverses
@@ -305,28 +409,35 @@ isProtocolInvolved (const System sys, const Protocol p)
 
 //! Determine whether to show an event
 int
-isEventInteresting (const Roledef rd)
+isEventInteresting (const System sys, const Roledef rd)
 {
-  if (rd->type != CLAIM)
+  if (sys->switchHuman)
     {
-      return 1;
-    }
-  else
-    {
-      // A claim
-      if (only_claim_label == NULL)
+      if (rd->type != CLAIM)
 	{
 	  return 1;
 	}
       else
 	{
-	  if (isTermEqual (only_claim_label, rd->label))
+	  // A claim
+	  if (only_claim_label == NULL)
 	    {
 	      return 1;
 	    }
+	  else
+	    {
+	      if (isTermEqual (only_claim_label, rd->label))
+		{
+		  return 1;
+		}
+	    }
 	}
+      return 0;
     }
-  return 0;
+  else
+    {
+      return 1;
+    }
 }
 
 //! Show a single event from a run
@@ -340,7 +451,7 @@ isEventInteresting (const Roledef rd)
 void
 xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 {
-  if (!isEventInteresting (rd))
+  if (!isEventInteresting (sys, rd))
     {
       return;
     }
@@ -457,12 +568,16 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 void
 xmlRoleEventlist (const System sys, Roledef rd, int index)
 {
+  xmlPrint ("<eventlist>");
+  xmlindent++;
   while (rd != NULL)
     {
       xmlOutEvent (sys, rd, -1, index);
       index++;
       rd = rd->next;
     }
+  xmlindent--;
+  xmlPrint ("</eventlist>");
 }
 
 //! Show all protocol roles that are in the attack.
@@ -486,7 +601,7 @@ xmlInvolvedProtocolRoles (const System sys)
 	    {
 	      xmlPrint ("<role>");
 	      xmlindent++;
-	      xmlOutTerm ("name", r->nameterm);
+	      xmlRoleTermPrint (r->nameterm);
 	      xmlRoleEventlist (sys, r->roledef, 0);
 	      xmlindent--;
 	      xmlPrint ("</role>");
@@ -530,8 +645,10 @@ xmlAgentsOfRunPrint (const System sys, const int run)
   while (roles != NULL)
     {
       xmlPrint ("<role>");
-      xmlOutTerm ("name", roles->term);
+      xmlindent++;
+      xmlRoleTermPrint (roles->term);
       xmlOutTerm ("agent", deVar (agentOfRunRole (sys, run, roles->term)));
+      xmlindent--;
       xmlPrint ("</role>");
       roles = roles->next;
     }
@@ -564,10 +681,7 @@ xmlRunInfo (const System sys, const int run)
    * more generic. */
   oldagent = r->nameterm->subst;
   r->nameterm->subst = NULL;
-  xmlIndentPrint ();
-  printf ("<role>");
-  roleTermPrint (r->nameterm);
-  printf ("</role>\n");
+  xmlRoleTermPrint (r->nameterm);
   /* reinstate substitution */
   r->nameterm->subst = oldagent;
   if (oldagent != NULL)
@@ -643,6 +757,7 @@ xmlOutSemitrace (const System sys)
 
   /* mention the broken claim */
   buffer_only_claim_label = only_claim_label;
+  only_claim_label = NULL;
   if (sys->current_claim != NULL)
     {
       xmlPrint ("<broken>");
@@ -653,12 +768,11 @@ xmlOutSemitrace (const System sys)
       xmlPrint ("</broken>");
       only_claim_label = sys->current_claim->label;
     }
-  else
-    {
-      only_claim_label = NULL;
-    }
+
   /* any global information about the system */
   xmlOutSysInfo (sys);
+  /* instantiations of the variables */
+  xmlVariables (sys);
   /* semitrace */
   xmlPrint ("<semitrace>");
   xmlindent++;

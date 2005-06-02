@@ -144,6 +144,7 @@ struct system
   int switchGoalSelectMethod;	//!< Goal selection method for Arachne engine
   Term switchClaimToCheck;	//!< Which claim should be checked?
   int switchXMLoutput;		//!< xml output
+  int switchHuman;		//!< human readable
 
   //! Latex output switch.
   /**
