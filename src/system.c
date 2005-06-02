@@ -15,6 +15,7 @@
 #include "output.h"
 #include "tracebuf.h"
 #include "role.h"
+#include "mgu.h"
 
 /* from compiler.o */
 extern Term TERM_Type;
@@ -160,6 +161,9 @@ systemReset (const System sys)
 
   globalLatex = sys->latex;
 
+  /* propagate mgu_mode */
+
+  setMguMode (sys->match);
 }
 
 //! Initialize runtime system (according to cut traces, limited runs)

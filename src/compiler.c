@@ -57,6 +57,7 @@ Term TERM_Function;
 Term TERM_Hidden;
 Term TERM_Type;
 Term TERM_Nonce;
+Term TERM_Ticket;
 
 Term TERM_Claim;
 Term CLAIM_Secret;
@@ -101,6 +102,7 @@ compilerInit (const System mysys)
   langcons (TERM_Agent, "Agent", TERM_Type);
   langcons (TERM_Function, "Function", TERM_Type);
   langcons (TERM_Nonce, "Nonce", TERM_Type);
+  langcons (TERM_Ticket, "Ticket", TERM_Type);
 
   langcons (CLAIM_Secret, "Secret", TERM_Claim);
   langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);

@@ -5,6 +5,7 @@
 #include "substitution.h"
 #include "mgu.h"
 #include "memory.h"
+#include "type.h"
 
 /*
    Most General Unifier
@@ -14,16 +15,23 @@
    New version yields a termlist with substituted variables, which can later be reset to NULL.
 */
 
-//! Global constant. If true, typed checking
+//! Internal constant. If true, typed checking
 /**
  * Analoguous to sys->match
  * 0	typed
  * 1	basic typeflaws
  * 2	all typeflaws
  */
-int mgu_match = 0;
+static int mgu_match = 0;
 
 extern Term TERM_Hidden;
+
+//! Set mgu mode (basically sys->match)
+void
+setMguMode (const int match)
+{
+  mgu_match = match;
+}
 
 void
 showSubst (Term t)
@@ -58,76 +66,16 @@ showSubst (Term t)
 __inline__ int
 goodsubst (Term tvar, Term tsubst)
 {
-  // function to test compatibility
-  __inline__ int compatibleTypes ()
-  {
-    if (tvar->stype == NULL)
-      {
-	// If the variable type is unspecified, anything goes
-	return 1;
-      }
-    else
-      {
-	// There are variable types.
-	// At least one of them should match a type of the constant.
-	Termlist tl;
+  Term tbuf;
+  int res;
 
-	tl = tvar->stype;
-	while (tl != NULL)
-	  {
-	    if (inTermlist (tsubst->stype, tl->term))
-	      {
-		// One type matches
-		return 1;
-	      }
-	    tl = tl->next;
-	  }
-	// No matches
-	return 0;
-      }
-  }
+  tbuf = tvar->subst;
+  tvar->subst = tsubst;
 
-  if (mgu_match == 2)
-    {
-      return 1;
-    }
-  else
-    {
-      /**
-       * Check if each type of the substitution is allowed in the variable
-       */
-      if (!realTermLeaf (tsubst))
-	{
-	  // Typed var cannot match with non-leaf
-	  return 0;
-	}
-      else
-	{
-	  // It's a leaf, but what type?
-	  if (mgu_match == 1 || compatibleTypes ())
-	    {
-	      return 1;
-	    }
-	  else
-	    {
-#ifdef DEBUG
-	      if (DEBUGL (5))
-		{
-		  eprintf ("Substitution fails on ");
-		  termPrint (tvar);
-		  eprintf (" -/-> ");
-		  termPrint (tsubst);
-		  eprintf (", because type: \n");
-		  termlistPrint (tvar->stype);
-		  eprintf (" does not contain ");
-		  termlistPrint (tsubst->stype);
-		  eprintf ("\n");
-		}
-#endif
-	      return 0;
-	    }
-	}
-    }
+  res = checkTypeTerm (mgu_match, tvar);
+
+  tvar->subst = tbuf;
+  return res;
 }
 
 //! Undo all substitutions in a list of variables.

@@ -30,6 +30,7 @@
 #include "binding.h"
 #include "warshall.h"
 #include "timer.h"
+#include "type.h"
 
 extern Term CLAIM_Secret;
 extern Term CLAIM_Nisynch;
@@ -2649,6 +2650,18 @@ prune_theorems ()
   Termlist tl;
   List bl;
   int run;
+
+  // Check all types of the local agents according to the matching type
+  if (!checkTypeLocals (sys))
+    {
+      if (sys->output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf
+	    ("Pruned because some local variable was incorrectly subsituted.\n");
+	}
+      return 1;
+    }
 
   // Check if all agents are agents (!)
   run = 0;

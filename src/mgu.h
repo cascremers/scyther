@@ -14,6 +14,7 @@
  */
 #define MGUFAIL (Termlist) -1
 
+void setMguMode (const int mgu);
 Termlist termMguTerm (Term t1, Term t2);
 int termMguInTerm (Term t1, Term t2, int (*iterator) (Termlist));
 int termMguSubTerm (Term t1, Term t2, int (*iterator) (Termlist, Termlist),

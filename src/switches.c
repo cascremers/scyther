@@ -12,7 +12,6 @@
 #include "timer.h"
 
 extern System sys;
-extern int mgu_match;
 
 extern struct tacnode *spdltac;
 extern Term TERM_Claim;
@@ -232,7 +231,6 @@ switcher (const int process, const System sys, int index)
       else
 	{
 	  sys->match = integer_argument ();
-	  mgu_match = sys->match;
 	  return index;
 	}
     }
