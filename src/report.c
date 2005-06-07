@@ -4,6 +4,7 @@
 #include "system.h"
 #include "debug.h"
 #include "output.h"
+#include "switches.h"
 
 extern int globalLatex;
 
@@ -12,7 +13,7 @@ void
 reportQuit (const System sys)
 {
   /* determine quit or not */
-  if (sys->prune >= 3)
+  if (switches.prune >= 3)
     {
       indent ();
       printf ("Quitting after %li claims, at the first violated claim.\n",
@@ -24,7 +25,7 @@ reportQuit (const System sys)
 void
 reportStart (const System sys)
 {
-  if (!sys->latex)
+  if (!switches.latex)
     {
       indent ();
       printf ("<REPORT>\n");
@@ -47,7 +48,7 @@ reportMid (const System sys)
 void
 reportEnd (const System sys)
 {
-  if (!sys->latex)
+  if (!switches.latex)
     {
       indent ();
       printf ("<REPORT>\n");
@@ -58,7 +59,7 @@ reportEnd (const System sys)
 void
 reportSecrecy (const System sys, Term t)
 {
-  if (sys->output != ATTACK)
+  if (switches.output != ATTACK)
     {
       reportQuit (sys);
       return;

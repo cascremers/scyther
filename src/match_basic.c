@@ -12,6 +12,7 @@
 #include "system.h"
 #include "modelchecker.h"
 #include "match_basic.h"
+#include "switches.h"
 
 //! Get the candidates list for typeless basic stuff
 __inline__ Termlist
@@ -132,7 +133,7 @@ fixVariablelist (const struct fvpass fp, const Knowledge know,
 	{
 	  /* substitute */
 	  varlist->term->subst = tlscan->term;
-	  if (validSubst (fp.sys->match, varlist->term))
+	  if (validSubst (switches.match, varlist->term))
 	    {
 #ifdef DEBUG
 	      if (DEBUGL (5))
@@ -191,7 +192,7 @@ matchRead_basic (const System sys, const int run,
     /* remove variable linkages */
     newterm = termDuplicateUV (fp.roledef->message);
     /* a candidate, but if this is a t4 traversal, is it also an old one? */
-    if (fp.sys->traverse < 4 ||
+    if (switches.traverse < 4 ||
 	fp.roledef->forbidden == NULL ||
 	enabled_basic (fp.sys, fp.roledef->forbidden, newterm))
       {

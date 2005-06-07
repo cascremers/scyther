@@ -20,6 +20,7 @@
 #include "tracebuf.h"
 #include "attackminimize.h"
 #include "claim.h"
+#include "switches.h"
 
 /*
 
@@ -107,14 +108,14 @@ int
 traverse (const System sys)
 {
   /* maybe chooses have precedence over _all_ methods */
-  if (sys->switchChooseFirst)
+  if (switches.chooseFirst)
     {
       if (traverse_chooses_first (sys))
 	return 1;
     }
 
   /* branch for traversal methods */
-  switch (sys->traverse)
+  switch (switches.traverse)
     {
     case 1:
       return traverseSimple (sys);
@@ -125,7 +126,7 @@ traverse (const System sys)
     case 5:
     case 6:
     case 7:
-      error ("%i is an obsolete traversal method.", sys->traverse);
+      error ("%i is an obsolete traversal method.", switches.traverse);
     case 8:
       return traversePOR4 (sys);
     case 9:
@@ -137,7 +138,7 @@ traverse (const System sys)
     case 12:
       return traversePOR8 (sys);
     default:
-      error ("%i is NOT an existing traversal method.", sys->traverse);
+      error ("%i is NOT an existing traversal method.", switches.traverse);
     }
 }
 
@@ -203,18 +204,18 @@ executeStep (const System sys, const int run)
   sys->states = statesIncrease (sys->states);
 
   /* what about scenario exploration? */
-  if (sys->switchScenario && sys->step + 1 > sys->switchScenarioSize)
+  if (switches.scenario && sys->step + 1 > switches.scenarioSize)
     {
       /* count states within scenario */
       sys->statesScenario = statesIncrease (sys->statesScenario);
     }
 
   /* show progression */
-  if (sys->switchS > 0)
+  if (switches.reportStates > 0)
     {
       sys->interval = statesIncrease (sys->interval);
       if (!statesSmallerThan
-	  (sys->interval, (unsigned long int) sys->switchS))
+	  (sys->interval, (unsigned long int) switches.reportStates))
 	{
 	  globalError++;
 	  sys->interval = STATES0;
@@ -228,7 +229,7 @@ executeStep (const System sys, const int run)
   /* store new node numbder */
   sys->traceNode[sys->step] = sys->states;
   /* the construction below always assumes MAX_GRAPH_STATES to be smaller than the unsigned long it, which seems realistic. */
-  if (sys->output == STATESPACE
+  if (switches.output == STATESPACE
       && statesSmallerThan (sys->states, MAX_GRAPH_STATES))
     {
       /* display graph */
@@ -375,7 +376,7 @@ explorify (const System sys, const int run)
        * further traversal.
        */
       //!@todo This implementation relies on the fact that there are only secrecy, synchr and agreement properties.
-      if (sys->switchNomoreClaims && sys->secrets == NULL)
+      if (switches.pruneNomoreClaims && sys->secrets == NULL)
 	{			/* there are no remaining secrecy claims to be checked */
 	  Roledef rdscan;
 	  int validclaim;
@@ -416,7 +417,7 @@ explorify (const System sys, const int run)
        * If the run we depend upon has already been activated (otherwise warn!) check for instance ordering
        */
 
-      if (sys->switchAgentSymm && sys->runs[run].prevSymmRun != -1)
+      if (switches.agentSymmetries && sys->runs[run].prevSymmRun != -1)
 	{
 	  /* there is such a run on which we depend */
 	  int ridSymm;
@@ -442,7 +443,7 @@ explorify (const System sys, const int run)
 		  /* we only explore the other half */
 		  return 0;
 		}
-	      if (order == 0 && sys->switchReduceClaims)
+	      if (order == 0 && switches.reduceClaims)
 		{
 		  /* identical run; only the first would be checked for a claim */
 		  /* so we cut off this run, including claims, turning it into a dummy run */
@@ -454,7 +455,7 @@ explorify (const System sys, const int run)
       /* Special check 3: if after choosing, this run is untrusted and ends on (read|skippedclaim)*, we can remove that part already.
        */
 
-      if (sys->switchReduceEndgame && roleCap == NULL)
+      if (switches.reduceEndgame && roleCap == NULL)
 	roleCap = removeIrrelevant (sys, run, rd);
 
       /* Special check x: if all agents in each run send only encrypted stuff, and all agents are trusted,
@@ -479,7 +480,7 @@ explorify (const System sys, const int run)
    * Special check b1: symmetry reduction part II on similar read events for equal roles.
    */
 
-  if (sys->switchReadSymm)
+  if (switches.readSymmetries)
     {
       if (sys->runs[run].firstNonAgentRead == myStep)
 	{
@@ -539,7 +540,7 @@ explorify (const System sys, const int run)
    * Depends on prevSymm, skipping chooses even.
    */
 
-  if (sys->switchSymmOrder && myStep == sys->runs[run].firstReal)
+  if (switches.orderSymmetries && myStep == sys->runs[run].firstReal)
     {
       if (sys->runs[run].prevSymmRun != -1)
 	{
@@ -571,10 +572,10 @@ explorify (const System sys, const int run)
    * Note: any choose selection after this would result in empty scenarios, so this
    * should be the last special check.
    */
-  if (sys->switchScenario != 0)
+  if (switches.scenario != 0)
     {
       /* two variants. If scenario size is 0, we operate on the old method involving chooses */
-      if (sys->switchScenarioSize == 0)
+      if (switches.scenarioSize == 0)
 	{
 	  /* only after chooses */
 	  if (myStep == 0 && rd->type == READ)
@@ -588,18 +589,18 @@ explorify (const System sys, const int run)
 		      sys->countScenario++;
 		    }
 		  /* If we are displaying scenarios, print it */
-		  if (sys->output == SCENARIOS)
+		  if (switches.output == SCENARIOS)
 		    {
 		      printf ("%i\t", sys->countScenario);
 		      scenarioPrint (sys);
 		      printf ("\n");
 		    }
 		  /* If it is not the selected one, abort */
-		  if (sys->switchScenario != sys->countScenario)
+		  if (switches.scenario != sys->countScenario)
 		    {
 		      /* this branch is not interesting */
 		      /* unfortunately, it is also not drawn in the state graph because of this */
-		      if (sys->output == STATESPACE)
+		      if (switches.output == STATESPACE)
 			{
 			  graphScenario (sys, run, rd);
 			}
@@ -614,20 +615,20 @@ explorify (const System sys, const int run)
 	  /* scenario size is not zero */
 
 	  //!@todo Optimization: if the good scenario is already traversed, other trace prefixes need not be explored any further.
-	  if (sys->step + 1 == sys->switchScenarioSize)
+	  if (sys->step + 1 == switches.scenarioSize)
 	    {
 	      /* Now, the prefix has been set. Count it */
 	      if (sys->countScenario < INT_MAX)
 		{
 		  sys->countScenario++;
 		}
-	      if (sys->output == SCENARIOS)
+	      if (switches.output == SCENARIOS)
 		{
 		  /* apparently we want the output */
 		  int index;
 		  eprintf ("%i\t", sys->countScenario);
 		  index = 0;
-		  while (index < sys->switchScenarioSize)
+		  while (index < switches.scenarioSize)
 		    {
 		      roledefPrint (sys->traceEvent[index]);
 		      eprintf ("#%i; ", sys->traceRun[index]);
@@ -636,10 +637,10 @@ explorify (const System sys, const int run)
 		  eprintf ("\n");
 		}
 	      /* Is this the selected one? */
-	      if (sys->switchScenario != sys->countScenario)
+	      if (switches.scenario != sys->countScenario)
 		{
 		  /* unfortunately, it is also not drawn in the state graph because of this */
-		  if (sys->output == STATESPACE)
+		  if (switches.output == STATESPACE)
 		    {
 		      graphScenario (sys, run, rd);
 		    }
@@ -796,7 +797,7 @@ tryChoiceSend (const System sys, const int run, const Roledef rd)
 	  /* It will possibly be unblocked by a corresponding read event,
 	   * the actual code would be in explorify, post instantiation of the read event.
 	   */
-	  if (sys->clp)
+	  if (switches.clp)
 	    {
 	      block_clp (sys, run);
 	    }
@@ -837,7 +838,7 @@ tryChoiceRead (const System sys, const int run, const Roledef rd)
 	  int stackKnowPhase = rd->knowPhase;
 
 	  rd->knowPhase = sys->knowPhase;
-	  if (sys->clp)
+	  if (switches.clp)
 	    {
 	      block_clp (sys, run);
 	    }
@@ -913,8 +914,8 @@ lastActiveRun (const System sys)
     {
       /* there was a previous action, start scan from there */
 #ifdef DEBUG
-      if (sys->porparam < 100)
-	return sys->traceRun[sys->step - 1] + sys->porparam;
+      if (switches.switchP < 100)
+	return sys->traceRun[sys->step - 1] + switches.switchP;
 #endif
       return sys->traceRun[sys->step - 1];
     }
@@ -1113,7 +1114,7 @@ propertyCheck (const System sys)
 int
 isTermSecret (const System sys, const Term t)
 {
-  switch (sys->clp)
+  switch (switches.clp)
     {
     case 0:
       /* test for simple inclusion */
@@ -1245,7 +1246,7 @@ violateClaim (const System sys, int length, int claimev, Termlist reqt)
   clinfo->failed = statesIncrease (clinfo->failed);	// note: for modelchecking secrecy, this can lead to more fails (at further events in branches of the tree) than claim encounters
 
   /* mark the path in the state graph? */
-  if (sys->output == STATESPACE)
+  if (switches.output == STATESPACE)
     {
       graphPath (sys, length);
     }
@@ -1260,7 +1261,7 @@ violateClaim (const System sys, int length, int claimev, Termlist reqt)
 
       /* maybe there is some new pruning going on */
       flag = 0;
-      switch (sys->prune)
+      switch (switches.prune)
 	{
 	case 0:
 	  flag = 1;
@@ -1310,14 +1311,14 @@ executeTry (const System sys, int run)
 #endif
       if (runPoint->type == READ)
 	{
-	  if (sys->clp)
+	  if (switches.clp)
 	    return matchRead_clp (sys, run, explorify);
 	  else
 	    return matchRead_basic (sys, run, explorify);
 	}
       if (runPoint->type == SEND)
 	{
-	  if (sys->clp)
+	  if (switches.clp)
 	    flag = send_clp (sys, run);
 	  else
 	    flag = send_basic (sys, run);

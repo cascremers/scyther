@@ -16,6 +16,8 @@
 #include "tracebuf.h"
 #include "role.h"
 #include "mgu.h"
+#include "switches.h"
+#include "binding.h"
 
 /* from compiler.o */
 extern Term TERM_Type;
@@ -57,32 +59,6 @@ systemInit ()
   sys->step = 0;
   sys->shortestattack = INT_MAX;
   sys->attack = tracebufInit ();
-
-  /* switches */
-  sys->engine = POR_ENGINE;	// default is partial ordering engine
-  sys->output = ATTACK;		// default is to show the attacks
-  sys->porparam = 0;		// multi-purpose parameter
-  sys->latex = 0;		// latex output?
-  sys->switchRuns = INT_MAX;
-  sys->switchScenario = 0;
-  sys->switchScenarioSize = 0;
-  sys->switchForceChoose = 1;	// force explicit chooses by default
-  sys->switchChooseFirst = 0;	// no priority to chooses by default
-  sys->switchReadSymm = 0;	// don't force read symmetries by default
-  sys->switchAgentSymm = 1;	// default enable agent symmetry
-  sys->switchSymmOrder = 0;	// don't force symmetry order reduction by default
-  sys->switchNomoreClaims = 1;	// default cutter when there are no more claims
-  sys->switchReduceEndgame = 1;	// default cutter of last events in a trace
-  sys->switchReduceClaims = 1;	// default remove claims from duplicate instance choosers
-  sys->switchClaims = 0;	// default don't report on claims
-  sys->switchClaimToCheck = NULL;	// default check all claims
-  sys->switchXMLoutput = 0;	// default no xml output
-  sys->switchHuman = false;	// not human friendly by default
-  sys->switchGoalSelectMethod = 3;	// default goal selection method
-  sys->traverse = 12;		// default traversal method
-
-  sys->switch_maxproofdepth = INT_MAX;
-  sys->switch_maxtracelength = INT_MAX;
   sys->maxtracelength = INT_MAX;
 
   /* init rundefs */
@@ -97,19 +73,21 @@ systemInit ()
   sys->secrets = NULL;		// list of claimed secrets
   sys->synchronising_labels = NULL;
   sys->attack = NULL;
-  sys->prune = 2;		// default pruning method
   /* no protocols => no protocol preprocessed */
   sys->rolecount = 0;
   sys->roleeventmax = 0;
   sys->claimlist = NULL;
   sys->labellist = NULL;
-  sys->match = 0;		// default matching
   sys->attackid = 0;		// First attack will have id 1, because the counter is increased before any attacks are displayed.
 
   /* matching CLP */
   sys->constraints = NULL;	// no initial constraints
 
   /* Arachne assist */
+  if (switches.engine == ARACHNE_ENGINE)
+    {
+      bindingInit (sys);
+    }
   sys->bindings = NULL;
   sys->current_claim = NULL;
 
@@ -151,7 +129,7 @@ systemReset (const System sys)
   sys->secrets = NULL;		// list of claimed secrets
 
   /* transfer switches */
-  sys->maxtracelength = sys->switch_maxtracelength;
+  sys->maxtracelength = switches.maxtracelength;
 
   /* POR init */
   sys->PORphase = -1;
@@ -160,11 +138,11 @@ systemReset (const System sys)
   /* global latex switch: ugly, but otherwise I must carry it into every
    * single subprocedure such as termPrint */
 
-  globalLatex = sys->latex;
+  globalLatex = switches.latex;
 
   /* propagate mgu_mode */
 
-  setMguMode (sys->match);
+  setMguMode (switches.match);
 }
 
 //! Initialize runtime system (according to cut traces, limited runs)
@@ -186,7 +164,7 @@ systemRuns (const System sys)
 	}
     }
 #ifdef DEBUG
-  if (sys->switchScenario < 0)
+  if (switches.scenario < 0)
     {
       warning ("Last run with a choose: %i", sys->lastChooseRun);
     }
@@ -294,7 +272,7 @@ ensureValidRun (const System sys, int run)
       myrun.artefacts = NULL;
       myrun.substitutions = NULL;
 
-      if (sys->engine == POR_ENGINE)
+      if (switches.engine == POR_ENGINE)
 	{
 	  myrun.know = knowledgeDuplicate (sys->know);
 	}
@@ -378,7 +356,7 @@ not_read_first (const Roledef rdstart, const Term t)
 Term
 agentOfRunRole (const System sys, const int run, const Term role)
 {
-  if (sys->engine != ARACHNE_ENGINE)
+  if (switches.engine != ARACHNE_ENGINE)
     {
       // Non-arachne
       Termlist roles;
@@ -762,7 +740,7 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 	       * TODO currently disabled: something weird was goind on causing weird prunes,
 	       * for match=2. Investigate later.
 	       */
-	      if (0 && not_read_first (rd, oldt) && sys->match == 2)
+	      if (0 && not_read_first (rd, oldt) && switches.match == 2)
 		{
 		  /* this term is forced as a choose, or it does not occur in the (first) read event */
 		  if (extterm == NULL)
@@ -898,7 +876,7 @@ roleInstanceModelchecker (const System sys, const Protocol protocol,
 	  /* newvar is apparently new, but it might occur
 	   * in the first event if it's a read, in which
 	   * case we forget it */
-	  if (sys->switchForceChoose || not_read_first (rd, scanfrom->term))
+	  if (switches.forceChoose || not_read_first (rd, scanfrom->term))
 	    {
 	      /* this term is forced as a choose, or it does not occur in the (first) read event */
 	      if (extterm == NULL)
@@ -964,7 +942,7 @@ roleInstanceModelchecker (const System sys, const Protocol protocol,
   /* erase any substitutions in the role definition, as they are now copied */
   termlistSubstReset (role->variables);
 
-  if (sys->engine == POR_ENGINE)
+  if (switches.engine == POR_ENGINE)
     {
       /* Determine symmetric run */
       runs[rid].prevSymmRun = staticRunSymmetry (sys, rid);	// symmetry reduction static analysis
@@ -986,7 +964,7 @@ void
 roleInstance (const System sys, const Protocol protocol, const Role role,
 	      const Termlist paramlist, Termlist substlist)
 {
-  if (sys->engine == ARACHNE_ENGINE)
+  if (switches.engine == ARACHNE_ENGINE)
     {
       roleInstanceArachne (sys, protocol, role, paramlist, substlist);
     }
@@ -1020,7 +998,7 @@ roleInstanceDestroy (const System sys)
        * Arachne does real-time reduction of memory, POR does not
        * Artefact removal can only be done if knowledge sets are empty, as with Arachne
        */
-      if (sys->engine == ARACHNE_ENGINE)
+      if (switches.engine == ARACHNE_ENGINE)
 	{
 	  Termlist artefacts;
 	  // Remove artefacts
@@ -1250,7 +1228,7 @@ untrustedAgent (const System sys, Termlist agents)
     {
       if (isTermVariable (agents->term))
 	{
-	  if (sys->clp)
+	  if (switches.clp)
 	    {
 	      /* clp: variables are difficult */
 	      /* TODO Add as constraint that they're
@@ -1360,13 +1338,13 @@ attackLength (struct tracebuf *tb)
 }
 
 void
-commandlinePrint (FILE * stream, const System sys)
+commandlinePrint (FILE * stream)
 {
   /* print command line */
   int i;
 
-  for (i = 0; i < sys->argc; i++)
-    fprintf (stream, " %s", sys->argv[i]);
+  for (i = 0; i < switches.argc; i++)
+    fprintf (stream, " %s", switches.argv[i]);
 }
 
 //! Get the number of roles in the system.

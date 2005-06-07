@@ -18,6 +18,7 @@
 #include "debug.h"
 #include "match_clp.h"
 #include "modelchecker.h"
+#include "switches.h"
 
 struct solvepass
 {
@@ -94,7 +95,7 @@ solve (const struct solvepass sp, Constraintlist solvecons)
 	    tlscan = tlres;
 	    while (tlscan != NULL && tlres != MGUFAIL)
 	      {
-		if (validSubst (sp.sys->match, tlscan->term))
+		if (validSubst (switches.match, tlscan->term))
 		  {
 		    tlscan = tlscan->next;
 		  }

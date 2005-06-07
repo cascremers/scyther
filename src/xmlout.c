@@ -17,6 +17,7 @@
 #include "system.h"
 #include "binding.h"
 #include "arachne.h"		// for get_semitrace_length
+#include "switches.h"
 
 #include "xmlout.h"
 
@@ -411,7 +412,7 @@ isProtocolInvolved (const System sys, const Protocol p)
 int
 isEventInteresting (const System sys, const Roledef rd)
 {
-  if (sys->switchHuman)
+  if (switches.human)
     {
       if (rd->type != CLAIM)
 	{
@@ -624,7 +625,7 @@ xmlOutSysInfo (const System sys)
   xmlPrint ("<system>");
   xmlindent++;
 
-  xmlOutInteger ("match", sys->match);
+  xmlOutInteger ("match", switches.match);
 
   xmlInitialKnowledge (sys);
   xmlInvolvedProtocolRoles (sys);

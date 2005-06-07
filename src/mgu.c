@@ -17,7 +17,7 @@
 
 //! Internal constant. If true, typed checking
 /**
- * Analoguous to sys->match
+ * Analoguous to switches.match
  * 0	typed
  * 1	basic typeflaws
  * 2	all typeflaws
@@ -26,7 +26,7 @@ static int mgu_match = 0;
 
 extern Term TERM_Hidden;
 
-//! Set mgu mode (basically sys->match)
+//! Set mgu mode (basically switches.match)
 void
 setMguMode (const int match)
 {

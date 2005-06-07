@@ -363,15 +363,15 @@ main (int argc, char **argv)
   sys = systemInit ();
   if (switch_arachne->count > 0)
     {
-      sys->engine = ARACHNE_ENGINE;
+      switches.engine = ARACHNE_ENGINE;
       bindingInit (sys);
     }
   /* init compiler for this system */
   compilerInit (sys);
 
   /* transfer command line */
-  sys->argc = argc;
-  sys->argv = argv;
+  switches.argc = argc;
+  switches.argv = argv;
 
   if (switch_echo->count > 0)
     {
@@ -383,64 +383,64 @@ main (int argc, char **argv)
 
   /* handle switches */
 
-  sys->switchRuns = switch_maximum_runs->ival[0];	/* maximum number of runs */
+  switches.runs = switch_maximum_runs->ival[0];	/* maximum number of runs */
   if (switch_implicit_choose->count > 0)
     /* allow implicit chooses */
-    sys->switchForceChoose = 0;
+    switches.forceChoose = 0;
   if (switch_choose_first->count > 0)
-    sys->switchChooseFirst = 1;	/* priority to chooses */
+    switches.chooseFirst = 1;	/* priority to chooses */
   if (switch_enable_read_symmetries->count > 0)
     {
       if (switch_enable_symmetry_order->count > 0)
 	error
 	  ("--read-symm and --symm-order cannot be used at the same time.");
-      sys->switchReadSymm = 1;
+      switches.readSymmetries = 1;
     }
   if (switch_enable_symmetry_order->count > 0)
-    sys->switchSymmOrder = 1;	/* enable symmetry order */
+    switches.orderSymmetries = 1;	/* enable symmetry order */
   if (switch_disable_agent_symmetries->count > 0)
-    sys->switchAgentSymm = 0;	/* disable agent symmetry order */
+    switches.agentSymmetries = 0;	/* disable agent symmetry order */
   if (switch_disable_noclaims_reductions->count > 0)
-    sys->switchNomoreClaims = 0;	/* disable no more claims cutter */
+    switches.pruneNomoreClaims = 0;	/* disable no more claims cutter */
   if (switch_disable_endgame_reductions->count > 0)
-    sys->switchReduceEndgame = 0;	/* disable endgame cutter */
+    switches.reduceEndgame = 0;	/* disable endgame cutter */
   if (switch_disable_claim_symmetry->count > 0)
-    sys->switchReduceClaims = 0;	/* disable claim symmetry cutter */
+    switches.reduceClaims = 0;	/* disable claim symmetry cutter */
   if (switch_summary->count > 0)
-    sys->output = SUMMARY;	/* report summary on stdout */
+    switches.output = SUMMARY;	/* report summary on stdout */
   if (switch_proof->count > 0)
-    sys->output = PROOF;	/* report proof on stdout (for arachne only) */
+    switches.output = PROOF;	/* report proof on stdout (for arachne only) */
 
   /*
    * The scenario selector has an important side effect; when it is non-null,
    * any scenario traversing selects chooses first.
    */
-  sys->switchScenario = switch_scenario->ival[0];	/* scenario selector */
-  sys->switchScenarioSize = switch_scenario_size->ival[0];	/* scenario size */
-  if (sys->switchScenario == 0 && sys->switchScenarioSize > 0)
+  switches.scenario = switch_scenario->ival[0];	/* scenario selector */
+  switches.scenarioSize = switch_scenario_size->ival[0];	/* scenario size */
+  if (switches.scenario == 0 && switches.scenarioSize > 0)
     {
       /* no scenario, but a size is set. so override */
 #ifdef DEBUG
       warning ("Scanning scenarios.");
 #endif
-      sys->switchScenario = -1;
+      switches.scenario = -1;
     }
-  if (sys->switchScenario < 0)
+  if (switches.scenario < 0)
     {
-      sys->output = SCENARIOS;
+      switches.output = SCENARIOS;
     }
-  if (sys->switchScenario != 0 && sys->switchScenarioSize == 0)
+  if (switches.scenario != 0 && switches.scenarioSize == 0)
     {
 #ifdef DEBUG
       warning
 	("Scenario selection without trace prefix length implies --choose-first.");
 #endif
-      sys->switchChooseFirst = 1;
+      switches.chooseFirst = 1;
     }
 #ifdef DEBUG
-  sys->porparam = switch_por_parameter->ival[0];
+  switches.switchP = switch_por_parameter->ival[0];
 #endif
-  sys->latex = switch_latex_output->count;
+  switches.latex = switch_latex_output->count;
   sys->know = emptyKnowledge ();
 
 
@@ -463,7 +463,7 @@ main (int argc, char **argv)
       if (claim == NULL)
 	error ("Unknown claim type to check.");
       if (inTermlist (claim->stype, TERM_Claim))
-	sys->switchClaimToCheck = claim;
+	switches.filterClaim = claim;
       else
 	error ("Claim type to check is not a claim.");
     }
@@ -478,7 +478,7 @@ main (int argc, char **argv)
 
   /* compile */
 
-  if (sys->engine != ARACHNE_ENGINE)
+  if (switches.engine != ARACHNE_ENGINE)
     {
       // Compile as many runs as possible
       compile (spdltac, switch_maximum_runs->ival[0]);
@@ -518,42 +518,42 @@ main (int argc, char **argv)
 
   /* add parameters to system */
 
-  sys->clp = (switch_clp->count > 0 ? 1 : 0);
+  switches.clp = (switch_clp->count > 0 ? 1 : 0);
 
-  sys->traverse = switch_traversal_method->ival[0];
-  sys->match = switch_match_method->ival[0];
-  mgu_match = sys->match;
-  sys->prune = switch_pruning_method->ival[0];
+  switches.traverse = switch_traversal_method->ival[0];
+  switches.match = switch_match_method->ival[0];
+  mgu_match = switches.match;
+  switches.prune = switch_pruning_method->ival[0];
   time_limit_seconds = switch_timer->ival[0];
   set_time_limit (switch_timer->ival[0]);
   if (switch_progress_bar->count > 0)
     /* enable progress display */
-    sys->switchS = 50000;
+    switches.reportStates = 50000;
   else
     /* disable progress display */
-    sys->switchS = 0;
+    switches.reportStates = 0;
   if (switch_state_space_graph->count > 0)
     {
       /* enable state space graph output */
-      sys->output = STATESPACE;	//!< New method
+      switches.output = STATESPACE;	//!< New method
     }
   if (switch_empty->count > 0)
-    sys->output = EMPTY;
+    switches.output = EMPTY;
   if (switch_prune_proof_depth->ival[0] >= 0)
-    sys->switch_maxproofdepth = switch_prune_proof_depth->ival[0];
+    switches.maxproofdepth = switch_prune_proof_depth->ival[0];
   if (switch_prune_trace_length->ival[0] >= 0)
-    sys->switch_maxtracelength = switch_prune_trace_length->ival[0];
+    switches.maxtracelength = switch_prune_trace_length->ival[0];
   if (switch_goal_select_method->ival[0] >= 0)
-    sys->switchGoalSelectMethod = switch_goal_select_method->ival[0];
+    switches.arachneSelector = switch_goal_select_method->ival[0];
 #ifdef DEBUG
   /* in debugging mode, some extra switches */
   if (switch_debug_indent->count > 0)
     indentActivate ();
   if (DEBUGL (1))
-    printf ("Using traversal method %i.\n", sys->traverse);
+    printf ("Using traversal method %i.\n", switches.traverse);
 #else
   /* non-debug defaults */
-  sys->switchM = 0;
+  switches.reportMemory = 0;
 #endif
 
   /*
@@ -563,7 +563,7 @@ main (int argc, char **argv)
    */
 
   /* Latex only makes sense for attacks */
-  if (sys->latex && sys->output != ATTACK)
+  if (switches.latex && switches.output != ATTACK)
     {
       error ("Scyther can only generate LaTeX output for attacks.");
     }
@@ -571,7 +571,7 @@ main (int argc, char **argv)
   if (switch_incremental_runs->count > 0 ||
       switch_incremental_trace_length->count > 0)
     {
-      if (sys->output != ATTACK && sys->output != EMPTY)
+      if (switches.output != ATTACK && switches.output != EMPTY)
 	{
 	  error ("Incremental traversal only for empty or attack output.");
 	}
@@ -579,11 +579,11 @@ main (int argc, char **argv)
 #ifdef DEBUG
   if (DEBUGL (4))
     {
-      warning ("Selected output method is %i", sys->output);
+      warning ("Selected output method is %i", switches.output);
     }
 #endif
 
-  if (sys->engine == ARACHNE_ENGINE)
+  if (switches.engine == ARACHNE_ENGINE)
     {
       arachneInit (sys);
     }
@@ -594,7 +594,7 @@ main (int argc, char **argv)
    */
 
   /* latex header? */
-  if (sys->latex)
+  if (switches.latex)
     latexInit (sys, argc, argv);
 
   /* model check system */
@@ -628,7 +628,7 @@ main (int argc, char **argv)
 
   if (sys->attack != NULL && sys->attack->length != 0)
     {
-      if (sys->output == ATTACK)
+      if (switches.output == ATTACK)
 	{
 	  attackDisplay (sys);
 	}
@@ -654,12 +654,12 @@ main (int argc, char **argv)
     }
 
   /* latex closeup */
-  if (sys->latex)
+  if (switches.latex)
     latexDone (sys);
 
   /* Transfer any scenario counting to the exit code,
    * assuming that there is no error. */
-  if (exitcode != EXIT_ERROR && sys->switchScenario < 0)
+  if (exitcode != EXIT_ERROR && switches.scenario < 0)
     {
       exitcode = sys->countScenario;
     }
@@ -668,7 +668,7 @@ main (int argc, char **argv)
    * Now we clean up any memory that was allocated.
    */
 
-  if (sys->engine == ARACHNE_ENGINE)
+  if (switches.engine == ARACHNE_ENGINE)
     {
       arachneDone ();
       bindingDone ();
@@ -710,7 +710,7 @@ timersPrint (const System sys)
 // #define NOTIMERS
 
   /* display stats */
-  if (sys->output != SUMMARY)
+  if (switches.output != SUMMARY)
     {
       globalError++;
     }
@@ -723,7 +723,7 @@ timersPrint (const System sys)
 
   /* scenario info */
 
-  if (sys->switchScenario > 0)
+  if (switches.scenario > 0)
     {
       eprintf ("scen_st\t");
       statesFormat (sys->statesScenario);
@@ -845,7 +845,7 @@ timersPrint (const System sys)
     }
 
   /* reset globalError */
-  if (sys->output != SUMMARY)
+  if (switches.output != SUMMARY)
     {
       globalError--;
     }
@@ -885,7 +885,7 @@ MC_incRuns (const System sys)
 	   * the whole space, then we just continue.  However, if
 	   * we're looking to prune, ``the buck stops here''. */
 
-	  if (sys->prune != 0)
+	  if (switches.prune != 0)
 	    {
 	      flag = 0;
 	    }
@@ -942,7 +942,7 @@ MC_incTraces (const System sys)
 	   * the whole space, then we just continue.  However, if
 	   * we're looking to prune, ``the buck stops here''. */
 
-	  if (sys->prune != 0)
+	  if (switches.prune != 0)
 	    {
 	      flag = 0;
 	    }
@@ -980,13 +980,13 @@ MC_single (const System sys)
 int
 modelCheck (const System sys)
 {
-  if (sys->output == STATESPACE)
+  if (switches.output == STATESPACE)
     {
       graphInit (sys);
     }
 
   /* modelcheck the system */
-  switch (sys->engine)
+  switch (switches.engine)
     {
     case POR_ENGINE:
       traverse (sys);
@@ -995,25 +995,25 @@ modelCheck (const System sys)
       arachne ();
       break;
     default:
-      error ("Unknown engine type %i.", sys->engine);
+      error ("Unknown engine type %i.", switches.engine);
     }
 
   /* clean up any states display */
-  if (sys->switchS > 0)
+  if (switches.reportStates > 0)
     {
       //                States: 1.000e+06
       fprintf (stderr, "                  \r");
     }
 
   timersPrint (sys);
-  if (sys->output == STATESPACE)
+  if (switches.output == STATESPACE)
     {
       graphDone (sys);
     }
-  if (sys->switchScenario > 0)
+  if (switches.scenario > 0)
     {
       /* Traversing a scenario. Maybe we ran out. */
-      if (sys->switchScenario > sys->countScenario)
+      if (switches.scenario > sys->countScenario)
 	{
 	  /* Signal as error */
 	  exit (1);

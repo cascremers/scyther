@@ -10,14 +10,83 @@
 #include "debug.h"
 #include "version.h"
 #include "timer.h"
+#include "switches.h"
+#include <limits.h>
 
-extern System sys;
+struct switchdata switches;
 
 extern struct tacnode *spdltac;
 extern Term TERM_Claim;
 
 const char *progname = "scyther";
 const char *releasetag = SVNVERSION;
+
+// Forward declarations
+void process_switches ();
+
+//! Init switches
+/**
+ * Set them all to the default settings.
+ */
+void
+switchesInit (int argc, char **argv)
+{
+  // Command-line
+  switches.argc = argc;
+  switches.argv = argv;
+
+  // Methods
+  switches.engine = POR_ENGINE;	// default is partial ordering engine
+  switches.match = 0;		// default matching
+  switches.clp = 0;
+
+  // Pruning and Bounding
+  switches.prune = 2;		// default pruning method
+  switches.maxproofdepth = INT_MAX;
+  switches.maxtracelength = INT_MAX;
+  switches.runs = INT_MAX;
+  switches.filterClaim = NULL;	// default check all claims
+
+  // Modelchecker
+  switches.traverse = 12;	// default traversal method
+  switches.forceChoose = 1;	// force explicit chooses by default
+  switches.chooseFirst = 0;	// no priority to chooses by default
+  switches.readSymmetries = 0;	// don't force read symmetries by default
+  switches.agentSymmetries = 1;	// default enable agent symmetry
+  switches.orderSymmetries = 0;	// don't force symmetry order reduction by default
+  switches.pruneNomoreClaims = 1;	// default cutter when there are no more claims
+  switches.reduceEndgame = 1;	// default cutter of last events in a trace
+  switches.reduceClaims = 1;	// default remove claims from duplicate instance choosers
+  // Parallellism
+  switches.scenario = 0;
+  switches.scenarioSize = 0;
+
+  // Arachne
+  switches.arachneSelector = 3;	// default goal selection method
+
+  // Misc
+  switches.switchP = 0;		// multi-purpose parameter
+
+  // Output
+  switches.output = ATTACK;	// default is to show the attacks
+  switches.report = 0;
+  switches.reportClaims = 0;	// default don't report on claims
+  switches.xml = 0;		// default no xml output
+  switches.human = false;	// not human friendly by default
+  switches.reportMemory;
+  switches.reportTime;
+  switches.reportStates;
+  // Obsolete
+  switches.latex = 0;		// latex output?
+
+  process_switches ();
+}
+
+//! Exit
+void
+switchesDone (void)
+{
+}
 
 //! Process a single switch or generate help text
 /**
@@ -29,7 +98,7 @@ const char *releasetag = SVNVERSION;
  * The index steps through 1..argc-1.
  */
 int
-switcher (const int process, const System sys, int index)
+switcher (const int process, int index)
 {
   char *this_arg;		// just a shortcut
   int this_arg_length;		// same here
@@ -166,8 +235,8 @@ switcher (const int process, const System sys, int index)
 
   if (process)
     {
-      argc = sys->argc;
-      argv = sys->argv;
+      argc = switches.argc;
+      argv = switches.argv;
 #ifdef DEBUG
       // Check range for debug; we trust the non-debug version :)
       if (index < 1 || index >= argc)
@@ -203,8 +272,7 @@ switcher (const int process, const System sys, int index)
       else
 	{
 	  // Select arachne engine
-	  sys->engine = ARACHNE_ENGINE;
-	  bindingInit (sys);
+	  switches.engine = ARACHNE_ENGINE;
 	  return index;
 	}
     }
@@ -217,7 +285,7 @@ switcher (const int process, const System sys, int index)
 	}
       else
 	{
-	  sys->switchXMLoutput = 1;
+	  switches.xml = 1;
 	  return index;
 	}
     }
@@ -230,7 +298,7 @@ switcher (const int process, const System sys, int index)
 	}
       else
 	{
-	  sys->match = integer_argument ();
+	  switches.match = integer_argument ();
 	  return index;
 	}
     }
@@ -259,7 +327,7 @@ switcher (const int process, const System sys, int index)
 	}
       else
 	{
-	  sys->switchRuns = integer_argument ();
+	  switches.runs = integer_argument ();
 	  return index;
 	}
     }
@@ -273,7 +341,7 @@ switcher (const int process, const System sys, int index)
 	}
       else
 	{
-	  sys->switch_maxtracelength = integer_argument ();
+	  switches.maxtracelength = integer_argument ();
 	  return index;
 	}
     }
@@ -288,7 +356,7 @@ switcher (const int process, const System sys, int index)
 	}
       else
 	{
-	  sys->prune = integer_argument ();
+	  switches.prune = integer_argument ();
 	  return index;
 	}
     }
@@ -302,7 +370,7 @@ switcher (const int process, const System sys, int index)
 	}
       else
 	{
-	  sys->switchHuman = true;
+	  switches.human = true;
 	  return index;
 	}
     }
@@ -323,7 +391,7 @@ switcher (const int process, const System sys, int index)
 	}
       else
 	{
-	  sys->latex = 1;
+	  switches.latex = 1;
 	  return index;
 	}
     }
@@ -337,7 +405,7 @@ switcher (const int process, const System sys, int index)
 	}
       else
 	{
-	  sys->output = STATESPACE;
+	  switches.output = STATESPACE;
 	  return index;
 	}
     }
@@ -362,7 +430,7 @@ switcher (const int process, const System sys, int index)
 	}
       else
 	{
-	  sys->switchGoalSelectMethod = integer_argument ();
+	  switches.arachneSelector = integer_argument ();
 	  return index;
 	}
     }
@@ -376,7 +444,7 @@ switcher (const int process, const System sys, int index)
       else
 	{
 	  // Proof
-	  sys->output = PROOF;
+	  switches.output = PROOF;
 	  return index;
 	}
     }
@@ -399,7 +467,7 @@ switcher (const int process, const System sys, int index)
 	{
 	  /* print command line */
 	  fprintf (stdout, "command\t");
-	  commandlinePrint (stdout, sys);
+	  commandlinePrint (stdout);
 	  fprintf (stdout, "\n");
 	  return index;
 	}
@@ -413,7 +481,7 @@ switcher (const int process, const System sys, int index)
 	}
       else
 	{
-	  sys->output = SUMMARY;
+	  switches.output = SUMMARY;
 	  return index;
 	}
     }
@@ -428,7 +496,7 @@ switcher (const int process, const System sys, int index)
 	}
       else
 	{
-	  sys->switchS = 50000;
+	  switches.reportStates = 50000;
 	  return index;
 	}
     }
@@ -443,7 +511,7 @@ switcher (const int process, const System sys, int index)
 	}
       else
 	{
-	  sys->output = EMPTY;
+	  switches.output = EMPTY;
 	  return index;
 	}
     }
@@ -480,7 +548,7 @@ switcher (const int process, const System sys, int index)
 	{
 	  printf ("Usage:\n");
 	  printf ("  %s [switches] [FILE]\nSwitches:\n", progname);
-	  switcher (0, NULL, 0);
+	  switcher (0, 0);
 	  exit (0);
 	}
     }
@@ -557,11 +625,11 @@ switcher (const int process, const System sys, int index)
 
 //! Process switches
 void
-process_switches (const System sys)
+process_switches ()
 {
   int index;
 
-  if (sys->argc == 1)
+  if (switches.argc == 1)
     {
       printf ("Try '%s --help' for more information, or visit:\n", progname);
       printf (" http://www.win.tue.nl/~ccremers/scyther/index.html\n");
@@ -569,8 +637,8 @@ process_switches (const System sys)
     }
 
   index = 1;
-  while (index < sys->argc && index > 0)
+  while (index < switches.argc && index > 0)
     {
-      index = switcher (1, sys, index);
+      index = switcher (1, index);
     }
 }

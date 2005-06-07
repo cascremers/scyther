@@ -100,11 +100,11 @@ main (int argc, char **argv)
    * ------------------------------------------------
    */
 
-  sys = systemInit ();
-  sys->argc = argc;
-  sys->argv = argv;
+  /* process any command-line switches */
+  switchesInit (argc, argv);
 
-  process_switches (sys);
+  /* start system */
+  sys = systemInit ();
 
   /* init compiler for this system */
   compilerInit (sys);
@@ -122,10 +122,10 @@ main (int argc, char **argv)
 
   /* compile */
 
-  if (sys->engine != ARACHNE_ENGINE)
+  if (switches.engine != ARACHNE_ENGINE)
     {
       // Compile as many runs as possible
-      compile (spdltac, sys->switchRuns);
+      compile (spdltac, switches.runs);
     }
   else
     {
@@ -170,18 +170,18 @@ main (int argc, char **argv)
    */
 
   /* Latex only makes sense for attacks */
-  if (sys->latex && sys->output != ATTACK)
+  if (switches.latex && switches.output != ATTACK)
     {
       error ("Scyther can only generate LaTeX output for attacks.");
     }
 #ifdef DEBUG
   if (DEBUGL (4))
     {
-      warning ("Selected output method is %i", sys->output);
+      warning ("Selected output method is %i", switches.output);
     }
 #endif
 
-  if (sys->engine == ARACHNE_ENGINE)
+  if (switches.engine == ARACHNE_ENGINE)
     {
       arachneInit (sys);
     }
@@ -192,11 +192,11 @@ main (int argc, char **argv)
    */
 
   /* xml init */
-  if (sys->switchXMLoutput)
+  if (switches.xml)
     xmlOutInit ();
 
   /* latex header? */
-  if (sys->latex)
+  if (switches.latex)
     latexInit (sys, argc, argv);
 
   /* model check system */
@@ -216,7 +216,7 @@ main (int argc, char **argv)
 
   if (sys->attack != NULL && sys->attack->length != 0)
     {
-      if (sys->output == ATTACK)
+      if (switches.output == ATTACK)
 	{
 	  attackDisplay (sys);
 	}
@@ -242,16 +242,16 @@ main (int argc, char **argv)
     }
 
   /* latex closeup */
-  if (sys->latex)
+  if (switches.latex)
     latexDone (sys);
 
   /* xml closeup */
-  if (sys->switchXMLoutput)
+  if (switches.xml)
     xmlOutDone ();
 
   /* Transfer any scenario counting to the exit code,
    * assuming that there is no error. */
-  if (exitcode != EXIT_ERROR && sys->switchScenario < 0)
+  if (exitcode != EXIT_ERROR && switches.scenario < 0)
     {
       exitcode = sys->countScenario;
     }
@@ -260,7 +260,7 @@ main (int argc, char **argv)
    * Now we clean up any memory that was allocated.
    */
 
-  if (sys->engine == ARACHNE_ENGINE)
+  if (switches.engine == ARACHNE_ENGINE)
     {
       arachneDone ();
       bindingDone ();
@@ -299,7 +299,7 @@ timersPrint (const System sys)
 // #define NOTIMERS
 
   /* display stats */
-  if (sys->output != SUMMARY)
+  if (switches.output != SUMMARY)
     {
       globalError++;
     }
@@ -312,7 +312,7 @@ timersPrint (const System sys)
 
   /* scenario info */
 
-  if (sys->switchScenario > 0)
+  if (switches.scenario > 0)
     {
       eprintf ("scen_st\t");
       statesFormat (sys->statesScenario);
@@ -434,7 +434,7 @@ timersPrint (const System sys)
     }
 
   /* reset globalError */
-  if (sys->output != SUMMARY)
+  if (switches.output != SUMMARY)
     {
       globalError--;
     }
@@ -474,7 +474,7 @@ MC_incRuns (const System sys)
 	   * the whole space, then we just continue.  However, if
 	   * we're looking to prune, ``the buck stops here''. */
 
-	  if (sys->prune != 0)
+	  if (switches.prune != 0)
 	    {
 	      flag = 0;
 	    }
@@ -531,7 +531,7 @@ MC_incTraces (const System sys)
 	   * the whole space, then we just continue.  However, if
 	   * we're looking to prune, ``the buck stops here''. */
 
-	  if (sys->prune != 0)
+	  if (switches.prune != 0)
 	    {
 	      flag = 0;
 	    }
@@ -569,13 +569,13 @@ MC_single (const System sys)
 int
 modelCheck (const System sys)
 {
-  if (sys->output == STATESPACE)
+  if (switches.output == STATESPACE)
     {
       graphInit (sys);
     }
 
   /* modelcheck the system */
-  switch (sys->engine)
+  switch (switches.engine)
     {
     case POR_ENGINE:
       if (sys->maxruns > 0)
@@ -587,25 +587,25 @@ modelCheck (const System sys)
       arachne ();
       break;
     default:
-      error ("Unknown engine type %i.", sys->engine);
+      error ("Unknown engine type %i.", switches.engine);
     }
 
   /* clean up any states display */
-  if (sys->switchS > 0)
+  if (switches.reportStates > 0)
     {
       //                States: 1.000e+06
       fprintf (stderr, "                  \r");
     }
 
   timersPrint (sys);
-  if (sys->output == STATESPACE)
+  if (switches.output == STATESPACE)
     {
       graphDone (sys);
     }
-  if (sys->switchScenario > 0)
+  if (switches.scenario > 0)
     {
       /* Traversing a scenario. Maybe we ran out. */
-      if (sys->switchScenario > sys->countScenario)
+      if (switches.scenario > sys->countScenario)
 	{
 	  /* Signal as error */
 	  exit (1);

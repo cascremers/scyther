@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include "system.h"
 #include "latex.h"
+#include "switches.h"
 
 
 void
@@ -220,7 +221,7 @@ tracePrint (const System sys)
     printf ("\n");
   }
 
-  if (sys->latex)
+  if (switches.latex)
     {
       //latexTracePrint(sys);
       return;
@@ -331,7 +332,7 @@ tracePrint (const System sys)
       printf ("\n");
     }
 
-  switch (sys->clp)
+  switch (switches.clp)
     {
     case 1:
       indent ();
@@ -481,7 +482,7 @@ attackDisplayAscii (const System sys)
 void
 attackDisplay (const System sys)
 {
-  if (sys->latex)
+  if (switches.latex)
     {
       attackDisplayLatex (sys);
     }
@@ -507,7 +508,7 @@ graphInit (const System sys)
 
   /* label */
   printf ("\tcomment = \"$");
-  commandlinePrint (stdout, sys);
+  commandlinePrint (stdout);
   printf ("\";\n");
 
   /* fit stuff onto the page */
@@ -579,7 +580,7 @@ graphNode (const System sys)
   else
     {
       /* no added knowledge */
-      if (sys->switchScenario != 0 &&
+      if (switches.scenario != 0 &&
 	  rd != NULL &&
 	  rd == sys->runs[run].start &&
 	  rd->type == READ && run == sys->lastChooseRun)

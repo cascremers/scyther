@@ -103,7 +103,6 @@ struct tracebuf
 //! The main state structure.
 struct system
 {
-  int engine;			//!< Engine type (POR_ENGINE,ARACHNE_ENGINE)
   int step;			//!< Step in trace during exploration. Can be managed globally
   Knowledge know;		//!< Knowledge in currect step of system.
   struct parameters *parameters;	// misc
@@ -117,41 +116,7 @@ struct system
   Termlist secrets;		//!< Integrate secrets list into system.
   Termlist synchronising_labels;	//!< List of labels that might synchronise.
   int shortestattack;		//!< Length of shortest attack trace.
-
-  /* switches */
-  int output;			//!< From enum outputs: what should be produced. Default ATTACK.
-  int report;
-  int prune;			//!< Type of pruning.
-  int switch_maxproofdepth;	//!< Maximum proof depth
-  int switch_maxtracelength;	//!< Maximum trace length allowed
   int maxtracelength;		//!< helps to remember the length of the last trace.
-  int switchM;			//!< Memory display switch.
-  int switchT;			//!< Time display switch.
-  int switchS;			//!< Progress display switch. (traversed states)
-  int porparam;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
-  int switchRuns;		//!< The number of runs as in the switch
-  int switchScenario;		//!< -1 to count, 0 for disable, 1-n to select the choose scenario
-  int switchScenarioSize;	//!< Scenario size, also called fixed trace prefix length
-  int switchForceChoose;	//!< Force chooses for each run, even if involved in first read
-  int switchChooseFirst;	//!< Priority to chooses, implicit and explicit
-  int switchReadSymm;		//!< Enable read symmetry reduction
-  int switchAgentSymm;		//!< Enable agent symmetry reduction
-  int switchSymmOrder;		//!< Enable symmetry order reduction
-  int switchNomoreClaims;	//!< Enable no more claims cutter
-  int switchReduceEndgame;	//!< Enable endgame cutter
-  int switchReduceClaims;	//!< Symmetry reduction on claims (only works when switchAgentSymm is true)
-  int switchClaims;		//!< Enable clails report
-  int switchGoalSelectMethod;	//!< Goal selection method for Arachne engine
-  Term switchClaimToCheck;	//!< Which claim should be checked?
-  int switchXMLoutput;		//!< xml output
-  int switchHuman;		//!< human readable
-
-  //! Latex output switch.
-  /**
-   * Obsolete. Use globalLatex instead.
-   *\sa globalLatex
-   */
-  int latex;
 
   /* traversal */
   int traverse;			//!< Traversal method.
@@ -165,10 +130,6 @@ struct system
   states_t failed;		//!< Number of claims failed.
   int attackid;			//!< Global counter of attacks (used for assigning identifiers) within this Scyther call.
   int countScenario;		//!< Number of scenarios skipped.
-
-  /* matching */
-  int match;			//!< Matching type.
-  int clp;			//!< Do we use clp?
 
   /* protocol definition */
   Protocol protocols;		//!< List of protocols in the system
@@ -201,10 +162,6 @@ struct system
 
   //! Shortest attack storage.
   struct tracebuf *attack;
-
-  //! Command line arguments
-  int argc;
-  char **argv;
 };
 
 typedef struct system *System;
@@ -239,7 +196,7 @@ int getMaxTraceLength (const System sys);
 void agentsOfRunPrint (const System sys, const int run);
 void violatedClaimPrint (const System sys, int i);
 int attackLength (struct tracebuf *tb);
-void commandlinePrint (FILE * stream, const System sys);
+void commandlinePrint (FILE * stream);
 
 int compute_rolecount (const System sys);
 int compute_roleeventmax (const System sys);

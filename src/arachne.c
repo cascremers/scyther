@@ -31,6 +31,7 @@
 #include "warshall.h"
 #include "timer.h"
 #include "type.h"
+#include "switches.h"
 
 extern Term CLAIM_Secret;
 extern Term CLAIM_Nisynch;
@@ -170,7 +171,7 @@ arachneDone ()
 void
 indentPrefixPrint (const int annotate, const int jumps)
 {
-  if (sys->output == ATTACK && globalError == 0)
+  if (switches.output == ATTACK && globalError == 0)
     {
       // Arachne, attack, not an error
       // We assume that means DOT output
@@ -409,7 +410,7 @@ add_read_goals (const int run, const int old, const int new)
     {
       if (rd->type == READ)
 	{
-	  if (sys->output == PROOF)
+	  if (switches.output == PROOF)
 	    {
 	      if (count == 0)
 		{
@@ -427,7 +428,7 @@ add_read_goals (const int run, const int old, const int new)
       rd = rd->next;
       i++;
     }
-  if ((count > 0) && sys->output == PROOF)
+  if ((count > 0) && switches.output == PROOF)
     {
       eprintf ("\n");
     }
@@ -522,7 +523,7 @@ role_name_print (const int run)
 void
 proof_suppose_run (const int run, const int oldlength, const int newlength)
 {
-  if (sys->output == PROOF)
+  if (switches.output == PROOF)
     {
       int reallength;
 
@@ -553,7 +554,7 @@ proof_suppose_run (const int run, const int oldlength, const int newlength)
 void
 proof_select_goal (Binding b)
 {
-  if (sys->output == PROOF)
+  if (switches.output == PROOF)
     {
       Roledef rd;
 
@@ -573,7 +574,7 @@ proof_select_goal (Binding b)
 void
 proof_cannot_bind (const Binding b, const int run, const int index)
 {
-  if (sys->output == PROOF)
+  if (switches.output == PROOF)
     {
       indentPrint ();
       eprintf
@@ -586,7 +587,7 @@ proof_cannot_bind (const Binding b, const int run, const int index)
 void
 proof_suppose_binding (Binding b)
 {
-  if (sys->output == PROOF)
+  if (switches.output == PROOF)
     {
       Roledef rd;
 
@@ -785,7 +786,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	printf ("\n");
       }
 #endif
-    if (cryptlist != NULL && sys->output == PROOF)
+    if (cryptlist != NULL && switches.output == PROOF)
       {
 	indentPrint ();
 	eprintf
@@ -925,7 +926,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
   flag = termMguSubTerm (b->term, rd->message,
 			 subterm_iterate, sys->know->inverses, NULL);
   // Did it work?
-  if (found == 0 && sys->output == PROOF)
+  if (found == 0 && switches.output == PROOF)
     {
       indentPrint ();
       eprintf ("Cannot bind ");
@@ -954,7 +955,7 @@ bind_existing_run (const Binding b, const Protocol p, const Role r,
       if (sys->runs[run].protocol == p && sys->runs[run].role == r)
 	{
 	  found++;
-	  if (sys->output == PROOF)
+	  if (switches.output == PROOF)
 	    {
 	      if (found == 1)
 		{
@@ -973,7 +974,7 @@ bind_existing_run (const Binding b, const Protocol p, const Role r,
 	  indentDepth--;
 	}
     }
-  if (sys->output == PROOF && found == 0)
+  if (switches.output == PROOF && found == 0)
     {
       indentPrint ();
       eprintf ("There is no existing run for ");
@@ -2033,10 +2034,10 @@ select_goal ()
   int mode;
 
   // mode bits local storage
-  mode = sys->switchGoalSelectMethod;
+  mode = switches.arachneSelector;
 
   // Find the most constrained goal
-  if (sys->output == PROOF)
+  if (switches.output == PROOF)
     {
       indentPrint ();
       eprintf ("Listing open goals that might be chosen: ");
@@ -2103,7 +2104,7 @@ select_goal ()
 	      buf_constrain = 0;
 	      buf_weight = 0;
 
-	      if (sys->output == PROOF && best != NULL)
+	      if (switches.output == PROOF && best != NULL)
 		eprintf (", ");
 
 	      // We will shift this mode variable
@@ -2129,10 +2130,10 @@ select_goal ()
 		{
 		  min_constrain = buf_constrain;
 		  best = b;
-		  if (sys->output == PROOF)
+		  if (switches.output == PROOF)
 		    eprintf ("*");
 		}
-	      if (sys->output == PROOF)
+	      if (switches.output == PROOF)
 		{
 		  termPrint (b->term);
 		  if (mode & 2)
@@ -2145,7 +2146,7 @@ select_goal ()
 	}
       bl = bl->next;
     }
-  if (sys->output == PROOF)
+  if (switches.output == PROOF)
     {
       if (best == NULL)
 	eprintf ("none");
@@ -2219,7 +2220,7 @@ bind_goal_new_m0 (const Binding b)
 	      {
 		found++;
 		proof_suppose_binding (b);
-		if (sys->output == PROOF)
+		if (switches.output == PROOF)
 		  {
 		    indentPrint ();
 		    eprintf ("* I.e. retrieving ");
@@ -2245,7 +2246,7 @@ bind_goal_new_m0 (const Binding b)
       tl = tl->next;
     }
 
-  if (found == 0 && sys->output == PROOF)
+  if (found == 0 && switches.output == PROOF)
     {
       indentPrint ();
       eprintf ("Term ");
@@ -2302,7 +2303,7 @@ bind_goal_new_encrypt (const Binding b)
 	  rd->next->next->message = termDuplicateUV (term);
 	  index = 2;
 	  proof_suppose_run (run, 0, index + 1);
-	  if (sys->output == PROOF)
+	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf ("* Encrypting ");
@@ -2334,7 +2335,7 @@ bind_goal_new_encrypt (const Binding b)
 
   if (!can_be_encrypted)
     {
-      if (sys->output == PROOF)
+      if (switches.output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf ("Term ");
@@ -2357,7 +2358,7 @@ bind_goal_new_intruder_run (const Binding b)
 {
   int flag;
 
-  if (sys->output == PROOF)
+  if (switches.output == PROOF)
     {
       indentPrint ();
       eprintf ("Can we bind ");
@@ -2419,7 +2420,7 @@ bind_goal_regular_run (const Binding b)
 
 	// A good candidate
 	found++;
-	if (sys->output == PROOF && found == 1)
+	if (switches.output == PROOF && found == 1)
 	  {
 	    indentPrint ();
 	    eprintf ("The term ", found);
@@ -2427,7 +2428,7 @@ bind_goal_regular_run (const Binding b)
 	    eprintf
 	      (" matches patterns from the role definitions. Investigate.\n");
 	  }
-	if (sys->output == PROOF)
+	if (switches.output == PROOF)
 	  {
 	    indentPrint ();
 	    eprintf ("%i. It matches the pattern ", found);
@@ -2458,7 +2459,7 @@ bind_goal_regular_run (const Binding b)
   // Bind to all possible sends of regular runs
   found = 0;
   flag = iterate_role_sends (bind_this_role_send);
-  if (sys->output == PROOF && found == 0)
+  if (switches.output == PROOF && found == 0)
     {
       indentPrint ();
       eprintf ("The term ");
@@ -2493,7 +2494,7 @@ bind_goal_old_intruder_run (Binding b)
 	      if (rd->type == SEND)
 		{
 		  found++;
-		  if (sys->output == PROOF && found == 1)
+		  if (switches.output == PROOF && found == 1)
 		    {
 		      indentPrint ();
 		      eprintf
@@ -2508,7 +2509,7 @@ bind_goal_old_intruder_run (Binding b)
 	    }
 	}
     }
-  if (sys->output == PROOF && found == 0)
+  if (switches.output == PROOF && found == 0)
     {
       indentPrint ();
       eprintf ("No existing intruder runs to match to.\n");
@@ -2538,7 +2539,7 @@ bind_goal (const Binding b)
       // if (1 == 0)
       if (bind_old_goal (b))
 	{
-	  if (sys->output == PROOF)
+	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf ("Goal for term ");
@@ -2567,7 +2568,7 @@ bind_goal (const Binding b)
 	      if (!inKnowledge (sys->know, function))
 		{
 		  // Prune because we didn't know it before, and it is never subterm-sent
-		  if (sys->output == PROOF)
+		  if (switches.output == PROOF)
 		    {
 		      indentPrint ();
 		      eprintf ("* Because ");
@@ -2582,7 +2583,7 @@ bind_goal (const Binding b)
 	  // Keylevel lemmas: improves on the previous one
 	  if (!isPossiblySent (b->term))
 	    {
-	      if (sys->output == PROOF)
+	      if (switches.output == PROOF)
 		{
 		  eprintf
 		    ("Rejecting a term as a regular bind because key levels are off: ");
@@ -2654,7 +2655,7 @@ prune_theorems ()
   // Check all types of the local agents according to the matching type
   if (!checkTypeLocals (sys))
     {
-      if (sys->output == PROOF)
+      if (switches.output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf
@@ -2695,7 +2696,7 @@ prune_theorems ()
 	      }
 	    else
 	      {			// real leaf
-		if (sys->match == 0 || !isTermVariable (agent))
+		if (switches.match == 0 || !isTermVariable (agent))
 		  {		// either strict matching, or not a variable, so we should check matching types
 		    if (agent->stype == NULL)
 		      {		// Too generic
@@ -2713,7 +2714,7 @@ prune_theorems ()
 
 	    if (!sensibleagent)
 	      {
-		if (sys->output == PROOF)
+		if (switches.output == PROOF)
 		  {
 		    indentPrint ();
 		    eprintf ("Pruned because the agent ");
@@ -2738,7 +2739,7 @@ prune_theorems ()
       agent = deVar (tl->term);
       if (!realTermVariable (agent) && inTermlist (sys->untrusted, agent))
 	{
-	  if (sys->output == PROOF)
+	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf
@@ -2770,7 +2771,7 @@ prune_theorems ()
 		    }
 		  if (inTermlist (sys->untrusted, actor))
 		    {
-		      if (sys->output == PROOF)
+		      if (switches.output == PROOF)
 			{
 			  indentPrint ();
 			  eprintf
@@ -2805,7 +2806,7 @@ prune_theorems ()
   {
     if (!bindings_c_minimal ())
       {
-	if (sys->output == PROOF)
+	if (switches.output == PROOF)
 	  {
 	    indentPrint ();
 	    eprintf ("Pruned because this is not <=c-minimal.\n");
@@ -2828,7 +2829,7 @@ prune_theorems ()
       if (termInTerm (b->term, TERM_Hidden))
 	{
 	  // Prune the state: we can never meet this
-	  if (sys->output == PROOF)
+	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf ("Pruned because intruder can never construnct ");
@@ -2840,12 +2841,12 @@ prune_theorems ()
 
       // Check for encryption levels
       /*
-       * if (sys->match < 2
+       * if (switches.match < 2
        */
       if (term_encryption_level (b->term) > max_encryption_level)
 	{
 	  // Prune: we do not need to construct such terms
-	  if (sys->output == PROOF)
+	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf ("Pruned because the encryption level of ");
@@ -2863,7 +2864,7 @@ prune_theorems ()
 	  if (!inKnowledge (sys->know, b->term))
 	    {
 	      // Not in initial knowledge of the intruder
-	      if (sys->output == PROOF)
+	      if (switches.output == PROOF)
 		{
 		  indentPrint ();
 		  eprintf ("Pruned because the function ");
@@ -2894,7 +2895,7 @@ prune_bounds ()
   if (passed_time_limit ())
     {
       // Oh no, we ran out of time!
-      if (sys->output == PROOF)
+      if (switches.output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf ("Pruned: ran out of allowed time (-T %i switch)\n",
@@ -2906,20 +2907,20 @@ prune_bounds ()
     }
 
   /* prune for proof depth */
-  if (proofDepth > sys->switch_maxproofdepth)
+  if (proofDepth > switches.maxproofdepth)
     {
       // Hardcoded limit on proof tree depth
-      if (sys->output == PROOF)
+      if (switches.output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf ("Pruned: proof tree too deep: %i (-d %i switch)\n",
-		   proofDepth, sys->switch_maxproofdepth);
+		   proofDepth, switches.maxproofdepth);
 	}
       return 1;
     }
 
   /* prune for trace length */
-  if (sys->switch_maxtracelength < INT_MAX)
+  if (switches.maxtracelength < INT_MAX)
     {
       int tracelength;
       int run;
@@ -2937,23 +2938,23 @@ prune_bounds ()
 	  run++;
 	}
       /* test */
-      if (tracelength > sys->switch_maxtracelength)
+      if (tracelength > switches.maxtracelength)
 	{
 	  // Hardcoded limit on proof tree depth
-	  if (sys->output == PROOF)
+	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf ("Pruned: trace too long: %i (-l %i switch)\n",
-		       tracelength, sys->switch_maxtracelength);
+		       tracelength, switches.maxtracelength);
 	    }
 	  return 1;
 	}
     }
 
-  if (num_regular_runs > sys->switchRuns)
+  if (num_regular_runs > switches.runs)
     {
       // Hardcoded limit on runs
-      if (sys->output == PROOF)
+      if (switches.output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf ("Pruned: too many regular runs (%i).\n", num_regular_runs);
@@ -2963,12 +2964,12 @@ prune_bounds ()
 
   // This needs some foundation. Probably * 2^max_encryption_level
   //!@todo Fix this bound
-  if ((sys->match < 2)
+  if ((switches.match < 2)
       && (num_intruder_runs >
-	  ((double) sys->switchRuns * max_encryption_level * 8)))
+	  ((double) switches.runs * max_encryption_level * 8)))
     {
       // Hardcoded limit on iterations
-      if (sys->output == PROOF)
+      if (switches.output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf
@@ -2979,9 +2980,9 @@ prune_bounds ()
     }
 
   // Limit on exceeding any attack length
-  if (sys->prune == 2 && get_semitrace_length () >= attack_length)
+  if (switches.prune == 2 && get_semitrace_length () >= attack_length)
     {
-      if (sys->output == PROOF)
+      if (switches.output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf
@@ -3010,7 +3011,7 @@ prune_claim_specifics ()
 	{
 	  sys->current_claim->count =
 	    statesIncrease (sys->current_claim->count);
-	  if (sys->output == PROOF)
+	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf
@@ -3025,7 +3026,7 @@ prune_claim_specifics ()
 	{
 	  sys->current_claim->count =
 	    statesIncrease (sys->current_claim->count);
-	  if (sys->output == PROOF)
+	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf
@@ -3045,7 +3046,7 @@ add_claim_specifics (const Claimlist cl, const Roledef rd)
       /**
        * Secrecy claim
        */
-      if (sys->output == PROOF)
+      if (switches.output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf ("* To verify the secrecy claim, we add the term ");
@@ -3093,15 +3094,15 @@ property_check ()
    * By the way the claim is handled, this automatically means a flaw.
    */
   count_false ();
-  if (sys->output == ATTACK)
+  if (switches.output == ATTACK)
     {
-      if (sys->switchXMLoutput)
+      if (switches.xml)
 	{
 	  xmlOutSemitrace (sys);
 	}
       else
 	{
-	  if (sys->latex == 1)
+	  if (switches.latex == 1)
 	    {
 	      latexSemiState ();
 	    }
@@ -3117,7 +3118,7 @@ property_check ()
     {
       // Shortest attack
       attack_length = attack_this;
-      if (sys->output == PROOF)
+      if (switches.output == PROOF)
 	{
 	  indentPrint ();
 	  eprintf ("New shortest attack found with trace length %i.\n",
@@ -3157,7 +3158,7 @@ iterate ()
 		  count = goal_add (b->term, b->run_to, b->ev_to, b->level);
 
 		  // Show this in output
-		  if (sys->output == PROOF)
+		  if (switches.output == PROOF)
 		    {
 		      indentPrint ();
 		      eprintf ("Expanding tuple goal ");
@@ -3193,7 +3194,7 @@ iterate ()
 		      /*
 		       * all goals bound, check for property
 		       */
-		      if (sys->output == PROOF)
+		      if (switches.output == PROOF)
 			{
 			  indentPrint ();
 			  eprintf ("All goals are now bound.\n");
@@ -3275,7 +3276,7 @@ arachne ()
    * set up claim role(s)
    */
 
-  if (sys->switchRuns == 0)
+  if (switches.runs == 0)
     {
       // No real checking.
       return;
@@ -3311,8 +3312,7 @@ arachne ()
       Protocol p;
       Role r;
 
-      if (sys->switchClaimToCheck == NULL
-	  || sys->switchClaimToCheck == cl->type)
+      if (switches.filterClaim == NULL || switches.filterClaim == cl->type)
 	{
 	  int run;
 
@@ -3322,7 +3322,7 @@ arachne ()
 	  p = (Protocol) cl->protocol;
 	  r = (Role) cl->role;
 
-	  if (sys->output == PROOF)
+	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf ("Testing Claim ");
@@ -3365,7 +3365,7 @@ arachne ()
 	  //! Indent back
 	  indentDepth--;
 
-	  if (sys->output == PROOF)
+	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();
 	      eprintf ("Proof complete for this claim.\n");

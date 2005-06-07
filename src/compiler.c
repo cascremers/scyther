@@ -10,6 +10,7 @@
 #include "symbol.h"
 #include "substitution.h"
 #include "compiler.h"
+#include "switches.h"
 
 /*
    Simple sys pointer as a global. Yields cleaner code although it's against programming standards.
@@ -481,7 +482,7 @@ commEvent (int event, Tac tc)
       torole = claim;
 
       /* check for ignored claim types */
-      if (sys->switchClaimToCheck != NULL && sys->switchClaimToCheck != claim)
+      if (switches.filterClaim != NULL && switches.filterClaim != claim)
 	{
 	  /* abort the construction of the node */
 	  return;
@@ -796,7 +797,7 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
       Term rolename;
       Role r;
 
-      if (sys->engine == ARACHNE_ENGINE)
+      if (switches.engine == ARACHNE_ENGINE)
 	{
 	  rolename = levelVar (tcroles->t1.sym);
 	  rolename->stype = termlistAdd (NULL, TERM_Agent);
@@ -1426,7 +1427,7 @@ compute_prec_sets (const System sys)
 
 #ifdef DEBUG
       // Porparam = 100 (weirdness) [x][cc][debug] can turn of the synchronising label sets (override).
-      if (sys->porparam == 100)
+      if (switches.switchP == 100)
 	{
 	  termlistDelete (sys->synchronising_labels);
 	  sys->synchronising_labels = NULL;

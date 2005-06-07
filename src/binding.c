@@ -13,6 +13,7 @@
 #include "term.h"
 #include "termmap.h"
 #include "arachne.h"
+#include "switches.h"
 #include <malloc.h>
 
 static System sys;
@@ -295,7 +296,8 @@ goal_graph_create ()
 							else
 							  {
 							    // It doesn't occur first in a READ, which shouldn't be happening
-							    if (sys->output ==
+							    if (switches.
+								output ==
 								PROOF)
 							      {
 								eprintf

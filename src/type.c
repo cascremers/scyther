@@ -10,6 +10,7 @@
 #include "termlist.h"
 #include "system.h"
 #include "debug.h"
+#include "switches.h"
 
 /*
  * Special term definitions from compiler.c
@@ -142,7 +143,7 @@ checkTypeLocals (const System sys)
     {
       if (sys->runs[run].protocol != INTRUDER)
 	{
-	  if (!checkTypeTermlist (sys->match, sys->runs[run].locals))
+	  if (!checkTypeTermlist (switches.match, sys->runs[run].locals))
 	    return false;
 	}
       run++;
