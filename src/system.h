@@ -163,6 +163,7 @@ struct system
   states_t interval;		//!< Used to update state printing at certain intervals
   states_t claims;		//!< Number of claims encountered.
   states_t failed;		//!< Number of claims failed.
+  int attackid;			//!< Global counter of attacks (used for assigning identifiers) within this Scyther call.
   int countScenario;		//!< Number of scenarios skipped.
 
   /* matching */

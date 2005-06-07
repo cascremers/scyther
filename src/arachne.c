@@ -1427,7 +1427,7 @@ dotSemiState ()
   // Open graph
   attack_number++;
   eprintf ("digraph semiState%i {\n", attack_number);
-  eprintf ("\tlabel = \"Protocol ");
+  eprintf ("\tlabel = \"[Id %i] Protocol ", sys->attackid);
   p = (Protocol) sys->current_claim->protocol;
   termPrint (p->nameterm);
   eprintf (", role ");
@@ -3066,9 +3066,13 @@ add_claim_specifics (const Claimlist cl, const Roledef rd)
 }
 
 //! Count a false claim
+/**
+ * Counts global attacks as well as claim instances.
+ */
 void
 count_false ()
 {
+  sys->attackid++;
   sys->current_claim->failed = statesIncrease (sys->current_claim->failed);
 }
 

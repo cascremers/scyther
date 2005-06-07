@@ -104,6 +104,7 @@ systemInit ()
   sys->claimlist = NULL;
   sys->labellist = NULL;
   sys->match = 0;		// default matching
+  sys->attackid = 0;		// First attack will have id 1, because the counter is increased before any attacks are displayed.
 
   /* matching CLP */
   sys->constraints = NULL;	// no initial constraints

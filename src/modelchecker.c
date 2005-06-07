@@ -1239,6 +1239,7 @@ violateClaim (const System sys, int length, int claimev, Termlist reqt)
   flag = 1;
 
   /* Count the violations */
+  sys->attackid++;
   sys->failed = statesIncrease (sys->failed);
   clinfo = sys->traceEvent[claimev]->claiminfo;
   clinfo->failed = statesIncrease (clinfo->failed);	// note: for modelchecking secrecy, this can lead to more fails (at further events in branches of the tree) than claim encounters

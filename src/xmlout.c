@@ -752,6 +752,8 @@ xmlOutSemitrace (const System sys)
   printf ("<attack");
   /* add trace length attribute */
   printf (" tracelength=\"%i\"", get_semitrace_length ());
+  /* add attack id attribute (within this scyther call) */
+  printf (" id=\"%i\"", sys->attackid);
   printf (">\n");
   xmlindent++;
 
