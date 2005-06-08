@@ -716,28 +716,25 @@ bindings_c_minimal ()
 {
   List bl;
 
-  // Ensure a state graph
-  if (graph == NULL)
+  // Ensure a fresh state graph
+  goal_graph_create ();
+  // Recompute closure; does that work?
+  if (!warshall (graph, nodes))
     {
-      goal_graph_create ();
-      // Recompute closure; does that work?
-      if (!warshall (graph, nodes))
+      List l;
+
+      globalError++;
+      l = sys->bindings;
+      while (l != NULL)
 	{
-	  List l;
+	  Binding b;
 
-	  globalError++;
-	  l = sys->bindings;
-	  while (l != NULL)
-	    {
-	      Binding b;
-
-	      b = (Binding) l->data;
-	      binding_print (b);
-	      eprintf ("\n");
-	      l = l->next;
-	    }
-	  error ("Detected a cycle when testing for c-minimality");
+	  b = (Binding) l->data;
+	  binding_print (b);
+	  eprintf ("\n");
+	  l = l->next;
 	}
+      error ("Detected a cycle when testing for c-minimality");
     }
 
   // For all goals
