@@ -73,9 +73,9 @@ untrusted Eve;
 const ne: Nonce;
 compromised sk(Eve);
 
-run spliceASCJI(Agent,Agent,Agent);
-run spliceASCJR(Agent,Agent,Agent);
-run spliceASCJS(Agent,Agent,Agent);
+run spliceASCJ.I(Agent,Agent,Agent);
+run spliceASCJ.R(Agent,Agent,Agent);
+run spliceASCJ.S(Agent,Agent,Agent);
 
 #run spliceASCJ.I(Alice,Bob,Simon);
 #run spliceASCJ.R(Alice,Bob,Simon);

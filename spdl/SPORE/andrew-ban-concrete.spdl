@@ -6,11 +6,8 @@
 # Note:
 # The shared key between I and R is modelled as k(I,R) currently
 # there is no way to express that this key is equal to k(R,I)
-# So it is possile that certain attacks that use this property are not found
-#
-# Note:
-# The attack mentioned in SPORE is not found because of the property in the
-# previous note
+# In order to overcome this a 'dummy' role X has been hadded that recrypts
+# a given term crypted with k(I,R) with k(R,I)
 #
 # Note:
 # Read 4 by the Initatior has been placed after the synchronisation claim
@@ -22,8 +19,17 @@
 usertype SessionKey;
 secret k: Function;
 
-protocol andrewConcrete(I,R)
+protocol andrewConcrete(I,R,X)
 {
+    
+    # Role added to work around the symmetry problems where k(I,R) != k(R,I)
+    role X
+    {
+        var T: Ticket;
+        read_X1(X,X, {T}k(I,R));
+        send_X2(X,X, {T}k(R,I));
+    }
+    
     role I
     {
         const ni: Nonce;
