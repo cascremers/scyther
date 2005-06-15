@@ -16,15 +16,17 @@ const dec,inc: Function;
 inversekeys(dec,inc);
 usertype SessionKey;
 
-protocol needhamschroederSessionKeyCompromise(I,R,S)
+protocol needhamschroederSessionKeyCompromise(C)
 {
-    // Disclose an entire session and the corresponding session key
-    // to simulate key compromise
-    role I {
+    // Read the names of 3 agents and disclose a session between them including
+    // corresponding session key to simulate key compromise
+    role C {
         const Ni,Nr: Nonce;
         const Kir: SessionKey;
+        var I,R,S: Agent;
 
-        send_D1(I,I,    (I,R,Ni),
+        read_C1(C,C,    I,R,S);
+        send_C2(C,C,    (I,R,Ni),
                         {Ni,R,Kir,{Kir,I}k(R,S)}k(I,S),
                         {Kir,I}k(R,S),
                         {Nr}Kir,
@@ -32,13 +34,8 @@ protocol needhamschroederSessionKeyCompromise(I,R,S)
                         Kir
                );
     }
-
-    role R {
-    }
-
-    role S {
-    }
 }
+
 protocol needhamschroedersk(I,R,S)
 {
     role I
