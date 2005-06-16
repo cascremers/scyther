@@ -30,6 +30,7 @@
 extern Term CLAIM_Secret;
 extern Term CLAIM_Nisynch;
 extern Term CLAIM_Niagree;
+extern Term CLAIM_Empty;
 
 /*
    Some forward declarations.
@@ -1404,7 +1405,7 @@ executeTry (const System sys, int run)
 	      termlistDelete (sys->secrets);
 	      sys->secrets = oldsecrets;
 	    }
-	  if (runPoint->to == CLAIM_Nisynch)
+	  else if (runPoint->to == CLAIM_Nisynch)
 	    {
 	      /*
 	       * NISYNCH
@@ -1422,7 +1423,7 @@ executeTry (const System sys, int run)
 		  flag = explorify (sys, run);
 		}
 	    }
-	  if (runPoint->to == CLAIM_Niagree)
+	  else if (runPoint->to == CLAIM_Niagree)
 	    {
 	      /*
 	       * NIAGREE
@@ -1439,6 +1440,11 @@ executeTry (const System sys, int run)
 		  /* no violation */
 		  flag = explorify (sys, run);
 		}
+	    }
+	  else			// if (runPoint->to == CLAIM_Empty)
+	    {
+	      // Skip other claim types
+	      flag = explorify (sys, run);
 	    }
 	}
       /* a claim always succeeds */

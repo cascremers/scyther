@@ -64,6 +64,7 @@ Term TERM_Claim;
 Term CLAIM_Secret;
 Term CLAIM_Nisynch;
 Term CLAIM_Niagree;
+Term CLAIM_Empty;
 
 /*
  * Global stuff
@@ -108,6 +109,7 @@ compilerInit (const System mysys)
   langcons (CLAIM_Secret, "Secret", TERM_Claim);
   langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);
   langcons (CLAIM_Niagree, "Niagree", TERM_Claim);
+  langcons (CLAIM_Empty, "Empty", TERM_Claim);
 }
 
 //! Make a global constant
@@ -591,6 +593,10 @@ commEvent (int event, Tac tc)
 	      error ("NIAGREE claim requires no parameters at line %i.",
 		     trip->next->lineno);
 	    }
+	  break;
+	}
+      if (claim == CLAIM_Empty)
+	{
 	  break;
 	}
 

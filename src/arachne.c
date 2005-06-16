@@ -36,6 +36,8 @@
 extern Term CLAIM_Secret;
 extern Term CLAIM_Nisynch;
 extern Term CLAIM_Niagree;
+extern Term CLAIM_Empty;
+
 extern Term TERM_Agent;
 extern Term TERM_Hidden;
 extern Term TERM_Function;
@@ -3309,66 +3311,73 @@ arachne ()
       /**
        * Check each claim
        */
-      Protocol p;
-      Role r;
 
-      if (switches.filterClaim == NULL || switches.filterClaim == cl->type)
+      // Skip the dummy claims
+      if (!isTermEqual (cl->type, CLAIM_Empty))
 	{
-	  int run;
-
-	  sys->current_claim = cl;
-	  attack_length = INT_MAX;
-	  cl->complete = 1;
-	  p = (Protocol) cl->protocol;
-	  r = (Role) cl->role;
-
-	  if (switches.output == PROOF)
+	  // Any other claims might be filterered
+	  if (switches.filterClaim == NULL
+	      || switches.filterClaim == cl->type)
 	    {
-	      indentPrint ();
-	      eprintf ("Testing Claim ");
-	      termPrint (cl->type);
-	      eprintf (" from ");
-	      termPrint (p->nameterm);
-	      eprintf (", ");
-	      termPrint (r->nameterm);
-	      eprintf (" at index %i.\n", cl->ev);
-	    }
-	  indentDepth++;
-	  run = semiRunCreate (p, r);
-	  proof_suppose_run (run, 0, cl->ev + 1);
-	  add_read_goals (run, 0, cl->ev + 1);
+	      int run;
+	      Protocol p;
+	      Role r;
+
+	      sys->current_claim = cl;
+	      attack_length = INT_MAX;
+	      cl->complete = 1;
+	      p = (Protocol) cl->protocol;
+	      r = (Role) cl->role;
+
+	      if (switches.output == PROOF)
+		{
+		  indentPrint ();
+		  eprintf ("Testing Claim ");
+		  termPrint (cl->type);
+		  eprintf (" from ");
+		  termPrint (p->nameterm);
+		  eprintf (", ");
+		  termPrint (r->nameterm);
+		  eprintf (" at index %i.\n", cl->ev);
+		}
+	      indentDepth++;
+	      run = semiRunCreate (p, r);
+	      proof_suppose_run (run, 0, cl->ev + 1);
+	      add_read_goals (run, 0, cl->ev + 1);
 
 	  /**
 	   * Add specific goal info
 	   */
-	  add_claim_specifics (cl,
-			       roledef_shift (sys->runs[run].start, cl->ev));
+	      add_claim_specifics (cl,
+				   roledef_shift (sys->runs[run].start,
+						  cl->ev));
 #ifdef DEBUG
-	  if (DEBUGL (5))
-	    {
-	      printSemiState ();
-	    }
+	      if (DEBUGL (5))
+		{
+		  printSemiState ();
+		}
 #endif
-	  // Iterate
-	  iterate ();
+	      // Iterate
+	      iterate ();
 
-	  //! Destroy
-	  while (sys->bindings != NULL)
-	    {
-	      goal_remove_last (1);
-	    }
-	  while (sys->maxruns > 0)
-	    {
-	      semiRunDestroy ();
-	    }
+	      //! Destroy
+	      while (sys->bindings != NULL)
+		{
+		  goal_remove_last (1);
+		}
+	      while (sys->maxruns > 0)
+		{
+		  semiRunDestroy ();
+		}
 
-	  //! Indent back
-	  indentDepth--;
+	      //! Indent back
+	      indentDepth--;
 
-	  if (switches.output == PROOF)
-	    {
-	      indentPrint ();
-	      eprintf ("Proof complete for this claim.\n");
+	      if (switches.output == PROOF)
+		{
+		  indentPrint ();
+		  eprintf ("Proof complete for this claim.\n");
+		}
 	    }
 	}
       // next

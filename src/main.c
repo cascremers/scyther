@@ -65,6 +65,7 @@ System sys;
 
 extern struct tacnode *spdltac;
 extern Term TERM_Claim;
+extern Term CLAIM_Empty;
 extern int mgu_match;
 
 void scanner_cleanup (void);
@@ -366,66 +367,69 @@ timersPrint (const System sys)
   anyclaims = 0;
   while (cl_scan != NULL)
     {
-      anyclaims = 1;
+      if (!isTermEqual (cl_scan->type, CLAIM_Empty))
+	{
+	  anyclaims = 1;
 
-      eprintf ("claim\t");
+	  eprintf ("claim\t");
 
-      /* claim label is tuple */
-      if (realTermTuple (cl_scan->label))
-	{
-	  /* modern version: claim label is tuple (protocname, label) */
-	  /* first print protocol.role */
-	  termPrint (TermOp1 (cl_scan->label));
-	  eprintf ("\t");
-	  termPrint (cl_scan->rolename);
-	  eprintf ("\t");
-	  /* second print event_label */
-	  termPrint (cl_scan->type);
-	  eprintf ("_");
-	  termPrint (TermOp2 (cl_scan->label));
-	  eprintf ("\t");
-	}
-      else
-	{
-	  /* old-fashioned output */
-	  termPrint (cl_scan->type);
-	  eprintf ("\t");
-	  termPrint (cl_scan->rolename);
-	  eprintf (" (");
-	  termPrint (cl_scan->label);
-	  eprintf (")\t");
-	}
-      /* print counts etc. */
-      eprintf ("found:\t");
-      statesFormat (cl_scan->count);
-      if (cl_scan->count > 0)
-	{
-	  if (cl_scan->failed > 0)
+	  /* claim label is tuple */
+	  if (realTermTuple (cl_scan->label))
 	    {
+	      /* modern version: claim label is tuple (protocname, label) */
+	      /* first print protocol.role */
+	      termPrint (TermOp1 (cl_scan->label));
 	      eprintf ("\t");
-	      eprintf ("failed:\t");
-	      statesFormat (cl_scan->failed);
+	      termPrint (cl_scan->rolename);
+	      eprintf ("\t");
+	      /* second print event_label */
+	      termPrint (cl_scan->type);
+	      eprintf ("_");
+	      termPrint (TermOp2 (cl_scan->label));
+	      eprintf ("\t");
 	    }
 	  else
 	    {
-	      eprintf ("\tcorrect: ");
-	      if (cl_scan->complete)
+	      /* old-fashioned output */
+	      termPrint (cl_scan->type);
+	      eprintf ("\t");
+	      termPrint (cl_scan->rolename);
+	      eprintf (" (");
+	      termPrint (cl_scan->label);
+	      eprintf (")\t");
+	    }
+	  /* print counts etc. */
+	  eprintf ("found:\t");
+	  statesFormat (cl_scan->count);
+	  if (cl_scan->count > 0)
+	    {
+	      if (cl_scan->failed > 0)
 		{
-		  eprintf ("complete_proof");
+		  eprintf ("\t");
+		  eprintf ("failed:\t");
+		  statesFormat (cl_scan->failed);
 		}
 	      else
 		{
-		  eprintf ("bounded_proof");
-		  if (cl_scan->timebound)
-		    eprintf ("\ttime=%i", get_time_limit ());
+		  eprintf ("\tcorrect: ");
+		  if (cl_scan->complete)
+		    {
+		      eprintf ("complete_proof");
+		    }
+		  else
+		    {
+		      eprintf ("bounded_proof");
+		      if (cl_scan->timebound)
+			eprintf ("\ttime=%i", get_time_limit ());
+		    }
 		}
 	    }
+	  else
+	    {
+	      eprintf ("\tcorrect: does_not_occur");
+	    }
+	  eprintf ("\n");
 	}
-      else
-	{
-	  eprintf ("\tcorrect: does_not_occur");
-	}
-      eprintf ("\n");
       cl_scan = cl_scan->next;
     }
   if (!anyclaims)
