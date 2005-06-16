@@ -59,13 +59,12 @@ enum exittypes
 #include "output.h"
 #include "binding.h"
 #include "switches.h"
+#include "specialterm.h"
 
 // The global system state
 System sys;
 
 extern struct tacnode *spdltac;
-extern Term TERM_Claim;
-extern Term CLAIM_Empty;
 extern int mgu_match;
 
 void scanner_cleanup (void);

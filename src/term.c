@@ -18,13 +18,13 @@
 #include "debug.h"
 #include "memory.h"
 #include "ctype.h"
+#include "specialterm.h"
 
 /* public flag */
 int rolelocal_variable;
 
 /* external definitions */
 
-extern Term TERM_Function;
 extern int inTermlist ();	// suppresses a warning, but at what cost?
 extern int globalLatex;
 

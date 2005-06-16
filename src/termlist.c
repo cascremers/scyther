@@ -1,15 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "termlist.h"
+#include "specialterm.h"
 #include "debug.h"
 #include "memory.h"
-
-/* system constants.
- * declared in compiler.c
- */
-
-extern Term TERM_Function;
-extern Term TERM_Hidden;
 
 //! Open termlists code.
 void

@@ -13,6 +13,7 @@
 #include "varbuf.h"
 #include "output.h"
 #include "latex.h"
+#include "specialterm.h"
 
 //! Multiplication factor for distance between events in an MSC diagram.
 #define EVENTSPACE 1
@@ -22,7 +23,6 @@
 extern const char *progname;
 extern const char *releasetag;
 extern int globalLatex;
-extern Term TERM_Function;
 
 /*! Additional information for an events. */
 struct traceinfo

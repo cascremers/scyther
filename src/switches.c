@@ -11,12 +11,12 @@
 #include "version.h"
 #include "timer.h"
 #include "switches.h"
+#include "specialterm.h"
 #include <limits.h>
 
 struct switchdata switches;
 
 extern struct tacnode *spdltac;
-extern Term TERM_Claim;
 
 const char *progname = "scyther";
 const char *releasetag = SVNVERSION;

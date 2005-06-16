@@ -18,10 +18,7 @@
 #include "mgu.h"
 #include "switches.h"
 #include "binding.h"
-
-/* from compiler.o */
-extern Term TERM_Type;
-extern Term TERM_Agent;
+#include "specialterm.h"
 
 //! Global flag that signals LaTeX output.
 /**

@@ -18,6 +18,7 @@
 #include "binding.h"
 #include "arachne.h"		// for get_semitrace_length
 #include "switches.h"
+#include "specialterm.h"
 
 #include "xmlout.h"
 
@@ -25,7 +26,6 @@
  * Externally defined
  */
 extern Protocol INTRUDER;	// from arachne.c
-extern Term TERM_Function;	// from termlist.c
 
 /*
  * Global/static stuff.

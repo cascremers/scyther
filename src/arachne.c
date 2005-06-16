@@ -32,16 +32,7 @@
 #include "timer.h"
 #include "type.h"
 #include "switches.h"
-
-extern Term CLAIM_Secret;
-extern Term CLAIM_Nisynch;
-extern Term CLAIM_Niagree;
-extern Term CLAIM_Empty;
-
-extern Term TERM_Agent;
-extern Term TERM_Hidden;
-extern Term TERM_Function;
-extern Term TERM_Nonce;
+#include "specialterm.h"
 
 extern int *graph;
 extern int nodes;

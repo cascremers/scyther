@@ -58,6 +58,7 @@ enum exittypes
 #include "output.h"
 #include "binding.h"
 #include "version.h"
+#include "specialterm.h"
 
 #include "argtable2.h"
 
@@ -65,7 +66,6 @@ enum exittypes
 System sys;
 
 extern struct tacnode *spdltac;
-extern Term TERM_Claim;
 extern int mgu_match;
 
 void scanner_cleanup (void);

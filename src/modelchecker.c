@@ -21,16 +21,12 @@
 #include "attackminimize.h"
 #include "claim.h"
 #include "switches.h"
+#include "specialterm.h"
 
 /*
 
 	A model checker. Really.
 */
-
-extern Term CLAIM_Secret;
-extern Term CLAIM_Nisynch;
-extern Term CLAIM_Niagree;
-extern Term CLAIM_Empty;
 
 /*
    Some forward declarations.

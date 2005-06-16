@@ -11,16 +11,7 @@
 #include "system.h"
 #include "debug.h"
 #include "switches.h"
-
-/*
- * Special term definitions from compiler.c
- */
-extern Term TERM_Agent;
-extern Term TERM_Function;
-extern Term TERM_Hidden;
-extern Term TERM_Type;
-extern Term TERM_Nonce;
-extern Term TERM_Ticket;
+#include "specialterm.h"
 
 extern Protocol INTRUDER;
 

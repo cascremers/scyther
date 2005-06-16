@@ -6,6 +6,7 @@
 #include "mgu.h"
 #include "memory.h"
 #include "type.h"
+#include "specialterm.h"
 
 /*
    Most General Unifier
@@ -23,8 +24,6 @@
  * 2	all typeflaws
  */
 static int mgu_match = 0;
-
-extern Term TERM_Hidden;
 
 //! Set mgu mode (basically switches.match)
 void
