@@ -711,9 +711,36 @@ xmlOutRuns (const System sys)
 	Roledef rd;
 	int index;
 
+	//! Test whether to display this event
+	/**
+	 * Could be integrated into a single line on the while loop,
+	 * but that makes it rather hard to understand.
+	 */
+	int showthis (void)
+	{
+	  if (rd != NULL)
+	    {
+	      if (index < sys->runs[run].step)
+		{
+		  return true;
+		}
+	      else
+		{
+		  if (switches.extendNonReads)
+		    {
+		      if (rd->type != READ)
+			{
+			  return true;
+			}
+		    }
+		}
+	    }
+	  return false;
+	}
+
 	index = 0;
 	rd = sys->runs[run].start;
-	while (rd != NULL && index < sys->runs[run].step)
+	while (showthis ())
 	  {
 	    xmlOutEvent (sys, rd, run, index);
 	    index++;
@@ -752,6 +779,9 @@ xmlOutSemitrace (const System sys)
   xmlIndentPrint ();
   printf ("<attack");
   /* add trace length attribute */
+  /* Note that this is the length of the attack leading up to the broken
+   * claim, thus without any run extensions (--extend-nonreads).
+   */
   printf (" tracelength=\"%i\"", get_semitrace_length ());
   /* add attack id attribute (within this scyther call) */
   printf (" id=\"%i\"", sys->attackid);

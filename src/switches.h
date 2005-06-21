@@ -55,6 +55,8 @@ struct switchdata
   int reportMemory;		//!< Memory display switch.
   int reportTime;		//!< Time display switch.
   int reportStates;		//!< Progress display switch. (traversed states)
+  int extendNonReads;		//!< Show further events in arachne xml output.
+
   //! Latex output switch.
   /**
    * Obsolete. Use globalLatex instead.

@@ -73,9 +73,11 @@ switchesInit (int argc, char **argv)
   switches.reportClaims = 0;	// default don't report on claims
   switches.xml = 0;		// default no xml output
   switches.human = false;	// not human friendly by default
-  switches.reportMemory;
-  switches.reportTime;
-  switches.reportStates;
+  switches.reportMemory = 0;
+  switches.reportTime = 0;
+  switches.reportStates = 0;
+  switches.extendNonReads = 0;	// default off
+
   // Obsolete
   switches.latex = 0;		// latex output?
 
@@ -445,6 +447,20 @@ switcher (const int process, int index)
 	{
 	  // Proof
 	  switches.output = PROOF;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "extend-nonreads", 0))
+    {
+      if (!process)
+	{
+	  /* discourage: hide
+	   */
+	}
+      else
+	{
+	  switches.extendNonReads = 1;
 	  return index;
 	}
     }
