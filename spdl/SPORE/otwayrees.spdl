@@ -11,6 +11,7 @@
 
 
 secret const k : Function;
+const Fresh: Function;
 
 usertype String,SessionKey;
 
@@ -26,7 +27,8 @@ protocol otwayrees(I,R,S)
         read_4(R,I, M,{Ni,Kir}k(I,S) );
 
         claim_I1(I, Secret,Kir);
-        #claim_I2(I, Nisynch);
+        claim_I2(I, Nisynch);
+        claim_I3(I, Empty, (Fresh,Kir));
     }
 
     role R
@@ -42,7 +44,8 @@ protocol otwayrees(I,R,S)
         send_4(R,I, M, T2 );
 
         claim_R1(R, Secret,Kir);
-        #claim_R2(R, Nisynch);
+        claim_R2(R, Nisynch);
+        claim_R3(R, Empty, (Fresh,Kir));
     }
 
     role S

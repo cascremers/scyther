@@ -8,6 +8,7 @@ usertype Key;
 usertype TimeStamp;
 
 secret k: Function;
+const Fresh: Function;
 
 protocol wmf(I,R,S)
 {
@@ -20,6 +21,7 @@ protocol wmf(I,R,S)
         send_1(I,S, I, {Ti, R, Kir}k(I,S)); 
 
         claim_I1(I,Secret,Kir);
+        claim_I2(I,Empty,(Fresh,Kir));
     }    
     
     role R
@@ -31,6 +33,7 @@ protocol wmf(I,R,S)
 
         claim_R1(R,Secret,Kir);
         claim_R2(R,Nisynch);
+        claim_R3(R,Empty,(Fresh,Kir));
     }
 
     role S

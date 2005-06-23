@@ -16,6 +16,7 @@ secret k: Function;
 
 const a, b, e: Agent;
 const s: Server;
+const Fresh: Function;
 
 
 const ne: Nonce;
@@ -43,6 +44,7 @@ protocol kslLowe(A,B,S)
         claim_A1(A,Secret, Kab);
         claim_A2(A,Niagree);
         claim_A3(A,Nisynch);
+        claim_A4(A,Empty, (Fresh,Kab));
     }
 
     role B
@@ -67,6 +69,7 @@ protocol kslLowe(A,B,S)
         claim_B1(B,Secret, Kab);
         claim_B2(B,Niagree);
         claim_B3(B,Nisynch);
+        claim_B4(B,Empty, (Fresh,Kab));
     }
 
     role S

@@ -12,6 +12,7 @@
 usertype SessionKey;
 secret k: Function;
 const succ: Function;
+const Fresh: Function;
 
 protocol andrew(I,R)
 {
@@ -25,8 +26,10 @@ protocol andrew(I,R)
         read_2(R,I, {succ(ni),nr}k(I,R) );
         send_3(I,R, {succ(nr)}k(I,R) );
         read_4(R,I, {kir,nr2}k(I,R) );
-        claim_5(I,Secret,kir);
-        claim_6(I,Nisynch);
+        claim_I1(I,Secret,kir);
+        claim_I2(I,Nisynch);
+        claim_I3(I,Niagree);
+        claim_I4(I,Empty,(Fresh,kir));
     }    
     
     role R
@@ -39,8 +42,10 @@ protocol andrew(I,R)
         send_2(R,I, {succ(ni),nr}k(I,R) );
         read_3(I,R, {succ(nr)}k(I,R) );
         send_4(R,I, {kir,nr2}k(I,R) );
-        claim_7(R,Secret,kir);
-        claim_8(R,Nisynch);
+        claim_R1(R,Secret,kir);
+        claim_R2(R,Nisynch);
+        claim_R3(R,Niagree);
+        claim_R4(R,Empty,(Fresh,kir));
     }
 }
 

@@ -13,6 +13,7 @@ usertype Key;
 usertype TimeStamp;
 const succ,pred: Function;
 inversekeys (succ,pred);
+const Fresh: Function;
 
 secret k: Function;
 
@@ -31,6 +32,7 @@ protocol wmfLowe(I,R,S)
 
         claim_I1(I,Secret,Kir);
         claim_I2(I,Nisynch);
+        claim_I3(I,Empty,(Fresh,Kir));
     }    
     
     role R
@@ -45,6 +47,7 @@ protocol wmfLowe(I,R,S)
 
         claim_R1(R,Secret,Kir);
         claim_R2(R,Nisynch);
+        claim_R3(R,Empty,(Fresh,Kir));
     }
 
     role S

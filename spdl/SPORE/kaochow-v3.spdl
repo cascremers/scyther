@@ -11,6 +11,7 @@
 usertype Sessionkey;
 usertype Timestamp;
 secret k: Function;
+const Fresh: Function;
 
 protocol kaochow3(I,R,S)
 {
@@ -25,9 +26,10 @@ protocol kaochow3(I,R,S)
         read_3 (R,I, R, {I,R,ni,kir,kt}k(I,S), {ni, kir}kt, nr, T2 );
         send_4 (I,R, {nr,kir}kt, T2 );
 
-        claim_5 (I, Nisynch);
-        claim_6 (I, Niagree);
-        claim_7 (I, Secret, kir);
+        claim_I1 (I, Nisynch);
+        claim_I2 (I, Niagree);
+        claim_I3 (I, Secret, kir);
+        claim_I4 (I, Empty, (Fresh,kir));
     }    
     
     role R
@@ -42,9 +44,10 @@ protocol kaochow3(I,R,S)
         send_3 (R,I, R, T, {ni, kir}kt, nr, {I,R,tr,kir}k(R,S) );
         read_4 (I,R, {nr,kir}kt, {I,R,tr,kir}k(R,S) );
 
-        claim_8 (R, Nisynch);
-        claim_9 (R, Niagree);
-        claim_10 (R, Secret, kir);
+        claim_R1 (R, Nisynch);
+        claim_R2 (R, Niagree);
+        claim_R3 (R, Secret, kir);
+        claim_R4 (R, Empty, (Fresh,kir));
     }
 
     role S

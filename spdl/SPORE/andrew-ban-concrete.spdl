@@ -18,17 +18,21 @@
 
 usertype SessionKey;
 secret k: Function;
+const Fresh: Function;
 
-protocol andrewConcrete(I,R,X)
+protocol swapkey(X)
 {
-    
-    # Role added to work around the symmetry problems where k(I,R) != k(R,I)
+    # Protocol added to work around the symmetry problems where k(I,R) != k(R,I)
     role X
     {
-        var T: Ticket;
-        read_X1(X,X, {T}k(I,R));
-        send_X2(X,X, {T}k(R,I));
+        var I,R: Agent;
+        var T:Ticket;
+        read_X1(X,X,I,R,{T}k(I,R));
+        send_X2(X,X,{T}k(R,I));
     }
+}
+protocol andrewConcrete(I,R)
+{
     
     role I
     {
@@ -39,8 +43,9 @@ protocol andrewConcrete(I,R,X)
         send_1(I,R, I,ni );
         read_2(R,I, {ni,kir}k(I,R) );
         send_3(I,R, {ni}kir);
-        claim_4(I,Secret,kir);
-        claim_5(I,Nisynch);
+        claim_I1(I,Secret,kir);
+        claim_I2(I,Nisynch);
+        claim_I3(I,Empty,(Fresh,kir));
         read_6(R,I, nr);
     }    
     
@@ -54,8 +59,9 @@ protocol andrewConcrete(I,R,X)
         send_2(R,I, {ni,kir}k(I,R) );
         read_3(I,R, {ni}kir);
         send_6(R,I, nr);
-        claim_7(R,Secret,kir);
-        claim_8(R,Nisynch);
+        claim_R1(R,Secret,kir);
+        claim_R2(R,Nisynch);
+        claim_R3(R,Empty,(Fresh,kir));
     }
 }
 

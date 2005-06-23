@@ -19,6 +19,7 @@ secret k: Function;
 const dec,inc: Function;
 inversekeys(dec,inc);
 usertype SessionKey;
+const Fresh: Function;
 
 protocol needhamschroederskamend(I,R,S)
 {
@@ -39,6 +40,7 @@ protocol needhamschroederskamend(I,R,S)
         
         claim_I2(I,Secret,Kir);
         claim_I3(I,Nisynch);
+        claim_I4(I,Empty,(Fresh,Kir));
     }    
     
     role R
@@ -53,6 +55,7 @@ protocol needhamschroederskamend(I,R,S)
         read_7(I,R,{{Nr}dec}Kir);
         claim_R1(R,Secret,Nr);
         claim_R3(R,Nisynch);
+        claim_R4(R,Empty,(Fresh,Kir));
     }
 
     role S

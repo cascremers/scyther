@@ -20,6 +20,7 @@
 
 usertype SessionKey;
 secret k: Function;
+const Fresh: Function;
 
 protocol andrewLoweBan(I,R)
 {
@@ -32,8 +33,9 @@ protocol andrewLoweBan(I,R)
         send_1(I,R, I,ni );
         read_2(R,I, {ni,kir,R}k(I,R) );
         send_3(I,R, {ni}kir );
-        claim_5(I,Nisynch);
-        claim_6(I,Secret, kir);
+        claim_I1(I,Nisynch);
+        claim_I2(I,Secret, kir);
+        claim_I3(I,Empty, (Fresh,kir));
         read_4(R,I, nr );
     }    
     
@@ -47,8 +49,9 @@ protocol andrewLoweBan(I,R)
         send_2(R,I, {ni,kir,R}k(I,R) );
         read_3(I,R, {ni}kir );
         send_4(R,I, nr );
-        claim_8(R,Nisynch);
-        claim_9(R,Secret, kir);
+        claim_R1(R,Nisynch);
+        claim_R2(R,Secret, kir);
+        claim_R3(R,Empty, (Fresh,kir));
     }
 }
 

@@ -17,6 +17,7 @@ secret k: Function;
 
 const a, b, e: Agent;
 const s: Server;
+const Fresh: Function;
 
 const ne: Nonce;
 const kee: SessionKey;
@@ -43,6 +44,7 @@ protocol neustubHwang(I,R,S)
         claim_I1(I,Secret, Kir);
         claim_I2(I,Niagree);
         claim_I3(I,Nisynch);
+        claim_I4(I,Empty,(Fresh,Kir));
     }
 
     role R
@@ -63,6 +65,7 @@ protocol neustubHwang(I,R,S)
         claim_R1(R,Secret, Kir);
         claim_R2(R,Niagree);
         claim_R3(R,Nisynch);
+        claim_R4(R,Empty,(Fresh,Kir));
     }
 
     role S
