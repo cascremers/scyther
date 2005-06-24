@@ -18,6 +18,29 @@ secret k: Function;
 usertype PseudoFunction;
 const dec: PseudoFunction;
 const Fresh: Function;
+const Compromised: Function;
+
+protocol denningSaccoLoweSessionKeyCompromise(C)
+{
+    // Read the names of 3 agents and disclose a session between them including
+    // corresponding session key to simulate key compromise
+    role C {
+        const Ni,Nr: Nonce;
+        const Kir: SessionKey;
+        const T: TimeStamp;
+        var I,R,S: Agent;
+
+        read_C1(C,C,    I,R,S);
+        send_C2(C,C,    (I,R),
+                        {R,Kir,T,{Kir,I,T}k(R,S)}k(I,S),
+                        {Kir,I,T}k(R,S),
+                        {Nr}Kir,
+                        {{Nr}dec}Kir,
+                        Kir
+               );
+        claim_C3(C,Empty, (Compromised,Kir));
+    }
+}
 
 protocol denningSaccoLowe(I,R,S)
 {

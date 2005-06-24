@@ -13,6 +13,31 @@ usertype Key;
 
 secret k: Function;
 const Fresh: Function;
+const Compromised: Function;
+
+protocol woolamSessionKeyCompromise(C)
+{
+    // Read the names of 3 agents and disclose a session between them including
+    // corresponding session key to simulate key compromise
+    role C {
+        const N1,N2: Nonce;
+        const Kir: Key;
+        var I,R,S: Agent;
+
+        read_C1(C,C,    I,R,S);
+        send_C2(C,C,    I,N1,
+                        R,N2,
+                        {I,R,N1,N2}k(I,S),
+                        {I,R,N1,N2}k(R,S),
+                        {R,N1,N2,Kir}k(I,S),
+                        {I,N1,N2,Kir}k(R,S),
+                        {N1,N2}Kir,
+                        {N2}Kir,
+                        Kir
+               );
+        claim_C3(C,Empty, (Compromised,Kir));
+    }
+}
 
 protocol woolam(I,R,S)
 {

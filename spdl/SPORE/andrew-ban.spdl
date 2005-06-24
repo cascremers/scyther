@@ -14,6 +14,27 @@
 usertype SessionKey;
 secret k: Function;
 const Fresh: Function;
+const Compromised: Function;
+
+protocol andrewBanSessionKeyCompromise(C)
+{
+    // Read the names of 3 agents and disclose a session between them including
+    // corresponding session key to simulate key compromise
+    role C {
+        const ni,nr,nr2: Nonce;
+        const kir: SessionKey;
+        var I,R: Agent;
+
+        read_C1(C,C,    I,R);
+        send_C2(C,C,    (I,{ni}k(I,R)),
+                        {ni,nr}k(I,R),
+                        {nr}k(I,R),
+                        {kir,nr2,ni}k(I,R),
+                        kir
+               );
+        claim_C3(C,Empty, (Compromised,kir));
+    }
+}
 
 protocol andrewBan(I,R)
 {

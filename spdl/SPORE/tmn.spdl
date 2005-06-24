@@ -13,6 +13,26 @@ const pk: Function;
 secret sk: Function;
 inversekeys(pk,sk);
 const Fresh: Function;
+const Compromised: Function;
+
+protocol tmnSessionKeyCompromise(C)
+{
+    // Read the names of 3 agents and disclose a session between them including
+    // corresponding session key to simulate key compromise
+    role C {
+        const Ni,Nr: Nonce;
+        const Kr,Ki: Key;
+        var I,R,S: Agent;
+
+        read_C1(C,C,    I,R,S);
+        send_C2(C,C,    R,{Ki}pk(S),
+                        I, {Kr}pk(S),
+                        {Kr}Ki,
+                        Kr
+               );
+        claim_C3(C,Empty, (Compromised,Kr));
+    }
+}
 
 protocol tmn(I,R,S)
 {

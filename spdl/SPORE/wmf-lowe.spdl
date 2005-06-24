@@ -14,8 +14,30 @@ usertype TimeStamp;
 const succ,pred: Function;
 inversekeys (succ,pred);
 const Fresh: Function;
+const Compromised: Function;
 
 secret k: Function;
+
+protocol wmfLoweSessionKeyCompromise(C)
+{
+    // Read the names of 3 agents and disclose a session between them including
+    // corresponding session key to simulate key compromise
+    role C {
+        const Ni,Nr: Nonce;
+        const Kir: Key;
+        const Ti,Ts: TimeStamp;
+        var I,R,S: Agent;
+
+        read_C1(C,C,    I,R,S);
+        send_C2(C,C,    I, {Ti,R,Kir}k(I,S),
+                        {Ts,I,Kir}k(R,S),
+                        {Nr}k(I,S),
+                        {{Nr}succ}k(I,S),
+                        Kir
+               );
+        claim_C3(C,Empty, (Compromised,Kir));
+    }
+}
 
 protocol wmfLowe(I,R,S)
 {

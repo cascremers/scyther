@@ -18,11 +18,37 @@ secret k: Function;
 const a, b, e: Agent;
 const s: Server;
 const Fresh: Function;
+const Compromised: Function;
 
 const ne: Nonce;
 const kee: SessionKey;
 untrusted e;
 compromised k(e,s);
+
+protocol neustubHwangSessionKeyCompromise(C)
+{
+    // Read the names of 3 agents and disclose a session between them including
+    // corresponding session key to simulate key compromise
+    role C {
+        const Ni,Nr,Mi,Mr: Nonce;
+        const Kir: SessionKey;
+        const Tr: TimeStamp;
+        var I,R,S: Agent;
+
+        read_C1(C,C,    I,R,S);
+        send_C2(C,C,    I,Ni,
+                        R,{I,Ni,Tr,Nr}k(R,S),
+                        {R,Ni,Kir,Tr}k(I,S),
+                        {I,Kir,Tr}k(R,S), Nr,
+                        {Nr}Kir,
+                        Mi,{I,Kir,Tr}k(R,S),
+                        Mr,{Mr}Kir,
+                        {Mr}Kir,
+                        Kir
+               );
+        claim_C3(C,Empty, (Compromised,Kir));
+    }
+}
 
 protocol neustubHwang(I,R,S)
 {

@@ -8,9 +8,31 @@
 # the protocol using the ARACHNE engine (-a) 
 #
 
-usertype Sessionkey;
+usertype SessionKey;
 secret k: Function;
 const Fresh: Function;
+const Compromised: Function;
+
+protocol kaochowSessionKeyCompromise(C)
+{
+    // Read the names of 3 agents and disclose a session between them including
+    // corresponding session key to simulate key compromise
+    role C {
+        const Ni,Nr: Nonce;
+        const Kir: SessionKey;
+        var I,R,S: Agent;
+
+        read_C1(C,C,    I,R,S);
+        send_C2(C,C,    (I,R,Ni),
+                        {I,R,Ni,Kir}k(I,S),
+                        {I,R,Ni,Kir}k(R,S),
+                        {Ni}Kir, Nr,
+                        {Nr}Kir,
+                        Kir
+               );
+        claim_C3(C,Empty, (Compromised,Kir));
+    }
+}
 
 protocol kaochow(I,R,S)
 {
@@ -18,7 +40,7 @@ protocol kaochow(I,R,S)
     {
         const ni: Nonce;
         var nr: Nonce;
-        var kir: Sessionkey;
+        var kir: SessionKey;
 
         send_1 (I,S, I,R,ni);
         read_3 (R,I, {I,R,ni,kir}k(I,S), {ni}kir, nr );
@@ -34,7 +56,7 @@ protocol kaochow(I,R,S)
     {
         var ni: Nonce;
         const nr: Nonce;
-        var kir: Sessionkey;
+        var kir: SessionKey;
         var T;
 
         read_2 (S,R, T, { I,R,ni,kir }k(R,S) ); 
@@ -50,7 +72,7 @@ protocol kaochow(I,R,S)
     role S
     {
         var ni: Nonce;
-        const kir: Sessionkey;
+        const kir: SessionKey;
 
         read_1 (I,S, I,R,ni);
         send_2 (S,R, {I,R,ni,kir}k(I,S), { I,R,ni,kir }k(R,S)  ); 
@@ -62,7 +84,7 @@ const Alice,Bob,Simon,Eve: Agent;
 untrusted Eve;
 const ne: Nonce;
 const te: Ticket;
-const ke: Sessionkey;
+const ke: SessionKey;
 compromised k(Eve,Eve);
 compromised k(Eve,Alice);
 compromised k(Eve,Bob);

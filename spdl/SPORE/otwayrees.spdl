@@ -12,8 +12,29 @@
 
 secret const k : Function;
 const Fresh: Function;
+const Compromised: Function;
 
 usertype String,SessionKey;
+
+protocol otwayReesSessionKeyCompromise(C)
+{
+    // Read the names of 3 agents and disclose a session between them including
+    // corresponding session key to simulate key compromise
+    role C {
+        const Ni,Nr: Nonce;
+        const M: String;
+        const Kir: SessionKey;
+        var I,R,S: Agent;
+
+        read_C1(C,C,    I,R,S);
+        send_C2(C,C,    M,I,R,{Ni,M,I,R}k(I,S),
+                        {Nr,M,I,R}k(R,S),
+                        {Ni,Kir}k(I,S), {Nr,Kir}k(R,S),
+                        Kir
+               );
+        claim_C3(C,Empty, (Compromised,Kir));
+    }
+}
 
 protocol otwayrees(I,R,S)
 {
