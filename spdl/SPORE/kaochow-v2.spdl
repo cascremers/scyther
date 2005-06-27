@@ -28,11 +28,11 @@ protocol kaochow2SessionKeyCompromise(C)
                         {I,R,Ni,Kir,Kt}k(R,S),
                         R, Nr,
                         {Nr,Kir}Kt,
-                        Kir,
-                        Kt
+                        Kir
+         //               Kt
                );
         claim_C3(C,Empty, (Compromised,Kir));
-        claim_C4(C,Empty, (Compromised,Kt));
+        // claim_C4(C,Empty, (Compromised,Kt));
     }
 }
 

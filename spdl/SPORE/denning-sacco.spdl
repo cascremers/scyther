@@ -22,7 +22,7 @@ protocol denningSaccoSessionKeyCompromise(C)
     role C {
         const Ni,Nr: Nonce;
         const Kir: SessionKey;
-        const T: Ticket;
+        const T: TimeStamp;
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);

@@ -12,15 +12,14 @@
 usertype Server, SessionKey, GeneralizedTimestamp, TicketKey;
 secret k: Function;
 
-const a, b, e: Agent;
-const s: Server;
+const Alice, Bob, Simon, Eve: Agent;
 const Fresh: Function;
 const Compromised: Function;
 
 const ne: Nonce;
 const kee: SessionKey;
-untrusted e;
-compromised k(e,s);
+untrusted Eve;
+compromised k(Eve,Simon);
 
 protocol kslSessionKeyCompromise(C)
 {
@@ -37,7 +36,7 @@ protocol kslSessionKeyCompromise(C)
         send_C2(C,C,    (Ni,I),
                         (Ni,I,Nr,R),
                         {Nr,I,Kir}k(R,S),{Ni,R,Kir}k(I,S),
-                        {Tr,I,Kir}Kbb,Nc,{Ni}k(I,R),
+                        {Tr,I,Kir}Kbb,Nc,{Ni}Kir,
                         {Nc}Kir,
                         Ma,
                         Mb,{Ma}Kir,
@@ -51,22 +50,22 @@ protocol kslSessionKeyCompromise(C)
 }
 
 
-protocol ksl(A,B,S)
+protocol ksl(I,R,S)
 {
-    role A
+    role I
     {
-        const Na, Ma: Nonce;
-        var Nc, Mb: Nonce;
+        const Ni, Mi: Nonce;
+        var Nr2, Mr: Nonce;
         var T: Ticket;
-        var Kab: SessionKey;
+        var Kir: SessionKey;
         
-        send_1(A,B, Na, A);
-        read_4(B,A, { Na,B,Kab }k(A,S), T, Nc, {Na}Kab );
-        send_5(A,B, { Nc }Kab );
+        send_1(I,R, Ni, I);
+        read_4(R,I, {Ni,R,Kir}k(I,S), T, Nr2, {Ni}Kir);
+        send_5(I,R, {Nr2}Kir );
         
-        send_6(A,B, Ma,T );
-        read_7(B,A, Mb,{Ma}Kab );
-        send_8(A,B, {Mb}Kab );
+        send_6(I,R, Mi,T );
+        read_7(R,I, Mr,{Mi}Kir );
+        send_8(I,R, {Mr}Kir );
 
         claim_A1(A,Secret, Kab);
         claim_A2(A,Niagree);
@@ -77,8 +76,8 @@ protocol ksl(A,B,S)
     role B
     {
         var Na,Ma: Nonce;
-        const Nb,Nc,Mb: Nonce;
-        var Kab: SessionKey;
+        const Nr,Nr2,Mr: Nonce;
+        var Kir: SessionKey;
         const Kbb: TicketKey;
         const Tb: GeneralizedTimestamp;
         var T: Ticket;
@@ -109,7 +108,7 @@ protocol ksl(A,B,S)
     }
 }
 
-run ksl.A(a,b,s);
-run ksl.B(a,b,s);
-run ksl.S(a,b,s);
+run ksl.A(Alice,Bob,Simon);
+run ksl.B(Alice,Bob,Simon);
+run ksl.S(Alice,Bob,Simon);
 
