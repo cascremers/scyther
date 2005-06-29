@@ -12,14 +12,15 @@
 usertype Server, SessionKey, GeneralizedTimestamp, TicketKey;
 secret k: Function;
 
-const Alice, Bob, Simon, Eve: Agent;
+const a, b, e: Agent;
+const s: Server;
 const Fresh: Function;
 const Compromised: Function;
 
 const ne: Nonce;
 const kee: SessionKey;
-untrusted Eve;
-compromised k(Eve,Simon);
+untrusted e;
+compromised k(e,s);
 
 protocol kslSessionKeyCompromise(C)
 {
@@ -36,7 +37,7 @@ protocol kslSessionKeyCompromise(C)
         send_C2(C,C,    (Ni,I),
                         (Ni,I,Nr,R),
                         {Nr,I,Kir}k(R,S),{Ni,R,Kir}k(I,S),
-                        {Tr,I,Kir}Kbb,Nc,{Ni}Kir,
+                        {Tr,I,Kir}Kbb,Nc,{Ni}k(I,R),
                         {Nc}Kir,
                         Ma,
                         Mb,{Ma}Kir,
@@ -50,34 +51,34 @@ protocol kslSessionKeyCompromise(C)
 }
 
 
-protocol ksl(I,R,S)
+protocol ksl(A,B,S)
 {
-    role I
+    role A
     {
-        const Ni, Mi: Nonce;
-        var Nr2, Mr: Nonce;
+        const Na, Ma: Nonce;
+        var Nc, Mb: Nonce;
         var T: Ticket;
-        var Kir: SessionKey;
+        var Kab: SessionKey;
         
-        send_1(I,R, Ni, I);
-        read_4(R,I, {Ni,R,Kir}k(I,S), T, Nr2, {Ni}Kir);
-        send_5(I,R, {Nr2}Kir );
+        send_1(A,B, Na, A);
+        read_4(B,A, { Na,B,Kab }k(A,S), T, Nc, {Na}Kab );
+        send_5(A,B, { Nc }Kab );
         
-        send_6(I,R, Mi,T );
-        read_7(R,I, Mr,{Mi}Kir );
-        send_8(I,R, {Mr}Kir );
+        send_6(A,B, Ma,T );
+        read_7(B,A, Mb,{Ma}Kab );
+        send_8(A,B, {Mb}Kab );
 
-        claim_A1(A,Secret, Kab);
-        claim_A2(A,Niagree);
-        claim_A3(A,Nisynch);
-        claim_A4(A,Empty, (Fresh, Kab));
+        claim_I1(A,Secret, Kab);
+        claim_I2(A,Niagree);
+        claim_I3(A,Nisynch);
+        claim_I4(A,Empty, (Fresh, Kab));
     }
 
     role B
     {
         var Na,Ma: Nonce;
-        const Nr,Nr2,Mr: Nonce;
-        var Kir: SessionKey;
+        const Nb,Nc,Mb: Nonce;
+        var Kab: SessionKey;
         const Kbb: TicketKey;
         const Tb: GeneralizedTimestamp;
         var T: Ticket;
@@ -108,7 +109,7 @@ protocol ksl(I,R,S)
     }
 }
 
-run ksl.A(Alice,Bob,Simon);
-run ksl.B(Alice,Bob,Simon);
-run ksl.S(Alice,Bob,Simon);
+run ksl.A(a,b,s);
+run ksl.B(a,b,s);
+run ksl.S(a,b,s);
 

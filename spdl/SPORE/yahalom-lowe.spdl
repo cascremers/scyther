@@ -7,7 +7,7 @@
 
 secret k : Function;
 
-usertype Key;
+usertype SessionKey;
 
 
 protocol yahalomLowe(I,R,S)
@@ -16,7 +16,7 @@ protocol yahalomLowe(I,R,S)
     {
         const Ni: Nonce;
         var Nr: Nonce;
-        var Kir: Key;
+        var Kir: SessionKey;
 
         send_1(I,R, I,Ni);
         read_3(S,I, {R,Kir,Ni,Nr}k(I,S) );
@@ -30,7 +30,7 @@ protocol yahalomLowe(I,R,S)
     {
         const Nr: Nonce;
         var Ni: Nonce;
-        var Kir: Key;
+        var Kir: SessionKey;
 
         read_1(I,R, I,Ni);
         send_2(R,S, {I,Ni,Nr}k(R,S) );
@@ -43,7 +43,7 @@ protocol yahalomLowe(I,R,S)
 
     role S
     {
-        const Kir: Key;
+        const Kir: SessionKey;
         var Ni,Nr: Nonce;
 
         read_2(R,S, {I,Ni,Nr}k(R,S) );

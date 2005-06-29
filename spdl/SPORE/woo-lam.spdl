@@ -9,7 +9,7 @@
 #
 
 
-usertype Key;
+usertype SessionKey;
 
 secret k: Function;
 const Fresh: Function;
@@ -21,7 +21,7 @@ protocol woolamSessionKeyCompromise(C)
     // corresponding session key to simulate key compromise
     role C {
         const N1,N2: Nonce;
-        const Kir: Key;
+        const Kir: SessionKey;
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);
@@ -44,7 +44,7 @@ protocol woolam(I,R,S)
     role I
     {
         const N1: Nonce;
-        var Kir: Key;
+        var Kir: SessionKey;
         var N2: Nonce;
 
         send_1(I,R, I, N1); 
@@ -63,7 +63,7 @@ protocol woolam(I,R,S)
     {
         const N2: Nonce;
         var N1: Nonce;
-        var Kir: Key;
+        var Kir: SessionKey;
         var T1,T2: Ticket;
 
         read_1(I,R, I, N1);
@@ -81,7 +81,7 @@ protocol woolam(I,R,S)
 
     role S
     {
-        const Kir: Key;
+        const Kir: SessionKey;
         var N1,N2: Nonce;
 
         read_4(R,S, {I, R, N1, N2}k(I,S), {I, R, N1, N2}k(R,S));
@@ -90,7 +90,7 @@ protocol woolam(I,R,S)
 }
 
 const Alice,Bob,Eve,Simon: Agent;
-const Ke: Key;
+const Ke: SessionKey;
 const Te: Ticket;
 const Ne: Nonce;
 

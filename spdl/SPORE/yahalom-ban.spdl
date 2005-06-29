@@ -10,7 +10,7 @@
 
 secret k : Function;
 
-usertype Key;
+usertype SessionKey;
 const Fresh: Function;
 const Compromised: Function;
 
@@ -20,7 +20,7 @@ protocol yahalomBANSessionKeyCompromise(C)
     // corresponding session key to simulate key compromise
     role C {
         const Ni,Nr: Nonce;
-        const Kir: Key;
+        const Kir: SessionKey;
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);
@@ -44,7 +44,7 @@ protocol yahalomBAN(I,R,S)
         const Ni: Nonce;
         var Nr: Nonce;
         var T: Ticket;
-        var Kir: Key;
+        var Kir: SessionKey;
 
         send_1(I,R, I,Ni);
         read_3(S,I, Nr, {R,Kir,Ni}k(I,S), T );
@@ -60,7 +60,7 @@ protocol yahalomBAN(I,R,S)
         const Nr: Nonce;
         var Ni: Nonce;
         var T: Ticket;
-        var Kir: Key;
+        var Kir: SessionKey;
 
         read_1(I,R, I,Ni);
         send_2(R,S, R, Nr, {I,Ni}k(R,S) );
@@ -73,7 +73,7 @@ protocol yahalomBAN(I,R,S)
 
     role S
     {
-        const Kir: Key;
+        const Kir: SessionKey;
         var Ni,Nr: Nonce;
 
         read_2(R,S, R, Nr, {I,Ni}k(R,S) );

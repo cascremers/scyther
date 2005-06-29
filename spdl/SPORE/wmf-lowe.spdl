@@ -9,7 +9,7 @@
 # agent can recognise and will reject to read messages that it has created
 # itself.
 
-usertype Key;
+usertype SessionKey;
 usertype TimeStamp;
 const succ,pred: Function;
 inversekeys (succ,pred);
@@ -24,7 +24,7 @@ protocol wmfLoweSessionKeyCompromise(C)
     // corresponding session key to simulate key compromise
     role C {
         const Ni,Nr: Nonce;
-        const Kir: Key;
+        const Kir: SessionKey;
         const Ti,Ts: TimeStamp;
         var I,R,S: Agent;
 
@@ -43,9 +43,9 @@ protocol wmfLowe(I,R,S)
 {
     role I
     {
-        const Kir: Key;
+        const Kir: SessionKey;
         const Ti: TimeStamp;
-        var Kr: Key;
+        var Kr: SessionKey;
         var Nr: Nonce;
 
         send_1(I,S, I, {Ti, R, Kir}k(I,S)); 
@@ -60,7 +60,7 @@ protocol wmfLowe(I,R,S)
     role R
     {
         var Ts: TimeStamp;
-        var Kir: Key;
+        var Kir: SessionKey;
         const Nr: Nonce;
 
         read_2(S,R, {Ts, I, Kir}k(R,S) );
@@ -74,7 +74,7 @@ protocol wmfLowe(I,R,S)
 
     role S
     {
-        var Kir: Key;
+        var Kir: SessionKey;
         const Ts: TimeStamp;
         var Ti: TimeStamp;
 
@@ -84,7 +84,7 @@ protocol wmfLowe(I,R,S)
 }
 
 const Alice,Bob,Eve,Simon: Agent;
-const Ke: Key;
+const Ke: SessionKey;
 const Te: TimeStamp;
 
 

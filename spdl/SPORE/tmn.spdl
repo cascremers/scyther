@@ -6,8 +6,7 @@
 # Note:
 # According to Boyd and Mathuria Kb is the session key this is not clear
 # from the description in SPORE
-
-usertype Key;
+usertype SessionKey;
 
 const pk: Function;
 secret sk: Function;
@@ -21,7 +20,7 @@ protocol tmnSessionKeyCompromise(C)
     // corresponding session key to simulate key compromise
     role C {
         const Ni,Nr: Nonce;
-        const Kr,Ki: Key;
+        const Kr,Ki: SessionKey;
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);
@@ -38,8 +37,8 @@ protocol tmn(I,R,S)
 {
     role I
     {
-        const Ki: Key;
-        var Kr: Key;
+        const Ki: SessionKey;
+        var Kr: SessionKey;
 
         send_1(I,S, R,{Ki}pk(S) );
         read_4(S,I, R,{Kr}Ki );
@@ -51,7 +50,7 @@ protocol tmn(I,R,S)
     
     role R
     {
-        const Kr: Key;
+        const Kr: SessionKey;
 
         read_2(S,R, I );
         send_3(R,S, I, { Kr }pk(S) );
@@ -63,7 +62,7 @@ protocol tmn(I,R,S)
 
     role S
     {
-        var Ki,Kr: Key;
+        var Ki,Kr: SessionKey;
 
         read_1(I,S, R,{Ki}pk(S) );
         send_2(S,R, I );
@@ -73,7 +72,7 @@ protocol tmn(I,R,S)
 }
 
 const Alice,Bob,Eve,Simon: Agent;
-const Ke: Key;
+const Ke: SessionKey;
 
 
 untrusted Eve;
