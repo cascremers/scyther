@@ -4,11 +4,3 @@
 - Maybe it helps to fix the agents of the claim run (i.e. all different
   agents?, this restricts the attacks somewhat), make a switch for this.
 - SConstruct file should check whether ctags actually exists (avoiding errors)
-
-Gijs:
-  > Ik gebruik nu alleen wel hardcoded de naam Eve eigenlijk zouden de
-  > namen
-  > > van untrusted agents ook ergens in de XML file moeten staan. Ook
-  > > zou het
-  > > > handig zijn als de scyther command line in de XML file staat.
-  > > >

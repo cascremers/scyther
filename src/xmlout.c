@@ -97,6 +97,13 @@ xmlOutInteger (const char *tag, const int value)
   xmlPrint ("<%s>%i</%s>", tag, value, tag);
 }
 
+//! Print a string
+void
+xmlOutString (const char *tag, const char *s)
+{
+  xmlPrint ("<%s>%s</%s>", tag, s, tag);
+}
+
 //! Print a term in XML form (iteration inner)
 void
 xmlTermPrintInner (Term term)
@@ -615,6 +622,35 @@ xmlInvolvedProtocolRoles (const System sys)
     }
 }
 
+//! Untrusted agents
+void
+xmlUntrustedAgents (const System sys)
+{
+  xmlPrint ("<untrusted>");
+  xmlindent++;
+  xmlTermlistPrint (sys->untrusted);
+  xmlindent--;
+  xmlPrint ("</untrusted>");
+}
+
+//! Commandline
+void
+xmlOutCommandline (void)
+{
+  int i;
+
+  xmlPrint ("<commandline>");
+  xmlindent++;
+  i = 0;
+  while (i < switches.argc)
+    {
+      xmlPrint ("<arg>%s</arg>", switches.argv[i]);
+      i++;
+    }
+  xmlindent--;
+  xmlPrint ("</commandline>");
+}
+
 //! Global system info
 /**
  * To be used by concrete trace as well as semitrace output
@@ -625,10 +661,12 @@ xmlOutSysInfo (const System sys)
   xmlPrint ("<system>");
   xmlindent++;
 
+  xmlOutCommandline ();
   xmlOutInteger ("match", switches.match);
 
   xmlInitialKnowledge (sys);
   xmlInvolvedProtocolRoles (sys);
+  xmlUntrustedAgents (sys);
   xmlindent--;
   xmlPrint ("</system>");
 }
@@ -677,7 +715,7 @@ xmlRunInfo (const System sys, const int run)
       // Non-intruder run, check whether communicates with untrusted agents
       if (!isRunTrusted (sys, run))
 	{
-	  printf(" untrustedrun=\"true\"");
+	  printf (" untrustedrun=\"true\"");
 	}
     }
   printf (">");
