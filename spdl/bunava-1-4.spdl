@@ -1,4 +1,4 @@
-# Buttyan Nagy Vajda protocol 1 (3-party)
+# Buttyan Nagy Vajda protocol 1 (4-party)
 #
 # Modelled after the description in the paper
 # "Efficient multi-party challenge-response protocols for entity
@@ -8,7 +8,8 @@
 # Does not satisfy ni-agree, because when Alice in the A role terminates
 # it cannot be sure that the agent in role B is aware of having sent a
 # reply for Alice.
-# A type flaw attack exists in which there are only two agents active.
+# A type flaw attack exists in which there are only three agents active.
+# Especially -m2 attack 17 is nice, I think.
 #
 
 secret k: Function;
@@ -25,16 +26,16 @@ protocol intruderhelp(Swap)
     }
 }
 
-protocol bunava13(A,B,C)
+protocol bunava14(A,B,C,D)
 {
     role A
     {
         const ra: Nonce;
-	var rb,rc: Nonce;
+	var rb,rc,rd: Nonce;
 
 	send_1(A,B, ra);
-	read_3(C,A, rc,{C,rb,B,ra}k(A,C) );
-	send_4(A,B, {A,rc,C,rb}k(A,B) );
+	read_4(D,A, rd,{D,rc,C,rb,B,ra}k(A,D) );
+	send_5(A,B, {A,rd,D,rc,C,rb}k(A,B) );
 
 	claim_A1(A, Niagree);
 	claim_A2(A, Nisynch);
@@ -43,12 +44,12 @@ protocol bunava13(A,B,C)
     role B
     {
         const rb: Nonce;
-	var ra,rc: Nonce;
+	var ra,rc,rd: Nonce;
 
 	read_1(A,B, ra);
 	send_2(B,C, rb,{B,ra}k(B,C) );
-	read_4(A,B, {A,rc,C,rb}k(A,B) );
-	send_5(B,C, {B,A,rc}k(B,C) );
+	read_5(A,B, {A,rd,D,rc,C,rb}k(A,B) );
+	send_6(B,C, {B,A,rd,D,rc}k(B,C) );
 
 	claim_B1(B, Niagree);
 	claim_B2(B, Nisynch);
@@ -57,14 +58,28 @@ protocol bunava13(A,B,C)
     role C
     {
         const rc: Nonce;
-	var ra,rb: Nonce;
+	var ra,rb,rd: Nonce;
 
 	read_2(B,C, rb,{B,ra}k(B,C) );
-	send_3(C,A, rc,{C,rb,B,ra}k(A,C) );
-	read_5(B,C, {B,A,rc}k(B,C) );
+	send_3(C,D, rc,{C,rb,B,ra}k(C,D) );
+	read_6(B,C, {B,A,rd,D,rc}k(B,C) );
+	send_7(C,D, {C,B,A,rd}k(C,D) );
 
 	claim_C1(C, Niagree);
 	claim_C2(C, Nisynch);
+    }
+
+    role D
+    {
+        const rd: Nonce;
+	var ra,rb,rc: Nonce;
+
+	read_3(C,D, rc,{C,rb,B,ra}k(C,D) );
+	send_4(D,A, rd,{D,rc,C,rb,B,ra}k(A,D) );
+	read_7(C,D, {C,B,A,rd}k(C,D) );
+
+	claim_D1(D, Niagree);
+	claim_D2(D, Nisynch);
     }
 }
 
@@ -81,9 +96,11 @@ compromised k(Eve,Charlie);
 
 # General scenario, 2 parallel runs of the protocol
  
-run bunava13.A(Agent,Agent,Agent);
-run bunava13.B(Agent,Agent,Agent);
-run bunava13.C(Agent,Agent,Agent);
-run bunava13.A(Agent,Agent,Agent);
-run bunava13.B(Agent,Agent,Agent);
-run bunava13.C(Agent,Agent,Agent);
+run bunava14.A(Agent,Agent,Agent,Agent);
+run bunava14.B(Agent,Agent,Agent,Agent);
+run bunava14.C(Agent,Agent,Agent,Agent);
+run bunava14.D(Agent,Agent,Agent,Agent);
+run bunava14.A(Agent,Agent,Agent,Agent);
+run bunava14.B(Agent,Agent,Agent,Agent);
+run bunava14.C(Agent,Agent,Agent,Agent);
+run bunava14.D(Agent,Agent,Agent,Agent);
