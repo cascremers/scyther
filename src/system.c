@@ -1212,39 +1212,55 @@ protocolsPrint (Protocol p)
     }
 }
 
+//! Determine whether an agent term is trusted
+/**
+ * 1 (True) means trusted, 0 is untrusted
+ */
+int 
+isAgentTrusted (const System sys, Term agent)
+{
+  agent = deVar (agent);
+  if (!realTermVariable (agent) && inTermlist (sys->untrusted, agent))
+    {
+      // Untrusted agent in the list
+      return 0;
+    }
+  return 1;
+}
+
 //! Determine whether there is an untrusted agent.
 /**
- *@param sys The system, containing system::untrusted.
- *@param agents A list of agents to be verified.
- *@return True iff any agent in the list is untrusted.
+ *@return True iff all agent in the list are trusted.
  */
 int
-untrustedAgent (const System sys, Termlist agents)
+isAgentlistTrusted (const System sys, Termlist agents)
 {
   while (agents != NULL)
     {
-      if (isTermVariable (agents->term))
+      if (!isAgentTrusted (sys, agents->term))
 	{
-	  if (switches.clp)
-	    {
-	      /* clp: variables are difficult */
-	      /* TODO Add as constraint that they're
-	       * trusted */
-	      /* However, that is a branch as well :(
-	       */
-	      /* claim secret is _really_ a instant-multiple
-	       * read. If it is succesful, we sound
-	       * the alert */
-	    }
-	}
-      else
-	{
-	  if (inTermlist (sys->untrusted, agents->term))
-	    return 1;
+	  return 0;
 	}
       agents = agents->next;
     }
-  return 0;
+  return 1;
+}
+
+//! Determine whether all agents of a run are trusted
+/**
+ * Returns 0 (False) if they are not trusted, otherwise 1 (True)
+ */
+int
+isRunTrusted (const System sys, const int run)
+{
+  if (run >= 0 && run < sys->maxruns)
+    {
+      if (!isAgentlistTrusted (sys, sys->runs[run].agents))
+	{
+	  return 0;
+	}
+    }
+  return 1;
 }
 
 //! Yield the maximum length of a trace by analysing the runs in the system.
@@ -1446,3 +1462,4 @@ system_iterate_roles (const System sys, int (*func) ())
     }
   return 1;
 }
+

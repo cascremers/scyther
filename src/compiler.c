@@ -719,7 +719,7 @@ runInstanceCreate (Tac tc)
   /*      first: determine whether the run is untrusted,
    *      by checking whether one of the untrusted agents occurs
    *      in the run instance  */
-  if (untrustedAgent (sys, instParams))
+  if (!isAgentlistTrusted (sys, instParams))
     {
       /* nothing yet */
       /* claims handle this themselves */

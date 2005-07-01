@@ -609,7 +609,7 @@ graphNode (const System sys)
   // Print step 
   printf ("%i:", sys->runs[run].step - 1);
 
-  if (rd->type == CLAIM && untrustedAgent (sys, sys->runs[run].agents))
+  if (rd->type == CLAIM && (!isRunTrusted(sys,run)))
     {
       printf ("Skip claim in #%i\"", run);
     }

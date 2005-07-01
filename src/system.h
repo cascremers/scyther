@@ -203,5 +203,8 @@ int compute_roleeventmax (const System sys);
 
 void scenarioPrint (const System sys);
 int system_iterate_roles (const System sys, int (*func) ());
+int isAgentTrusted (const System sys, Term agent);
+int isAgentlistTrusted (const System sys, Termlist agents);
+int isRunTrusted (const System sys, const int run);
 
 #endif

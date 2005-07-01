@@ -672,6 +672,14 @@ xmlRunInfo (const System sys, const int run)
     {
       printf (" intruder=\"true\"");
     }
+  else
+    {
+      // Non-intruder run, check whether communicates with untrusted agents
+      if (!isRunTrusted (sys, run))
+	{
+	  printf(" untrustedrun=\"true\"");
+	}
+    }
   printf (">");
   xmlTermPrint (sys->runs[run].protocol->nameterm);
   printf ("</protocol>\n");

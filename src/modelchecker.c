@@ -260,7 +260,7 @@ removeDangling (Roledef rd, const int killclaims)
 Roledef
 removeIrrelevant (const System sys, const int run, Roledef rd)
 {
-  if (untrustedAgent (sys, sys->runs[run].agents))
+  if (!isRunTrusted (sys,run))
     {
       // untrusted, so also remove claims
       return removeDangling (rd, 1);
@@ -384,7 +384,7 @@ explorify (const System sys, const int run)
 	  while (rid < sys->maxruns)
 	    {
 	      /* are claims in this run evaluated anyway? */
-	      if (!untrustedAgent (sys, sys->runs[rid].agents))
+	      if (isRunTrusted(sys, rid))
 		{		/* possibly claims to be checked in this run */
 		  rdscan = runPointerGet (sys, rid);
 		  while (rdscan != NULL)
@@ -465,7 +465,7 @@ explorify (const System sys, const int run)
          rid = 0;
          while (rid < sys->maxruns)
          {
-         if (!untrustedAgent (sys, sys->runs[rid].agents))
+         if (!isRunTrusted (sys, rid))
          {
          }
          rid++;
@@ -1207,7 +1207,7 @@ claimViolationDetails (const System sys, const int run, const Roledef rd,
     {
       /* secrecy claim */
 
-      if (untrustedAgent (sys, sys->runs[run].agents))
+      if (!isRunTrusted (sys,run))
 	{
 	  /* claim was skipped */
 	  return (Termlist) - 1;
@@ -1328,7 +1328,7 @@ executeTry (const System sys, int run)
       if (runPoint->type == CLAIM)
 	{
 	  /* first we might dynamically determine whether the claim is valid */
-	  if (untrustedAgent (sys, sys->runs[run].agents))
+	  if (!isRunTrusted (sys,run))
 	    {
 	      /* for untrusted agents we check no claim violations at all
 	       * so: we know it's okay. */

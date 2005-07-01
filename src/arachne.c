@@ -2724,23 +2724,15 @@ prune_theorems ()
     }
 
   // Check if all agents of the main run are valid
-  tl = sys->runs[0].agents;
-  while (tl != NULL)
+  if (!isRunTrusted (sys,0))
     {
-      Term agent;
-
-      agent = deVar (tl->term);
-      if (!realTermVariable (agent) && inTermlist (sys->untrusted, agent))
+      if (switches.output == PROOF)
 	{
-	  if (switches.output == PROOF)
-	    {
-	      indentPrint ();
-	      eprintf
-		("Pruned because all agents of the claim run must be trusted.\n");
-	    }
-	  return 1;
+	  indentPrint ();
+	  eprintf
+	    ("Pruned because all agents of the claim run must be trusted.\n");
 	}
-      tl = tl->next;
+      return 1;
     }
 
   // Check if the actors of all other runs are not untrusted
@@ -2762,7 +2754,7 @@ prune_theorems ()
 		    {
 		      error ("Agent of run %i is NULL", run);
 		    }
-		  if (inTermlist (sys->untrusted, actor))
+		  if (!isAgentTrusted (sys, actor))
 		    {
 		      if (switches.output == PROOF)
 			{
