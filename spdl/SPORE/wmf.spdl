@@ -3,6 +3,10 @@
 # Modelled after the description in the SPORE library
 # http://www.lsv.ens-cachan.fr/spore/wideMouthedFrog.html
 #
+# Note
+# The name of the party that has generated a message was added in order
+# to model the property described in SPORE that an agent can identify
+# its own messages and will reject them.
 
 usertype SessionKey;
 usertype TimeStamp;
@@ -22,8 +26,8 @@ protocol wmfSessionKeyCompromise(C)
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);
-        send_C2(C,C,    I, {Ti,R,Kir}k(I,S),
-                        {Ts,I,Kir}k(R,S),
+        send_C2(C,C,    I, {I,Ti,R,Kir}k(I,S),
+                        {S,Ts,I,Kir}k(R,S),
                         Kir
                );
         claim_C3(C,Empty, (Compromised,Kir));
@@ -38,7 +42,7 @@ protocol wmf(I,R,S)
         const Ti: TimeStamp;
         var Kr: SessionKey;
 
-        send_1(I,S, I, {Ti, R, Kir}k(I,S)); 
+        send_1(I,S, I, {I, Ti, R, Kir}k(I,S)); 
 
         claim_I1(I,Secret,Kir);
         claim_I2(I,Empty,(Fresh,Kir));
@@ -49,7 +53,7 @@ protocol wmf(I,R,S)
         var Ts: TimeStamp;
         var Kir: SessionKey;
 
-        read_2(S,R, {Ts, I, Kir}k(R,S) );
+        read_2(S,R, {S, Ts, I, Kir}k(R,S) );
 
         claim_R1(R,Secret,Kir);
         claim_R2(R,Nisynch);
@@ -62,8 +66,8 @@ protocol wmf(I,R,S)
         const Ts: TimeStamp;
         var Ti: TimeStamp;
 
-        read_1(I,S, I,{Ti, R, Kir}k(I,S) );
-        send_2(S,R, {Ts, I, Kir}k(R,S));
+        read_1(I,S, I,{I, Ti, R, Kir}k(I,S) );
+        send_2(S,R, {S, Ts, I, Kir}k(R,S));
     }
 }
 
