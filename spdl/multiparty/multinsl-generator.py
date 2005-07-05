@@ -6,12 +6,12 @@
 #
 # variant uses some bits:
 #	bit	mask	meaning if set to '1'
-#			message type 1
-# 	0	1	agents in reverse 
+#			(message type 1)
+# 	0	1	nonces in reverse 
 # 	1	2	nonces after agents
-# 	2	4	nonces in reverse 
+# 	2	4	agents in reverse 
 # 	3	8	interleaved variant
-# 			message type 2
+# 			(message type 2)
 # 	4	16	nonces in reverse in message 2
 #
 import sys
