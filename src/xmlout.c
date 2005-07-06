@@ -357,6 +357,106 @@ xmlVariables (const System sys)
   show_substitution_path = prev_mode;
 }
 
+//! Show a term and its type, on single lines
+void
+xmlTermType (const Term t)
+{
+  Term substbuf;
+
+  if (realTermVariable (t))
+    {
+      substbuf = t->subst;
+      t->subst = NULL;
+    }
+
+  xmlIndentPrint ();
+  xmlTermPrint (t);
+  printf ("\n");
+  xmlTermlistPrint (t->stype);
+
+  if (realTermVariable (t))
+    {
+      t->subst = substbuf;
+    }
+}
+
+//! Show a typeflaw of a single term
+void
+xmlTypeFlaw (const Term variable)
+{
+  if (realTermVariable (variable))
+    {
+      xmlPrint ("<typeflaw>");
+      xmlindent++;
+      xmlTermType (variable);
+      xmlIndentPrint ();
+      xmlTermPrint (deVar (variable));
+      printf ("\n");
+      xmlindent--;
+      xmlPrint ("</typeflaw>");
+    }
+}
+
+//! Show runs with type flaws in the system
+/**
+ * Show a list of runs which have type flaws, and show what has happened
+ */
+void
+xmlTypeflaws (const System sys)
+{
+  int run;			//!< current run under analysis
+  int lastrun;			//!< last run in which a type flaw occurred (for correct lazy printing of wrappers)
+
+  run = 0;
+  lastrun = -1;
+  while (run < sys->maxruns)
+    {
+      if (sys->runs[run].protocol != INTRUDER)
+	{
+	  Termlist varlist;
+
+	  varlist = sys->runs[run].locals;
+	  while (varlist != NULL)
+	    {
+	      /* Check the term with match 0 (of course this holds when
+	       * switches.match is 0, but not necessarily when tested with -m2
+	       */
+	      if (!checkTypeTerm (0, varlist->term))
+		{
+		  // Not the correct type
+		  // Ensure correct indent first
+		  if (lastrun != run)
+		    {
+		      if (lastrun == -1)
+			{
+			  xmlPrint ("<typeflaws>");
+			  xmlindent++;
+			}
+		      else
+			{
+			  xmlindent--;
+			  xmlPrint ("</run>");
+			}
+		      xmlPrint ("<run id=\"%i\">", run);
+		      xmlindent++;
+		      lastrun = run;
+		    }
+		  xmlTypeFlaw (varlist->term);
+		}
+	      varlist = varlist->next;
+	    }
+	}
+      run++;
+    }
+  if (lastrun != -1)
+    {
+      xmlindent--;
+      xmlPrint ("</run>");
+      xmlindent--;
+      xmlPrint ("</typeflaws>");
+    }
+}
+
 //! Show inverses
 void
 xmlInverses (const System sys)
@@ -852,6 +952,7 @@ xmlOutSemitrace (const System sys)
   xmlOutSysInfo (sys);
   /* instantiations of the variables */
   xmlVariables (sys);
+  xmlTypeflaws (sys);
   /* semitrace */
   xmlPrint ("<semitrace>");
   xmlindent++;
