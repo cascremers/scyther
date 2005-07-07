@@ -79,7 +79,7 @@ protocol wmfLowe(I,R,S)
         var Ti: TimeStamp;
 
         read_1(I,S, I,{I,Ti, R, Kir}k(I,S) );
-        send_2(S,R, {R,Ts, I, Kir}k(R,S));
+        send_2(S,R, {S,Ts, I, Kir}k(R,S));
     }
 }
 
