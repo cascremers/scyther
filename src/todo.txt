@@ -3,4 +3,6 @@
   goal selection might ignore that goal then, for further selection.
 - Maybe it helps to fix the agents of the claim run (i.e. all different
   agents?, this restricts the attacks somewhat), make a switch for this.
-- SConstruct file should check whether ctags actually exists (avoiding errors)
+- SConstruct file should check whether ctags actually exists (avoiding
+  errors)
+- Proof output should be XML, with an external converter to dot format.
