@@ -498,6 +498,57 @@ get_semitrace_length ()
   return length;
 }
 
+//! Check whether a binding (goal) is selectable
+int
+is_goal_selectable (const Binding b)
+{
+  if (b != NULL)
+    {
+      if (!b->blocked && !b->done)
+	{
+	  return 1;
+	}
+    }
+  return 0;
+}
+
+//! Count selectable goals
+int
+count_selectable_goals ()
+{
+  List bl;
+  int n;
+
+  n = 0;
+  bl = sys->bindings;
+  while (bl != NULL)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (is_goal_selectable (b))
+	{
+	  n++;
+	}
+      bl = bl->next;
+    }
+  return n;
+}
+
+//! Return first selectable goal in the list
+/**
+ * The return list entry is either NULL, or a selectable goal.
+ */
+List
+first_selectable_goal (List bl)
+{
+  while (bl != NULL && !is_goal_selectable ((Binding) bl->data))
+    {
+      bl = bl->next;
+    }
+  return bl;
+}
+
 //------------------------------------------------------------------------
 // Proof reporting
 //------------------------------------------------------------------------
@@ -2011,15 +2062,22 @@ select_tuple_goal ()
  * Because the list starts with the newest terms, and we use <= (as opposed to <), we
  * ensure that for goals with equal constraint levels, we select the oldest one.
  *
+ * --select-goal has two distint interpretations. If it is 0 or greater, it a
+ * selection mask. If it is smaller than 0, it is some special tactic.
+ *
  * selection masks for --select-goal
  *	1:	constrain level of term
  * 	2:	key or not
  * 	4:	consequences determination
  * 	8:	select also single variables (that are not role variables)
  * 	16:	single variables are better
+ *
+ * special tactics for --select-goal
+ *	-1:	random goal selection
+ *
  */
 Binding
-select_goal ()
+select_goal_masked ()
 {
   List bl;
   Binding best;
@@ -2045,7 +2103,7 @@ select_goal ()
       b = (Binding) bl->data;
 
       // Only if not done and not blocked
-      if (!b->blocked && !b->done)
+      if (is_goal_selectable (b))
 	{
 	  int allow;
 	  Term gterm;
@@ -2146,6 +2204,65 @@ select_goal ()
       eprintf ("\n");
     }
   return best;
+}
+
+//! Goal selection special case -1: random
+/**
+ * Simply picks an open goal randomly. Has to be careful to skip singular stuff etc.
+ */
+Binding
+select_goal_random ()
+{
+  int n;
+
+  n = count_selectable_goals ();
+  if (n > 0)
+    {
+      int choice;
+      List bl;
+
+      // Choose a random goal between 0 and n
+      choice = rand () % n;
+
+      // Fetch it
+      bl = sys->bindings;
+      while (choice >= 0)
+	{
+	  bl = first_selectable_goal (bl);
+	  if (bl == NULL)
+	    {
+	      error ("Random chooser selected a NULL goal.");
+	    }
+	  choice--;
+	}
+      return (Binding) bl->data;
+    }
+  else
+    {
+      return NULL;
+    }
+}
+
+//! Goal selection function, generic
+Binding
+select_goal ()
+{
+  if (switches.arachneSelector >= 0)
+    {
+      // Masked
+      return select_goal_masked ();
+    }
+  else
+    {
+      // Special cases
+      switch (switches.arachneSelector)
+	{
+	case -1:
+	  return select_goal_random ();
+	  break;
+	}
+      error ("Unknown value (<0) for --goal-select.");
+    }
 }
 
 //! Check if a binding duplicates an old one: if so, simply connect
@@ -2724,7 +2841,7 @@ prune_theorems ()
     }
 
   // Check if all agents of the main run are valid
-  if (!isRunTrusted (sys,0))
+  if (!isRunTrusted (sys, 0))
     {
       if (switches.output == PROOF)
 	{
