@@ -45,7 +45,7 @@ ascii_char	[^\"\n]
 escaped_char	\\n|\\\"
 integer		{digit}+
 text		\"({ascii_char}|{escaped_char})*\"
-id		({letter}|{digit})+
+id		@?({letter}|{digit})+
 
 %%
 
