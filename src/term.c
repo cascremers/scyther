@@ -237,6 +237,7 @@ isTermEqualFn (Term term1, Term term2)
 /**
  *@param t Term to be checked for a subterm.
  *@param tsub Subterm.
+ *	Note that if t is non-null and tsub is null, it is a valid subterm.
  *@return True iff tsub is a subterm of t.
  */
 int
@@ -246,15 +247,39 @@ termSubTerm (Term t, Term tsub)
   tsub = deVar (tsub);
 
   if (isTermEqual (t, tsub))
-    return 1;
-  if (realTermLeaf (t))
-    return 0;
-  if (realTermTuple (t))
-    return (termSubTerm (TermOp1 (t), tsub)
-	    || termSubTerm (TermOp2 (t), tsub));
+    {
+      return 1;
+    }
   else
-    return (termSubTerm (TermOp (t), tsub)
-	    || termSubTerm (TermKey (t), tsub));
+    {
+      if (t == NULL)
+	{
+	  return 0;
+	}
+      else
+	{
+	  if (tsub == NULL)
+	    {
+	      return 1;
+	    }
+	  else
+	    {
+	      if (realTermLeaf (t))
+		{
+		  return 0;
+		}
+	      else
+		{
+		  if (realTermTuple (t))
+		    return (termSubTerm (TermOp1 (t), tsub)
+			    || termSubTerm (TermOp2 (t), tsub));
+		  else
+		    return (termSubTerm (TermOp (t), tsub)
+			    || termSubTerm (TermKey (t), tsub));
+		}
+	    }
+	}
+    }
 }
 
 //! See if a term is an interm of another.
@@ -1301,7 +1326,6 @@ termPrintDiff (Term t1, Term t2)
 		    }
 		}
 	    }
-
 	}
     }
 }

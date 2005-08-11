@@ -503,41 +503,48 @@ arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs)
 	int run;
 
 	run = termmapGet (runs, role);
+	if (run != -1)
+	  {
 #ifdef DEBUG
-	if (run < 0 || run >= sys->maxruns)
-	  {
-	    globalError++;
-	    eprintf ("Run mapping %i out of bounds for role ", run);
-	    termPrint (role);
-	    eprintf (" and label ");
-	    termPrint (label);
-	    eprintf ("\n");
-	    eprintf ("This label has sendrole ");
-	    termPrint (linfo->sendrole);
-	    eprintf (" and readrole ");
-	    termPrint (linfo->readrole);
-	    eprintf ("\n");
-	    globalError--;
-	    error ("Run mapping is out of bounds.");
-	  }
+	    if (run < 0 || run >= sys->maxruns)
+	      {
+		globalError++;
+		eprintf ("Run mapping %i out of bounds for role ", run);
+		termPrint (role);
+		eprintf (" and label ");
+		termPrint (label);
+		eprintf ("\n");
+		eprintf ("This label has sendrole ");
+		termPrint (linfo->sendrole);
+		eprintf (" and readrole ");
+		termPrint (linfo->readrole);
+		eprintf ("\n");
+		globalError--;
+		error ("Run mapping is out of bounds.");
+	      }
 #endif
-	rd = sys->runs[run].start;
-	rd_res = NULL;
-	i = 0;
-	while (i < sys->runs[run].step && rd != NULL)
-	  {
-	    if (isTermEqual (rd->label, label))
+	    rd = sys->runs[run].start;
+	    rd_res = NULL;
+	    i = 0;
+	    while (i < sys->runs[run].step && rd != NULL)
 	      {
-		rd_res = rd;
-		rd = NULL;
+		if (isTermEqual (rd->label, label))
+		  {
+		    rd_res = rd;
+		    rd = NULL;
+		  }
+		else
+		  {
+		    rd = rd->next;
+		  }
+		i++;
 	      }
-	    else
-	      {
-		rd = rd->next;
-	      }
-	    i++;
+	    return rd_res;
 	  }
-	return rd_res;
+	else
+	  {
+	    return NULL;
+	  }
       }
 
       // Main
