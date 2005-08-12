@@ -1,0 +1,33 @@
+Report:
+-------
+
+Using P 3 and 2 runs, we find attacks on [1, 5, 9, 13, 18, 22, 26, 30]
+Using P 3 and 3 runs, we find attacks on [0, 3, 4, 7, 16, 19, 20, 23]
+Using P 3 and 4 runs, we find attacks on [2, 6, 10, 14, 17, 21, 27, 31]
+Using P 3 and 5 runs, we find attacks on [25, 29]
+Using P 4 and 3 runs, we find attacks on [8, 24]
+Using P 4 and 5 runs, we find attacks on [12, 28]
+
+Log:
+----
+Slave1:multiparty% ./test-variants.py
+Testing using P 3 and 2 runs.
+Using P 3 and 2 runs, we find attacks on [1, 5, 9, 13, 18, 22, 26, 30]
+Therefore, we are left with 24 candidates:  [0, 2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15, 16, 17, 19, 20, 21, 23, 24, 25, 27, 28, 29, 31]
+Testing using P 3 and 3 runs.
+Using P 3 and 3 runs, we find attacks on [0, 3, 4, 7, 16, 19, 20, 23]
+Therefore, we are left with 16 candidates:  [2, 6, 8, 10, 11, 12, 14, 15, 17, 21, 24, 25, 27, 28, 29, 31]
+Testing using P 3 and 4 runs.
+Using P 3 and 4 runs, we find attacks on [2, 6, 10, 14, 17, 21, 27, 31]
+Therefore, we are left with 8 candidates:  [8, 11, 12, 15, 24, 25, 28, 29]
+Testing using P 3 and 5 runs.
+Using P 3 and 5 runs, we find attacks on [25, 29]
+Therefore, we are left with 6 candidates:  [8, 11, 12, 15, 24, 28]
+Testing using P 4 and 3 runs.
+Using P 4 and 3 runs, we find attacks on [8, 24]
+Therefore, we are left with 4 candidates:  [11, 12, 15, 28]
+Testing using P 4 and 4 runs.
+Testing using P 4 and 5 runs.
+Using P 4 and 5 runs, we find attacks on [12, 28]
+Therefore, we are left with 2 candidates:  [11, 15]
+Testing using P 4 and 6 runs.
