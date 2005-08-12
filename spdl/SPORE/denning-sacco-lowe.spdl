@@ -14,6 +14,7 @@
 usertype Key;
 usertype SessionKey;
 usertype TimeStamp;
+usertype ExpiredTimeStamp;
 secret k: Function;
 usertype PseudoFunction;
 const dec: PseudoFunction;
@@ -27,7 +28,7 @@ protocol denningSaccoLoweSessionKeyCompromise(C)
     role C {
         const Ni,Nr: Nonce;
         const Kir: SessionKey;
-        const T: TimeStamp;
+        const T: ExpiredTimeStamp;
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);

@@ -12,8 +12,8 @@
 # different protocols (the key establishment protocol and the repeated
 # authentication protocol)
 
-
 usertype Server, SessionKey, TimeStamp, TicketKey;
+usertype ExpiredTimeStamp;
 secret k: Function;
 
 const Alice, Bob, Simon, Eve: Agent;
@@ -32,7 +32,7 @@ protocol neustubSessionKeyCompromise(C)
     role C {
         const Ni,Nr,Mi,Mr: Nonce;
         const Kir: SessionKey;
-        const Tr: TimeStamp;
+        const Tr: ExpiredTimeStamp;
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);
@@ -50,7 +50,7 @@ protocol neustubSessionKeyCompromise(C)
     }
 }
 
-protocol neustubRepeat(I,R,S)
+protocol @neustubRepeat(I,R,S)
 {
     const Kir: SessionKey;
 

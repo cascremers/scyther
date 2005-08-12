@@ -11,6 +11,7 @@
 
 usertype SessionKey;
 usertype TimeStamp;
+usertype ExpiredTimeStamp;
 const succ,pred: Function;
 inversekeys (succ,pred);
 const Fresh: Function;
@@ -25,7 +26,7 @@ protocol wmfLoweSessionKeyCompromise(C)
     role C {
         const Ni,Nr: Nonce;
         const Kir: SessionKey;
-        const Ti,Ts: TimeStamp;
+        const Ti,Ts: ExpiredTimeStamp;
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);

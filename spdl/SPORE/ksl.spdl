@@ -9,7 +9,8 @@
 #
 
 
-usertype Server, SessionKey, GeneralizedTimestamp, TicketKey;
+usertype Server, SessionKey, TimeStamp, TicketKey;
+usertype ExpiredTimeStamp;
 secret k: Function;
 
 const a, b, e: Agent;
@@ -30,7 +31,7 @@ protocol kslSessionKeyCompromise(C)
         const Ni,Nr,Nc,Ma,Mb: Nonce;
         const Kir: SessionKey;
         const Kbb: TicketKey;
-        const Tr: GeneralizedTimestamp;
+        const Tr: ExpiredTimeStamp;
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);
@@ -80,7 +81,7 @@ protocol ksl(A,B,S)
         const Nb,Nc,Mb: Nonce;
         var Kab: SessionKey;
         const Kbb: TicketKey;
-        const Tb: GeneralizedTimestamp;
+        const Tb: TimeStamp;
         var T: Ticket;
         
         read_1(A,B, Na, A);

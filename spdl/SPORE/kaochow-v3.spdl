@@ -9,7 +9,8 @@
 #
 
 usertype SessionKey;
-usertype Timestamp;
+usertype ExpiredTimeStamp;
+usertype TimeStamp;
 secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
@@ -21,7 +22,7 @@ protocol kaochow3SessionKeyCompromise(C)
     role C {
         const Ni,Nr: Nonce;
         const Kir,Kt: SessionKey;
-        const T2: Timestamp;
+        const T2: ExpiredTimeStamp;
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);
@@ -65,7 +66,7 @@ protocol kaochow3(I,R,S)
         const nr: Nonce;
         var kir,kt: SessionKey;
         var T: Ticket;
-        const tr: Timestamp;
+        const tr: TimeStamp;
 
         read_2 (S,R, T, { I,R,ni,kir,kt }k(R,S)  ); 
         send_3 (R,I, T, {ni, kir}kt, nr, {I,R,tr,kir}k(R,S) );

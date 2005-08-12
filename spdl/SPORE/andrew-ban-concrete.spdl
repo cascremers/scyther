@@ -21,7 +21,7 @@ secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol swapkey(X)
+protocol @swapkey(X)
 {
     # Protocol added to work around the symmetry problems where k(I,R) != k(R,I)
     role X

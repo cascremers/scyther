@@ -13,6 +13,7 @@
 
 
 usertype Server, SessionKey, TimeStamp, TicketKey;
+usertype ExpiredTimeStamp;
 secret k: Function;
 
 const a, b, e: Agent;
@@ -32,7 +33,7 @@ protocol neustubHwangSessionKeyCompromise(C)
     role C {
         const Ni,Nr,Mi,Mr: Nonce;
         const Kir: SessionKey;
-        const Tr: TimeStamp;
+        const Tr: ExpiredTimeStamp;
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);
