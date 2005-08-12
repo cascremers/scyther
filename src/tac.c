@@ -167,17 +167,19 @@ tacTuple (Tac taclist)
     }
   else
     {
-      if (switches.la_tupling)
+      switch (switches.tupling)
 	{
-	  /* switch --la-tupling */
-	  /* left-associative */
-	  return tacTupleLa (taclist);
-	}
-      else
-	{
+	case 0:
+	  /* case 0: as well as */
 	  /* DEFAULT behaviour */
 	  /* right-associative */
 	  return tacTupleRa (taclist);
+	case 1:
+	  /* switch --la-tupling */
+	  /* left-associative */
+	  return tacTupleLa (taclist);
+	default:
+	  error ("Unknown tupling mode (--tupling=%i)", switches.tupling);
 	}
     }
 }

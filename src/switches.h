@@ -18,7 +18,7 @@ struct switchdata
   int engine;			//!< Engine type (POR_ENGINE,ARACHNE_ENGINE)
   int match;			//!< Matching type.
   int clp;			//!< Do we use clp?
-  int la_tupling;		//!< Tupling is by default right-associative, optionally left-associative.
+  int tupling;			//!< Tupling is by default 0: right-associative, optionally 1: left-associative.
 
   // Pruning and Bounding
   int prune;			//!< Type of pruning.

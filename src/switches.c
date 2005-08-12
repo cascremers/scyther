@@ -39,7 +39,7 @@ switchesInit (int argc, char **argv)
   switches.engine = POR_ENGINE;	// default is partial ordering engine
   switches.match = 0;		// default matching
   switches.clp = 0;
-  switches.la_tupling = false;
+  switches.tupling = 0;
 
   // Pruning and Bounding
   switches.prune = 2;		// default pruning method
@@ -379,20 +379,51 @@ switcher (const int process, int index)
 	}
     }
 
+  if (detect (' ', "ra-tupling", 0))
+    {
+      if (!process)
+	{
+	  /* for experts only
+	     helptext ("--ra-tupling", "compile using right-associative tupling");
+	   */
+	}
+      else
+	{
+	  switches.tupling = 0;
+	  return index;
+	}
+    }
+
   if (detect (' ', "la-tupling", 0))
     {
       if (!process)
 	{
-	  /* not very important
+	  /* for experts only
 	     helptext ("--la-tupling", "compile using left-associative tupling");
 	   */
 	}
       else
 	{
-	  switches.la_tupling = true;
+	  switches.tupling = 1;
 	  return index;
 	}
     }
+
+  if (detect (' ', "tupling", 1))
+    {
+      if (!process)
+	{
+	  /* for experts only
+	     helptext ("--tupling", "tupling type to use");
+	   */
+	}
+      else
+	{
+	  switches.tupling = integer_argument ();
+	  return index;
+	}
+    }
+
 
   /* ==================
    *  Modelchecker only
