@@ -18,6 +18,8 @@ protocol otwayrees(A,B,S)
 		read_4(B,A, M, { na,kab }k(A,S) );
 
 		claim_5(A, Secret,kab);
+		claim_5b(A, Niagree);
+		claim_5c(A, Nisynch);
 	}
 
 	role B
@@ -33,6 +35,8 @@ protocol otwayrees(A,B,S)
 		send_4(B,A, M, t2 );
 
 		claim_6(B, Secret,kab);
+		claim_6a(B, Niagree);
+		claim_6b(B, Nisynch);
 	}
 
 	role S
