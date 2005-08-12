@@ -1,31 +1,37 @@
 #include <stdio.h>
 #include "tac.h"
 #include "memory.h"
+#include "switches.h"
 
 extern int yylineno;
 
 static Tac allocatedTacs;
 
+//! Init segment
 void
 tacInit (void)
 {
   allocatedTacs = NULL;
 }
 
+//! Closing segment
 void
 tacDone (void)
 {
-  Tac ts, tf;
+  Tac ts;
 
   ts = allocatedTacs;
   while (ts != NULL)
     {
+      Tac tf;
+
       tf = ts;
       ts = ts->allnext;
       memFree (tf, sizeof (struct tacnode));
     }
 }
 
+//! Create a tac node of some type
 Tac
 tacCreate (int op)
 {
@@ -90,13 +96,9 @@ tacCat (Tac t1, Tac t2)
     }
 }
 
-/* in: a list. out: a tuple (for e.g. associativity)
- * Effectively, this defines how we interpret tuples with
- * more than two components.
- */
-
+//! List to right-associative tuple
 Tac
-tacTuple (Tac taclist)
+tacTupleRa (Tac taclist)
 {
   Tac tc;
 
@@ -118,6 +120,66 @@ tacTuple (Tac taclist)
       tc->t2.tac->prev = NULL;
     }
   return tc;
+}
+
+//! List to left-associative tuple
+Tac
+tacTupleLa (Tac taclist)
+{
+  Tac tc;
+
+  /* initial node is simple the first item */
+  tc = taclist;
+  tc->prev = NULL;
+
+  /* add any other nodes (one is ensured) */
+  do
+    {
+      Tac tcnew;
+
+      taclist = taclist->next;
+      /* add a new node (taclist) to the existing thing by first making the old one into the left-hand side of a tuple */
+      tcnew = tacCreate (TAC_TUPLE);
+      tcnew->t1.tac = tc;
+      tcnew->t2.tac = taclist;
+      tc = tcnew;
+      /* unlink */
+      tc->t1.tac->next = NULL;
+      tc->t2.tac->prev = NULL;
+    }
+  while (taclist->next != NULL);
+
+  return tc;
+}
+
+//! Compile a list into a tuple
+/* in: a list. out: a tuple (for e.g. associativity)
+ * Effectively, this defines how we interpret tuples with
+ * more than two components.
+ */
+Tac
+tacTuple (Tac taclist)
+{
+  if (taclist == NULL || taclist->next == NULL)
+    {
+      /* just return */
+      return taclist;
+    }
+  else
+    {
+      if (switches.la_tupling)
+	{
+	  /* switch --la-tupling */
+	  /* left-associative */
+	  return tacTupleLa (taclist);
+	}
+      else
+	{
+	  /* DEFAULT behaviour */
+	  /* right-associative */
+	  return tacTupleRa (taclist);
+	}
+    }
 }
 
 /*

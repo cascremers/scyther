@@ -39,6 +39,7 @@ switchesInit (int argc, char **argv)
   switches.engine = POR_ENGINE;	// default is partial ordering engine
   switches.match = 0;		// default matching
   switches.clp = 0;
+  switches.la_tupling = false;
 
   // Pruning and Bounding
   switches.prune = 2;		// default pruning method
@@ -373,6 +374,21 @@ switcher (const int process, int index)
       else
 	{
 	  switches.human = true;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "la-tupling", 0))
+    {
+      if (!process)
+	{
+	  /* not very important
+	     helptext ("--la-tupling", "compile using left-associative tupling");
+	   */
+	}
+      else
+	{
+	  switches.la_tupling = true;
 	  return index;
 	}
     }

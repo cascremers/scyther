@@ -8,10 +8,25 @@
 #
 import commands
 
-def testvariant(variant,P,runs):
+def startset():
+	return range(0,32)
+	
+	mainlist = [11, 12, 15, 28]
+	print "Starting with", mainlist
+	return mainlist
+
+def tuplingchoice(variant,P,runs,latupling):
+	#	variant is in range [0..64>,
+	#	where we use the highest bid to signify the
+	#	associativity of the tupling.
+
+	extraflags = ""
+	if latupling:
+		extraflags += " --la-tupling"
+
 	s = "./multinsl-generator.py"
 	s += " %i %s" % (P,variant)
-	s += " | scyther -a -r%i -m2 --summary" % runs
+	s += " | scyther -a -r%i -m2 --summary %s" % (runs, extraflags)
 	#s += " | scyther -a -r%i --summary" % runs
 	#print s
 	s += " | grep \"failed:\""
@@ -22,6 +37,12 @@ def testvariant(variant,P,runs):
 	else:
 		#print out
 		return False
+
+def testvariant(v,p,r):
+	if not tuplingchoice (v,p,r, False):
+		return False
+	else:
+		return tuplingchoice (v,p,r, True)
 
 def removeattacks (testlist, P, runs):
 	okaylist = []
@@ -39,14 +60,14 @@ def scan(testlist, P, runs):
 			if testlist[i] not in results:
 				attacked.append(testlist[i])
 		print "Using P %i and %i runs, we find attacks on %s" % (P,runs, str(attacked))
-		print "Therefore, we are left with %i candidates: " % (len(testlist)), results 
+		print "Therefore, we are left with %i candidates: " % (len(results)), results 
 
 	return results
 
 def main():
-	candidates = range(0,32)
-	for P in range(2,7):
-		for runs in range(P-1,P+2):
+	candidates = startset()
+	for P in range(3,7):
+		for runs in range(P-1,P+3):
 			candidates = scan(candidates,P,runs)
 	print
 	print "Good variants:"
