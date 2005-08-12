@@ -3484,3 +3484,115 @@ arachne ()
       cl = cl->next;
     }
 }
+
+//! Construct knowledge set at some event, based on a semitrace.
+/**
+ * This is a very 'stupid' algorithm; it is just there because GijsH
+ * requested it. It does in no way guarantee that this is the actual
+ * knowledge set at the given point. It simply gives an underapproximation,
+ * that will be correct in most cases. The main reason for this is that it
+ * completely ignores any information on unbound variables, and regards them
+ * as bound constants.
+ *
+ * Because everything is supposed to be bound, we conclude that even 'read'
+ * events imply a certain knowledge.
+ *
+ * If aftercomplete is 0 or false, we actually check the ordering; otherwise we
+ * just assume the trace has finished.
+ *
+ * Use knowledgeDelete later to clean up.
+ */
+Knowledge
+knowledgeAtArachne (const System sys, const int myrun, const int myindex,
+		    const int aftercomplete)
+{
+  Knowledge know;
+  int run;
+
+  goal_graph_create ();		// ensure a valid ordering graph
+  know = knowledgeDuplicate (sys->know);	// duplicate initial knowledge
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      int index;
+      int maxstep;
+      Roledef rd;
+
+      index = 0;
+      rd = sys->runs[run].start;
+      maxstep = sys->runs[run].step;
+      if (run == myrun && myindex > maxstep)
+	{
+	  // local run index can override real step
+	  maxstep = myindex;
+	}
+
+      while (rd != NULL && index < maxstep)
+	{
+	  // Check whether this event precedes myevent
+	  if (aftercomplete || isOrderedBefore (run, index, myrun, myindex))
+	    {
+	      // If it is a send (trivial) or a read (remarkable, but true
+	      // because of bindings) we can add the message and the agents to
+	      // the knowledge.
+	      if (rd->type == SEND || rd->type == READ)
+		{
+		  knowledgeAddTerm (know, rd->message);
+		  if (rd->from != NULL)
+		    knowledgeAddTerm (know, rd->from);
+		  if (rd->to != NULL)
+		    knowledgeAddTerm (know, rd->to);
+		}
+	      index++;
+	      rd = rd->next;
+	    }
+	  else
+	    {
+	      // Not ordered before anymore, so we skip to the next run.
+	      rd = NULL;
+	    }
+	}
+      run++;
+    }
+  return know;
+}
+
+//! Determine whether a term is trivially known at some event in a partially ordered structure.
+/**
+ * Important: read disclaimer at knowledgeAtArachne()
+ *
+ * Returns true iff the term is certainly known at that point in the
+ * semitrace.
+ */
+int
+isTriviallyKnownAtArachne (const System sys, const Term t, const int run,
+			   const int index)
+{
+  int result;
+  Knowledge knowset;
+
+  knowset = knowledgeAtArachne (sys, run, index, false);
+  result = inKnowledge (knowset, t);
+  knowledgeDelete (knowset);
+  return result;
+}
+
+//! Determine whether a term is trivially known after execution of some partially ordered structure.
+/**
+ * Important: read disclaimer at knowledgeAtArachne()
+ *
+ * Returns true iff the term is certainly known after all events in the
+ * semitrace.
+ */
+int
+isTriviallyKnownAfterArachne (const System sys, const Term t, const int run,
+			      const int index)
+{
+  int result;
+  Knowledge knowset;
+
+  knowset = knowledgeAtArachne (sys, run, index, true);
+  result = inKnowledge (knowset, t);
+  knowledgeDelete (knowset);
+  return result;
+}

@@ -57,6 +57,7 @@ struct switchdata
   int reportTime;		//!< Time display switch.
   int reportStates;		//!< Progress display switch. (traversed states)
   int extendNonReads;		//!< Show further events in arachne xml output.
+  int extendTrivial;		//!< Show further events in arachne xml output, based on knowledge underapproximation. (Includes at least the events of the nonreads extension)
 
   //! Latex output switch.
   /**

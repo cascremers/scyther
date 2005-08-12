@@ -78,6 +78,7 @@ switchesInit (int argc, char **argv)
   switches.reportTime = 0;
   switches.reportStates = 0;
   switches.extendNonReads = 0;	// default off
+  switches.extendTrivial = 0;	// default off
 
   // Obsolete
   switches.latex = 0;		// latex output?
@@ -477,6 +478,20 @@ switcher (const int process, int index)
       else
 	{
 	  switches.extendNonReads = 1;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "extend-trivial", 0))
+    {
+      if (!process)
+	{
+	  /* discourage: hide
+	   */
+	}
+      else
+	{
+	  switches.extendTrivial = 1;
 	  return index;
 	}
     }

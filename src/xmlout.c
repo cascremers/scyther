@@ -872,11 +872,49 @@ xmlOutRuns (const System sys)
 		}
 	      else
 		{
-		  if (switches.extendNonReads)
+		  if (switches.extendTrivial || switches.extendNonReads)
 		    {
 		      if (rd->type != READ)
 			{
 			  return true;
+			}
+		      else
+			{
+			  if (switches.extendTrivial)
+			    {
+			      /* This is a read, and we don't know whether to
+			       * include it. Default behaviour would be to jump
+			       * out of the conditions, and return false.
+			       * Instead, we check whether it can be trivially
+			       * satisfied by the knowledge from the preceding
+			       * events.
+			       */
+			      if (isTriviallyKnownAtArachne (sys,
+							     rd->message,
+							     run, index))
+				{
+				  return true;
+				}
+			      else
+				{
+				  /* We cannot extend it trivially, based on
+				   * the preceding events, but maybe we can
+				   * base it on another (*all*) event. That
+				   * would in fact introduce another implicit
+				   * binding. Currently, we do not explicitly
+				   * introduce this binding, but just allow
+				   * displaying the event.
+				   *
+				   * TODO consider what it means to leave out
+				   * this binding.
+				   */
+				  if (isTriviallyKnownAfterArachne
+				      (sys, rd->message, run, index))
+				    {
+				      return true;
+				    }
+				}
+			    }
 			}
 		    }
 		}

@@ -66,6 +66,17 @@ binding_destroy (Binding b)
   memFree (b, sizeof (struct binding));
 }
 
+//! Test whether one event is ordered before another
+/**
+ * Is only guaranteed to yield trustworthy results after a new graph is created, using
+ * goal_graph_create ()
+ */
+int
+isOrderedBefore (const int run1, const int ev1, const int run2, const int ev2)
+{
+  return graph[graph_nodes (nodes, run2, ev2, run2, ev2)];
+}
+
 /*
  *
  * Main
