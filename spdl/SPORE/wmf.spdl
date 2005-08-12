@@ -10,6 +10,7 @@
 
 usertype SessionKey;
 usertype TimeStamp;
+usertype ExpiredTimeStamp;
 
 secret k: Function;
 const Fresh: Function;
@@ -22,7 +23,7 @@ protocol wmfSessionKeyCompromise(C)
     role C {
         const Ni,Nr: Nonce;
         const Kir: SessionKey;
-        const Ti,Ts: TimeStamp;
+        const Ti,Ts: ExpiredTimeStamp;
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);
