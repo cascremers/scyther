@@ -11,7 +11,7 @@ import commands
 def startset():
 	return range(0,32)
 	
-	mainlist = [11, 12, 15, 28]
+	mainlist = [11, 15]
 	print "Starting with", mainlist
 	return mainlist
 
