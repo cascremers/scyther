@@ -14,7 +14,7 @@ const Compromised: Function;
 
 usertype SessionKey;
 
-protocol yahalomPaulsonSessionKeyCompromise(C)
+protocol yahalom-Paulson^KeyCompromise(C)
 {
     // Read the names of 3 agents and disclose a session between them including
     // corresponding session key to simulate key compromise
@@ -36,7 +36,7 @@ protocol yahalomPaulsonSessionKeyCompromise(C)
 }
 
 
-protocol yahalomPaulson(I,R,S)
+protocol yahalom-Paulson(I,R,S)
 {
     role I
     {
@@ -82,7 +82,7 @@ protocol yahalomPaulson(I,R,S)
 
 const Alice,Bob,Simon : Agent;
 
-run yahalomPaulson.I(Agent,Agent,s);
-run yahalomPaulson.I(Agent,Agent,s);
-run yahalomPaulson.R(Agent,Agent,s);
+run yahalom-Paulson.I(Agent,Agent,s);
+run yahalom-Paulson.I(Agent,Agent,s);
+run yahalom-Paulson.R(Agent,Agent,s);
 

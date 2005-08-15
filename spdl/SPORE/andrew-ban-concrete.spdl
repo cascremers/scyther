@@ -33,7 +33,7 @@ protocol @swapkey(X)
     }
 }
 
-protocol andrewConcreteSessionKeyCompromise(C)
+protocol andrew-Concrete^KeyCompromise(C)
 {
     // Read the names of 3 agents and disclose a session between them including
     // corresponding session key to simulate key compromise
@@ -54,7 +54,7 @@ protocol andrewConcreteSessionKeyCompromise(C)
 }
 
 
-protocol andrewConcrete(I,R)
+protocol andrew-Concrete(I,R)
 {
     
     role I
@@ -99,7 +99,7 @@ const kee: SessionKey;
 # run andrewConcrete.R(Bob,Alice);
 
 # This is the original scenario
-run andrewConcrete.I(Agent,Agent);
-run andrewConcrete.R(Agent,Agent);
-run andrewConcrete.I(Agent,Agent);
-run andrewConcrete.R(Agent,Agent);
+run andrew-Concrete.I(Agent,Agent);
+run andrew-Concrete.R(Agent,Agent);
+run andrew-Concrete.I(Agent,Agent);
+run andrew-Concrete.R(Agent,Agent);

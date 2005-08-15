@@ -15,7 +15,7 @@ const succ: Function;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol andrewSessionKeyCompromise(C)
+protocol andrew^KeyCompromise(C)
 {
     // Read the names of 2 agents and disclose a session between them including
     // corresponding session key to simulate key compromise

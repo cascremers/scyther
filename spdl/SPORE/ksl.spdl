@@ -23,7 +23,7 @@ const kee: SessionKey;
 untrusted e;
 compromised k(e,s);
 
-protocol kslSessionKeyCompromise(C)
+protocol ksl^KeyCompromise(C)
 {
     // Read the names of 3 agents and disclose a session between them including
     // corresponding session key to simulate key compromise

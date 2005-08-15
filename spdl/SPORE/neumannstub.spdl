@@ -25,7 +25,7 @@ const kee: SessionKey;
 untrusted Eve;
 compromised k(Eve,Simon);
 
-protocol neustubSessionKeyCompromise(C)
+protocol neustub^KeyCompromise(C)
 {
     // Read the names of 3 agents and disclose a session between them including
     // corresponding session key to simulate key compromise
@@ -50,7 +50,7 @@ protocol neustubSessionKeyCompromise(C)
     }
 }
 
-protocol @neustubRepeat(I,R,S)
+protocol neustub^Repeat(I,R,S)
 {
     const Kir: SessionKey;
 

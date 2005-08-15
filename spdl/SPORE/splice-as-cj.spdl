@@ -18,7 +18,7 @@ inversekeys (pk,sk);
 const inc,dec: Function;
 inversekeys (inc,dec);
 
-protocol spliceASCJ(I,R,S)
+protocol spliceAS-CJ(I,R,S)
 {
         role I
     {
@@ -73,9 +73,9 @@ untrusted Eve;
 const ne: Nonce;
 compromised sk(Eve);
 
-run spliceASCJ.I(Agent,Agent,Agent);
-run spliceASCJ.R(Agent,Agent,Agent);
-run spliceASCJ.S(Agent,Agent,Agent);
+run spliceAS-CJ.I(Agent,Agent,Agent);
+run spliceAS-CJ.R(Agent,Agent,Agent);
+run spliceAS-CJ.S(Agent,Agent,Agent);
 
 #run spliceASCJ.I(Alice,Bob,Simon);
 #run spliceASCJ.R(Alice,Bob,Simon);

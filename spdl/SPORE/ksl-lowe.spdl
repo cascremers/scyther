@@ -26,7 +26,7 @@ const kee: SessionKey;
 untrusted e;
 compromised k(e,s);
 
-protocol kslLoweSessionKeyCompromise(C)
+protocol ksl-Lowe^KeyCompromise(C)
 {
     // Read the names of 3 agents and disclose a session between them including
     // corresponding session key to simulate key compromise
@@ -54,7 +54,7 @@ protocol kslLoweSessionKeyCompromise(C)
     }
 }
 
-protocol kslLowe(A,B,S)
+protocol ksl-Lowe(A,B,S)
 {
     role A
     {
@@ -112,7 +112,7 @@ protocol kslLowe(A,B,S)
     }
 }
 
-run kslLowe.A(a,b,s);
-run kslLowe.B(a,b,s);
-run kslLowe.S(a,b,s);
+run ksl-Lowe.A(a,b,s);
+run ksl-Lowe.B(a,b,s);
+run ksl-Lowe.S(a,b,s);
 

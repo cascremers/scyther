@@ -10,7 +10,7 @@
 
 secret k: Function;
 
-protocol woolamPi3(I,R,S)
+protocol woolamPi-3(I,R,S)
 {
     role I
     {
@@ -53,9 +53,9 @@ const Ne: Nonce;
 untrusted Eve;
 compromised k(Eve,Simon);
 
-run woolamPi3.I (Agent,Agent,Simon);
-run woolamPi3.R (Agent,Agent,Simon);
-run woolamPi3.S (Agent,Agent,Simon);
+run woolamPi-3.I (Agent,Agent,Simon);
+run woolamPi-3.R (Agent,Agent,Simon);
+run woolamPi-3.S (Agent,Agent,Simon);
 
 
 

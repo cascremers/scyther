@@ -15,7 +15,7 @@ const pk: Function;
 secret sk: Function;
 inversekeys(pk,sk);
 
-protocol ccitt509ban3(I,R)
+protocol ccitt509-ban3(I,R)
 {
     role I
     {
@@ -49,7 +49,7 @@ compromised sk(Eve);
 
 # General scenario, 2 parallel runs of the protocol
  
-run ccitt509ban3.I(Agent,Agent);
-run ccitt509ban3.R(Agent,Agent);
-run ccitt509ban3.I(Agent,Agent);
-run ccitt509ban3.R(Agent,Agent);
+run ccitt509-ban3.I(Agent,Agent);
+run ccitt509-ban3.R(Agent,Agent);
+run ccitt509-ban3.I(Agent,Agent);
+run ccitt509-ban3.R(Agent,Agent);

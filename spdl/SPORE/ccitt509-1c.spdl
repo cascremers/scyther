@@ -13,7 +13,7 @@ inversekeys (hash,unhash);
 inversekeys(pk,sk);
 usertype Timestamp;
 
-protocol ccitt5091c(I,R)
+protocol ccitt509-1c(I,R)
 {
     role I
     {
@@ -44,7 +44,7 @@ compromised sk(Eve);
 
 # General scenario, 2 parallel runs of the protocol
 
-run ccitt5091c.I(Agent,Agent);
-run ccitt5091c.R(Agent,Agent);
-run ccitt5091c.I(Agent,Agent);
-run ccitt5091c.R(Agent,Agent);
+run ccitt509-1c.I(Agent,Agent);
+run ccitt509-1c.R(Agent,Agent);
+run ccitt509-1c.I(Agent,Agent);
+run ccitt509-1c.R(Agent,Agent);

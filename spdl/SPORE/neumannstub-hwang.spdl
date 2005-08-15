@@ -26,7 +26,7 @@ const kee: SessionKey;
 untrusted e;
 compromised k(e,s);
 
-protocol neustubHwangSessionKeyCompromise(C)
+protocol neustub-Hwang^KeyCompromise(C)
 {
     // Read the names of 3 agents and disclose a session between them including
     // corresponding session key to simulate key compromise
@@ -51,7 +51,7 @@ protocol neustubHwangSessionKeyCompromise(C)
     }
 }
 
-protocol neustubHwang(I,R,S)
+protocol neustub-Hwang(I,R,S)
 {
     role I
     {
@@ -106,7 +106,7 @@ protocol neustubHwang(I,R,S)
     }
 }
 
-run neustubHwang.A(a,b,s);
-run neustubHwang.B(a,b,s);
-run neustubHwang.S(a,b,s);
+run neustub-Hwang.A(a,b,s);
+run neustub-Hwang.B(a,b,s);
+run neustub-Hwang.S(a,b,s);
 

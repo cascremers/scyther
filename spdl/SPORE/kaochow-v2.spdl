@@ -13,7 +13,7 @@ secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol kaochow2SessionKeyCompromise(C)
+protocol kaochow-2^KeyCompromise(C)
 {
     // Read the names of 3 agents and disclose a session between them including
     // corresponding session key to simulate key compromise
@@ -36,7 +36,7 @@ protocol kaochow2SessionKeyCompromise(C)
     }
 }
 
-protocol kaochow2(I,R,S)
+protocol kaochow-2(I,R,S)
 {
     role I
     {
@@ -95,9 +95,9 @@ compromised k(Alice,Eve);
 compromised k(Bob,Eve);
 compromised k(Simon,Eve);
 
-run kaochow2.I(Agent,Agent,Simon);
-run kaochow2.R(Agent,Agent,Simon);
-run kaochow2.S(Agent,Agent,Simon);
-run kaochow2.I(Agent,Agent,Simon);
-run kaochow2.R(Agent,Agent,Simon);
-run kaochow2.S(Agent,Agent,Simon);
+run kaochow-2.I(Agent,Agent,Simon);
+run kaochow-2.R(Agent,Agent,Simon);
+run kaochow-2.S(Agent,Agent,Simon);
+run kaochow-2.I(Agent,Agent,Simon);
+run kaochow-2.R(Agent,Agent,Simon);
+run kaochow-2.S(Agent,Agent,Simon);

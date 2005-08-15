@@ -10,7 +10,7 @@ secret k : Function;
 usertype SessionKey;
 
 
-protocol yahalomLowe(I,R,S)
+protocol yahalom-Lowe(I,R,S)
 {
     role I
     {
@@ -54,7 +54,7 @@ protocol yahalomLowe(I,R,S)
 
 const Alice,Bob,Simon : Agent;
 
-run yahalomLowe.I(Agent,Agent,s);
-run yahalomLowe.I(Agent,Agent,s);
-run yahalomLowe.R(Agent,Agent,s);
+run yahalom-Lowe.I(Agent,Agent,s);
+run yahalom-Lowe.I(Agent,Agent,s);
+run yahalom-Lowe.R(Agent,Agent,s);
 

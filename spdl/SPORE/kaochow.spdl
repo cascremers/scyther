@@ -13,7 +13,7 @@ secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol kaochowSessionKeyCompromise(C)
+protocol kaochow^KeyCompromise(C)
 {
     // Read the names of 3 agents and disclose a session between them including
     // corresponding session key to simulate key compromise

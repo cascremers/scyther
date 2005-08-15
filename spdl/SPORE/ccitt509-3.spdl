@@ -13,7 +13,7 @@ secret sk: Function;
 inversekeys(pk,sk);
 usertype Timestamp;
 
-protocol ccitt5093(I,R)
+protocol ccitt509-3(I,R)
 {
     role I
     {
@@ -56,7 +56,7 @@ compromised sk(Eve);
 
 # General scenario, 2 parallel runs of the protocol
  
-run ccitt5093.I(Agent,Agent);
-run ccitt5093.R(Agent,Agent);
-run ccitt5093.I(Agent,Agent);
-run ccitt5093.R(Agent,Agent);
+run ccitt509-3.I(Agent,Agent);
+run ccitt509-3.R(Agent,Agent);
+run ccitt509-3.I(Agent,Agent);
+run ccitt509-3.R(Agent,Agent);

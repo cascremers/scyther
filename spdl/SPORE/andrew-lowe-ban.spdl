@@ -23,7 +23,7 @@ secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol andrewLoweBanSessionKeyCompromise(C)
+protocol andrew-LoweBan^KeyCompromise(C)
 {
     // Read the names of 2 agents and disclose a session between them including
     // corresponding session key to simulate key compromise
@@ -43,7 +43,7 @@ protocol andrewLoweBanSessionKeyCompromise(C)
     }
 }
 
-protocol andrewLoweBan(I,R)
+protocol andrew-LoweBan(I,R)
 {
     role I
     {
@@ -89,7 +89,7 @@ compromised k(Bob,Eve);
 
 
 
-run andrewLoweBan.I(Agent,Agent);
-run andrewLoweBan.R(Agent,Agent);
-run andrewLoweBan.I(Agent,Agent);
-run andrewLoweBan.R(Agent,Agent);
+run andrew-LoweBan.I(Agent,Agent);
+run andrew-LoweBan.R(Agent,Agent);
+run andrew-LoweBan.I(Agent,Agent);
+run andrew-LoweBan.R(Agent,Agent);

@@ -10,11 +10,12 @@
 # synchronisation and agreement, because the keys that the server sends
 # out can be replayed.
 
-const pk: Function;
+secret pk: Function; # For some reason SPORE models it such that the agents
+                     # do not know the public keys of the other agents
 secret sk: Function;
 inversekeys(pk,sk);
 
-protocol needhamschroederpkLowe(I,R,S)
+protocol needhamschroederpk-Lowe(I,R,S)
 {
     role I
     {
@@ -28,6 +29,7 @@ protocol needhamschroederpkLowe(I,R,S)
         send_7(I,R, {Nr}pk(R));
         claim_I1(I,Secret,Ni);
         claim_I2(I,Secret,Nr);
+        claim_I3(I,Nisynch);
     }    
     
     role R
@@ -42,6 +44,7 @@ protocol needhamschroederpkLowe(I,R,S)
         read_7(I,R,{Nr}pk(R));
         claim_R1(R,Secret,Nr);
         claim_R2(R,Secret,Ni);
+        claim_R3(R,Nisynch);
     }
 
     role S
@@ -58,12 +61,14 @@ const Alice,Bob,Simon,Eve: Agent;
 untrusted Eve;
 const ne: Nonce;
 compromised sk(Eve);
+compromised pk(Eve);
+compromised pk(Simon); # Needed because of the way SPORE models nsl
 
 # General scenario, 2 parallel runs of the protocol
  
-run needhamschroederpkLowe.I(Agent,Agent,Simon);
-run needhamschroederpkLowe.S(Agent,Agent,Simon);
-run needhamschroederpkLowe.R(Agent,Agent,Simon);
-run needhamschroederpkLowe.I(Agent,Agent,Simon);
-run needhamschroederpkLowe.R(Agent,Agent,Simon);
-run needhamschroederpkLowe.S(Agent,Agent,Simon);
+run needhamschroederpk-Lowe.I(Agent,Agent,Simon);
+run needhamschroederpk-Lowe.S(Agent,Agent,Simon);
+run needhamschroederpk-Lowe.R(Agent,Agent,Simon);
+run needhamschroederpk-Lowe.I(Agent,Agent,Simon);
+run needhamschroederpk-Lowe.R(Agent,Agent,Simon);
+run needhamschroederpk-Lowe.S(Agent,Agent,Simon);

@@ -22,7 +22,7 @@ usertype SessionKey;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol needhamschroederskamendSessionKeyCompromise(C)
+protocol needhamschroedersk-amend^KeyCompromise(C)
 {
     // Read the names of 3 agents and disclose a session between them including
     // corresponding session key to simulate key compromise
@@ -45,7 +45,7 @@ protocol needhamschroederskamendSessionKeyCompromise(C)
     }
 }
 
-protocol needhamschroederskamend(I,R,S)
+protocol needhamschroedersk-amend(I,R,S)
 {
     role I
     {
@@ -100,9 +100,9 @@ compromised k(Eve,Simon);
 
 # General scenario, 2 parallel runs of the protocol
  
-run needhamschroederskamend.I(Agent,Agent,Simon);
-run needhamschroederskamend.R(Agent,Agent,Simon);
-run needhamschroederskamend.S(Agent,Agent,Simon);
-run needhamschroederskamend.I(Agent,Agent,Simon);
-run needhamschroederskamend.R(Agent,Agent,Simon);
-run needhamschroederskamend.S(Agent,Agent,Simon);
+run needhamschroedersk-amend.I(Agent,Agent,Simon);
+run needhamschroedersk-amend.R(Agent,Agent,Simon);
+run needhamschroedersk-amend.S(Agent,Agent,Simon);
+run needhamschroedersk-amend.I(Agent,Agent,Simon);
+run needhamschroedersk-amend.R(Agent,Agent,Simon);
+run needhamschroedersk-amend.S(Agent,Agent,Simon);

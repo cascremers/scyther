@@ -18,7 +18,7 @@ usertype SessionKey;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol needhamschroederSessionKeyCompromise(C)
+protocol needhamschroedersk^KeyCompromise(C)
 {
     // Read the names of 3 agents and disclose a session between them including
     // corresponding session key to simulate key compromise

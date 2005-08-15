@@ -14,7 +14,7 @@ usertype SessionKey;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol yahalomBANSessionKeyCompromise(C)
+protocol yahalom-BAN^KeyCompromise(C)
 {
     // Read the names of 3 agents and disclose a session between them including
     // corresponding session key to simulate key compromise
@@ -37,7 +37,7 @@ protocol yahalomBANSessionKeyCompromise(C)
 
 
 
-protocol yahalomBAN(I,R,S)
+protocol yahalom-BAN(I,R,S)
 {
     role I
     {
@@ -83,7 +83,7 @@ protocol yahalomBAN(I,R,S)
 
 const Alice,Bob,Simon : Agent;
 
-run yahalomBAN.I(Agent,Agent,s);
-run yahalomBAN.I(Agent,Agent,s);
-run yahalomBAN.R(Agent,Agent,s);
+run yahalom-BAN.I(Agent,Agent,s);
+run yahalom-BAN.I(Agent,Agent,s);
+run yahalom-BAN.R(Agent,Agent,s);
 

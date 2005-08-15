@@ -21,14 +21,14 @@ const dec: PseudoFunction;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol denningSaccoLoweSessionKeyCompromise(C)
+protocol denningSacco-Lowe^KeyCompromise(C)
 {
     // Read the names of 3 agents and disclose a session between them including
     // corresponding session key to simulate key compromise
     role C {
         const Ni,Nr: Nonce;
         const Kir: SessionKey;
-        const T: ExpiredTimeStamp;
+        const T: TimeStamp;
         var I,R,S: Agent;
 
         read_C1(C,C,    I,R,S);
@@ -43,7 +43,7 @@ protocol denningSaccoLoweSessionKeyCompromise(C)
     }
 }
 
-protocol denningSaccoLowe(I,R,S)
+protocol denningSacco-Lowe(I,R,S)
 {
     role I
     {
@@ -102,9 +102,9 @@ compromised k(Eve,Simon);
 # Note because the modelchecker does not support tickets this might not
 # be very useful
 
-run denningSaccoLowe.I(Agent,Agent,Simon);
-run denningSaccoLowe.R(Agent,Agent,Simon);
-run denningSaccoLowe.S(Agent,Agent,Simon);
-run denningSaccoLowe.I(Agent,Agent,Simon);
-run denningSaccoLowe.R(Agent,Agent,Simon);
-run denningSaccoLowe.S(Agent,Agent,Simon);
+run denningSacco-Lowe.I(Agent,Agent,Simon);
+run denningSacco-Lowe.R(Agent,Agent,Simon);
+run denningSacco-Lowe.S(Agent,Agent,Simon);
+run denningSacco-Lowe.I(Agent,Agent,Simon);
+run denningSacco-Lowe.R(Agent,Agent,Simon);
+run denningSacco-Lowe.S(Agent,Agent,Simon);

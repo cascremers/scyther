@@ -13,7 +13,7 @@ inversekeys (pk,sk);
 const inc,dec: Function;
 inversekeys (inc,dec);
 
-protocol spliceASHC(I,R,S)
+protocol spliceAS-HC(I,R,S)
 {
         role I
     {
@@ -72,8 +72,8 @@ compromised sk(Eve);
 #run spliceASHC.R(Alice,Bob,Simon);
 #run spliceASHC.S(Alice,Bob,Simon);
 
-run spliceASHC.I(Agent,Agent,Agent);
-run spliceASHC.R(Agent,Agent,Agent);
-run spliceASHC.S(Agent,Agent,Agent);
+run spliceAS-HC.I(Agent,Agent,Agent);
+run spliceAS-HC.R(Agent,Agent,Agent);
+run spliceAS-HC.S(Agent,Agent,Agent);
 
 
