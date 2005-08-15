@@ -69,7 +69,7 @@ systemInit ()
   sys->untrusted = NULL;
   sys->secrets = NULL;		// list of claimed secrets
   sys->synchronising_labels = NULL;
-  sys->attack = NULL;
+  sys->attack = NULL;		// clash with prev. attack declaration TODO
   /* no protocols => no protocol preprocessed */
   sys->rolecount = 0;
   sys->roleeventmax = 0;
@@ -1216,7 +1216,7 @@ protocolsPrint (Protocol p)
 /**
  * 1 (True) means trusted, 0 is untrusted
  */
-int 
+int
 isAgentTrusted (const System sys, Term agent)
 {
   agent = deVar (agent);
@@ -1463,3 +1463,19 @@ system_iterate_roles (const System sys, int (*func) ())
   return 1;
 }
 
+//! Determine whether we don't need any more attacks
+/**
+ * Returns 1 (true) iff no more attacks are needed.
+ */
+int
+enoughAttacks (const System sys)
+{
+  if (switches.maxAttacks != 0)
+    {
+      if (sys->attackid >= switches.maxAttacks)
+	{
+	  return 1;
+	}
+    }
+  return 0;
+}

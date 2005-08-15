@@ -177,6 +177,10 @@ executeStep (const System sys, const int run)
   if (!sys->explore)
     return 0;
 
+  /* prune (exit) if enough attacks found */
+  if (enoughAttacks (sys))
+    return 0;
+
   /* we want to explore it, but are we allowed by pruning? */
   if (sys->step >= sys->maxtracelength)
     {
@@ -260,7 +264,7 @@ removeDangling (Roledef rd, const int killclaims)
 Roledef
 removeIrrelevant (const System sys, const int run, Roledef rd)
 {
-  if (!isRunTrusted (sys,run))
+  if (!isRunTrusted (sys, run))
     {
       // untrusted, so also remove claims
       return removeDangling (rd, 1);
@@ -384,7 +388,7 @@ explorify (const System sys, const int run)
 	  while (rid < sys->maxruns)
 	    {
 	      /* are claims in this run evaluated anyway? */
-	      if (isRunTrusted(sys, rid))
+	      if (isRunTrusted (sys, rid))
 		{		/* possibly claims to be checked in this run */
 		  rdscan = runPointerGet (sys, rid);
 		  while (rdscan != NULL)
@@ -1207,7 +1211,7 @@ claimViolationDetails (const System sys, const int run, const Roledef rd,
     {
       /* secrecy claim */
 
-      if (!isRunTrusted (sys,run))
+      if (!isRunTrusted (sys, run))
 	{
 	  /* claim was skipped */
 	  return (Termlist) - 1;
@@ -1235,6 +1239,10 @@ violateClaim (const System sys, int length, int claimev, Termlist reqt)
 
   /* default = no adaption of pruning, continue search */
   flag = 1;
+
+  /* enough? */
+  if (enoughAttacks (sys))
+    return flag;
 
   /* Count the violations */
   sys->attackid++;
@@ -1328,7 +1336,7 @@ executeTry (const System sys, int run)
       if (runPoint->type == CLAIM)
 	{
 	  /* first we might dynamically determine whether the claim is valid */
-	  if (!isRunTrusted (sys,run))
+	  if (!isRunTrusted (sys, run))
 	    {
 	      /* for untrusted agents we check no claim violations at all
 	       * so: we know it's okay. */

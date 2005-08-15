@@ -3094,6 +3094,10 @@ prune_bounds ()
       return 1;
     }
 
+  // Limit on attack count
+  if (enoughAttacks (sys))
+    return 1;
+
   // No pruning because of bounds
   return 0;
 }
@@ -3191,6 +3195,10 @@ property_check ()
   int attack_this;
 
   flag = 1;
+
+  /* Do we need any? */
+  if (enoughAttacks (sys))
+    return flag;
 
   /**
    * By the way the claim is handled, this automatically means a flaw.

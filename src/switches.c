@@ -47,6 +47,7 @@ switchesInit (int argc, char **argv)
   switches.maxtracelength = INT_MAX;
   switches.runs = INT_MAX;
   switches.filterClaim = NULL;	// default check all claims
+  switches.maxAttacks = 0;	// no maximum default
 
   // Modelchecker
   switches.traverse = 12;	// default traversal method
@@ -346,6 +347,21 @@ switcher (const int process, int index)
       else
 	{
 	  switches.maxtracelength = integer_argument ();
+	  return index;
+	}
+    }
+
+  if (detect (' ', "max-attacks", 1))
+    {
+      if (!process)
+	{
+	  /* not very important
+	     helptext ("--max-attacks=<int>", "when not 0, maximum number of attacks [0]");
+	   */
+	}
+      else
+	{
+	  switches.maxAttacks = integer_argument ();
 	  return index;
 	}
     }
