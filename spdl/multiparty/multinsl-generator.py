@@ -14,17 +14,37 @@
 # 			(message type 2)
 # 	4	16	nonces in reverse in message 2
 #
+# Convention similar to e.g. Prolog: capitals indicate open variables;
+# in particular, they can be bound by _any_ value during the run,
+# assuming full type flaws.
+#
 import sys
 
-def role (r):
+def variablerole (r, inrole):
+	if r == inrole or inrole == 0:
+		return False
+	else:
+		return True
+
+def role (r,inrole):
 	global P
 
-	return "R%i" % (r % P)
+	if not variablerole(r, inrole):
+		# our own role or any role from the initiator
+		return "r%i" % (r % P)
+	else:
+		# possibly a variable (input) role
+		return "R%i" % (r % P)
 
-def nonce (r):
+def nonce (r,inrole):
 	global P
 
-	return "n%i" % (r % P)
+	if r == inrole:
+		# nonce of our own
+		return "n%i" % (r % P)
+	else:
+		# a variable: we want to see this in the notation
+		return "N%i" % (r % P)
 
 def extend (s1, s2):
 	if s1 == "":
@@ -60,16 +80,16 @@ def weavel (l1,l2,reverse1,swap,reverse2,interleave):
 		else:
 			return l1 + l2
 
-def message1 (label):
+def message1 (label,inrole):
 	global P,variant
 
 	noncelist = []
 	for i in range(0,label+1):
-		noncelist.append(nonce(i))
+		noncelist.append(nonce(i,inrole))
 	rolelist = []
 	for i in range(0,P):
 		if i != (label+1) % P:
-			rolelist.append(role(i))
+			rolelist.append(role(i,inrole))
 
 	return ",".join(weavel(noncelist,rolelist,
 		(variant & 1 != 0),
@@ -78,12 +98,12 @@ def message1 (label):
 		(variant & 8 != 0)
 		))
 
-def message2 (label):
+def message2 (label,inrole):
 	global P,variant
 
 	noncelist = []
 	for i in range (((label + 1) % P),P):
-		noncelist.append(nonce(i))
+		noncelist.append(nonce(i,inrole))
 
 	return ",".join(weavel(noncelist,[],
 		(variant & 16 != 0),
@@ -92,41 +112,41 @@ def message2 (label):
 		False
 		))
 
-def message (label):
+def message (label,inrole):
 	global P
 
 	s = "{ "
 	if label < P:
-		s = s + message1 (label)
+		s = s + message1 (label,inrole)
 	else:
-		s = s + message2 (label)
+		s = s + message2 (label,inrole)
 
-	s = s + " }pk(%s)" % role(label+1)
+	s = s + " }pk(%s)" % role(label+1,inrole)
 	return s
 
-def action (event,label):
-	s = "\t\t%s_%i(%s,%s, " % (event,label, role(label),
-			role(label+1))
-	s += message (label)
+def action (event,label,inrole):
+	s = "\t\t%s_%i(%s,%s, " % (event,label, role(label,inrole),
+			role(label+1,inrole))
+	s += message (label,inrole)
 	s += " );\n"
 	return s
 
-def read (label):
-	return action ("read", label)
+def read (label,inrole):
+	return action ("read", label,inrole)
 
 
-def send (label):
-	return action ("send", label)
+def send (label,inrole):
+	return action ("send", label,inrole)
 
 def roledef (r):
 	global P
 
 	s = ""
-	s += "\trole " + role(r) + "\n\t{\n"
+	s += "\trole " + role(r,r) + "\n\t{\n"
 
 	# constants for this role
 	
-	s += "\t\tconst " + nonce (r) + ": Nonce;\n"
+	s += "\t\tconst " + nonce (r,r) + ": Nonce;\n"
 
 	# variables
 	
@@ -136,28 +156,40 @@ def roledef (r):
 		if r != i:
 			if nr > 0:
 				s += ","
-			s += nonce(i)
+			s += nonce(i,r)
 			nr += 1
 
 	s += ": Nonce;\n"
+
+	# implicit role variables
+	
+	rolevars = []
+	for i in range (0,P):
+		if variablerole(i,r):
+			rolevars.append(role(i,r))
+
+	if rolevars != []:
+		s += "\t\t// Implicit role variables: "
+		s += ",".join(rolevars)
+		s += ": Role;\n"
 		
 	# actions
 	
 	s += "\n"
 	if r > 0:
 		# Initial read
-		s += read(r-1)
-	s += send(r)
-	s += read(P+r-1)
+		s += read(r-1,r)
+	s += send(r,r)
+	s += read(P+r-1,r)
 	if r < (P-1):
 		# Final send
-		s += send(P+r)
+		s += send(P+r,r)
 	
 	# claims
 	
-	s += "\t\tclaim_%sa( %s, Secret, %s );\n" % (role(r), role(r),
-			nonce(r))
-	s += "\t\tclaim_%sb( %s, Nisynch );\n" % (role(r), role(r))
+	s += "\t\tclaim_%sa( %s, Secret, %s );\n" % (role(r,r), role(r,r),
+			nonce(r,r))
+	s += "\t\tclaim_%sb( %s, Nisynch );\n" % (role(r,r), role(r,r))
 
 	# close
 	s += "\t}\n\n"
@@ -181,7 +213,7 @@ def protocol (pset,vset):
 	for i in range (0,P):
 		if i > 0:
 			s += ","
-		s += role(i)
+		s += role(i,i)
 	s += ")\n{\n"
 
 	for i in range (0,P):
