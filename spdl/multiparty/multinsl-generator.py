@@ -29,12 +29,7 @@ def variablerole (r, inrole):
 def role (r,inrole):
 	global P
 
-	if not variablerole(r, inrole):
-		# our own role or any role from the initiator
-		return "r%i" % (r % P)
-	else:
-		# possibly a variable (input) role
-		return "R%i" % (r % P)
+	return "r%i" % (r % P)
 
 def nonce (r,inrole):
 	global P
