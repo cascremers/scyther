@@ -65,6 +65,7 @@ switchesInit (int argc, char **argv)
 
   // Arachne
   switches.arachneSelector = 3;	// default goal selection method
+  switches.maxIntruderActions = INT_MAX;	// max number of encrypt/decrypt events
 
   // Misc
   switches.switchP = 0;		// multi-purpose parameter
@@ -539,6 +540,19 @@ switcher (const int process, int index)
       else
 	{
 	  switches.extendTrivial = 1;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "intruder-actions", 1))
+    {
+      if (!process)
+	{
+	  /* fairly technical, untested pruning */
+	}
+      else
+	{
+	  switches.maxIntruderActions = integer_argument ();
 	  return index;
 	}
     }

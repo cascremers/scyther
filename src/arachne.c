@@ -549,6 +549,31 @@ first_selectable_goal (List bl)
   return bl;
 }
 
+//! Count intruder events
+int
+countIntruderActions ()
+{
+  int count;
+  int run;
+
+  count = 0;
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      if (sys->runs[run].protocol == INTRUDER)
+	{
+	  // Only intruder roles
+	  if (sys->runs[run].role != I_M)
+	    {
+	      // The M_0 (initial knowledge) events don't count.
+	      count++;
+	    }
+	}
+      run++;
+    }
+  return count;
+}
+
 //------------------------------------------------------------------------
 // Proof reporting
 //------------------------------------------------------------------------
@@ -3097,6 +3122,23 @@ prune_bounds ()
   // Limit on attack count
   if (enoughAttacks (sys))
     return 1;
+
+  // Limit on intruder events count
+  if (switches.maxIntruderActions < INT_MAX)
+    {
+      // Only check if actually used
+      if (countIntruderActions () > switches.maxIntruderActions)
+	{
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf
+		("Pruned: more than %i encrypt/decrypt events in the semitrace.\n",
+		 switches.maxIntruderActions);
+	    }
+	  return 1;
+	}
+    }
 
   // No pruning because of bounds
   return 0;

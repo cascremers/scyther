@@ -44,6 +44,7 @@ struct switchdata
 
   // Arachne
   int arachneSelector;		//!< Goal selection method for Arachne engine
+  int maxIntruderActions;	//!< Maximum number of intruder actions in the semitrace (encrypt/decrypt)
 
   // Misc
   int switchP;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
