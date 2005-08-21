@@ -6,3 +6,6 @@
 - SConstruct file should check whether ctags actually exists (avoiding
   errors)
 - Proof output should be XML, with an external converter to dot format.
+- States XML output, with limiter (for explanations/analysis)
+- Internal hash over input files (maybe after parsing?) and switch
+  structure. This would make a caching mechanism much easier.
