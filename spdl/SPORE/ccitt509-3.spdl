@@ -24,7 +24,9 @@ protocol ccitt509-3(I,R)
         send_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
         read_2(R,I, R,{Tb, Nb, I, Na, Xb,{Yb}pk(I)}sk(R));
         send_3(I,R, I, {Nb}sk(I));
-        claim_4(I,Nisynch);
+        claim_I1(I,Nisynch);
+        claim_I2(I,Secret,Ya);
+        claim_I3(I,Secret,Yb);
     }    
     
     role R
@@ -37,7 +39,9 @@ protocol ccitt509-3(I,R)
         read_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
         send_2(R,I, R,{Tb, Nb, I, Na, Xb,{Yb}pk(I)}sk(R));
         read_3(I,R, I, {Nb}sk(I));
-        claim_5(R,Nisynch);
+        claim_R1(R,Nisynch);
+        claim_R2(R,Secret,Ya);
+        claim_R3(R,Secret,Yb);
         # There should also be Fresh Xa and Fresh Ya claims here
     }
 }
