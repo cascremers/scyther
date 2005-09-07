@@ -381,6 +381,11 @@ xmlTermType (const Term t)
 }
 
 //! Show a typeflaw of a single term
+/**
+ * Shows the variable, its type, then the substituted term, and its type.
+ * For constants, the second term type is typically emtpy. This is only useful
+ * when the substituted term is also a variable.
+ */
 void
 xmlTypeFlaw (const Term variable)
 {
@@ -389,9 +394,7 @@ xmlTypeFlaw (const Term variable)
       xmlPrint ("<typeflaw>");
       xmlindent++;
       xmlTermType (variable);
-      xmlIndentPrint ();
-      xmlTermPrint (deVar (variable));
-      printf ("\n");
+      xmlTermType (deVar (variable));
       xmlindent--;
       xmlPrint ("</typeflaw>");
     }
