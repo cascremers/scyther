@@ -327,10 +327,21 @@ xmlTermType (const Term t)
       t->subst = NULL;
     }
 
+  xmlindent++;
+  xmlPrint("<term>");
+  xmlindent++;
   xmlIndentPrint ();
   xmlTermPrint (t);
   printf ("\n");
+  xmlindent--;
+  xmlPrint("</term>");
+
+  xmlPrint("<type>");
+  xmlindent++;
   xmlTermlistPrint (t->stype);
+  xmlindent--;
+  xmlPrint("</type>");
+  xmlindent--;
 
   if (realTermVariable (t))
     {
@@ -356,10 +367,15 @@ xmlVariable (const System sys, const Term variable, const int run)
 	}
       printf ("\" run=\"%i\">\n", run);
       xmlindent++;
+
+      xmlPrint ("<name>");
       xmlTermType (variable);
+      xmlPrint ("</name>");
       if (variable->subst != NULL)
 	{
+          xmlPrint ("<substitution>");
 	  xmlTermType (deVar (variable));
+          xmlPrint ("</substitution>");
 	}
       xmlindent--;
       xmlPrint ("</variable>");
