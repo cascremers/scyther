@@ -315,6 +315,57 @@ xmlVariableDepthOne (const Term variable)
 
 }
 
+//! Show a term and its type, on single lines
+void
+xmlTermType (const Term t)
+{
+  Term substbuf;
+
+  if (realTermVariable (t))
+    {
+      substbuf = t->subst;
+      t->subst = NULL;
+    }
+
+  xmlIndentPrint ();
+  xmlTermPrint (t);
+  printf ("\n");
+  xmlTermlistPrint (t->stype);
+
+  if (realTermVariable (t))
+    {
+      t->subst = substbuf;
+    }
+}
+
+//! Show a single variable instantiation
+void
+xmlVariable (const System sys, const Term variable, const int run)
+{
+  if (realTermVariable (variable))
+    {
+      xmlIndentPrint ();
+      printf ("<variable typeflaw=\"");
+      if (!checkTypeTerm (0, variable))
+	{
+	  printf ("true");
+	}
+      else
+	{
+	  printf ("false");
+	}
+      printf ("\" run=\"%i\">\n", run);
+      xmlindent++;
+      xmlTermType (variable);
+      if (variable->subst != NULL)
+	{
+	  xmlTermType (deVar (variable));
+	}
+      xmlindent--;
+      xmlPrint ("</variable>");
+    }
+}
+
 //! Show variable instantiations
 /**
  * Show the instantiations of all variables. Maybe we need to restrict this,
@@ -342,10 +393,7 @@ xmlVariables (const System sys)
 	    {
 	      if (realTermVariable (varlist->term))
 		{
-		  // xmlVariableDepthOne (varlist->term);
-		  xmlIndentPrint ();
-		  xmlTermPrint (varlist->term);
-		  printf ("\n");
+		  xmlVariable (sys, varlist->term, run);
 		}
 	      varlist = varlist->next;
 	    }
@@ -355,109 +403,6 @@ xmlVariables (const System sys)
   xmlindent--;
   xmlPrint ("</variables>");
   show_substitution_path = prev_mode;
-}
-
-//! Show a term and its type, on single lines
-void
-xmlTermType (const Term t)
-{
-  Term substbuf;
-
-  if (realTermVariable (t))
-    {
-      substbuf = t->subst;
-      t->subst = NULL;
-    }
-
-  xmlIndentPrint ();
-  xmlTermPrint (t);
-  printf ("\n");
-  xmlTermlistPrint (t->stype);
-
-  if (realTermVariable (t))
-    {
-      t->subst = substbuf;
-    }
-}
-
-//! Show a typeflaw of a single term
-/**
- * Shows the variable, its type, then the substituted term, and its type.
- * For constants, the second term type is typically emtpy. This is only useful
- * when the substituted term is also a variable.
- */
-void
-xmlTypeFlaw (const Term variable)
-{
-  if (realTermVariable (variable))
-    {
-      xmlPrint ("<typeflaw>");
-      xmlindent++;
-      xmlTermType (variable);
-      xmlTermType (deVar (variable));
-      xmlindent--;
-      xmlPrint ("</typeflaw>");
-    }
-}
-
-//! Show runs with type flaws in the system
-/**
- * Show a list of runs which have type flaws, and show what has happened
- */
-void
-xmlTypeflaws (const System sys)
-{
-  int run;			//!< current run under analysis
-  int lastrun;			//!< last run in which a type flaw occurred (for correct lazy printing of wrappers)
-
-  run = 0;
-  lastrun = -1;
-  while (run < sys->maxruns)
-    {
-      if (sys->runs[run].protocol != INTRUDER)
-	{
-	  Termlist varlist;
-
-	  varlist = sys->runs[run].locals;
-	  while (varlist != NULL)
-	    {
-	      /* Check the term with match 0 (of course this holds when
-	       * switches.match is 0, but not necessarily when tested with -m2
-	       */
-	      if (!checkTypeTerm (0, varlist->term))
-		{
-		  // Not the correct type
-		  // Ensure correct indent first
-		  if (lastrun != run)
-		    {
-		      if (lastrun == -1)
-			{
-			  xmlPrint ("<typeflaws>");
-			  xmlindent++;
-			}
-		      else
-			{
-			  xmlindent--;
-			  xmlPrint ("</run>");
-			}
-		      xmlPrint ("<run id=\"%i\">", run);
-		      xmlindent++;
-		      lastrun = run;
-		    }
-		  xmlTypeFlaw (varlist->term);
-		}
-	      varlist = varlist->next;
-	    }
-	}
-      run++;
-    }
-  if (lastrun != -1)
-    {
-      xmlindent--;
-      xmlPrint ("</run>");
-      xmlindent--;
-      xmlPrint ("</typeflaws>");
-    }
 }
 
 //! Show inverses
@@ -993,7 +938,6 @@ xmlOutSemitrace (const System sys)
   xmlOutSysInfo (sys);
   /* instantiations of the variables */
   xmlVariables (sys);
-  xmlTypeflaws (sys);
   /* semitrace */
   xmlPrint ("<semitrace>");
   xmlindent++;
