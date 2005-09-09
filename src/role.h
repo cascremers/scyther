@@ -120,6 +120,8 @@ struct role
   Termlist locals;
   //! Local variables for this role.
   Termlist variables;
+  //! Flag for initiator roles
+  int initiator;
   //! Pointer to next role definition.
   struct role *next;
 };

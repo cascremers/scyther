@@ -574,6 +574,71 @@ countIntruderActions ()
   return count;
 }
 
+//! Check this variables whether it is a good agent type
+/**
+ * Checks for leaf/etc and correct agent type
+ */
+int
+goodAgentType (Term agent)
+{
+  agent = deVar (agent);
+
+  if (!realTermLeaf (agent))
+    {				// not a leaf
+      return false;
+    }
+  else
+    {				// real leaf
+      if (isTermVariable (agent))
+	{
+	  // Variable: check type consistency (should have a solution)
+	  // Not yet: depends on matching mode also
+	}
+      else
+	{
+	  // Constant: allow only exact type
+	  if (!inTermlist (agent->stype, TERM_Agent))
+	    {
+	      return false;
+	    }
+	}
+    }
+
+  return true;
+}
+
+//! Check initiator roles
+/**
+ * Returns false iff an agent type is wrong
+ */
+int
+initiatorAgentsType ()
+{
+  int run;
+
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      // Only for initiators
+      if (sys->runs[run].role->initiator)
+	{
+	  Termlist agents;
+
+	  agents = sys->runs[run].agents;
+	  while (agents != NULL)
+	    {
+	      if (!goodAgentType (agents->term))
+		{
+		  return false;
+		}
+	      agents = agents->next;
+	    }
+	}
+      run++;
+    }
+  return true;			// seems to be okay
+}
+
 //------------------------------------------------------------------------
 // Proof reporting
 //------------------------------------------------------------------------
@@ -2799,70 +2864,40 @@ prune_theorems ()
       return 1;
     }
 
-  // Check if all agents are agents (!)
+  // Check if all actors are agents for responders (initiators come next)
   run = 0;
   while (run < sys->maxruns)
     {
-      Termlist agl;
-
-      agl = sys->runs[run].agents;
-      while (agl != NULL)
+      if (!sys->runs[run].role->initiator)
 	{
-	  Term agent;
+	  Term actor;
 
-	  agent = deVar (agl->term);
-	  if (agent == NULL)
+	  actor = agentOfRun (sys, run);
+	  if (!goodAgentType (actor))
 	    {
-	      error ("Agent of run %i is NULL", run);
+	      if (switches.output == PROOF)
+		{
+		  indentPrint ();
+		  eprintf ("Pruned because the actor ");
+		  termPrint (actor);
+		  eprintf (" of run %i is not of a compatible type.\n", run);
+		}
+	      return 1;
 	    }
-	  /**
-	   * Check whether the agent of the run is of a sensible type.
-	   *
-	   * @TODO Note that this still needs a lemma.
-	   */
-	  {
-	    int sensibleagent;
-
-	    sensibleagent = true;
-
-	    if (!realTermLeaf (agent))
-	      {			// not a leaf
-		sensibleagent = false;
-	      }
-	    else
-	      {			// real leaf
-		if (switches.match == 0 || !isTermVariable (agent))
-		  {		// either strict matching, or not a variable, so we should check matching types
-		    if (agent->stype == NULL)
-		      {		// Too generic
-			sensibleagent = false;
-		      }
-		    else
-		      {		// Has a type
-			if (!inTermlist (agent->stype, TERM_Agent))
-			  {	// but not the right type
-			    sensibleagent = false;
-			  }
-		      }
-		  }
-	      }
-
-	    if (!sensibleagent)
-	      {
-		if (switches.output == PROOF)
-		  {
-		    indentPrint ();
-		    eprintf ("Pruned because the agent ");
-		    termPrint (agent);
-		    eprintf (" of run %i is not of a compatible type.\n",
-			     run);
-		  }
-		return 1;
-	      }
-	  }
-	  agl = agl->next;
 	}
       run++;
+    }
+
+  // Prune wrong agents type for initators
+  if (!initiatorAgentsType ())
+    {
+      if (switches.output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf
+	    ("Pruned: an initiator role does not have the correct type for one of its agents.\n");
+	}
+      return 1;
     }
 
   // Check if all agents of the main run are valid

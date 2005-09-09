@@ -626,31 +626,48 @@ roleCompile (Term nameterm, Tac tc)
   /* parse the content of the role */
   levelInit ();
 
-  while (tc != NULL)
-    {
-      switch (tc->op)
-	{
-	case TAC_READ:
-	  commEvent (READ, tc);
-	  break;
-	case TAC_SEND:
-	  commEvent (SEND, tc);
-	  break;
-	case TAC_CLAIM:
-	  commEvent (CLAIM, tc);
-	  break;
-	default:
-	  if (!normalDeclaration (tc))
-	    {
-	      printf ("ERROR: illegal command %i in role ", tc->op);
-	      termPrint (thisRole->nameterm);
-	      printf (" ");
-	      errorTac (tc->lineno);
-	    }
-	  break;
-	}
-      tc = tc->next;
-    }
+  {
+    int firstEvent;
+
+    /* initiator/responder flag not set */
+    firstEvent = 1;
+
+    while (tc != NULL)
+      {
+	switch (tc->op)
+	  {
+	  case TAC_READ:
+	    if (firstEvent)
+	      {
+		// First a read, thus responder
+		/*
+		 * Semantics: defaults (in role.c) to initiator _unless_ the first event is a read,
+		 * in which case we assume that the agent names are possibly received as variables
+		 */
+		thisRole->initiator = 0;
+	      }
+	    commEvent (READ, tc);
+	    break;
+	  case TAC_SEND:
+	    commEvent (SEND, tc);
+	    break;
+	  case TAC_CLAIM:
+	    commEvent (CLAIM, tc);
+	    break;
+	  default:
+	    if (!normalDeclaration (tc))
+	      {
+		printf ("ERROR: illegal command %i in role ", tc->op);
+		termPrint (thisRole->nameterm);
+		printf (" ");
+		errorTac (tc->lineno);
+	      }
+	    break;
+	  }
+	firstEvent = 0;
+	tc = tc->next;
+      }
+  }
   compute_role_variables (sys, thisProtocol, thisRole);
   levelDone ();
 }
