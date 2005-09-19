@@ -54,65 +54,65 @@ protocol ksl-Lowe^KeyCompromise(C)
     }
 }
 
-protocol ksl-Lowe(A,B,S)
+protocol ksl-Lowe(I,R,S)
 {
-    role A
+    role I
     {
-        const Na, Ma: Nonce;
-        var Nc, Mb: Nonce;
+        const Ni, Mi: Nonce;
+        var Nc, Mr: Nonce;
         var T: Ticket;
-        var Kab: SessionKey;
+        var Kir: SessionKey;
         
-        send_1(A,B, Na, A);
-        read_4(B,A, { Na,B,Kab }k(A,S), T, Nc, {B,Na}Kab );
-        send_5(A,B, { Nc }Kab );
+        send_1(I,R, Ni, I);
+        read_4(R,I, { Ni,R,Kir }k(I,S), T, Nc, {R,Ni}Kir );
+        send_5(I,R, { Nc }Kir );
         
-        send_6(A,B, Ma,T );
-        read_7(B,A, Mb,{Ma, B}Kab );
-        send_8(A,B, {A,Mb}Kab );
+        send_6(I,R, Mi,T );
+        read_7(R,I, Mr,{Mi, R}Kir );
+        send_8(I,R, {I,Mr}Kir );
 
-        claim_A1(A,Secret, Kab);
-        claim_A2(A,Niagree);
-        claim_A3(A,Nisynch);
-        claim_A4(A,Empty, (Fresh,Kab));
+        claim_I1(I,Secret, Kir);
+        claim_I2(I,Niagree);
+        claim_I3(I,Nisynch);
+        claim_I4(I,Empty, (Fresh,Kir));
     }
 
-    role B
+    role R
     {
-        var Na,Ma: Nonce;
-        const Nb,Nc,Mb: Nonce;
-        var Kab: SessionKey;
+        var Ni,Mi: Nonce;
+        const Nr,Nc,Mr: Nonce;
+        var Kir: SessionKey;
         const Kbb: TicketKey;
-        const Tb: TimeStamp;
+        const Tr: TimeStamp;
         var T: Ticket;
         
-        read_1(A,B, Na, A);
-        send_2(B,S, Na, A, Nb, B );
-        read_3(S,B, { A, Nb, Kab }k(B,S), T );
-        send_4(B,A, T, { Tb, A, Kab }Kbb, Nc, {B, Na}Kab );
-        read_5(A,B, { Nc }Kab );
+        read_1(I,R, Ni, I);
+        send_2(R,S, Ni, I, Nr, R );
+        read_3(S,R, { I, Nr, Kir }k(R,S), T );
+        send_4(R,I, T, { Tr, I, Kir }Kbb, Nc, {R, Ni}Kir );
+        read_5(I,R, { Nc }Kir );
         
-        read_6(A,B, Ma,{ Tb, A, Kab }Kbb );
-        send_7(B,A, Mb,{Ma,B}Kab );
-        read_8(A,B, {A,Mb}Kab );
+        read_6(I,R, Mi,{ Tr, I, Kir }Kbb );
+        send_7(R,I, Mr,{Mi,R}Kir );
+        read_8(I,R, {I,Mr}Kir );
 
-        claim_B1(B,Secret, Kab);
-        claim_B2(B,Niagree);
-        claim_B3(B,Nisynch);
-        claim_B4(B,Empty, (Fresh,Kab));
+        claim_R1(R,Secret, Kir);
+        claim_R2(R,Niagree);
+        claim_R3(R,Nisynch);
+        claim_R4(R,Empty, (Fresh,Kir));
     }
 
     role S
     {
-        var Na, Nb: Nonce;
-        const Kab: SessionKey;
+        var Ni, Nr: Nonce;
+        const Kir: SessionKey;
 
-        read_2(B,S, Na, A, Nb, B );
-        send_3(S,B, { A, Nb, Kab }k(B,S), { Na,B,Kab }k(A,S) );
+        read_2(R,S, Ni, I, Nr, R );
+        send_3(S,R, { I, Nr, Kir }k(R,S), { Ni,R,Kir }k(I,S) );
     }
 }
 
-run ksl-Lowe.A(a,b,s);
-run ksl-Lowe.B(a,b,s);
+run ksl-Lowe.I(a,b,s);
+run ksl-Lowe.R(a,b,s);
 run ksl-Lowe.S(a,b,s);
 
