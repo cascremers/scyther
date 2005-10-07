@@ -61,6 +61,25 @@ showSubst (Term t)
 #endif
 }
 
+//! See if this is preferred substitution
+/**
+ * By default, ta->tb will map. Returning 0 (false) will swap them.
+ */
+int 
+preferSubstitutionOrder (Term ta, Term tb)
+{
+  if (termlistLength (ta->stype) == 1 && inTermlist (ta->stype, TERM_Agent))
+    {
+      /**
+       * If the first one is an agent type, we prefer swapping.
+       */
+      return 0;
+    }
+
+  // Per default, leave it as it is.
+  return 1;
+}
+
 //! See if a substitution is valid
 __inline__ int
 goodsubst (Term tvar, Term tsubst)
@@ -121,12 +140,33 @@ termMguTerm (Term t1, Term t2)
     }
 
   /* symmetrical tests for single variable */
+  /*
+   * I broke symmetry later, for the special case where both are unbound
+   * variables that will be connected, and I want to give one priority over the
+   * other for readability.
+   */
   if (realTermVariable (t2))
     {
       if (termSubTerm (t1, t2) || !goodsubst (t2, t1))
 	return MGUFAIL;
       else
 	{
+	  // Symmetry break starts here
+	  if (isTermVariable (t1))
+	    {
+	      // Both are variables. Decide.
+	      // The plan: t2->subst will point to t1. Is that desired?
+	      if (preferSubstitutionOrder (t1,t2))
+		{
+		  Term t3;
+
+		  // Swappy.
+		  t3 = t1;
+		  t1 = t2;
+		  t2 = t3;
+		}
+	    }
+
 	  t2->subst = t1;
 #ifdef DEBUG
 	  showSubst (t2);
