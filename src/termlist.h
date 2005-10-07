@@ -56,5 +56,6 @@ Termlist termlistForward (Termlist tl);
 int termlistOrder (Termlist tl1, Termlist tl2);
 int termlist_iterate (Termlist tl, int (*func) ());
 Term termlist_to_tuple (Termlist tl);
+Termlist tuple_to_termlist (Term t);
 
 #endif

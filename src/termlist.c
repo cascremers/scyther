@@ -858,3 +858,26 @@ termlist_to_tuple (Termlist tl)
 	}
     }
 }
+
+//! Split a tuple term into termlist components.
+Termlist
+tuple_to_termlist (Term t)
+{
+  t = deVar (t);
+  if (t == NULL)
+    {
+      return NULL;
+    }
+  else
+    {
+      if (realTermTuple (t))
+	{
+	  return termlistConcat (tuple_to_termlist (TermOp1 (t)),
+				 tuple_to_termlist (TermOp2 (t)));
+	}
+      else
+	{
+	  return termlistAdd (NULL, t);
+	}
+    }
+}
