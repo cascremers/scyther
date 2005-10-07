@@ -69,6 +69,7 @@ switchesInit (int argc, char **argv)
 
   // Misc
   switches.switchP = 0;		// multi-purpose parameter
+  switches.experimental = 0;	// experimental stuff defaults to 0, whatever that means.
 
   // Output
   switches.output = ATTACK;	// default is to show the attacks
@@ -556,6 +557,27 @@ switcher (const int process, int index)
 	  return index;
 	}
     }
+
+#ifdef DEBUG
+  /* ==================
+   *  Experimental options
+   *
+   *  Only with debugging version
+   */
+
+  if (detect (' ', "experimental", 1))
+    {
+      if (!process)
+	{
+	  /* unpredictable behaviour, can change throughout versions */
+	}
+      else
+	{
+	  switches.experimental = integer_argument ();
+	  return index;
+	}
+    }
+#endif
 
   /* ==================
    *  External options
