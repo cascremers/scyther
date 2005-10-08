@@ -5,10 +5,27 @@
 #include "debug.h"
 #include "memory.h"
 
+/**
+ * Shared stuff
+ */
+
+//! Termlist error thing (for global use)
+Termlist TERMLISTERROR;
+
+/**
+ * Forward declarations
+ */
+
+Termlist makeTermlist ();
+
 //! Open termlists code.
 void
 termlistsInit (void)
 {
+  TERMLISTERROR = makeTermlist ();
+  TERMLISTERROR->term = NULL;
+  TERMLISTERROR->prev = NULL;
+  TERMLISTERROR->next = NULL;
   return;
 }
 
@@ -16,6 +33,7 @@ termlistsInit (void)
 void
 termlistsDone (void)
 {
+  termlistDelete (TERMLISTERROR);
   return;
 }
 
@@ -81,6 +99,19 @@ termlistDelete (Termlist tl)
 {
   if (tl == NULL)
     return;
+#ifdef DEBUG
+  if (tl == TERMLISTERROR)
+    {
+      static int count = 0;
+
+      count++;
+      if (count > 1)
+	{
+	  // TERMLISTERROR should only be destroyed once (by the done function)
+	  error ("Trying to delete TERMLISTERROR a second time, whazzup?");
+	}
+    }
+#endif
   termlistDelete (tl->next);
   memFree (tl, sizeof (struct termlist));
 }
@@ -614,7 +645,7 @@ inverseKey (Termlist inverses, Term key)
  *\sa termlistLocal()
  */
 Term
-termLocal (Term t, Termlist fromlist, Termlist tolist)
+termLocal (const Term t, Termlist fromlist, Termlist tolist)
 {
   if (t == NULL)
     return NULL;
@@ -880,4 +911,35 @@ tuple_to_termlist (Term t)
 	  return termlistAdd (NULL, t);
 	}
     }
+}
+
+//! Remove all items from tlbig that occur in tlsmall, and return the pointer to the new tlbig.
+Termlist
+termlistMinusTermlist (const Termlist tlbig, const Termlist tlsmall)
+{
+  Termlist tl;
+  Termlist tlnewstart;
+
+  tl = tlbig;
+  tlnewstart = tlbig;
+  while (tl != NULL)
+    {
+      if (inTermlist (tlsmall, tl->term))
+	{
+	  Termlist tlnext;
+
+	  // Remember next node.
+	  tlnext = tl->next;
+	  // This node should be removed.
+	  tlnewstart = termlistDelTerm (tl);
+	  // Skip to next.
+	  tl = tlnext;
+	}
+      else
+	{
+	  // This item will remain in the list.
+          tl = tl->next;
+	}
+    }
+  return tlnewstart;
 }
