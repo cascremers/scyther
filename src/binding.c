@@ -716,6 +716,80 @@ valid_binding (Binding b)
     return 0;
 }
 
+//! Check for unique origination
+/*
+ * Contrary to a previous version, we simply check for unique origination.
+ * This immediately takes care of any 'occurs before' things. Complexity is N
+ * log N.
+ *
+ * Each term should originate only at one point (thus in one binding)
+ *
+ *@returns True, if it's okay. If false, it needs to be pruned.
+ */
+int
+unique_origination ()
+{
+  List bl;
+
+  bl = sys->bindings;
+
+  while (bl != NULL)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      // Check for a valid binding; it has to be 'done' and sensibly bound (not as in tuple expanded stuff)
+      if (valid_binding (b))
+	{
+	  Termlist terms;
+
+	  terms = tuple_to_termlist (b->term);
+	  if (terms != NULL)
+	    {
+	      /* Apparently this is a good term.
+	       * Now we check whether it occurs in any previous bindings as well.
+	       */
+
+	      List bl2;
+
+	      bl2 = sys->bindings;
+	      while (bl2 != bl)
+		{
+		  Binding b2;
+
+		  b2 = (Binding) bl2->data;
+		  if (valid_binding (b2))
+		    {
+		      Termlist terms2, sharedterms;
+
+		      terms2 = tuple_to_termlist (b2->term);
+		      sharedterms = termlistConjunct (terms, terms2);
+
+		      // Compare terms
+		      if (sharedterms != NULL)
+			{
+			  // Apparently, this binding shares a term.
+			  // Equal terms should originate at the same point
+			  if (b->run_from != b2->run_from ||
+			      b->ev_from != b2->ev_from)
+			    {
+			      // Not equal: thus no unique origination.
+			      return 0;
+			    }
+			}
+		      termlistDelete (terms2);
+		      termlistDelete (sharedterms);
+		    }
+		  bl2 = bl2->next;
+		}
+	    }
+	  termlistDelete (terms);
+	}
+      bl = bl->next;
+    }
+  return 1;
+}
+
 //! Prune invalid state w.r.t. <=C minimal requirement
 /**
  * Intuition says this can be done a lot more efficient. Luckily this is the prototype.
@@ -726,6 +800,14 @@ int
 bindings_c_minimal ()
 {
   List bl;
+
+  if (switches.experimental == 1)
+    {
+      if (unique_origination () == 0)
+	{
+	  return 0;
+	}
+    }
 
   // Ensure a fresh state graph
   goal_graph_create ();
