@@ -2853,7 +2853,7 @@ prune_theorems ()
   int run;
 
   // Check all types of the local agents according to the matching type
-  if (!checkTypeLocals (sys))
+  if (!checkAllSubstitutions (sys))
     {
       if (switches.output == PROOF)
 	{
