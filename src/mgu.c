@@ -65,7 +65,7 @@ showSubst (Term t)
 /**
  * By default, ta->tb will map. Returning 0 (false) will swap them.
  */
-int 
+int
 preferSubstitutionOrder (Term ta, Term tb)
 {
   if (termlistLength (ta->stype) == 1 && inTermlist (ta->stype, TERM_Agent))
@@ -139,34 +139,46 @@ termMguTerm (Term t1, Term t2)
 	}
     }
 
-  /* symmetrical tests for single variable */
   /*
-   * I broke symmetry later, for the special case where both are unbound
-   * variables that will be connected, and I want to give one priority over the
-   * other for readability.
+   * Distinguish a special case where both are unbound variables that will be
+   * connected, and I want to give one priority over the other for readability.
+   *
+   * Because t1 and t2 have been deVar'd means that if they are variables, they
+   * are also unbound.
    */
+
+  if (realTermVariable (t1) && realTermVariable (t2) && goodsubst (t1, t2))
+    {
+      /* Both are unbound variables. Decide.
+       *
+       * The plan: t1->subst will point to t2. But maybe we prefer the other
+       * way around?
+       */
+      if (preferSubstitutionOrder (t2, t1))
+	{
+	  Term t3;
+
+	  // Swappy.
+	  t3 = t1;
+	  t1 = t2;
+	  t2 = t3;
+	}
+      t1->subst = t2;
+#ifdef DEBUG
+      showSubst (t1);
+#endif
+      return termlistAdd (NULL, t1);
+    }
+
+  /* symmetrical tests for single variable.
+   */
+
   if (realTermVariable (t2))
     {
       if (termSubTerm (t1, t2) || !goodsubst (t2, t1))
 	return MGUFAIL;
       else
 	{
-	  // Symmetry break starts here
-	  if (isTermVariable (t1))
-	    {
-	      // Both are variables. Decide.
-	      // The plan: t2->subst will point to t1. Is that desired?
-	      if (preferSubstitutionOrder (t1,t2))
-		{
-		  Term t3;
-
-		  // Swappy.
-		  t3 = t1;
-		  t1 = t2;
-		  t2 = t3;
-		}
-	    }
-
 	  t2->subst = t1;
 #ifdef DEBUG
 	  showSubst (t2);
