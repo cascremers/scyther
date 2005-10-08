@@ -66,6 +66,7 @@ switchesInit (int argc, char **argv)
   // Arachne
   switches.arachneSelector = 3;	// default goal selection method
   switches.maxIntruderActions = INT_MAX;	// max number of encrypt/decrypt events
+  switches.agentTypecheck = 1;	// default do check agent types
 
   // Misc
   switches.switchP = 0;		// multi-purpose parameter
@@ -554,6 +555,19 @@ switcher (const int process, int index)
       else
 	{
 	  switches.maxIntruderActions = integer_argument ();
+	  return index;
+	}
+    }
+
+  if (detect (' ', "disable-agenttypecheck", 0))
+    {
+      if (!process)
+	{
+	  /* maybe add after testing */
+	}
+      else
+	{
+	  switches.agentTypecheck = 0;
 	  return index;
 	}
     }
