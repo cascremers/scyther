@@ -991,6 +991,34 @@ roleInstanceDestroy (const System sys)
       roledefDestroy (myrun.start);
 
       // Destroy artefacts
+      //
+      // sys->variables might contain locals from the run: remove them
+      {
+	Termlist tl;
+
+	tl = sys->variables;
+	while (tl != NULL)
+	  {
+	    Term t;
+
+	    t = tl->term;
+	    if (realTermLeaf (t) && TermRunid (t) == runid)
+	      {
+		Termlist tlnext;
+
+		tlnext = tl->next;
+		// remove from list; return pointer to head
+		sys->variables = termlistDelTerm (tl);
+		tl = tlnext;
+	      }
+	    else
+	      {
+		// proceed
+		tl = tl->next;
+	      }
+	  }
+      }
+
       /*
        * Arachne does real-time reduction of memory, POR does not
        * Artefact removal can only be done if knowledge sets are empty, as with Arachne
@@ -1025,30 +1053,6 @@ roleInstanceDestroy (const System sys)
 	  substlist = substlist->next;
 	}
       termlistDelete (myrun.substitutions);
-
-      // sys->variables might contain locals from the run: remove them
-      {
-	Termlist tl;
-
-	tl = sys->variables;
-	while (tl != NULL)
-	  {
-	    Term t;
-
-	    t = tl->term;
-	    if (realTermLeaf (t) && TermRunid (t) == runid)
-	      {
-		// remove from list; return pointer to head
-		sys->variables = termlistDelTerm (tl);
-		tl = sys->variables;
-	      }
-	    else
-	      {
-		// proceed
-		tl = tl->next;
-	      }
-	  }
-      }
 
       // remove lists
       termlistDelete (myrun.artefacts);
