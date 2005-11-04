@@ -36,7 +36,7 @@ switchesInit (int argc, char **argv)
   switches.argv = argv;
 
   // Methods
-  switches.engine = POR_ENGINE;	// default is partial ordering engine
+  switches.engine = ARACHNE_ENGINE;	// default is arachne engine
   switches.match = 0;		// default matching
   switches.clp = 0;
   switches.tupling = 0;
@@ -275,12 +275,28 @@ switcher (const int process, int index)
     {
       if (!process)
 	{
-	  helptext ("-a,--arachne", "select Arachne engine [modelchecker]");
+	  /*
+	   * Obsolete switch, as it is now the default behaviour.
+	   */
 	}
       else
 	{
 	  // Select arachne engine
 	  switches.engine = ARACHNE_ENGINE;
+	  return index;
+	}
+    }
+
+  if (detect ('M', "modelchecker", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-M,--modelchecker", "select Model checking engine [Arachne]");
+	}
+      else
+	{
+	  // Select arachne engine
+	  switches.engine = POR_ENGINE;
 	  return index;
 	}
     }
@@ -302,7 +318,7 @@ switcher (const int process, int index)
     {
       if (!process)
 	{
-	  helptext ("-m,--match=<int>", "matching method [0]");
+	  helptext ("-m,--match=<int>", "matching method [0] (0:Typed,1:Basic,2:Typeless)");
 	}
       else
 	{
@@ -617,11 +633,11 @@ switcher (const int process, int index)
 	}
     }
 
-  if (detect (' ', "summary", 0))
+  if (detect ('S', "summary", 0))
     {
       if (!process)
 	{
-	  helptext ("--summary", "show summary only: omit attack details");
+	  helptext ("-S,--summary", "show summary only: omit attack details");
 	}
       else
 	{
