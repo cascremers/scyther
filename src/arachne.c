@@ -3260,6 +3260,210 @@ count_false ()
   sys->current_claim->failed = statesIncrease (sys->current_claim->failed);
 }
 
+//! Create a generic new term of the same type, with a new run identifier.
+/**
+ * Output: the first element of the returned list.
+ */
+Termlist
+createNewTermGeneric (Termlist tl, Term t)
+{
+  int freenumber;
+  Termlist tlscan;
+  Term newterm;
+
+  /* Determine first free number */
+  freenumber = 0;
+  tlscan = tl;
+  while (tlscan != NULL)
+    {
+      Term ts;
+
+      ts = tlscan->term;
+      if (isLeafNameEqual (t, ts))
+	{
+	  if (TermRunid (ts) >= freenumber)
+	    {
+	      freenumber = TermRunid (ts) + 1;
+	    }
+	}
+      tlscan = tlscan->next;
+    }
+
+  /* Make a new term with the free number */
+  newterm = (Term) memAlloc (sizeof (struct term));
+  memcpy (newterm, t, sizeof (struct term));
+  TermRunid (newterm) = freenumber;
+
+  /* return */
+  return termlistPrepend (tl, newterm);
+}
+
+//! Create a new term with incremented run rumber, starting at sys->maxruns.
+/**
+ * Output: the first element of the returned list.
+ */
+Termlist
+createNewTerm (Termlist tl, Term t, int isagent)
+{
+  /* Does if have an explicit type?
+   * If so, we try to find a fresh name from the intruder knowledge first.
+   */
+  if (isagent)
+    {
+      Termlist knowlist;
+      Termlist kl;
+
+      knowlist = knowledgeSet (sys->know);
+      kl = knowlist;
+      while (kl != NULL)
+	{
+	  Term k;
+
+	  k = kl->term;
+	  if (isAgentType (k->stype))
+	    {
+	      /* agent */
+	      /* We don't want to instantiate untrusted agents. */
+	      if (!inTermlist (sys->untrusted, k))
+		{
+		  /* trusted agent */
+		  if (!inTermlist (tl, k))
+		    {
+		      /* This agent name is not in the list yet. */
+		      return termlistPrepend (tl, k);
+		    }
+		}
+	    }
+	  kl = kl->next;
+	}
+      termlistDelete (knowlist);
+    }
+
+  /* Not an agent or no free one found */
+  return createNewTermGeneric (tl, t);
+}
+
+//! Delete a term made in the previous constructions
+void
+deleteNewTerm (Term t)
+{
+  if (TermRunid (t) >= 0)
+    {
+      /* if it has a positive runid, it did not come from the intruder
+       * knowledge, so it must have been constructed.
+       */
+      memFree (t, sizeof (struct term));
+    }
+}
+
+//! Make a trace concrete
+Termlist
+makeTraceConcrete (const System sys)
+{
+  Termlist changedvars;
+  Termlist tlnew;
+  int run;
+
+  changedvars = NULL;
+  tlnew = NULL;
+  run = 0;
+
+  while (run < sys->maxruns)
+    {
+      Termlist tl;
+
+      tl = sys->runs[run].locals;
+      while (tl != NULL)
+	{
+	  /* variable, and of some run? */
+	  if (isTermVariable (tl->term) && TermRunid (tl->term) >= 0)
+	    {
+	      Term var;
+	      Term name;
+	      Termlist vartype;
+
+	      var = deVar (tl->term);
+	      vartype = var->stype;
+	      // Determine class name
+	      if (vartype != NULL)
+		{
+		  // Take first type name
+		  name = vartype->term;
+		}
+	      else
+		{
+		  // Just a generic name
+		  name = TERM_Data;
+		}
+	      // We should turn this into an actual term
+	      tlnew = createNewTerm (tlnew, name, isAgentType (var->stype));
+	      var->subst = tlnew->term;
+
+	      // Store for undo later
+	      changedvars = termlistAdd (changedvars, var);
+	    }
+	  tl = tl->next;
+	}
+      run++;
+    }
+  termlistDelete (tlnew);
+  return changedvars;
+}
+
+//! Make a trace a class again
+void
+makeTraceClass (const System sys, Termlist varlist)
+{
+  Termlist tl;
+
+  tl = varlist;
+  while (tl != NULL)
+    {
+      Term var;
+
+      var = tl->term;
+      deleteNewTerm (var->subst);
+      var->subst = NULL;
+
+      tl = tl->next;
+    }
+  termlistDelete (varlist);
+}
+
+//! Output an attack in the desired way
+void
+arachneOutputAttack ()
+{
+  Termlist varlist;
+
+  if (switches.concrete)
+    {
+      varlist = makeTraceConcrete (sys);
+    }
+  else
+    {
+      varlist = NULL;
+    }
+
+  if (switches.xml)
+    {
+      xmlOutSemitrace (sys);
+    }
+  else
+    {
+      if (switches.latex == 1)
+	{
+	  latexSemiState ();
+	}
+      else
+	{
+	  dotSemiState ();
+	}
+    }
+
+  makeTraceClass (sys, varlist);
+}
+
 //------------------------------------------------------------------------
 // Main logic core
 //------------------------------------------------------------------------
@@ -3283,21 +3487,7 @@ property_check ()
   count_false ();
   if (switches.output == ATTACK)
     {
-      if (switches.xml)
-	{
-	  xmlOutSemitrace (sys);
-	}
-      else
-	{
-	  if (switches.latex == 1)
-	    {
-	      latexSemiState ();
-	    }
-	  else
-	    {
-	      dotSemiState ();
-	    }
-	}
+      arachneOutputAttack ();
     }
   // Store attack length if shorter
   attack_this = get_semitrace_length ();

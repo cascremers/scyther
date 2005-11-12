@@ -26,6 +26,7 @@
  * Externally defined
  */
 extern Protocol INTRUDER;	// from arachne.c
+extern Term TERM_Data;		// from specialterm.c
 
 /*
  * Global/static stuff.
@@ -328,19 +329,19 @@ xmlTermType (const Term t)
     }
 
   xmlindent++;
-  xmlPrint("<term>");
+  xmlPrint ("<term>");
   xmlindent++;
   xmlIndentPrint ();
   xmlTermPrint (t);
   printf ("\n");
   xmlindent--;
-  xmlPrint("</term>");
+  xmlPrint ("</term>");
 
-  xmlPrint("<type>");
+  xmlPrint ("<type>");
   xmlindent++;
   xmlTermlistPrint (t->stype);
   xmlindent--;
-  xmlPrint("</type>");
+  xmlPrint ("</type>");
   xmlindent--;
 
   if (realTermVariable (t))
@@ -373,9 +374,9 @@ xmlVariable (const System sys, const Term variable, const int run)
       xmlPrint ("</name>");
       if (variable->subst != NULL)
 	{
-          xmlPrint ("<substitution>");
+	  xmlPrint ("<substitution>");
 	  xmlTermType (deVar (variable));
-          xmlPrint ("</substitution>");
+	  xmlPrint ("</substitution>");
 	}
       xmlindent--;
       xmlPrint ("</variable>");
@@ -901,7 +902,6 @@ xmlOutRuns (const System sys)
       xmlPrint ("</run>");
     }
 }
-
 
 /*
  * -----------------------------------------------------------------------------------

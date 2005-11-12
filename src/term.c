@@ -470,7 +470,7 @@ termNodeDuplicate (const Term term)
 
 //! Make a true deep copy of a term.
 /**
- * Currently, it this function is not to be used, so we can be sure leaf nodes occur only once in the system.
+ * Currently, this function is not to be used, so we can be sure leaf nodes occur only once in the system.
  *@return New memory is allocated and the node is copied recursively.
  *\sa termDuplicate()
  */
@@ -1328,4 +1328,11 @@ termPrintDiff (Term t1, Term t2)
 	    }
 	}
     }
+}
+
+//! Test two leaf terms for abstract equality (abstracting from the run identifiers)
+int
+isLeafNameEqual (Term t1, Term t2)
+{
+  return (TermSymb (t1) == TermSymb (t2));
 }

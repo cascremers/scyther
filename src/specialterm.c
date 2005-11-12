@@ -19,6 +19,7 @@ Term TERM_Hidden;
 Term TERM_Type;
 Term TERM_Nonce;
 Term TERM_Ticket;
+Term TERM_Data;
 
 Term TERM_Claim;
 Term CLAIM_Secret;
@@ -43,6 +44,7 @@ specialTermInit (const System sys)
   langcons (TERM_Function, "Function", TERM_Type);
   langcons (TERM_Nonce, "Nonce", TERM_Type);
   langcons (TERM_Ticket, "Ticket", TERM_Type);
+  langcons (TERM_Data, "Data", TERM_Type);
 
   langcons (CLAIM_Secret, "Secret", TERM_Claim);
   langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);

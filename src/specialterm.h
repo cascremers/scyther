@@ -11,6 +11,7 @@ extern Term TERM_Hidden;
 extern Term TERM_Type;
 extern Term TERM_Nonce;
 extern Term TERM_Ticket;
+extern Term TERM_Data;
 
 extern Term TERM_Claim;
 extern Term CLAIM_Secret;

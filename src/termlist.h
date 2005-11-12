@@ -32,6 +32,7 @@ __inline__ int inTermlist (Termlist tl, const Term term);
 __inline__ Termlist termlistFind (Termlist tl, const Term term);
 int isTermlistEqual (Termlist tl1, Termlist tl2);
 Termlist termlistAdd (Termlist tl, Term term);
+#define termlistPrepend(tl,t) termlistAdd(tl,t)
 Termlist termlistAppend (const Termlist tl, const Term term);
 Termlist termlistAddNew (const Termlist tl, const Term t);
 Termlist termlistConcat (Termlist tl1, Termlist tl2);

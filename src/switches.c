@@ -67,6 +67,7 @@ switchesInit (int argc, char **argv)
   switches.arachneSelector = 3;	// default goal selection method
   switches.maxIntruderActions = INT_MAX;	// max number of encrypt/decrypt events
   switches.agentTypecheck = 1;	// default do check agent types
+  switches.concrete = false;	// default leaves variables in output to yield class
 
   // Misc
   switches.switchP = 0;		// multi-purpose parameter
@@ -291,7 +292,8 @@ switcher (const int process, int index)
     {
       if (!process)
 	{
-	  helptext ("-M,--modelchecker", "select Model checking engine [Arachne]");
+	  helptext ("-M,--modelchecker",
+		    "select Model checking engine [Arachne]");
 	}
       else
 	{
@@ -318,7 +320,8 @@ switcher (const int process, int index)
     {
       if (!process)
 	{
-	  helptext ("-m,--match=<int>", "matching method [0] (0:Typed,1:Basic,2:Typeless)");
+	  helptext ("-m,--match=<int>",
+		    "matching method [0] (0:Typed,1:Basic,2:Typeless)");
 	}
       else
 	{
@@ -405,11 +408,12 @@ switcher (const int process, int index)
       if (!process)
 	{
 	  helptext ("-H,--human-readable",
-		    "try to make the output human-friendly (e.g. in XML)");
+		    "try to make the output human-friendly (e.g. in XML). Implies --concrete.");
 	}
       else
 	{
 	  switches.human = true;
+	  switches.concrete = true;
 	  return index;
 	}
     }
@@ -584,6 +588,19 @@ switcher (const int process, int index)
       else
 	{
 	  switches.agentTypecheck = 0;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "concrete", 0))
+    {
+      if (!process)
+	{
+	  /* maybe add after testing */
+	}
+      else
+	{
+	  switches.concrete = true;
 	  return index;
 	}
     }
