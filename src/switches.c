@@ -45,7 +45,7 @@ switchesInit (int argc, char **argv)
   switches.prune = 2;		// default pruning method
   switches.maxproofdepth = INT_MAX;
   switches.maxtracelength = INT_MAX;
-  switches.runs = INT_MAX;
+  switches.runs = 6;		// default is 6 for usability, but -r 0 or --maxruns=0 will set it back to INT_MAX
   switches.filterClaim = NULL;	// default check all claims
   switches.maxAttacks = 0;	// no maximum default
 
@@ -67,7 +67,7 @@ switchesInit (int argc, char **argv)
   switches.arachneSelector = 3;	// default goal selection method
   switches.maxIntruderActions = INT_MAX;	// max number of encrypt/decrypt events
   switches.agentTypecheck = 1;	// default do check agent types
-  switches.concrete = false;	// default leaves variables in output to yield class
+  switches.concrete = true;	// default removes symbols, and makes traces concrete
 
   // Misc
   switches.switchP = 0;		// multi-purpose parameter
@@ -350,11 +350,19 @@ switcher (const int process, int index)
       if (!process)
 	{
 	  helptext ("-r,--max-runs=<int>",
-		    "maximum number of runs in the system [inf]");
+		    "maximum number of runs in the system [6]. Set to 0 for unbounded search.");
 	}
       else
 	{
-	  switches.runs = integer_argument ();
+	  int arg = integer_argument ();
+	  if (arg == 0)
+	    {
+	      switches.runs = INT_MAX;
+	    }
+	  else
+	    {
+	      switches.runs = arg;
+	    }
 	  return index;
 	}
     }
@@ -408,7 +416,7 @@ switcher (const int process, int index)
       if (!process)
 	{
 	  helptext ("-H,--human-readable",
-		    "try to make the output human-friendly (e.g. in XML). Implies --concrete.");
+		    "try to make the output human-friendly (e.g. in XML).");
 	}
       else
 	{
@@ -592,11 +600,25 @@ switcher (const int process, int index)
 	}
     }
 
+  if (detect ('C', "class", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-C,--class",
+		    "generate full class (show uninstantiated variables)");
+	}
+      else
+	{
+	  switches.concrete = false;
+	  return index;
+	}
+    }
+
   if (detect (' ', "concrete", 0))
     {
       if (!process)
 	{
-	  /* maybe add after testing */
+	  /* this is now the default */
 	}
       else
 	{
