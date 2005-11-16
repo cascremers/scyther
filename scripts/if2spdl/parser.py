@@ -6,6 +6,7 @@
 from pyparsing import Word, alphanums, alphas, nums, oneOf, restOfLine, OneOrMore, \
 	ParseResults, Forward, Combine, Or, Optional,MatchFirst, \
 	ZeroOrMore, StringEnd, LineEnd, delimitedList, Group, Literal
+import Term
 
 def ifParse (str):
 	# Tokens
@@ -38,18 +39,21 @@ def ifParse (str):
 
 	# Message section
 	Alfabet= alphas+nums+"_$"
-	Variable = Word("x",Alfabet).setName("variable")
-	Constant = Word(alphas,Alfabet).setName("constant")
-	Number = Word(nums).setName("number")
+	Variable = Word("x",Alfabet).setParseAction(lambda s,l,t: [ Term.TermVariable(t[0],None) ])
+	Constant = Word(alphas,Alfabet).setParseAction(lambda s,l,t: [ Term.TermConstant(t[0]) ])
+	Number = Word(nums).setParseAction(lambda s,l,t: [ Term.TermConstant(t[0]) ])
+
 	Basic = MatchFirst([ Variable, Constant, Number ])
 
 	Message = Forward()
-	TypeInfo = oneOf ("mr nonce pk sk fu table")
-	TypeMsg = Group(TypeInfo + lbr + Message + rbr).setName("typeinfo")
+	TypeInfo = oneOf ("mr nonce pk sk fu table").setParseAction(lambda s,l,t: [ Term.TermConstant(t[0]) ])
+	TypeMsg = Group(TypeInfo + lbr + Message + rbr).setParseAction(lambda s,l,t: [ t[3].setType(t[1]) ])
+
 	CryptOp = oneOf ("crypt scrypt c funct rcrypt tb")
 	CryptMsg = Group(CryptOp + lbr + Message + com + Message + rbr).setName("crypt")
 	SMsg = Group(Literal("s") + lbr + Message + rbr)
-	Message << Or ([TypeMsg, CryptMsg, SMsg, Basic]) + Optional(Literal("'")) 
+	Message << Group(Or ([TypeMsg, CryptMsg, SMsg, Basic]) +
+			Optional(Literal("'")) )
 
 	# Fact section
 	Request = Group("request" + btup(4))

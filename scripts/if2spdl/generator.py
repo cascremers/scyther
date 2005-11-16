@@ -1,16 +1,33 @@
 #!/usr/bin/python
 
+import pprint
+
 def unfold(arg):
 	for x in arg:
-		print x
+		pprint.pprint(x)
+
+def intruderKnowledge(x):
+	print "Intruder knowledge"
+	unfold(x)
+
+def scenario(x):
+	print "Scenario",x,"ignoring for now"
 
 def initialState(arg):
+	arg = arg[0]	# One level deeper (has no implication rule)
 	print "Initial State"
-	unfold(arg)
+	print len(arg)
+	for x in arg:
+		if x[0] == "h":
+			print "Some stupid semi time thing"
+		if x[0] == "i":
+			intruderKnowledge(x),"ignoring for now"
+		elif x[0] == "w":
+			scenario(x)
 
+# Ignore for now
 def protocolRules(arg):
-	print "Protocol Rules"
-	unfold(arg)
+	return
 	
 # Goals: ignored for now
 def goal(arg):
