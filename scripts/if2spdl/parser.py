@@ -66,18 +66,18 @@ def ifParse (str):
 	Fact = Principal | MessageFact | IntruderKnowledge | TimeFact | Secret | Give | Witness | Request
 
 	#State = Fact + OptioZeroOrMore ("." + Fact)
-	State = delimitedList (Fact, ".")
+	State = Group(delimitedList (Fact, "."))
 
 	# Rules and labels
 	rulename = Word (alphanums + "_")
 	rulecategory = oneOf("Protocol_Rules Invariant_Rules Decomposition_Rules Intruder_Rules Init Goal")
 	label = hash + "lb" + equ + rulename + com + "type" + equ + rulecategory
-	rule = State + Optional(implies + State)
+	rule = Group(State + Optional(implies + State))
 	labeledrule = Group(label + rule)
 	typeflag = hash + "option" + equ + oneOf ("untyped","typed")
 
 	# A complete file
-	iffile = typeflag + OneOrMore(labeledrule) 
+	iffile = typeflag + Group(OneOrMore(labeledrule))
 
 	parser = iffile
 	parser.ignore("##" + restOfLine)
