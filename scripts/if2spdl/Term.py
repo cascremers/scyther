@@ -101,6 +101,14 @@ class Term(object):
     # Two terms are equal when their string rep is equal
     def __cmp__(self,other):
         return cmp(str(self),str(other))
+
+    def getTypes(self):
+	return self.types
+
+    def setType(self, tp):
+	self.types = [ tp ]
+
+
                 
     
 class TermConstant(Term):   
