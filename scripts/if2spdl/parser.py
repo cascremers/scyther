@@ -45,9 +45,15 @@ def ifParse (str):
 
 	Basic = MatchFirst([ Variable, Constant, Number ])
 
+	# Message definition is recursive
 	Message = Forward()
 
 	def parseType(s,l,t):
+		if t[0][0] == "pk":
+			# Public key thing, that's not really a type for
+			# us but a function
+			return [Term.TermEncrypt(t[0][1], t[0][0]) ]
+
 		term = t[0][1]
 		term.setType(t[0][0])
 		return [term]
@@ -57,6 +63,9 @@ def ifParse (str):
 
 	def parseCrypt(s,l,t):
 		# Crypto types are ignored for now
+		type = t[0][0]
+		if type == "c":
+			return [Term.TermTuple( t[0][1],t[0][2] ) ]
 		return [Term.TermEncrypt(t[0][2],t[0][1])]
 
 	CryptOp = oneOf ("crypt scrypt c funct rcrypt tb")
