@@ -8,7 +8,7 @@ def unfold(arg):
 
 def intruderKnowledge(x):
 	print "Intruder knowledge"
-	unfold(x)
+	print x[0], str(x[1])
 
 def scenario(x):
 	print "Scenario",x,"ignoring for now"

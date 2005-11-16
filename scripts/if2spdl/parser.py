@@ -46,14 +46,32 @@ def ifParse (str):
 	Basic = MatchFirst([ Variable, Constant, Number ])
 
 	Message = Forward()
+
+	def parseType(s,l,t):
+		term = t[0][1]
+		term.setType(t[0][0])
+		return [term]
+
 	TypeInfo = oneOf ("mr nonce pk sk fu table").setParseAction(lambda s,l,t: [ Term.TermConstant(t[0]) ])
-	TypeMsg = Group(TypeInfo + lbr + Message + rbr).setParseAction(lambda s,l,t: [ t[3].setType(t[1]) ])
+	TypeMsg = Group(TypeInfo + lbr + Message + rbr).setParseAction(parseType)
+
+	def parseCrypt(s,l,t):
+		# Crypto types are ignored for now
+		return [Term.TermEncrypt(t[0][2],t[0][1])]
 
 	CryptOp = oneOf ("crypt scrypt c funct rcrypt tb")
-	CryptMsg = Group(CryptOp + lbr + Message + com + Message + rbr).setName("crypt")
+	CryptMsg = Group(CryptOp + lbr + Message + com + Message + rbr).setParseAction(parseCrypt)
+
+	def parseSMsg(s,l,t):
+		return [Term.TermEncrypt(t[0][1],Term.Termconstant("succ") )]
+
 	SMsg = Group(Literal("s") + lbr + Message + rbr)
-	Message << Group(Or ([TypeMsg, CryptMsg, SMsg, Basic]) +
-			Optional(Literal("'")) )
+
+	def parsePrime(s,l,t):
+		# for now, we simply ignore the prime (')
+		return [t[0][0]]
+
+	Message << Group(Or ([TypeMsg, CryptMsg, SMsg, Basic]) + Optional(Literal("'"))).setParseAction(parsePrime)
 
 	# Fact section
 	Request = Group("request" + btup(4))
