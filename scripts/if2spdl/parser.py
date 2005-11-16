@@ -7,11 +7,14 @@ from pyparsing import Word, alphanums, alphas, nums, oneOf, restOfLine, OneOrMor
 	ParseResults, Forward, Combine, Or, Optional,MatchFirst, \
 	ZeroOrMore, StringEnd, LineEnd, delimitedList, Group, Literal
 
-def parse (str):
+def ifParse (str):
 	# Tokens
 	lbr = Literal("(").suppress()
 	rbr = Literal(")").suppress()
 	com = Literal(",").suppress()
+	hash = Literal("#").suppress()
+	equ = Literal("=").suppress()
+	implies = Literal("=>").suppress()
 
 	# Functions to construct tuples etc
 	def bracket(x):
@@ -35,29 +38,30 @@ def parse (str):
 
 	# Message section
 	Alfabet= alphas+nums+"_$"
-	Variable = Word("x",Alfabet)
-	Constant = Word(alphas,Alfabet)
-	Number = Word(nums)
+	Variable = Word("x",Alfabet).setName("variable")
+	Constant = Word(alphas,Alfabet).setName("constant")
+	Number = Word(nums).setName("number")
 	Basic = MatchFirst([ Variable, Constant, Number ])
 
 	Message = Forward()
 	TypeInfo = oneOf ("mr nonce pk sk fu table")
-	TypeMsg = TypeInfo + lbr + Message + rbr
+	TypeMsg = Group(TypeInfo + lbr + Message + rbr).setName("typeinfo")
 	CryptOp = oneOf ("crypt scrypt c funct rcrypt tb")
-	CryptMsg = CryptOp + lbr + Message + com + Message + rbr
-	SMsg = Literal("s") + lbr + Message + rbr
+	CryptMsg = Group(CryptOp + lbr + Message + com + Message + rbr).setName("crypt")
+	SMsg = Group(Literal("s") + lbr + Message + rbr)
 	Message << Or ([TypeMsg, CryptMsg, SMsg, Basic]) + Optional(Literal("'")) 
 
 	# Fact section
-
-	Request = "request" + btup(4)
-	Witness = "witness" + btup(4)
-	Give = "give" + lbr + Message + com + ftup(Literal("f"), 1) + rbr
-	Secret = "secret" + lbr + Message + com + ftup(Literal("f"),1) + rbr
-	TimeFact = ftup (Literal("h"), 1)
-	IntruderKnowledge = ftup (Literal("i"), 1)
-	MessageFact = ftup(Literal("m"),6)
-	Principal = ftup(Literal("w"), 7)
+	Request = Group("request" + btup(4))
+	Witness = Group("witness" + btup(4))
+	Give = Group("give" + lbr + Message + com + ftup(Literal("f"),
+		1) + rbr)
+	Secret = Group("secret" + lbr + Message + com +
+			ftup(Literal("f"),1) + rbr)
+	TimeFact = Group(ftup (Literal("h"), 1))
+	IntruderKnowledge = Group(ftup (Literal("i"), 1))
+	MessageFact = Group(ftup(Literal("m"),6))
+	Principal = Group(ftup(Literal("w"), 7))
 
 	Fact = Principal | MessageFact | IntruderKnowledge | TimeFact | Secret | Give | Witness | Request
 
@@ -67,10 +71,10 @@ def parse (str):
 	# Rules and labels
 	rulename = Word (alphanums + "_")
 	rulecategory = oneOf("Protocol_Rules Invariant_Rules Decomposition_Rules Intruder_Rules Init Goal")
-	label = "# lb=" + rulename + "," + "type=" + rulecategory
-	rule = State + Optional("\n" + "=>" + "\n" + State)
+	label = hash + "lb" + equ + rulename + com + "type" + equ + rulecategory
+	rule = State + Optional(implies + State)
 	labeledrule = Group(label + rule)
-	typeflag = "# option=" + oneOf ("untyped","typed")
+	typeflag = hash + "option" + equ + oneOf ("untyped","typed")
 
 	# A complete file
 	iffile = typeflag + OneOrMore(labeledrule) 
@@ -80,7 +84,4 @@ def parse (str):
 
 	return parser.parseString(str)
 
-file = open("NSPK_LOWE.if", "r")
-res = parse ("".join(file.readlines() ) )
-print res
 

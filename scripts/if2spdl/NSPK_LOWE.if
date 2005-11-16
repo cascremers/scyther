@@ -1,0 +1,54 @@
+# option=untyped
+# lb=Step_0, type=Protocol_Rules
+h(s(xTime)).w(0,mr(I),xA,etc,c(xA,c(xB,c(xKa,c(xKa',c(xKb,etc))))),true,xc)
+=>
+h(xTime).m(1,xA,xA,xB,crypt(xKb,c(nonce(c(Na,xTime)),xA)),xc).w(2,xB,xA,c(nonce(c(Na,xTime)),etc),c(xA,c(xB,c(xKa,c(xKa',c(xKb,etc))))),true,xc).witness(xA,xB,Na,nonce(c(Na,xTime)))
+
+
+# lb=Step_1, type=Protocol_Rules
+h(s(xTime)).m(1,xr,xA,xB,crypt(xKb,c(xNa,xA)),xc2).w(1,xA,xB,etc,c(xA,c(xB,c(xKa,c(xKb,c(xKb',etc))))),xbool,xc)
+=>
+h(xTime).m(2,xB,xB,xA,crypt(xKa,c(c(xNa,nonce(c(Nb,xTime))),xB)),xc2).w(3,xA,xB,c(crypt(xKb,c(xNa,xA)),c(nonce(c(Nb,xTime)),etc)),c(xA,c(xB,c(xKa,c(xKb,c(xKb',etc))))),true,xc).witness(xB,xA,Nb,nonce(c(Nb,xTime)))
+
+
+# lb=Step_2, type=Protocol_Rules
+h(s(xTime)).m(2,xr,xB,xA,crypt(xKa,c(c(xNa,xNb),xB)),xc2).w(2,xB,xA,c(xNa,etc),c(xA,c(xB,c(xKa,c(xKa',c(xKb,etc))))),xbool,xc)
+=>
+h(xTime).m(3,xA,xA,xB,crypt(xKb,xNb),xc2).w(0,mr(I),xA,etc,c(xA,c(xB,c(xKa,c(xKa',c(xKb,etc))))),true,s(xc)).request(xA,xB,Nb,xNb)
+
+
+# lb=Step_3, type=Protocol_Rules
+h(s(xTime)).m(3,xr,xA,xB,crypt(xKb,xNb),xc2).w(3,xA,xB,c(crypt(xKb,c(xNa,xA)),c(xNb,etc)),c(xA,c(xB,c(xKa,c(xKb,c(xKb',etc))))),xbool,xc)
+=>
+h(xTime).w(1,xA,xB,etc,c(xA,c(xB,c(xKa,c(xKb,c(xKb',etc))))),true,s(xc)).request(xB,xA,Na,xNa)
+
+
+
+# lb=Initial_state, type=Init
+h(xTime).w(1,mr(I),mr(a),etc,c(mr(I),c(mr(a),c(pk(ki),c(pk(ka),c(pk(ka)',etc))))),true,2).w(1,mr(a),mr(b),etc,c(mr(a),c(mr(b),c(pk(ka),c(pk(kb),c(pk(kb)',etc))))),true,1).w(0,mr(I),mr(a),etc,c(mr(a),c(mr(b),c(pk(ka),c(pk(ka)',c(pk(kb),etc))))),true,1).i(mr(I)).i(mr(b)).i(pk(ka)).i(pk(kb)).i(pk(ki)).i(nonce(c(ni,ni))).i(sk(c(ni,ni))).i(pk(c(ni,ni))).i(pk(c(ni,ni))').i(mr(a)).i(pk(ki)')
+# lb=Authenticate_a_I_7, type=Goal
+request(mr(a),mr(I),x1,x2)
+
+# lb=Authenticate_a_a_6, type=Goal
+request(mr(a),mr(a),x1,x2)
+
+# lb=Authenticate_b_I_5, type=Goal
+request(mr(b),mr(I),x1,x2)
+
+# lb=Authenticate_b_a_4, type=Goal
+request(mr(b),mr(a),x1,x2)
+
+# lb=Authenticate_I_a_3, type=Goal
+request(mr(I),mr(a),x1,x2)
+
+# lb=Authenticate_I_b_2, type=Goal
+request(mr(I),mr(b),x1,x2)
+
+# lb=Authenticate_a_a_1, type=Goal
+request(mr(a),mr(a),x1,x2)
+
+# lb=Authenticate_a_b_0, type=Goal
+request(mr(a),mr(b),x1,x2)
+
+
+
