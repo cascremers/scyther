@@ -35,7 +35,7 @@ int mylineno = 0;
 
 comment1	"//".*
 comment2	"#".*
-delimiter	[ \t\n]
+delimiter	[ \t\r\n]
 whitespace	{delimiter}+
 uc_letter	[A-Z]
 lc_letter	[a-z]
