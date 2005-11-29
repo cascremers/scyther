@@ -149,11 +149,17 @@ def ruleParser ():
 	Witness = Literal("witness") + lbr + Agent + comma + Agent + comma + Constant + comma + Message + rbr
 	Request = Literal("request") + lbr + Agent + comma + Agent + comma + Constant + comma + Message + rbr
 	Authenticate = Literal("request") + lbr + Agent + comma + Agent + comma + Constant + comma + Message + rbr
-	GoalFact = Or ([ Correspondence, Secrecy, STSecrecy, Authenticate ])
-	GoalState = Or ([ Secret, Give, Witness, Request ])
+	GoalState = Or ([ Correspondence, Secrecy, STSecrecy, Authenticate ])
+	GoalFact = Or ([ Secret, Give, Witness, Request ])
 
+	# TimeFact
+	TimeFact = Literal("h") + lbr + Message + rbr
+
+	# Intruder knowledge
+	IntruderKnowledge = Literal("i") + lbr + Message + rbr
+	
 	# Facts and states
-	Fact = Or ([ Principal, MessageFact, GoalFact ])	## Not well defined in BNF
+	Fact = Or ([ Principal, MessageFact, IntruderKnowledge, TimeFact, Secret, Give, Witness, Request ])
 	State = Group(delimitedList (Fact, "."))	## From initial part of document, not in detailed BNF
 
 	# Rules
@@ -191,10 +197,21 @@ def ifParser():
 	rulename = Word (alphanums + "_")
 	rulecategory = oneOf("Protocol_Rules Invariant_Rules Decomposition_Rules Intruder_Rules Init Goal")
 	label = hash + Literal("lb") + equal + rulename + comma + Literal("type") + equal + rulecategory
-	labeledrule = Group(label + ruleParser())
+	labeledrule = Group(label) + Group(ruleParser())
+
+	def labeledruleAction(s,l,t):
+		print "-----------------"
+		print "- Detected rule -"
+		print "-----------------"
+
+		print t[0]
+		print t[1]
+		print
+
+	labeledrule.setParseAction(labeledruleAction)
 
 	# A complete file
-	parser = Group(OneOrMore(labeledrule))
+	parser = OneOrMore(labeledrule)
 	parser.ignore("##" + restOfLine)
 
 	return parser
@@ -217,6 +234,11 @@ def typeSwitch(line):
 	except:
 		print "Unexpected error while determining (un)typedness of the line", line
 
+	str = "Detected "
+	if not typedversion:
+		str += "un"
+	str += "typed version."
+	print str
 
 # Parse an entire file, including the first one
 def linesParse(lines):
@@ -225,9 +247,6 @@ def linesParse(lines):
 
 	parser = ifParser()
 	result = parser.parseString("".join( lines[1:]))
-
-	for x in  result:
-		print x
 
 # Main code
 def main():

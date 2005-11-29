@@ -91,7 +91,11 @@ class Term(object):
         
     def __str__(self):
         raise InvalidTerm
-    
+
+    # Show more info with simple print
+    def __repr__(self):
+	return "Term("+str(self)+")"
+
     def constructorTerms(self):
         raise InvalidTerm
 
