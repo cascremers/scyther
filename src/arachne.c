@@ -2888,6 +2888,50 @@ prune_theorems ()
       run++;
     }
 
+  // Prune if any initiator run talks to itself
+  /**
+   * This effectively disallows Alice from talking to Alice, for all
+   * initiators. We still allow it for responder runs, because we assume the
+   * responder is not checking this.
+   */
+  if (switches.extravert)
+    {
+      int run;
+
+      run = 0;
+      while (run < sys->maxruns)
+	{
+	  // Check this run only if it is an initiator role
+	  if (sys->runs[run].role->initiator)
+	    {
+	      // Check this initiator run
+	      Termlist tl;
+
+	      tl = sys->runs[run].agents;
+	      while (tl != NULL)
+		{
+		  Termlist tlscan;
+
+		  tlscan = tl->next;
+		  while (tlscan != NULL)
+		    {
+		      if (isTermEqual (tl->term, tlscan->term))
+			{
+			  // XXX TODO
+			  // Still need to fix proof output for this
+			  //
+			  // Pruning because some agents are equal for this role.
+			  return 1;
+			}
+		      tlscan = tlscan->next;
+		    }
+		  tl = tl->next;
+		}
+	      run++;
+	    }
+	}
+    }
+
   // Prune wrong agents type for initators
   if (!initiatorAgentsType ())
     {

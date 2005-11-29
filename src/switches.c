@@ -68,6 +68,7 @@ switchesInit (int argc, char **argv)
   switches.maxIntruderActions = INT_MAX;	// max number of encrypt/decrypt events
   switches.agentTypecheck = 1;	// default do check agent types
   switches.concrete = true;	// default removes symbols, and makes traces concrete
+  switches.extravert = false;	// default allows also initiator Alice to talk to Alice
 
   // Misc
   switches.switchP = 0;		// multi-purpose parameter
@@ -556,6 +557,22 @@ switcher (const int process, int index)
       else
 	{
 	  switches.extendNonReads = 1;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "extravert", 0))
+    {
+      if (!process)
+	{
+	  /* discourage: hide
+	   *
+	   * Finds only attacks which exclude initiator Alice talking to Alice
+	   */
+	}
+      else
+	{
+	  switches.extravert = true;
 	  return index;
 	}
     }
