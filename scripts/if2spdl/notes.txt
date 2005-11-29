@@ -1,0 +1,14 @@
+Notes
+-----
+
+Regarding the AVISPA IF report:
+
+- Messages do not seem to contain Varable' as an option, seems to be
+  flaw in  the BNF.
+- State has no BNF definition in the second half, it seems.
+- Is Fact well-defined?
+- Authenticate has no parameters in it (only constants)
+  STSecrecy
+  matching_request
+ 
+

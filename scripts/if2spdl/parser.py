@@ -4,15 +4,23 @@
 # http://pyparsing.sourceforge.net/
 
 from pyparsing import Literal, alphas, nums, Word, oneOf, Or, Group, \
-	restOfLine, Forward, Optional, delimitedList
+	restOfLine, Forward, Optional, delimitedList, alphanums,\
+	OneOrMore
 import Term
 
 typedversion = False
 
-# Generate atom parser
+# Markers:
+#
+# 	TODO	stuff that still needs to be done.
+# 	DEVIANT	stuff that deviates from the original BNF specs in the
+# 		paper.
+# 	TEST	test things, remove later
+
+# Generate parser
 #
 # Takes a list of tokens, returns 
-def atomsParser ():
+def ruleParser ():
 	global typedversion
 
 	# ------------------------------------------------------
@@ -37,30 +45,41 @@ def atomsParser ():
 	# Typeinfo/Constant
 	TypeInfo = oneOf ("mr nonce pk sk fu table")
 	TypeInfo.setParseAction(lambda s,l,t: [ "typeinfo", Term.TermConstant(t[0]) ])
-	Const = Word(alphas,Alfabet)
-	Const.setParseAction(lambda s,l,t: [ "constant", Term.TermConstant(t[0]) ])
+	Constant = Word(alphas,Alfabet)
+	Constant.setParseAction(lambda s,l,t: [ "constant", Term.TermConstant(t[0]) ])
 
 	# Time
 	nTime = Group(Number)
 	nTime.setParseAction(lambda s,l,t: ["n", t[0] ])
 	xTime = Literal("xTime")
-	xTime.setParseAction(lambda s,l,t: ["x", 0 ])
+	xTime.setParseAction(lambda s,l,t: ["x", t[0] ])
 	sTime = Literal("s").suppress() + lbr + Group(Number) + rbr
 	sTime.setParseAction(lambda s,l,t: ["s", t[0] ])
 	Time = Or([nTime,xTime,sTime])
 	Time.setParseAction(lambda s,l,t: ["time", t[0],t[1] ])
 
+	# Const
+	Const = Forward()
+	Const << Or ([ Constant, Literal("c") + lbr + Constant + comma + Time + rbr, Literal("c(ni,ni)") ])
+
 	# Two versions
 	Variable = Word("x",Alfabet)
 	Variable.setParseAction(lambda s,l,t: [ "v", Term.TermVariable(t[0],None) ])
 	if typedversion:
-		Variable = TypeInfo + "(" + Variable + ")"
+		Variable = TypeInfo + lbr + Variable + rbr
+
+	# Optional prime
+	optprime = Optional(Literal("'"))
 
 	# Atomic
-	Atomic = Or([ TypeInfo + lbr + Const + rbr, Variable])
+	## DEVIANT : below there is an optprime after the atom. This
+	## is not in the BNF.
+	Atomic = Or([ TypeInfo + lbr + Const + rbr, Variable]) + optprime
 
 	### TEST
-	print Time.parseString("s(25)")
+	#print Time.parseString("s(25)")
+	#print Variable.parseString("xCas")
+	#print Atomic.parseString("nonce(Koen)")
 
 	# ------------------------------------------------------
 	# Messages
@@ -69,8 +88,6 @@ def atomsParser ():
 	# Base forward declaration
 	Message = Forward()
 
-	# Optional prime
-	optprime = Optional(Literal("'"))
 
 	# Agents etc
 	Agent = Or ([Literal("mr") + lbr + Const + rbr, Variable])
@@ -91,7 +108,10 @@ def atomsParser ():
 	Concatenation = Literal("c") + lbr + Message + comma + Message + rbr
 	Composed = Or([ Concatenation, SymmetricCypher, XOR,
 			PublicCypher, Function, KeyTable, KeyTableApp ])
-	Message = Or ([Composed, Atomic])
+	Message << Or ([Composed, Atomic])
+
+	### TEST
+	#print Message.parseString("nonce(c(Na,xTime))")
 
 	# ------------------------------------------------------
 	# Model of honest agents
@@ -99,18 +119,20 @@ def atomsParser ():
 	
 	Boolean = Or ([ Literal("true"), Literal("false"), Variable ])
 	Session = Forward()
-	Session = Or ([ Literal("s") + lbr + Session + rbr, Number, Variable ])
-	MsgList = Forward()
+	Session << Or ([ Literal("s") + lbr + Session + rbr, Number, Variable ])
 	MsgEtc = Literal("etc")
+
+	MsgList = Forward()
 	MsgComp = Literal("c") + lbr + Message + comma + MsgList + rbr
-	MsgList = Or ([ MsgEtc, Variable, MsgComp ])
+	MsgList << Or ([ MsgEtc, Variable, MsgComp ])
+
 	Step = Or ([ Number, Variable ])
 
 	### TEST
-	print Message.parseString("xKb")
-	print MsgList.parseString("etc")
-	print MsgComp.parseString("c(xKb,etc)")
-	print MsgList.parseString("c(xA,c(xB,c(xKa,c(xKa',c(xKb,etc)))))")
+	#print Message.parseString("xKb")
+	#print MsgList.parseString("etc")
+	#print MsgList.parseString("c(xKb,etc)")
+	#print MsgList.parseString("c(xA,c(xB,c(xKa,c(xKa',c(xKb,etc)))))")
 
 	# Principal fact
 	Principal = Literal("w") + lbr + Step + comma + Agent + comma + Agent + comma + MsgList + comma + MsgList + comma + Boolean + comma + Session + rbr
@@ -119,148 +141,100 @@ def atomsParser ():
 	MessageFact = Literal("m") + lbr + Step + comma + Agent + comma + Agent + comma + Agent + comma + Message + comma + Session + rbr
 
 	# Goal fact
-	GoalFact = Literal ("nogniet")
-	GoalState = Literal ("nogniet")
+	Correspondence = Principal + dot + Principal
+	Secret = Literal("secret") + lbr + Message + Literal("f") + lbr + Session + rbr + rbr
+	Secrecy = Literal("secret") + lbr + Literal("xsecret") + comma + Literal("f") + lbr + Session + rbr + rbr + dot + Literal("i") + lbr + Literal("xsecret") + rbr
+	Give = Literal("give") + lbr + Message + Literal("f") + lbr + Session + rbr + rbr
+	STSecrecy = Literal("give(xsecret,f(xc)).secret(xsecret,f(xc))") + implies + Literal("i(xsecret)")
+	Witness = Literal("witness") + lbr + Agent + comma + Agent + comma + Constant + comma + Message + rbr
+	Request = Literal("request") + lbr + Agent + comma + Agent + comma + Constant + comma + Message + rbr
+	Authenticate = Literal("request") + lbr + Agent + comma + Agent + comma + Constant + comma + Message + rbr
+	GoalFact = Or ([ Correspondence, Secrecy, STSecrecy, Authenticate ])
+	GoalState = Or ([ Secret, Give, Witness, Request ])
 
 	# Facts and states
-	Fact = Or ([ Principal, MessageFact ])
-	State = Group(delimitedList (Fact, "."))
+	Fact = Or ([ Principal, MessageFact, GoalFact ])	## Not well defined in BNF
+	State = Group(delimitedList (Fact, "."))	## From initial part of document, not in detailed BNF
 
 	# Rules
-	mr1 = Literal("h") + lbr + Literal("s") + lbr + Literal("xTime") + rbr + rbr + dot + State
+	MFPrincipal = Or ([ MessageFact + dot + Principal, Principal ])
+	mr1 = Literal("h") + lbr + Literal("s") + lbr + Literal("xTime") + rbr + rbr + dot + MFPrincipal
 	mr2 = implies
-	mr3 = Literal("h") + lbr + Literal("xTime") + rbr + dot + MessageFact + dot + Principal + dot + GoalFact + eol
-	MessageRule = mr1 + eol + mr2 + eol + mr3 + eol
-	InitialState = Literal("h") + lbr + Literal("xTime") + rbr + dot + State + eol
+	mr3 = Literal("h") + lbr + Literal("xTime") + rbr + dot + MFPrincipal + Optional(dot + delimitedList(GoalFact, "."))
+	MessageRule = mr1 + mr2 + mr3		## DEVIANT : BNF requires newlines
+	InitialState = Literal("h") + lbr + Literal("xTime") + rbr + dot + State 	## DEVIANT : BNF requires newlines
 
 	# Intruder
 	IntruderRule = Literal("nogniet")
 
 	# Simplification
-	SimplificationRule = Literal("nogniet")
+	f_simplif = Literal("f") + lbr + Literal("s") + lbr + Literal ("xc") + rbr + rbr + implies + Literal("f") + lbr + Literal("xc") + rbr	## DEVIANT : EOL removed
+	matching_request = Witness + dot + Request + implies
+	no_auth_intruder = Request + implies
+	SimplificationRule = Or ([ f_simplif, matching_request, no_auth_intruder ])
 
 	# Compose all rules
 	Rule = Or([ InitialState, MessageRule, IntruderRule, GoalState, SimplificationRule ])
 
+	return Rule
 
-	print Rule.parseFile("test.if")
+# IFParser
+# Does not work for the first line (typed/untyped)
+# Depends on ruleParser
+def ifParser():
 	
-
-
-
-
-def ifParse (str):
-	# Tokens
-	lbr = Literal("(").suppress()
-	rbr = Literal(")").suppress()
 	comma = Literal(",").suppress()
 	hash = Literal("#").suppress()
-	equ = Literal("=").suppress()
-	implies = Literal("=>").suppress()
-
-	# Functions to construct tuples etc
-	def bracket(x):
-		return lbr + x + rbr
-
-	def ntup(n):
-		x = Message
-		while n > 1:
-			x = x + comma + Message
-			n = n - 1
-		return x
-
-	def btup(n):
-		return bracket(ntup(n))
-
-	def funcy(x,y):
-		return x + bracket(y)
-
-	def ftup(x,n):
-		return funcy(x, ntup(n))
-
-	# Message section
-	Alfabet= alphas+nums+"_$"
-	Variable = Word("x",Alfabet).setParseAction(lambda s,l,t: [ Term.TermVariable(t[0],None) ])
-	Constant = Word(alphas,Alfabet).setParseAction(lambda s,l,t: [ Term.TermConstant(t[0]) ])
-	Number = Word(nums).setParseAction(lambda s,l,t: [ Term.TermConstant(t[0]) ])
-
-	Basic = MatchFirst([ Variable, Constant, Number ])
-
-	# Message definition is recursive
-	Message = Forward()
-
-	def parseType(s,l,t):
-		if t[0][0] == "pk":
-			# Public key thing, that's not really a type for
-			# us but a function
-			return [Term.TermEncrypt(t[0][1], t[0][0]) ]
-
-		term = t[0][1]
-		term.setType(t[0][0])
-		return [term]
-
-	TypeInfo = oneOf ("mr nonce pk sk fu table").setParseAction(lambda s,l,t: [ Term.TermConstant(t[0]) ])
-	TypeMsg = Group(TypeInfo + lbr + Message + rbr).setParseAction(parseType)
-
-	def parseCrypt(s,l,t):
-		# Crypto types are ignored for now
-		type = t[0][0]
-		if type == "c":
-			return [Term.TermTuple( t[0][1],t[0][2] ) ]
-		return [Term.TermEncrypt(t[0][2],t[0][1])]
-
-	CryptOp = oneOf ("crypt scrypt c funct rcrypt tb")
-	CryptMsg = Group(CryptOp + lbr + Message + comma + Message + rbr).setParseAction(parseCrypt)
-
-	def parseSMsg(s,l,t):
-		return [Term.TermEncrypt(t[0][1],Term.Termconstant("succ") )]
-
-	SMsg = Group(Literal("s") + lbr + Message + rbr)
-
-	def parsePrime(s,l,t):
-		# for now, we simply ignore the prime (')
-		return [t[0][0]]
-
-	Message << Group(Or ([TypeMsg, CryptMsg, SMsg, Basic]) + Optional(Literal("'"))).setParseAction(parsePrime)
-
-	# Fact section
-	Request = Group("request" + btup(4))
-	Witness = Group("witness" + btup(4))
-	Give = Group("give" + lbr + Message + comma + ftup(Literal("f"),
-		1) + rbr)
-	Secret = Group("secret" + lbr + Message + comma +
-			ftup(Literal("f"),1) + rbr)
-	TimeFact = Group(ftup (Literal("h"), 1))
-	IntruderKnowledge = Group(ftup (Literal("i"), 1))
-	MessageFact = Group(ftup(Literal("m"),6))
-	Principal = Group(ftup(Literal("w"), 7))
-
-	Fact = Principal | MessageFact | IntruderKnowledge | TimeFact | Secret | Give | Witness | Request
-
-	#State = Fact + OptioZeroOrMore ("." + Fact)
-	State = Group(delimitedList (Fact, "."))
+	equal = Literal("=").suppress()
 
 	# Rules and labels
 	rulename = Word (alphanums + "_")
 	rulecategory = oneOf("Protocol_Rules Invariant_Rules Decomposition_Rules Intruder_Rules Init Goal")
-	label = hash + "lb" + equ + rulename + comma + "type" + equ + rulecategory
-	rule = Group(State + Optional(implies + State))
-	labeledrule = Group(label + rule)
-	typeflag = hash + "option" + equ + oneOf ("untyped","typed")
+	label = hash + Literal("lb") + equal + rulename + comma + Literal("type") + equal + rulecategory
+	labeledrule = Group(label + ruleParser())
 
 	# A complete file
-	iffile = typeflag + Group(OneOrMore(labeledrule))
-
-	parser = iffile
+	parser = Group(OneOrMore(labeledrule))
 	parser.ignore("##" + restOfLine)
 
-	return parser.parseString(str)
+	return parser
 
+# Determine (un)typedness from this line
+def typeSwitch(line):
+	try:
+		global typedversion
+
+		typeflag = Literal("#") + "option" + Literal("=") + oneOf ("untyped","typed")
+		res = typeflag.parseString(line)
+		if res[3] == "untyped":
+			typedversion = False
+		elif res[3] == "typed":
+			typeversion = True
+		else:
+			print "Cannot determine whether typed or untyped."
+			raise ParseException
+	
+	except:
+		print "Unexpected error while determining (un)typedness of the line", line
+
+
+# Parse an entire file, including the first one
+def linesParse(lines):
+
+	typeSwitch(lines[0])
+
+	parser = ifParser()
+	result = parser.parseString("".join( lines[1:]))
+
+	for x in  result:
+		print x
+
+# Main code
 def main():
-	global typedversion
+	file = open("NSPK_LOWE.if", "r")
+	linesParse(file.readlines())
+	file.close()
 
-	typedversion = False
-	atomsParser()
 
 if __name__ == '__main__':
 	main()
