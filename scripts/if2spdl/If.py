@@ -48,6 +48,43 @@ class Fact(list):
 	def __repr__(self):
 		return "Fact<" + list.__repr__(self) + ">"
 
+class GoalFact(Fact):
+	def __repr__(self):
+		return "Goal " + Fact.__repr__(self)
+
+class PrincipalFact(Fact):
+	def __str__(self):
+		res = "Principal Fact:"
+		res += "\nStep         " + str(self[0])
+		res += "\nReadNextFrom " + str(self[1])
+		res += "\nActor        " + str(self[2])
+		res += "\nRunKnowledge " + str(self[3])
+		res += "\nKnowledge    " + str(self[4])
+		#res += "\nBool         " + str(self[5])
+		res += "\nSession      " + str(self[6])
+		return res + "\n"
+
+	def __repr__(self):
+		return str(self)
+
+class TimeFact(Fact):
+	def __repr__(self):
+		return "Time " + Fact.__repr__(self)
+
+class MessageFact(Fact):
+	def __str__(self):
+		res = "Message Fact:"
+		res += "\nStep         " + str(self[0])
+		res += "\nRealSender   " + str(self[1])
+		res += "\nClaimSender  " + str(self[2])
+		res += "\nRecipient    " + str(self[3])
+		res += "\nMessage      " + str(self[4])
+		res += "\nSession      " + str(self[5])
+		return res + "\n"
+
+	def __repr__(self):
+		return str(self)
+
 class State(list):
 	def __repr__(self):
 		return "State<" + list.__repr__(self) + ">"
@@ -77,9 +114,13 @@ class Rule(object):
 		if self.label != None:
 			res += " (" + str(self.label) +")"
 		res += "\n"
-		res += str(self.left) + "\n"
-		res += "=>\n"
-		res += str(self.right) + "\n"
+		if self.left != None:
+			res += str(self.left) + "\n"
+		if self.right != None:
+			if self.left != None:
+				res += "=>\n"
+			res += str(self.right) + "\n"
+		res += ".\n"
 		return res
 
 	def __repr__(self):

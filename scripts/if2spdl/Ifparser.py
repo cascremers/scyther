@@ -138,9 +138,11 @@ def ruleParser ():
 
 	# Principal fact
 	Principal = Literal("w") + lbr + Step + comma + Agent + comma + Agent + comma + MsgList + comma + MsgList + comma + Boolean + comma + Session + rbr
+	Principal.setParseAction(lambda s,l,t: [ If.PrincipalFact(t[1:]) ])
 
 	# Message fact
 	MessageFact = Literal("m") + lbr + Step + comma + Agent + comma + Agent + comma + Agent + comma + Message + comma + Session + rbr
+	MessageFact.setParseAction(lambda s,l,t: [ If.MessageFact(t[1:]) ])
 
 	# Goal fact
 	Secret = Literal("secret") + lbr + Message + Literal("f") + lbr + Session + rbr + rbr
@@ -148,6 +150,7 @@ def ruleParser ():
 	Witness = Literal("witness") + lbr + Agent + comma + Agent + comma + Constant + comma + Message + rbr
 	Request = Literal("request") + lbr + Agent + comma + Agent + comma + Constant + comma + Message + rbr
 	GoalFact = Or ([ Secret, Give, Witness, Request ])
+	GoalFact.setParseAction(lambda s,l,t: [ If.GoalFact(t) ])
 	# Goal State
 	# It actually yields a rule (not a state per se)
 	Correspondence = Principal + dot + Principal
@@ -164,6 +167,7 @@ def ruleParser ():
 
 	# TimeFact
 	TimeFact = Literal("h") + lbr + Message + rbr
+	TimeFact.setParseAction(lambda s,l,t: [ If.TimeFact(t[1]) ])
 
 	# Intruder knowledge
 	IntruderKnowledge = Literal("i") + lbr + Message + rbr
@@ -180,7 +184,8 @@ def ruleParser ():
 	mr2 = implies
 	mr3 = Literal("h") + lbr + Literal("xTime") + rbr + dot + MFPrincipal + Optional(dot + delimitedList(GoalFact, "."))
 	MessageRule = Group(mr1) + mr2 + Group(mr3)		## DEVIANT : BNF requires newlines
-	MessageRule.setParseAction(lambda s,l,t: [ If.MessageRule(t[0],t[1]) ])
+	MessageRule.setParseAction(lambda s,l,t: [
+			If.MessageRule(t[0][3],t[1][2:]) ])
 	InitialState = Literal("h") + lbr + Literal("xTime") + rbr + dot + State 	## DEVIANT : BNF requires newlines
 	InitialState.setParseAction(lambda s,l,t: [ If.InitialRule(t[2]) ])
 
@@ -216,8 +221,7 @@ def ifParser():
 
 	def labeledruleAction(s,l,t):
 		rule = t[1]
-		if type(rule) == "Rule":
-			rule.setLabel(t[0])
+		rule.setLabel(t[0])
 		return [rule]
 
 	labeledrule.setParseAction(labeledruleAction)
@@ -259,6 +263,8 @@ def linesParse(lines):
 
 	parser = ifParser()
 	result = parser.parseString("".join( lines[1:]))
+
+	### TEST
 	#print result
 
 # Main code
