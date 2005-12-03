@@ -30,7 +30,7 @@ set incsearch
 set nojoinspaces
 set laststatus=2
 set listchars=tab:>.,trail:$
-set makeprg=./parser.py
+set makeprg=./Ifparser.py
 set printencoding=ascii
 set ruler
 set scrolloff=2
@@ -50,15 +50,24 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +10 if2spdl.py
-badd +0 parser.py
-args if2spdl.py
-edit parser.py
+badd +7 If.py
+badd +2 Term.py
+badd +11 if2spdl.py
+badd +11 parser.py
+badd +0 Ifparser.py
+args If.py
+edit Ifparser.py
 set splitbelow splitright
+wincmd _ | wincmd |
+vsplit
+1wincmd h
+wincmd w
 set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
+exe 'vert 1resize ' . ((&columns * 79 + 79) / 158)
+exe 'vert 2resize ' . ((&columns * 78 + 79) / 158)
 argglobal
 setlocal noarabic
 setlocal autoindent
@@ -150,16 +159,119 @@ setlocal nowinfixheight
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 246 - ((33 * winheight(0) + 27) / 55)
+let s:l = 207 - ((32 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-246
-normal! 01l
+207
+normal! 0
+wincmd w
+argglobal
+edit If.py
+setlocal noarabic
+setlocal autoindent
+setlocal autoread
+setlocal nobinary
+setlocal bufhidden=
+setlocal buflisted
+setlocal buftype=
+setlocal nocindent
+setlocal cinkeys=0{,0},0),:,0#,!^F,o,O,e
+setlocal cinoptions=
+setlocal cinwords=if,else,while,do,for,switch
+setlocal comments=s1:/*,mb:*,ex:*/,://,b:#,:%,:XCOMM,n:>,fb:-
+setlocal commentstring=/*%s*/
+setlocal complete=.,w,b,u,t,i
+setlocal completefunc=
+setlocal nocopyindent
+setlocal define=
+setlocal dictionary=
+setlocal nodiff
+setlocal equalprg=
+setlocal errorformat=
+setlocal noexpandtab
+if &filetype != 'python'
+setlocal filetype=python
+endif
+setlocal foldcolumn=0
+setlocal foldenable
+setlocal foldexpr=0
+setlocal foldignore=#
+setlocal foldlevel=0
+setlocal foldmarker={{{,}}}
+setlocal foldmethod=manual
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldtext=foldtext()
+setlocal formatoptions=cqrt
+setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
+setlocal grepprg=
+setlocal iminsert=2
+setlocal imsearch=2
+setlocal include=
+setlocal includeexpr=
+setlocal indentexpr=GetPythonIndent(v:lnum)
+setlocal indentkeys=0{,0},:,0#,!^F,o,O,e,<:>,=elif,=except
+setlocal noinfercase
+setlocal iskeyword=@,48-57,_,192-255
+setlocal keymap=
+setlocal keywordprg=
+setlocal nolinebreak
+setlocal nolisp
+setlocal nolist
+setlocal makeprg=
+setlocal matchpairs=(:),{:},[:]
+setlocal modeline
+setlocal modifiable
+setlocal nrformats=octal,hex
+setlocal nonumber
+setlocal numberwidth=4
+setlocal omnifunc=
+setlocal path=
+setlocal nopreserveindent
+setlocal nopreviewwindow
+setlocal quoteescape=\\
+setlocal noreadonly
+setlocal norightleft
+setlocal rightleftcmd=search
+setlocal noscrollbind
+setlocal shiftwidth=8
+setlocal noshortname
+setlocal nosmartindent
+setlocal softtabstop=0
+setlocal nospell
+setlocal spellcapcheck=[.?!]\\_[\\])'\"\	\ ]\\+
+setlocal spellfile=
+setlocal spelllang=en
+setlocal statusline=
+setlocal suffixesadd=
+setlocal swapfile
+setlocal synmaxcol=3000
+if &syntax != 'python'
+setlocal syntax=python
+endif
+setlocal tabstop=8
+setlocal tags=
+setlocal textwidth=72
+setlocal thesaurus=
+setlocal nowinfixheight
+setlocal wrap
+setlocal wrapmargin=0
+silent! normal! zE
+let s:l = 56 - ((48 * winheight(0) + 27) / 55)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+56
+normal! 025l
+wincmd w
+2wincmd w
 if exists('s:wipebuf')
   exe 'bwipe ' . s:wipebuf
 endif
 unlet! s:wipebuf
+exe 'vert 1resize ' . ((&columns * 79 + 79) / 158)
+exe 'vert 2resize ' . ((&columns * 78 + 79) / 158)
 set winheight=1 winwidth=20 shortmess=at
 let s:sx = expand("<sfile>:p:r")."x.vim"
 if file_readable(s:sx)

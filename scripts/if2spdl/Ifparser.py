@@ -6,7 +6,6 @@
 from pyparsing import Literal, alphas, nums, Word, oneOf, Or, Group, \
 	restOfLine, Forward, Optional, delimitedList, alphanums,\
 	OneOrMore
-import Term
 import If
 
 typedversion = False
@@ -29,30 +28,27 @@ def ruleParser ():
 	# ------------------------------------------------------
 
 	# Tokens
-	lbr = Literal("(")
-	rbr = Literal(")")
-	comma = Literal(",")
+	lbr = Literal("(").suppress()
+	rbr = Literal(")").suppress()
+	comma = Literal(",").suppress()
 	hash = Literal("#")
 	equ = Literal("=")
-	implies = Literal("=>")
-	dot = Literal(".")
+	implies = Literal("=>").suppress()
+	dot = Literal(".").suppress()
 	eol = Literal("\n").suppress()
 
 	# Basic constructors
 	Alfabet= alphas+nums+"_$"
 	Number = Word(nums)
-	Number.setParseAction(lambda s,l,t: [ "number", Term.TermConstant(t[0]) ])
 
 	# Typeinfo/Constant
 	TypeInfo = oneOf ("mr nonce pk sk fu table")
-	TypeInfo.setParseAction(lambda s,l,t: [ "typeinfo", Term.TermConstant(t[0]) ])
 	Constant = Word(alphas,Alfabet)
-	Constant.setParseAction(lambda s,l,t: [ Term.TermConstant(t[0]) ])
 
 	# Time
 	nTime = Number
 	xTime = Literal("xTime")
-	sTime = Literal("s").suppress() + lbr + Group(Number) + rbr
+	sTime = Literal("s") + lbr + Group(Number) + rbr
 	Time = Or([nTime,xTime,sTime])
 
 	# Const
@@ -61,11 +57,9 @@ def ruleParser ():
 	ConstF = Literal("c(ni,ni)")
 	Const << Or ([ Constant, ConstC, ConstF ])
 
-	Const.setParseAction(lambda s,l,t: [ If.Constant("".join(t)) ])
 
 	# Two versions
 	Variable = Word("x",Alfabet)
-	Variable.setParseAction(lambda s,l,t: [ Term.TermVariable(t[0]+"V",None) ])
 	if typedversion:
 		Variable = TypeInfo + lbr + Variable + rbr
 
@@ -76,10 +70,11 @@ def ruleParser ():
 	## DEVIANT : below there is an optprime after the atom. This
 	## is not in the BNF.
 	Atomic = Or([ TypeInfo + lbr + Const + rbr, Variable]) + optprime
+	Atomic.setParseAction(lambda s,l,t: [ If.Atomic(t) ])
 
 	### TEST
-	#print Time.parseString("s(25)")
-	#print Variable.parseString("xCas")
+	#print Const.parseString("Cas'")
+	#print Atomic.parseString("mr(Cas)'")
 	#print Atomic.parseString("nonce(Koen)")
 
 	# ------------------------------------------------------
@@ -100,7 +95,6 @@ def ruleParser ():
 	varterm = Variable + optprime
 	Invertible = Or( [pkterm, KeyTableApp, varterm])
 	PublicCypher = Literal("crypt") + lbr + Invertible + comma + Message + rbr
-	PublicCypher.setParseAction(lambda s,l,t: [ Term.TermEncrypt(t[2],t[1]) ])
 	XOR = Literal("rcrypt") + lbr + Message + comma + Message + rbr
 	SymmetricCypher = Literal("scrypt") + lbr + Message + comma + Message + rbr
 	futerm = Or([ Literal("fu") + lbr + Const + rbr, Variable ])
@@ -108,10 +102,10 @@ def ruleParser ():
 	
 	# Message composition
 	Concatenation = Literal("c") + lbr + Message + comma + Message + rbr
-	Concatenation.setParseAction(lambda s,l,t: [ Term.TermTuple(t[1],t[2]) ])
 	Composed = Or([ Concatenation, SymmetricCypher, XOR,
 			PublicCypher, Function, KeyTable, KeyTableApp ])
 	Message << Or ([Composed, Atomic])
+	Message.setParseAction(lambda s,l,t: [ If.Message(t) ])
 
 	### TEST
 	#print Message.parseString("nonce(c(Na,xTime))")
@@ -124,10 +118,15 @@ def ruleParser ():
 	Session = Forward()
 	Session << Or ([ Literal("s") + lbr + Session + rbr, Number, Variable ])
 	MsgEtc = Literal("etc")
+	MsgEtc.setParseAction(lambda s,l,t: [ If.Message([ If.Special("etc") ]) ])
+	MsgVariable = Group(Variable)
+	MsgVariable.setParseAction(lambda s,l,t: [ If.Message([ If.Atomic([ t[0][0] ]) ]) ])
 
 	MsgList = Forward()
 	MsgComp = Literal("c") + lbr + Message + comma + MsgList + rbr
-	MsgList << Or ([ MsgEtc, Variable, MsgComp ])
+	MsgComp.setParseAction(lambda s,l,t: [t[1]] + t[2])
+	MsgList << Or ([ MsgEtc, MsgVariable, MsgComp ])
+	MsgList.setParseAction(lambda s,l,t: [ If.MsgList(t) ])
 
 	Step = Or ([ Number, Variable ])
 
@@ -139,22 +138,29 @@ def ruleParser ():
 
 	# Principal fact
 	Principal = Literal("w") + lbr + Step + comma + Agent + comma + Agent + comma + MsgList + comma + MsgList + comma + Boolean + comma + Session + rbr
-	Principal.setParseAction(lambda s,l,t: [ "Principal", t])
 
 	# Message fact
 	MessageFact = Literal("m") + lbr + Step + comma + Agent + comma + Agent + comma + Agent + comma + Message + comma + Session + rbr
 
 	# Goal fact
-	Correspondence = Principal + dot + Principal
 	Secret = Literal("secret") + lbr + Message + Literal("f") + lbr + Session + rbr + rbr
-	Secrecy = Literal("secret") + lbr + Literal("xsecret") + comma + Literal("f") + lbr + Session + rbr + rbr + dot + Literal("i") + lbr + Literal("xsecret") + rbr
 	Give = Literal("give") + lbr + Message + Literal("f") + lbr + Session + rbr + rbr
-	STSecrecy = Literal("give(xsecret,f(xc)).secret(xsecret,f(xc))") + implies + Literal("i(xsecret)")
 	Witness = Literal("witness") + lbr + Agent + comma + Agent + comma + Constant + comma + Message + rbr
 	Request = Literal("request") + lbr + Agent + comma + Agent + comma + Constant + comma + Message + rbr
-	Authenticate = Literal("request") + lbr + Agent + comma + Agent + comma + Constant + comma + Message + rbr
-	GoalState = Or ([ Correspondence, Secrecy, STSecrecy, Authenticate ])
 	GoalFact = Or ([ Secret, Give, Witness, Request ])
+	# Goal State
+	# It actually yields a rule (not a state per se)
+	Correspondence = Principal + dot + Principal
+	Correspondence.setParseAction(lambda s,l,t: [
+			If.CorrespondenceRule(t) ])
+	Secrecy = Literal("secret") + lbr + Literal("xsecret") + comma + Literal("f") + lbr + Session + rbr + rbr + dot + Literal("i") + lbr + Literal("xsecret") + rbr
+	Secrecy.setParseAction(lambda s,l,t: [ If.SecrecyRule(t) ])
+	STSecrecy = Literal("give(xsecret,f(xc)).secret(xsecret,f(xc))") + implies + Literal("i(xsecret)")
+	STSecrecy.setParseAction(lambda s,l,t: [
+		If.STSecrecyRule(t) ])
+	Authenticate = Literal("request") + lbr + Agent + comma + Agent + comma + Constant + comma + Message + rbr
+	Authenticate.setParseAction(lambda s,l,t: [ If.AuthenticateRule(t) ])
+	GoalState = Or ([ Correspondence, Secrecy, STSecrecy, Authenticate ])
 
 	# TimeFact
 	TimeFact = Literal("h") + lbr + Message + rbr
@@ -164,7 +170,9 @@ def ruleParser ():
 	
 	# Facts and states
 	Fact = Or ([ Principal, MessageFact, IntruderKnowledge, TimeFact, Secret, Give, Witness, Request ])
+	Fact.setParseAction(lambda s,l,t: [ If.Fact(t) ])
 	State = Group(delimitedList (Fact, "."))	## From initial part of document, not in detailed BNF
+	State.setParseAction(lambda s,l,t: [ If.State(t) ])
 
 	# Rules
 	MFPrincipal = Or ([ MessageFact + dot + Principal, Principal ])
@@ -172,7 +180,9 @@ def ruleParser ():
 	mr2 = implies
 	mr3 = Literal("h") + lbr + Literal("xTime") + rbr + dot + MFPrincipal + Optional(dot + delimitedList(GoalFact, "."))
 	MessageRule = Group(mr1) + mr2 + Group(mr3)		## DEVIANT : BNF requires newlines
+	MessageRule.setParseAction(lambda s,l,t: [ If.MessageRule(t[0],t[1]) ])
 	InitialState = Literal("h") + lbr + Literal("xTime") + rbr + dot + State 	## DEVIANT : BNF requires newlines
+	InitialState.setParseAction(lambda s,l,t: [ If.InitialRule(t[2]) ])
 
 	# Intruder
 	IntruderRule = Literal("nogniet")
@@ -193,25 +203,22 @@ def ruleParser ():
 # Depends on ruleParser
 def ifParser():
 	
-	comma = Literal(",").suppress()
-	hash = Literal("#").suppress()
-	equal = Literal("=").suppress()
+	comma = Literal(",")
+	hash = Literal("#")
+	equal = Literal("=")
 
 	# Rules and labels
 	rulename = Word (alphanums + "_")
 	rulecategory = oneOf("Protocol_Rules Invariant_Rules Decomposition_Rules Intruder_Rules Init Goal")
 	label = hash + Literal("lb") + equal + rulename + comma + Literal("type") + equal + rulecategory
-	labeledrule = Group(label) + Group(ruleParser())
+	label.setParseAction(lambda s,l,t: [ If.Label(t[3],t[7]) ])
+	labeledrule = label + ruleParser()
 
 	def labeledruleAction(s,l,t):
-		if t[0][3] == "Protocol_Rules":
-			print "-----------------"
-			print "- Detected rule -"
-			print "-----------------"
-
-			print t[0]
-			print t[1]
-			print
+		rule = t[1]
+		if type(rule) == "Rule":
+			rule.setLabel(t[0])
+		return [rule]
 
 	labeledrule.setParseAction(labeledruleAction)
 
@@ -252,6 +259,7 @@ def linesParse(lines):
 
 	parser = ifParser()
 	result = parser.parseString("".join( lines[1:]))
+	#print result
 
 # Main code
 def main():
