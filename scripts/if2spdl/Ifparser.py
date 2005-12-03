@@ -57,25 +57,37 @@ def ruleParser ():
 	ConstF = Literal("c(ni,ni)")
 	Const << Or ([ Constant, ConstC, ConstF ])
 
+	# Optional prime
+	def optprimeaction(s,l,t):
+		if len(t) == 0:
+			return [ "" ]
+		else:
+			return t
+	optprime = Optional(Literal("'"))
+	optprime.setParseAction(optprimeaction)
 
 	# Two versions
-	Variable = Word("x",Alfabet)
 	if typedversion:
-		Variable = TypeInfo + lbr + Variable + rbr
-
-	# Optional prime
-	optprime = Optional(Literal("'"))
+		Variable = Word("x",Alfabet)
+		Variable = TypeInfo + lbr + Variable + rbr + optprime
+		Variable.setParseAction(lambda s,l,t: [
+				If.Variable(t[0],t[1],t[2]) ])
+	else:
+		Variable = Word("x",Alfabet) + optprime
+		Variable.setParseAction(lambda s,l,t: [
+				If.Variable("untyped",t[0],t[1]) ])
 
 	# Atomic
 	## DEVIANT : below there is an optprime after the atom. This
 	## is not in the BNF.
-	Atomic = Or([ TypeInfo + lbr + Const + rbr, Variable]) + optprime
-	Atomic.setParseAction(lambda s,l,t: [ If.Atomic(t) ])
+	TypedConstant = TypeInfo + lbr + Const + rbr + optprime
+	TypedConstant.setParseAction(lambda s,l,t: [
+				If.TypedConstant(t[0],t[1],t[2]) ])
+	Atomic = Or(TypedConstant, Variable)
 
 	### TEST
-	#print Const.parseString("Cas'")
-	#print Atomic.parseString("mr(Cas)'")
-	#print Atomic.parseString("nonce(Koen)")
+	print Atomic.parseString("mr(Cas)'")
+	print Atomic.parseString("nonce(Koen)")
 
 	# ------------------------------------------------------
 	# Messages
@@ -86,7 +98,9 @@ def ruleParser ():
 
 
 	# Agents etc
-	Agent = Or ([Literal("mr") + lbr + Const + rbr, Variable])
+	AgentMr = Literal("mr") + lbr + Const + rbr
+	AgentMr.setParseAction(lambda s,l,t: [ If.TypedConstant("mr",t[1]) ])
+	Agent = Or ([AgentMr, Variable])
 	KeyTable = Or ([Literal("table") + lbr + Const + rbr, Variable])
 	KeyTableApp = Literal("tb") + lbr + KeyTable + comma + Agent + rbr + optprime
 
@@ -101,7 +115,7 @@ def ruleParser ():
 	Function = Literal("funct") + lbr + futerm + comma + Message + rbr
 	
 	# Message composition
-	Concatenation = Literal("c") + lbr + Message + comma + Message + rbr
+	Concatenation = Literal("c").suppress() + lbr + Message + comma + Message + rbr
 	Composed = Or([ Concatenation, SymmetricCypher, XOR,
 			PublicCypher, Function, KeyTable, KeyTableApp ])
 	Message << Or ([Composed, Atomic])
@@ -120,7 +134,7 @@ def ruleParser ():
 	MsgEtc = Literal("etc")
 	MsgEtc.setParseAction(lambda s,l,t: [ If.Message([ If.Special("etc") ]) ])
 	MsgVariable = Group(Variable)
-	MsgVariable.setParseAction(lambda s,l,t: [ If.Message([ If.Atomic([ t[0][0] ]) ]) ])
+	MsgVariable.setParseAction(lambda s,l,t: [ If.Message(t[0]) ])
 
 	MsgList = Forward()
 	MsgComp = Literal("c") + lbr + Message + comma + MsgList + rbr
@@ -132,6 +146,7 @@ def ruleParser ():
 
 	### TEST
 	#print Message.parseString("xKb")
+	#print Message.parseString("mr(Cas)")
 	#print MsgList.parseString("etc")
 	#print MsgList.parseString("c(xKb,etc)")
 	#print MsgList.parseString("c(xA,c(xB,c(xKa,c(xKa',c(xKb,etc)))))")

@@ -6,39 +6,45 @@
 #
 firstone = True
 
-class Atomic(list):
-	def __init__ (self,l,type=""):
-		list.__init__(self,l)
+class Atomic(object):
+	def __init__ (self,type,s,optprime=""):
 		self.type = type
+		self.str = s + optprime
 	
-	def getType(self):
-		return self.type
-
 	def __str__(self):
-		return  "".join(self)
+		return self.str
 
 	def __repr__(self):
-		return "Constant<" + str(self) + ">"
+		return str(self)
+
+class Variable(Atomic):
+	pass
+
+class TypedConstant(Atomic):
+	pass
 
 class Special(Atomic):
 	def __init__ (self,x):
-		Atomic.__init__(self,[x],"special")
+		Atomic.__init__(self, "special", x)
 
 class Message(list):
-	def __str__(self):
-		#return "".join(self)
-		res = ""
-		for s in self:
-			if res != "":
-				res += ","
-			res += str(s)
-		return res
-
 	def subType(self):
 		return "(generic)"
 
+	def __str__(self):
+		if self[0] == "crypt":
+			return "{" + str(self[2]) + "}" + str(self[1]) + " "
+		else:
+			res = ""
+			for s in self:
+				if res != "":
+					res += ","
+				res += str(s)
+			return res
+
 	def __repr__(self):
 		return "Message" + self.subType() + "<" + str(self) + ">"
+
 
 class MsgList(list):
 	def __repr__(self):
