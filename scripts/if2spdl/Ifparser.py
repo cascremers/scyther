@@ -94,8 +94,8 @@ def ruleParser ():
 	Atomic = Or(TypedConstant, Variable)
 
 	### TEST
-	print Atomic.parseString("mr(Cas)'")
-	print Atomic.parseString("nonce(Koen)")
+	#print Atomic.parseString("mr(Cas)'")
+	#print Atomic.parseString("nonce(Koen)")
 
 	# ------------------------------------------------------
 	# Messages

@@ -33,7 +33,7 @@ class Composed(Message):
 		self.right = m2
 	
 	def __str__(self):
-		return str(self.left) + str(self.right)
+		return "(" + str(self.left) + "," + str(self.right) + ")"
 
 class PublicCrypt(Message):
 	def __init__ (self,key,message):
@@ -85,18 +85,43 @@ class TimeFact(Fact):
 		return "Time " + Fact.__repr__(self)
 
 class MessageFact(Fact):
+	def __init__(self,t):
+		global firstone
+
+		self.step = t[0]
+		self.realsender = t[1]
+		self.claimsender = t[2]
+		self.recipient = t[3]
+		self.message = t[4]
+		self.session = t[5]
+
+		### TEST
+		if firstone:
+			print self.spdl()
+			#firstone = False
+
+
 	def __str__(self):
 		res = "Message Fact:"
-		res += "\nStep         " + str(self[0])
-		res += "\nRealSender   " + str(self[1])
-		res += "\nClaimSender  " + str(self[2])
-		res += "\nRecipient    " + str(self[3])
-		res += "\nMessage      " + str(self[4])
-		res += "\nSession      " + str(self[5])
+		res += "\nStep         " + str(self.step)
+		res += "\nRealSender   " + str(self.realsender)
+		res += "\nClaimSender  " + str(self.claimsender)
+		res += "\nRecipient    " + str(self.recipient)
+		res += "\nMessage      " + str(self.message)
+		res += "\nSession      " + str(self.session)
 		return res + "\n"
 
 	def __repr__(self):
 		return str(self)
+
+	def spdl(self):
+		res = "send_"		# TODO this might be a read!
+		res += str(self.step)
+		res += "(" + str(self.claimsender)
+		res += "," + str(self.recipient)
+		res += ", " + str(self.message)
+		res += " );\n"
+		return res
 
 class State(list):
 	def __repr__(self):
@@ -144,14 +169,6 @@ class InitialRule(Rule):
 		return "Initial " + Rule.__str__(self)
 
 class MessageRule(Rule):
-	def __init__(self,l,r):
-		global firstone
-
-		Rule.__init__(self,l,r)
-		if firstone:
-			print str(self)
-			firstone = False
-
 
 	def __str__(self):
 		return "Message " + Rule.__str__(self)
