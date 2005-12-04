@@ -293,11 +293,8 @@ def typeSwitch(line):
 def linesParse(lines):
 
 	typeSwitch(lines[0])
-
 	parser = ifParser()
-	result = parser.parseString("".join( lines[1:]))
-
-	return result
+	return parser.parseString("".join( lines[1:]))
 
 # Main code
 def main():
@@ -306,7 +303,7 @@ def main():
 	file = open("NSPK_LOWE.if", "r")
 	rulelist = linesParse(file.readlines())
 	file.close()
-	print Spdl.generator(rulelist)
+	print rulelist
 
 if __name__ == '__main__':
 	main()

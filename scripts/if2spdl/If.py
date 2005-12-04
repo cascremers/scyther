@@ -146,10 +146,18 @@ class Label(object):
 
 class Rule(object):
 	def __init__(self,left=[],right=[]):
-		self.left = left
-		self.right = right
+		def sanitize(x):
+			if x == None:
+				return []
+			elif type(x) != list:
+				return [x]
+			else:
+				return x
+
+		self.left = sanitize(left)
+		self.right = sanitize(right)
 		self.label = None
-		self.actor = None
+		self.actors = []
 	
 	def setLabel(self,label):
 		self.label = label
@@ -171,8 +179,11 @@ class Rule(object):
 	def __repr__(self):
 		return str(self)
 
-	def getActor(self):
-		return None
+	def getActors(self):
+		return self.actors
+
+	def getFacts(self):
+		return self.left + self.right
 
 
 class InitialRule(Rule):
@@ -185,17 +196,14 @@ class MessageRule(Rule):
 
 	def __init__(self,left=[],right=[]):
 		Rule.__init__(self,left,right)
-		self.actor = None
-		for fact in left + right:
+		self.actors = []
+		for fact in self.getFacts():
 			actor = fact.getActor()
 			if actor != None:
-				self.actor = actor
+				self.actors.append(actor)
 
 	def __str__(self):
 		return "Message " + Rule.__str__(self)
-
-	def getActor(self):
-		return self.actor
 
 class GoalRule(Rule):
 	def __str__(self):

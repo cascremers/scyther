@@ -3,13 +3,16 @@
 #	Spdl generator
 #
 import If
+from misc import *
 
 def processRole(rulelist, role):
 
 	print "Role", role
 	for rule in rulelist:
-		if rule.getActor() == role:
-			print rule
+		if role in rule.getActors():
+			for fact in rule.getFacts():
+				if type(fact) == If.MessageFact:
+					print fact.spdl()
 
 	print
 	return ""
@@ -18,11 +21,8 @@ def processRole(rulelist, role):
 def getRoles(rulelist):
 	roles = []
 	for rule in rulelist:
-		actor = rule.getActor()
-		if actor != None:
-			if actor not in roles:
-				roles.append(actor)
-	return roles
+		roles += rule.getActors()
+	return uniq(roles)
 
 def generator(rulelist):
 	roles = getRoles(rulelist)
