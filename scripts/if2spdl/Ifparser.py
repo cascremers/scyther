@@ -297,15 +297,16 @@ def linesParse(lines):
 	parser = ifParser()
 	result = parser.parseString("".join( lines[1:]))
 
-	### TEST
-	#print result
+	return result
 
 # Main code
 def main():
+	print "Testing Ifparser module"
+	print
 	file = open("NSPK_LOWE.if", "r")
-	linesParse(file.readlines())
+	rulelist = linesParse(file.readlines())
 	file.close()
-
+	print Spdl.generator(rulelist)
 
 if __name__ == '__main__':
 	main()

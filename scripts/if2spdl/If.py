@@ -4,10 +4,9 @@
 #
 #	Objects and stuff for the intermediate format
 #
-firstone = True
-
 class Message(object):
-	pass
+	def __cmp__(self,other):
+		return cmp(str(self),str(other))
 
 class Constant(Message):
 	def __init__ (self,type,s,optprime=""):
@@ -61,24 +60,39 @@ class Fact(list):
 	def __repr__(self):
 		return "Fact<" + list.__repr__(self) + ">"
 
+	def getActor(self):
+		return None
+
 class GoalFact(Fact):
 	def __repr__(self):
 		return "Goal " + Fact.__repr__(self)
 
 class PrincipalFact(Fact):
+	def __init__(self,t):
+		self.step = t[0]
+		self.readnextfrom = t[1]
+		self.actor = t[2]
+		self.runknowledge = t[3]
+		self.knowledge = t[4]
+		self.bool = t[5]
+		self.session = t[6]
+
 	def __str__(self):
 		res = "Principal Fact:"
-		res += "\nStep         " + str(self[0])
-		res += "\nReadNextFrom " + str(self[1])
-		res += "\nActor        " + str(self[2])
-		res += "\nRunKnowledge " + str(self[3])
-		res += "\nKnowledge    " + str(self[4])
-		#res += "\nBool         " + str(self[5])
-		res += "\nSession      " + str(self[6])
+		res += "\nStep         " + str(self.step)
+		res += "\nReadNextFrom " + str(self.readnextfrom)
+		res += "\nActor        " + str(self.actor)
+		res += "\nRunKnowledge " + str(self.runknowledge)
+		res += "\nKnowledge    " + str(self.knowledge)
+		#res += "\nBool         " + str(self.bool)
+		res += "\nSession      " + str(self.session)
 		return res + "\n"
 
 	def __repr__(self):
 		return str(self)
+
+	def getActor(self):
+		return self.actor
 
 class TimeFact(Fact):
 	def __repr__(self):
@@ -86,20 +100,12 @@ class TimeFact(Fact):
 
 class MessageFact(Fact):
 	def __init__(self,t):
-		global firstone
-
 		self.step = t[0]
 		self.realsender = t[1]
 		self.claimsender = t[2]
 		self.recipient = t[3]
 		self.message = t[4]
 		self.session = t[5]
-
-		### TEST
-		if firstone:
-			print self.spdl()
-			#firstone = False
-
 
 	def __str__(self):
 		res = "Message Fact:"
@@ -139,10 +145,11 @@ class Label(object):
 		return str(self)
 
 class Rule(object):
-	def __init__(self,left=None,right=None):
+	def __init__(self,left=[],right=[]):
 		self.left = left
 		self.right = right
 		self.label = None
+		self.actor = None
 	
 	def setLabel(self,label):
 		self.label = label
@@ -152,10 +159,10 @@ class Rule(object):
 		if self.label != None:
 			res += " (" + str(self.label) +")"
 		res += "\n"
-		if self.left != None:
+		if len(self.left) > 0:
 			res += str(self.left) + "\n"
-		if self.right != None:
-			if self.left != None:
+		if len(self.right) > 0:
+			if len(self.left) > 0:
 				res += "=>\n"
 			res += str(self.right) + "\n"
 		res += ".\n"
@@ -164,14 +171,31 @@ class Rule(object):
 	def __repr__(self):
 		return str(self)
 
+	def getActor(self):
+		return None
+
+
 class InitialRule(Rule):
+
 	def __str__(self):
 		return "Initial " + Rule.__str__(self)
 
+
 class MessageRule(Rule):
+
+	def __init__(self,left=[],right=[]):
+		Rule.__init__(self,left,right)
+		self.actor = None
+		for fact in left + right:
+			actor = fact.getActor()
+			if actor != None:
+				self.actor = actor
 
 	def __str__(self):
 		return "Message " + Rule.__str__(self)
+
+	def getActor(self):
+		return self.actor
 
 class GoalRule(Rule):
 	def __str__(self):
