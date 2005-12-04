@@ -8,6 +8,12 @@ class Message(object):
 	def __cmp__(self,other):
 		return cmp(str(self),str(other))
 
+	def inTerms(self):
+		return self
+
+	def isVariable(self):
+		return False
+
 class Constant(Message):
 	def __init__ (self,type,s,optprime=""):
 		self.type = type
@@ -21,7 +27,8 @@ class Constant(Message):
 		return str(self)
 
 class Variable(Constant):
-	pass
+	def isVariable(self):
+		return True
 
 class PublicKey(Constant):
 	pass
@@ -34,6 +41,9 @@ class Composed(Message):
 	def __str__(self):
 		return "(" + str(self.left) + "," + str(self.right) + ")"
 
+	def inTerms(self):
+		return self.left.inTerms() + self.right.inTerms()
+
 class PublicCrypt(Message):
 	def __init__ (self,key,message):
 		self.key = key
@@ -42,19 +52,23 @@ class PublicCrypt(Message):
 	def __str__(self):
 		return "{" + str(self.message) + "}" + str(self.key) + " "
 
+	def inTerms(self):
+		return self.key.inTerms() + self.message.inTerms()
+
+
 class SymmetricCrypt(PublicCrypt):
 	pass
 
-class XOR(Message):
-	def __init__ (self, m1,m2):
-		self.left = m1
-		self.right = m2
-	
+class XOR(Composed):
 	def __str__(self):
 		return str(self.left) + " xor " + str(self.right)
 
+
 class MsgList(list):
-	pass
+	def inTerms(self):
+		l = []
+		for m in self:
+			l = l + m.inTerms()
 
 class Fact(list):
 	def __repr__(self):
@@ -121,12 +135,11 @@ class MessageFact(Fact):
 		return str(self)
 
 	def spdl(self):
-		res = "send_"		# TODO this might be a read!
-		res += str(self.step)
+		res = ""
 		res += "(" + str(self.claimsender)
 		res += "," + str(self.recipient)
 		res += ", " + str(self.message)
-		res += " );\n"
+		res += " )"
 		return res
 
 class State(list):
@@ -237,4 +250,23 @@ class AuthenticateRule(GoalRule):
 	def __str__(self):
 		return "Authenticate " + GoalRule.__str__(self)
 
+class Protocol(list):
+	def setFilename(self, filename):
+		# TODO untested
+		parts = filename.split("/")
+		self.path = "".join(parts[:-1])
+		self.filename = parts[-1]
+
+	# Get head of filename (until first dot)
+	def getBasename(self):
+		parts = self.filename.split(".")
+		if parts[0] == "":
+			return "None"
+		else:
+			return parts[0]
+
+	# Construct protocol name from filename
+	def getName(self):
+		return self.getBaseName()
+		
 

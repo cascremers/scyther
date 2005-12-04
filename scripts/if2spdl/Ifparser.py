@@ -262,7 +262,6 @@ def ifParser():
 	# A complete file
 	parser = OneOrMore(labeledrule)
 	parser.ignore("##" + restOfLine)
-
 	return parser
 
 # Determine (un)typedness from this line
@@ -289,21 +288,28 @@ def typeSwitch(line):
 	str += "typed version."
 	print str
 
-# Parse an entire file, including the first one
+# Parse a number of lines, including the first line with the type switch
 def linesParse(lines):
 
 	typeSwitch(lines[0])
 	parser = ifParser()
-	return parser.parseString("".join( lines[1:]))
+	return If.Protocol(parser.parseString("".join( lines[1:])))
+
+# Parse an entire file
+#
+# Return a protocol
+def fileParse(filename):
+	file = open(filename, "r")
+	protocol = linesParse(file.readlines())
+	file.close()
+	protocol.setFilename(filename)
+	return protocol
 
 # Main code
 def main():
 	print "Testing Ifparser module"
 	print
-	file = open("NSPK_LOWE.if", "r")
-	rulelist = linesParse(file.readlines())
-	file.close()
-	print rulelist
+	print fileParse("NSPK_LOWE.if")
 
 if __name__ == '__main__':
 	main()

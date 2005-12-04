@@ -5,10 +5,8 @@ import Ifparser
 import Spdl
 
 def main():
-	file = open("NSPK_LOWE.if", "r")
-	rulelist = Ifparser.linesParse(file.readlines())
-	file.close()
-	print Spdl.generator(rulelist)
+	protocol = Ifparser.fileParse("NSPK_LOWE.if")
+	print Spdl.generator(protocol)
 
 if __name__ == "__main__":
 	main()

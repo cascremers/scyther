@@ -5,31 +5,53 @@
 import If
 from misc import *
 
-def processRole(rulelist, role):
+def action(protocol, actiontype, rule, fact):
+	res = actiontype + "_"
+	res += str(fact.step)
+	res += fact.spdl()
+	res += ";\n"
+	return res
 
+def processRole(protocol, role):
+
+	res = ""
 	print "Role", role
-	for rule in rulelist:
+	# initial knowledge
+	for rule in protocol:
 		if role in rule.getActors():
-			for fact in rule.getFacts():
-				if type(fact) == If.MessageFact:
-					print fact.spdl()
+			for fact in rule.left:
+				if type(fact) == If.PrincipalFact:
+					print fact
 
-	print
+
+	# derive message sequence
+	for rule in protocol:
+		if role in rule.getActors():
+			for fact in rule.left:
+				if type(fact) == If.MessageFact:
+					res += action(protocol, "read", rule, fact)
+
+			for fact in rule.right:
+				if type(fact) == If.MessageFact:
+					res += action(protocol, "send", rule, fact)
+
+
+	print res
 	return ""
 
 
-def getRoles(rulelist):
+def getRoles(protocol):
 	roles = []
-	for rule in rulelist:
+	for rule in protocol:
 		roles += rule.getActors()
 	return uniq(roles)
 
-def generator(rulelist):
-	roles = getRoles(rulelist)
-	print "Found",len(rulelist),"rules."
+def generator(protocol):
+	roles = getRoles(protocol)
+	print "Found",len(protocol),"rules."
 	print "Roles:", roles
 	res = ""
 	for role in roles:
-		res += processRole(rulelist,role)
+		res += processRole(protocol,role)
 	return res
 
