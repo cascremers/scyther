@@ -28,6 +28,9 @@ def ruleParser ():
 	# ------------------------------------------------------
 
 	# Tokens
+	lbrX = Literal("(")
+	rbrX = Literal(")")
+	commaX = Literal(",")
 	lbr = Literal("(").suppress()
 	rbr = Literal(")").suppress()
 	comma = Literal(",").suppress()
@@ -48,14 +51,19 @@ def ruleParser ():
 	# Time
 	nTime = Number
 	xTime = Literal("xTime")
-	sTime = Literal("s") + lbr + Group(Number) + rbr
+	sTime = Literal("s") + lbrX + Number + rbrX
 	Time = Or([nTime,xTime,sTime])
 
 	# Const
 	Const = Forward()
-	ConstC = Literal("c") + lbr + Constant + comma + Time + rbr
+	ConstC = Literal("c") + lbrX + Constant + commaX + Time + rbrX
 	ConstF = Literal("c(ni,ni)")
 	Const << Or ([ Constant, ConstC, ConstF ])
+
+	def stringize(s,l,t):
+		return [ "".join(t) ]
+
+	Const.setParseAction(stringize)
 
 	# Optional prime
 	def optprimeaction(s,l,t):
@@ -82,7 +90,7 @@ def ruleParser ():
 	## is not in the BNF.
 	TypedConstant = TypeInfo + lbr + Const + rbr + optprime
 	TypedConstant.setParseAction(lambda s,l,t: [
-				If.TypedConstant(t[0],t[1],t[2]) ])
+				If.Constant(t[0],t[1],t[2]) ])
 	Atomic = Or(TypedConstant, Variable)
 
 	### TEST
@@ -99,27 +107,38 @@ def ruleParser ():
 
 	# Agents etc
 	AgentMr = Literal("mr") + lbr + Const + rbr
-	AgentMr.setParseAction(lambda s,l,t: [ If.TypedConstant("mr",t[1]) ])
+	AgentMr.setParseAction(lambda s,l,t: [ If.Constant(t[0],t[1]) ])
 	Agent = Or ([AgentMr, Variable])
+
+	# TODO Not implemented yet
 	KeyTable = Or ([Literal("table") + lbr + Const + rbr, Variable])
 	KeyTableApp = Literal("tb") + lbr + KeyTable + comma + Agent + rbr + optprime
 
 	# Crypto
 	pkterm = Literal("pk") + lbr + Const + rbr + optprime
-	varterm = Variable + optprime
+	pkterm.setParseAction(lambda s,l,t: [ If.PublicKey(t[0],t[1],t[2]) ])
+	##varterm = Variable + optprime		### Variable already has an optprime
+	varterm = Variable		
+
 	Invertible = Or( [pkterm, KeyTableApp, varterm])
 	PublicCypher = Literal("crypt") + lbr + Invertible + comma + Message + rbr
+	PublicCypher.setParseAction(lambda s,l,t: [ If.PublicCrypt(t[1],t[2]) ])
 	XOR = Literal("rcrypt") + lbr + Message + comma + Message + rbr
+	XOR.setParseAction(lambda s,l,t: [ If.XOR(t[1],t[2]) ])
 	SymmetricCypher = Literal("scrypt") + lbr + Message + comma + Message + rbr
+	SymmetricCypher.setParseAction(lambda s,l,t: [ If.SymmetricCrypt(t[1],t[2]) ])
+
+	# TODO Not implemented yet
 	futerm = Or([ Literal("fu") + lbr + Const + rbr, Variable ])
 	Function = Literal("funct") + lbr + futerm + comma + Message + rbr
 	
-	# Message composition
 	Concatenation = Literal("c").suppress() + lbr + Message + comma + Message + rbr
+	Concatenation.setParseAction(lambda s,l,t: [ If.Composed(t[0],t[1]) ])
+
+	# Message composition
 	Composed = Or([ Concatenation, SymmetricCypher, XOR,
 			PublicCypher, Function, KeyTable, KeyTableApp ])
 	Message << Or ([Composed, Atomic])
-	Message.setParseAction(lambda s,l,t: [ If.Message(t) ])
 
 	### TEST
 	#print Message.parseString("nonce(c(Na,xTime))")
@@ -132,15 +151,14 @@ def ruleParser ():
 	Session = Forward()
 	Session << Or ([ Literal("s") + lbr + Session + rbr, Number, Variable ])
 	MsgEtc = Literal("etc")
-	MsgEtc.setParseAction(lambda s,l,t: [ If.Message([ If.Special("etc") ]) ])
-	MsgVariable = Group(Variable)
-	MsgVariable.setParseAction(lambda s,l,t: [ If.Message(t[0]) ])
+	MsgEtc.setParseAction(lambda s,l,t: [ If.MsgList([If.Constant("special","etc") ]) ])
+	MsgVar = Group(Variable)
+	MsgVar.setParseAction(lambda s,l,t: [ If.MsgList(t) ])
 
 	MsgList = Forward()
 	MsgComp = Literal("c") + lbr + Message + comma + MsgList + rbr
-	MsgComp.setParseAction(lambda s,l,t: [t[1]] + t[2])
-	MsgList << Or ([ MsgEtc, MsgVariable, MsgComp ])
-	MsgList.setParseAction(lambda s,l,t: [ If.MsgList(t) ])
+	MsgComp.setParseAction(lambda s,l,t: [ If.MsgList([ t[1] ]) + t[2] ])
+	MsgList << Or ([ MsgEtc, Variable, MsgComp ])
 
 	Step = Or ([ Number, Variable ])
 

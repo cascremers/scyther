@@ -6,49 +6,56 @@
 #
 firstone = True
 
-class Atomic(object):
+class Message(object):
+	pass
+
+class Constant(Message):
 	def __init__ (self,type,s,optprime=""):
 		self.type = type
-		self.str = s + optprime
+		self.prime = optprime
+		self.str = s
 	
 	def __str__(self):
-		return self.str
+		return self.str + self.prime
 
 	def __repr__(self):
 		return str(self)
 
-class Variable(Atomic):
+class Variable(Constant):
 	pass
 
-class TypedConstant(Atomic):
+class PublicKey(Constant):
 	pass
 
-class Special(Atomic):
-	def __init__ (self,x):
-		Atomic.__init__(self, "special", x)
+class Composed(Message):
+	def __init__ (self,m1,m2):
+		self.left = m1
+		self.right = m2
+	
+	def __str__(self):
+		return str(self.left) + str(self.right)
 
-class Message(list):
-	def subType(self):
-		return "(generic)"
+class PublicCrypt(Message):
+	def __init__ (self,key,message):
+		self.key = key
+		self.message = message
 
 	def __str__(self):
-		if self[0] == "crypt":
-			return "{" + str(self[2]) + "}" + str(self[1]) + " "
-		else:
-			res = ""
-			for s in self:
-				if res != "":
-					res += ","
-				res += str(s)
-			return res
+		return "{" + str(self.message) + "}" + str(self.key) + " "
 
-	def __repr__(self):
-		return "Message" + self.subType() + "<" + str(self) + ">"
+class SymmetricCrypt(PublicCrypt):
+	pass
 
+class XOR(Message):
+	def __init__ (self, m1,m2):
+		self.left = m1
+		self.right = m2
+	
+	def __str__(self):
+		return str(self.left) + " xor " + str(self.right)
 
 class MsgList(list):
-	def __repr__(self):
-		return "Msglist<" + list.__repr__(self) + ">"
+	pass
 
 class Fact(list):
 	def __repr__(self):
