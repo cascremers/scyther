@@ -266,22 +266,18 @@ def ifParser():
 
 # Determine (un)typedness from this line
 def typeSwitch(line):
-	try:
-		global typedversion
+	global typedversion
 
-		typeflag = Literal("#") + "option" + Literal("=") + oneOf ("untyped","typed")
-		res = typeflag.parseString(line)
-		if res[3] == "untyped":
-			typedversion = False
-		elif res[3] == "typed":
-			typeversion = True
-		else:
-			print "Cannot determine whether typed or untyped."
-			raise ParseException
+	typeflag = Literal("#") + "option" + Literal("=") + oneOf ("untyped","typed")
+	res = typeflag.parseString(line)
+	if res[3] == "untyped":
+		typedversion = False
+	elif res[3] == "typed":
+		typeversion = True
+	else:
+		print "Cannot determine whether typed or untyped."
+		raise ParseException
 	
-	except:
-		print "Unexpected error while determining (un)typedness of the line", line
-
 	str = "Detected "
 	if not typedversion:
 		str += "un"

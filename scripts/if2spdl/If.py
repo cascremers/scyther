@@ -5,6 +5,7 @@
 #	Objects and stuff for the intermediate format
 #
 import copy	# To copy objects
+import os	# For path functions
 
 
 class Message(object):
@@ -370,10 +371,8 @@ class AuthenticateRule(GoalRule):
 
 class Protocol(list):
 	def setFilename(self, filename):
-		# TODO untested
-		parts = filename.split("/")
-		self.path = "".join(parts[:-1])
-		self.filename = parts[-1]
+		self.path = os.path.dirname(filename)
+		self.filename = os.path.basename(filename)
 
 	# Get head of filename (until first dot)
 	def getBaseName(self):
