@@ -4,15 +4,24 @@
 #
 #	Objects and stuff for the intermediate format
 #
+import copy	# To copy objects
+
+
 class Message(object):
 	def __cmp__(self,other):
 		return cmp(str(self),str(other))
 
 	def inTerms(self):
-		return self
+		return [self]
 
 	def isVariable(self):
 		return False
+
+	def substitute(self, msgfrom, msgto):
+		if self == msgfrom:
+			return msgto
+		else:
+			return self
 
 class Constant(Message):
 	def __init__ (self,type,s,optprime=""):
@@ -21,6 +30,9 @@ class Constant(Message):
 		self.str = s
 	
 	def __str__(self):
+		return self.str + self.prime
+
+	def spdl(self,braces=True):
 		return self.str + self.prime
 
 	def __repr__(self):
@@ -41,8 +53,26 @@ class Composed(Message):
 	def __str__(self):
 		return "(" + str(self.left) + "," + str(self.right) + ")"
 
+	def spdl(self,braces=True):
+		res = ""
+		if braces:
+			res += "("
+		res += self.left.spdl(False) + "," + self.right.spdl(False)
+		if braces:
+			res += ")"
+		return res
+
 	def inTerms(self):
 		return self.left.inTerms() + self.right.inTerms()
+
+	def substitute(self, msgfrom, msgto):
+		if self == msgfrom:
+			return msgto
+		else:
+			new = copy.copy(self)
+			new.left = self.left.substitute(msgfrom, msgto)
+			new.right = self.right.substitute(msgfrom, msgto)
+			return new
 
 class PublicCrypt(Message):
 	def __init__ (self,key,message):
@@ -51,9 +81,21 @@ class PublicCrypt(Message):
 
 	def __str__(self):
 		return "{" + str(self.message) + "}" + str(self.key) + " "
+	
+	def spdl(self,braces=True):
+		return "{" + self.message.spdl(False) + "}" + self.key.spdl() + " "
 
 	def inTerms(self):
 		return self.key.inTerms() + self.message.inTerms()
+
+	def substitute(self, msgfrom, msgto):
+		if self == msgfrom:
+			return msgto
+		else:
+			new = copy.copy(self)
+			new.key = self.key.substitute(msgfrom, msgto)
+			new.message = self.message.substitute(msgfrom, msgto)
+			return new
 
 
 class SymmetricCrypt(PublicCrypt):
@@ -63,21 +105,43 @@ class XOR(Composed):
 	def __str__(self):
 		return str(self.left) + " xor " + str(self.right)
 
+	def spdl(self,braces=True):
+		# This is not possible yet!
+		raise Error
+
 
 class MsgList(list):
 	def inTerms(self):
 		l = []
 		for m in self:
 			l = l + m.inTerms()
+		return l
 
 	def __str__(self):
 		return "[ " + ", ".join(map(str,self)) + " ]"
+
+	def spdl(self):
+		first = True
+		res = ""
+		for m in self:
+			if not first:
+				res += ", "
+			else:
+				first = False
+			res += m.spdl()
+		return res
 
 	def getList(self):
 		l = []
 		for e in self:
 			l.append(e)
 		return l
+
+	def substitute(self, msgfrom, msgto):
+		newl = []
+		for m in self:
+			newl.append(m.substitute(msgfrom, msgto))
+		return MsgList(newl)
 
 class Fact(list):
 	def __repr__(self):
@@ -300,7 +364,7 @@ class Protocol(list):
 		self.filename = parts[-1]
 
 	# Get head of filename (until first dot)
-	def getBasename(self):
+	def getBaseName(self):
 		parts = self.filename.split(".")
 		if parts[0] == "":
 			return "None"

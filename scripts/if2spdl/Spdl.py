@@ -18,16 +18,59 @@ def getRoles(protocol):
 		roles += rule.getActors()
 	return uniq(roles)
 
+class Event(object):
+	""" SPDL role event """
+	def substitute(self, msgfrom, msgto):
+		pass
+
+	def spdl(self):
+		return str(self)
+
+class CommEvent(Event):
+	""" SPDL message event """
+	def __init__(self,type,label,fromrole,torole,message):
+		self.type = type
+		self.label = label
+		self.fromrole = fromrole
+		self.torole = torole
+		self.message = message
+
+	def substitute(self, msgfrom, msgto):
+		self.message = self.message.substitute(msgfrom, msgto)
+	
+	def spdl(self):
+		res = str(self.type) + "_"
+		res += str(self.label)
+		res += "("
+		res += self.fromrole.spdl()
+		res += ","
+		res += self.torole.spdl()
+		res += ", "
+		res += self.message.spdl(False)
+		res += " )"
+		return res
+
+	def inTerms(self):
+		l = []
+		l += self.fromrole.inTerms()
+		l += self.torole.inTerms()
+		l += self.message.inTerms()
+		return l
+
 class Role(object):
 	""" Containts a list of rules, to be executed sequentially """
 	def __init__(self,name,actor):
 		self.name = name
 		self.rules = []
 		self.actor = actor
+		self.events = []
+		self.knowledge = If.MsgList([])
+		self.constants = If.MsgList([])
+		self.variables = If.MsgList([])
 	
 	def prependRule(self,rule):
 		self.rules = [rule] + self.rules
-
+	
 	def getLength(self):
 		return len(self.rules)
 
@@ -50,37 +93,151 @@ class Role(object):
 			res += "\n\n"
 		return res
 
+	def appendEvent(self, event):
+		self.event += [event]
+
+	def inTerms(self):
+		l = []
+		for ev in self.events:
+			l += ev.inTerms()
+		return l
+
 	def spdl(self):
+		pf = "\t\t"
+		pfc = pf + "// "
+
+		# Start output
 		res = ""
 		if len(self.rules) == 0:
 			return res
-		res += "role " + self.name + " ("
-		# TODO Insert parameter agents
-		res += ")\n"
-		res += "{\n"
+		res += "\trole " + self.name + "\n"
+		res += "\t{\n"
+
+		
+
+
 		# TODO declare constants, variables
+		res += pfc + "Constants and variables\n"
+		res += pf + "const " + self.constants.spdl() + ";\n"
+		res += pf + "var   " + self.variables.spdl() + ";\n"
 		res += "\n"
-		# Message sequence
-		res += "\t// Knowledge before: " + str(self.rules[0].before.knowledge) + "\n"
+		# Message sequence (based on rules)
+		res += pfc + "Rule list based messages\n"
+		res += pfc + "Knowledge before: " + str(self.rules[0].before.knowledge) + "\n"
 		for rule in self.rules:
 			# Read
 			if rule.readFact != None:
-				res += "\t" + action("read",rule.readFact) + ";\n"
+				res += pfc + action("read",rule.readFact) + ";\n"
 			# Show knowledge extending for this read
-			res += "\t// Knowledge delta: " + str(rule.before.runknowledge) + " -> " + str(rule.after.runknowledge) + "\n"
-
-
+			res += pfc + "Knowledge delta: " + str(rule.before.runknowledge) + " -> " + str(rule.after.runknowledge) + "\n"
 
 			# Send
 			if rule.sendFact != None:
-				res += "\t" + action("send",rule.sendFact) + ";\n"
+				res += pfc + action("send",rule.sendFact) + ";\n"
+		res += "\n"
+
+		# Message sequence (based on event list)
+		res += pfc + "Event list based messages\n"
+		for event in self.events:
+			res += pf + event.spdl() + ";\n"
+		res += "\n"
+
 		# TODO claims
+		
 		# Close up
-		res += "}\n\n"
+		res += "\t}\n\n"
 		return res
 
 	def __cmp__(self,other):
 		return cmp(self.name, other.name)
+
+def sanitizeRole(protocol, role):
+	""" Get rid of If artefacts, and construct role.events """
+	rules = role.rules
+
+	# Create events for each rule
+	ruleevents = []
+	role.events = []
+	for rule in role.rules:
+		events = []
+		if rule.readFact != None:
+			f = rule.readFact
+			events.append(CommEvent("read", f.step, f.claimsender, f.recipient, f.message))
+		if rule.sendFact != None:
+			f = rule.sendFact
+			events.append(CommEvent("send", f.step, f.claimsender, f.recipient, f.message))
+		ruleevents.append(events)
+		role.events += events
+	
+	# Try to substitute stuff until sane
+	# First check whether knowledge lists actually agree in length,
+	# otherwise this does not make sense at all.
+	nmax = len(rules)-1
+	n = 0
+	while n < nmax:
+		knowbefore = rules[n].after.runknowledge
+		knowafter = rules[n+1].before.runknowledge
+		if len(knowbefore) != len(knowafter):
+			print "Error: Lengths differ for step", n
+		else:
+			# The after items should be substituted by the
+			# before items
+			i = 0
+			while i < len(knowbefore):
+				# Substitute this item
+				msgfrom = knowafter[i]
+				msgto = knowbefore[i]
+				if msgfrom != msgto:
+					### TEST
+					print "Substituting %s by %s" % (str(msgfrom), str(msgto))
+					# In all subsequent terms... TODO or
+					# just the next one?
+					j = n+1
+					while j < len(rules):
+						events = ruleevents[j]
+						for ev in events:
+							ev.substitute(msgfrom, msgto)
+						j = j+1
+				i = i + 1
+
+		n = n + 1
+
+	# Extract knowledge etc
+	role.knowledge = role.rules[0].before.knowledge
+	role.constants = If.MsgList([])
+	role.variables = If.MsgList([])
+	l = uniq(role.inTerms())
+	replacelist = []
+	noncecounter = 0
+	for t in l:
+		if t not in role.knowledge:
+			if t.isVariable():
+				role.variables.append(t)
+			else:
+				# For now, we say local constants from the intermediate
+				# format are simply replaced by
+				# local constants from the
+				# operational semantics. This is
+				# not necessarily correct. TODO
+				### constants.append(t)
+				cname = "n"
+				rname = role.name
+				if rname[0] == "x":
+					rname = rname[1:]
+				cname += rname
+				cname += str(noncecounter)
+				msg = If.Constant("nonce",cname)
+				noncecounter = noncecounter + 1
+				replacelist.append( (t,msg) )
+				role.constants.append(msg)
+	# Apply replacelist
+	if len(replacelist) > 0:
+		for ev in role.events:
+			for (f,t) in replacelist:
+				ev.substitute(f,t)
+
+
+		
 
 def extractRoles(protocol):
 	""" Extract the roles of a protocol description. This yields a
@@ -115,9 +272,6 @@ def extractRoles(protocol):
 		else:
 			actor = hrule.getActors()[0]
 			name = str(actor)
-			# Remove variable x prefix
-			if len(name) > 1 and name[0] == 'x':
-				name = name[1:]
 
 		# This name is maybe already taken
 		if name in rolenames:
@@ -154,14 +308,24 @@ def extractRoles(protocol):
 						# No loop, prepend
 						role.prependRule(rule)
 
+		# Role done, sanitize
+		sanitizeRole( protocol, role)
+
 	return roles
 
 def generator(protocol):
 	roles = extractRoles(protocol)
 	roles.sort()
 	res = ""
-	print "Found",len(roles),"roles."
+	res += "protocol " + protocol.getName() + " ("
+	namelist = []
+	for role in roles:
+		namelist += [role.name]
+	res += ", ".join(namelist)
+	res += ")\n"
+	res += "{\n"
 	for role in roles:
 		res += role.spdl()
+	res += "}\n"
 	return res
 
