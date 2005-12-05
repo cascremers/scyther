@@ -139,12 +139,20 @@ def extractRoles(protocol):
 		scan = True
 		while scan and role.getFirstStep() != -1:
 			scan = False
-			for rule in rulestodo:
+			for rule in protocol:
 				if actor in rule.getActors() and rule.getStepTo() == role.getFirstStep():
-					# This one works
-					role.prependRule(rule)
-					rulestodo.remove(rule)
+					# Remove if not yet covered
 					scan = True
+					if rule in rulestodo:
+						rulestodo.remove(rule)
+					# Loop detection
+					if rule in role.rules:
+						# This is a loop TODO
+						print "Warning: loop detected for role", role.name
+						scan = False	# Current setting: stop scan
+					else:
+						# No loop, prepend
+						role.prependRule(rule)
 
 	return roles
 
