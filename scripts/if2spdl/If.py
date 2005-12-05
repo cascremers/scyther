@@ -22,6 +22,9 @@ class Message(object):
 			return msgto
 		else:
 			return self
+	
+	def aKeys(self):
+		return []
 
 class Constant(Message):
 	def __init__ (self,type,s,optprime=""):
@@ -74,7 +77,10 @@ class Composed(Message):
 			new.right = self.right.substitute(msgfrom, msgto)
 			return new
 
-class PublicCrypt(Message):
+	def aKeys(self):
+		return self.left.aKeys() + self.right.aKeys()
+
+class SPCrypt(Message):
 	def __init__ (self,key,message):
 		self.key = key
 		self.message = message
@@ -97,8 +103,14 @@ class PublicCrypt(Message):
 			new.message = self.message.substitute(msgfrom, msgto)
 			return new
 
+	def aKeys(self):
+		return self.message.aKeys() + self.key.aKeys()
 
-class SymmetricCrypt(PublicCrypt):
+class PublicCrypt(SPCrypt):
+	def aKeys(self):
+		return self.message.aKeys() + [self.key]
+
+class SymmetricCrypt(SPCrypt):
 	pass
 
 class XOR(Composed):

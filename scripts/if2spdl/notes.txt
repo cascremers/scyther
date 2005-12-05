@@ -9,4 +9,11 @@ Regarding the AVISPA IF report:
   STSecrecy
   matching_request
  
+Regarding translation:
+- Read/Send tuples with knowledge updates are horrible.
+  Assuming a 1-1 mapping from after knowledge of step n with before
+  knowledge of step n+1.
+- Public key status in role defs is that of a variable, possible fixes
+  by substitutions from the scenario. That is plain ugly: scenario is
+  needed to explain meaning of role definition.
 

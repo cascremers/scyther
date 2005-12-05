@@ -67,6 +67,7 @@ class Role(object):
 		self.knowledge = If.MsgList([])
 		self.constants = If.MsgList([])
 		self.variables = If.MsgList([])
+		self.asymmetric = If.MsgList([])	# Asymmetric keys 
 	
 	def prependRule(self,rule):
 		self.rules = [rule] + self.rules
@@ -95,6 +96,16 @@ class Role(object):
 
 	def appendEvent(self, event):
 		self.event += [event]
+	
+	def substitute(self, msgfrom, msgto):
+		def subst(o):
+			o = o.substitute(msgfrom, msgto)
+
+		subst(self.events)
+		subst(self.knowledge)
+		subst(self.constants)
+		subst(self.variables)
+		subst(self.asymmetric)
 
 	def inTerms(self):
 		l = []
@@ -113,16 +124,10 @@ class Role(object):
 		res += "\trole " + self.name + "\n"
 		res += "\t{\n"
 
-		
+		res += pfc + "Rule list based messages\n\n"
+		res += pfc + "Asymmetric keys: " + str(self.asymmetric) + "\n"
 
-
-		# TODO declare constants, variables
-		res += pfc + "Constants and variables\n"
-		res += pf + "const " + self.constants.spdl() + ";\n"
-		res += pf + "var   " + self.variables.spdl() + ";\n"
-		res += "\n"
 		# Message sequence (based on rules)
-		res += pfc + "Rule list based messages\n"
 		res += pfc + "Knowledge before: " + str(self.rules[0].before.knowledge) + "\n"
 		for rule in self.rules:
 			# Read
@@ -134,6 +139,14 @@ class Role(object):
 			# Send
 			if rule.sendFact != None:
 				res += pfc + action("send",rule.sendFact) + ";\n"
+		res += "\n"
+
+		# TODO declare constants, variables
+		res += pfc + "Constants and variables\n"
+		if len(self.constants) > 0:
+			res += pf + "const " + self.constants.spdl() + ";\n"
+		if len(self.variables) > 0:
+			res += pf + "var   " + self.variables.spdl() + ";\n"
 		res += "\n"
 
 		# Message sequence (based on event list)
@@ -230,11 +243,19 @@ def sanitizeRole(protocol, role):
 				noncecounter = noncecounter + 1
 				replacelist.append( (t,msg) )
 				role.constants.append(msg)
+				### TEST
+				print "Substituting %s by %s" % (str(t), str(msg))
 	# Apply replacelist
 	if len(replacelist) > 0:
 		for ev in role.events:
 			for (f,t) in replacelist:
 				ev.substitute(f,t)
+
+	# Extract keys
+	akeys = []
+	for ev in role.events:
+		akeys += ev.message.aKeys()
+	role.asymmetric = uniq(akeys)
 
 
 		
