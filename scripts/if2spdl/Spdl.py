@@ -185,18 +185,15 @@ def sanitizeRole(protocol, role):
 	# Try to substitute stuff until sane
 	# First check whether knowledge lists actually agree in length,
 	# otherwise this does not make sense at all.
-	nmax = len(rules)-1
-	n = 0
-	while n < nmax:
+	for n in range(0,len(rules)-1):
 		knowbefore = rules[n].after.runknowledge
 		knowafter = rules[n+1].before.runknowledge
 		if len(knowbefore) != len(knowafter):
-			print "Error: Lengths differ for step", n
+			raise "KnowledgeDeltaLenDiff", n
 		else:
 			# The after items should be substituted by the
 			# before items
-			i = 0
-			while i < len(knowbefore):
+			for i in range(0,len(knowbefore)):
 				# Substitute this item
 				msgfrom = knowafter[i]
 				msgto = knowbefore[i]
@@ -205,15 +202,11 @@ def sanitizeRole(protocol, role):
 					print "Substituting %s by %s" % (str(msgfrom), str(msgto))
 					# In all subsequent terms... TODO or
 					# just the next one?
-					j = n+1
-					while j < len(rules):
+					for j in range(n+1, len(rules)):
 						events = ruleevents[j]
 						for ev in events:
 							ev.substitute(msgfrom, msgto)
-						j = j+1
-				i = i + 1
 
-		n = n + 1
 
 	# Extract knowledge etc
 	role.knowledge = role.rules[0].before.knowledge
@@ -234,8 +227,8 @@ def sanitizeRole(protocol, role):
 				# not necessarily correct. TODO
 				### constants.append(t)
 				cname = "n"
-				rname = role.name
-				if rname[0] == "x":
+				rname = role.name.lower()
+				if rname.startswith("x"):
 					rname = rname[1:]
 				cname += rname
 				cname += str(noncecounter)
@@ -274,7 +267,7 @@ def extractRoles(protocol):
 	# First, we have no rolenames yet
 	rolenames = []
 	roles = []
-	while len(rulestodo) > 0:
+	while (len(rulestodo) > 0):
 		# Pick one hrule (with the highest step number, maybe)
 		highest = rulestodo[0].getStepFrom()
 		hrule = rulestodo[0]
@@ -298,7 +291,7 @@ def extractRoles(protocol):
 		if name in rolenames:
 			# Append counter
 			counter = 2
-			while name + str(counter) in rolenames:
+			while (name + str(counter) in rolenames):
 				counter = counter+1
 			name = name + str(counter)
 
@@ -312,7 +305,7 @@ def extractRoles(protocol):
 
 		# Scan for preceding events until none is found
 		scan = True
-		while scan and role.getFirstStep() != -1:
+		while (scan and role.getFirstStep() != -1):
 			scan = False
 			for rule in protocol:
 				if actor in rule.getActors() and rule.getStepTo() == role.getFirstStep():
