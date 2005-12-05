@@ -70,6 +70,15 @@ class MsgList(list):
 		for m in self:
 			l = l + m.inTerms()
 
+	def __str__(self):
+		return "[ " + ", ".join(map(str,self)) + " ]"
+
+	def getList(self):
+		l = []
+		for e in self:
+			l.append(e)
+		return l
+
 class Fact(list):
 	def __repr__(self):
 		return "Fact<" + list.__repr__(self) + ">"
@@ -210,13 +219,46 @@ class MessageRule(Rule):
 	def __init__(self,left=[],right=[]):
 		Rule.__init__(self,left,right)
 		self.actors = []
+		# Add actors
 		for fact in self.getFacts():
 			actor = fact.getActor()
-			if actor != None:
+			if actor != None and actor not in self.actors:
 				self.actors.append(actor)
+		# Read/Send, before/after
+		self.readFact = None
+		self.before = None
+		for fact in self.left:
+			if type(fact) == MessageFact:
+				self.readFact = fact
+			elif type(fact) == PrincipalFact:
+				self.before = fact
+		self.sendFact = None
+		self.after = None
+		for fact in self.right:
+			if type(fact) == MessageFact:
+				self.sendFact = fact
+			elif type(fact) == PrincipalFact:
+				self.after = fact
+
+		if self.before == None or self.after == None:
+			print "Warning: rule does not have both principal facts."
+			print self
 
 	def __str__(self):
 		return "Message " + Rule.__str__(self)
+
+	def getStepFrom(self):
+		if self.before != None:
+			return self.before.step
+		else:
+			return -1
+
+	def getStepTo(self):
+		if self.after != None:
+			return self.after.step
+		else:
+			return -1
+
 
 class GoalRule(Rule):
 	def __str__(self):

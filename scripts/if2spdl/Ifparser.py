@@ -157,7 +157,7 @@ def ruleParser ():
 
 	MsgList = Forward()
 	MsgComp = Literal("c") + lbr + Message + comma + MsgList + rbr
-	MsgComp.setParseAction(lambda s,l,t: [ If.MsgList([ t[1] ]) + t[2] ])
+	MsgComp.setParseAction(lambda s,l,t: [ If.MsgList([t[1]] + t[2].getList()) ])
 	MsgList << Or ([ MsgEtc, Variable, MsgComp ])
 
 	Step = Or ([ Number, Variable ])
@@ -218,7 +218,7 @@ def ruleParser ():
 	mr3 = Literal("h") + lbr + Literal("xTime") + rbr + dot + MFPrincipal + Optional(dot + delimitedList(GoalFact, "."))
 	MessageRule = Group(mr1) + mr2 + Group(mr3)		## DEVIANT : BNF requires newlines
 	MessageRule.setParseAction(lambda s,l,t: [
-			If.MessageRule(t[0][3],t[1][2:]) ])
+			If.MessageRule(t[0][3:],t[1][2:]) ])
 	InitialState = Literal("h") + lbr + Literal("xTime") + rbr + dot + State 	## DEVIANT : BNF requires newlines
 	InitialState.setParseAction(lambda s,l,t: [ If.InitialRule(t[2]) ])
 
