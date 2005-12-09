@@ -1,9 +1,12 @@
+- For the TimeStamps etc, we can implement an 'auto-leak' of such local
+  constants. This should works also with a modifier of sorts (e.g.
+  'predictable') and such constants should be leaked to the intruder at
+  the start of the run, possibly by prefixing a send.
 - best heuristic currently for -t8: ignore sendsfirst, just look at the
   previous event and continue at that run.
 - termPrint must currently be encapsulated in a math environment to work in
   latex output, I wil change this later to some ensure mathmode construct,
   probably with something like latexTermPrint.
-- Repository to apache2 webdav.
 - The trace incremental search should start at something like 'distance of
   first claim + SOMECONST * runs'. SOMECONST relates to the partial-order
   induced trace prolonings.
