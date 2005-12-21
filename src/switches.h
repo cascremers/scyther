@@ -48,6 +48,7 @@ struct switchdata
   int agentTypecheck;		//!< Check type of agent variables in all matching modes
   int concrete;			//!< Swap out variables at the end.
   int extravert;		//!< Disallow Alice talking to Alice
+  int intruder;			//!< Enable intruder actions (default)
 
   // Misc
   int switchP;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.

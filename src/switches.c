@@ -69,6 +69,7 @@ switchesInit (int argc, char **argv)
   switches.agentTypecheck = 1;	// default do check agent types
   switches.concrete = true;	// default removes symbols, and makes traces concrete
   switches.extravert = false;	// default allows also initiator Alice to talk to Alice
+  switches.intruder = true;	// default allows an intruder
 
   // Misc
   switches.switchP = 0;		// multi-purpose parameter
@@ -557,6 +558,22 @@ switcher (const int process, int index)
       else
 	{
 	  switches.extendNonReads = 1;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "no-intruder", 0))
+    {
+      if (!process)
+	{
+	  /* for testing purposes: hide
+	   *
+	   * Disables the intruder
+	   */
+	}
+      else
+	{
+	  switches.intruder = false;
 	  return index;
 	}
     }

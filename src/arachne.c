@@ -3203,10 +3203,10 @@ prune_bounds ()
     return 1;
 
   // Limit on intruder events count
-  if (switches.maxIntruderActions < INT_MAX)
+  if (switches.maxIntruderActions < INT_MAX || !(switches.intruder))
     {
       // Only check if actually used
-      if (countIntruderActions () > switches.maxIntruderActions)
+      if (!(switches.intruder) || countIntruderActions () > switches.maxIntruderActions)
 	{
 	  if (switches.output == PROOF)
 	    {
