@@ -29,7 +29,7 @@ def tuplingchoice(variant,P,runs,latupling):
 	s += " | scyther -a -r%i -m2 --summary %s" % (runs, extraflags)
 	#s += " | scyther -a -r%i --summary" % runs
 	#print s
-	s += " | grep \"failed:\""
+	s += " | grep \"complete_proof\""
 	out = commands.getoutput(s)
 	if out == "":
 		#print "Okay"

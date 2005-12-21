@@ -5,238 +5,282 @@
 # Input: P variant
 #
 # variant uses some bits:
-#	bit	mask	meaning if set to '1'
-#			(message type 1)
-# 	0	1	nonces in reverse 
-# 	1	2	nonces after agents
-# 	2	4	agents in reverse 
-# 	3	8	interleaved variant
-# 			(message type 2)
-# 	4	16	nonces in reverse in message 2
+#    bit    mask    meaning if set to '1'
+#            (message type 1)
+#     0    1    nonces in reverse 
+#     1    2    nonces after agents
+#     2    4    agents in reverse 
+#     3    8    interleaved variant
+#             (message type 2)
+#     4    16    nonces in reverse in message 2
 #
 # Convention similar to e.g. Prolog: capitals indicate open variables;
 # in particular, they can be bound by _any_ value during the run,
 # assuming full type flaws.
 #
 import sys
+from optparse import OptionParser
+
+def parseArgs():
+    usage = "usage: %s [opts]" % sys.argv[0]
+    parser = OptionParser(usage=usage)
+    parser.add_option('-p','--protocol', dest='protocol',
+        help='Generate another protocol', default="nsl",
+        action='store')
+    (opts, args) = parser.parse_args()
+    if len(args) != 2:
+        parser.print_help()
+        sys.exit(0)
+    if opts.protocol not in ["nsl","bke"]:
+        print "I don't know the %s protocol." % (opts.protocol)
+        sys.exit(0)
+    return (opts,args)
+
 
 def variablerole (r, inrole):
-	if r == inrole or inrole == 0:
-		return False
-	else:
-		return True
+    if r == inrole or inrole == 0:
+        return False
+    else:
+        return True
 
 def role (r,inrole):
-	global P
+    global P
 
-	return "r%i" % (r % P)
+    return "r%i" % (r % P)
+
+def zeroconst ():
+    
+    """ This is 0 or some other stupid constant """
+
+    return "zeroconst"
 
 def nonce (r,inrole):
-	global P
+    global P
 
-	if r == inrole:
-		# nonce of our own
-		return "n%i" % (r % P)
-	else:
-		# a variable: we want to see this in the notation
-		return "N%i" % (r % P)
+    if r == inrole:
+        # nonce of our own
+        return "n%i" % (r % P)
+    else:
+        # a variable: we want to see this in the notation
+        return "N%i" % (r % P)
 
 def extend (s1, s2):
-	if s1 == "":
-		return s2
-	else:
-		return s1 + "," + s2
+    if s1 == "":
+        return s2
+    else:
+        return s1 + "," + s2
 
 def weavel (l1,l2,reverse1,swap,reverse2,interleave):
-	""" l1 is typically a list of nonces, l2 might be empty (names) """
-	global variant
+    """ l1 is typically a list of nonces, l2 might be empty (names) """
+    global variant
 
-	if reverse1:
-		l1.reverse()
-	if l2 == []:
-		return l1
-	else:
-		if reverse2:
-			l2.reverse()
-		if swap:
-			# swap
-			l3 = l1
-			l1 = l2
-			l2 = l3
-		if interleave:
-			rl = []
-			largest = max(len(l1),len(l2))
-			for i in range (0,largest):
-				if i < len(l1):
-					rl.append(l1[i])
-				if i < len(l2):
-					rl.append(l2[i])
-			return rl
-		else:
-			return l1 + l2
+    if reverse1:
+        l1.reverse()
+    if l2 == []:
+        return l1
+    else:
+        if reverse2:
+            l2.reverse()
+        if swap:
+            # swap
+            l3 = l1
+            l1 = l2
+            l2 = l3
+        if interleave:
+            rl = []
+            largest = max(len(l1),len(l2))
+            for i in range (0,largest):
+                if i < len(l1):
+                    rl.append(l1[i])
+                if i < len(l2):
+                    rl.append(l2[i])
+            return rl
+        else:
+            return l1 + l2
 
 def message1 (label,inrole):
-	global P,variant
+    global P,variant
 
-	noncelist = []
-	for i in range(0,label+1):
-		noncelist.append(nonce(i,inrole))
-	rolelist = []
-	for i in range(0,P):
-		if i != (label+1) % P:
-			rolelist.append(role(i,inrole))
+    noncelist = []
+    for i in range(0,label+1):
+        noncelist.append(nonce(i,inrole))
+    rolelist = []
+    for i in range(0,P):
+        if i != (label+1) % P:
+            rolelist.append(role(i,inrole))
 
-	return ",".join(weavel(noncelist,rolelist,
-		(variant & 1 != 0),
-		(variant & 2 != 0),
-		(variant & 4 != 0),
-		(variant & 8 != 0)
-		))
+    return ",".join(weavel(noncelist,rolelist,
+        (variant & 1 != 0),
+        (variant & 2 != 0),
+        (variant & 4 != 0),
+        (variant & 8 != 0)
+        ))
 
 def message2 (label,inrole):
-	global P,variant
+    global P,variant,opts
 
-	noncelist = []
-	for i in range (((label + 1) % P),P):
-		noncelist.append(nonce(i,inrole))
+    if opts.protocol == "nsl":
+        noncelist = []
+        for i in range (((label + 1) % P),P):
+            noncelist.append(nonce(i,inrole))
 
-	return ",".join(weavel(noncelist,[],
-		(variant & 16 != 0),
-		False,
-		False,
-		False
-		))
+        return ",".join(weavel(noncelist,[],
+            (variant & 16 != 0),
+            False,
+            False,
+            False
+            ))
+    elif opts.protocol == "bke":
+        noncelist = []
+        for i in range (((label + 1) % P) + 1,P):
+            noncelist.append(nonce(i,inrole))
+        if len(noncelist) == 0:
+            noncelist.append(zeroconst())
+
+        return ",".join(weavel(noncelist,[],
+            (variant & 16 != 0),
+            False,
+            False,
+            False
+            ))
+    else:
+        print "Hmm, I don't know how to create the final message for protocol %s" % (opts.protocol)
 
 def message (label,inrole):
-	global P
+    global P,opts
 
-	s = "{ "
-	if label < P:
-		s = s + message1 (label,inrole)
-	else:
-		s = s + message2 (label,inrole)
+    s = "{ "
+    if label < P:
+        s = s + message1 (label,inrole)
+    else:
+        s = s + message2 (label,inrole)
 
-	s = s + " }pk(%s)" % role(label+1,inrole)
-	return s
+    if opts.protocol == "bke" and not (label < P):
+        s = s + " }" + nonce((label+1) % P, inrole)
+    else:
+        s = s + " }pk(%s)" % role(label+1,inrole)
+    return s
 
 def action (event,label,inrole):
-	s = "\t\t%s_%i(%s,%s, " % (event,label, role(label,inrole),
-			role(label+1,inrole))
-	s += message (label,inrole)
-	s += " );\n"
-	return s
+    s = "\t\t%s_%i(%s,%s, " % (event,label, role(label,inrole),
+            role(label+1,inrole))
+    s += message (label,inrole)
+    s += " );\n"
+    return s
 
 def read (label,inrole):
-	return action ("read", label,inrole)
+    return action ("read", label,inrole)
 
 
 def send (label,inrole):
-	return action ("send", label,inrole)
+    return action ("send", label,inrole)
 
 def roledef (r):
-	global P
+    global P
 
-	s = ""
-	s += "\trole " + role(r,r) + "\n\t{\n"
+    s = ""
+    s += "\trole " + role(r,r) + "\n\t{\n"
 
-	# constants for this role
-	
-	s += "\t\tconst " + nonce (r,r) + ": Nonce;\n"
+    # constants for this role
+    
+    s += "\t\tconst " + nonce (r,r) + ": Nonce;\n"
 
-	# variables
-	
-	s += "\t\tvar "
-	nr = 0
-	for i in range (0,P):
-		if r != i:
-			if nr > 0:
-				s += ","
-			s += nonce(i,r)
-			nr += 1
+    # variables
+    
+    s += "\t\tvar "
+    nr = 0
+    for i in range (0,P):
+        if r != i:
+            if nr > 0:
+                s += ","
+            s += nonce(i,r)
+            nr += 1
 
-	s += ": Nonce;\n"
+    s += ": Nonce;\n"
 
-	# implicit role variables
-	
-	rolevars = []
-	for i in range (0,P):
-		if variablerole(i,r):
-			rolevars.append(role(i,r))
+    # implicit role variables
+    
+    rolevars = []
+    for i in range (0,P):
+        if variablerole(i,r):
+            rolevars.append(role(i,r))
 
-	if rolevars != []:
-		s += "\t\t// Implicit role variables: "
-		s += ",".join(rolevars)
-		s += ": Role;\n"
-		
-	# actions
-	
-	s += "\n"
-	if r > 0:
-		# Initial read
-		s += read(r-1,r)
-	s += send(r,r)
-	s += read(P+r-1,r)
-	if r < (P-1):
-		# Final send
-		s += send(P+r,r)
-	
-	# claims
-	
-	s += "\t\tclaim_%sa( %s, Secret, %s );\n" % (role(r,r), role(r,r),
-			nonce(r,r))
-	s += "\t\tclaim_%sb( %s, Nisynch );\n" % (role(r,r), role(r,r))
+    if rolevars != []:
+        s += "\t\t// Implicit role variables: "
+        s += ",".join(rolevars)
+        s += ": Role;\n"
+        
+    # actions
+    
+    s += "\n"
+    if r > 0:
+        # Initial read
+        s += read(r-1,r)
+    s += send(r,r)
+    s += read(P+r-1,r)
+    if r < (P-1):
+        # Final send
+        s += send(P+r,r)
+    
+    # claims
+    
+    s += "\t\tclaim_%sa( %s, Secret, %s );\n" % (role(r,r), role(r,r),
+            nonce(r,r))
+    s += "\t\tclaim_%sb( %s, Nisynch );\n" % (role(r,r), role(r,r))
 
-	# close
-	s += "\t}\n\n"
-	return s
+    # close
+    s += "\t}\n\n"
+    return s
 
 
-def protocol (pset,vset):
-	global P,variant
+def protocol (args):
+    global P,variant,opts
 
-	P = pset
-	variant = vset
+    P = int(args[0])
+    variant = int(args[1])
 
-	s = ""
-	s += "// Generalized Needham-Schroeder-Lowe for %i parties\n\n" % P
-	s += "// Variant %i\n" % variant
-	s += "const pk: Function;\n"
-	s += "secret sk: Function;\n"
-	s += "inversekeys (pk,sk);\n\n"
+    s = ""
+    s += "// Generalized %s protocol for %i parties\n\n" % (opts.protocol,P)
+    s += "// " + str(opts) + "\n\n"
+    s += "// Variant %i\n" % variant
+    s += "const pk: Function;\n"
+    s += "secret sk: Function;\n"
+    s += "inversekeys (pk,sk);\n"
+    
+    if opts.protocol == "bke":
+        s += "usertype Globalconstant;\n"
+        s += "const %s: Globalconstant;\n" % (zeroconst())
 
-	s += "protocol mnsl%iv%i(" % (P,variant)
-	for i in range (0,P):
-		if i > 0:
-			s += ","
-		s += role(i,i)
-	s += ")\n{\n"
+    s += "\n"
 
-	for i in range (0,P):
-		s += roledef(i)
-	
-	s += "}\n\n"
+    s += "protocol mnsl%iv%i(" % (P,variant)
+    for i in range (0,P):
+        if i > 0:
+            s += ","
+        s += role(i,i)
+    s += ")\n{\n"
 
-	s += "const Alice, Bob: Agent;\n\n"
+    for i in range (0,P):
+        s += roledef(i)
+    
+    s += "}\n\n"
 
-	s += "const Eve: Agent;\n"
-	s += "untrusted Eve;\n"
-	s += "const ne: Nonce;\n"
-	s += "compromised sk(Eve);\n"
+    s += "const Alice, Bob: Agent;\n\n"
 
-	s += "\n"
-	return s
+    s += "const Eve: Agent;\n"
+    s += "untrusted Eve;\n"
+    s += "const ne: Nonce;\n"
+    s += "compromised sk(Eve);\n"
+
+    s += "\n"
+    return s
 
 def main():
-	if len(sys.argv) < 3:
-		print "We need at least 2 arguments: number of parties, and variant"
-		print "Note that variant is in [0..31]"
-		print ""
-		print "E.g. './multinsl-generator.py 2 0' yields a default NSL protocol"
-	else:
-		print protocol(int (sys.argv[1]), int(sys.argv[2]))
+    global opts
+
+    (opts,args) = parseArgs()
+    print protocol(args)
 
 # Only if main stuff
 if __name__ == '__main__':
-	main()
-else:
-	print protocol (2,0)
+     main()
