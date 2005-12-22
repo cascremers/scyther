@@ -45,7 +45,7 @@ switchesInit (int argc, char **argv)
   switches.prune = 2;		// default pruning method
   switches.maxproofdepth = INT_MAX;
   switches.maxtracelength = INT_MAX;
-  switches.runs = 6;		// default is 6 for usability, but -r 0 or --maxruns=0 will set it back to INT_MAX
+  switches.runs = 5;		// default is 5 for usability, but -r 0 or --maxruns=0 will set it back to INT_MAX
   switches.filterClaim = NULL;	// default check all claims
   switches.maxAttacks = 0;	// no maximum default
 
@@ -371,7 +371,7 @@ switcher (const int process, int index)
       if (!process)
 	{
 	  helptext ("-r,--max-runs=<int>",
-		    "maximum number of runs in the system [6]. Set to 0 for unbounded search.");
+		    "maximum number of runs in the system [5]. Set to 0 for unbounded search.");
 	}
       else
 	{
