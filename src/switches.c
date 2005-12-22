@@ -337,6 +337,28 @@ switcher (const int process, int index)
 	}
     }
 
+  if (detect ('P', "proof", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-P,--proof", "show explicit proof");
+	}
+      else
+	{
+	  // Proof
+	  switches.output = PROOF;
+	  return index;
+	}
+    }
+
+  /* ==================
+   *  Bounding options
+   */
+  if (!process)
+    {
+      printf ("Switches that affect the state space:\n");
+    }
+
   if (detect ('m', "match", 1))
     {
       if (!process)
@@ -500,10 +522,12 @@ switcher (const int process, int index)
   /* ==================
    *  Modelchecker only
    */
-  if (!process)
-    {
-      printf ("Switches for modelchecking engine:\n");
-    }
+  /*
+     if (!process)
+     {
+     printf ("Switches for modelchecking engine:\n");
+     }
+   */
 
   if (detect ('L', "latex", 0))
     {
@@ -543,11 +567,12 @@ switcher (const int process, int index)
   /* ==================
    *  Arachne only
    */
-  if (!process)
-    {
-      printf ("Switches for Arachne engine:\n");
-      /* helptext ("(fixed)", "output attacks in DOT format"); */
-    }
+  /*
+     if (!process)
+     {
+     printf ("Switches for Arachne engine:\n");
+     }
+   */
 
   if (detect ('G', "goal-select", 1))
     {
@@ -561,20 +586,6 @@ switcher (const int process, int index)
       else
 	{
 	  switches.arachneSelector = integer_argument ();
-	  return index;
-	}
-    }
-
-  if (detect ('P', "proof", 0))
-    {
-      if (!process)
-	{
-	  helptext ("-P,--proof", "show explicit proof");
-	}
-      else
-	{
-	  // Proof
-	  switches.output = PROOF;
 	  return index;
 	}
     }
@@ -815,7 +826,7 @@ switcher (const int process, int index)
       else
 	{
 	  printf ("Usage:\n");
-	  printf ("  %s [switches] [FILE]\nSwitches:\n", progname);
+	  printf ("  %s [switches] [FILE]\nSwitches:\n\n", progname);
 	  switcher (0, 0);
 	  exit (0);
 	}
