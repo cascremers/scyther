@@ -76,10 +76,10 @@ switchesInit (int argc, char **argv)
   switches.experimental = 0;	// experimental stuff defaults to 0, whatever that means.
 
   // Output
-  switches.output = ATTACK;	// default is to show the attacks
+  switches.output = SUMMARY;	// default is to show a summary
   switches.report = 0;
   switches.reportClaims = 0;	// default don't report on claims
-  switches.xml = 0;		// default no xml output
+  switches.xml = 0;		// default no xml output (dot)
   switches.human = false;	// not human friendly by default
   switches.reportMemory = 0;
   switches.reportTime = 0;
@@ -294,13 +294,31 @@ switcher (const int process, int index)
     {
       if (!process)
 	{
-	  helptext ("-M,--modelchecker",
-		    "select Model checking engine [Arachne]");
+	  /*
+	   * Discourage
+	   *
+	   helptext ("-M,--modelchecker",
+	   "select Model checking engine [Arachne]");
+	   */
 	}
       else
 	{
 	  // Select arachne engine
 	  switches.engine = POR_ENGINE;
+	  return index;
+	}
+    }
+
+  if (detect ('d', "dot-output", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-d,--dot-output", "show attack output in dot format");
+	}
+      else
+	{
+	  switches.output = ATTACK;
+	  switches.xml = 0;
 	  return index;
 	}
     }
@@ -313,6 +331,7 @@ switcher (const int process, int index)
 	}
       else
 	{
+	  switches.output = ATTACK;
 	  switches.xml = 1;
 	  return index;
 	}
@@ -417,8 +436,12 @@ switcher (const int process, int index)
     {
       if (!process)
 	{
-	  helptext ("-H,--human-readable",
-		    "try to make the output human-friendly (e.g. in XML).");
+	  /*
+	   * Why?
+	   *
+	   helptext ("-H,--human-readable",
+	   "try to make the output human-friendly (e.g. in XML).");
+	   */
 	}
       else
 	{
@@ -486,7 +509,11 @@ switcher (const int process, int index)
     {
       if (!process)
 	{
-	  helptext ("-L,--latex", "output attacks in LaTeX format [ASCII]");
+	  /*
+	   * Obsolete
+	   *
+	   helptext ("-L,--latex", "output attacks in LaTeX format [ASCII]");
+	   */
 	}
       else
 	{
@@ -499,8 +526,12 @@ switcher (const int process, int index)
     {
       if (!process)
 	{
-	  helptext ("--state-space",
-		    "output state space graph (in DOT format)");
+	  /*
+	   * Obsolete
+	   *
+	   helptext ("--state-space",
+	   "output state space graph (in DOT format)");
+	   */
 	}
       else
 	{
@@ -515,7 +546,7 @@ switcher (const int process, int index)
   if (!process)
     {
       printf ("Switches for Arachne engine:\n");
-      helptext ("(fixed)", "output attacks in DOT format");
+      /* helptext ("(fixed)", "output attacks in DOT format"); */
     }
 
   if (detect ('G', "goal-select", 1))
@@ -710,7 +741,11 @@ switcher (const int process, int index)
     {
       if (!process)
 	{
-	  helptext ("-S,--summary", "show summary only: omit attack details");
+	  /*
+	   * This is now the default
+	   *
+	   helptext ("-S,--summary", "show summary only: omit attack details");
+	   */
 	}
       else
 	{
