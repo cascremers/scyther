@@ -1,3 +1,16 @@
+/*
+ * This is a model of the TLS version as modeled by Paulson
+ *
+ * The .cpp file cannot be fed into scyther directly; rather, one needs
+ * to type:
+ *
+ * 	cpp tls-paulson.cpp >tls-paulson.spdl
+ *
+ * in order to generate a valid spdl file for scyther.
+ *
+ * This allows for macro expansion, as seen in the next part.
+ *
+ */
 #define CERT(a) { a,pk(a) }sk(Terence)
 #define MSG a,na,sid,pa,pb,nb,sid,pb,CERT(a),CERT(b),{pms}pk(b) 
 #define M hash(pms,na,nb)
