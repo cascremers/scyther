@@ -1,3 +1,7 @@
+- Cleanup claim output: merge stuff into single claim triplets, maybe
+  sanitize some of the output for claims to be more 'to the point'
+- Add something like 'remove all claims' switch and corresponding
+  'add default claims'
 - Add something of a 'history list of bound goals', through the arachne
   engine. Then, put a limit on the amount of times some goal occurs: the
   goal selection might ignore that goal then, for further selection.
