@@ -304,60 +304,67 @@ timersPrint (const System sys)
       globalError++;
     }
 
+  //**********************************************************************
+
   /* states traversed */
 
-  eprintf ("states\t");
-  statesPrintShort (sys);
-  eprintf ("\n");
-
-  /* scenario info */
-
-  if (switches.scenario > 0)
+  if (switches.engine == POR_ENGINE)
     {
-      eprintf ("scen_st\t");
-      statesFormat (sys->statesScenario);
+      eprintf ("states\t");
+      statesPrintShort (sys);
       eprintf ("\n");
-    }
 
-  /* flag
-   *
-   * L n          Attack of length <n>
-   * None         failed claim
-   * NoClaim      no claims
-   */
+      /* scenario info */
 
-  eprintf ("attack\t");
-  if (sys->claims == STATES0)
-    {
-      eprintf ("NoClaim\n");
-    }
-  else
-    {
-      if (sys->failed != STATES0)
-	eprintf ("L:%i\n", attackLength (sys->attack));
+      if (switches.scenario > 0)
+	{
+	  eprintf ("scen_st\t");
+	  statesFormat (sys->statesScenario);
+	  eprintf ("\n");
+	}
+
+      /* flag
+       *
+       * L n          Attack of length <n>
+       * None         failed claim
+       * NoClaim      no claims
+       */
+
+      eprintf ("attack\t");
+      if (sys->claims == STATES0)
+	{
+	  eprintf ("NoClaim\n");
+	}
       else
-	eprintf ("None\n");
-    }
+	{
+	  if (sys->failed != STATES0)
+	    eprintf ("L:%i\n", attackLength (sys->attack));
+	  else
+	    eprintf ("None\n");
+	}
 
 #ifndef NOTIMERS
-  /* print time */
+      /* print time */
 
-  double seconds;
-  seconds = (double) clock () / CLOCKS_PER_SEC;
-  eprintf ("time\t%.3e\n", seconds);
+      double seconds;
+      seconds = (double) clock () / CLOCKS_PER_SEC;
+      eprintf ("time\t%.3e\n", seconds);
 
-  /* states per second */
+      /* states per second */
 
-  eprintf ("st/sec\t");
-  if (seconds > 0)
-    {
-      eprintf ("%.3e\n", statesDouble (sys->states) / seconds);
-    }
-  else
-    {
-      eprintf ("<inf>\n");
-    }
+      eprintf ("st/sec\t");
+      if (seconds > 0)
+	{
+	  eprintf ("%.3e\n", statesDouble (sys->states) / seconds);
+	}
+      else
+	{
+	  eprintf ("<inf>\n");
+	}
 #endif
+    }
+
+  //**********************************************************************
 
   /* Print also individual claims */
   /* Note that if the output is set to empty, the claim output is redirected to stdout (for e.g. processing)
