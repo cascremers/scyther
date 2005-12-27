@@ -53,6 +53,7 @@ static int proofDepth;
 static int max_encryption_level;
 static int num_regular_runs;
 static int num_intruder_runs;
+static FILE *attack_stream;
 
 struct goalstruct
 {
@@ -738,6 +739,13 @@ proof_suppose_binding (Binding b)
       role_name_print (b->run_from);
       eprintf ("\n");
     }
+}
+
+//! Create a new temporary file and return the pointer.
+FILE *
+scyther_tempfile (void)
+{
+  return tmpfile ();
 }
 
 //------------------------------------------------------------------------
@@ -3206,7 +3214,8 @@ prune_bounds ()
   if (switches.maxIntruderActions < INT_MAX || !(switches.intruder))
     {
       // Only check if actually used
-      if (!(switches.intruder) || countIntruderActions () > switches.maxIntruderActions)
+      if (!(switches.intruder)
+	  || countIntruderActions () > switches.maxIntruderActions)
 	{
 	  if (switches.output == PROOF)
 	    {
@@ -3474,12 +3483,62 @@ makeTraceClass (const System sys, Termlist varlist)
   termlistDelete (varlist);
 }
 
+//! Start attack output
+void
+attackOutputStart (void)
+{
+  if (switches.prune == 2)
+    {
+      FILE *fd;
+
+      // Close old file (if any)
+      if (attack_stream != NULL)
+	{
+	  fclose (attack_stream);	// this automatically discards the old temporary file
+	}
+      // Create new file
+      fd = scyther_tempfile ();
+      attack_stream = fd;
+      globalStream = (char *) attack_stream;
+    }
+}
+
+//! Stop attack output
+void
+attackOutputStop (void)
+{
+  // Nothing to do, just leave the opened tmpfile
+}
+
+//! Copy one (finite) stream from beginning to end to another
+/**
+ * Ugly first implementation, something to improve later (although it is not
+ * crucial code in any way)
+ */
+void
+fcopy (FILE * fromstream, FILE * tostream)
+{
+  int c;
+
+  // 'Just to be sure'
+  fflush (fromstream);
+  fseek (fromstream, 0, SEEK_SET);
+
+  // Urgh, using the assignment in the loop condition, brrr. Fugly.
+  // Discourage.
+  while ((c = fgetc (fromstream)) != EOF)
+    {
+      fputc (c, tostream);
+    }
+}
+
 //! Output an attack in the desired way
 void
 arachneOutputAttack ()
 {
   Termlist varlist;
 
+  // Make concrete
   if (switches.concrete)
     {
       varlist = makeTraceConcrete (sys);
@@ -3489,6 +3548,10 @@ arachneOutputAttack ()
       varlist = NULL;
     }
 
+  // Wrapper for the real output
+  attackOutputStart ();
+
+  // Generate the output, already!
   if (switches.xml)
     {
       xmlOutSemitrace (sys);
@@ -3505,6 +3568,10 @@ arachneOutputAttack ()
 	}
     }
 
+  // End wrapper
+  attackOutputStop ();
+
+  // Undo concretization
   makeTraceClass (sys, varlist);
 }
 
@@ -3652,6 +3719,50 @@ iterate ()
   return flag;
 }
 
+//! Just before starting output of an attack.
+//
+//! A wrapper for the case in which we need to buffer attacks.
+int
+iterate_buffer_attacks (void)
+{
+  if (switches.prune != 2)
+    {
+      return iterate ();
+    }
+  else
+    {
+      // We are pruning attacks, so they should go into a temporary file.
+      /*
+       * Set up the temporary file pointer
+       */
+      char *buffer;
+      int result;
+
+      // Push the old situation onto the stack
+      buffer = globalStream;
+
+      // Start stuff
+      attack_stream = NULL;
+      attackOutputStart ();
+
+      // Finally, proceed with iteration procedure
+      result = iterate ();
+
+      /* Now, if it has been set, we need to copy the output to the normal streams.
+       */
+      fcopy (attack_stream, (FILE *) buffer);
+
+      // Close
+      fclose (attack_stream);
+      attack_stream = NULL;
+
+      // Restore
+      globalStream = buffer;
+
+      return result;
+    }
+}
+
 //! Main code for Arachne
 /**
  * For this test, we manually set up some stuff.
@@ -3770,14 +3881,14 @@ arachne ()
 	      add_claim_specifics (cl,
 				   roledef_shift (sys->runs[run].start,
 						  cl->ev));
+
 #ifdef DEBUG
 	      if (DEBUGL (5))
 		{
 		  printSemiState ();
 		}
 #endif
-	      // Iterate
-	      iterate ();
+	      iterate_buffer_attacks ();
 
 	      //! Destroy
 	      while (sys->bindings != NULL)

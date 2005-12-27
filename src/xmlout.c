@@ -43,7 +43,7 @@ static int show_substitution_path;	// is only set to true for variable printing,
 void
 xmlOutInit (void)
 {
-  printf ("<scyther>\n");
+  eprintf ("<scyther>\n");
   xmlindent = 1;
   only_claim_label = NULL;
   show_substitution_path = false;
@@ -53,7 +53,7 @@ xmlOutInit (void)
 void
 xmlOutDone (void)
 {
-  printf ("</scyther>\n");
+  eprintf ("</scyther>\n");
 }
 
 /*
@@ -69,14 +69,14 @@ xmlIndentPrint ()
   i = xmlindent;
   while (i > 0)
     {
-      printf ("  ");
+      eprintf ("  ");
       i--;
     }
 }
 
 //! XML print
 /**
- * Input is comparable to printf, but indents (according to xmlindent) and adds
+ * Input is comparable to eprintf, but indents (according to xmlindent) and adds
  * a newline.
  */
 void
@@ -86,9 +86,9 @@ xmlPrint (char *fmt, ...)
 
   xmlIndentPrint ();
   va_start (args, fmt);
-  vfprintf (stdout, fmt, args);
+  eprintf (fmt, args);
   va_end (args);
-  printf ("\n");
+  eprintf ("\n");
 }
 
 //! Print a simple integer value element
@@ -126,12 +126,12 @@ xmlTermPrintInner (Term term)
 	    {
 	      Term substbuffer;
 
-	      printf ("<var name=\"");
+	      eprintf ("<var name=\"");
 	      if (term->subst == NULL)
 		{
 		  // Free variable
 		  termPrint (term);	// Must be a normal termPrint
-		  printf ("\" free=\"true\" />");
+		  eprintf ("\" free=\"true\" />");
 		}
 	      else
 		{
@@ -140,17 +140,17 @@ xmlTermPrintInner (Term term)
 		  term->subst = NULL;
 		  termPrint (term);	// Must be a normal termPrint
 		  term->subst = substbuffer;
-		  printf ("\">");
+		  eprintf ("\">");
 		  xmlTermPrintInner (term->subst);
-		  printf ("</var>");
+		  eprintf ("</var>");
 		}
 	    }
 	  else
 	    {
 	      // Constant
-	      printf ("<const>");
+	      eprintf ("<const>");
 	      termPrint (term);	// Must be a normal termPrint
-	      printf ("</const>");
+	      eprintf ("</const>");
 	    }
 	}
       else
@@ -162,29 +162,29 @@ xmlTermPrintInner (Term term)
 		  && inTermlist (TermKey (term)->stype, TERM_Function))
 		{
 		  /* function application */
-		  printf ("<apply><function>");
+		  eprintf ("<apply><function>");
 		  xmlTermPrintInner (TermKey (term));
-		  printf ("</function><arg>");
+		  eprintf ("</function><arg>");
 		  xmlTermPrintInner (TermOp (term));
-		  printf ("</arg></apply>");
+		  eprintf ("</arg></apply>");
 		}
 	      else
 		{
-		  printf ("<encrypt><op>");
+		  eprintf ("<encrypt><op>");
 		  xmlTermPrintInner (TermOp (term));
-		  printf ("</op><key>");
+		  eprintf ("</op><key>");
 		  xmlTermPrintInner (TermKey (term));
-		  printf ("</key></encrypt>");
+		  eprintf ("</key></encrypt>");
 		}
 	    }
 	  else
 	    {
 	      // Assume tuple
-	      printf ("<tuple><op1>");
+	      eprintf ("<tuple><op1>");
 	      xmlTermPrintInner (TermOp1 (term));
-	      printf ("</op1><op2>");
+	      eprintf ("</op1><op2>");
 	      xmlTermPrintInner (TermOp2 (term));
-	      printf ("</op2></tuple>");
+	      eprintf ("</op2></tuple>");
 	    }
 	}
     }
@@ -199,9 +199,9 @@ xmlTermPrintInner (Term term)
 void
 xmlTermPrint (const Term term)
 {
-  // printf ("<term>");
+  // eprintf ("<term>");
   xmlTermPrintInner (term);
-  // printf ("</term>");
+  // eprintf ("</term>");
 }
 
 //! Print a termlist in XML form
@@ -214,7 +214,7 @@ xmlTermlistPrint (Termlist tl)
     {
       xmlIndentPrint ();
       xmlTermPrint (tl->term);
-      printf ("\n");
+      eprintf ("\n");
       tl = tl->next;
     }
   xmlindent--;
@@ -232,11 +232,11 @@ xmlOutTerm (const char *tag, const Term term)
     {
       xmlIndentPrint ();
       if (tag != NULL)
-	printf ("<%s>", tag);
+	eprintf ("<%s>", tag);
       xmlTermPrint (term);
       if (tag != NULL)
-	printf ("</%s>", tag);
-      printf ("\n");
+	eprintf ("</%s>", tag);
+      eprintf ("\n");
     }
 }
 
@@ -246,9 +246,9 @@ xmlAttrTerm (const char *tag, const Term term)
 {
   if (term != NULL)
     {
-      printf (" %s=\"", tag);
+      eprintf (" %s=\"", tag);
       xmlTermPrint (term);
-      printf ("\"");
+      eprintf ("\"");
     }
 }
 
@@ -276,9 +276,9 @@ void
 xmlRoleTermPrint (const Term t)
 {
   xmlIndentPrint ();
-  printf ("<rolename>");
+  eprintf ("<rolename>");
   roleTermPrint (t);
-  printf ("</rolename>\n");
+  eprintf ("</rolename>\n");
 }
 
 //! Show a single variable instantiation, depth one
@@ -307,7 +307,7 @@ xmlVariableDepthOne (const Term variable)
   // Print the actual term
   xmlIndentPrint ();
   xmlTermPrint (variable);
-  printf ("\n");
+  eprintf ("\n");
 
   if (nextsubst != NULL)
     {
@@ -333,7 +333,7 @@ xmlTermType (const Term t)
   xmlindent++;
   xmlIndentPrint ();
   xmlTermPrint (t);
-  printf ("\n");
+  eprintf ("\n");
   xmlindent--;
   xmlPrint ("</term>");
 
@@ -357,16 +357,16 @@ xmlVariable (const System sys, const Term variable, const int run)
   if (realTermVariable (variable))
     {
       xmlIndentPrint ();
-      printf ("<variable typeflaw=\"");
+      eprintf ("<variable typeflaw=\"");
       if (!checkTypeTerm (0, variable))
 	{
-	  printf ("true");
+	  eprintf ("true");
 	}
       else
 	{
-	  printf ("false");
+	  eprintf ("false");
 	}
-      printf ("\" run=\"%i\">\n", run);
+      eprintf ("\" run=\"%i\">\n", run);
       xmlindent++;
 
       xmlPrint ("<name>");
@@ -531,29 +531,29 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 
   xmlIndentPrint ();
 
-  printf ("<event type=\"");
+  eprintf ("<event type=\"");
   switch (rd->type)
     {
       /* Read or send types are fairly similar.
        * Currently, choose events are not distinguished yet. TODO
        */
     case READ:
-      printf ("read");
+      eprintf ("read");
       break;
     case SEND:
-      printf ("send");
+      eprintf ("send");
       break;
     case CLAIM:
-      printf ("claim");
+      eprintf ("claim");
       break;
     default:
-      printf ("unknown code=\"%i\"", rd->type);
+      eprintf ("unknown code=\"%i\"", rd->type);
       break;
     }
 
-  printf ("\"");
-  printf (" index=\"%i\"", index);
-  printf (">\n");
+  eprintf ("\"");
+  eprintf (" index=\"%i\"", index);
+  eprintf (">\n");
   xmlindent++;
   xmlOutTerm ("label", rd->label);
   if (rd->type != CLAIM)
@@ -596,7 +596,7 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 	      xmlindent++;
 	      xmlIndentPrint ();
 	      xmlTermPrint (b->term);
-	      printf ("\n");
+	      eprintf ("\n");
 	      xmlindent--;
 
 	      xmlPrint ("</choose>");
@@ -612,10 +612,10 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 	      else
 		xmlPrint ("<unbound />");
 	      if (b->blocked)
-		printf ("<blocked />");
+		eprintf ("<blocked />");
 	      xmlIndentPrint ();
 	      xmlTermPrint (b->term);
-	      printf ("\n");
+	      eprintf ("\n");
 	      xmlindent--;
 
 	      xmlPrint ("</follows>");
@@ -770,22 +770,22 @@ xmlRunInfo (const System sys, const int run)
 
   xmlOutInteger ("runid", run);
   xmlIndentPrint ();
-  printf ("<protocol");
+  eprintf ("<protocol");
   if (sys->runs[run].protocol == INTRUDER)
     {
-      printf (" intruder=\"true\"");
+      eprintf (" intruder=\"true\"");
     }
   else
     {
       // Non-intruder run, check whether communicates with untrusted agents
       if (!isRunTrusted (sys, run))
 	{
-	  printf (" untrustedrun=\"true\"");
+	  eprintf (" untrustedrun=\"true\"");
 	}
     }
-  printf (">");
+  eprintf (">");
   xmlTermPrint (sys->runs[run].protocol->nameterm);
-  printf ("</protocol>\n");
+  eprintf ("</protocol>\n");
   r = sys->runs[run].role;
 
   /* undo substitution temporarily to retrieve role name */
@@ -925,15 +925,15 @@ xmlOutSemitrace (const System sys)
   Term buffer_only_claim_label;
 
   xmlIndentPrint ();
-  printf ("<attack");
+  eprintf ("<attack");
   /* add trace length attribute */
   /* Note that this is the length of the attack leading up to the broken
    * claim, thus without any run extensions (--extend-nonreads).
    */
-  printf (" tracelength=\"%i\"", get_semitrace_length ());
+  eprintf (" tracelength=\"%i\"", get_semitrace_length ());
   /* add attack id attribute (within this scyther call) */
-  printf (" id=\"%i\"", sys->attackid);
-  printf (">\n");
+  eprintf (" id=\"%i\"", sys->attackid);
+  eprintf (">\n");
   xmlindent++;
 
   /* mention the broken claim */

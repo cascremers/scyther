@@ -48,5 +48,6 @@ void symbol_fix_keylevels (void);
 void eprintf (char *fmt, ...);
 
 extern int globalError;
+extern char *globalStream;
 
 #endif

@@ -18,6 +18,7 @@
 /* accessible for externals */
 
 int globalError;		//!< If >0, stdout output goes to stderr (for e.g. terms)
+char *globalStream;		//!< Defaults to stdout
 
 /* external declarations */
 
@@ -45,6 +46,7 @@ symbolsInit (void)
   symb_list = NULL;
   symb_alloc = NULL;
   globalError = 0;
+  globalStream = stdout;
 }
 
 //! Close symbols code.
@@ -255,7 +257,13 @@ symbol_fix_keylevels (void)
 
 //! Print out according to globalError
 /**
- * Input is comparable to printf, only depends on globalError. This should be used by any function trying to do output.
+ * Input is comparable to printf, only depends on globalError. This should be
+ * used by any function trying to do output.
+ *
+ * Furthermore, if globalError == 0, it can still be overriden by
+ * globalStream, which can be another stream pointer. If it is null, stdout
+ * is assumed.
+ *
  *\sa globalError
  */
 void
@@ -265,7 +273,7 @@ eprintf (char *fmt, ...)
 
   va_start (args, fmt);
   if (globalError == 0)
-    vfprintf (stdout, fmt, args);
+    vfprintf ((FILE *) globalStream, fmt, args);
   else
     vfprintf (stderr, fmt, args);
   va_end (args);
