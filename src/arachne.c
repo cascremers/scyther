@@ -33,6 +33,7 @@
 #include "type.h"
 #include "switches.h"
 #include "specialterm.h"
+#include "cost.h"
 
 extern int *graph;
 extern int nodes;
@@ -40,6 +41,7 @@ extern int graph_uordblks;
 
 static System sys;
 static int attack_length;
+static int attack_leastcost;
 
 Protocol INTRUDER;		// Pointers, to be set by the Init
 Role I_M;			// Same here.
@@ -3194,14 +3196,25 @@ prune_bounds ()
     }
 
   // Limit on exceeding any attack length
-  if (switches.prune == 2 && get_semitrace_length () >= attack_length)
+  if (get_semitrace_length () >= attack_length)
     {
       if (switches.output == PROOF)
 	{
 	  indentPrint ();
+	  eprintf ("Pruned: attack length %i.\n", attack_length);
+	}
+      return 1;
+    }
+
+  /* prune for cheaper */
+  if (switches.prune == 2 && attack_leastcost <= attackCost (sys))
+    {
+      // We already had an attack at least this cheap.
+      if (switches.output == PROOF)
+	{
+	  indentPrint ();
 	  eprintf
-	    ("Pruned: we already know an attack of length %i.\n",
-	     attack_length);
+	    ("Pruned: attack cost exceeds a previously found attack.\n");
 	}
       return 1;
     }
@@ -3584,7 +3597,7 @@ int
 property_check ()
 {
   int flag;
-  int attack_this;
+  int cost;
 
   flag = 1;
 
@@ -3600,17 +3613,16 @@ property_check ()
     {
       arachneOutputAttack ();
     }
-  // Store attack length if shorter
-  attack_this = get_semitrace_length ();
-  if (attack_this < attack_length)
+  // Store attack cost if cheaper
+  cost = attackCost (sys);
+  if (cost < attack_leastcost)
     {
-      // Shortest attack
-      attack_length = attack_this;
+      // Cheapest attack
+      attack_leastcost = cost;
       if (switches.output == PROOF)
 	{
 	  indentPrint ();
-	  eprintf ("New shortest attack found with trace length %i.\n",
-		   attack_length);
+	  eprintf ("New cheaper attack found with cost %i.\n", cost);
 	}
     }
 
@@ -3855,6 +3867,7 @@ arachne ()
 
 	      sys->current_claim = cl;
 	      attack_length = INT_MAX;
+	      attack_leastcost = INT_MAX;
 	      cl->complete = 1;
 	      p = (Protocol) cl->protocol;
 	      r = (Role) cl->role;
