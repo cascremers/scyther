@@ -463,162 +463,167 @@ commEvent (int event, Tac tc)
 
       break;
     case CLAIM:
-      /* now parse tuple info */
-      if (trip == NULL || trip->next == NULL)
+      if (!switches.removeclaims)
 	{
-	  error ("Problem with claim %i event on line %i.", event,
-		 tc->lineno);
-	}
-      fromrole = tacTerm (trip);
-      claimbig = tacTerm (tacTuple ((trip->next)));
-      /* check for several types */
-      claim = tupleProject (claimbig, 0);
-      torole = claim;
+	  /* now parse tuple info */
+	  if (trip == NULL || trip->next == NULL)
+	    {
+	      error ("Problem with claim %i event on line %i.", event,
+		     tc->lineno);
+	    }
+	  fromrole = tacTerm (trip);
+	  claimbig = tacTerm (tacTuple ((trip->next)));
+	  /* check for several types */
+	  claim = tupleProject (claimbig, 0);
+	  torole = claim;
 
-      /* check for ignored claim types */
-      if (switches.filterClaim != NULL && switches.filterClaim != claim)
-	{
-	  /* abort the construction of the node */
-	  return;
-	}
+	  /* check for ignored claim types */
+	  if (switches.filterClaim != NULL && switches.filterClaim != claim)
+	    {
+	      /* abort the construction of the node */
+	      return;
+	    }
 
-      /* check for obvious flaws */
-      if (claim == NULL)
-	{
-	  error ("Invalid claim specification on line %i.", tc->lineno);
-	}
-      if (!inTermlist (claim->stype, TERM_Claim))
-	{
-	  printf ("ERROR: unknown claim type ");
+	  /* check for obvious flaws */
+	  if (claim == NULL)
+	    {
+	      error ("Invalid claim specification on line %i.", tc->lineno);
+	    }
+	  if (!inTermlist (claim->stype, TERM_Claim))
+	    {
+	      printf ("error: unknown claim type ");
+	      termPrint (claim);
+	      errorTac (trip->next->lineno);
+	    }
+	  /* unfold parameters to msg */
+	  msg = NULL;
+	  n = tupleCount (claimbig) - 1;
+	  if (n < 1)
+	    {
+	      /* no parameters */
+	      n = 0;
+	    }
+	  else
+	    {
+	      /* n parameters */
+	      msg = TermOp2 (deVar (claimbig));
+	      if (tupleCount (msg) != n)
+		{
+		  error ("Problem with claim tuple unfolding at line %i.",
+			 trip->next->lineno);
+		}
+	    }
+
+	  /* store claim in claim list */
+
+	  if (label == NULL)
+	    {
+	      error ("Claim should have label on line %i.",
+		     trip->next->lineno);
+	    }
+	  // First check whether label is unique
+	  cl = sys->claimlist;
+	  while (cl != NULL)
+	    {
+	      if (isTermEqual (cl->label, label))
+		{
+		  /**
+		   *@todo This should not error exit, but automatically generate a fresh claim label.
+		   */
+		  error ("Claim label is not unique at line %i.", tc->lineno);
+		}
+	      cl = cl->next;
+	    }
+	  // Assert: label is unique, add claimlist info
+	  cl = memAlloc (sizeof (struct claimlist));
+	  cl->type = claim;
+	  cl->label = label;
+	  cl->protocol = thisProtocol;
+	  cl->rolename = fromrole;
+	  cl->role = thisRole;
+	  if (!isTermEqual (fromrole, thisRole->nameterm))
+	    error
+	      ("Claim role does not correspond to execution role at line %i.",
+	       tc->lineno);
+	  cl->roledef = NULL;
+	  cl->count = 0;
+	  cl->complete = 0;
+	  cl->timebound = 0;
+	  cl->failed = 0;
+	  cl->prec = NULL;
+	  cl->roles = NULL;
+	  cl->alwaystrue = false;
+	  cl->warnings = false;
+	  cl->next = sys->claimlist;
+	  sys->claimlist = cl;
+
+	  /* handles all claim types differently */
+
+	  if (claim == CLAIM_Secret)
+	    {
+	      if (n == 0)
+		{
+		  error
+		    ("Secrecy claim requires a list of terms to be secret on line %i.",
+		     trip->next->lineno);
+		}
+	      if (n > 1)
+		{
+		  error
+		    ("Secrecy claim on line %i should not contain tuples (for Arachne) until it is officially supported.",
+		     trip->next->lineno);
+		}
+	      /* now check whether the claim contains variables that can actually be influenced by the intruder */
+	      {
+		Termlist claimvars;
+		Termlist readvars;
+
+		claimvars = termlistAddVariables (NULL, msg);
+		readvars = compute_read_variables (thisRole);
+		while (claimvars != NULL)
+		  {
+		    if (!inTermlist (readvars, claimvars->term))
+		      {
+			/* this claimvar does not occur in the reads? */
+			/* then we should ignore it later */
+			cl->alwaystrue = true;
+			cl->warnings = true;
+		      }
+		    claimvars = claimvars->next;
+		  }
+	      }
+	      break;
+	    }
+	  if (claim == CLAIM_Nisynch)
+	    {
+	      if (n != 0)
+		{
+		  error ("NISYNCH claim requires no parameters at line %i.",
+			 trip->next->lineno);
+		}
+	      break;
+	    }
+	  if (claim == CLAIM_Niagree)
+	    {
+	      if (n != 0)
+		{
+		  error ("NIAGREE claim requires no parameters at line %i.",
+			 trip->next->lineno);
+		}
+	      break;
+	    }
+	  if (claim == CLAIM_Empty)
+	    {
+	      break;
+	    }
+
+	  /* hmm, no handler yet */
+
+	  printf ("error: No know handler for this claim type: ");
 	  termPrint (claim);
+	  printf (" ");
 	  errorTac (trip->next->lineno);
 	}
-      /* unfold parameters to msg */
-      msg = NULL;
-      n = tupleCount (claimbig) - 1;
-      if (n < 1)
-	{
-	  /* no parameters */
-	  n = 0;
-	}
-      else
-	{
-	  /* n parameters */
-	  msg = TermOp2 (deVar (claimbig));
-	  if (tupleCount (msg) != n)
-	    {
-	      error ("Problem with claim tuple unfolding at line %i.",
-		     trip->next->lineno);
-	    }
-	}
-
-      /* store claim in claim list */
-
-      if (label == NULL)
-	{
-	  error ("Claim should have label on line %i.", trip->next->lineno);
-	}
-      // First check whether label is unique
-      cl = sys->claimlist;
-      while (cl != NULL)
-	{
-	  if (isTermEqual (cl->label, label))
-	    {
-	      /**
-	       *@todo This should not error exit, but automatically generate a fresh claim label.
-	       */
-	      error ("Claim label is not unique at line %i.", tc->lineno);
-	    }
-	  cl = cl->next;
-	}
-      // Assert: label is unique, add claimlist info
-      cl = memAlloc (sizeof (struct claimlist));
-      cl->type = claim;
-      cl->label = label;
-      cl->protocol = thisProtocol;
-      cl->rolename = fromrole;
-      cl->role = thisRole;
-      if (!isTermEqual (fromrole, thisRole->nameterm))
-	error ("Claim role does not correspond to execution role at line %i.",
-	       tc->lineno);
-      cl->roledef = NULL;
-      cl->count = 0;
-      cl->complete = 0;
-      cl->timebound = 0;
-      cl->failed = 0;
-      cl->prec = NULL;
-      cl->roles = NULL;
-      cl->alwaystrue = false;
-      cl->warnings = false;
-      cl->next = sys->claimlist;
-      sys->claimlist = cl;
-
-      /* handles all claim types differently */
-
-      if (claim == CLAIM_Secret)
-	{
-	  if (n == 0)
-	    {
-	      error
-		("Secrecy claim requires a list of terms to be secret on line %i.",
-		 trip->next->lineno);
-	    }
-	  if (n > 1)
-	    {
-	      error
-		("Secrecy claim on line %i should not contain tuples (for Arachne) until it is officially supported.",
-		 trip->next->lineno);
-	    }
-	  /* now check whether the claim contains variables that can actually be influenced by the intruder */
-	  {
-	    Termlist claimvars;
-	    Termlist readvars;
-
-	    claimvars = termlistAddVariables (NULL, msg);
-	    readvars = compute_read_variables (thisRole);
-	    while (claimvars != NULL)
-	      {
-		if (!inTermlist (readvars, claimvars->term))
-		  {
-		    /* this claimvar does not occur in the reads? */
-		    /* then we should ignore it later */
-		    cl->alwaystrue = true;
-		    cl->warnings = true;
-		  }
-		claimvars = claimvars->next;
-	      }
-	  }
-	  break;
-	}
-      if (claim == CLAIM_Nisynch)
-	{
-	  if (n != 0)
-	    {
-	      error ("NISYNCH claim requires no parameters at line %i.",
-		     trip->next->lineno);
-	    }
-	  break;
-	}
-      if (claim == CLAIM_Niagree)
-	{
-	  if (n != 0)
-	    {
-	      error ("NIAGREE claim requires no parameters at line %i.",
-		     trip->next->lineno);
-	    }
-	  break;
-	}
-      if (claim == CLAIM_Empty)
-	{
-	  break;
-	}
-
-      /* hmm, no handler yet */
-
-      printf ("ERROR: No know handler for this claim type: ");
-      termPrint (claim);
-      printf (" ");
-      errorTac (trip->next->lineno);
       break;
     }
   /* and make that event */
@@ -670,7 +675,7 @@ roleCompile (Term nameterm, Tac tc)
     }
   if (thisRole == NULL)
     {
-      printf ("ERROR: undeclared role name ");
+      printf ("error: undeclared role name ");
       termPrint (nameterm);
       printf (" in line ");
       errorTac (tc->lineno);
@@ -710,7 +715,7 @@ roleCompile (Term nameterm, Tac tc)
 	  default:
 	    if (!normalDeclaration (tc))
 	      {
-		printf ("ERROR: illegal command %i in role ", tc->op);
+		printf ("error: illegal command %i in role ", tc->op);
 		termPrint (thisRole->nameterm);
 		printf (" ");
 		errorTac (tc->lineno);
@@ -812,7 +817,7 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
 
   if (levelFind (prots, level) != NULL)
     {
-      printf ("ERROR: Double declaration of protocol ");
+      printf ("error: Double declaration of protocol ");
       symbolPrint (prots);
       printf (" ");
       errorTac (tc->lineno);
@@ -871,7 +876,7 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
 	    }
 	  else
 	    {
-	      printf ("ERROR: undeclared role ");
+	      printf ("error: undeclared role ");
 	      symbolPrint (tc->t1.sym);
 	      printf (" in protocol ");
 	      termPrint (pr->nameterm);
@@ -881,7 +886,7 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
 	default:
 	  if (!normalDeclaration (tc))
 	    {
-	      printf ("ERROR: illegal command %i in protocol ", tc->op);
+	      printf ("error: illegal command %i in protocol ", tc->op);
 	      termPrint (thisProtocol->nameterm);
 	      errorTac (tc->lineno);
 	    }
@@ -915,7 +920,7 @@ tacProcess (Tac tc)
 	default:
 	  if (!normalDeclaration (tc))
 	    {
-	      printf ("ERROR: illegal command %i at the global level.\n",
+	      printf ("error: illegal command %i at the global level.\n",
 		      tc->op);
 	      errorTac (tc->lineno);
 	    }

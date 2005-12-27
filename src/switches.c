@@ -74,6 +74,7 @@ switchesInit (int argc, char **argv)
   // Misc
   switches.switchP = 0;		// multi-purpose parameter
   switches.experimental = 0;	// experimental stuff defaults to 0, whatever that means.
+  switches.removeclaims = false;	// default: leave claims from spdl file
 
   // Output
   switches.output = SUMMARY;	// default is to show a summary
@@ -374,6 +375,22 @@ switcher (const int process, int index)
       else
 	{
 	  switches.concrete = true;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "remove-claims", 0))
+    {
+      if (!process)
+	{
+	  /* discourage:
+	   *
+	   * Causes all existing claims in the specification to be skipped.
+	   */
+	}
+      else
+	{
+	  switches.removeclaims = true;
 	  return index;
 	}
     }
