@@ -274,7 +274,7 @@ switcher (const int process, int index)
   /* ==================
    *  Generic options
    */
-  if (detect ('a', "arachne", 0))
+  if (detect ('A', "arachne", 0))
     {
       if (!process)
 	{
@@ -337,16 +337,43 @@ switcher (const int process, int index)
 	}
     }
 
-  if (detect ('P', "proof", 0))
+  if (detect ('p', "proof", 0))
     {
       if (!process)
 	{
-	  helptext ("-P,--proof", "show explicit proof");
+	  helptext ("-p,--proof", "show explicit proof");
 	}
       else
 	{
 	  // Proof
 	  switches.output = PROOF;
+	  return index;
+	}
+    }
+
+  if (detect ('c', "class", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-c,--class",
+		    "generate full class (show uninstantiated variables)");
+	}
+      else
+	{
+	  switches.concrete = false;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "concrete", 0))
+    {
+      if (!process)
+	{
+	  /* this is now the default */
+	}
+      else
+	{
+	  switches.concrete = true;
 	  return index;
 	}
     }
@@ -426,11 +453,11 @@ switcher (const int process, int index)
 	}
     }
 
-  if (detect ('A', "all-attacks", 0))
+  if (detect ('a', "all-attacks", 0))
     {
       if (!process)
 	{
-	  helptext ("-A,--all-attacks",
+	  helptext ("-a,--all-attacks",
 		    "generate all attacks instead of just one");
 	}
       else
@@ -455,12 +482,12 @@ switcher (const int process, int index)
 	}
     }
 
-  if (detect ('p', "prune", 1))
+  if (detect ('P', "prune", 1))
     {
       if (!process)
 	{
 	  /* not very important
-	     helptext ("-p,--prune=<int>", "pruning method when an attack is found [2]");
+	     helptext ("-P,--prune=<int>", "pruning method when an attack is found [2]");
 	   */
 	}
       else
@@ -688,33 +715,6 @@ switcher (const int process, int index)
       else
 	{
 	  switches.agentTypecheck = 0;
-	  return index;
-	}
-    }
-
-  if (detect ('C', "class", 0))
-    {
-      if (!process)
-	{
-	  helptext ("-C,--class",
-		    "generate full class (show uninstantiated variables)");
-	}
-      else
-	{
-	  switches.concrete = false;
-	  return index;
-	}
-    }
-
-  if (detect (' ', "concrete", 0))
-    {
-      if (!process)
-	{
-	  /* this is now the default */
-	}
-      else
-	{
-	  switches.concrete = true;
 	  return index;
 	}
     }

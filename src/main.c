@@ -385,7 +385,7 @@ timersPrint (const System sys)
 	      /* modern version: claim label is tuple (protocname, label) */
 	      /* first print protocol.role */
 	      termPrint (TermOp1 (cl_scan->label));
-	      eprintf ("\t");
+	      eprintf (",");
 	      termPrint (cl_scan->rolename);
 	      eprintf ("\t");
 	      /* second print event_label */
@@ -404,36 +404,44 @@ timersPrint (const System sys)
 	      termPrint (cl_scan->label);
 	      eprintf (")\t");
 	    }
-	  /* print counts etc. */
-	  eprintf ("found:\t");
-	  statesFormat (cl_scan->count);
-	  if (cl_scan->count > 0)
+
+	  /* now report the status */
+	  eprintf ("attacks: ");
+	  if (cl_scan->count > 0 && cl_scan->failed > 0)
 	    {
-	      if (cl_scan->failed > 0)
+	      /* there is an attack */
+	      eprintf ("yes\t(at least %i)", cl_scan->failed);
+	    }
+	  else
+	    {
+	      /* no attack */
+	      eprintf ("no\t");
+
+	      /* subcases */
+	      if (cl_scan->count == 0)
 		{
-		  eprintf ("\t");
-		  eprintf ("failed:\t");
-		  statesFormat (cl_scan->failed);
+		  /* not encountered */
+		  eprintf ("(does not occur)");
 		}
 	      else
 		{
-		  eprintf ("\tcorrect: ");
+		  /* does occur */
 		  if (cl_scan->complete)
 		    {
-		      eprintf ("complete_proof");
+		      /* complete proof */
+		      eprintf ("(proof of correctness)");
 		    }
 		  else
 		    {
-		      eprintf ("bounded_proof");
+		      /* only due to bounds */
+		      eprintf ("(no attack within bounds)");
 		      if (cl_scan->timebound)
 			eprintf ("\ttime=%i", get_time_limit ());
 		    }
 		}
 	    }
-	  else
-	    {
-	      eprintf ("\tcorrect: does_not_occur");
-	    }
+
+	  /* proceed to next claim */
 	  eprintf ("\n");
 	}
       cl_scan = cl_scan->next;
