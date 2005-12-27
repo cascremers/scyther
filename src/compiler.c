@@ -93,6 +93,28 @@ compilerDone (void)
   return;
 }
 
+//! Compute read variables for a role
+Termlist
+compute_read_variables (const Role r)
+{
+  Termlist tl;
+
+  int process_event (Roledef rd)
+  {
+    if (rd->type == READ)
+      {
+	tl = termlistAddVariables (tl, rd->from);
+	tl = termlistAddVariables (tl, rd->to);
+	tl = termlistAddVariables (tl, rd->message);
+      }
+    return 1;
+  }
+
+  tl = NULL;
+  roledef_iterate_events (r->roledef, process_event);
+  return tl;
+}
+
 /* ------------------------------------------------------------------- */
 
 //! Compile the tac into the system
@@ -189,6 +211,7 @@ levelDeclare (Symbol s, int isVar, int level)
   return t;
 }
 
+//! Generate a term from a symbol
 Term
 symbolDeclare (Symbol s, int isVar)
 {
@@ -271,7 +294,7 @@ defineUsertype (Tac tcdu)
 	    {
 	      /* phew. warn anyway */
 	      globalError++;
-	      eprintf ("WARNING: double declaration of usertype ");
+	      eprintf ("warning: double declaration of usertype ");
 	      termPrint (tfind);
 	      eprintf ("\n");
 	      globalError--;
@@ -288,6 +311,7 @@ defineUsertype (Tac tcdu)
     }
 }
 
+//! Declare a variable at the current level
 void
 levelTacDeclaration (Tac tc, int isVar)
 {
@@ -295,12 +319,14 @@ levelTacDeclaration (Tac tc, int isVar)
   Termlist typetl = NULL;
   Term t;
 
+  // tscan contains the type list (as is const x,z: Term or var y: Term,Ding)
   tscan = tc->t2.tac;
   if (!isVar && tscan->next != NULL)
     {
       error ("Multiple type definition for constant on line %i.",
 	     tscan->lineno);
     }
+  // scan the whole type info list
   while (tscan != NULL && tscan->op == TAC_STRING)
     {
       /* apparently there is type info, termlist? */
@@ -322,12 +348,18 @@ levelTacDeclaration (Tac tc, int isVar)
       typetl = termlistAdd (typetl, t);
       tscan = tscan->next;
     }
-  /* parse all constants and vars */
+  /* parse all constants and vars, because a single declaration can contain multiple ones */
   tscan = tc->t1.tac;
   while (tscan != NULL)
     {
+      /* declare this variable/constant with the previously derived type list */
       t = symbolDeclare (tscan->t1.sym, isVar);
       t->stype = typetl;
+      if (isVar && level == 2)
+	{
+	  /* it is a role variable, so add it to the nicely declared variables */
+	  thisRole->declaredvars = termlistAdd (thisRole->declaredvars, t);
+	}
       tscan = tscan->next;
     }
 }
@@ -516,6 +548,8 @@ commEvent (int event, Tac tc)
       cl->failed = 0;
       cl->prec = NULL;
       cl->roles = NULL;
+      cl->alwaystrue = false;
+      cl->warnings = false;
       cl->next = sys->claimlist;
       sys->claimlist = cl;
 
@@ -535,6 +569,25 @@ commEvent (int event, Tac tc)
 		("Secrecy claim on line %i should not contain tuples (for Arachne) until it is officially supported.",
 		 trip->next->lineno);
 	    }
+	  /* now check whether the claim contains variables that can actually be influenced by the intruder */
+	  {
+	    Termlist claimvars;
+	    Termlist readvars;
+
+	    claimvars = termlistAddVariables (NULL, msg);
+	    readvars = compute_read_variables (thisRole);
+	    while (claimvars != NULL)
+	      {
+		if (!inTermlist (readvars, claimvars->term))
+		  {
+		    /* this claimvar does not occur in the reads? */
+		    /* then we should ignore it later */
+		    cl->alwaystrue = true;
+		    cl->warnings = true;
+		  }
+		claimvars = claimvars->next;
+	      }
+	  }
 	  break;
 	}
       if (claim == CLAIM_Nisynch)
@@ -1423,9 +1476,10 @@ compute_prec_sets (const System sys)
       if (cl->prec == NULL)
 	{
 	  globalError++;
-	  eprintf ("Warning: claim with empty prec() set at r:%i, ev:%i\n",
+	  eprintf ("warning: claim with empty prec() set at r:%i, ev:%i\n",
 		   r1, ev1);
 	  globalError--;
+	  cl->warnings = true;
 	}
       else
 	{
@@ -1467,6 +1521,74 @@ compute_prec_sets (const System sys)
 
 }
 
+//! Check unused variables
+void
+checkRoleVariables (const System sys, const Protocol p, const Role r)
+{
+  Termlist vars;
+  Termlist declared;
+
+  int process_event (Roledef rd)
+  {
+    if (rd->type == READ)
+      {
+	vars = termlistAddVariables (vars, rd->from);
+	vars = termlistAddVariables (vars, rd->to);
+	vars = termlistAddVariables (vars, rd->message);
+      }
+    return 1;
+  }
+
+  /* Gather all variables occurring in the reads */
+  vars = NULL;
+  roledef_iterate_events (r->roledef, process_event);
+
+  /* Now, all variables for this role should be in the reads */
+  declared = r->declaredvars;
+  while (declared != NULL)
+    {
+      if (!inTermlist (vars, declared->term))
+	{
+	  // Warning
+	  globalError++;
+	  eprintf ("warning: variable ");
+	  termPrint (declared->term);
+	  eprintf (" was declared in role ");
+	  termPrint (p->nameterm);
+	  eprintf (",");
+	  termPrint (r->nameterm);
+	  eprintf (" but never used in a read event.\n");
+	  globalError--;
+	}
+      declared = declared->next;
+    }
+
+  termlistDelete (vars);
+}
+
+//! Check unused variables
+/**
+ * This is checked per role
+ */
+void
+checkUnusedVariables (const System sys)
+{
+  Protocol p;
+
+  p = sys->protocols;
+  while (p != NULL)
+    {
+      Role r;
+      r = p->roles;
+      while (r != NULL)
+	{
+	  checkRoleVariables (sys, p, r);
+	  r = r->next;
+	}
+      p = p->next;
+    }
+}
+
 //! Preprocess after system compilation
 void
 preprocess (const System sys)
@@ -1480,4 +1602,8 @@ preprocess (const System sys)
    * compute preceding label sets
    */
   compute_prec_sets (sys);
+  /*
+   * check for ununsed variables
+   */
+  checkUnusedVariables (sys);
 }

@@ -35,6 +35,10 @@ struct claimlist
   int complete;
   //! If we ran into the time bound (incomplete, and bad for results)
   int timebound;
+  //! Some claims are always true (shown by the initial scan)
+  int alwaystrue;
+  //! Warnings should tell you more
+  int warnings;
 
   int r;			//!< role number for mapping
   int ev;			//!< event index in role
@@ -120,6 +124,8 @@ struct role
   Termlist locals;
   //! Local variables for this role.
   Termlist variables;
+  //! Declared variables for this role
+  Termlist declaredvars;
   //! Flag for initiator roles
   int initiator;
   //! Pointer to next role definition.

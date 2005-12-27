@@ -3491,65 +3491,70 @@ arachne ()
 	  if (switches.filterClaim == NULL
 	      || switches.filterClaim == cl->type)
 	    {
-	      int run;
-	      Protocol p;
-	      Role r;
-
-	      sys->current_claim = cl;
-	      attack_length = INT_MAX;
-	      attack_leastcost = INT_MAX;
-	      cl->complete = 1;
-	      p = (Protocol) cl->protocol;
-	      r = (Role) cl->role;
-
-	      if (switches.output == PROOF)
+	      // Some claims are always true!
+	      if (!cl->alwaystrue)
 		{
-		  indentPrint ();
-		  eprintf ("Testing Claim ");
-		  termPrint (cl->type);
-		  eprintf (" from ");
-		  termPrint (p->nameterm);
-		  eprintf (", ");
-		  termPrint (r->nameterm);
-		  eprintf (" at index %i.\n", cl->ev);
-		}
-	      indentDepth++;
-	      run = semiRunCreate (p, r);
-	      proof_suppose_run (run, 0, cl->ev + 1);
-	      add_read_goals (run, 0, cl->ev + 1);
+		  // others we simply test...
+		  int run;
+		  Protocol p;
+		  Role r;
 
-	  /**
-	   * Add specific goal info
-	   */
-	      add_claim_specifics (cl,
-				   roledef_shift (sys->runs[run].start,
-						  cl->ev));
+		  sys->current_claim = cl;
+		  attack_length = INT_MAX;
+		  attack_leastcost = INT_MAX;
+		  cl->complete = 1;
+		  p = (Protocol) cl->protocol;
+		  r = (Role) cl->role;
+
+		  if (switches.output == PROOF)
+		    {
+		      indentPrint ();
+		      eprintf ("Testing Claim ");
+		      termPrint (cl->type);
+		      eprintf (" from ");
+		      termPrint (p->nameterm);
+		      eprintf (", ");
+		      termPrint (r->nameterm);
+		      eprintf (" at index %i.\n", cl->ev);
+		    }
+		  indentDepth++;
+		  run = semiRunCreate (p, r);
+		  proof_suppose_run (run, 0, cl->ev + 1);
+		  add_read_goals (run, 0, cl->ev + 1);
+
+	      /**
+	       * Add specific goal info
+	       */
+		  add_claim_specifics (cl,
+				       roledef_shift (sys->runs[run].start,
+						      cl->ev));
 
 #ifdef DEBUG
-	      if (DEBUGL (5))
-		{
-		  printSemiState ();
-		}
+		  if (DEBUGL (5))
+		    {
+		      printSemiState ();
+		    }
 #endif
-	      iterate_buffer_attacks ();
+		  iterate_buffer_attacks ();
 
-	      //! Destroy
-	      while (sys->bindings != NULL)
-		{
-		  goal_remove_last (1);
-		}
-	      while (sys->maxruns > 0)
-		{
-		  semiRunDestroy ();
-		}
+		  //! Destroy
+		  while (sys->bindings != NULL)
+		    {
+		      goal_remove_last (1);
+		    }
+		  while (sys->maxruns > 0)
+		    {
+		      semiRunDestroy ();
+		    }
 
-	      //! Indent back
-	      indentDepth--;
+		  //! Indent back
+		  indentDepth--;
 
-	      if (switches.output == PROOF)
-		{
-		  indentPrint ();
-		  eprintf ("Proof complete for this claim.\n");
+		  if (switches.output == PROOF)
+		    {
+		      indentPrint ();
+		      eprintf ("Proof complete for this claim.\n");
+		    }
 		}
 	    }
 	}

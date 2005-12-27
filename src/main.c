@@ -441,6 +441,12 @@ timersPrint (const System sys)
 		}
 	    }
 
+	  /* any warnings */
+	  if (cl_scan->warnings)
+	    {
+	      eprintf ("\t(read the warnings for more information)");
+	    }
+
 	  /* proceed to next claim */
 	  eprintf ("\n");
 	}
