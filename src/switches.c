@@ -393,7 +393,7 @@ switcher (const int process, int index)
       if (!process)
 	{
 	  helptext ("-r,--max-runs=<int>",
-		    "maximum number of runs in the system [5]. Set to 0 for unbounded search.");
+		    "maximum number of runs in the system [5]. Set to 0 for unbounded search");
 	}
       else
 	{
@@ -414,12 +414,28 @@ switcher (const int process, int index)
     {
       if (!process)
 	{
-	  helptext ("-l,--max-length=<int>",
-		    "prune traces longer than <int> events [inf]");
+	  /* not really needed if you prune runs
+	     helptext ("-l,--max-length=<int>",
+	     "prune traces longer than <int> events [inf]");
+	   */
 	}
       else
 	{
 	  switches.maxtracelength = integer_argument ();
+	  return index;
+	}
+    }
+
+  if (detect ('A', "all-attacks", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-A,--all-attacks",
+		    "generate all attacks instead of just one");
+	}
+      else
+	{
+	  switches.prune = 0;
 	  return index;
 	}
     }
@@ -826,7 +842,7 @@ switcher (const int process, int index)
       else
 	{
 	  printf ("Usage:\n");
-	  printf ("  %s [switches] [FILE]\nSwitches:\n\n", progname);
+	  printf ("  %s [switches] [FILE]\n\nSwitches:\n", progname);
 	  switcher (0, 0);
 	  exit (0);
 	}
