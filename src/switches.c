@@ -90,7 +90,7 @@ switchesInit (int argc, char **argv)
   switches.reportStates = 0;
   switches.extendNonReads = 0;	// default off
   switches.extendTrivial = 0;	// default off
-  switches.monochrome = false;	// default colors
+  switches.plain = false;	// default colors
 
   // Obsolete
   switches.latex = 0;		// latex output?
@@ -908,15 +908,15 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "monochrome", 0))
+  if (detect (' ', "plain", 0))
     {
       if (!process)
 	{
-	  helptext ("--monochrome", "disable color terminal output");
+	  helptext ("--plain", "disable color terminal output");
 	}
       else
 	{
-	  switches.monochrome = true;
+	  switches.plain = true;
 	  return index;
 	}
     }
