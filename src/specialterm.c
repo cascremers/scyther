@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "term.h"
+#include "termlist.h"
 #include "compiler.h"
 
 /*
@@ -28,6 +29,8 @@ Term CLAIM_Niagree;
 Term CLAIM_Empty;
 Term CLAIM_Reachable;
 
+Termlist CLAIMS_dep_prec;
+
 //! Init special terms
 /**
  * This is called by compilerInit
@@ -52,4 +55,10 @@ specialTermInit (const System sys)
   langcons (CLAIM_Niagree, "Niagree", TERM_Claim);
   langcons (CLAIM_Empty, "Empty", TERM_Claim);
   langcons (CLAIM_Reachable, "Reachable", TERM_Claim);
+
+  /* Construct a list of claims that depend on prec being not-empty */
+  /* basically all authentication claims */
+  CLAIMS_dep_prec = termlistAdd (NULL, CLAIM_Niagree);
+  CLAIMS_dep_prec = termlistAdd (CLAIMS_dep_prec, CLAIM_Nisynch);
+
 }

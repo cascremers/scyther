@@ -1,6 +1,9 @@
 #ifndef SPECIALTERM
 #define SPECIALTERM
 
+#include "term.h"
+#include "termlist.h"
+
 /*
  * Some declarations in spercialterm.c
  */
@@ -19,5 +22,7 @@ extern Term CLAIM_Nisynch;
 extern Term CLAIM_Niagree;
 extern Term CLAIM_Empty;
 extern Term CLAIM_Reachable;
+
+extern Termlist CLAIMS_dep_prec;
 
 #endif

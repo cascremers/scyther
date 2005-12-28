@@ -472,6 +472,16 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 	      /* then we should ignore it later */
 	      cl->alwaystrue = true;
 	      cl->warnings = true;
+
+	      /* show a warning for this */
+	      globalError++;
+	      eprintf ("warning: secrecy claim of role ");
+	      termPrint (cl->rolename);
+	      eprintf (" contains a variable ");
+	      termPrint (claimvars->term);
+	      eprintf
+		(" which is never read; therefore the claim will be true.\n");
+	      globalError--;
 	    }
 	  claimvars = claimvars->next;
 	}
@@ -1579,11 +1589,19 @@ compute_prec_sets (const System sys)
       //@todo This is for debugging, mainly.
       if (cl->prec == NULL)
 	{
-	  globalError++;
-	  eprintf ("warning: claim with empty prec() set at r:%i, ev:%i\n",
-		   r1, ev1);
-	  globalError--;
-	  cl->warnings = true;
+	  if (inTermlist (CLAIMS_dep_prec, cl->type))
+	    {
+	      /* this claim depends on prec, but it is empty! */
+
+	      cl->warnings = true;
+	      globalError++;
+	      eprintf ("warning: claim with label ");
+	      termPrint (cl->label);
+	      eprintf (" of role ");
+	      termPrint (cl->rolename);
+	      eprintf (" has an empty prec() set.\n");
+	      globalError--;
+	    }
 	}
       else
 	{
