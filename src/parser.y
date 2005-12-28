@@ -48,6 +48,7 @@ int yylex(void);
 %type	<tac>	roleref
 
 %type	<symb>	label
+%type	<symb>	optlabel
 
 %start spdlcomplete
 
@@ -142,7 +143,7 @@ event		: READT label '(' termlist ')' ';'
 			t->t2.tac = $4;
 			$$ = t;
 		  }
-		| CLAIMT label '(' termlist ')' ';'
+		| CLAIMT optlabel '(' termlist ')' ';'
 		/* TODO maybe claims should be in the syntax */
 		  {	Tac t = tacCreate(TAC_CLAIM);
 		  	t->t1.sym = $2;
@@ -226,10 +227,16 @@ typeinfoN	: /* empty */
 		  }
 		;
 
-/* Previously, the label could be omitted. It is now required. */
 label		: '_' ID
 		  { $$ = $2; }
 		;
+
+optlabel        : /* empty */
+                 { $$ = NULL; }
+               | label
+		  { }
+                ;
+
 
 term  		: ID
 		  {

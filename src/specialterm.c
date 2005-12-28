@@ -26,6 +26,7 @@ Term CLAIM_Secret;
 Term CLAIM_Nisynch;
 Term CLAIM_Niagree;
 Term CLAIM_Empty;
+Term CLAIM_Reachable;
 
 //! Init special terms
 /**
@@ -50,4 +51,5 @@ specialTermInit (const System sys)
   langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);
   langcons (CLAIM_Niagree, "Niagree", TERM_Claim);
   langcons (CLAIM_Empty, "Empty", TERM_Claim);
+  langcons (CLAIM_Reachable, "Reachable", TERM_Claim);
 }

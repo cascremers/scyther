@@ -241,6 +241,7 @@ roleCreate (Term name)
   r->locals = NULL;
   r->variables = NULL;
   r->declaredvars = NULL;
+  r->declaredconsts = NULL;
   r->initiator = 1;		//! Will be determined later, if a read is the first action (in compiler.c)
   r->next = NULL;
   return r;

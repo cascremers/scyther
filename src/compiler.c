@@ -355,15 +355,130 @@ levelTacDeclaration (Tac tc, int isVar)
       /* declare this variable/constant with the previously derived type list */
       t = symbolDeclare (tscan->t1.sym, isVar);
       t->stype = typetl;
-      if (isVar && level == 2)
+      /* local to the role? */
+      if (level == 2)
 	{
-	  /* it is a role variable, so add it to the nicely declared variables */
-	  thisRole->declaredvars = termlistAdd (thisRole->declaredvars, t);
+	  if (isVar)
+	    {
+	      /* it is a role variable, so add it to the nicely declared variables */
+	      thisRole->declaredvars =
+		termlistAdd (thisRole->declaredvars, t);
+	    }
+	  else
+	    {
+	      /* it is a role constant, so add it to the nicely declared constants */
+	      thisRole->declaredconsts =
+		termlistAdd (thisRole->declaredconsts, t);
+	    }
 	}
       tscan = tscan->next;
     }
 }
 
+//! Check whether a claim label already occurs
+int
+isClaimlabelUsed (const System sys, const Term label)
+{
+  Claimlist cl;
+
+  if (label == NULL)
+    {
+      /* we assign this 'occurs' because it is an invalid label */
+      return true;
+    }
+  cl = sys->claimlist;
+  while (cl != NULL)
+    {
+      if (isTermEqual (cl->label, label))
+	{
+	  return true;
+	}
+      cl = cl->next;
+    }
+  return false;
+}
+
+//! Generate a fresh claim label
+Term
+generateFreshClaimlabel (const System sys, const Role role, const Term claim)
+{
+  /* Simply use the role as a prefix */
+  return freshTermPrefix (role->nameterm);
+}
+
+//! Create a claim and add it to the claims list, and add the role event.
+Claimlist
+claimCreate (const System sys, const Protocol protocol, const Role role,
+	     const Term claim, Term label, const Term msg)
+{
+  Claimlist cl;
+  Term labeltuple;
+
+  /* check for ignored claim types */
+  if (switches.filterClaim != NULL && switches.filterClaim != claim)
+    {
+      /* abort the construction of the node */
+      return;
+    }
+
+  /* generate full unique label */
+  /* is the label empty or used? */
+  if (label == NULL || isClaimlabelUsed (sys, label))
+    {
+      /* simply generate a fresh one */
+      label = generateFreshClaimlabel (sys, role, claim);
+    }
+
+  // Assert: label is unique, add claimlist info
+  cl = memAlloc (sizeof (struct claimlist));
+  cl->type = claim;
+  cl->label = label;
+  cl->parameter = msg;
+  cl->protocol = thisProtocol;
+  cl->rolename = role->nameterm;
+  cl->role = role;
+  cl->roledef = NULL;
+  cl->count = 0;
+  cl->complete = 0;
+  cl->timebound = 0;
+  cl->failed = 0;
+  cl->prec = NULL;
+  cl->roles = NULL;
+  cl->alwaystrue = false;
+  cl->warnings = false;
+  cl->next = sys->claimlist;
+  sys->claimlist = cl;
+
+  /* add the role event */
+  role->roledef = roledefAdd (role->roledef, CLAIM, label,
+			      role->nameterm, claim, msg, cl);
+
+  /* possible special handlers for each claim */
+
+  if (claim == CLAIM_Secret)
+    {
+      Termlist claimvars;
+      Termlist readvars;
+
+      /* now check whether the claim contains variables that can actually be influenced by the intruder */
+
+      claimvars = termlistAddVariables (NULL, msg);
+      readvars = compute_read_variables (thisRole);
+      while (claimvars != NULL)
+	{
+	  if (!inTermlist (readvars, claimvars->term))
+	    {
+	      /* this claimvar does not occur in the reads? */
+	      /* then we should ignore it later */
+	      cl->alwaystrue = true;
+	      cl->warnings = true;
+	    }
+	  claimvars = claimvars->next;
+	}
+    }
+}
+
+//! Parse a communication event tc of type event, and add a role definition event for it.
 void
 commEvent (int event, Tac tc)
 {
@@ -382,7 +497,12 @@ commEvent (int event, Tac tc)
   /* Construct label, if any */
   if (tc->t1.sym == NULL)
     {
-      label = NULL;
+      /* right, now this should not be NULL anyway, if so we construct a fresh one.
+       * This can be a weird choice if it is a read or send, because in that case
+       * we cannot chain them anymore and the send-read correspondence is lost.
+       */
+      warning ("Generated fresh label for line %i.", tc->lineno);
+      label = freshTermPrefix (thisRole->nameterm);
     }
   else
     {
@@ -398,20 +518,9 @@ commEvent (int event, Tac tc)
 	}
       else
 	{
-	  /* we already had this label constant */
 	  /* leaves a garbage tuple. dunnoh what to do with it */
 	  label = makeTermTuple (thisProtocol->nameterm, label);
 	}
-    }
-  /**
-   * We now know the label. Find the corresponding labelinfo bit or make a new one
-   */
-  linfo = label_find (sys->labellist, label);
-  if (linfo == NULL)
-    {
-      /* Not found, make a new one */
-      linfo = label_create (label, thisProtocol);
-      sys->labellist = list_append (sys->labellist, linfo);
     }
 
   /**
@@ -422,6 +531,17 @@ commEvent (int event, Tac tc)
     {
     case READ:
     case SEND:
+      /**
+       * We know the label. Find the corresponding labelinfo bit or make a new one
+       */
+      linfo = label_find (sys->labellist, label);
+      if (linfo == NULL)
+	{
+	  /* Not found, make a new one */
+	  linfo = label_create (label, thisProtocol);
+	  sys->labellist = list_append (sys->labellist, linfo);
+	}
+
       /* now parse triplet info */
       if (trip == NULL || trip->next == NULL || trip->next->next == NULL)
 	{
@@ -461,8 +581,13 @@ commEvent (int event, Tac tc)
 	  linfo->readrole = torole;
 	}
 
+      /* and make that read/send event */
+      thisRole->roledef = roledefAdd (thisRole->roledef, event, label,
+				      fromrole, torole, msg, cl);
       break;
+
     case CLAIM:
+      /* switch can be used to remove all *parsed* claims */
       if (!switches.removeclaims)
 	{
 	  /* now parse tuple info */
@@ -477,13 +602,6 @@ commEvent (int event, Tac tc)
 	  claim = tupleProject (claimbig, 0);
 	  torole = claim;
 
-	  /* check for ignored claim types */
-	  if (switches.filterClaim != NULL && switches.filterClaim != claim)
-	    {
-	      /* abort the construction of the node */
-	      return;
-	    }
-
 	  /* check for obvious flaws */
 	  if (claim == NULL)
 	    {
@@ -491,7 +609,7 @@ commEvent (int event, Tac tc)
 	    }
 	  if (!inTermlist (claim->stype, TERM_Claim))
 	    {
-	      printf ("error: unknown claim type ");
+	      printf ("error: claim term is not of claim type ");
 	      termPrint (claim);
 	      errorTac (trip->next->lineno);
 	    }
@@ -514,50 +632,21 @@ commEvent (int event, Tac tc)
 		}
 	    }
 
-	  /* store claim in claim list */
+	  // check whether label is unique
 
-	  if (label == NULL)
+	  if (isClaimlabelUsed (sys, label))
 	    {
-	      error ("Claim should have label on line %i.",
-		     trip->next->lineno);
+	      warning
+		("Claim label is not unique at line %i, generating fresh label.",
+		 tc->lineno);
 	    }
-	  // First check whether label is unique
-	  cl = sys->claimlist;
-	  while (cl != NULL)
-	    {
-	      if (isTermEqual (cl->label, label))
-		{
-		  /**
-		   *@todo This should not error exit, but automatically generate a fresh claim label.
-		   */
-		  error ("Claim label is not unique at line %i.", tc->lineno);
-		}
-	      cl = cl->next;
-	    }
-	  // Assert: label is unique, add claimlist info
-	  cl = memAlloc (sizeof (struct claimlist));
-	  cl->type = claim;
-	  cl->label = label;
-	  cl->protocol = thisProtocol;
-	  cl->rolename = fromrole;
-	  cl->role = thisRole;
+
 	  if (!isTermEqual (fromrole, thisRole->nameterm))
 	    error
 	      ("Claim role does not correspond to execution role at line %i.",
 	       tc->lineno);
-	  cl->roledef = NULL;
-	  cl->count = 0;
-	  cl->complete = 0;
-	  cl->timebound = 0;
-	  cl->failed = 0;
-	  cl->prec = NULL;
-	  cl->roles = NULL;
-	  cl->alwaystrue = false;
-	  cl->warnings = false;
-	  cl->next = sys->claimlist;
-	  sys->claimlist = cl;
 
-	  /* handles all claim types differently */
+	  /* handles claim types with different syntactic claims */
 
 	  if (claim == CLAIM_Secret)
 	    {
@@ -573,26 +662,6 @@ commEvent (int event, Tac tc)
 		    ("Secrecy claim on line %i should not contain tuples (for Arachne) until it is officially supported.",
 		     trip->next->lineno);
 		}
-	      /* now check whether the claim contains variables that can actually be influenced by the intruder */
-	      {
-		Termlist claimvars;
-		Termlist readvars;
-
-		claimvars = termlistAddVariables (NULL, msg);
-		readvars = compute_read_variables (thisRole);
-		while (claimvars != NULL)
-		  {
-		    if (!inTermlist (readvars, claimvars->term))
-		      {
-			/* this claimvar does not occur in the reads? */
-			/* then we should ignore it later */
-			cl->alwaystrue = true;
-			cl->warnings = true;
-		      }
-		    claimvars = claimvars->next;
-		  }
-	      }
-	      break;
 	    }
 	  if (claim == CLAIM_Nisynch)
 	    {
@@ -601,7 +670,6 @@ commEvent (int event, Tac tc)
 		  error ("NISYNCH claim requires no parameters at line %i.",
 			 trip->next->lineno);
 		}
-	      break;
 	    }
 	  if (claim == CLAIM_Niagree)
 	    {
@@ -610,25 +678,14 @@ commEvent (int event, Tac tc)
 		  error ("NIAGREE claim requires no parameters at line %i.",
 			 trip->next->lineno);
 		}
-	      break;
-	    }
-	  if (claim == CLAIM_Empty)
-	    {
-	      break;
 	    }
 
-	  /* hmm, no handler yet */
+	  /* create the event */
 
-	  printf ("error: No know handler for this claim type: ");
-	  termPrint (claim);
-	  printf (" ");
-	  errorTac (trip->next->lineno);
+	  cl = claimCreate (sys, thisProtocol, thisRole, claim, label, msg);
 	}
       break;
     }
-  /* and make that event */
-  thisRole->roledef = roledefAdd (thisRole->roledef, event, label,
-				  fromrole, torole, msg, cl);
 }
 
 int
@@ -661,6 +718,28 @@ normalDeclaration (Tac tc)
       return 0;
     }
   return 1;
+}
+
+//! Add all sorts of claims to this role
+void
+claimAddAll (const System sys, const Protocol protocol, const Role role)
+{
+  /* first: secrecy claims for all locally declared things */
+  void addSecrecyList (Termlist tl)
+  {
+    while (tl != NULL)
+      {
+	claimCreate (sys, protocol, role, CLAIM_Secret, NULL, tl->term);
+	tl = tl->next;
+      }
+  }
+
+  addSecrecyList (role->declaredconsts);
+  addSecrecyList (role->declaredvars);
+
+  /* full non-injective agreement and ni-synch */
+  claimCreate (sys, protocol, role, CLAIM_Niagree, NULL, NULL);
+  claimCreate (sys, protocol, role, CLAIM_Nisynch, NULL, NULL);
 }
 
 void
@@ -726,6 +805,19 @@ roleCompile (Term nameterm, Tac tc)
 	tc = tc->next;
       }
   }
+
+  /* add any claims according to the switches */
+
+  if (switches.addreachableclaim)
+    {
+      claimCreate (sys, thisProtocol, thisRole, CLAIM_Reachable, NULL, NULL);
+    }
+  if (switches.addallclaims)
+    {
+      claimAddAll (sys, thisProtocol, thisRole);
+    }
+
+  /* last bits */
   compute_role_variables (sys, thisProtocol, thisRole);
   levelDone ();
 }

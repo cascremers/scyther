@@ -1336,3 +1336,19 @@ isLeafNameEqual (Term t1, Term t2)
 {
   return (TermSymb (t1) == TermSymb (t2));
 }
+
+//! Generate a fresh term, that does not occur yet, prefixed with the string of the given term.
+Term
+freshTermPrefix (Term prefixterm)
+{
+  Symbol prefixsymbol;
+  Symbol freshsymbol;
+
+  prefixsymbol = NULL;
+  if (prefixterm != NULL && realTermLeaf (prefixterm))
+    {
+      prefixsymbol = TermSymb (prefixterm);
+    }
+  freshsymbol = symbolNextFree (prefixsymbol);
+  return makeTermType (GLOBAL, freshsymbol, -1);
+}

@@ -370,47 +370,104 @@ timersPrint (const System sys)
   /* Note that if the output is set to empty, the claim output is redirected to stdout (for e.g. processing)
    */
   cl_scan = sys->claimlist;
-  anyclaims = 0;
+  anyclaims = false;
   while (cl_scan != NULL)
     {
       if (!isTermEqual (cl_scan->type, CLAIM_Empty))
 	{
-	  anyclaims = 1;
+	  Protocol protocol;
+	  Term pname;
+	  Term rname;
+	  Termlist labellist;
+
+	  anyclaims = true;
 
 	  eprintf ("claim\t");
 
-	  /* claim label is tuple */
-	  if (realTermTuple (cl_scan->label))
+	  protocol = (Protocol) cl_scan->protocol;
+	  pname = protocol->nameterm;
+	  rname = cl_scan->rolename;
+
+	  labellist = tuple_to_termlist (cl_scan->label);
+
+	  /* maybe the label contains duplicate info: if so, we remove it here */
+	  {
+	    Termlist tl;
+	    tl = labellist;
+	    while (tl != NULL)
+	      {
+		if (isTermEqual (tl->term, pname)
+		    || isTermEqual (tl->term, rname))
+		  {
+		    tl = termlistDelTerm (tl);
+		    labellist = tl;
+		  }
+		else
+		  {
+		    tl = tl->next;
+		  }
+	      }
+	  }
+
+	  termPrint (pname);
+	  eprintf (",");
+	  termPrint (rname);
+	  eprintf ("\t");
+	  /* second print event_label */
+	  termPrint (cl_scan->type);
+
+	  eprintf ("_");
+	  if (labellist != NULL)
 	    {
-	      /* modern version: claim label is tuple (protocname, label) */
-	      /* first print protocol.role */
-	      termPrint (TermOp1 (cl_scan->label));
-	      eprintf (",");
-	      termPrint (cl_scan->rolename);
-	      eprintf ("\t");
-	      /* second print event_label */
-	      termPrint (cl_scan->type);
-	      eprintf ("_");
-	      termPrint (TermOp2 (cl_scan->label));
-	      eprintf ("\t");
+	      Termlist tl;
+
+	      tl = labellist;
+	      while (tl != NULL)
+		{
+		  termPrint (tl->term);
+		  tl = tl->next;
+		  if (tl != NULL)
+		    {
+		      eprintf (",");
+		    }
+		}
+	      /* clean up */
+	      termlistDelete (labellist);
+	      labellist = NULL;
 	    }
 	  else
 	    {
-	      /* old-fashioned output */
-	      termPrint (cl_scan->type);
-	      eprintf ("\t");
-	      termPrint (cl_scan->rolename);
-	      eprintf (" (");
-	      termPrint (cl_scan->label);
-	      eprintf (")\t");
+	      eprintf ("?");
+	    }
+	  /* add parameter */
+	  eprintf ("\t");
+	  if (cl_scan->parameter != NULL)
+	    {
+	      termPrint (cl_scan->parameter);
+	    }
+	  else
+	    {
+	      eprintf ("-");
 	    }
 
 	  /* now report the status */
+	  eprintf ("\t");
 	  eprintf ("attacks: ");
 	  if (cl_scan->count > 0 && cl_scan->failed > 0)
 	    {
 	      /* there is an attack */
-	      eprintf ("yes\t(at least %i)", cl_scan->failed);
+	      eprintf ("yes\t");
+	      /* are these all attacks? */
+	      eprintf ("(");
+	      if (cl_scan->complete)
+		{
+		  eprintf ("exactly");
+		}
+	      else
+		{
+		  eprintf ("at least");
+		}
+	      eprintf (" %i)", cl_scan->failed);
 	    }
 	  else
 	    {

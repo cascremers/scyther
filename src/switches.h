@@ -54,6 +54,8 @@ struct switchdata
   int switchP;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
   int experimental;		//!< Experimental stuff goes here until it moves into main stuff.
   int removeclaims;		//!< Remove any claims in the spdl file
+  int addreachableclaim;	//!< Adds 'reachable' claims to each role
+  int addallclaims;		//!< Adds all sorts of claims to the roles
 
   // Output
   int output;			//!< From enum outputs: what should be produced. Default ATTACK.

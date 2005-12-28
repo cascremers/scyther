@@ -18,6 +18,8 @@ struct claimlist
   Term type;
   //! The term element for this node.
   Term label;
+  //! Any parameters
+  Term parameter;
   //! The pointer to the protocol (not defined typically, because
   //! at compile time of the claim the protocol structure is not known yet.)
   void *protocol;
@@ -124,6 +126,8 @@ struct role
   Termlist locals;
   //! Local variables for this role.
   Termlist variables;
+  //! Declared constants for this role
+  Termlist declaredconsts;
   //! Declared variables for this role
   Termlist declaredvars;
   //! Flag for initiator roles

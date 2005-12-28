@@ -211,6 +211,60 @@ symbolSysConst (const char *str)
   return symb;
 }
 
+//! Generate the first fresh free number symbol, prefixed by a certain symbol's string.
+/**
+ * Note that there is an upper limit to this, to avoid some problems with buffer overflows etc.
+ */
+Symbol
+symbolNextFree (Symbol prefixsymbol)
+{
+  char *prefixstr;
+  int n;
+  int len;
+
+  if (prefixsymbol != NULL)
+    {
+      prefixstr = (char *) prefixsymbol->text;
+    }
+  else
+    {
+      prefixstr = "";
+    }
+
+  len = strlen (prefixstr);
+  n = 1;
+  while (n <= 9999)
+    {
+      char buffer[len + 5];	// thus we must enforce a maximum of 9.999 (allowing for storage of \0 )
+      Symbol symb;
+      int slen;
+
+      slen = sprintf (buffer, "%s%i", prefixstr, n);
+      symb = lookup (buffer);
+      if (symb == NULL)
+	{
+	  char *newstring;
+	  // Copy the buffer to something that will survive
+	  /**
+	   * Memory leak: although this routine should not be called recursively, it will never de-allocate this memory.
+	   * Thus, some precaution is necessary.
+	   * [x][CC]
+	   */
+	  newstring = (char *) memAlloc (slen + 1);
+	  memcpy (newstring, buffer, slen + 1);
+
+	  /* This persistent string can be used to return a fresh symbol */
+
+	  return symbolSysConst (newstring);
+	}
+
+      // Try next one
+      n++;
+    }
+  error ("We ran out of numbers (%i) when trying to generate a fresh symbol.",
+	 n);
+}
+
 //! Fix all the unset keylevels
 void
 symbol_fix_keylevels (void)

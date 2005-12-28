@@ -75,6 +75,8 @@ switchesInit (int argc, char **argv)
   switches.switchP = 0;		// multi-purpose parameter
   switches.experimental = 0;	// experimental stuff defaults to 0, whatever that means.
   switches.removeclaims = false;	// default: leave claims from spdl file
+  switches.addreachableclaim = false;	// add 'reachable' claims
+  switches.addallclaims = false;	// add all sorts of claims
 
   // Output
   switches.output = SUMMARY;	// default is to show a summary
@@ -391,6 +393,37 @@ switcher (const int process, int index)
       else
 	{
 	  switches.removeclaims = true;
+	  return index;
+	}
+    }
+
+  if (detect ('C', "generate-claims", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-C,--generate-claims",
+		    "ignore any existing claims and automatically generate new claims");
+	}
+      else
+	{
+	  switches.removeclaims = true;
+	  switches.addallclaims = true;
+	  return index;
+	}
+    }
+
+  if (detect ('G', "generate-semibundles", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-G,--generate-statespace",
+		    "ignore any existing claims and add 'reachable' claims to generate the full state space");
+	}
+      else
+	{
+	  switches.removeclaims = true;	// remove parsed claims
+	  switches.addreachableclaim = true;	// add reachability claims
+	  switches.prune = 0;	// do not prune anything
 	  return index;
 	}
     }

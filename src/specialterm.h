@@ -18,5 +18,6 @@ extern Term CLAIM_Secret;
 extern Term CLAIM_Nisynch;
 extern Term CLAIM_Niagree;
 extern Term CLAIM_Empty;
+extern Term CLAIM_Reachable;
 
 #endif

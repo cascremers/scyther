@@ -196,5 +196,6 @@ float term_constrain_level (const Term term);
 void term_set_keylevels (const Term term);
 void termPrintDiff (Term t1, Term t2);
 int isLeafNameEqual (Term t1, Term t2);
+Term freshTermPrefix (Term prefixterm);
 
 #endif
