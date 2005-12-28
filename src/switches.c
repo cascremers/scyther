@@ -11,8 +11,12 @@
 #include "version.h"
 #include "timer.h"
 #include "switches.h"
+#include "error.h"
+#include "string.h"
 #include "specialterm.h"
+#include "memory.h"
 #include <limits.h>
+#include <stdlib.h>
 
 struct switchdata switches;
 
@@ -22,7 +26,8 @@ const char *progname = "scyther";
 const char *releasetag = SVNVERSION;
 
 // Forward declarations
-void process_switches ();
+void process_environment (void);
+void process_switches (int commandline);
 
 //! Init switches
 /**
@@ -31,10 +36,6 @@ void process_switches ();
 void
 switchesInit (int argc, char **argv)
 {
-  // Command-line
-  switches.argc = argc;
-  switches.argv = argv;
-
   // Methods
   switches.engine = ARACHNE_ENGINE;	// default is arachne engine
   switches.match = 0;		// default matching
@@ -94,7 +95,12 @@ switchesInit (int argc, char **argv)
   // Obsolete
   switches.latex = 0;		// latex output?
 
-  process_switches ();
+  // Process the environment variable SCYTHERFLAGS
+  process_environment ();
+  // Process the command-line switches
+  switches.argc = argc;
+  switches.argv = argv;
+  process_switches (true);
 }
 
 //! Exit
@@ -113,7 +119,7 @@ switchesDone (void)
  * The index steps through 1..argc-1.
  */
 int
-switcher (const int process, int index)
+switcher (const int process, int index, int commandline)
 {
   char *this_arg;		// just a shortcut
   int this_arg_length;		// same here
@@ -892,9 +898,12 @@ switcher (const int process, int index)
 	}
       else
 	{
-	  printf ("Usage:\n");
-	  printf ("  %s [switches] [FILE]\n\nSwitches:\n", progname);
-	  switcher (0, 0);
+	  if (commandline)
+	    {
+	      printf ("Usage:\n");
+	      printf ("  %s [switches] [FILE]\n\nSwitches:\n", progname);
+	      switcher (0, 0, commandline);
+	    }
 	  exit (0);
 	}
     }
@@ -955,7 +964,7 @@ switcher (const int process, int index)
     }
   else
     {
-      if (!strcmp (this_arg, "-"))
+      if (!strcmp (this_arg, "-") && commandline)
 	{
 	  // '-' input: Leave input to stdin
 	}
@@ -982,22 +991,105 @@ switcher (const int process, int index)
   return 0;
 }
 
+//! Process environment
+void
+process_environment (void)
+{
+  char *flags;
+
+  flags = getenv ("SCYTHERFLAGS");
+  if (flags != NULL)
+    {
+      int slen;
+
+      slen = strlen (flags);
+      if (slen > 0)
+	{
+	  /**
+	   * We scan the flags here, but assume a stupid upper limit of 100 pieces, otherwise this all becomes fairly vague.
+	   */
+	  int max = 100;
+	  char *argv[100];
+	  int count;
+	  char *args;
+	  char *scanflag;
+	  char *argn;
+
+	  /* make a safe copy */
+	  args = (char *) memAlloc (slen + 1);
+	  memcpy (args, flags, slen + 1);
+
+	  /* warning */
+	  /*
+	     globalError++;
+	     eprintf ("warning: using environment variable SVNSCYTHER ('%s')\n",
+	     args);
+	     globalError--;
+	   */
+
+	  {
+	    int i;
+
+	    i = 0;
+	    while (i < max)
+	      {
+		argv[i] = "";
+		i++;
+	      }
+	  }
+
+	  scanflag = args;
+	  count = 0;
+	  /* ugly use of assignment in condition */
+	  while (count < max)
+	    {
+	      argn = strtok (scanflag, "\t ");
+	      scanflag = NULL;
+	      if (argn != NULL)
+		{
+		  count++;
+		  argv[count] = argn;
+		}
+	      else
+		{
+		  break;
+		}
+	    }
+	  /*
+	     warning ("found %i arguments in SCYTHERFLAGS\n", count);
+	   */
+
+	  switches.argc = count + 1;
+	  switches.argv = argv;
+	  process_switches (false);
+	}
+    }
+}
+
 //! Process switches
 void
-process_switches ()
+process_switches (int commandline)
 {
   int index;
 
   if (switches.argc == 1)
     {
-      printf ("Try '%s --help' for more information, or visit:\n", progname);
-      printf (" http://www.win.tue.nl/~ccremers/scyther/index.html\n");
-      exit (0);
+      if (commandline)
+	{
+	  printf ("Try '%s --help' for more information, or visit:\n",
+		  progname);
+	  printf (" http://www.win.tue.nl/~ccremers/scyther/index.html\n");
+	  exit (0);
+	}
+      else
+	{
+	  return;
+	}
     }
 
   index = 1;
   while (index < switches.argc && index > 0)
     {
-      index = switcher (1, index);
+      index = switcher (1, index, commandline);
     }
 }
