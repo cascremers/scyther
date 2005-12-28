@@ -729,7 +729,18 @@ claimAddAll (const System sys, const Protocol protocol, const Role role)
   {
     while (tl != NULL)
       {
-	claimCreate (sys, protocol, role, CLAIM_Secret, NULL, tl->term);
+	Term t;
+
+	t = deVar (tl->term);
+	if (realTermLeaf (t))
+	  {
+	    // For anything that is not a ticket
+	    if (!inTermlist (t->stype, TERM_Ticket))
+	      {
+		// Add a secrecy claim
+		claimCreate (sys, protocol, role, CLAIM_Secret, NULL, t);
+	      }
+	  }
 	tl = tl->next;
       }
   }
