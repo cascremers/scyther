@@ -89,6 +89,7 @@ switchesInit (int argc, char **argv)
   switches.reportStates = 0;
   switches.extendNonReads = 0;	// default off
   switches.extendTrivial = 0;	// default off
+  switches.monochrome = false;	// default colors
 
   // Obsolete
   switches.latex = 0;		// latex output?
@@ -895,6 +896,19 @@ switcher (const int process, int index)
 	  printf ("  %s [switches] [FILE]\n\nSwitches:\n", progname);
 	  switcher (0, 0);
 	  exit (0);
+	}
+    }
+
+  if (detect (' ', "monochrome", 0))
+    {
+      if (!process)
+	{
+	  helptext ("--monochrome", "disable color terminal output");
+	}
+      else
+	{
+	  switches.monochrome = true;
+	  return index;
 	}
     }
 

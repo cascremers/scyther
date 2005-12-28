@@ -60,6 +60,7 @@ enum exittypes
 #include "binding.h"
 #include "switches.h"
 #include "specialterm.h"
+#include "color.h"
 
 // The global system state
 System sys;
@@ -102,6 +103,9 @@ main (int argc, char **argv)
 
   /* process any command-line switches */
   switchesInit (argc, argv);
+
+  /* process colors */
+  colorInit ();
 
   /* start system */
   sys = systemInit ();
@@ -267,6 +271,7 @@ main (int argc, char **argv)
     }
   knowledgeDestroy (sys->know);
   systemDone (sys);
+  colorDone ();
   compilerDone ();
 
   /* done symbols */
@@ -283,6 +288,37 @@ main (int argc, char **argv)
 
 exit:
   return exitcode;
+}
+
+//! Print something bad
+void
+printBad (char *s)
+{
+  eprintf ("%s%s%s", COLOR_Red, s, COLOR_Reset);
+}
+
+//! Print something good
+void
+printGood (char *s)
+{
+  eprintf ("%s%s%s", COLOR_Green, s, COLOR_Reset);
+}
+
+//! Print state (existState, isAttack)
+/**
+ * Fail == ( existState xor isAttack )
+ */
+void
+printOkFail (int existState, int isAttack)
+{
+  if (existState != isAttack)
+    {
+      printGood ("Ok");
+    }
+  else
+    {
+      printBad ("Fail");
+    }
 }
 
 //! Display time and state space size information using ASCII.
@@ -379,7 +415,17 @@ timersPrint (const System sys)
 	  Term pname;
 	  Term rname;
 	  Termlist labellist;
+	  int isAttack;		// stores whether this claim failure constitutes an attack or not
 
+	  if (isTermEqual (cl_scan->type, CLAIM_Reachable))
+	    {
+	      // An attack on reachable is not really an attack, we're just generating the state space
+	      isAttack = false;
+	    }
+	  else
+	    {
+	      isAttack = true;
+	    }
 	  anyclaims = true;
 
 	  eprintf ("claim\t");
@@ -452,20 +498,10 @@ timersPrint (const System sys)
 
 	  /* now report the status */
 	  eprintf ("\t");
-	  eprintf ("attacks: ");
 	  if (cl_scan->count > 0 && cl_scan->failed > 0)
 	    {
-	      /* there is an attack */
-	      if (!isTermEqual (cl_scan->type, CLAIM_Reachable))
-		{
-		  /* a normal claim */
-		  eprintf ("yes");
-		}
-	      else
-		{
-		  /* Reachable is not an attack */
-		  eprintf ("no");
-		}
+	      /* there is a state */
+	      printOkFail (true, isAttack);
 
 	      eprintf ("\t");
 	      /* are these all attacks? */
@@ -478,7 +514,15 @@ timersPrint (const System sys)
 		{
 		  eprintf ("at least");
 		}
-	      eprintf (" %i variant", cl_scan->failed);
+	      eprintf (" %i ", cl_scan->failed);
+	      if (isAttack)
+		{
+		  eprintf ("attack");
+		}
+	      else
+		{
+		  eprintf ("variant");
+		}
 	      if (cl_scan->failed != 1)
 		{
 		  eprintf ("s");
@@ -487,8 +531,9 @@ timersPrint (const System sys)
 	    }
 	  else
 	    {
-	      /* no attack */
-	      eprintf ("no\t");
+	      /* no state */
+	      printOkFail (false, isAttack);
+	      eprintf ("\t");
 
 	      /* subcases */
 	      if (cl_scan->count == 0)
@@ -502,7 +547,8 @@ timersPrint (const System sys)
 		  if (cl_scan->complete)
 		    {
 		      /* complete proof */
-		      eprintf ("[proof of correctness]");
+		      eprintf ("[%sproof of correctness%s]", COLOR_Bold,
+			       COLOR_Reset);
 		    }
 		  else
 		    {
