@@ -456,9 +456,20 @@ timersPrint (const System sys)
 	  if (cl_scan->count > 0 && cl_scan->failed > 0)
 	    {
 	      /* there is an attack */
-	      eprintf ("yes\t");
+	      if (!isTermEqual (cl_scan->type, CLAIM_Reachable))
+		{
+		  /* a normal claim */
+		  eprintf ("yes");
+		}
+	      else
+		{
+		  /* Reachable is not an attack */
+		  eprintf ("no");
+		}
+
+	      eprintf ("\t");
 	      /* are these all attacks? */
-	      eprintf ("(");
+	      eprintf ("[");
 	      if (cl_scan->complete)
 		{
 		  eprintf ("exactly");
@@ -467,7 +478,12 @@ timersPrint (const System sys)
 		{
 		  eprintf ("at least");
 		}
-	      eprintf (" %i)", cl_scan->failed);
+	      eprintf (" %i variant", cl_scan->failed);
+	      if (cl_scan->failed != 1)
+		{
+		  eprintf ("s");
+		}
+	      eprintf ("]");
 	    }
 	  else
 	    {
@@ -478,7 +494,7 @@ timersPrint (const System sys)
 	      if (cl_scan->count == 0)
 		{
 		  /* not encountered */
-		  eprintf ("(does not occur)");
+		  eprintf ("[does not occur]");
 		}
 	      else
 		{
@@ -486,12 +502,12 @@ timersPrint (const System sys)
 		  if (cl_scan->complete)
 		    {
 		      /* complete proof */
-		      eprintf ("(proof of correctness)");
+		      eprintf ("[proof of correctness]");
 		    }
 		  else
 		    {
 		      /* only due to bounds */
-		      eprintf ("(no attack within bounds)");
+		      eprintf ("[no attack within bounds]");
 		      if (cl_scan->timebound)
 			eprintf ("\ttime=%i", get_time_limit ());
 		    }
@@ -501,7 +517,7 @@ timersPrint (const System sys)
 	  /* any warnings */
 	  if (cl_scan->warnings)
 	    {
-	      eprintf ("\t(read the warnings for more information)");
+	      eprintf ("\t[read the warnings for more information]");
 	    }
 
 	  /* proceed to next claim */
