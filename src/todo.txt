@@ -1,15 +1,7 @@
-- Cleanup claim output: merge stuff into single claim triplets, maybe
-  sanitize some of the output for claims to be more 'to the point'
-- Add something like 'remove all claims' switch and corresponding
-  'add default claims'
-- Add something of a 'history list of bound goals', through the arachne
-  engine. Then, put a limit on the amount of times some goal occurs: the
-  goal selection might ignore that goal then, for further selection.
-- Maybe it helps to fix the agents of the claim run (i.e. all different
-  agents?, this restricts the attacks somewhat), make a switch for this.
+- Add SCYTHERDIR environment variable: colon-separated list of
+  directories to search for input files.
 - SConstruct file should check whether ctags actually exists (avoiding
   errors)
 - Proof output should be XML, with an external converter to dot format.
-- States XML output, with limiter (for explanations/analysis)
 - Internal hash over input files (maybe after parsing?) and switch
   structure. This would make a caching mechanism much easier.
