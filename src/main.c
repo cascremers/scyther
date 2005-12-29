@@ -547,8 +547,7 @@ timersPrint (const System sys)
 		  if (cl_scan->complete)
 		    {
 		      /* complete proof */
-		      eprintf ("[%sproof of correctness%s]", COLOR_Bold,
-			       COLOR_Reset);
+		      eprintf ("[proof of correctness]");
 		    }
 		  else
 		    {
