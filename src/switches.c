@@ -78,6 +78,7 @@ switchesInit (int argc, char **argv)
   switches.removeclaims = false;	// default: leave claims from spdl file
   switches.addreachableclaim = false;	// add 'reachable' claims
   switches.addallclaims = false;	// add all sorts of claims
+  switches.check = false;	// check the protocol for termination etc. (default off)
 
   // Output
   switches.output = SUMMARY;	// default is to show a summary
@@ -376,7 +377,7 @@ switcher (const int process, int index, int commandline)
   /* ==================
    *  Generic options
    */
-  if (detect ('A', "arachne", 0))
+  if (detect (' ', "arachne", 0))
     {
       if (!process)
 	{
@@ -392,14 +393,14 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('M', "modelchecker", 0))
+  if (detect (' ', "modelchecker", 0))
     {
       if (!process)
 	{
 	  /*
 	   * Discourage
 	   *
-	   helptext ("-M,--modelchecker",
+	   helptext ("   --modelchecker",
 	   "select Model checking engine [Arachne]");
 	   */
 	}
@@ -415,7 +416,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-d,--dot-output", "show attack output in dot format");
+	  helptext ("-d, --dot-output", "show attack output in dot format");
 	}
       else
 	{
@@ -429,7 +430,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-x,--xml-output", "show attack output in XML format");
+	  helptext ("-x, --xml-output", "show attack output in XML format");
 	}
       else
 	{
@@ -439,11 +440,14 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('p', "proof", 0))
+  if (detect (' ', "proof", 0))
     {
       if (!process)
 	{
-	  helptext ("-p,--proof", "show explicit proof");
+	  /*
+	   * discourage: not very readable for non-experts yet
+	   helptext ("    --proof", "show explicit proof");
+	   */
 	}
       else
 	{
@@ -453,12 +457,76 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('c', "class", 0))
+  if (detect (' ', "remove-claims", 0))
     {
       if (!process)
 	{
-	  helptext ("-c,--class",
-		    "generate full class (show uninstantiated variables)");
+	  /* discourage:
+	   *
+	   * Causes all existing claims in the specification to be skipped.
+	   */
+	}
+      else
+	{
+	  switches.removeclaims = true;
+	  return index;
+	}
+    }
+
+  if (detect ('c', "check", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-c, --check",
+		    "disable intruder and run statespace check. For correct protocols, end of roles should be reachable");
+	}
+      else
+	{
+	  switches.check = true;	// check (influences the number of runs after scanning the spdl file, setting it to the protocol role count)
+	  switches.intruder = false;	// disable intruder
+	  switches.removeclaims = true;	// remove parsed claims
+	  switches.addreachableclaim = true;	// add reachability claims
+	  return index;
+	}
+    }
+
+  if (detect ('a', "auto-claims", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-a, --auto-claims",
+		    "ignore any existing claims and automatically generate claims");
+	}
+      else
+	{
+	  switches.removeclaims = true;
+	  switches.addallclaims = true;
+	  return index;
+	}
+    }
+
+  if (detect ('s', "state-space", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-s, --state-space",
+		    "ignore any existing claims and add 'reachable' claims to generate the full state space");
+	}
+      else
+	{
+	  switches.removeclaims = true;	// remove parsed claims
+	  switches.addreachableclaim = true;	// add reachability claims
+	  switches.prune = 0;	// do not prune anything
+	  return index;
+	}
+    }
+
+  if (detect ('C', "class", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-C, --class",
+		    "generate full class (show uninstantiated variables in state output)");
 	}
       else
 	{
@@ -480,53 +548,6 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "remove-claims", 0))
-    {
-      if (!process)
-	{
-	  /* discourage:
-	   *
-	   * Causes all existing claims in the specification to be skipped.
-	   */
-	}
-      else
-	{
-	  switches.removeclaims = true;
-	  return index;
-	}
-    }
-
-  if (detect ('C', "generate-claims", 0))
-    {
-      if (!process)
-	{
-	  helptext ("-C,--generate-claims",
-		    "ignore any existing claims and automatically generate new claims");
-	}
-      else
-	{
-	  switches.removeclaims = true;
-	  switches.addallclaims = true;
-	  return index;
-	}
-    }
-
-  if (detect ('G', "generate-semibundles", 0))
-    {
-      if (!process)
-	{
-	  helptext ("-G,--generate-statespace",
-		    "ignore any existing claims and add 'reachable' claims to generate the full state space");
-	}
-      else
-	{
-	  switches.removeclaims = true;	// remove parsed claims
-	  switches.addreachableclaim = true;	// add reachability claims
-	  switches.prune = 0;	// do not prune anything
-	  return index;
-	}
-    }
-
   /* ==================
    *  Bounding options
    */
@@ -539,8 +560,8 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-m,--match=<int>",
-		    "matching method [0] (0:Typed,1:Basic,2:Typeless)");
+	  helptext ("-m, --match=<int>",
+		    "type matching method [0] 0: No type-flaws allowed, 1: Allow basic type-flaws only, 2: Allow all type-flaws");
 	}
       else
 	{
@@ -554,7 +575,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  /* Not shown in from help, as we don't want to encourage this
-	     helptext ("-T,--timer=<int>", "maximum time in seconds [inf]");
+	     helptext ("-T, --timer=<int>", "maximum time in seconds [inf]");
 	   */
 	}
       else
@@ -568,7 +589,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-r,--max-runs=<int>",
+	  helptext ("-r, --max-runs=<int>",
 		    "maximum number of runs in the system [5]. Set to 0 for unbounded search");
 	}
       else
@@ -591,7 +612,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  /* not really needed if you prune runs
-	     helptext ("-l,--max-length=<int>",
+	     helptext ("-l, --max-length=<int>",
 	     "prune traces longer than <int> events [inf]");
 	   */
 	}
@@ -602,12 +623,12 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('a', "all-attacks", 0))
+  if (detect ('A', "all-attacks", 0))
     {
       if (!process)
 	{
-	  helptext ("-a,--all-attacks",
-		    "generate all attacks instead of just one");
+	  helptext ("-A,- -all-attacks",
+		    "generate all attacks within the state space instead of just one");
 	}
       else
 	{
@@ -621,7 +642,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  /* not very important
-	     helptext ("--max-attacks=<int>", "when not 0, maximum number of attacks [0]");
+	     helptext ("    --max-attacks=<int>", "when not 0, maximum number of attacks [0]");
 	   */
 	}
       else
@@ -631,12 +652,12 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('P', "prune", 1))
+  if (detect (' ', "prune", 1))
     {
       if (!process)
 	{
 	  /* not very important
-	     helptext ("-P,--prune=<int>", "pruning method when an attack is found [2]");
+	     helptext ("    --prune=<int>", "pruning method when an attack is found [2]");
 	   */
 	}
       else
@@ -653,7 +674,7 @@ switcher (const int process, int index, int commandline)
 	  /*
 	   * Why?
 	   *
-	   helptext ("-H,--human-readable",
+	   helptext ("-H, --human-readable",
 	   "try to make the output human-friendly (e.g. in XML).");
 	   */
 	}
@@ -670,7 +691,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  /* for experts only
-	     helptext ("--ra-tupling", "compile using right-associative tupling");
+	     helptext ("    --ra-tupling", "compile using right-associative tupling");
 	   */
 	}
       else
@@ -685,7 +706,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  /* for experts only
-	     helptext ("--la-tupling", "compile using left-associative tupling");
+	     helptext ("    --la-tupling", "compile using left-associative tupling");
 	   */
 	}
       else
@@ -700,7 +721,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  /* for experts only
-	     helptext ("--tupling", "tupling type to use");
+	     helptext ("    --tupling", "tupling type to use");
 	   */
 	}
       else
@@ -721,40 +742,35 @@ switcher (const int process, int index, int commandline)
      }
    */
 
-  if (detect ('L', "latex", 0))
-    {
-      if (!process)
-	{
-	  /*
-	   * Obsolete
-	   *
-	   helptext ("-L,--latex", "output attacks in LaTeX format [ASCII]");
-	   */
-	}
-      else
-	{
-	  switches.latex = 1;
-	  return index;
-	}
-    }
+  /* obsolete, worked for modelchecker
+   *
+   if (detect (' ', "latex", 0))
+   {
+   if (!process)
+   {
+   helptext ("   --latex", "output attacks in LaTeX format [ASCII]");
+   }
+   else
+   {
+   switches.latex = 1;
+   return index;
+   }
+   }
 
-  if (detect (' ', "state-space", 0))
-    {
-      if (!process)
-	{
-	  /*
-	   * Obsolete
-	   *
-	   helptext ("--state-space",
-	   "output state space graph (in DOT format)");
-	   */
-	}
-      else
-	{
-	  switches.output = STATESPACE;
-	  return index;
-	}
-    }
+   if (detect (' ', "state-space", 0))
+   {
+   if (!process)
+   {
+   helptext ("--state-space",
+   "output state space graph (in DOT format)");
+   }
+   else
+   {
+   switches.output = STATESPACE;
+   return index;
+   }
+   }
+   */
 
   /* ==================
    *  Arachne only
@@ -766,12 +782,12 @@ switcher (const int process, int index, int commandline)
      }
    */
 
-  if (detect ('G', "goal-select", 1))
+  if (detect (' ', "goal-select", 1))
     {
       if (!process)
 	{
 	  /* discourage: hide
-	     helptext ("-G,--goal-select=<int>",
+	     helptext ("    --goal-select=<int>",
 	     "use goal selection method <int> [3]");
 	   */
 	}
@@ -796,7 +812,7 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "no-intruder", 0))
+  if (detect (' ', "disable-intruder", 0))
     {
       if (!process)
 	{
@@ -846,7 +862,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  /* fairly technical, untested pruning */
+	  /* fairly technical */
 	}
       else
 	{
@@ -895,7 +911,7 @@ switcher (const int process, int index, int commandline)
   if (!process)
     printf ("Misc. switches:\n");
 
-  if (detect ('E', "echo", 0))
+  if (detect (' ', "echo", 0))
     {
       if (!process)
 	{
@@ -913,24 +929,7 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('S', "summary", 0))
-    {
-      if (!process)
-	{
-	  /*
-	   * This is now the default
-	   *
-	   helptext ("-S,--summary", "show summary only: omit attack details");
-	   */
-	}
-      else
-	{
-	  switches.output = SUMMARY;
-	  return index;
-	}
-    }
-
-  if (detect ('b', "progress-bar", 0))
+  if (detect (' ', "progress-bar", 0))
     {
       if (!process)
 	{
@@ -965,7 +964,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  /* not very important: hide
-	     helptext ("-v,--version", "version information");
+	     helptext ("-v, --version", "version information");
 	   */
 	}
       else
@@ -986,7 +985,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-h,--help", "show this help");
+	  helptext ("-h, --help", "show this help");
 	}
       else
 	{
@@ -1004,7 +1003,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("--plain", "disable color terminal output");
+	  helptext ("    --plain", "disable color terminal output");
 	}
       else
 	{
@@ -1018,7 +1017,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-D,--debug=<int>", "set debug (verbosity) level. [0]");
+	  helptext ("-D, --debug=<int>", "set debug (verbosity) level. [0]");
 	}
       else
 	{
@@ -1032,7 +1031,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-o,--output=<FILE>", "output file [stdout]");
+	  helptext ("-o, --output=<FILE>", "output file [stdout]");
 	}
       else
 	{

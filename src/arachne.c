@@ -2958,6 +2958,20 @@ add_claim_specifics (const Claimlist cl, const Roledef rd)
       cl->count = statesIncrease (cl->count);
       goal_add (rd->message, 0, cl->ev, 0);	// Assumption that all claims are in run 0
     }
+
+  if (cl->type == CLAIM_Reachable)
+    {
+      if (switches.check)
+	{
+	  // For reachability claims in check mode, we restrict the number of runs to the number of roles of this protocol
+	  Protocol protocol;
+	  int rolecount;
+
+	  protocol = (Protocol) cl->protocol;
+	  rolecount = termlistLength (protocol->rolenames);
+	  switches.runs = rolecount;
+	}
+    }
 }
 
 //! Count a false claim

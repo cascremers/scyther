@@ -56,6 +56,7 @@ struct switchdata
   int removeclaims;		//!< Remove any claims in the spdl file
   int addreachableclaim;	//!< Adds 'reachable' claims to each role
   int addallclaims;		//!< Adds all sorts of claims to the roles
+  int check;			//!< Check protocol correctness
 
   // Output
   int output;			//!< From enum outputs: what should be produced. Default ATTACK.
