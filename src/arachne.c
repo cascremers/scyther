@@ -2853,23 +2853,38 @@ prune_bounds ()
   if (enoughAttacks (sys))
     return 1;
 
-  // Limit on intruder events count
-  if (switches.maxIntruderActions < INT_MAX || !(switches.intruder))
-    {
-      // Only check if actually used
-      if (!(switches.intruder)
-	  || countIntruderActions () > switches.maxIntruderActions)
-	{
-	  if (switches.output == PROOF)
-	    {
-	      indentPrint ();
-	      eprintf
-		("Pruned: more than %i encrypt/decrypt events in the semitrace.\n",
-		 switches.maxIntruderActions);
-	    }
-	  return 1;
-	}
-    }
+  // Pruning involving the number of intruder actions
+  {
+    // Count intruder actions
+    int actioncount;
+
+    actioncount = countIntruderActions ();
+
+    // Limit intruder actions in any case
+    if (!(switches.intruder) && actioncount > 0)
+      {
+	if (switches.output == PROOF)
+	  {
+	    indentPrint ();
+	    eprintf
+	      ("Pruned: no intruder allowed.\n", switches.maxIntruderActions);
+	  }
+	return 1;
+      }
+
+    // Limit on intruder events count
+    if (actioncount > switches.maxIntruderActions)
+      {
+	if (switches.output == PROOF)
+	  {
+	    indentPrint ();
+	    eprintf
+	      ("Pruned: more than %i encrypt/decrypt events in the semitrace.\n",
+	       switches.maxIntruderActions);
+	  }
+	return 1;
+      }
+  }
 
   // No pruning because of bounds
   return 0;
