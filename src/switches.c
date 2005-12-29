@@ -1080,6 +1080,19 @@ switcher (const int process, int index, int commandline)
 	  return index + 1;
 	}
     }
+
+  // Now show the environment variables
+  if (!process)
+    {
+      printf
+	("\nThere are two environment variables that influence the behaviour of Scyther.\n");
+      printf
+	("  SCYTHERFLAGS    Put any default command-line options here, syntax as on the command line.\n");
+      printf
+	("  SCYTHERDIR      Colon-separated path of directories to search for input files if a file\n");
+      printf ("                  is not found in the current directory.\n");
+    }
+
   return 0;
 }
 
