@@ -109,6 +109,98 @@ switchesDone (void)
 {
 }
 
+//! Open a (protocol) file instead of stdin
+/**
+ * Uses the environment variable SCYTHERDIR to also search for files
+ */
+int
+openFileStdin (char *filename)
+{
+  const char *separators = ":;\n";
+  char *dirs;
+
+  //! try a filename and a prefix.
+  int try (char *prefix)
+  {
+    char *buffer = NULL;
+    int result = false;
+    int buflen = 0;
+    int prefixlen = 0;
+    int namelen = 0;
+    int addslash = false;
+    int nameindex = 0;
+
+    prefixlen = (int) strcspn (prefix, separators);
+    namelen = strlen (filename);
+    nameindex = prefixlen;
+
+    buflen = prefixlen + namelen + 1;
+
+    // Does the prefix end with a slash? (it should)
+    if (nameindex > 0 && prefix[nameindex - 1] != '/')
+      {
+	addslash = true;
+	buflen++;
+	nameindex++;
+      }
+
+    buffer = (char *) memAlloc (buflen);
+    memcpy (buffer, prefix, prefixlen);
+    memcpy (buffer + nameindex, filename, namelen);
+    buffer[buflen - 1] = '\0';
+
+    // Add the slash in the center
+    if (addslash)
+      {
+	buffer[nameindex - 1] = '/';
+      }
+
+    // Now try to open it
+    if (freopen (buffer, "r", stdin) != NULL)
+      {
+	result = true;
+      }
+
+    memFree (buffer, buflen);
+    return result;
+  }
+
+  // main code.
+
+  if (try (""))
+    {
+      return true;
+    }
+
+  // Now try the environment variable
+  dirs = getenv ("SCYTHERDIR");
+  while (dirs != NULL)
+    {
+      if (strlen (dirs) > 0)
+	{
+	  // try this one
+	  if (try (dirs))
+	    {
+	      return true;
+	    }
+	  // skip to next
+	  dirs = strpbrk (dirs, separators);
+	  if (dirs != NULL)
+	    {
+	      // skip over separator
+	      dirs++;
+	    }
+	}
+      else
+	{
+	  break;
+	}
+    }
+
+  // Nope
+  return false;
+}
+
 //! Process a single switch or generate help text
 /**
  * When process is false, we just generate the help text.
@@ -971,7 +1063,7 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  // not '-' input: change stdin to come from this file
-	  if (!freopen (this_arg, "r", stdin))
+	  if (!openFileStdin (this_arg))
 	    {
 	      // The file was not found. We have two options...
 	      if (this_arg[0] == '-')

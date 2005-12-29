@@ -1,5 +1,4 @@
-- Add SCYTHERDIR environment variable: colon-separated list of
-  directories to search for input files.
+- Maybe add warning for type of matching in the output, maybe stderr.
 - SConstruct file should check whether ctags actually exists (avoiding
   errors)
 - Proof output should be XML, with an external converter to dot format.
