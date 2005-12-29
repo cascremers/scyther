@@ -1090,7 +1090,8 @@ switcher (const int process, int index, int commandline)
 	("  SCYTHERFLAGS    Put any default command-line options here, syntax as on the command line.\n");
       printf
 	("  SCYTHERDIR      Colon-separated path of directories to search for input files if a file\n");
-      printf ("                  is not found in the current directory.\n");
+      printf
+	("                  is not found in the current directory. Note: use '$HOME' instead of '~'.\n");
     }
 
   return 0;
