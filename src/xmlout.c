@@ -86,7 +86,7 @@ xmlPrint (char *fmt, ...)
 
   xmlIndentPrint ();
   va_start (args, fmt);
-  eprintf (fmt, args);
+  veprintf (fmt, args);
   va_end (args);
   eprintf ("\n");
 }

@@ -309,6 +309,16 @@ symbol_fix_keylevels (void)
     }
 }
 
+//! Get output stream pointer
+FILE *
+getOutputStream (void)
+{
+  if (globalError == 0)
+    return (FILE *) globalStream;
+  else
+    return stderr;
+}
+
 //! Print out according to globalError
 /**
  * Input is comparable to printf, only depends on globalError. This should be
@@ -326,9 +336,13 @@ eprintf (char *fmt, ...)
   va_list args;
 
   va_start (args, fmt);
-  if (globalError == 0)
-    vfprintf ((FILE *) globalStream, fmt, args);
-  else
-    vfprintf (stderr, fmt, args);
+  vfprintf (getOutputStream (), fmt, args);
   va_end (args);
+}
+
+// Variable list variant
+void
+veprintf (const char *fmt, va_list args)
+{
+  vfprintf (getOutputStream (), fmt, args);
 }

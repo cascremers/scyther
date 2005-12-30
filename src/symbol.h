@@ -1,6 +1,8 @@
 #ifndef SYMBOLS
 #define SYMBOLS
 
+#include <stdarg.h>
+
 //! Size of symbol hashtable.
 /** Optimistically large. Should be a prime, says theory.
  */
@@ -47,6 +49,7 @@ void symbol_fix_keylevels (void);
 Symbol symbolNextFree (Symbol prefixsymbol);
 
 void eprintf (char *fmt, ...);
+void veprintf (const char *fmt, va_list args);
 
 extern int globalError;
 extern char *globalStream;
