@@ -925,7 +925,7 @@ xmlOutSemitrace (const System sys)
   Term buffer_only_claim_label;
 
   xmlIndentPrint ();
-  eprintf ("<attack");
+  eprintf ("<state");
   /* add trace length attribute */
   /* Note that this is the length of the attack leading up to the broken
    * claim, thus without any run extensions (--extend-nonreads).
@@ -961,7 +961,7 @@ xmlOutSemitrace (const System sys)
   xmlindent--;
   xmlPrint ("</semitrace>");
   xmlindent--;
-  xmlPrint ("</attack>");
+  xmlPrint ("</state>");
 
   /* restore only claim buffer */
   only_claim_label = buffer_only_claim_label;
