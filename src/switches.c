@@ -505,22 +505,6 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('s', "state-space", 0))
-    {
-      if (!process)
-	{
-	  helptext ("-s, --state-space",
-		    "ignore any existing claims and add 'reachable' claims to generate the full state space");
-	}
-      else
-	{
-	  switches.removeclaims = true;	// remove parsed claims
-	  switches.addreachableclaim = true;	// add reachability claims
-	  switches.prune = 0;	// do not prune anything
-	  return index;
-	}
-    }
-
   if (detect ('C', "class", 0))
     {
       if (!process)
@@ -531,6 +515,23 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.concrete = false;
+	  return index;
+	}
+    }
+
+  if (detect ('s', "state-space", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-s, --state-space",
+		    "ignore any existing claims and add 'reachable' claims. Generate full state space classes.");
+	}
+      else
+	{
+	  switches.removeclaims = true;	// remove parsed claims
+	  switches.addreachableclaim = true;	// add reachability claims
+	  switches.prune = 0;	// do not prune anything
+	  switches.concrete = false;	// show classes
 	  return index;
 	}
     }
@@ -627,7 +628,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-A,- -all-attacks",
+	  helptext ("-A, --all-attacks",
 		    "generate all attacks within the state space instead of just one");
 	}
       else

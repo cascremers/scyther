@@ -1,3 +1,5 @@
+- Scyther binary in www-ccremers hangen voor Sjouke, want daar update
+  hij de boel van.
 - Maybe add warning for type of matching in the output, maybe stderr.
 - SConstruct file should check whether ctags actually exists (avoiding
   errors)
