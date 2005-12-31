@@ -1,3 +1,22 @@
+- Notes on the new attack group displays:
+  * We want to group runs into consistent protocol runs.
+  * Minimal req. for protocol run: equal \rho.
+  * If two runs are candidates for a role in a protocol run,
+    use a metric based on order and data. Maybe data is more important:
+    if equal data, than order might be irrelevant.
+  * Maybe we should refactor the xmlOut code first. In an extreme case,
+    we first factor out all logic, and ranking, and grouping, in to a
+    prepareAttackOutput structure; with a separate source file. Later we
+    can convert this to either ASCII or DOT or XML or something.
+    Now that I think of it; XML should be a plain state probably, and we
+    could add a switch to also output more detailed attack things (is
+    that relevant?)
+- Add --filter-claim and --filter-label switches; parse as symbols, and
+  turn into (global?) terms, add to switches termlists. Later check them
+  using two new term functions:
+  const char *termSymbolString(Term t);
+  int termSymbolEqual(Term t1, Term t2);
+  Iteration through the termlist should be done by hand.
 - Maybe add warning for type of matching in the output, maybe stderr.
 - SConstruct file should check whether ctags actually exists (avoiding
   errors)
