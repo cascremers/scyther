@@ -17,6 +17,38 @@ extern Protocol INTRUDER;
 extern int proofDepth;
 extern int max_encryption_level;
 
+//! Check initiator roles
+/**
+ * Returns false iff an agent type is wrong
+ */
+int
+initiatorAgentsType (const System sys)
+{
+  int run;
+
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      // Only for initiators
+      if (sys->runs[run].role->initiator)
+	{
+	  Termlist agents;
+
+	  agents = sys->runs[run].agents;
+	  while (agents != NULL)
+	    {
+	      if (!goodAgentType (agents->term))
+		{
+		  return false;
+		}
+	      agents = agents->next;
+	    }
+	}
+      run++;
+    }
+  return true;			// seems to be okay
+}
+
 //! Prune determination because of theorems
 /**
  * When something is pruned because of this function, the state space is still
@@ -112,7 +144,7 @@ prune_theorems (const System sys)
     }
 
   // Prune wrong agents type for initators
-  if (!initiatorAgentsType ())
+  if (!initiatorAgentsType (sys))
     {
       if (switches.output == PROOF)
 	{

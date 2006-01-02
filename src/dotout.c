@@ -17,6 +17,171 @@ extern Role I_RRSD;
 #define isBound(rd)	(rd->bound)
 #define length		step
 
+//! Iterate over all events that have an incoming arrow to the current one (forgetting the intruder for a moment)
+void
+iterate_incoming_arrows (const System sys, void (*func) (), const int run,
+			 const int ev)
+{
+  /**
+   * Determine wheter to draw an incoming arrow to this event.
+   * We check all other runs, to see if they are ordered.
+   */
+  int run2;
+
+  run2 = 0;
+  while (run2 < sys->maxruns)
+    {
+      if (run2 != run && sys->runs[run2].protocol != INTRUDER)
+	{
+	  // Is this run before the event?
+	  int ev2;
+	  int found;
+
+	  found = 0;
+	  ev2 = sys->runs[run2].length;
+	  while (found == 0 && ev2 > 0)
+	    {
+	      ev2--;
+	      if (graph[graph_nodes (nodes, run2, ev2, run, ev)] != 0)
+		{
+		  found = 1;
+		}
+	    }
+
+	  if (found == 1)
+	    {
+	      // It is before the event, and thus we would like to draw it.
+	      // However, if there is another path along which we can get here, forget it
+	      /**
+	       * Note that this algorithm is similar to Floyd's algorithm for all shortest paths.
+	       * The goal here is to select only the path with distance 1 (as viewed from the regular runs),
+	       * so we can simplify stuff a bit.
+	       * Nevertheless, using Floyd first would probably be faster.
+	       */
+	      int other_route;
+	      int run3;
+	      int ev3;
+
+	      other_route = 0;
+	      run3 = 0;
+	      ev3 = 0;
+	      while (other_route == 0 && run3 < sys->maxruns)
+		{
+		  if (sys->runs[run3].protocol != INTRUDER)
+		    {
+		      ev3 = 0;
+		      while (other_route == 0 && ev3 < sys->runs[run3].length)
+			{
+			  if (graph
+			      [graph_nodes
+			       (nodes, run2, ev2, run3, ev3)] != 0
+			      &&
+			      graph[graph_nodes
+				    (nodes, run3, ev3, run, ev)] != 0)
+			    {
+			      // other route found
+			      other_route = 1;
+			    }
+			  ev3++;
+			}
+		    }
+		  run3++;
+		}
+	      if (other_route == 0)
+		{
+		  func (run2, ev2);
+		}
+
+
+	    }
+	}
+      run2++;
+    }
+}
+
+//! Iterate over all events that have an outgoing arrow from the current one (forgetting the intruder for a moment)
+void
+iterate_outgoing_arrows (const System sys, void (*func) (), const int run,
+			 const int ev)
+{
+  /**
+   * Determine wheter to draw an incoming arrow to this event.
+   * We check all other runs, to see if they are ordered.
+   */
+  int run2;
+
+  run2 = 0;
+  while (run2 < sys->maxruns)
+    {
+      if (run2 != run && sys->runs[run2].protocol != INTRUDER)
+	{
+	  // Is this run after the event?
+	  int ev2;
+	  int found;
+
+	  found = 0;
+	  ev2 = 0;
+	  while (found == 0 && ev2 < sys->runs[run2].length)
+	    {
+	      if (graph[graph_nodes (nodes, run, ev, run2, ev2)] != 0)
+		{
+		  found = 1;
+		}
+	      else
+		{
+		  ev2++;
+		}
+	    }
+
+	  if (found == 1)
+	    {
+	      // It is after the event, and thus we would like to draw it.
+	      // However, if there is another path along which we can get there, forget it
+	      /**
+	       * Note that this algorithm is similar to Floyd's algorithm for all shortest paths.
+	       * The goal here is to select only the path with distance 1 (as viewed from the regular runs),
+	       * so we can simplify stuff a bit.
+	       * Nevertheless, using Floyd first would probably be faster.
+	       */
+	      int other_route;
+	      int run3;
+	      int ev3;
+
+	      other_route = 0;
+	      run3 = 0;
+	      ev3 = 0;
+	      while (other_route == 0 && run3 < sys->maxruns)
+		{
+		  if (sys->runs[run3].protocol != INTRUDER)
+		    {
+		      ev3 = 0;
+		      while (other_route == 0 && ev3 < sys->runs[run3].length)
+			{
+			  if (graph
+			      [graph_nodes
+			       (nodes, run, ev, run3, ev3)] != 0
+			      &&
+			      graph[graph_nodes
+				    (nodes, run3, ev3, run2, ev2)] != 0)
+			    {
+			      // other route found
+			      other_route = 1;
+			    }
+			  ev3++;
+			}
+		    }
+		  run3++;
+		}
+	      if (other_route == 0)
+		{
+		  func (run2, ev2);
+		}
+	    }
+	}
+      run2++;
+    }
+}
+
 //! Display the current semistate using dot output format.
 /**
  * This is not as nice as we would like it. Furthermore, the function is too big, and needs to be split into functional parts that
@@ -326,7 +491,7 @@ dotSemiState (const System sys)
 	      }
 
 	      incoming_arrow_count = 0;
-	      iterate_incoming_arrows (incoming_arrow, run, ev);
+	      iterate_incoming_arrows (sys, incoming_arrow, run, ev);
 	      /*
 	       * Currently disabled: generates too much garbage
 	       */

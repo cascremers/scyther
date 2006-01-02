@@ -17,6 +17,7 @@
 #include "arachne.h"
 #include "specialterm.h"
 #include "switches.h"
+#include "memory.h"
 
 #define MATCH_NONE 0
 #define MATCH_ORDER 1
@@ -27,6 +28,7 @@
 #define LABEL_TODO -2
 
 extern int globalError;
+extern int attack_leastcost;
 
 // Debugging the NI-SYNCH checks
 //#define OKIDEBUG
@@ -771,4 +773,53 @@ add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd)
 	  switches.runs = rolecount;
 	}
     }
+}
+
+//! Count a false claim
+/**
+ * Counts global attacks as well as claim instances.
+ */
+void
+count_false_claim (const System sys)
+{
+  sys->attackid++;
+  sys->current_claim->failed = statesIncrease (sys->current_claim->failed);
+}
+
+
+//! Check properties
+int
+property_check (const System sys)
+{
+  int flag;
+  int cost;
+
+  flag = 1;
+
+  /* Do we need any? */
+  if (enoughAttacks (sys))
+    return flag;
+
+  /**
+   * By the way the claim is handled, this automatically means a flaw.
+   */
+  count_false_claim (sys);
+  if (switches.output == ATTACK)
+    {
+      arachneOutputAttack ();
+    }
+  // Store attack cost if cheaper
+  cost = attackCost (sys);
+  if (cost < attack_leastcost)
+    {
+      // Cheapest attack
+      attack_leastcost = cost;
+      if (switches.output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("New cheaper attack found with cost %i.\n", cost);
+	}
+    }
+
+  return flag;
 }

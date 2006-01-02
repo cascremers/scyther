@@ -37,6 +37,7 @@
 #include "dotout.h"
 #include "prune_bounds.h"
 #include "prune_theorems.h"
+#include "arachne.h"
 
 extern int *graph;
 extern int nodes;
@@ -61,15 +62,6 @@ static int indentDepth;
 static int prevIndentDepth;
 static int indentDepthChanges;
 static FILE *attack_stream;
-
-struct goalstruct
-{
-  int run;
-  int index;
-  Roledef rd;
-};
-
-typedef struct goalstruct Goal;
 
 /**
  * Forward declarations
@@ -503,71 +495,6 @@ countIntruderActions ()
       run++;
     }
   return count;
-}
-
-//! Check this variables whether it is a good agent type
-/**
- * Checks for leaf/etc and correct agent type
- */
-int
-goodAgentType (Term agent)
-{
-  agent = deVar (agent);
-
-  if (!realTermLeaf (agent))
-    {				// not a leaf
-      return false;
-    }
-  else
-    {				// real leaf
-      if (isTermVariable (agent))
-	{
-	  // Variable: check type consistency (should have a solution)
-	  // Not yet: depends on matching mode also
-	}
-      else
-	{
-	  // Constant: allow only exact type
-	  if (!inTermlist (agent->stype, TERM_Agent))
-	    {
-	      return false;
-	    }
-	}
-    }
-
-  return true;
-}
-
-//! Check initiator roles
-/**
- * Returns false iff an agent type is wrong
- */
-int
-initiatorAgentsType ()
-{
-  int run;
-
-  run = 0;
-  while (run < sys->maxruns)
-    {
-      // Only for initiators
-      if (sys->runs[run].role->initiator)
-	{
-	  Termlist agents;
-
-	  agents = sys->runs[run].agents;
-	  while (agents != NULL)
-	    {
-	      if (!goodAgentType (agents->term))
-		{
-		  return false;
-		}
-	      agents = agents->next;
-	    }
-	}
-      run++;
-    }
-  return true;			// seems to be okay
 }
 
 //------------------------------------------------------------------------
@@ -1078,234 +1005,6 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
   }
   semiRunDestroy ();
   return flag;
-}
-
-//! Convert a list of ranks to a list of lines (0..)
-/**
- * The interesting bit is that the ranks include the intruder events. Thus, we need to filter those out of
- * the system.
- *
- * Returns the baseline of the highest number + 1; thus the number of lines.
- */
-int
-ranks_to_lines (int *ranks, const int nodes)
-{
-  int ranksdone, baseline;
-
-  ranksdone = 0;		// All values lower than this have been done, so it is the next value
-  baseline = 0;			// The line numbers that get assigned
-  while (1)
-    {
-      int newlow;
-      int run;
-      int i;
-
-      // Determine lowest rank for non-intruder events, that has not been done
-      newlow = INT_MAX;
-      run = 0;
-      while (run < sys->maxruns)
-	{
-	  if (sys->runs[run].protocol != INTRUDER)
-	    {
-	      int ev;
-
-	      ev = 0;
-	      while (ev < sys->runs[run].step)
-		{
-		  int nrank;
-
-		  nrank = ranks[node_number (run, ev)];
-		  if (nrank < newlow && nrank >= ranksdone)
-		    {
-		      newlow = nrank;
-		    }
-		  ev++;
-		}
-	    }
-	  run++;
-	}
-      if (newlow == INT_MAX)
-	{
-	  // All are done
-	  return baseline;
-	}
-      // Convert the nodes between ranksdone and newlow to baseline
-      i = 0;
-      while (i < nodes)
-	{
-	  if (ranks[i] <= newlow && ranks[i] >= ranksdone)
-	    {
-	      ranks[i] = baseline;
-	    }
-	  i++;
-	}
-      baseline++;
-      ranksdone = newlow + 1;
-    }
-}
-
-
-//! Iterate over all events that have an incoming arrow to the current one (forgetting the intruder for a moment)
-void
-iterate_incoming_arrows (void (*func) (), const int run, const int ev)
-{
-  /**
-   * Determine wheter to draw an incoming arrow to this event.
-   * We check all other runs, to see if they are ordered.
-   */
-  int run2;
-
-  run2 = 0;
-  while (run2 < sys->maxruns)
-    {
-      if (run2 != run && sys->runs[run2].protocol != INTRUDER)
-	{
-	  // Is this run before the event?
-	  int ev2;
-	  int found;
-
-	  found = 0;
-	  ev2 = sys->runs[run2].length;
-	  while (found == 0 && ev2 > 0)
-	    {
-	      ev2--;
-	      if (graph[graph_nodes (nodes, run2, ev2, run, ev)] != 0)
-		{
-		  found = 1;
-		}
-	    }
-
-	  if (found == 1)
-	    {
-	      // It is before the event, and thus we would like to draw it.
-	      // However, if there is another path along which we can get here, forget it
-	      /**
-	       * Note that this algorithm is similar to Floyd's algorithm for all shortest paths.
-	       * The goal here is to select only the path with distance 1 (as viewed from the regular runs),
-	       * so we can simplify stuff a bit.
-	       * Nevertheless, using Floyd first would probably be faster.
-	       */
-	      int other_route;
-	      int run3;
-	      int ev3;
-
-	      other_route = 0;
-	      run3 = 0;
-	      ev3 = 0;
-	      while (other_route == 0 && run3 < sys->maxruns)
-		{
-		  if (sys->runs[run3].protocol != INTRUDER)
-		    {
-		      ev3 = 0;
-		      while (other_route == 0 && ev3 < sys->runs[run3].length)
-			{
-			  if (graph
-			      [graph_nodes
-			       (nodes, run2, ev2, run3, ev3)] != 0
-			      &&
-			      graph[graph_nodes
-				    (nodes, run3, ev3, run, ev)] != 0)
-			    {
-			      // other route found
-			      other_route = 1;
-			    }
-			  ev3++;
-			}
-		    }
-		  run3++;
-		}
-	      if (other_route == 0)
-		{
-		  func (run2, ev2);
-		}
-
-
-	    }
-	}
-      run2++;
-    }
-}
-
-//! Iterate over all events that have an outgoing arrow from the current one (forgetting the intruder for a moment)
-void
-iterate_outgoing_arrows (void (*func) (), const int run, const int ev)
-{
-  /**
-   * Determine wheter to draw an incoming arrow to this event.
-   * We check all other runs, to see if they are ordered.
-   */
-  int run2;
-
-  run2 = 0;
-  while (run2 < sys->maxruns)
-    {
-      if (run2 != run && sys->runs[run2].protocol != INTRUDER)
-	{
-	  // Is this run after the event?
-	  int ev2;
-	  int found;
-
-	  found = 0;
-	  ev2 = 0;
-	  while (found == 0 && ev2 < sys->runs[run2].length)
-	    {
-	      if (graph[graph_nodes (nodes, run, ev, run2, ev2)] != 0)
-		{
-		  found = 1;
-		}
-	      else
-		{
-		  ev2++;
-		}
-	    }
-
-	  if (found == 1)
-	    {
-	      // It is after the event, and thus we would like to draw it.
-	      // However, if there is another path along which we can get there, forget it
-	      /**
-	       * Note that this algorithm is similar to Floyd's algorithm for all shortest paths.
-	       * The goal here is to select only the path with distance 1 (as viewed from the regular runs),
-	       * so we can simplify stuff a bit.
-	       * Nevertheless, using Floyd first would probably be faster.
-	       */
-	      int other_route;
-	      int run3;
-	      int ev3;
-
-	      other_route = 0;
-	      run3 = 0;
-	      ev3 = 0;
-	      while (other_route == 0 && run3 < sys->maxruns)
-		{
-		  if (sys->runs[run3].protocol != INTRUDER)
-		    {
-		      ev3 = 0;
-		      while (other_route == 0 && ev3 < sys->runs[run3].length)
-			{
-			  if (graph
-			      [graph_nodes
-			       (nodes, run, ev, run3, ev3)] != 0
-			      &&
-			      graph[graph_nodes
-				    (nodes, run3, ev3, run2, ev2)] != 0)
-			    {
-			      // other route found
-			      other_route = 1;
-			    }
-			  ev3++;
-			}
-		    }
-		  run3++;
-		}
-	      if (other_route == 0)
-		{
-		  func (run2, ev2);
-		}
-	    }
-	}
-      run2++;
-    }
 }
 
 //! Print the current semistate
@@ -1866,17 +1565,6 @@ bind_goal (const Binding b)
     }
 }
 
-//! Count a false claim
-/**
- * Counts global attacks as well as claim instances.
- */
-void
-count_false ()
-{
-  sys->attackid++;
-  sys->current_claim->failed = statesIncrease (sys->current_claim->failed);
-}
-
 //! Create a generic new term of the same type, with a new run identifier.
 /**
  * Output: the first element of the returned list.
@@ -1917,6 +1605,10 @@ createNewTermGeneric (Termlist tl, Term t)
 
 //! Create a new term with incremented run rumber, starting at sys->maxruns.
 /**
+ * This is a rather intricate function that tries to generate new terms of a
+ * certain type. It first looks up things in the initial knowledge, checking
+ * whether they are used already. After that, new ones are generated.
+ *
  * Output: the first element of the returned list.
  */
 Termlist
@@ -1961,6 +1653,9 @@ createNewTerm (Termlist tl, Term t, int isagent)
 }
 
 //! Delete a term made in the previous constructions
+/**
+ * \sa createNewTerm
+ */
 void
 deleteNewTerm (Term t)
 {
@@ -1974,6 +1669,12 @@ deleteNewTerm (Term t)
 }
 
 //! Make a trace concrete
+/**
+ * People find reading variables in attack outputs difficult.
+ * Thus, we instantiate them in a sensible way to make things more readable.
+ *
+ * \sa makeTraceClass
+ */
 Termlist
 makeTraceConcrete (const System sys)
 {
@@ -2028,6 +1729,9 @@ makeTraceConcrete (const System sys)
 }
 
 //! Make a trace a class again
+/**
+ * \sa makeTraceConcrete
+ */
 void
 makeTraceClass (const System sys, Termlist varlist)
 {
@@ -2136,43 +1840,6 @@ arachneOutputAttack ()
 // Main logic core
 //------------------------------------------------------------------------
 
-//! Check properties
-int
-property_check ()
-{
-  int flag;
-  int cost;
-
-  flag = 1;
-
-  /* Do we need any? */
-  if (enoughAttacks (sys))
-    return flag;
-
-  /**
-   * By the way the claim is handled, this automatically means a flaw.
-   */
-  count_false ();
-  if (switches.output == ATTACK)
-    {
-      arachneOutputAttack ();
-    }
-  // Store attack cost if cheaper
-  cost = attackCost (sys);
-  if (cost < attack_leastcost)
-    {
-      // Cheapest attack
-      attack_leastcost = cost;
-      if (switches.output == PROOF)
-	{
-	  indentPrint ();
-	  eprintf ("New cheaper attack found with cost %i.\n", cost);
-	}
-    }
-
-  return flag;
-}
-
 
 //! Selector to select the first tuple goal.
 /**
@@ -2279,7 +1946,7 @@ iterate ()
 		      sys->claims = statesIncrease (sys->claims);
 		      sys->current_claim->count =
 			statesIncrease (sys->current_claim->count);
-		      flag = property_check ();
+		      flag = property_check (sys);
 		    }
 		  else
 		    {

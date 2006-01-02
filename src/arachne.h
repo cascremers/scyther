@@ -12,8 +12,14 @@ int isTriviallyKnownAtArachne (const System sys, const Term t, const int run,
 			       const int index);
 int isTriviallyKnownAfterArachne (const System sys, const Term t,
 				  const int run, const int index);
-int ranks_to_lines (int *ranks, const int nodes);
-void iterate_incoming_arrows (void (*func) (), const int run, const int ev);
-void iterate_outgoing_arrows (void (*func) (), const int run, const int ev);
+
+struct goalstruct
+{
+  int run;
+  int index;
+  Roledef rd;
+};
+
+typedef struct goalstruct Goal;
 
 #endif

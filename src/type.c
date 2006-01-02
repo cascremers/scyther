@@ -444,3 +444,36 @@ checkAllSubstitutions (const System sys)
   termlistDelete (groundvars);
   return allvalid;
 }
+
+//! Check this variables whether it is a good agent type
+/**
+ * Checks for leaf/etc and correct agent type
+ */
+int
+goodAgentType (Term agent)
+{
+  agent = deVar (agent);
+
+  if (!realTermLeaf (agent))
+    {				// not a leaf
+      return false;
+    }
+  else
+    {				// real leaf
+      if (isTermVariable (agent))
+	{
+	  // Variable: check type consistency (should have a solution)
+	  // Not yet: depends on matching mode also
+	}
+      else
+	{
+	  // Constant: allow only exact type
+	  if (!inTermlist (agent->stype, TERM_Agent))
+	    {
+	      return false;
+	    }
+	}
+    }
+
+  return true;
+}
