@@ -1,6 +1,6 @@
 #ifndef COST
 #define COST
 
-int attackCost(const System sys);
+int attackCost (const System sys);
 
 #endif

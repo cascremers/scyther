@@ -7,8 +7,8 @@ extern int *graph;
 extern int nodes;
 extern int graph_uordblks;
 
-extern Protocol INTRUDER;		// Pointers, to be set by the Init of arachne.c
-extern Role I_M;			// Same here.
+extern Protocol INTRUDER;	// Pointers, to be set by the Init of arachne.c
+extern Role I_M;		// Same here.
 extern Role I_RRS;
 extern Role I_RRSD;
 
@@ -63,7 +63,7 @@ dotSemiState (const System sys)
   termPrint (sys->current_claim->type);
   eprintf ("\";\n");
 
-  from_intruder_count = 0;		// number of terms that can come from the initial knowledge
+  from_intruder_count = 0;	// number of terms that can come from the initial knowledge
 
   // Needed for the bindings later on: create graph
   goal_graph_create ();		// create graph
@@ -333,7 +333,7 @@ dotSemiState (const System sys)
 	      if (false && incoming_arrow_count == 0)
 		{
 		  // No incoming arrows: can be generated from initial intruder knowledge
-		  
+
 		  from_intruder_count++;
 		  eprintf ("\tintruder -> ");
 		  node (run, ev);
@@ -349,7 +349,8 @@ dotSemiState (const System sys)
   // Third, the intruder node (if needed)
   if (from_intruder_count > 0)
     {
-      eprintf ("\tintruder [label=\"Initial intruder knowledge\", color=red];\n");
+      eprintf
+	("\tintruder [label=\"Initial intruder knowledge\", color=red];\n");
     }
 
   // Fourth, all ranking info
@@ -413,4 +414,3 @@ dotSemiState (const System sys)
   // close graph
   eprintf ("};\n\n");
 }
-

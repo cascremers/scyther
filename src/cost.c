@@ -12,7 +12,8 @@
 // Private methods
 //************************************************************************
 
-int selfInitiator(const System sys, const int run)
+int
+selfInitiator (const System sys, const int run)
 {
   int self_initiator;
 
@@ -47,7 +48,8 @@ int selfInitiator(const System sys, const int run)
 }
 
 //! Count the number of any self-initiators
-int selfInitiators(const System sys)
+int
+selfInitiators (const System sys)
 {
   int count;
   int run;
@@ -77,14 +79,15 @@ int selfInitiators(const System sys)
  *
  * A lower value (closer to 0) is a more feasible attack.
  */
-int attackCost(const System sys)
+int
+attackCost (const System sys)
 {
   int cost;
 
   cost = 0;
 
-  cost += get_semitrace_length();
-  cost += 5 * selfInitiators(sys);
+  cost += get_semitrace_length ();
+  cost += 5 * selfInitiators (sys);
 
   return cost;
 }

@@ -938,7 +938,7 @@ termlistMinusTermlist (const Termlist tlbig, const Termlist tlsmall)
       else
 	{
 	  // This item will remain in the list.
-          tl = tl->next;
+	  tl = tl->next;
 	}
     }
   return tlnewstart;
