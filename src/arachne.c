@@ -235,32 +235,6 @@ binding_indent_print (const Binding b, const int flag)
   eprintf ("\n");
 }
 
-//! Determine whether a term is a functor
-int
-isTermFunctionName (Term t)
-{
-  t = deVar (t);
-  if (t != NULL && isTermLeaf (t) && t->stype != NULL
-      && inTermlist (t->stype, TERM_Function))
-    return 1;
-  return 0;
-}
-
-//! Determine whether a term is a function application. Returns the function term.
-Term
-getTermFunction (Term t)
-{
-  t = deVar (t);
-  if (t != NULL)
-    {
-      if (realTermEncrypt (t) && isTermFunctionName (TermKey (t)))
-	{
-	  return TermKey (t);
-	}
-    }
-  return NULL;
-}
-
 //! Keylevel tester: can this term ever be sent at this keylevel?
 int
 isKeylevelRight (Term t, const int kl)
@@ -1892,90 +1866,6 @@ bind_goal (const Binding b)
     }
 }
 
-//! Prune determination for specific properties
-/**
- * Sometimes, a property holds in part of the tree. Thus, we don't need to explore that part further if we want to find an attack.
- *
- *@returns true iff this state is invalid for some reason
- */
-int
-prune_claim_specifics ()
-{
-  if (sys->current_claim->type == CLAIM_Niagree)
-    {
-      if (arachne_claim_niagree (sys, 0, sys->current_claim->ev))
-	{
-	  sys->current_claim->count =
-	    statesIncrease (sys->current_claim->count);
-	  if (switches.output == PROOF)
-	    {
-	      indentPrint ();
-	      eprintf
-		("Pruned: niagree holds in this part of the proof tree.\n");
-	    }
-	  return 1;
-	}
-    }
-  if (sys->current_claim->type == CLAIM_Nisynch)
-    {
-      if (arachne_claim_nisynch (sys, 0, sys->current_claim->ev))
-	{
-	  sys->current_claim->count =
-	    statesIncrease (sys->current_claim->count);
-	  if (switches.output == PROOF)
-	    {
-	      indentPrint ();
-	      eprintf
-		("Pruned: nisynch holds in this part of the proof tree.\n");
-	    }
-	  return 1;
-	}
-    }
-  return 0;
-}
-
-//! Setup system for specific claim test
-add_claim_specifics (const Claimlist cl, const Roledef rd)
-{
-  if (cl->type == CLAIM_Secret)
-    {
-      /**
-       * Secrecy claim
-       */
-      if (switches.output == PROOF)
-	{
-	  indentPrint ();
-	  eprintf ("* To verify the secrecy claim, we add the term ");
-	  termPrint (rd->message);
-	  eprintf (" as a goal.\n");
-	  indentPrint ();
-	  eprintf
-	    ("* If all goals can be bound, this constitutes an attack.\n");
-	}
-
-      /**
-       * We say that a state exists for secrecy, but we don't really test wheter the claim can
-       * be reached (without reaching the attack).
-       */
-      cl->count = statesIncrease (cl->count);
-      goal_add (rd->message, 0, cl->ev, 0);	// Assumption that all claims are in run 0
-    }
-
-  if (cl->type == CLAIM_Reachable)
-    {
-      if (switches.check)
-	{
-	  // For reachability claims in check mode, we restrict the number of runs to the number of roles of this protocol
-	  Protocol protocol;
-	  int rolecount;
-
-	  protocol = (Protocol) cl->protocol;
-	  rolecount = termlistLength (protocol->rolenames);
-	  switches.runs = rolecount;
-	}
-    }
-}
-
 //! Count a false claim
 /**
  * Counts global attacks as well as claim instances.
@@ -2326,7 +2216,7 @@ iterate ()
   flag = 1;
   if (!prune_theorems (sys))
     {
-      if (!prune_claim_specifics ())
+      if (!prune_claim_specifics (sys))
 	{
 	  if (!prune_bounds (sys))
 	    {
@@ -2582,7 +2472,7 @@ arachne ()
 	      /**
 	       * Add specific goal info
 	       */
-		  add_claim_specifics (cl,
+		  add_claim_specifics (sys, cl,
 				       roledef_shift (sys->runs[run].start,
 						      cl->ev));
 

@@ -416,4 +416,5 @@ select_goal (const System sys)
 	}
       error ("Unknown value (<0) for --goal-select.");
     }
+  return NULL;
 }

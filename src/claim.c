@@ -1,10 +1,22 @@
+/**
+ *
+ *@file claim.c
+ *
+ * Claim handling for the Arachne engine.
+ *
+ */
+
 #include <stdlib.h>
+
 #include "termmap.h"
 #include "system.h"
 #include "label.h"
 #include "error.h"
 #include "debug.h"
 #include "binding.h"
+#include "arachne.h"
+#include "specialterm.h"
+#include "switches.h"
 
 #define MATCH_NONE 0
 #define MATCH_ORDER 1
@@ -674,4 +686,89 @@ arachne_claim_nisynch (const System sys, const int claim_run,
 		       const int claim_index)
 {
   return arachne_claim_authentications (sys, claim_run, claim_index, 1);
+}
+
+//! Prune determination for specific properties
+/**
+ * Sometimes, a property holds in part of the tree. Thus, we don't need to explore that part further if we want to find an attack.
+ *
+ *@returns true iff this state is invalid for some reason
+ */
+int
+prune_claim_specifics (const System sys)
+{
+  if (sys->current_claim->type == CLAIM_Niagree)
+    {
+      if (arachne_claim_niagree (sys, 0, sys->current_claim->ev))
+	{
+	  sys->current_claim->count =
+	    statesIncrease (sys->current_claim->count);
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf
+		("Pruned: niagree holds in this part of the proof tree.\n");
+	    }
+	  return 1;
+	}
+    }
+  if (sys->current_claim->type == CLAIM_Nisynch)
+    {
+      if (arachne_claim_nisynch (sys, 0, sys->current_claim->ev))
+	{
+	  sys->current_claim->count =
+	    statesIncrease (sys->current_claim->count);
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf
+		("Pruned: nisynch holds in this part of the proof tree.\n");
+	    }
+	  return 1;
+	}
+    }
+  return 0;
+}
+
+//! Setup system for specific claim test
+void
+add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd)
+{
+  if (cl->type == CLAIM_Secret)
+    {
+      /**
+       * Secrecy claim
+       */
+      if (switches.output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("* To verify the secrecy claim, we add the term ");
+	  termPrint (rd->message);
+	  eprintf (" as a goal.\n");
+	  indentPrint ();
+	  eprintf
+	    ("* If all goals can be bound, this constitutes an attack.\n");
+	}
+
+      /**
+       * We say that a state exists for secrecy, but we don't really test wheter the claim can
+       * be reached (without reaching the attack).
+       */
+      cl->count = statesIncrease (cl->count);
+      goal_add (rd->message, 0, cl->ev, 0);	// Assumption that all claims are in run 0
+    }
+
+  if (cl->type == CLAIM_Reachable)
+    {
+      if (switches.check)
+	{
+	  // For reachability claims in check mode, we restrict the number of runs to the number of roles of this protocol
+	  Protocol protocol;
+	  int rolecount;
+
+	  protocol = (Protocol) cl->protocol;
+	  rolecount = termlistLength (protocol->rolenames);
+	  switches.runs = rolecount;
+	}
+    }
 }

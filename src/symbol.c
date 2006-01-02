@@ -46,7 +46,7 @@ symbolsInit (void)
   symb_list = NULL;
   symb_alloc = NULL;
   globalError = 0;
-  globalStream = stdout;
+  globalStream = (char *) stdout;
 }
 
 //! Close symbols code.

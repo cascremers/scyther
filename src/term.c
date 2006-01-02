@@ -1352,3 +1352,29 @@ freshTermPrefix (Term prefixterm)
   freshsymbol = symbolNextFree (prefixsymbol);
   return makeTermType (GLOBAL, freshsymbol, -1);
 }
+
+//! Determine whether a term is a functor
+int
+isTermFunctionName (Term t)
+{
+  t = deVar (t);
+  if (t != NULL && isTermLeaf (t) && t->stype != NULL
+      && inTermlist (t->stype, TERM_Function))
+    return 1;
+  return 0;
+}
+
+//! Determine whether a term is a function application. Returns the function term.
+Term
+getTermFunction (Term t)
+{
+  t = deVar (t);
+  if (t != NULL)
+    {
+      if (realTermEncrypt (t) && isTermFunctionName (TermKey (t)))
+	{
+	  return TermKey (t);
+	}
+    }
+  return NULL;
+}
