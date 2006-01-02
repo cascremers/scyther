@@ -506,57 +506,6 @@ get_semitrace_length ()
   return length;
 }
 
-//! Check whether a binding (goal) is selectable
-int
-is_goal_selectable (const Binding b)
-{
-  if (b != NULL)
-    {
-      if (!b->blocked && !b->done)
-	{
-	  return 1;
-	}
-    }
-  return 0;
-}
-
-//! Count selectable goals
-int
-count_selectable_goals ()
-{
-  List bl;
-  int n;
-
-  n = 0;
-  bl = sys->bindings;
-  while (bl != NULL)
-    {
-      Binding b;
-
-      b = (Binding) bl->data;
-      if (is_goal_selectable (b))
-	{
-	  n++;
-	}
-      bl = bl->next;
-    }
-  return n;
-}
-
-//! Return first selectable goal in the list
-/**
- * The return list entry is either NULL, or a selectable goal.
- */
-List
-first_selectable_goal (List bl)
-{
-  while (bl != NULL && !is_goal_selectable ((Binding) bl->data))
-    {
-      bl = bl->next;
-    }
-  return bl;
-}
-
 //! Count intruder events
 int
 countIntruderActions ()
@@ -1385,162 +1334,6 @@ iterate_outgoing_arrows (void (*func) (), const int run, const int ev)
     }
 }
 
-//! Display the current semistate using LaTeX output format.
-/**
- * This is not as nice as we would like it. Furthermore, the function is too big, and needs to be split into functional parts that
- * will allow the generation of dot code as well.
- */
-void
-latexSemiState ()
-{
-  static int attack_number = 0;
-  int run;
-  Protocol p;
-  int *ranks;
-  int maxrank, maxline;
-
-  // Open graph
-  attack_number++;
-  eprintf ("\\begin{msc}{Attack on ");
-  p = (Protocol) sys->current_claim->protocol;
-  termPrint (p->nameterm);
-  eprintf (", role ");
-  termPrint (sys->current_claim->rolename);
-  eprintf (", claim type ");
-  termPrint (sys->current_claim->type);
-  eprintf ("}\n%% Attack number %i\n", attack_number);
-  eprintf ("\n");
-
-  // Needed for the bindings later on: create graph
-  goal_graph_create ();		// create graph
-  if (warshall (graph, nodes) == 0)	// determine closure
-    {
-      eprintf
-	("%% This graph was not completely closed transitively because it contains a cycle!\n");
-    }
-
-  ranks = memAlloc (nodes * sizeof (int));
-  maxrank = graph_ranks (graph, ranks, nodes);	// determine ranks
-
-  // Convert ranks to lines
-  maxline = ranks_to_lines (ranks, nodes);
-
-  // Draw headings (boxes)
-  run = 0;
-  while (run < sys->maxruns)
-    {
-      if (sys->runs[run].protocol != INTRUDER)
-	{
-	  eprintf ("\\declinst{r%i}{}{run %i}\n", run, run);
-	}
-      run++;
-    }
-  eprintf ("\\nextlevel\n\n");
-
-  // Draw all events (according to ranks)
-  {
-    int myline;
-
-    myline = 0;
-    while (myline < maxline)
-      {
-	int count;
-	int run;
-
-	count = 0;
-	run = 0;
-	while (run < sys->maxruns)
-	  {
-	    if (sys->runs[run].protocol != INTRUDER)
-	      {
-		int ev;
-
-		ev = 0;
-		while (ev < sys->runs[run].step)
-		  {
-		    if (myline == ranks[node_number (run, ev)])
-		      {
-			Roledef rd;
-
-			void outgoing_arrow (const int run2, const int ev2)
-			{
-			  Roledef rd2;
-			  int delta;
-
-			  rd2 = roledef_shift (sys->runs[run2].start, ev2);
-
-			  eprintf ("\\mess{");
-			  /*
-			     // Print the term
-			     // Maybe, if more than one outgoing, and different send/reads, we might want to change this a bit.
-			     if (rd->type == SEND)
-			     {
-			     if (rd2->type == CLAIM)
-			     {
-			     roledefPrint(rd);
-			     }
-			     if (rd2->type == READ)
-			     {
-			     eprintf("$");
-			     if (isTermEqual(rd->message, rd2->message))
-			     {
-			     termPrint(rd->message);
-			     }
-			     else
-			     {
-			     termPrint(rd->message);
-			     eprintf(" \\longrightarrow ");
-			     termPrint(rd2->message);
-			     }
-			     eprintf("$");
-			     }
-			     }
-			     else
-			     {
-			     roledefPrint(rd);
-			     }
-			   */
-			  /*
-			     roledefPrint (rd);
-			     eprintf (" $\\longrightarrow$ ");
-			     roledefPrint (rd2);
-			   */
-
-			  eprintf ("}{r%i}{r%i}", run, run2);
-			  delta = ranks[node_number (run2, ev2)] - myline;
-			  if (delta != 0)
-			    {
-			      eprintf ("[%i]", delta);
-			    }
-			  eprintf ("\n");
-			  count++;
-			}
-
-			// We have found an event on this line
-			// We only need to consider reads and claims, but for fun we just consider everything.
-			rd = roledef_shift (sys->runs[run].start, ev);
-			iterate_outgoing_arrows (outgoing_arrow, run, ev);
-			eprintf ("\\action{");
-			roledefPrint (rd);
-			eprintf ("}{r%i}\n", run);
-		      }
-		    ev++;
-		  }
-	      }
-	    run++;
-	  }
-	eprintf ("\\nextlevel\n");
-	myline++;
-      }
-  }
-
-  // clean memory
-  memFree (ranks, nodes * sizeof (int));	// ranks
-
-  // close graph
-  eprintf ("\\nextlevel\n\\end{msc}\n\n");
-}
-
 //! Print the current semistate
 void
 printSemiState ()
@@ -1611,392 +1404,6 @@ printSemiState ()
   eprintf ("!!\n");
   indentPrint ();
   eprintf ("!! - open: %i -\n", open);
-}
-
-//! Give an indication of the amount of consequences binding a term has
-/**
- * Given a term, returns a float. 0: maximum consequences, 1: no consequences.
- */
-float
-termBindConsequences (Term t)
-{
-  Termlist openVariables;
-
-  openVariables = termlistAddVariables (NULL, t);
-  if (openVariables == NULL)
-    {
-      // No variables, no consequences
-      return 1;
-    }
-  else
-    {
-      // For each run event in the semitrace, check whether it contains any
-      // of the open variables.
-      int totalCount;
-      int affectedCount;
-      int run;
-
-      totalCount = 0;
-      affectedCount = 0;
-      run = 0;
-      while (run < sys->maxruns)
-	{
-	  Roledef rd;
-	  int step;
-
-	  rd = sys->runs[run].start;
-	  step = 0;
-	  while (step < sys->runs[run].length)
-	    {
-	      Termlist tl;
-
-	      tl = openVariables;
-	      while (tl != NULL)
-		{
-		  if ((rd->type == READ || rd->type == SEND)
-		      && termSubTerm (rd->message, tl->term))
-		    {
-		      // This run event contains the open variable
-		      affectedCount++;
-		      tl = NULL;
-		    }
-		  else
-		    {
-		      tl = tl->next;
-		    }
-		}
-	      totalCount++;
-	      step++;
-	      rd = rd->next;
-	    }
-	  run++;
-	}
-
-      termlistDelete (openVariables);
-      if (totalCount > 0)
-	{
-	  // Valid computation
-	  return (float) (totalCount - affectedCount) / totalCount;
-	}
-      else
-	{
-	  // No consequences, ensure no division by 0
-	  return 1;
-	}
-    }
-}
-
-//! Determine whether a term is an open nonce variable
-/**
- * Does not explore subterms
- */
-int
-isOpenNonceVar (Term t)
-{
-  t = deVar (t);
-  if (realTermVariable (t))
-    {
-      return inTermlist (t->stype, TERM_Nonce);
-    }
-  else
-    {
-      return 0;
-    }
-}
-
-//! Count unique open variables in term
-/**
- */
-int
-count_open_variables (const Term t)
-{
-  Termlist tl;
-  int n;
-
-  tl = NULL;
-  termlistAddVariables (tl, t);
-  n = 0;
-  while (tl != NULL)
-    {
-      if (!inTermlist (tl->next, t))
-	{
-	  if (isOpenNonceVar (t))
-	    {
-	      n = n + 1;
-	    }
-	}
-      tl = tl->next;
-    }
-  termlistDelete (tl);
-  return n;
-}
-
-//! Athena-like factor
-/**
- * Lower is better (more nonce variables)
- */
-float
-term_noncevariables_level (const Term t)
-{
-  int onv;
-  const int enough = 2;
-
-  onv = count_open_variables (t);
-  if (onv >= enough)
-    {
-      return 0;
-    }
-  else
-    {
-      return 1 - (onv / enough);
-    }
-}
-
-//------------------------------------------------------------------------
-// Larger logical componentents
-//------------------------------------------------------------------------
-
-//! Selector to select the first tuple goal.
-/**
- * Basically to get rid of -m2 tuple goals.
- * Nice iteration, I'd suppose
- */
-Binding
-select_tuple_goal ()
-{
-  List bl;
-  Binding tuplegoal;
-
-  bl = sys->bindings;
-  tuplegoal = NULL;
-  while (bl != NULL && tuplegoal == NULL)
-    {
-      Binding b;
-
-      b = (Binding) bl->data;
-      // Ignore done stuff
-      if (!b->blocked && !b->done)
-	{
-	  if (isTermTuple (b->term))
-	    {
-	      tuplegoal = b;
-	    }
-	}
-      bl = bl->next;
-    }
-  return tuplegoal;
-}
-
-//! Goal selection
-/**
- * Selects the most constrained goal.
- *
- * First selection is on level; thus, keys are selected first.
- *
- * Because the list starts with the newest terms, and we use <= (as opposed to <), we
- * ensure that for goals with equal constraint levels, we select the oldest one.
- *
- * --select-goal has two distint interpretations. If it is 0 or greater, it a
- * selection mask. If it is smaller than 0, it is some special tactic.
- *
- * selection masks for --select-goal
- *	1:	constrain level of term
- * 	2:	key or not
- * 	4:	consequences determination
- * 	8:	select also single variables (that are not role variables)
- * 	16:	single variables are better
- *
- * special tactics for --select-goal
- *	-1:	random goal selection
- *
- */
-Binding
-select_goal_masked ()
-{
-  List bl;
-  Binding best;
-  float min_constrain;
-  int mode;
-
-  // mode bits local storage
-  mode = switches.arachneSelector;
-
-  // Find the most constrained goal
-  if (switches.output == PROOF)
-    {
-      indentPrint ();
-      eprintf ("Listing open goals that might be chosen: ");
-    }
-  min_constrain = FLT_MAX;
-  bl = sys->bindings;
-  best = NULL;
-  while (bl != NULL)
-    {
-      Binding b;
-
-      b = (Binding) bl->data;
-
-      // Only if not done and not blocked
-      if (is_goal_selectable (b))
-	{
-	  int allow;
-	  Term gterm;
-
-	  allow = 0;
-	  gterm = deVar (b->term);
-	  if (mode & 8)
-	    {
-	      // check for singular variable
-	      if (realTermVariable (gterm))
-		{
-		  // singular variable only if it is not a role name variable
-		  allow = !gterm->roleVar;
-		}
-	      else
-		{
-		  // not a singular variable, allow
-		  allow = 1;
-		}
-	    }
-	  else
-	    {
-	      // Normally (mode & 8 == 0) we ignore any singular variables
-	      allow = !realTermVariable (gterm);
-	    }
-
-	  if (allow)
-	    {
-	      float buf_constrain;
-	      int buf_weight;
-	      int smode;
-
-	      void adapt (const int w, const float fl)
-	      {
-		buf_constrain = buf_constrain + w * fl;
-		buf_weight = buf_weight + w;
-	      }
-
-	      void erode (const int w, const float fl)
-	      {
-		if (smode & 1)
-		  {
-		    adapt (w, fl);
-		  }
-		smode = smode / 2;
-	      }
-
-	      // buf_constrain is the addition of the factors before division by weight
-	      buf_constrain = 0;
-	      buf_weight = 0;
-
-	      if (switches.output == PROOF && best != NULL)
-		eprintf (", ");
-
-	      // We will shift this mode variable
-	      smode = mode;
-
-	      // Determine buf_constrain levels
-	      // Bit 0: 1 constrain level
-	      erode (1, term_constrain_level (b->term));
-	      // Bit 1: 2 key level (inverted)
-	      erode (1, 0.5 * (1 - b->level));
-	      // Bit 2: 4 consequence level
-	      erode (1, termBindConsequences (b->term));
-	      // Bit 3: 8 single variables first
-	      erode (1, 1 - isTermVariable (b->term));
-	      // Bit 4: 16 nonce variables level (Cf. what I think is in Athena)
-	      erode (1, term_noncevariables_level (b->term));
-	      // Define legal range
-	      if (smode > 0)
-		error ("--goal-select mode %i is illegal", mode);
-
-	      // Weigh result
-	      if (buf_weight == 0 || buf_constrain <= min_constrain)
-		{
-		  min_constrain = buf_constrain;
-		  best = b;
-		  if (switches.output == PROOF)
-		    eprintf ("*");
-		}
-	      if (switches.output == PROOF)
-		{
-		  termPrint (b->term);
-		  if (mode & 2)
-		    {
-		      eprintf ("[%i]", b->level);
-		    }
-		  eprintf ("<%.2f>", buf_constrain);
-		}
-	    }
-	}
-      bl = bl->next;
-    }
-  if (switches.output == PROOF)
-    {
-      if (best == NULL)
-	eprintf ("none");
-      eprintf ("\n");
-    }
-  return best;
-}
-
-//! Goal selection special case -1: random
-/**
- * Simply picks an open goal randomly. Has to be careful to skip singular stuff etc.
- */
-Binding
-select_goal_random ()
-{
-  int n;
-
-  n = count_selectable_goals ();
-  if (n > 0)
-    {
-      int choice;
-      List bl;
-
-      // Choose a random goal between 0 and n
-      choice = rand () % n;
-
-      // Fetch it
-      bl = sys->bindings;
-      while (choice >= 0)
-	{
-	  bl = first_selectable_goal (bl);
-	  if (bl == NULL)
-	    {
-	      error ("Random chooser selected a NULL goal.");
-	    }
-	  choice--;
-	}
-      return (Binding) bl->data;
-    }
-  else
-    {
-      return NULL;
-    }
-}
-
-//! Goal selection function, generic
-Binding
-select_goal ()
-{
-  if (switches.arachneSelector >= 0)
-    {
-      // Masked
-      return select_goal_masked ();
-    }
-  else
-    {
-      // Special cases
-      switch (switches.arachneSelector)
-	{
-	case -1:
-	  return select_goal_random ();
-	  break;
-	}
-      error ("Unknown value (<0) for --goal-select.");
-    }
 }
 
 //! Check if a binding duplicates an old one: if so, simply connect
@@ -2825,14 +2232,7 @@ arachneOutputAttack ()
     }
   else
     {
-      if (switches.latex == 1)
-	{
-	  latexSemiState ();
-	}
-      else
-	{
-	  dotSemiState (sys);
-	}
+      dotSemiState (sys);
     }
 
   // End wrapper
@@ -2882,6 +2282,39 @@ property_check ()
 
   return flag;
 }
+
+
+//! Selector to select the first tuple goal.
+/**
+ * Basically to get rid of -m2 tuple goals.
+ * Nice iteration, I'd suppose
+ */
+Binding
+select_tuple_goal ()
+{
+  List bl;
+  Binding tuplegoal;
+
+  bl = sys->bindings;
+  tuplegoal = NULL;
+  while (bl != NULL && tuplegoal == NULL)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      // Ignore done stuff
+      if (!b->blocked && !b->done)
+	{
+	  if (isTermTuple (b->term))
+	    {
+	      tuplegoal = b;
+	    }
+	}
+      bl = bl->next;
+    }
+  return tuplegoal;
+}
+
 
 //! Main recursive procedure for Arachne
 int
@@ -2942,7 +2375,7 @@ iterate ()
 		   * Check whether its a final state (i.e. all goals bound)
 		   */
 
-		  b = select_goal ();
+		  b = select_goal (sys);
 		  if (b == NULL)
 		    {
 		      /*
