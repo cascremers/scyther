@@ -1,3 +1,8 @@
+- Warshall is taking a third of the time running.
+  - Make 'dirty' flag.
+  - Make a push-graph structure, where old graphs are simply remembered?
+    Does this help at all?
+  - Improve the speed of the thing by finally moving to a bit-thing.
 - Simple timestamps could be added by prefixing send message before the
   role, sending any timestamp constants out first to the intruder. These
   should of course be hidden in the output somehow.
