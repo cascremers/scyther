@@ -31,13 +31,14 @@ enum tactypes
   TAC_USERTYPE
 };
 
+//! Structure to hold the compilation tree nodes
 struct tacnode
 {
-  struct tacnode *next;
-  struct tacnode *prev;
+  struct tacnode *next;		//!< pointer to previous node
+  struct tacnode *prev;		//!< pointer to next node
   struct tacnode *allnext;
-  int op;
-  int lineno;
+  int op;			//!< operator for this node
+  int lineno;			//!< line number of parser location in the input file
   union
   {
     Symbol sym;

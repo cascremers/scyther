@@ -1,4 +1,4 @@
-/** @file terms.c \brief Term related base functions.
+/** @file term.c \brief Term related base functions.
  *
  * Intended to be a standalone file, however during development it turned out
  * that a termlist structure was needed to define term types, so there is now a
@@ -7,7 +7,7 @@
  * Until now, symbols were unique and never deleted.  The same holds for basic
  * terms; leaves are equal when their pointers are equal.  We are looking to
  * extend this to whole terms. At that point, term equality is be reduced to
- * pointer comparison, which is what we want. However, for comparison of terms
+ * pointer comparison, which is what we want.
  */
 
 #include <string.h>
@@ -34,6 +34,7 @@ void indent (void);
 
 /* useful macros */
 
+//! Undefined run identifier in a term
 #define RID_UNDEF MIN_INT
 /* main code */
 
@@ -507,7 +508,6 @@ termDuplicateDeep (const Term term)
  * Remove all instantiated variables on the way down.
  *\sa termDuplicate()
  */
-
 Term
 termDuplicateUV (Term term)
 {
@@ -534,14 +534,7 @@ termDuplicateUV (Term term)
   return newterm;
 }
 
-/*
-
-realTermDuplicate
-
-make a deep copy of a term, also of leaves.
-
-*/
-
+//! Make a deep copy of a term, also of leaves
 Term
 realTermDuplicate (const Term term)
 {
@@ -1149,7 +1142,7 @@ term_encryption_level (const Term term)
 
 //! Determine 'constrained factor' of a term
 /**
- * Actually this is (#vars/structure).
+ * Actually this is (number of vars/structure).
  * Thus, 0 means very constrained, no variables.
  * Everything else has higher float, but always <=1. In fact, only a single variable has a level 1.
  */

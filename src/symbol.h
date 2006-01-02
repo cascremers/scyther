@@ -13,6 +13,7 @@ enum symboltypes
 
 #define EOS 0
 
+//! Symbol structure
 struct symbol
 {
   //! Type of symbol.
@@ -32,7 +33,7 @@ struct symbol
   struct symbol *allocnext;
 };
 
-typedef struct symbol *Symbol;
+typedef struct symbol *Symbol;	//!< pointer to symbol structure
 
 void symbolsInit (void);
 void symbolsDone (void);

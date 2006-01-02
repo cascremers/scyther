@@ -14,6 +14,7 @@ struct knowledge
   Termlist basic;
   //! A list of terms encrypted, such that the inverse is not in the knowledge set.
   Termlist encrypt;
+  //! List of inverse pairs (thus length of list is even)
   Termlist inverses;
   //! List of open variables in the knowledge set.
   /**

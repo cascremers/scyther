@@ -19,12 +19,18 @@
 #include "switches.h"
 #include "memory.h"
 
+//! When none of the runs match
 #define MATCH_NONE 0
+//! When the order matches
 #define MATCH_ORDER 1
+//! When the order is reversed
 #define MATCH_REVERSE 2
+//! When the content matches
 #define MATCH_CONTENT 3
 
+//! This label is fixed
 #define LABEL_GOOD -3
+//! This label still needs to be done
 #define LABEL_TODO -2
 
 extern int globalError;

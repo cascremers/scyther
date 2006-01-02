@@ -30,7 +30,7 @@ struct term
   //! Data Type termlist (e.g. agent or nonce)
   /** Only for leaves. */
   void *stype;			// list of types
-  int roleVar;			// only for leaf, arachne engine: role variable flag
+  int roleVar;			//!< only for leaf, arachne engine: role variable flag
 
   //! Substitution term.
   /**
@@ -41,15 +41,17 @@ struct term
 
   union
   {
+    //! Pointer to the symbol for leaves
     Symbol symb;
     //! Encrypted subterm.
     struct term *op;
     //! Left-hand side of tuple pair.
     struct term *op1;
-    struct term *next;		// for alternative memory management
+    struct term *next;		//!< for alternative memory management
   } left;
   union
   {
+    //! run identifier for leaves
     int runid;
     //! Key used to encrypt subterm.
     struct term *key;

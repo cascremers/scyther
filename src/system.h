@@ -207,4 +207,11 @@ int isAgentTrusted (const System sys, Term agent);
 int isAgentlistTrusted (const System sys, Termlist agents);
 int isRunTrusted (const System sys, const int run);
 
+//! Equality for run structure naming
+/**
+ * For the modelchecker, there was an index called step. In Strand Space
+ * terminology, something like that is the height of the strand.
+ */
+#define height	step
+
 #endif

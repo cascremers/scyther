@@ -5,21 +5,23 @@
 #include "knowledge.h"
 #include "system.h"
 
+//! substitution structure
 struct substitution
 {
   Term from;
   Term to;
 };
 
-typedef struct substitution *Substitution;
+typedef struct substitution *Substitution;	//!< substitution structure
 
+//! substitution list
 struct substitutionlist
 {
   Substitution subst;
   struct substitutionlist *next;
 };
 
-typedef struct substitutionlist *Substitutionlist;
+typedef struct substitutionlist *Substitutionlist;	//!< substitution list structure
 
 
 Substitution makeSubstitution (Term from, Term to);

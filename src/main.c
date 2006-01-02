@@ -37,9 +37,6 @@
  * be done for any style using the GNU indent program.
  */
 
-enum exittypes
-{ EXIT_NOATTACK = 0, EXIT_ERROR = 1, EXIT_NOCLAIM = 2, EXIT_ATTACK = 3 };
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -61,11 +58,14 @@ enum exittypes
 #include "switches.h"
 #include "specialterm.h"
 #include "color.h"
+#include "error.h"
 
-// The global system state
+//! The global system state pointer
 System sys;
 
+//! Pointer to the tac node container
 extern struct tacnode *spdltac;
+//! Match mode
 extern int mgu_match;
 
 void scanner_cleanup (void);

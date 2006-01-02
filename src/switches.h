@@ -79,6 +79,6 @@ struct switchdata
   int latex;
 };
 
-extern struct switchdata switches;
+extern struct switchdata switches;	//!< pointer to switchdata structure
 
 #endif

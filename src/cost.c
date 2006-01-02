@@ -12,6 +12,7 @@
 // Private methods
 //************************************************************************
 
+//! determine whether a run is a so-called self-initiator
 int
 selfInitiator (const System sys, const int run)
 {

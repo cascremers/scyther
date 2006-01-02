@@ -43,34 +43,34 @@ extern int *graph;
 extern int nodes;
 extern int graph_uordblks;
 
-static System sys;
+static System sys;		//!< local buffer for the system pointer
 
-int attack_length;
-int attack_leastcost;
+int attack_length;		//!< length of the attack
+int attack_leastcost;		//!< cost of the best attack sofar \sa cost.c
 
-Protocol INTRUDER;		// Pointers, to be set by the Init
-Role I_M;			// Same here.
-Role I_RRS;
-Role I_RRSD;
+Protocol INTRUDER;		//!< intruder protocol
+Role I_M;			//!< Initial knowledge role of the intruder
+Role I_RRS;			//!< Encrypt role of the intruder
+Role I_RRSD;			//!< Decrypt role of the intruder
 
-int proofDepth;
-int max_encryption_level;
-int num_regular_runs;
-int num_intruder_runs;
+int proofDepth;			//!< Current depth of the proof
+int max_encryption_level;	//!< Maximum encryption level of any term
+int num_regular_runs;		//!< Current number of regular runs
+int num_intruder_runs;		//!< Current number of intruder runs
 
 static int indentDepth;
 static int prevIndentDepth;
 static int indentDepthChanges;
 static FILE *attack_stream;
 
-/**
+/*
  * Forward declarations
  */
 
 int iterate ();
 void printSemiState ();
 
-/**
+/*
  * Program code
  */
 
@@ -151,14 +151,12 @@ arachneDone ()
 // Detail
 //------------------------------------------------------------------------
 
-/*
- * runs[rid].step is now the number of 'valid' events within the run, but we
- * call it 'length' here.
- */
+//! Just a defined integer for invalid
 #define INVALID		-1
+//! can this roledef constitute a read Goal?
 #define isGoal(rd)	(rd->type == READ && !rd->internal)
+//! is this roledef already bound?
 #define isBound(rd)	(rd->bound)
-#define length		step
 
 //! Indent prefix print
 void
@@ -303,7 +301,7 @@ semiRunCreate (const Protocol p, const Role r)
     num_regular_runs++;
   roleInstance (sys, p, r, NULL, NULL);
   run = sys->maxruns - 1;
-  sys->runs[run].length = 0;
+  sys->runs[run].height = 0;
   return run;
 }
 
@@ -359,7 +357,7 @@ fixAgentKeylevels (void)
 
 //! After a role instance, or an extension of a run, we might need to add some goals
 /**
- * From old to new. Sets the new length to new.
+ * From old to new. Sets the new height to new.
  *@returns The number of goals added (for destructions)
  */
 int
@@ -369,7 +367,7 @@ add_read_goals (const int run, const int old, const int new)
   int i;
   Roledef rd;
 
-  sys->runs[run].length = new;
+  sys->runs[run].height = new;
   i = old;
   rd = roledef_shift (sys->runs[run].start, i);
   count = 0;
@@ -465,7 +463,7 @@ get_semitrace_length ()
 	{
 	  // Non-intruder run: count length
 	  // Subtract 'firstReal' to ignore chooses.
-	  length = length + sys->runs[run].length - sys->runs[run].firstReal;
+	  length = length + sys->runs[run].height - sys->runs[run].firstReal;
 	}
       run++;
     }
@@ -674,6 +672,7 @@ iterate_role_sends (int (*func) ())
  * Note that this does not add any bindings for the reads.
  *
  *@param term	The term to be decrypted (implies decryption key)
+ *@param key	The key that is needed to decrypt the term
  *
  *@returns The run id of the decryptor instance
  */
@@ -691,7 +690,7 @@ create_decryptor (const Term term, const Term key)
       rd->message = termDuplicateUV (term);
       rd->next->message = termDuplicateUV (key);
       rd->next->next->message = termDuplicateUV (TermOp (term));
-      sys->runs[run].step = 3;
+      sys->runs[run].height = 3;
       proof_suppose_run (run, 0, 3);
 
       return run;
@@ -739,7 +738,9 @@ getPriorityOfNeededKey (const System sys, const Term keyneeded)
  * needed keys, but simply the path throught the term. This would enable
  * reconstruction of the keys anyway. TODO
  *      
- *@param subterm determines whether it is a subterm unification or not.
+ *@param b	binding to fix (bind), destination filled in
+ *@param run	run of binding start
+ *@param index	index in run of binding start
  */
 int
 bind_existing_to_goal (const Binding b, const int run, const int index)
@@ -914,7 +915,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
   rd = roledef_shift (sys->runs[run].start, index);
 
   // Fix length
-  old_length = sys->runs[run].length;
+  old_length = sys->runs[run].height;
   if ((index + 1) > old_length)
     newgoals = add_read_goals (run, old_length, index + 1);
   else
@@ -935,7 +936,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
     }
   // Reset length
   goal_remove_last (newgoals);
-  sys->runs[run].length = old_length;
+  sys->runs[run].height = old_length;
   return flag;
 }
 
@@ -1055,7 +1056,7 @@ printSemiState ()
 
       index = 0;
       rd = sys->runs[run].start;
-      while (index < sys->runs[run].length)
+      while (index < sys->runs[run].height)
 	{
 	  indentPrint ();
 	  eprintf ("!! %i ", index);
@@ -1110,7 +1111,6 @@ bind_old_goal (const Binding b_new)
 }
 
 //! Create a new intruder run to generate knowledge from m0
-
 int
 bind_goal_new_m0 (const Binding b)
 {
@@ -1137,7 +1137,7 @@ bind_goal_new_m0 (const Binding b)
 	  I_M->roledef->message = m0t;
 	  run = semiRunCreate (INTRUDER, I_M);
 	  proof_suppose_run (run, 0, 1);
-	  sys->runs[run].length = 1;
+	  sys->runs[run].height = 1;
 	  {
 	    indentDepth++;
 	    if (goal_bind (b, run, 0))
@@ -1394,7 +1394,7 @@ bind_goal_regular_run (const Binding b)
 }
 
 
-// Bind to all possible sends of intruder runs
+//! Bind to all possible sends of intruder runs
 int
 bind_goal_old_intruder_run (Binding b)
 {
@@ -1413,7 +1413,7 @@ bind_goal_old_intruder_run (Binding b)
 
 	  rd = sys->runs[run].start;
 	  ev = 0;
-	  while (ev < sys->runs[run].length)
+	  while (ev < sys->runs[run].height)
 	    {
 	      if (rd->type == SEND)
 		{
@@ -2207,19 +2207,19 @@ knowledgeAtArachne (const System sys, const int myrun, const int myindex,
   while (run < sys->maxruns)
     {
       int index;
-      int maxstep;
+      int maxheight;
       Roledef rd;
 
       index = 0;
       rd = sys->runs[run].start;
-      maxstep = sys->runs[run].step;
-      if (run == myrun && myindex > maxstep)
+      maxheight = sys->runs[run].height;
+      if (run == myrun && myindex > maxheight)
 	{
 	  // local run index can override real step
-	  maxstep = myindex;
+	  maxheight = myindex;
 	}
 
-      while (rd != NULL && index < maxstep)
+      while (rd != NULL && index < maxheight)
 	{
 	  // Check whether this event precedes myevent
 	  if (aftercomplete || isOrderedBefore (run, index, myrun, myindex))

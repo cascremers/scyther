@@ -1,5 +1,5 @@
 /**
- * @file roles.c 
+ * @file role.c 
  * \brief role related logic.
  */
 #include <stdlib.h>
@@ -108,12 +108,14 @@ roledefPrintGeneric (Roledef rd, int print_actor)
     eprintf ("$");
 }
 
+//! Print a roledef
 void
 roledefPrint (Roledef rd)
 {
   roledefPrintGeneric (rd, 1);
 }
 
+//! Print a roledef, but shorten it
 void
 roledefPrintShort (Roledef rd)
 {

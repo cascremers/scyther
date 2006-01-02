@@ -16,13 +16,13 @@
 #include "switches.h"
 #include <malloc.h>
 
-static System sys;
-int *graph = NULL;
-int nodes = 0;
+static System sys;		//!< local storage of system pointer
+int *graph = NULL;		//!< graph data
+int nodes = 0;			//!< number of nodes in the graph
 int graph_uordblks = 0;
 
-extern Protocol INTRUDER;	// The intruder protocol
-extern Role I_M;		// special role; precedes all other events always
+extern Protocol INTRUDER;	//!< The intruder protocol
+extern Role I_M;		//!< special role; precedes all other events always
 
 /*
  * Forward declarations

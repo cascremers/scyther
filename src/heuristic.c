@@ -13,8 +13,6 @@
 #include "specialterm.h"
 #include "switches.h"
 
-#define length		step
-
 //! Check whether a binding (goal) is selectable
 int
 is_goal_selectable (const Binding b)
@@ -99,7 +97,7 @@ termBindConsequences (const System sys, Term t)
 
 	  rd = sys->runs[run].start;
 	  step = 0;
-	  while (step < sys->runs[run].length)
+	  while (step < sys->runs[run].height)
 	    {
 	      Termlist tl;
 

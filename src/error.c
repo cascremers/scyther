@@ -6,7 +6,7 @@
 void
 error_die (void)
 {
-  exit (1);
+  exit (EXIT_ERROR);
 }
 
 //! Print error message header
@@ -34,7 +34,7 @@ error_post (char *fmt, ...)
   vfprintf (stderr, fmt, args);
   fprintf (stderr, "\n");
   va_end (args);
-  exit (1);
+  exit (EXIT_ERROR);
 }
 
 //! Print error message and die.

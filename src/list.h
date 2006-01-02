@@ -1,14 +1,15 @@
 #ifndef GENERICLIST
 #define GENERICLIST
 
+//! generic list structure node
 struct list_struct
 {
-  struct list_struct *next;
-  struct list_struct *prev;
-  void *data;
+  struct list_struct *next;	//!< pointer to next node
+  struct list_struct *prev;	//!< pointer to previous node
+  void *data;			//!< pointer to the actual data element (should be typecast)
 };
 
-typedef struct list_struct *List;
+typedef struct list_struct *List;	//!< pointer to generic list node
 
 List list_create (const void *data);
 List list_rewind (List list);

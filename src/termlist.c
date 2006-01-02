@@ -5,14 +5,14 @@
 #include "debug.h"
 #include "memory.h"
 
-/**
+/*
  * Shared stuff
  */
 
 //! Termlist error thing (for global use)
 Termlist TERMLISTERROR;
 
-/**
+/*
  * Forward declarations
  */
 

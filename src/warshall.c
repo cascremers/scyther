@@ -1,11 +1,16 @@
 /**
+ *@file warshall.c
+ *
  * Warshall's algorithm for transitive closure computation.
+ *
+ * Currently this is the slow integer-instead-of-bit olde slowe version.
  */
 
 #include <limits.h>
 #include "warshall.h"
 #include "debug.h"
 
+//! fill the graph with some value
 void
 graph_fill (int *graph, int nodes, int value)
 {

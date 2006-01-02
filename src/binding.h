@@ -5,6 +5,7 @@
 #include "termmap.h"
 #include "system.h"
 
+//! Binding structure
 /*
  * Idea is the ev_from *has to* precede the ev_to
  */
@@ -13,20 +14,17 @@ struct binding
   int done;			//!< Iff true, it is bound
   int blocked;			//!< Iff true, ignore it
 
-  int run_from;
-  int ev_from;
+  int run_from;			//!< origination run
+  int ev_from;			//!< step in origination run
 
-  int run_to;
-  int ev_to;
+  int run_to;			//!< destination run
+  int ev_to;			//!< step in destination run
 
-  int *graph;
-  int nodes;
-
-  Term term;
-  int level;
+  Term term;			//!< Binding term
+  int level;			//!< ???
 };
 
-typedef struct binding *Binding;
+typedef struct binding *Binding;	//!< pointer to binding structure
 
 
 void bindingInit (const System mysys);

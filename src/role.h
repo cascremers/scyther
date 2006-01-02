@@ -103,7 +103,7 @@ struct roledef
   /*
    * Bindings for Arachne engine
    */
-  int bound;
+  int bound;			//!< determines whether it is already bound
 
   /* evt runid for synchronisation, but that is implied in the
      base array */
