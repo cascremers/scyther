@@ -1,4 +1,3 @@
-- Add underspecified protocol support (roles missing -> warning)
 - Add 'singular' keyword for roles, and think about support for
   strand-space like templates.
 - Simple timestamps could be added by prefixing send message before the

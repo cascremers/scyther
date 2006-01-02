@@ -146,7 +146,8 @@ compile (Tac tc, int maxrunsset)
 void
 errorTac (int lineno)
 {
-  printf (" on line %i.\n", lineno);
+  globalError++;
+  eprintf (" on line %i.\n", lineno);
   exit (1);
 }
 
@@ -619,9 +620,11 @@ commEvent (int event, Tac tc)
 	    }
 	  if (!inTermlist (claim->stype, TERM_Claim))
 	    {
-	      printf ("error: claim term is not of claim type ");
+	      globalError++;
+	      eprintf ("error: claim term is not of claim type ");
 	      termPrint (claim);
 	      errorTac (trip->next->lineno);
+	      globalError--;
 	    }
 	  /* unfold parameters to msg */
 	  msg = NULL;
@@ -771,9 +774,10 @@ roleCompile (Term nameterm, Tac tc)
     }
   if (thisRole == NULL)
     {
-      printf ("error: undeclared role name ");
+      globalError++;
+      eprintf ("error: undeclared role name ");
       termPrint (nameterm);
-      printf (" in line ");
+      eprintf (" in line ");
       errorTac (tc->lineno);
     }
 
@@ -811,9 +815,10 @@ roleCompile (Term nameterm, Tac tc)
 	  default:
 	    if (!normalDeclaration (tc))
 	      {
-		printf ("error: illegal command %i in role ", tc->op);
+		globalError++;
+		eprintf ("error: illegal command %i in role ", tc->op);
 		termPrint (thisRole->nameterm);
-		printf (" ");
+		eprintf (" ");
 		errorTac (tc->lineno);
 	      }
 	    break;
@@ -863,9 +868,10 @@ runInstanceCreate (Tac tc)
     p = p->next;
   if (p == NULL)
     {
-      printf ("Trying to create a run of a non-declared protocol ");
+      globalError++;
+      eprintf ("error: Trying to create a run of a non-declared protocol ");
       symbolPrint (psym);
-      printf (" ");
+      eprintf (" ");
       errorTac (tc->lineno);
     }
 
@@ -876,11 +882,12 @@ runInstanceCreate (Tac tc)
     r = r->next;
   if (r == NULL)
     {
-      printf ("Protocol ");
+      globalError++;
+      eprintf ("error: Protocol ");
       symbolPrint (psym);
-      printf (" has no role called ");
+      eprintf (" has no role called ");
       symbolPrint (rsym);
-      printf (" ");
+      eprintf (" ");
       errorTac (tc->lineno);
     }
 
@@ -888,10 +895,11 @@ runInstanceCreate (Tac tc)
   instParams = tacTermlist (tc->t2.tac);
   if (termlistLength (instParams) != termlistLength (p->rolenames))
     {
-      printf
-	("Run instance has different number of parameters than protocol ");
+      globalError++;
+      eprintf
+	("error: Run instance has different number of parameters than protocol ");
       termPrint (p->nameterm);
-      printf (" ");
+      eprintf (" ");
       errorTac (tc->lineno);
     }
 
@@ -918,6 +926,39 @@ runInstanceCreate (Tac tc)
   /* TODO */
 }
 
+//! Check whether the roles in a protocol are non-empty
+void
+checkProtocolRoles (void)
+{
+  Role role;
+  Termlist badroles;
+
+  badroles = NULL;
+  role = thisProtocol->roles;
+  while (role != NULL)
+    {
+      if (role->roledef == NULL)
+	{
+	  // Hey, this role is empty.
+	  badroles = termlistAdd (badroles, role->nameterm);
+	}
+      role = role->next;
+    }
+
+  if (badroles != NULL)
+    {
+      globalError++;
+      eprintf ("warning: protocol ");
+      termPrint (thisProtocol->nameterm);
+      eprintf (" has empty role definitions for the roles: ");
+      termlistPrint (badroles);
+      eprintf ("\n");
+      globalError--;
+      termlistDelete (badroles);
+    }
+}
+
+//! Compile a protocol description
 void
 protocolCompile (Symbol prots, Tac tc, Tac tcroles)
 {
@@ -926,9 +967,10 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
 
   if (levelFind (prots, level) != NULL)
     {
-      printf ("error: Double declaration of protocol ");
+      globalError++;
+      eprintf ("error: Double declaration of protocol ");
       symbolPrint (prots);
-      printf (" ");
+      eprintf (" ");
       errorTac (tc->lineno);
     }
   /* make new (empty) current protocol with name */
@@ -985,17 +1027,19 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
 	    }
 	  else
 	    {
-	      printf ("error: undeclared role ");
+	      globalError++;
+	      eprintf ("warning: undeclared role name");
 	      symbolPrint (tc->t1.sym);
-	      printf (" in protocol ");
+	      eprintf (" in protocol ");
 	      termPrint (pr->nameterm);
-	      errorTac (tc->t1.sym->lineno);
+	      globalError--;
 	    }
 	  break;
 	default:
 	  if (!normalDeclaration (tc))
 	    {
-	      printf ("error: illegal command %i in protocol ", tc->op);
+	      globalError++;
+	      eprintf ("error: illegal command %i in protocol ", tc->op);
 	      termPrint (thisProtocol->nameterm);
 	      errorTac (tc->lineno);
 	    }
@@ -1003,6 +1047,10 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
 	}
       tc = tc->next;
     }
+
+  /* new we should have parsed each protocol role. check this. */
+  checkProtocolRoles ();
+
   levelDone ();
 }
 
@@ -1029,8 +1077,9 @@ tacProcess (Tac tc)
 	default:
 	  if (!normalDeclaration (tc))
 	    {
-	      printf ("error: illegal command %i at the global level.\n",
-		      tc->op);
+	      globalError++;
+	      eprintf ("error: illegal command %i at the global level.\n",
+		       tc->op);
 	      errorTac (tc->lineno);
 	    }
 	  break;
@@ -1053,7 +1102,8 @@ tacTerm (Tac tc)
 	Term t = symbolFind (tc->t1.sym);
 	if (t == NULL)
 	  {
-	    printf ("Undeclared symbol ");
+	    globalError++;
+	    eprintf ("error: Undeclared symbol ");
 	    symbolPrint (tc->t1.sym);
 	    errorTac (tc->lineno);
 	  }
@@ -1305,34 +1355,34 @@ compute_prec_sets (const System sys)
 	ev1 = 0;
 	while (ev1 < sys->roleeventmax)
 	  {
-	    printf ("prec %i,%i:  ", r1, ev1);
+	    eprintf ("prec %i,%i:  ", r1, ev1);
 	    r2 = 0;
 	    while (r2 < sys->rolecount)
 	      {
 		ev2 = 0;
 		while (ev2 < sys->roleeventmax)
 		  {
-		    printf ("%i ",
-			    prec[index2 (index (r2, ev2), index (r1, ev1))]);
+		    eprintf ("%i ",
+			     prec[index2 (index (r2, ev2), index (r1, ev1))]);
 		    ev2++;
 		  }
-		printf (" ");
+		eprintf (" ");
 		r2++;
 	      }
-	    printf ("\n");
+	    eprintf ("\n");
 	    ev1++;
 	  }
-	printf ("\n");
+	eprintf ("\n");
 	r1++;
       }
-    printf ("\n");
+    eprintf ("\n");
   }
 
   /*
    * Phase 1: Allocate structures and map to labels
    */
-  //printf ("Rolecount: %i\n", sys->rolecount);
-  //printf ("Maxevent : %i\n", sys->roleeventmax);
+  //eprintf ("Rolecount: %i\n", sys->rolecount);
+  //eprintf ("Maxevent : %i\n", sys->roleeventmax);
   size = sys->rolecount * sys->roleeventmax;
   eventlabels = memAlloc (size * sizeof (Term));
   prec = memAlloc (size * size * sizeof (int));
@@ -1361,11 +1411,11 @@ compute_prec_sets (const System sys)
 	{
 	  eventlabels[index (r1, ev1)] = rd->label;
 	  //termPrint (rd->label);
-	  //printf ("\t");
+	  //eprintf ("\t");
 	  ev1++;
 	  rd = rd->next;
 	}
-      //printf ("\n");
+      //eprintf ("\n");
       r1++;
     }
   // Set simple precedence (progress within a role)
@@ -1610,14 +1660,14 @@ compute_prec_sets (const System sys)
 	    {
 	      Protocol p;
 
-	      printf ("Preceding label set for r:%i, ev:%i = ", r1, ev1);
+	      eprintf ("Preceding label set for r:%i, ev:%i = ", r1, ev1);
 	      termlistPrint (cl->prec);
-	      printf (", involving roles ");
+	      eprintf (", involving roles ");
 	      termlistPrint (cl->roles);
-	      printf (", from protocol ");
+	      eprintf (", from protocol ");
 	      p = (Protocol) cl->protocol;
 	      termPrint (p->nameterm);
-	      printf ("\n");
+	      eprintf ("\n");
 	    }
 #endif
 	}
@@ -1635,9 +1685,9 @@ compute_prec_sets (const System sys)
 #ifdef DEBUG
   if (DEBUGL (2))
     {
-      printf ("Synchronising labels set: ");
+      eprintf ("Synchronising labels set: ");
       termlistPrint (sys->synchronising_labels);
-      printf ("\n");
+      eprintf ("\n");
     }
 #endif
 
