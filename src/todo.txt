@@ -1,3 +1,6 @@
+- Simple timestamps could be added by prefixing send message before the
+  role, sending any timestamp constants out first to the intruder. These
+  should of course be hidden in the output somehow.
 - Notes on the new attack group displays:
   * We want to group runs into consistent protocol runs.
   * Minimal req. for protocol run: equal \rho.
