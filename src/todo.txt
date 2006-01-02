@@ -1,3 +1,6 @@
+- Add underspecified protocol support (roles missing -> warning)
+- Add 'singular' keyword for roles, and think about support for
+  strand-space like templates.
 - Simple timestamps could be added by prefixing send message before the
   role, sending any timestamp constants out first to the intruder. These
   should of course be hidden in the output somehow.
