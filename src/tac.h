@@ -43,18 +43,21 @@ struct tacnode
     Symbol sym;
     struct tacnode *tac;
     char *str;
+    int value;
   } t1;
   union
   {
     Symbol sym;
     struct tacnode *tac;
     char *str;
+    int value;
   } t2;
   union
   {
     Symbol sym;
     struct tacnode *tac;
     char *str;
+    int value;
   } t3;
 };
 

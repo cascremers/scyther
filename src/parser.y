@@ -14,6 +14,7 @@ int yylex(void);
 	char*  		str;
 	struct tacnode*	tac;
 	Symbol		symb;
+	int		value;
 }
 
 %token 	<symb>	ID
@@ -30,6 +31,7 @@ int yylex(void);
 %token 		INVERSEKEYS
 %token 		UNTRUSTED
 %token 		USERTYPE
+%token		SINGULAR
 
 %type	<tac>	spdlcomplete
 %type	<tac>	spdlrep
@@ -46,6 +48,8 @@ int yylex(void);
 %type	<tac>	termlist
 %type	<tac>	key
 %type	<tac>	roleref
+
+%type   <value>	singular
 
 %type	<symb>	label
 %type	<symb>	optlabel
@@ -106,13 +110,21 @@ roles		: /* empty */
 		  {	$$ = tacCat($1,$2); }
 		;
 
-role		: ROLE ID '{' roledef '}' optclosing
+role		: singular ROLE ID '{' roledef '}' optclosing
       		  { 
+		  	// TODO process singular (0/1)
 		  	Tac t = tacCreate(TAC_ROLE);
-			t->t1.sym = $2;
-			t->t2.tac = $4;
+			t->t1.sym = $3;
+			t->t2.tac = $5;
+			t->t3.value = $1;
 			$$ = t;
 		  }
+		;
+
+singular	: /* empty */
+	 	  {	$$ = 0; }
+		| SINGULAR
+		  {	$$ = 1; }
 		;
 
 optclosing	: /* empty */

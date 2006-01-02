@@ -132,6 +132,8 @@ struct role
   Termlist declaredvars;
   //! Flag for initiator roles
   int initiator;
+  //! Flag for singular roles
+  int singular;
   //! Pointer to next role definition.
   struct role *next;
 };

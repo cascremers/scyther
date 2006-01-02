@@ -2483,6 +2483,9 @@ bind_goal (const Binding b)
 
 //! Prune determination because of theorems
 /**
+ * When something is pruned because of this function, the state space is still
+ * considered to be complete.
+ *
  *@returns true iff this state is invalid because of a theorem
  */
 int
@@ -2724,11 +2727,49 @@ prune_theorems ()
       bl = bl->next;
     }
 
+  /* check for singular roles */
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      if (sys->runs[run].role->singular)
+	{
+	  // This is a singular role: it therefore should not occur later on again.
+	  int run2;
+	  Term rolename;
+
+	  rolename = sys->runs[run].role->nameterm;
+	  run2 = run + 1;
+	  while (run2 < sys->maxruns)
+	    {
+	      Term rolename2;
+
+	      rolename2 = sys->runs[run2].role->nameterm;
+	      if (isTermEqual (rolename, rolename2))
+		{
+		  // This is not allowed: the singular role occurs twice in the semitrace.
+		  // Thus we prune.
+		  if (switches.output == PROOF)
+		    {
+		      indentPrint ();
+		      eprintf ("Pruned because the singular role ");
+		      termPrint (rolename);
+		      eprintf (" occurs more than once in the semitrace.\n");
+		    }
+		  return 1;
+		}
+	      run2++;
+	    }
+	}
+      run++;
+    }
+
   return 0;
 }
 
 //! Prune determination for bounds
 /**
+ * When something is pruned here, the state space is not complete anymore.
+ *
  *@returns true iff this state is invalid for some reason
  */
 int

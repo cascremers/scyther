@@ -762,6 +762,12 @@ claimAddAll (const System sys, const Protocol protocol, const Role role)
   claimCreate (sys, protocol, role, CLAIM_Nisynch, NULL, NULL);
 }
 
+//! Compile a role
+/**
+ * Input: a name and a roledef tac
+ *
+ * Upon return, thisRole should contain the role definition
+ */
 void
 roleCompile (Term nameterm, Tac tc)
 {
@@ -1023,7 +1029,13 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
 	  t = levelFind (tc->t1.sym, level);
 	  if (t != NULL)
 	    {
+	      // Compile a role
 	      roleCompile (t, tc->t2.tac);
+	      // singular?
+	      if (tc->t3.value != 0)
+		{
+		  thisRole->singular = true;
+		}
 	    }
 	  else
 	    {

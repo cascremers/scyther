@@ -94,6 +94,7 @@ inversekeys	{ return INVERSEKEYS; }
 untrusted	{ return UNTRUSTED; }
 compromised	{ return COMPROMISED; }
 usertype	{ return USERTYPE; }
+singular	{ return SINGULAR; }
 {id}		{	
 			yylval.symb = mkstring(yytext);
 			return ID;
