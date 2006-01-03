@@ -3,7 +3,6 @@
  *
  * Outputs an attack.
  * Currently, every attack is printed.
- * TODO move attacks to a buffer, and print _only_ the shortest one.
  */
 
 #include <stdlib.h>

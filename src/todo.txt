@@ -1,3 +1,4 @@
+- Is the Goal structure really needed?
 - Warshall is taking a third of the time running.
   - Make 'dirty' flag.
   - Make a push-graph structure, where old graphs are simply remembered?
