@@ -2,13 +2,17 @@
 
 				Scyther
 
+			       1.0-beta1
+
 	       a verification tool for security protocols
 			     by Cas Cremers
+
+		 (Compiled for Linux i686 environments)
 
 ------------------------------------------------------------------------
 
 
-Note: This is a 1.0beta release, and therefore the usual warnings apply.
+Note: This is a BETA release, and therefore the usual warnings apply.
 
 
 
@@ -23,20 +27,31 @@ For more information, see:
 2. Starting out
 ========================================================================
 
-To start, run the scyther executable (scyther/scyther) with the --help
-switch, or try
+To start, untar the archive:
 
-  $ scyther/scyther demo/ns3.spdl
+  $ tar zxvf scyther.tgz
+  
+This will produce a directory 'scyther'. Change into this directory.
 
-For graphical output, you need:
+  $ cd scyther
+
+Now run the scyther executable (bin/scyther) with the --help switch,
+or try:
+
+  $ bin/scyther demo/ns3.spdl
+
+To have Scyther produce graphical graphical output, you need:
 
 - a pdf viewer (xpdf is assumed)
-- the GraphViz package (for the 'dot' executable).
+- the GraphViz package (for the 'dot' executable), which can be found
+  at: http://www.research.att.com/sw/tools/graphviz/
 
-Add the paths 'scyther/' and 'demo/' to your path environment variable
-(something like 'export PATH=$PATH:$PWD/demo'), and try
+Add the paths 'bin/' and 'demo/' to your path environment variable
+(something like 'export PATH=$PATH:$PWD/bin:$PWD/demo'), and try
 
   $ scytherview demo/nsl3.spdl
+
+Many other protocol input files can be found in the SPORE directory.
 
 
 3. Citing Scyther

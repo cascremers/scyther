@@ -60,7 +60,7 @@ mkdir $WORKDIR
 #	Fill
 svn export $SVNROOT/SPORE $WORKDIR/SPORE
 svn export $SVNROOT/demo $WORKDIR/demo
-svn export $SVNROOT/scyther $WORKDIR/scyther
+svn export $SVNROOT/scyther $WORKDIR/bin
 
 #	Readme
 cp readme.txt $WORKDIR
