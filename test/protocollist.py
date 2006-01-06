@@ -11,71 +11,59 @@ def list_ppfix(list, prefix, postfix):
 
 def from_good_literature():
 	list = [ \
-	"bke.spdl",
-	"boyd.spdl",
-	"ccitt509-ban.spdl",
-	"denning-sacco-shared.spdl",
-	"gong-nonce-b.spdl",
-	"gong-nonce.spdl",
-	"isoiec11770-2-13.spdl",
+	"ccitt509-1c.spdl",
+	"ccitt509-1.spdl",
+	"ccitt509-3.spdl",
+	"ccitt509-ban3.spdl",
+	"denning-sacco-lowe.spdl",
+	"denning-sacco.spdl",
+	"kaochow.spdl",
 	"kaochow-v2.spdl",
 	"kaochow-v3.spdl",
-	"nsl3.spdl",
+	"ksl-lowe.spdl",
 	"ksl.spdl",
-	"soph.spdl",
-	"splice-as-hc-cj.spdl",
-	"woolam-pi-f.spdl",
+	"needham-schroeder-lowe.spdl",
+	"needham-schroeder-sk-amend.spdl",
+	"needham-schroeder-sk.spdl",
+	"neumannstub-hwang.spdl",
+	"neumannstub.spdl",
+	"otwayrees.spdl",
+	"smartright.spdl",
+	"splice-as-cj.spdl",
+	"splice-as-hc.spdl",
+	"splice-as.spdl",
+	"woo-lam-pi-f.spdl",
+	"woo-lam-pi.spdl",
+	"woo-lam.spdl",
 	"yahalom-lowe.spdl",
-	"yahalom-paulson.spdl",
-	"yahalom.spdl" ]
+	"yahalom-paulson.spdl" ]
 
-	return list_ppfix(list, "../spdl/","")
+	return list_ppfix(list, "../spdl/SPORE/","")
 
 def from_bad_literature():
 	list = [ \
+	"andrew-ban-concrete.spdl",
 	"andrew-ban.spdl",
 	"andrew-lowe-ban.spdl",
-	"kaochow.spdl",
-	"ns3.spdl",
-	"ns-symmetric-amended.spdl",
-	"ns-symmetric.spdl",
-	"otwayrees.spdl",
-	"splice-as-hc.spdl",
-	"splice-as.spdl",
+	"andrew.spdl",
+	"needham-schroeder.spdl",
 	"tmn.spdl",
-	"wmf-brutus.spdl",
-	"woolam-cmv.spdl",
-	"yahalom-ban.spdl" ]
+	"wmf-lowe.spdl",
+	"wmf.spdl",
+	"woo-lam-pi-1.spdl",
+	"woo-lam-pi-2.spdl",
+	"woo-lam-pi-3.spdl",
+	"yahalom-ban.spdl",
+	"yahalom.spdl" ]
 
-	return list_ppfix(list, "../spdl/","")
+	return list_ppfix(list, "../spdl/SPORE/","")
 
 def from_literature():
 	return from_good_literature() + from_bad_literature()
 
 def from_others():
 	list = [ \
-	"bke-broken.spdl",
-	"bke-one.spdl",
-	"bkepk-ce2.spdl",
-	"bkepk-ce.spdl",
-	"broken1.spdl",
-	"carkey-broken-limited.spdl",
-	"carkey-broken.spdl",
-	"carkey-ni2.spdl",
-	"carkey-ni.spdl",
-	"five-run-bound.spdl",
-	"helloworld.spdl",
-	"kaochow-palm.spdl",
-	"ns3-brutus.spdl",
-	"nsl3-nisynch-rep.spdl",
-	"nsl7.spdl",
-	"onetrace.spdl",
-	"samasc-broken.spdl",
-	"simplest.spdl",
-	"soph-keyexch.spdl",
-	"speedtest.spdl",
-	"woolam-ce.spdl",
-	"unknown2.spdl"]
+			]
 
 	return list_ppfix(list, "../spdl/","")
 
