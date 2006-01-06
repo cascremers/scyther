@@ -561,12 +561,30 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
+	  /* 
+	   * Deprecated : use --untyped instead
+	   *
 	  helptext ("-m, --match=<int>",
 		    "type matching method [0] 0: No type-flaws allowed, 1: Allow basic type-flaws only, 2: Allow all type-flaws");
+           */
 	}
       else
 	{
 	  switches.match = integer_argument ();
+	  return index;
+	}
+    }
+
+  if (detect ('u', "untyped", 0))
+    {
+      if (!process)
+	{
+	  helptext ("-u, --untyped",
+		    "Consider all variables to be untyped");
+	}
+      else
+	{
+	  switches.match = 2;
 	  return index;
 	}
     }
