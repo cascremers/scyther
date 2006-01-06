@@ -1,4 +1,5 @@
-- Is the Goal structure really needed?
+- Add '--untyped' check for typeflaw detection (instead of the fairly
+  vague '--match'.
 - Warshall is taking a third of the time running.
   - Make 'dirty' flag.
   - Make a push-graph structure, where old graphs are simply remembered?
