@@ -564,9 +564,9 @@ switcher (const int process, int index, int commandline)
 	  /* 
 	   * Deprecated : use --untyped instead
 	   *
-	  helptext ("-m, --match=<int>",
-		    "type matching method [0] 0: No type-flaws allowed, 1: Allow basic type-flaws only, 2: Allow all type-flaws");
-           */
+	   helptext ("-m, --match=<int>",
+	   "type matching method [0] 0: No type-flaws allowed, 1: Allow basic type-flaws only, 2: Allow all type-flaws");
+	   */
 	}
       else
 	{
@@ -579,8 +579,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-u, --untyped",
-		    "Consider all variables to be untyped");
+	  helptext ("-u, --untyped", "Consider all variables to be untyped");
 	}
       else
 	{
@@ -622,6 +621,20 @@ switcher (const int process, int index, int commandline)
 	    {
 	      switches.runs = arg;
 	    }
+	  return index;
+	}
+    }
+
+  if (detect (' ', "unbounded", 0))
+    {
+      if (!process)
+	{
+	  helptext ("    --unbounded",
+		    "Do not bound the number of runs in the state space.");
+	}
+      else
+	{
+	  switches.runs = INT_MAX;
 	  return index;
 	}
     }
