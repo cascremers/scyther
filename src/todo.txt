@@ -1,3 +1,5 @@
+- Scyther mailing list especially for students, this is where they
+  should report any questions, when Erik starts the course.
 - It is currently not well-defined to define inversekeys within a role:
   this requires some work at instantiation, because instantiated term
   couples should be added to the inverses list, and removed at
