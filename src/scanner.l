@@ -95,6 +95,10 @@ untrusted	{ return UNTRUSTED; }
 compromised	{ return COMPROMISED; }
 usertype	{ return USERTYPE; }
 singular	{ return SINGULAR; }
+function	{ return FUNCTION; }
+hashfunction	{ return HASHFUNCTION; }
+knows		{ return KNOWS; }
+trusted		{ return TRUSTED; }
 {id}		{	
 			yylval.symb = mkstring(yytext);
 			return ID;

@@ -32,6 +32,10 @@ int yylex(void);
 %token 		UNTRUSTED
 %token 		USERTYPE
 %token		SINGULAR
+%token		FUNCTION
+%token 		HASHFUNCTION
+%token		KNOWS
+%token		TRUSTED
 
 %type	<tac>	spdlcomplete
 %type	<tac>	spdlrep
@@ -286,11 +290,11 @@ key		: term
 
 %%
 
-// error handler routing
+//! error handler routing
 int yyerror(char *s)
 {
-	extern int yylineno;	// defined and maintained in lex.c
-	extern char *yytext;	// defined and maintained in lex.c
+	extern int yylineno;	//!< defined and maintained in lex.c
+	extern char *yytext;	//!< defined and maintained in lex.c
   
 	error ("%s at symbol '%s' on line %i.\n", s, yytext, yylineno);
 }
