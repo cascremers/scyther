@@ -25,4 +25,7 @@ extern Term CLAIM_Reachable;
 
 extern Termlist CLAIMS_dep_prec;
 
+int isTicketTerm (Term t);
+int hasTicketSubterm (Term t);
+
 #endif

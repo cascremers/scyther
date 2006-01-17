@@ -62,3 +62,35 @@ specialTermInit (const System sys)
   CLAIMS_dep_prec = termlistAdd (CLAIMS_dep_prec, CLAIM_Nisynch);
 
 }
+
+//! Determine whether this is a leaf construct with a ticket in it
+int
+isTicketTerm (Term t)
+{
+  if (t != NULL)
+    {
+      if (realTermLeaf (t))
+	{
+	  if (inTermlist (t->stype, TERM_Ticket))
+	    {
+	      return true;
+	    }
+	  else
+	    {
+	      if (realTermVariable (t))
+		{
+		  return isTicketTerm (t->subst);
+		}
+	    }
+	}
+    }
+  return false;
+}
+
+//! Determine whether this is a term with a Ticket in it
+int
+hasTicketSubterm (Term t)
+{
+  // Doesn't work yet
+  return true;
+}

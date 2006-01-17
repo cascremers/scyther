@@ -1094,11 +1094,18 @@ term_rolelocals_are_variables ()
 }
 
 //! Count the encryption level of a term
+/**
+ * Note that this stops at any variable that is of ticket type.
+ */
 int
 term_encryption_level (const Term term)
 {
   int iter_maxencrypt (Term t)
   {
+    if (isTicketTerm (t))
+      {
+	return 0;
+      }
     t = deVar (t);
     if (t == NULL)
       {

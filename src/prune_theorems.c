@@ -259,18 +259,25 @@ prune_theorems (const System sys)
       // Check for encryption levels
       /*
        * if (switches.match < 2
+       *!@todo Doesn't work yet as desired for Tickets. Prove lemma first.
        */
-      if (term_encryption_level (b->term) > max_encryption_level)
+      if (switches.experimental)
 	{
-	  // Prune: we do not need to construct such terms
-	  if (switches.output == PROOF)
+	  if (!hasTicketSubterm (b->term))
 	    {
-	      indentPrint ();
-	      eprintf ("Pruned because the encryption level of ");
-	      termPrint (b->term);
-	      eprintf (" is too high.\n");
+	      if (term_encryption_level (b->term) > max_encryption_level)
+		{
+		  // Prune: we do not need to construct such terms
+		  if (switches.output == PROOF)
+		    {
+		      indentPrint ();
+		      eprintf ("Pruned because the encryption level of ");
+		      termPrint (b->term);
+		      eprintf (" is too high.\n");
+		    }
+		  return 1;
+		}
 	    }
-	  return 1;
 	}
 
       // Check for SK-type function occurrences

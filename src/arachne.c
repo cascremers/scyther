@@ -1452,8 +1452,6 @@ bind_goal (const Binding b)
   if (!b->done)
     {
       int flag;
-      int know_only;
-      Term function;
 
       flag = 1;
       proof_select_goal (b);
@@ -1481,26 +1479,35 @@ bind_goal (const Binding b)
 	}
       else
 	{
-	  // Prune: if it is an SK type construct, ready
-	  // No regular run will apply SK for you.
-	  //!@todo This still needs a lemma, and a more generic (correct) algorithm!!
+	  int know_only;
 
 	  know_only = 0;
-	  function = getTermFunction (b->term);
-	  if (function != NULL)
+
+	  if (1 == 0)		// blocked for now
 	    {
-	      if (!inKnowledge (sys->know, function))
+	      // Prune: if it is an SK type construct, ready
+	      // No regular run will apply SK for you.
+	      //!@todo This still needs a lemma, and a more generic (correct) algorithm!! It is currently
+	      // actually false, e.g. for signing protocols, and password-like functions.
+	      //
+	      Term function;
+
+	      function = getTermFunction (b->term);
+	      if (function != NULL)
 		{
-		  // Prune because we didn't know it before, and it is never subterm-sent
-		  if (switches.output == PROOF)
+		  if (!inKnowledge (sys->know, function))
 		    {
-		      indentPrint ();
-		      eprintf ("* Because ");
-		      termPrint (b->term);
-		      eprintf
-			(" is never sent from a regular run, so we only intruder construct it.\n");
+		      // Prune because we didn't know it before, and it is never subterm-sent
+		      if (switches.output == PROOF)
+			{
+			  indentPrint ();
+			  eprintf ("* Because ");
+			  termPrint (b->term);
+			  eprintf
+			    (" is never sent from a regular run, so we only intruder construct it.\n");
+			}
+		      know_only = 1;
 		    }
-		  know_only = 1;
 		}
 	    }
 
