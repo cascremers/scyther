@@ -13,4 +13,3 @@ int hidelevelInteresting (const System sys, const Term goalterm);
 int hidelevelImpossible (const System sys, const Term goalterm);
 
 #endif
-

@@ -13,168 +13,175 @@
 unsigned int
 protocolHidelevel (const System sys, const Term t)
 {
-	unsigned int minlevel;
+  unsigned int minlevel;
 
-	minlevel = INT_MAX;
+  minlevel = INT_MAX;
 
-	int itsends (const System sys, const Protocol p, const Role r)
+  int itsends (const System sys, const Protocol p, const Role r)
+  {
+    int sends (Roledef rd)
+    {
+      if (rd->type == SEND)
 	{
-		int sends(Roledef rd)
-		{
-			if (rd->type == SEND)
-			{
-				unsigned int l;
+	  unsigned int l;
 
-				l = termHidelevel (t, rd->from);
-				if (l < minlevel) minlevel = l;
-				l = termHidelevel (t, rd->to);
-				if (l < minlevel) minlevel = l;
-				l = termHidelevel (t, rd->message);
-				if (l < minlevel) minlevel = l;
-			}
-			return true;
-		}
-
-		roledef_iterate_events (r->roledef, sends);
-		return true;
+	  l = termHidelevel (t, rd->from);
+	  if (l < minlevel)
+	    minlevel = l;
+	  l = termHidelevel (t, rd->to);
+	  if (l < minlevel)
+	    minlevel = l;
+	  l = termHidelevel (t, rd->message);
+	  if (l < minlevel)
+	    minlevel = l;
 	}
+      return true;
+    }
 
-	system_iterate_roles (sys, itsends);
+    roledef_iterate_events (r->roledef, sends);
+    return true;
+  }
 
-	return minlevel;
+  system_iterate_roles (sys, itsends);
+
+  return minlevel;
 }
 
 //! hide level within initial knowledge
 unsigned int
 knowledgeHidelevel (const System sys, const Term t)
 {
-	unsigned int minlevel;
-	Termlist tl;
+  unsigned int minlevel;
+  Termlist tl;
 
-	minlevel = INT_MAX;
-	tl = knowledgeSet (sys->know);
-	while (tl != NULL)
+  minlevel = INT_MAX;
+  tl = knowledgeSet (sys->know);
+  while (tl != NULL)
+    {
+      unsigned int l;
+
+      l = termHidelevel (t, tl->term);
+      if (l < minlevel)
 	{
-		unsigned int l;
-
-		l = termHidelevel (t, tl->term);
-		if (l < minlevel)
-		{
-			minlevel = l;
-		}
-		tl = tl->next;
+	  minlevel = l;
 	}
-	termlistDelete (tl);
+      tl = tl->next;
+    }
+  termlistDelete (tl);
 
-	return minlevel;
+  return minlevel;
 }
 
 //! Check hide levels
 void
 hidelevelCompute (const System sys)
 {
-	Termlist tl;
+  Termlist tl;
 
-	sys->hidden = NULL;
-	tl = sys->globalconstants;
-	eprintf ("Global constants: ");
-	termlistPrint (tl);
-	eprintf ("\n");
+  sys->hidden = NULL;
+  tl = sys->globalconstants;
+  eprintf ("Global constants: ");
+  termlistPrint (tl);
+  eprintf ("\n");
 
-	while (tl != NULL)
+  while (tl != NULL)
+    {
+      unsigned int l1, l2, l;
+
+      l1 = knowledgeHidelevel (sys, tl->term);
+      l2 = protocolHidelevel (sys, tl->term);
+      if (l1 < l2)
 	{
-		unsigned int l1,l2,l;
+	  l = l1;
+	}
+      else
+	{
+	  l = l2;
+	}
 
-		l1 = knowledgeHidelevel (sys, tl->term);
-		l2 = protocolHidelevel (sys, tl->term);
-		if (l1 < l2)
-		{
-			l = l1;
-		}
-		else
-		{
-			l = l2;
-		}
+      // Interesting only if higher than zero
+      if (l > 0)
+	{
+	  Hiddenterm ht;
 
-		// Interesting only if higher than zero
-		if (l > 0)
-		{
-			Hiddenterm ht;
-
-			ht = (Hiddenterm) memAlloc (sizeof (struct hiddenterm));
-			ht->term = tl->term;
-			ht->hideminimum = l;
-			ht->hideprotocol = l2;
-			ht->hideknowledge = l1;
-			ht->next = sys->hidden;
-			sys->hidden = ht;
+	  ht = (Hiddenterm) memAlloc (sizeof (struct hiddenterm));
+	  ht->term = tl->term;
+	  ht->hideminimum = l;
+	  ht->hideprotocol = l2;
+	  ht->hideknowledge = l1;
+	  ht->next = sys->hidden;
+	  sys->hidden = ht;
 
 #ifdef DEBUG
-			eprintf ("Added possibly interesting term: ");
-			termPrint (tl->term);
-			eprintf ("; know %i, prot %i\n", l1,l2);
+	  eprintf ("Added possibly interesting term: ");
+	  termPrint (tl->term);
+	  eprintf ("; know %i, prot %i\n", l1, l2);
 #endif
-		}
-
-		tl = tl->next;
 	}
+
+      tl = tl->next;
+    }
 }
 
 
 //! Given a term, iterate over all factors
-int iterate_interesting (const System sys, const Term goalterm, int (*func) ())
+int
+iterate_interesting (const System sys, const Term goalterm, int (*func) ())
 {
-	Hiddenterm ht;
+  Hiddenterm ht;
 
-	ht = sys->hidden;
-	while (ht != NULL)
+  ht = sys->hidden;
+  while (ht != NULL)
+    {
+      unsigned int l;
+      // Test the goalterm for occurrences of this
+
+      l = termHidelevel (ht->term, goalterm);
+      if (l < INT_MAX)
 	{
-		unsigned int l;
-		// Test the goalterm for occurrences of this
-
-		l = termHidelevel (ht->term, goalterm);
-		if (l < INT_MAX)
-		{
-			if (!func (l, ht->hideminimum, ht->hideprotocol, ht->hideknowledge))
-			{
-				return false;
-			}
-		}
-
-		ht = ht->next;
+	  if (!func (l, ht->hideminimum, ht->hideprotocol, ht->hideknowledge))
+	    {
+	      return false;
+	    }
 	}
-	return true;
+
+      ht = ht->next;
+    }
+  return true;
 }
 
 //! Determine whether a goal might be interesting from the viewpoint of hide levels (the highest minimum is best)
-int hidelevelInteresting (const System sys, const Term goalterm)
+int
+hidelevelInteresting (const System sys, const Term goalterm)
 {
-	int uninteresting (unsigned int l, unsigned int lmin, unsigned int lprot, unsigned int lknow)
-	{
-		if (lmin > 0)
-		{
-			// anything higher than usual is interesting :)
-			return false;
-		}
-		return true;
-	}
+  int uninteresting (unsigned int l, unsigned int lmin, unsigned int lprot,
+		     unsigned int lknow)
+  {
+    if (lmin > 0)
+      {
+	// anything higher than usual is interesting :)
+	return false;
+      }
+    return true;
+  }
 
-	return !iterate_interesting (sys, goalterm, uninteresting);
+  return !iterate_interesting (sys, goalterm, uninteresting);
 }
 
 //! Determine whether a goal is impossible to satisfy because of the hidelevel lemma.
-int hidelevelImpossible (const System sys, const Term goalterm)
+int
+hidelevelImpossible (const System sys, const Term goalterm)
 {
-	int possible (unsigned int l, unsigned int lmin, unsigned int lprot, unsigned int lknow)
-	{
-		if (l < lmin)
-		{
-			// impossible, abort!
-			return false;
-		}
-		return true;
-	}
+  int possible (unsigned int l, unsigned int lmin, unsigned int lprot,
+		unsigned int lknow)
+  {
+    if (l < lmin)
+      {
+	// impossible, abort!
+	return false;
+      }
+    return true;
+  }
 
-	return !iterate_interesting (sys, goalterm, possible);
+  return !iterate_interesting (sys, goalterm, possible);
 }
-
