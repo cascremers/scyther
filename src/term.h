@@ -201,6 +201,7 @@ int isLeafNameEqual (Term t1, Term t2);
 Term freshTermPrefix (Term prefixterm);
 int isTermFunctionName (Term t);
 Term getTermFunction (Term t);
+unsigned int termHidelevel (const Term tsmall, Term tbig);
 
 
 #endif

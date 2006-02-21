@@ -100,6 +100,19 @@ struct tracebuf
   Varbuf variables;
 };
 
+//! Structure for information on special terms (cacheing)
+struct hiddenterm
+{
+  Term term;
+  unsigned int hideminimum;
+  unsigned int hideprotocol;
+  unsigned int hideknowledge;
+  struct hiddenterm *next;
+};
+
+//! Pointer shorthand
+typedef struct hiddenterm *Hiddenterm;
+
 //! The main state structure.
 struct system
 {
@@ -136,6 +149,8 @@ struct system
   Termlist locals;		//!< List of local terms
   Termlist variables;		//!< List of all variables
   Termlist untrusted;		//!< List of untrusted agent names
+  Termlist globalconstants;	//!< List of global constants
+  Hiddenterm hidden;		//!< List of hiddenterm constructs for Hidelevel lemma
 
   /* protocol preprocessing */
   int rolecount;		//!< Number of roles in the system
@@ -165,6 +180,7 @@ struct system
 };
 
 typedef struct system *System;
+
 
 System systemInit ();
 void systemReset (const System sys);

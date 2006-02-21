@@ -67,6 +67,8 @@ systemInit ()
   sys->locals = NULL;
   sys->variables = NULL;
   sys->untrusted = NULL;
+  sys->globalconstants = NULL;
+  sys->hidden = NULL;
   sys->secrets = NULL;		// list of claimed secrets
   sys->synchronising_labels = NULL;
   sys->attack = NULL;		// clash with prev. attack declaration TODO

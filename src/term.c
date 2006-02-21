@@ -1378,3 +1378,52 @@ getTermFunction (Term t)
     }
   return NULL;
 }
+
+//! Return hidelevel for a single term within another
+unsigned int
+termHidelevel (const Term tsmall, Term tbig)
+{
+  tbig = deVar (tbig);
+  if (isTermEqual (tsmall, tbig))
+    {
+      // It's simply here: not hidden at any level
+      return 0;
+    }
+  else
+    {
+      if (realTermLeaf (tbig))
+	{
+	  // Not here: infinitely hidden
+	  return INT_MAX;
+	}
+      else
+	{
+	  // Nested term
+	  unsigned int t1, t2;
+
+	  if (realTermTuple (tbig))
+	    {
+	      // Tupling
+	      t1 = termHidelevel (tsmall, TermOp1 (tbig));
+	      t2 = termHidelevel (tsmall, TermOp2 (tbig));
+	    }
+	  else
+	    {
+	      // Encryption
+	      t1 = termHidelevel (tsmall, TermOp (tbig));
+	      t2 = termHidelevel (tsmall, TermKey (tbig));
+	      if (t2 < INT_MAX)
+		t2++;
+	    }
+	  // Return minimum
+	  if (t1 < t2)
+	    {
+	      return t1;
+	    }
+	  else
+	    {
+	      return t2;
+	    }
+	}
+    }
+}

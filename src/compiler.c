@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <limits.h>
 #include "tac.h"
 #include "term.h"
 #include "termlist.h"
@@ -12,6 +13,7 @@
 #include "compiler.h"
 #include "switches.h"
 #include "specialterm.h"
+#include "hidelevel.h"
 
 /*
    Simple sys pointer as a global. Yields cleaner code although it's against programming standards.
@@ -371,6 +373,10 @@ levelTacDeclaration (Tac tc, int isVar)
 	      thisRole->declaredconsts =
 		termlistAdd (thisRole->declaredconsts, t);
 	    }
+	}
+      else if (level == 0)
+	{
+	  sys->globalconstants = termlistAdd (sys->globalconstants, t);
 	}
       tscan = tscan->next;
     }
@@ -1790,4 +1796,8 @@ preprocess (const System sys)
    * check for ununsed variables
    */
   checkUnusedVariables (sys);
+  /*
+   * compute hidelevels
+   */
+  hidelevelCompute (sys);
 }
