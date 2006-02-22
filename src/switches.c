@@ -511,8 +511,11 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-C, --class",
-		    "generate full class (show uninstantiated variables in state output)");
+	  if (switches.expert)
+	    {
+	      helptext ("-C, --class",
+			"generate full class (show uninstantiated variables in state output)");
+	    }
 	}
       else
 	{
@@ -525,8 +528,11 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-s, --state-space",
-		    "ignore any existing claims and add 'reachable' claims. Generate full state space classes.");
+	  if (switches.expert)
+	    {
+	      helptext ("-s, --state-space",
+			"ignore any existing claims and add 'reachable' claims. Generate full state space classes");
+	    }
 	}
       else
 	{
@@ -612,7 +618,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  helptext ("-r, --max-runs=<int>",
-		    "maximum number of runs in the system [5]. Set to 0 for unbounded search");
+		    "maximum number of runs in the system [defaults to 5]");
 	}
       else
 	{
@@ -634,7 +640,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  helptext ("    --unbounded",
-		    "Do not bound the number of runs in the state space.");
+		    "Do not bound the number of runs in the state space");
 	}
       else
 	{
@@ -1093,7 +1099,10 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("    --plain", "disable color terminal output");
+	  if (switches.expert)
+	    {
+	      helptext ("    --plain", "disable color terminal output");
+	    }
 	}
       else
 	{
