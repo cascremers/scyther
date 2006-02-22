@@ -618,7 +618,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  helptext ("-r, --max-runs=<int>",
-		    "maximum number of runs in the system [defaults to 5]");
+		    "maximum number of runs in the system [5]");
 	}
       else
 	{
@@ -824,14 +824,14 @@ switcher (const int process, int index, int commandline)
      }
    */
 
-  if (detect (' ', "goal-select", 1))
+  if (detect (' ', "heuristic", 1))
     {
       if (!process)
 	{
-	  /* discourage: hide
-	     helptext ("    --goal-select=<int>",
-	     "use goal selection method <int> [3]");
-	   */
+	  if (switches.expert)
+	    {
+	      helptext ("    --heuristic=<int>", "use heuristic <int> [3]");
+	    }
 	}
       else
 	{

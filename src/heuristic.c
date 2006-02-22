@@ -12,6 +12,7 @@
 #include "system.h"
 #include "specialterm.h"
 #include "switches.h"
+#include "hidelevel.h"
 
 //! Check whether a binding (goal) is selectable
 int
@@ -205,6 +206,35 @@ term_noncevariables_level (const Term t)
     }
 }
 
+//! Determine weight based on hidelevel
+float
+weighHidelevel (const System sys, const Term t)
+{
+  unsigned int hl;
+
+  switch (hidelevelFlag (sys, t))
+    {
+    case HLFLAG_NONE:
+      return 0;
+    case HLFLAG_KNOW:
+      return 0.3;
+    case HLFLAG_PROT:
+      return 0.6;
+    }
+  return 1;
+}
+
+//! newkeylevel (weighted)
+int
+newkeylevel (const int level)
+{
+  // keylevel is from { -1,0,1 } where -1 means delay
+  if (level == 1)
+    return 0;
+  else
+    return 1;
+}
+
 //! Goal selection
 /**
  * Selects the most constrained goal.
@@ -223,6 +253,7 @@ term_noncevariables_level (const Term t)
  * 	4:	consequences determination
  * 	8:	select also single variables (that are not role variables)
  * 	16:	single variables are better
+ * 	32:	incorporate keylevel information
  *
  * special tactics for --select-goal
  *	-1:	random goal selection
@@ -320,13 +351,20 @@ select_goal_masked (const System sys)
 	      erode (1, 0.5 * (1 - b->level));
 	      // Bit 2: 4 consequence level
 	      erode (1, termBindConsequences (sys, b->term));
-	      // Bit 3: 8 single variables first
+	      // Bit 3: 8 single variables first (crappy performance, counter-intuitive anyway)
 	      erode (1, 1 - isTermVariable (b->term));
 	      // Bit 4: 16 nonce variables level (Cf. what I think is in Athena)
 	      erode (1, term_noncevariables_level (b->term));
+	      // Bit 5: 32 use hidelevel information
+	      erode (1, weighHidelevel (sys, b->term));
+	      // Bit 5: 64 use hidelevel information
+	      erode (1, 2 * weighHidelevel (sys, b->term));
+	      // Bit 6: 128 use key level
+	      erode (1, newkeylevel (b->level));
+
 	      // Define legal range
 	      if (smode > 0)
-		error ("--goal-select mode %i is illegal", mode);
+		error ("--heuristic mode %i is illegal", mode);
 
 	      // Weigh result
 	      if (buf_weight == 0 || buf_constrain <= min_constrain)

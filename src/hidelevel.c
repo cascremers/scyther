@@ -221,7 +221,7 @@ hidelevelImpossible (const System sys, const Term goalterm)
 }
 
 //! Return flag on the basis of the Hidelevel lemma
-int
+unsigned int
 hidelevelFlag (const System sys, const Term goalterm)
 {
   unsigned int flag;
