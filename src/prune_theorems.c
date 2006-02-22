@@ -262,7 +262,7 @@ prune_theorems (const System sys)
        * if (switches.match < 2
        *!@TODO Doesn't work yet as desired for Tickets. Prove lemma first.
        */
-      if (switches.experimental)
+      if (switches.experimental & 2 > 0)
 	{
 	  if (!hasTicketSubterm (b->term))
 	    {

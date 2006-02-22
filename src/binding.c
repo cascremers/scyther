@@ -801,7 +801,7 @@ bindings_c_minimal ()
 {
   List bl;
 
-  if (switches.experimental == 1)
+  if (switches.experimental & 1 > 0)
     {
       if (unique_origination () == 0)
 	{
