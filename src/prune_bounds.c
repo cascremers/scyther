@@ -108,19 +108,22 @@ prune_bounds (const System sys)
   /**
    * This should be removed once the hidelevel lemma works correctly
    */
-  if ((switches.match < 2)
-      && (num_intruder_runs >
-	  ((double) switches.runs * max_encryption_level * 8)))
+  if (switches.experimental & 4 == 0)
     {
-      // Hardcoded limit on iterations
-      if (switches.output == PROOF)
+      if ((switches.match < 2)
+	  && (num_intruder_runs >
+	      ((double) switches.runs * max_encryption_level * 8)))
 	{
-	  indentPrint ();
-	  eprintf
-	    ("Pruned: %i intruder runs is too much. (max encr. level %i)\n",
-	     num_intruder_runs, max_encryption_level);
+	  // Hardcoded limit on iterations
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf
+		("Pruned: %i intruder runs is too much. (max encr. level %i)\n",
+		 num_intruder_runs, max_encryption_level);
+	    }
+	  return 1;
 	}
-      return 1;
     }
 
   // Limit on exceeding any attack length

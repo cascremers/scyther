@@ -242,19 +242,22 @@ prune_theorems (const System sys)
 
       b = bl->data;
 
-      // Check for "Hidden" interm goals
-      //!@TODO in the future, this can be subsumed by adding TERM_Hidden to the hidelevel constructs
-      if (termInTerm (b->term, TERM_Hidden))
+      if (switches.experimental & 4 == 0)
 	{
-	  // Prune the state: we can never meet this
-	  if (switches.output == PROOF)
+	  // Check for "Hidden" interm goals
+	  //!@TODO in the future, this can be subsumed by adding TERM_Hidden to the hidelevel constructs
+	  if (termInTerm (b->term, TERM_Hidden))
 	    {
-	      indentPrint ();
-	      eprintf ("Pruned because intruder can never construnct ");
-	      termPrint (b->term);
-	      eprintf ("\n");
+	      // Prune the state: we can never meet this
+	      if (switches.output == PROOF)
+		{
+		  indentPrint ();
+		  eprintf ("Pruned because intruder can never construnct ");
+		  termPrint (b->term);
+		  eprintf ("\n");
+		}
+	      return 1;
 	    }
-	  return 1;
 	}
 
       // Check for encryption levels
@@ -281,23 +284,26 @@ prune_theorems (const System sys)
 	    }
 	}
 
-      // Check for SK-type function occurrences
-      //!@todo Needs a LEMMA, although this seems to be quite straightforward to prove.
-      // The idea is that functions are never sent as a whole, but only used in applications.
-      //!@TODO Subsumed by hidelevel lemma later
-      if (isTermFunctionName (b->term))
+      if (switches.experimental & 4 == 0)
 	{
-	  if (!inKnowledge (sys->know, b->term))
+	  // Check for SK-type function occurrences
+	  //!@todo Needs a LEMMA, although this seems to be quite straightforward to prove.
+	  // The idea is that functions are never sent as a whole, but only used in applications.
+	  //!@TODO Subsumed by hidelevel lemma later
+	  if (isTermFunctionName (b->term))
 	    {
-	      // Not in initial knowledge of the intruder
-	      if (switches.output == PROOF)
+	      if (!inKnowledge (sys->know, b->term))
 		{
-		  indentPrint ();
-		  eprintf ("Pruned because the function ");
-		  termPrint (b->term);
-		  eprintf (" is not known initially to the intruder.\n");
+		  // Not in initial knowledge of the intruder
+		  if (switches.output == PROOF)
+		    {
+		      indentPrint ();
+		      eprintf ("Pruned because the function ");
+		      termPrint (b->term);
+		      eprintf (" is not known initially to the intruder.\n");
+		    }
+		  return 1;
 		}
-	      return 1;
 	    }
 	}
 

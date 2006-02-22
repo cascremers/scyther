@@ -278,8 +278,9 @@ isKeylevelRight (Term t, const int kl)
 
 //! Keylevel tester: can this term ever be sent at this keylevel?
 /**
- * Depends on the keylevel lemma (TODO) and the keylevel constructors in symbol.c
- * The idea is that certain terms will never be sent.
+ * Depends on the keylevel lemma (so this will not be called when those lemmas
+ * are disabled) and the keylevel constructors in symbol.c The idea is that
+ * certain terms will never be sent.
  */
 int
 isPossiblySent (Term t)
@@ -1512,25 +1513,28 @@ bind_goal (const Binding b)
 		}
 	    }
 
-	  // Keylevel lemmas: improves on the previous one
-	  if (!isPossiblySent (b->term))
+	  if (switches.experimental & 4 == 0)
 	    {
-	      if (switches.output == PROOF)
+	      // Keylevel lemmas: improves on the previous one
+	      if (!isPossiblySent (b->term))
 		{
-		  eprintf
-		    ("Rejecting a term as a regular bind because key levels are off: ");
-		  termPrint (b->term);
-		  if (know_only)
+		  if (switches.output == PROOF)
 		    {
-		      eprintf (" [in accordance with function lemma]");
+		      eprintf
+			("Rejecting a term as a regular bind because key levels are off: ");
+		      termPrint (b->term);
+		      if (know_only)
+			{
+			  eprintf (" [in accordance with function lemma]");
+			}
+		      else
+			{
+			  eprintf (" [stronger than function lemma]");
+			}
+		      eprintf ("\n");
 		    }
-		  else
-		    {
-		      eprintf (" [stronger than function lemma]");
-		    }
-		  eprintf ("\n");
+		  know_only = 1;
 		}
-	      know_only = 1;
 	    }
 #ifdef DEBUG
 	  else

@@ -942,6 +942,8 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.experimental = integer_argument ();
+	  eprintf ("Set experimental switch to %i.\n", switches.experimental);
+	  eprintf ("And 4 mask: %i.\n", switches.experimental & 4);
 	  return index;
 	}
     }
