@@ -559,6 +559,16 @@ timersPrint (const System sys)
 		}
 	    }
 
+	  /* states (if asked) */
+	  if (switches.engine == ARACHNE_ENGINE)
+	    {
+	      if (switches.countStates)
+		{
+		  eprintf ("\tstates=");
+		  statesFormat (cl_scan->states);
+		}
+	    }
+
 	  /* any warnings */
 	  if (cl_scan->warnings)
 	    {

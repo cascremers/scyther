@@ -89,6 +89,7 @@ switchesInit (int argc, char **argv)
   switches.reportMemory = 0;
   switches.reportTime = 0;
   switches.reportStates = 0;
+  switches.countStates = false;	// default off
   switches.extendNonReads = 0;	// default off
   switches.extendTrivial = 0;	// default off
   switches.plain = false;	// default colors
@@ -940,6 +941,21 @@ switcher (const int process, int index, int commandline)
   /* ==================
    *  External options
    */
+  if (detect (' ', "count-states", 0))
+    {
+      if (!process)
+	{
+	  /* not very important
+	     helptext ("    --count-states", "report on states (per claim)");
+	   */
+	}
+      else
+	{
+	  switches.countStates = true;
+	  return index;
+	}
+    }
+
   if (!process)
     printf ("Misc. switches:\n");
 

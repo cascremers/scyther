@@ -123,6 +123,40 @@ hidelevelCompute (const System sys)
     }
 }
 
+//! Determine flag from parameters
+unsigned int
+hidelevelParamFlag (unsigned int l, unsigned int lmin, unsigned int lprot,
+		    unsigned int lknow)
+{
+  // Given the parameters, determine where the term with hidelevel l could be generated from.
+  if (l < lmin)
+    {
+      return HLFLAG_NONE;
+    }
+  else
+    {
+      // One should work (at least)
+      if (l < lprot)
+	{
+	  // Know should be possible
+	  return HLFLAG_KNOW;
+	}
+      else
+	{
+	  // Prot can, know also?
+	  if (l < lknow)
+	    {
+	      // Nope, just prot
+	      return HLFLAG_PROT;
+	    }
+	  else
+	    {
+	      // Both
+	      return HLFLAG_BOTH;
+	    }
+	}
+    }
+}
 
 //! Given a term, iterate over all factors
 int
@@ -184,4 +218,30 @@ hidelevelImpossible (const System sys, const Term goalterm)
   }
 
   return !iterate_interesting (sys, goalterm, possible);
+}
+
+//! Return flag on the basis of the Hidelevel lemma
+int
+hidelevelFlag (const System sys, const Term goalterm)
+{
+  unsigned int flag;
+
+  int getflag (unsigned int l, unsigned int lmin, unsigned int lprot,
+	       unsigned int lknow)
+  {
+    // Determine new flag
+    flag = flag | hidelevelParamFlag (l, lmin, lprot, lknow);
+
+    // Should we proceed?
+    if (flag == HLFLAG_NONE)
+      {
+	// abort iteration: it cannot get worse
+	return false;
+      }
+    return true;
+  }
+
+  flag = HLFLAG_BOTH;
+  iterate_interesting (sys, goalterm, getflag);
+  return flag;
 }

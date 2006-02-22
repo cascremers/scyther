@@ -104,7 +104,10 @@ prune_bounds (const System sys)
     }
 
   // This needs some foundation. Probably * 2^max_encryption_level
-  //!@todo Fix this bound
+  //!@todo Remove later
+  /**
+   * This should be removed once the hidelevel lemma works correctly
+   */
   if ((switches.match < 2)
       && (num_intruder_runs >
 	  ((double) switches.runs * max_encryption_level * 8)))

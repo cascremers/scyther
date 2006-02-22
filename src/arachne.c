@@ -38,6 +38,7 @@
 #include "prune_bounds.h"
 #include "prune_theorems.h"
 #include "arachne.h"
+#include "hidelevel.h"
 
 extern int *graph;
 extern int nodes;
@@ -1934,6 +1935,8 @@ iterate ()
 		   */
 
 		  sys->states = statesIncrease (sys->states);
+		  sys->current_claim->states =
+		    statesIncrease (sys->current_claim->states);
 
 		  /**
 		   * Check whether its a final state (i.e. all goals bound)

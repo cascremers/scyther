@@ -12,6 +12,9 @@ enum eventtype
 { READ, SEND, CLAIM };
 
 //! The container for the claim info list
+/**
+ * Defaults are set in compiler.c (claimCreate)
+ */
 struct claimlist
 {
   //! The type of claim
@@ -33,6 +36,8 @@ struct claimlist
   states_t count;
   //! Number of occurrences that failed.
   states_t failed;
+  //! Number of iterations traversed for this claim.
+  states_t states;
   //! Whether the result is complete or not (failings always are!)
   int complete;
   //! If we ran into the time bound (incomplete, and bad for results)
