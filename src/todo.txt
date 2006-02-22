@@ -12,6 +12,19 @@
   - Make a push-graph structure, where old graphs are simply remembered?
     Does this help at all?
   - Improve the speed of the thing by finally moving to a bit-thing.
+  Required interface:
+  * Abstract graph (node relations)
+    - make_empty_graph of size n (with ->cycle=0)
+    - destroy graph
+    - get_transitive_relation (g,n1,n2) (enforces closure)
+    - set_transitive_relation (g,n1,n2) (sets dirty flag, checks cycle)
+    - has_cycle (g)
+  * High-level (event dependencies)
+    - make_deps for current sys (make_empty+fill), returning cycle flag
+    - destroy_deps(G)
+    - set_deps (G,r1,s1,r2,s2), returning cycle flag
+    - get_deps (G,r1,s1,r2,s2)
+    - get_cycle_flag (G)
 - Simple timestamps could be added by prefixing send message before the
   role, sending any timestamp constants out first to the intruder. These
   should of course be hidden in the output somehow.
