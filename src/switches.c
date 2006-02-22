@@ -79,6 +79,7 @@ switchesInit (int argc, char **argv)
   switches.addreachableclaim = false;	// add 'reachable' claims
   switches.addallclaims = false;	// add all sorts of claims
   switches.check = false;	// check the protocol for termination etc. (default off)
+  switches.expert = false;	// expert mode (off by default)
 
   // Output
   switches.output = SUMMARY;	// default is to show a summary
@@ -571,6 +572,8 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
+	  warning
+	    ("'-m, --match' switch has been deprecated. Use '-u, --untyped' instead.");
 	  switches.match = integer_argument ();
 	  return index;
 	}
@@ -723,7 +726,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  /* for experts only
+	  /* disabled for now 
 	     helptext ("    --ra-tupling", "compile using right-associative tupling");
 	   */
 	}
@@ -939,15 +942,37 @@ switcher (const int process, int index, int commandline)
 #endif
 
   /* ==================
-   *  External options
+   *  Misc switches
    */
+
+  if (!process)
+    printf ("Misc. switches:\n");
+
+
+  if (detect ('E', "expert", 0))
+    {
+      if (!process)
+	{
+	  if (switches.expert)
+	    {
+	      helptext ("-E, --expert", "Expert mode");
+	    }
+	}
+      else
+	{
+	  switches.expert = true;
+	  return index;
+	}
+    }
+
   if (detect (' ', "count-states", 0))
     {
       if (!process)
 	{
-	  /* not very important
-	     helptext ("    --count-states", "report on states (per claim)");
-	   */
+	  if (switches.expert)
+	    {
+	      helptext ("    --count-states", "report on states (per claim)");
+	    }
 	}
       else
 	{
@@ -956,15 +981,12 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (!process)
-    printf ("Misc. switches:\n");
-
   if (detect (' ', "echo", 0))
     {
       if (!process)
 	{
 	  /* not very important
-	     helptext ("-E,--echo", "echo command line");
+	     helptext ("    --echo", "echo command line");
 	   */
 	}
       else
@@ -1011,9 +1033,10 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  /* not very important: hide
-	     helptext ("-v, --version", "version information");
-	   */
+	  if (switches.expert)
+	    {
+	      helptext ("-v, --version", "version information");
+	    }
 	}
       else
 	{
@@ -1033,7 +1056,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-h, --help", "show this help");
+	  helptext ("-h, --help", "show short help");
 	}
       else
 	{
@@ -1041,6 +1064,25 @@ switcher (const int process, int index, int commandline)
 	    {
 	      printf ("Usage:\n");
 	      printf ("  %s [switches] [FILE]\n\nSwitches:\n", progname);
+	      switcher (0, 0, commandline);
+	    }
+	  exit (0);
+	}
+    }
+
+  if (detect (' ', "long-help", 0))
+    {
+      if (!process)
+	{
+	  helptext ("    --long-help", "show long help");
+	}
+      else
+	{
+	  if (commandline)
+	    {
+	      printf ("Usage:\n");
+	      printf ("  %s [switches] [FILE]\n\nSwitches:\n", progname);
+	      switches.expert = true;
 	      switcher (0, 0, commandline);
 	    }
 	  exit (0);
@@ -1065,7 +1107,11 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-D, --debug=<int>", "set debug (verbosity) level. [0]");
+	  if (switches.expert)
+	    {
+	      helptext ("-D, --debug=<int>",
+			"set debug (verbosity) level. [0]");
+	    }
 	}
       else
 	{
