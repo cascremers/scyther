@@ -48,7 +48,7 @@ def parse(scout):
     return (ra,rb,rp,nc,st)
 
 
-def test_goal_selector(goalselector, options):
+def test_goal_selector(goalselector, options,branchbound):
     """Test with a given goal selector
 
        in:
@@ -85,6 +85,9 @@ def test_goal_selector(goalselector, options):
         proofs = proofs + rp
         claims = claims + nc
         states = states + st
+
+        if (bounds * states) > branchbound:
+            return (-1,0,0,0,0,0)
     
     return (attacks,bounds,proofs,claims,np,states)
 
@@ -106,8 +109,15 @@ class maxor:
         self.dir = dir
         self.min = mymin
         self.max = mymax
+        if dir & 1:
+            self.data = mymax
+        else:
+            self.data = mymin
     
-    def reg(self,data):
+    def get(self):
+        return self.data
+
+    def reg(self,d):
         """Store a new data element
 
            in:
@@ -116,20 +126,22 @@ class maxor:
                formatted element, plus increase/decrease
             notifications according to initial settings.
         """
-
+        
+        self.data = d
         res = ""
-        if self.min >= data:
-            self.min = data
+        if self.min >= d:
             if (self.dir & 2):
                 res = res + "-"
-        if self.max <= data:
-            self.max = data
+            self.min = d
+        if self.max <= d:
             if (self.dir & 1):
                 res = res + "+"
+            self.max = d
         if res == "":
             return res
         else:
             return "[" + res + "]"
+
 
 # Main code
 def main():
@@ -150,27 +162,31 @@ def main():
     boundstatesmax = maxor(2)
 
     for g in range(1,63):
-        if (g & 8) == 0 and (g & 4) == 0 :
-            (ra,rb,rp,nc,np,st) = test_goal_selector(g, options)
-
-            # Scores: bounds are negative
-            score1 = ra + rp - rb
-            score2 = ra + (3 * rp) - (2 * rb)
-            boundstates = rb * st
+            (ra,rb,rp,nc,np,st) = test_goal_selector(g, options,
+                    boundstatesmax.get())
 
             res = str(g)
+            if ra < 0:
+                # Error: not well bounded
+                res += "\tWent over bound, stopped investigation."
+            else:
+                # Scores: bounds are negative
+                score1 = ra + rp - rb
+                score2 = ra + (3 * rp) - (2 * rb)
+                boundstates = rb * st
 
-            def shows (res, mx, data):
-                return res + "\t" + str(data) + mx.reg(data)
 
-            res = shows (res, ramax, ra)
-            res = shows (res, rbmax, rb)
-            res = shows (res, rpmax, rp)
-            res = res + "\t" + str(nc)
-            res = shows (res, score1max, score1)
-            res = shows (res, score2max, score2)
-            res = shows (res, statesmax, st)
-            res = shows (res, boundstatesmax, boundstates)
+                def shows (res, mx, data):
+                    return res + "\t" + str(data) + mx.reg(data)
+
+                res = shows (res, ramax, ra)
+                res = shows (res, rbmax, rb)
+                res = shows (res, rpmax, rp)
+                res = res + "\t" + str(nc)
+                res = shows (res, score1max, score1)
+                res = shows (res, score2max, score2)
+                res = shows (res, statesmax, st)
+                res = shows (res, boundstatesmax, boundstates)
 
             print res
     print
