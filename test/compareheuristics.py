@@ -187,6 +187,7 @@ def main():
                 res = shows (res, score2max, score2)
                 res = shows (res, statesmax, st)
                 res = shows (res, boundstatesmax, boundstates)
+                res += "\t<%i>" % np
 
             print res
     print
