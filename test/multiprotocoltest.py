@@ -580,7 +580,7 @@ def main():
 			action = "store_true",
 			help = "test for all matching methods")
 	parser.add_option("-p","--protocols", dest="protocols",
-			default = 0,
+			default = 1,
 			help = "protocol selection (0: all, 1:literature only, 2:literature without know attacks)")
 	parser.add_option("-B","--disable-progressbar", dest="progressbar",
 			default = "True",
