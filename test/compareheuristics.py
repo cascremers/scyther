@@ -161,7 +161,7 @@ def main():
     statesmax = maxor(2)
     boundstatesmax = maxor(2)
 
-    for g in range(1,63):
+    for g in range(1,15):
             (ra,rb,rp,nc,np,st) = test_goal_selector(g, options,
                     boundstatesmax.get())
 
