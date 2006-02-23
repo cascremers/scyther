@@ -65,14 +65,14 @@ def evaluate (argumentstring, inputstring):
 	def cacheid():
 		m = md5.new()
 	
-		# # Determine scyther version
-		# (status, scout) = scythercall ("--version", "")
-		# if status == 1 or status < 0:
-		# 	# some problem
-		# 	print "Problem with determining scyther version!"
-		# 	os.exit()
-		# # Add version to hash
-		# m.update (scout)
+		# Determine scyther version
+		(status, scout) = scythercall ("--version", "")
+		if status == 1 or status < 0:
+			# some problem
+			print "Problem with determining scyther version!"
+		 	os.exit()
+		# Add version to hash
+		m.update (scout)
 
 		# Add inputfile to hash
 		m.update (inputstring)
