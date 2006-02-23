@@ -208,7 +208,8 @@ term_noncevariables_level (const Term t)
 
 //! Determine weight based on hidelevel
 float
-weighHidelevel (const System sys, const Term t)
+weighHidelevel (const System sys, const Term t, const float massknow,
+		const float massprot)
 {
   unsigned int hl;
 
@@ -217,9 +218,9 @@ weighHidelevel (const System sys, const Term t)
     case HLFLAG_NONE:
       return 0;
     case HLFLAG_KNOW:
-      return 0.3;
+      return massknow;
     case HLFLAG_PROT:
-      return 0.6;
+      return massprot;
     }
   return 1;
 }
@@ -235,16 +236,11 @@ newkeylevel (const int level)
     return 1;
 }
 
-//! Goal selection
+//! Determine the weight of a given goal
 /**
- * Selects the most constrained goal.
+ * 0 to ... (lower is better)
  *
- * First selection is on level; thus, keys are selected first.
- *
- * Because the list starts with the newest terms, and we use <= (as opposed to <), we
- * ensure that for goals with equal constraint levels, we select the oldest one.
- *
- * --select-goal has two distint interpretations. If it is 0 or greater, it a
+ * --heuristic has two distint interpretations. If it is 0 or greater, it a
  * selection mask. If it is smaller than 0, it is some special tactic.
  *
  * selection masks for --select-goal
@@ -259,16 +255,60 @@ newkeylevel (const int level)
  *	-1:	random goal selection
  *
  */
+float
+computeGoalWeight (const System sys, const Binding b)
+{
+  float w;
+  int smode;
+  Term t;
+
+  void erode (const float deltaw)
+  {
+    if (smode & 1)
+      {
+	w = w + deltaw;
+      }
+    smode = smode / 2;
+  }
+
+  // Total weight
+  w = 0;
+  // We will shift this mode variable
+  smode = switches.heuristic;
+  t = b->term;
+
+  // Determine buf_constrain levels
+  // Bit 0: 1 use hidelevel
+  erode (2 * weighHidelevel (sys, t, 0.5, 0.5));
+  // Bit 1: 2 key level (inverted)
+  erode (0.5 * (1 - b->level));
+  // Bit 2: 4 constrain level
+  erode (term_constrain_level (t));
+  // Bit 3: 8 nonce variables level (Cf. what I think is in Athena)
+  erode (term_noncevariables_level (t));
+
+  // Define legal range
+  if (smode > 0)
+    error ("--heuristic mode %i is illegal", switches.heuristic);
+
+  // Return total weight
+  return w;
+}
+
+//! Goal selection
+/**
+ * Selects the most constrained goal.
+ *
+ * Because the list starts with the newest terms, and we use <= (as opposed to <), we
+ * ensure that for goals with equal constraint levels, we select the oldest one.
+ *
+ */
 Binding
 select_goal_masked (const System sys)
 {
   List bl;
   Binding best;
-  float min_constrain;
-  int mode;
-
-  // mode bits local storage
-  mode = switches.arachneSelector;
+  float best_weight;
 
   // Find the most constrained goal
   if (switches.output == PROOF)
@@ -276,9 +316,9 @@ select_goal_masked (const System sys)
       indentPrint ();
       eprintf ("Listing open goals that might be chosen: ");
     }
-  min_constrain = FLT_MAX;
-  bl = sys->bindings;
+  best_weight = FLT_MAX;
   best = NULL;
+  bl = sys->bindings;
   while (bl != NULL)
     {
       Binding b;
@@ -288,88 +328,20 @@ select_goal_masked (const System sys)
       // Only if not done and not blocked
       if (is_goal_selectable (b))
 	{
-	  int allow;
-	  Term gterm;
-
-	  allow = 0;
-	  gterm = deVar (b->term);
-	  if (mode & 8)
+	  if (!isTermVariable (b->term))
 	    {
-	      // check for singular variable
-	      if (realTermVariable (gterm))
-		{
-		  // singular variable only if it is not a role name variable
-		  allow = !gterm->roleVar;
-		}
-	      else
-		{
-		  // not a singular variable, allow
-		  allow = 1;
-		}
-	    }
-	  else
-	    {
-	      // Normally (mode & 8 == 0) we ignore any singular variables
-	      allow = !realTermVariable (gterm);
-	    }
+	      float w;
 
-	  if (allow)
-	    {
-	      float buf_constrain;
-	      int buf_weight;
-	      int smode;
+	      w = computeGoalWeight (sys, b);
 
-	      void adapt (const int w, const float fl)
-	      {
-		buf_constrain = buf_constrain + w * fl;
-		buf_weight = buf_weight + w;
-	      }
-
-	      void erode (const int w, const float fl)
-	      {
-		if (smode & 1)
-		  {
-		    adapt (w, fl);
-		  }
-		smode = smode / 2;
-	      }
-
-	      // buf_constrain is the addition of the factors before division by weight
-	      buf_constrain = 0;
-	      buf_weight = 0;
-
+	      // Spacing between output
 	      if (switches.output == PROOF && best != NULL)
 		eprintf (", ");
 
-	      // We will shift this mode variable
-	      smode = mode;
-
-	      // Determine buf_constrain levels
-	      // Bit 0: 1 constrain level
-	      erode (1, term_constrain_level (b->term));
-	      // Bit 1: 2 key level (inverted)
-	      erode (1, 0.5 * (1 - b->level));
-	      // Bit 2: 4 consequence level
-	      erode (1, termBindConsequences (sys, b->term));
-	      // Bit 3: 8 single variables first (crappy performance, counter-intuitive anyway)
-	      erode (1, 1 - isTermVariable (b->term));
-	      // Bit 4: 16 nonce variables level (Cf. what I think is in Athena)
-	      erode (1, term_noncevariables_level (b->term));
-	      // Bit 5: 32 use hidelevel information
-	      erode (1, weighHidelevel (sys, b->term));
-	      // Bit 5: 64 use hidelevel information
-	      erode (1, 2 * weighHidelevel (sys, b->term));
-	      // Bit 6: 128 use key level
-	      erode (1, newkeylevel (b->level));
-
-	      // Define legal range
-	      if (smode > 0)
-		error ("--heuristic mode %i is illegal", mode);
-
-	      // Weigh result
-	      if (buf_weight == 0 || buf_constrain <= min_constrain)
+	      // Better alternative?
+	      if (w <= best_weight)
 		{
-		  min_constrain = buf_constrain;
+		  best_weight = w;
 		  best = b;
 		  if (switches.output == PROOF)
 		    eprintf ("*");
@@ -377,11 +349,7 @@ select_goal_masked (const System sys)
 	      if (switches.output == PROOF)
 		{
 		  termPrint (b->term);
-		  if (mode & 2)
-		    {
-		      eprintf ("[%i]", b->level);
-		    }
-		  eprintf ("<%.2f>", buf_constrain);
+		  eprintf ("<%.2f>", w);
 		}
 	    }
 	}
@@ -437,7 +405,7 @@ select_goal_random (const System sys)
 Binding
 select_goal (const System sys)
 {
-  if (switches.arachneSelector >= 0)
+  if (switches.heuristic >= 0)
     {
       // Masked
       return select_goal_masked (sys);
@@ -445,7 +413,7 @@ select_goal (const System sys)
   else
     {
       // Special cases
-      switch (switches.arachneSelector)
+      switch (switches.heuristic)
 	{
 	case -1:
 	  return select_goal_random (sys);

@@ -544,7 +544,7 @@ main (int argc, char **argv)
   if (switch_prune_trace_length->ival[0] >= 0)
     switches.maxtracelength = switch_prune_trace_length->ival[0];
   if (switch_goal_select_method->ival[0] >= 0)
-    switches.arachneSelector = switch_goal_select_method->ival[0];
+    switches.heuristic = switch_goal_select_method->ival[0];
 #ifdef DEBUG
   /* in debugging mode, some extra switches */
   if (switch_debug_indent->count > 0)

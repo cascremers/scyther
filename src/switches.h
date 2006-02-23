@@ -43,7 +43,7 @@ struct switchdata
   int scenarioSize;		//!< Scenario size, also called fixed trace prefix length
 
   // Arachne
-  int arachneSelector;		//!< Goal selection method for Arachne engine
+  int heuristic;		//!< Goal selection method for Arachne engine
   int maxIntruderActions;	//!< Maximum number of intruder actions in the semitrace (encrypt/decrypt)
   int agentTypecheck;		//!< Check type of agent variables in all matching modes
   int concrete;			//!< Swap out variables at the end.

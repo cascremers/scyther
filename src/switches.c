@@ -65,7 +65,7 @@ switchesInit (int argc, char **argv)
   switches.scenarioSize = 0;
 
   // Arachne
-  switches.arachneSelector = 34;	// default goal selection method
+  switches.heuristic = 3;	// default goal selection method
   switches.maxIntruderActions = INT_MAX;	// max number of encrypt/decrypt events
   switches.agentTypecheck = 1;	// default do check agent types
   switches.concrete = true;	// default removes symbols, and makes traces concrete
@@ -830,12 +830,12 @@ switcher (const int process, int index, int commandline)
 	{
 	  if (switches.expert)
 	    {
-	      helptext ("    --heuristic=<int>", "use heuristic <int> [34]");
+	      helptext ("    --heuristic=<int>", "use heuristic <int> [3]");
 	    }
 	}
       else
 	{
-	  switches.arachneSelector = integer_argument ();
+	  switches.heuristic = integer_argument ();
 	  return index;
 	}
     }

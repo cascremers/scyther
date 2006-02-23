@@ -1946,7 +1946,7 @@ iterate ()
 		   * Check whether its a final state (i.e. all goals bound)
 		   */
 
-		  b = select_goal (sys);
+		  b = (Binding) select_goal (sys);
 		  if (b == NULL)
 		    {
 		      /*
