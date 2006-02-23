@@ -5,10 +5,26 @@
 #
 import os;
 
-def list_ppfix(list, prefix, postfix):
-    return [ prefix + i + postfix for i in list]
+def basedir():
+    return os.path.expanduser("~/svn/ecss/protocols/spdl/")
 
-def from_good_literature():
+def spdldir():
+    return basedir() + "SPORE/"
+    
+def index(directory):
+    # like os.listdir, but traverses directory trees
+    stack = [directory]
+    files = []
+    while stack:
+        directory = stack.pop()
+        for file in os.listdir(directory):
+            fullname = os.path.join(directory, file)
+            files.append(fullname)
+            if os.path.isdir(fullname) and not os.path.islink(fullname):
+                stack.append(fullname)
+    return files
+
+def known_good_ones():
     list = [ \
     "ccitt509-1c.spdl",
     "ccitt509-1.spdl",
@@ -37,47 +53,69 @@ def from_good_literature():
     "yahalom-lowe.spdl",
     "yahalom-paulson.spdl" ]
 
-    return list_ppfix(list, "/home/cas/svn/ecss/protocols/spdl/SPORE/","")
+    return [  "/" + i for i in list ]
 
-def from_bad_literature():
-    list = [ \
-    "andrew-ban-concrete.spdl",
-    "andrew-ban.spdl",
-    "andrew-lowe-ban.spdl",
-    "andrew.spdl",
-    "needham-schroeder.spdl",
-    "tmn.spdl",
-    "wmf-lowe.spdl",
-    "wmf.spdl",
-    "woo-lam-pi-1.spdl",
-    "woo-lam-pi-2.spdl",
-    "woo-lam-pi-3.spdl",
-    "yahalom-ban.spdl",
-    "yahalom.spdl" ]
+def spdlextension (fn):
+    return fn.endswith(".spdl")
 
-    return list_ppfix(list, "/home/cas/svn/ecss/protocols/spdl/SPORE/","")
+def make_lists():
+    """
+        Returns (from_good_lit, from_bad_lit, others)
 
-def from_literature():
+        Note that from_good_lit and from_bad_lit together form the spdl directory
+    """
 
-    def spdlfiletype (fn):
-        return fn.endswith(".spdl")
+    good = []
+    bad = []
+    others = []
 
-    spdldir = "/home/cas/svn/ecss/protocols/spdl/SPORE/"
-    sl = os.listdir (spdldir)
-    sld = [ spdldir + i for i in filter (spdlfiletype, sl)]
-    ##print sld
-    return sld
+    # Precompute good names
+    knowngood = known_good_ones()
+
+    l = index(basedir())
+    for file in l:
+        if spdlextension(file):
+            # its a protocol!
+            if file.startswith(spdldir()):
+                # SPORE type
+                goodflag = False
+                for goody in knowngood:
+                    if file.endswith(goody):
+                        goodflag = True
+                if goodflag:
+                    good += [file]
+                else:
+                    bad += [file]
+            else:
+                # not SPORE
+                others += [file]
+
+    return (good, bad, others)
 
 def from_others():
-    list = [ \
-            ]
+    (good, bad, others) = make_lists()
+    return others
 
-    return list_ppfix(list, "../spdl/","")
+def from_good_literature():
+    (good, bad, others) = make_lists()
+    return good
+
+def from_bad_literature():
+    (good, bad, others) = make_lists()
+    return bad
+
+def from_literature():
+    (good, bad, others) = make_lists()
+    return good + bad
 
 def from_all():
-    return from_literature() + from_others()
+    (good, bad, others) = make_lists()
+    return good + bad + others
 
 def select(type):
+
+    (good, bad, others) = make_lists()
+
     n = int(type)
     if n == 0:
         # 0 means all protocols
@@ -94,12 +132,19 @@ def select(type):
 
 
 
-
 def main():
-    for l in [from_literature(), from_others()]:
-        for p in l:
-            print p
+    (good, bad, others) = make_lists()
+
+    def show (tag, list):
+        print tag + " (%i)" % len(list)
         print
+        for l in list:
+            print l
+
+    show ("Good", good)
+    show ("Bad", bad)
+    show ("Others", others)
+        
 
 if __name__ == '__main__':
     main()
