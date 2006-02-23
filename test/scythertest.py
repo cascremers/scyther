@@ -33,8 +33,8 @@ def parse(scout):
     for line in lines:
         data = line.split()
         if len(data) > 4 and data[0] == 'claim':
-            claim = ",".join(data[1:2])
-            tag = data[5]
+            claim = " ".join(data[1:2])
+            tag = data[4]
             value = -1
             if tag == 'Fail':
                 value = 0
