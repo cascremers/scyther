@@ -429,7 +429,7 @@ select_goal_random (const System sys)
     }
   else
     {
-      return NULL;
+      return (Binding) NULL;
     }
 }
 
@@ -452,5 +452,5 @@ select_goal (const System sys)
 	}
       error ("Unknown value (<0) for --goal-select.");
     }
-  return NULL;
+  return (Binding) NULL;
 }
