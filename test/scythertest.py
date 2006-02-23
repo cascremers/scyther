@@ -4,6 +4,7 @@
 #
 #    Standard tests
 #
+import os
 import sys
 from optparse import OptionParser
 from scythercache import evaluate, scytheroverride, cacheoverride
@@ -51,7 +52,8 @@ def parse(scout):
 # Yield default protocol list (from any other one)
 def default_protocols(plist):
     plist.sort()
-    return ['/home/cas/svn/ecss/protocols/spdl/spdl-defaults.inc'] + plist
+    defaults = os.path.expanduser("~/svn/ecss/protocols/spdl/misc/spdl-defaults.inc")
+    return [defaults] + plist
 
 # Get the extra parameters
 def get_extra_parameters():
@@ -109,8 +111,11 @@ def default_arguments(plist,match,bounds):
     if timer > 0:
         args = args + " --timer=%i" % timer
     args = args + " --max-runs=%i --max-length=%i" % (maxruns, maxlength)
-    matching = "--match=" + str(match)
-    args = "--plain " + matching + " " + args
+
+    if int(match) > 0:
+        args += " --untyped"
+
+    args += " --plain"
 
     extra = get_extra_parameters()
     if extra != "":
