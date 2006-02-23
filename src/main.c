@@ -553,10 +553,10 @@ timersPrint (const System sys)
 		    {
 		      /* only due to bounds */
 		      eprintf ("[no attack within bounds]");
-		      if (cl_scan->timebound)
-			eprintf ("\ttime=%i", get_time_limit ());
 		    }
 		}
+	      if (cl_scan->timebound)
+		eprintf ("\ttime=%i", get_time_limit ());
 	    }
 
 	  /* states (if asked) */
