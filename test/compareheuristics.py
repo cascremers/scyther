@@ -7,6 +7,8 @@ from optparse import OptionParser
 
 import scythertest
 
+hurry = False    # True then branch and bound
+
 # Parse
 def parse(scout):
     """Parse Scyther output for heuristics tests
@@ -26,6 +28,7 @@ def parse(scout):
     rp = 0
     nc = 0
     st = 0
+    timeout = False
     for l in scout.splitlines():
         data = l.split()
         if len(data) > 4 and data[0] == 'claim':
@@ -44,8 +47,10 @@ def parse(scout):
             for d in data:
                 if d.startswith("states="):
                     st = st + int(d[7:])
+                if d.startswith("time="):
+                    timeout = True
 
-    return (ra,rb,rp,nc,st)
+    return (ra,rb,rp,nc,st,timeout)
 
 
 def test_goal_selector(goalselector, options,branchbound):
@@ -65,6 +70,8 @@ def test_goal_selector(goalselector, options,branchbound):
 
     import protocollist
 
+    global hurry
+
     scythertest.set_extra_parameters("--count-states --heuristic=" + str(goalselector))
     result = str(goalselector)
     plist = protocollist.from_literature()
@@ -75,21 +82,25 @@ def test_goal_selector(goalselector, options,branchbound):
     proofs = 0
     claims = 0
     states = 0
+    timeouts = 0
     for p in plist:
         (status,scout) = scythertest.default_test([p], \
                 int(options.match), \
                 int(options.bounds))
-        (ra,rb,rp,nc,st) = parse(scout)
+        (ra,rb,rp,nc,st,timeout) = parse(scout)
         attacks = attacks + ra
         bounds = bounds + rb
         proofs = proofs + rp
         claims = claims + nc
         states = states + st
+        if timeout:
+            timeouts += 1
 
-        if (bounds * states) > branchbound:
+
+        if hurry and (bounds * states) > branchbound:
             return (-1,0,0,0,0,0)
     
-    return (attacks,bounds,proofs,claims,np,states)
+    return (attacks,bounds,proofs,claims,np,states,timeouts)
 
 # Max
 class maxor:
@@ -150,19 +161,19 @@ def main():
     (options, args) = parser.parse_args()
     scythertest.process_default_options(options)
 
-    print "G-sel\tAttack\tBound\tProof\tClaims\tScore1\tScore2\tStates\tBnd*Sts"
+    print
+    "G-sel\tAttack\tBound\tProof\tClaims\tTOuts\tProts\tStates\tBnd*Sts"
     print 
 
     ramax = maxor(1)
     rbmax = maxor(2)
     rpmax = maxor(1)
-    score1max = maxor(1)
-    score2max = maxor(1)
     statesmax = maxor(2)
     boundstatesmax = maxor(2)
+    timeoutsmax = maxor(2)
 
     for g in range(1,15):
-            (ra,rb,rp,nc,np,st) = test_goal_selector(g, options,
+            (ra,rb,rp,nc,np,st,timeouts) = test_goal_selector(g, options,
                     boundstatesmax.get())
 
             res = str(g)
@@ -170,11 +181,7 @@ def main():
                 # Error: not well bounded
                 res += "\tWent over bound, stopped investigation."
             else:
-                # Scores: bounds are negative
-                score1 = ra + rp - rb
-                score2 = ra + (3 * rp) - (2 * rb)
                 boundstates = rb * st
-
 
                 def shows (res, mx, data):
                     return res + "\t" + str(data) + mx.reg(data)
@@ -183,11 +190,10 @@ def main():
                 res = shows (res, rbmax, rb)
                 res = shows (res, rpmax, rp)
                 res = res + "\t" + str(nc)
-                res = shows (res, score1max, score1)
-                res = shows (res, score2max, score2)
+                res = shows (res, timeoutsmax, timeouts)
+                res += "\t<%i>" % np
                 res = shows (res, statesmax, st)
                 res = shows (res, boundstatesmax, boundstates)
-                res += "\t<%i>" % np
 
             print res
     print
