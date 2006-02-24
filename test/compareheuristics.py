@@ -18,7 +18,7 @@ def parse(scout):
        out:
            ra:    number of failed claims
            rb:    number of bounded proofs of claims
-           rc:    number of complete proofs of claims
+           rp:    number of complete proofs of claims
            nc:    number of processed claims (should be the sum of the previous)
            st:    number of states traversed
     """
@@ -28,29 +28,36 @@ def parse(scout):
     rp = 0
     nc = 0
     st = 0
-    timeout = False
+    to = 0
     for l in scout.splitlines():
         data = l.split()
         if len(data) > 4 and data[0] == 'claim':
-            # determine claim status
-            tag = data[4]
-            if tag == 'Fail':
-                ra = ra + 1
-                nc = nc + 1
-            elif tag == 'Ok':
-                nc = nc + 1
-                if l.rfind("proof of correctness") != -1:
-                    rp = rp + 1
-                else:
-                    rb = rb + 1
-            # now count the states
+
+            # Determine timeout, count states
+            nc += 1
+            timeout = False
             for d in data:
                 if d.startswith("states="):
                     st = st + int(d[7:])
                 if d.startswith("time="):
                     timeout = True
 
-    return (ra,rb,rp,nc,st,timeout)
+            # Determine claim status
+            if not timeout:
+                tag = data[4]
+                if tag == 'Fail':
+                    ra += 1
+                elif tag == 'Ok':
+                    if l.rfind("proof of correctness") != -1:
+                        rp += 1
+                    else:
+                        rb += 1
+                else:
+                    print "Weird tag [%s] in line [%s]." % (tag, l)
+            else:
+                to += 1
+
+    return (ra,rb,rp,nc,st,to)
 
 
 def test_goal_selector(goalselector, options,branchbound):
@@ -87,15 +94,13 @@ def test_goal_selector(goalselector, options,branchbound):
         (status,scout) = scythertest.default_test([p], \
                 int(options.match), \
                 int(options.bounds))
-        (ra,rb,rp,nc,st,timeout) = parse(scout)
-        attacks = attacks + ra
-        bounds = bounds + rb
-        proofs = proofs + rp
-        claims = claims + nc
-        states = states + st
-        if timeout:
-            timeouts += 1
-
+        (ra,rb,rp,nc,st,to) = parse(scout)
+        claims += nc
+        states += st
+        timeouts += to
+        attacks += ra
+        bounds += rb
+        proofs += rp
 
         if hurry and (bounds * states) > branchbound:
             return (-1,0,0,0,0,0)
@@ -107,7 +112,7 @@ class maxor:
     """Class for a dynamic maximum determination and corresponding formatting
     """
 
-    def __init__(self,dir=0,mymin=99999999, mymax=-99999999):
+    def __init__(self,dir=0,mymin=9999999999, mymax=-9999999999):
         """Init
 
            in:
@@ -161,8 +166,7 @@ def main():
     (options, args) = parser.parse_args()
     scythertest.process_default_options(options)
 
-    print
-    "G-sel\tAttack\tBound\tProof\tClaims\tTOuts\tProts\tStates\tBnd*Sts"
+    print "G-sel\tDecide\tAttack\tProof\tBound\tTOuts\tClaims\tProts\tStates\tBndTo*Sts"
     print 
 
     ramax = maxor(1)
@@ -171,8 +175,9 @@ def main():
     statesmax = maxor(2)
     boundstatesmax = maxor(2)
     timeoutsmax = maxor(2)
+    decidemax = maxor(1)
 
-    for g in range(1,15):
+    for g in range(1,16):
             (ra,rb,rp,nc,np,st,timeouts) = test_goal_selector(g, options,
                     boundstatesmax.get())
 
@@ -181,17 +186,22 @@ def main():
                 # Error: not well bounded
                 res += "\tWent over bound, stopped investigation."
             else:
-                boundstates = rb * st
+                undecided = rb + timeouts
+                boundstates = undecided * undecided * st
 
                 def shows (res, mx, data):
                     return res + "\t" + str(data) + mx.reg(data)
 
+                decide = (100 * (ra + rp)) / nc
+    
+                res = shows (res, decidemax, decide)
+                res += "%"
                 res = shows (res, ramax, ra)
-                res = shows (res, rbmax, rb)
                 res = shows (res, rpmax, rp)
-                res = res + "\t" + str(nc)
+                res = shows (res, rbmax, rb)
                 res = shows (res, timeoutsmax, timeouts)
-                res += "\t<%i>" % np
+                res = res + "\t%i" % nc
+                res += "\t%i" % np
                 res = shows (res, statesmax, st)
                 res = shows (res, boundstatesmax, boundstates)
 
