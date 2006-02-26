@@ -764,48 +764,48 @@ getPriorityOfNeededKey (const System sys, const Term keyneeded)
  *
  * The key goals are bound to the goal. Iterates on success.
  */
-int
+void
 bind_existing_to_goal (const Binding b, const int run, const int index)
 {
   int old_length;
-  int flag;
   int newgoals;
+  Term goalterm;
 
-  int subterm_unification_needs (const Binding bt, Term tbig)
+  int subterm_unification_needs (Term tbig, const int r, const int e)
   {
     Term t;
-    int flag;
 
-    int bind_iterate (Termlist tl)
+    void bind_iterate (Termlist tl)
     {
-      if (goal_bind (bt, run, index))
+      if (goal_bind (b, r, e))
 	{
-	  int flag;
-
-	  flag = iterate ();
-	  goal_unbind (bt);
-	  return flag;
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("Iterating for ");
+	      termPrint (b->term);
+	      eprintf (" to occur first in ");
+	      termPrint (roledef_shift (sys->runs[run].start, index)->
+			 message);
+	      eprintf ("\n");
+	    }
+	  iterate ();
+	  goal_unbind (b);
 	}
-      return false;
     }
 
-    if (bt == NULL)
-      {
-	return false;
-      }
-    flag = false;
-    t = deVar (bt->term);
+    t = deVar (b->term);
     tbig = deVar (tbig);
 
     // First check whether it unifies in a simple way
-    flag = flag || unify (t, tbig, NULL, bind_iterate);
+    unify (t, tbig, NULL, bind_iterate);
 
     // The other options are unification on subparts
     if (realTermTuple (tbig))
       {
 	// Either one will do
-	return (subterm_unification_needs (bt, TermOp1 (tbig)) ||
-		subterm_unification_needs (bt, TermOp1 (tbig)));
+	subterm_unification_needs (TermOp1 (tbig), r, e);
+	subterm_unification_needs (TermOp1 (tbig), r, e);
       }
     if (realTermEncrypt (tbig))
       {
@@ -816,12 +816,24 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	int newgoals;
 	Binding bnew;
 
+	indentDepth++;
 	// Maybe we can bind to the inner thing. Try.
 	// Add decryptor run
 	keyneeded = inverseKey (sys->know->inverses, TermKey (tbig));
 	prioritylevel = getPriorityOfNeededKey (sys, keyneeded);
 	smallrun = create_decryptor (tbig, keyneeded);
 	rddecrypt = sys->runs[smallrun].start;
+
+	if (switches.output == PROOF)
+	  {
+	    indentPrint ();
+	    eprintf
+	      ("This introduces the obligation to decrypt the following subterm: ");
+	    termPrint (tbig);
+	    eprintf (" to be decrypted using ");
+	    termPrint (keyneeded);
+	    eprintf ("\n");
+	  }
 
 	/*
 	 * 2. Add goal bindings
@@ -850,14 +862,31 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 
 	newgoals += goal_add (rddecrypt->next->message, smallrun, 1,
 			      prioritylevel);
-	/*
-	 * 3. Bind open goal to decryptor
-	 */
-	if (goal_bind (bt, smallrun, 2))
+	if (switches.output == PROOF)
 	  {
-	    // Allright, good binding, proceed with next
-	    flag = flag || subterm_unification_needs (bnew, TermOp (tbig));
-	    goal_unbind (bt);
+	    indentPrint ();
+	    eprintf
+	      ("To this end, we added two new goals and one new send: ");
+	    termPrint (rddecrypt->message);
+	    eprintf (",");
+	    termPrint (rddecrypt->next->message);
+	    eprintf (",");
+	    termPrint (rddecrypt->next->next->message);
+	    eprintf ("\n");
+	  }
+
+	/*
+	 * 3. Bind open goal to decryptor? 
+	 */
+	if (goal_bind (bnew, r, e))
+	  {
+	    if (switches.output == PROOF)
+	      {
+		indentPrint ();
+		eprintf ("Bound: trying new subterm_unfication_needs.\n");
+	      }
+	    subterm_unification_needs (TermOp (tbig), smallrun, 2);
+	    goal_unbind (bnew);
 	  }
 	/*
 	 * clean up
@@ -865,14 +894,12 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	termDelete (keyneeded);
 	goal_remove_last (newgoals);
 	semiRunDestroy ();
-
-	return flag;
+	indentDepth--;
       }
-    return false;
   }
 
   old_length = sys->runs[run].height;
-  if ((index + 1) > old_length)
+  if (index >= old_length)
     {
       newgoals = add_read_goals (run, old_length, index + 1);
     }
@@ -880,16 +907,13 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
     {
       newgoals = 0;
     }
-  flag =
-    subterm_unification_needs (b,
-			       roledef_shift (sys->runs[run].start,
-					      index)->message);
+  goalterm = roledef_shift (sys->runs[run].start, index)->message;
+  subterm_unification_needs (goalterm, run, index);
   if (newgoals > 0)
     {
       goal_remove_last (newgoals);
     }
   sys->runs[run].height = old_length;
-  return flag;
 }
 
 //! Try to bind a specific existing run to a goal.
@@ -1135,7 +1159,7 @@ bind_existing_run (const Binding b, const Protocol p, const Role r,
 	      eprintf ("%i. Can we bind it to run %i?\n", found, run);
 	    }
 	  indentDepth++;
-	  flag = flag && bind_existing_to_goal (b, run, index);
+	  bind_existing_to_goal (b, run, index);
 	  indentDepth--;
 	}
     }
@@ -1157,7 +1181,6 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
 	      const int index)
 {
   int run;
-  int flag;
   int newgoals;
 
   run = semiRunCreate (p, r);
@@ -1165,12 +1188,12 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
   {
     newgoals = add_read_goals (run, 0, index + 1);
     indentDepth++;
-    flag = bind_existing_to_goal (b, run, index);
+    bind_existing_to_goal (b, run, index);
     indentDepth--;
     goal_remove_last (newgoals);
   }
   semiRunDestroy ();
-  return flag;
+  return true;
 }
 
 //! Print the current semistate
@@ -1596,7 +1619,7 @@ bind_goal_old_intruder_run (Binding b)
 			("Suppose it is from an existing intruder run.\n");
 		    }
 		  indentDepth++;
-		  flag = flag && bind_existing_to_goal (b, run, ev);
+		  bind_existing_to_goal (b, run, ev);
 		  indentDepth--;
 		}
 	      rd = rd->next;

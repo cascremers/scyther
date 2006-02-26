@@ -115,41 +115,47 @@ termlistSubstReset (Termlist tl)
  * Try to determine the most general unifier of two terms, if so calls function.
  *
  * The callback receives a list of variables, that were previously open, but are now closed
- * in such a way that the two terms unify. Returns result of iteration, or false if not.
+ * in such a way that the two terms unify. 
+ *
  */
-int
-unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
+void
+unify (Term t1, Term t2, Termlist tl, void (*callback) (Termlist))
 {
   /* added for speed */
   t1 = deVar (t1);
   t2 = deVar (t2);
   if (t1 == t2)
-    return callback (tl);
+    {
+      callback (tl);
+      return;
+    }
 
   int callsubst (Termlist tl, Term t, Term tsubst)
   {
-    int flag;
-
     t->subst = tsubst;
 #ifdef DEBUG
     showSubst (t);
 #endif
     tl = termlistAdd (tl, t);
-    flag = callback (tl);
+    callback (tl);
     tl = termlistDelTerm (tl);
     t->subst = NULL;
-    return flag;
+    return;
   }
 
   if (!(hasTermVariable (t1) || hasTermVariable (t2)))
     {
+      // None has a variable
       if (isTermEqual (t1, t2))
 	{
-	  return callback (tl);
+	  // Equal!
+	  callback (tl);
+	  return;
 	}
       else
 	{
-	  return false;
+	  // Can never be fixed, no variables
+	  return;
 	}
     }
 
@@ -177,7 +183,8 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
 	  t1 = t2;
 	  t2 = t3;
 	}
-      return callsubst (tl, t1, t2);
+      callsubst (tl, t1, t2);
+      return;
     }
 
   /* symmetrical tests for single variable.
@@ -186,55 +193,61 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
   if (realTermVariable (t2))
     {
       if (termSubTerm (t1, t2) || !goodsubst (t2, t1))
-	return false;
+	return;
       else
 	{
-	  return callsubst (tl, t2, t1);
+	  callsubst (tl, t2, t1);
+	  return;
 	}
     }
   if (realTermVariable (t1))
     {
       if (termSubTerm (t2, t1) || !goodsubst (t1, t2))
-	return false;
+	return;
       else
 	{
-	  return callsubst (tl, t1, t2);
+	  callsubst (tl, t1, t2);
+	  return;
 	}
     }
 
   /* left & right are compounds with variables */
   if (t1->type != t2->type)
-    return false;
+    return;
 
   /* identical compound types */
 
   /* encryption first */
   if (realTermEncrypt (t1))
     {
-      int unify_combined_enc (Termlist tl)
+      void unify_combined_enc (Termlist tl)
       {
 	// now the keys are unified (subst in this tl)
 	// and we try the inner terms
-	return unify (TermOp (t1), TermOp (t2), tl, callback);
+	unify (TermOp (t1), TermOp (t2), tl, callback);
+	return;
       }
 
-      return unify (TermKey (t1), TermKey (t2), tl, unify_combined_enc);
+      unify (TermKey (t1), TermKey (t2), tl, unify_combined_enc);
+      return;
     }
 
   /* tupling second
      non-associative version ! TODO other version */
   if (isTermTuple (t1))
     {
-      int unify_combined_tup (Termlist tl)
+      void unify_combined_tup (Termlist tl)
       {
 	// now the keys are unified (subst in this tl)
 	// and we try the inner terms
-	return unify (TermOp2 (t1), TermOp2 (t2), tl, callback);
+	unify (TermOp2 (t1), TermOp2 (t2), tl, callback);
+	return;
       }
-
-      return unify (TermOp1 (t1), TermOp1 (t2), tl, unify_combined_tup);
+      unify (TermOp1 (t1), TermOp1 (t2), tl, unify_combined_tup);
+      return;
     }
-  return false;
+
+  return;
 }
 
 
