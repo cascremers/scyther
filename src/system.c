@@ -823,6 +823,11 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 
   /* length */
   runs[rid].rolelength = roledef_length (runs[rid].start);
+  /* [[[ Hack ]]] this length is minimally 3 (to help the construction of the encryptors/decryptors from bare roledefs */
+  if (runs[rid].rolelength < 3)
+    {
+      runs[rid].rolelength = 3;
+    }
 
   /* new graph to create */
   dependPushRun (sys);

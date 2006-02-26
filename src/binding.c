@@ -123,7 +123,18 @@ goal_bind (const Binding b, const int run, const int ev)
     {
 #ifdef DEBUG
       if (run >= sys->maxruns || sys->runs[run].step <= ev)
-	error ("Trying to bind to something not yet in the semistate.");
+	{
+	  globalError++;
+	  eprintf ("For term: ");
+	  termPrint (b->term);
+	  eprintf (" needed for r%ii%i.\n", b->run_to, b->ev_to);
+	  eprintf ("Current limits: %i runs, %i events for this run.\n",
+		   sys->maxruns, sys->runs[run].step);
+	  globalError--;
+	  error
+	    ("trying to bind to something not yet in the semistate: r%ii%i.",
+	     run, ev);
+	}
 #endif
       b->run_from = run;
       b->ev_from = ev;

@@ -110,6 +110,134 @@ termlistSubstReset (Termlist tl)
     }
 }
 
+//! Most general unifier iteration
+/**
+ * Try to determine the most general unifier of two terms, if so calls function.
+ *
+ * The callback receives a list of variables, that were previously open, but are now closed
+ * in such a way that the two terms unify. Returns result of iteration, or false if not.
+ */
+int
+unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
+{
+  /* added for speed */
+  t1 = deVar (t1);
+  t2 = deVar (t2);
+  if (t1 == t2)
+    return callback (tl);
+
+  int callsubst (Termlist tl, Term t, Term tsubst)
+  {
+    int flag;
+
+    t->subst = tsubst;
+#ifdef DEBUG
+    showSubst (t);
+#endif
+    tl = termlistAdd (tl, t);
+    flag = callback (tl);
+    tl = termlistDelTerm (tl);
+    t->subst = NULL;
+    return flag;
+  }
+
+  if (!(hasTermVariable (t1) || hasTermVariable (t2)))
+    {
+      if (isTermEqual (t1, t2))
+	{
+	  return callback (tl);
+	}
+      else
+	{
+	  return false;
+	}
+    }
+
+  /*
+   * Distinguish a special case where both are unbound variables that will be
+   * connected, and I want to give one priority over the other for readability.
+   *
+   * Because t1 and t2 have been deVar'd means that if they are variables, they
+   * are also unbound.
+   */
+
+  if (realTermVariable (t1) && realTermVariable (t2) && goodsubst (t1, t2))
+    {
+      /* Both are unbound variables. Decide.
+       *
+       * The plan: t1->subst will point to t2. But maybe we prefer the other
+       * way around?
+       */
+      if (preferSubstitutionOrder (t2, t1))
+	{
+	  Term t3;
+
+	  // Swappy.
+	  t3 = t1;
+	  t1 = t2;
+	  t2 = t3;
+	}
+      return callsubst (tl, t1, t2);
+    }
+
+  /* symmetrical tests for single variable.
+   */
+
+  if (realTermVariable (t2))
+    {
+      if (termSubTerm (t1, t2) || !goodsubst (t2, t1))
+	return false;
+      else
+	{
+	  return callsubst (tl, t2, t1);
+	}
+    }
+  if (realTermVariable (t1))
+    {
+      if (termSubTerm (t2, t1) || !goodsubst (t1, t2))
+	return false;
+      else
+	{
+	  return callsubst (tl, t1, t2);
+	}
+    }
+
+  /* left & right are compounds with variables */
+  if (t1->type != t2->type)
+    return false;
+
+  /* identical compound types */
+
+  /* encryption first */
+  if (realTermEncrypt (t1))
+    {
+      int unify_combined_enc (Termlist tl)
+      {
+	// now the keys are unified (subst in this tl)
+	// and we try the inner terms
+	return unify (TermOp (t1), TermOp (t2), tl, callback);
+      }
+
+      return unify (TermKey (t1), TermKey (t2), tl, unify_combined_enc);
+    }
+
+  /* tupling second
+     non-associative version ! TODO other version */
+  if (isTermTuple (t1))
+    {
+      int unify_combined_tup (Termlist tl)
+      {
+	// now the keys are unified (subst in this tl)
+	// and we try the inner terms
+	return unify (TermOp2 (t1), TermOp2 (t2), tl, callback);
+      }
+
+      return unify (TermOp1 (t1), TermOp1 (t2), tl, unify_combined_tup);
+    }
+  return false;
+}
+
+
 //! Most general unifier.
 /**
  * Try to determine the most general unifier of two terms.

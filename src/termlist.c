@@ -295,6 +295,29 @@ termlistConcat (Termlist tl1, Termlist tl2)
   return tl1;
 }
 
+//! Concatenates two termlists.
+/**
+ * Creates a completely new list that can be deleted.
+ *
+ * Note that the order is not preserved currently.
+ */
+Termlist
+termlistConcatStatic (Termlist tl1, Termlist tl2)
+{
+  Termlist tl, tls;
+
+  tl = NULL;
+  for (tls = tl1; tls != NULL; tls = tls->next)
+    {
+      tl = termlistAdd (tl, tls->term);
+    }
+  for (tls = tl2; tls != NULL; tls = tls->next)
+    {
+      tl = termlistAdd (tl, tls->term);
+    }
+  return tl;
+}
+
 //! Remove the pointed at element from the termlist.
 /**
  * Easier because of the double linked list. Note: does not do termDelete on the term.

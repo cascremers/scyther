@@ -36,6 +36,7 @@ Termlist termlistAdd (Termlist tl, Term term);
 Termlist termlistAppend (const Termlist tl, const Term term);
 Termlist termlistAddNew (const Termlist tl, const Term t);
 Termlist termlistConcat (Termlist tl1, Termlist tl2);
+Termlist termlistConcatStatic (Termlist tl1, Termlist tl2);
 Termlist termlistDelTerm (Termlist tl);
 Termlist termlistConjunct (Termlist tl1, Termlist tl2);
 Termlist termlistConjunctType (Termlist tl1, Termlist tl2, int termtype);

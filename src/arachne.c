@@ -302,6 +302,18 @@ semiRunCreate (const Protocol p, const Role r)
     num_intruder_runs++;
   else
     num_regular_runs++;
+#ifdef DEBUG
+  if (DEBUGL (5))
+    {
+      globalError++;
+      eprintf ("Adding a run %i with semiRunCreate, ", sys->maxruns);
+      termPrint (p->nameterm);
+      eprintf (", ");
+      termPrint (r->nameterm);
+      eprintf ("\n");
+      globalError--;
+    }
+#endif
   roleInstance (sys, p, r, NULL, NULL);
   run = sys->maxruns - 1;
   sys->runs[run].height = 0;
@@ -688,6 +700,19 @@ create_decryptor (const Term term, const Term key)
       Term tempkey;
       int run;
 
+#ifdef DEBUG
+      if (DEBUGL (5))
+	{
+	  globalError++;
+	  eprintf ("Creating decryptor for term ");
+	  termPrint (term);
+	  eprintf (" and key ");
+	  termPrint (key);
+	  eprintf ("\n");
+	  globalError--;
+	}
+#endif
+
       run = semiRunCreate (INTRUDER, I_RRSD);
       rd = sys->runs[run].start;
       rd->message = termDuplicateUV (term);
@@ -733,6 +758,142 @@ getPriorityOfNeededKey (const System sys, const Term keyneeded)
 
 //! Try to bind a specific existing run to a goal.
 /**
+ * The idea is that we try to bind it this specific run and index. If this
+ * requires keys, then we should add such goals as well with the required
+ * decryptor things.
+ *
+ * The key goals are bound to the goal. Iterates on success.
+ */
+int
+bind_existing_to_goal (const Binding b, const int run, const int index)
+{
+  int old_length;
+  int flag;
+  int newgoals;
+
+  int subterm_unification_needs (const Binding bt, Term tbig)
+  {
+    Term t;
+    int flag;
+
+    int bind_iterate (Termlist tl)
+    {
+      if (goal_bind (bt, run, index))
+	{
+	  int flag;
+
+	  flag = iterate ();
+	  goal_unbind (bt);
+	  return flag;
+	}
+      return false;
+    }
+
+    if (bt == NULL)
+      {
+	return false;
+      }
+    flag = false;
+    t = deVar (bt->term);
+    tbig = deVar (tbig);
+
+    // First check whether it unifies in a simple way
+    flag = flag || unify (t, tbig, NULL, bind_iterate);
+
+    // The other options are unification on subparts
+    if (realTermTuple (tbig))
+      {
+	// Either one will do
+	return (subterm_unification_needs (bt, TermOp1 (tbig)) ||
+		subterm_unification_needs (bt, TermOp1 (tbig)));
+      }
+    if (realTermEncrypt (tbig))
+      {
+	Term keyneeded;
+	Roledef rddecrypt;
+	int smallrun;
+	int prioritylevel;
+	int newgoals;
+	Binding bnew;
+
+	// Maybe we can bind to the inner thing. Try.
+	// Add decryptor run
+	keyneeded = inverseKey (sys->know->inverses, TermKey (tbig));
+	prioritylevel = getPriorityOfNeededKey (sys, keyneeded);
+	smallrun = create_decryptor (tbig, keyneeded);
+	rddecrypt = sys->runs[smallrun].start;
+
+	/*
+	 * 2. Add goal bindings
+	 */
+
+	newgoals = goal_add (rddecrypt->message, smallrun, 0, 0);
+	if (newgoals >= 0)
+	  {
+	    if (newgoals > 1)
+	      {
+		error
+		  ("Added more than one goal for decryptor goal 1, weird.");
+	      }
+	    else
+	      {
+		// This is the unique new goal then
+		bnew = (Binding) sys->bindings->data;
+	      }
+	  }
+	else
+	  {
+	    error ("No new binding added for inner message.");
+	    // No new binding? Weird, but fair enough
+	    bnew = NULL;
+	  }
+
+	newgoals += goal_add (rddecrypt->next->message, smallrun, 1,
+			      prioritylevel);
+	/*
+	 * 3. Bind open goal to decryptor
+	 */
+	if (goal_bind (bt, smallrun, 2))
+	  {
+	    // Allright, good binding, proceed with next
+	    flag = flag || subterm_unification_needs (bnew, TermOp (tbig));
+	    goal_unbind (bt);
+	  }
+	/*
+	 * clean up
+	 */
+	termDelete (keyneeded);
+	goal_remove_last (newgoals);
+	semiRunDestroy ();
+
+	return flag;
+      }
+    return false;
+  }
+
+  old_length = sys->runs[run].height;
+  if ((index + 1) > old_length)
+    {
+      newgoals = add_read_goals (run, old_length, index + 1);
+    }
+  else
+    {
+      newgoals = 0;
+    }
+  flag =
+    subterm_unification_needs (b,
+			       roledef_shift (sys->runs[run].start,
+					      index)->message);
+  if (newgoals > 0)
+    {
+      goal_remove_last (newgoals);
+    }
+  sys->runs[run].height = old_length;
+  return flag;
+}
+
+//! Try to bind a specific existing run to a goal.
+/**
  * The key goals are bound to the goal.
  *
  *@todo This is currently NOT correct. The point is that the key chain
@@ -746,7 +907,7 @@ getPriorityOfNeededKey (const System sys, const Term keyneeded)
  *@param index	index in run of binding start
  */
 int
-bind_existing_to_goal (const Binding b, const int run, const int index)
+bind_existing_to_goal_old (const Binding b, const int run, const int index)
 {
   Roledef rd;
   int flag;
@@ -1370,8 +1531,14 @@ bind_goal_regular_run (const Binding b)
 	indentDepth++;
 
 	// Bind to existing run
+#ifdef DEBUG
+	debug (5, "Trying to bind to existing run.");
+#endif
 	sflag = bind_existing_run (b, p, r, index);
 	// bind to new run
+#ifdef DEBUG
+	debug (5, "Trying to bind to new run.");
+#endif
 	sflag = sflag && bind_new_run (b, p, r, index);
 
 	indentDepth--;
