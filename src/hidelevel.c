@@ -80,9 +80,15 @@ hidelevelCompute (const System sys)
 
   sys->hidden = NULL;
   tl = sys->globalconstants;
-  eprintf ("Global constants: ");
-  termlistPrint (tl);
-  eprintf ("\n");
+
+#ifdef DEBUG
+  if (DEBUGL (4))
+    {
+      eprintf ("Global constants: ");
+      termlistPrint (tl);
+      eprintf ("\n");
+    }
+#endif
 
   while (tl != NULL)
     {
@@ -113,9 +119,12 @@ hidelevelCompute (const System sys)
 	  sys->hidden = ht;
 
 #ifdef DEBUG
-	  eprintf ("Added possibly interesting term: ");
-	  termPrint (tl->term);
-	  eprintf ("; know %i, prot %i\n", l1, l2);
+	  if (DEBUGL (5))
+	    {
+	      eprintf ("Added possibly interesting term: ");
+	      termPrint (tl->term);
+	      eprintf ("; know %i, prot %i\n", l1, l2);
+	    }
 #endif
 	}
 

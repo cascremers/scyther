@@ -39,6 +39,7 @@
 #include "prune_theorems.h"
 #include "arachne.h"
 #include "hidelevel.h"
+#include "depend.h"
 
 extern int *graph;
 extern int nodes;
@@ -700,9 +701,9 @@ create_decryptor (const Term term, const Term key)
   else
     {
       globalError++;
-      printf ("Term for which a decryptor instance is requested: ");
+      eprintf ("Term for which a decryptor instance is requested: ");
       termPrint (term);
-      printf ("\n");
+      eprintf ("\n");
       error
 	("Trying to build a decryptor instance for a non-encrypted term.");
     }
@@ -777,15 +778,15 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 #ifdef DEBUG
     if (DEBUGL (4))
       {
-	printf ("Trying to bind the small term ");
+	eprintf ("Trying to bind the small term ");
 	termPrint (b->term);
-	printf (" as coming from the big send ");
+	eprintf (" as coming from the big send ");
 	termPrint (rd->message);
-	printf (" , binding ");
+	eprintf (" , binding ");
 	termPrint (b->term);
-	printf ("\nCrypted list needed: ");
+	eprintf ("\nCrypted list needed: ");
 	termlistPrint (cryptlist);
-	printf ("\n");
+	eprintf ("\n");
       }
 #endif
     if (cryptlist != NULL && switches.output == PROOF)
@@ -893,6 +894,8 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	    indentDepth++;
 	    flag = flag && iterate ();
 	    indentDepth--;
+
+	    goal_unbind (b);
 	  }
 	else
 	  {
@@ -906,7 +909,6 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	semiRunDestroy ();
 	newruns--;
       }
-    goal_unbind (b);
 
     indentDepth--;
     return flag;
@@ -1099,17 +1101,17 @@ bind_old_goal (const Binding b_new)
 	  if (b_old->done && isTermEqual (b_new->term, b_old->term))
 	    {
 	      // Old is done and has the same term!
-	      // So we copy this binding, and fix it.
-	      b_new->run_from = b_old->run_from;
-	      b_new->ev_from = b_old->ev_from;
-	      b_new->done = 1;
-	      return 1;
+	      // So we try to copy this binding, and fix it.
+	      if (goal_bind (b_new, b_old->run_from, b_old->ev_from))
+		{
+		  return true;
+		}
 	    }
 	  bl = bl->next;
 	}
     }
   // No old binding to connect to
-  return 0;
+  return false;
 }
 
 //! Create a new intruder run to generate knowledge from m0
@@ -1154,12 +1156,12 @@ bind_goal_new_m0 (const Binding b)
 		    eprintf (" from the initial knowledge.\n");
 		  }
 		flag = flag && iterate ();
+		goal_unbind (b);
 	      }
 	    else
 	      {
 		proof_cannot_bind (b, run, 0);
 	      }
-	    goal_unbind (b);
 	    indentDepth--;
 	  }
 	  semiRunDestroy ();
@@ -1247,12 +1249,12 @@ bind_goal_new_encrypt (const Binding b)
 	    {
 	      proof_suppose_binding (b);
 	      flag = flag && iterate ();
+	      goal_unbind (b);
 	    }
 	  else
 	    {
 	      proof_cannot_bind (b, run, index);
 	    }
-	  goal_unbind (b);
 	  indentDepth--;
 	  goal_remove_last (newgoals);
 	  semiRunDestroy ();
@@ -1475,7 +1477,7 @@ bind_goal (const Binding b)
 	  flag = flag && iterate ();
 
 	  // Unbind again
-	  b->done = 0;
+	  goal_unbind (b);
 	  indentDepth--;
 	  return flag;
 	}
@@ -2215,7 +2217,6 @@ knowledgeAtArachne (const System sys, const int myrun, const int myindex,
   Knowledge know;
   int run;
 
-  goal_graph_create ();		// ensure a valid ordering graph
   know = knowledgeDuplicate (sys->know);	// duplicate initial knowledge
   run = 0;
   while (run < sys->maxruns)
@@ -2236,7 +2237,7 @@ knowledgeAtArachne (const System sys, const int myrun, const int myindex,
       while (rd != NULL && index < maxheight)
 	{
 	  // Check whether this event precedes myevent
-	  if (aftercomplete || isOrderedBefore (run, index, myrun, myindex))
+	  if (aftercomplete || isDependEvent (run, index, myrun, myindex))
 	    {
 	      // If it is a send (trivial) or a read (remarkable, but true
 	      // because of bindings) we can add the message and the agents to

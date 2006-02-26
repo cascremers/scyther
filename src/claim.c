@@ -57,7 +57,7 @@ indact ()
   i = indac;
   while (i > 0)
     {
-      printf ("|   ");
+      eprintf ("|   ");
       i--;
     }
 }
@@ -136,10 +136,10 @@ oki_nisynch_full (const System sys, const Termmap label_to_index)
 	{
 #ifdef OKIDEBUG
 	  indact ();
-	  printf ("Incorrectly linked label at the end,");
-	  printf ("label: ");
+	  eprintf ("Incorrectly linked label at the end,");
+	  eprintf ("label: ");
 	  termPrint (label_to_index_scan->term);
-	  printf ("\n");
+	  eprintf ("\n");
 #endif
 	  return 0;
 	}
@@ -158,13 +158,13 @@ oki_nisynch_other (const System sys, const int trace_index,
 
 #ifdef OKIDEBUG
   indact ();
-  printf ("Exploring further assuming this (claim) run is not involved.\n");
+  eprintf ("Exploring further assuming this (claim) run is not involved.\n");
   indac++;
 #endif
   result = oki_nisynch (sys, trace_index - 1, role_to_run, label_to_index);
 #ifdef OKIDEBUG
   indact ();
-  printf (">%i<\n", result);
+  eprintf (">%i<\n", result);
   indac--;
 #endif
   return result;
@@ -202,7 +202,7 @@ oki_nisynch_read (const System sys, const int trace_index,
 		termmapSet (label_to_index_buf, rd->label, trace_index);
 #ifdef OKIDEBUG
 	      indact ();
-	      printf ("Exploring because this (read) run is involved.\n");
+	      eprintf ("Exploring because this (read) run is involved.\n");
 	      indac++;
 #endif
 	      result =
@@ -210,7 +210,7 @@ oki_nisynch_read (const System sys, const int trace_index,
 			     label_to_index_buf);
 #ifdef OKIDEBUG
 	      indact ();
-	      printf (">%i<\n", result);
+	      eprintf (">%i<\n", result);
 	      indac--;
 #endif
 	      termmapDelete (label_to_index_buf);
@@ -222,7 +222,7 @@ oki_nisynch_read (const System sys, const int trace_index,
   // Apparently not involved
 #ifdef OKIDEBUG
   indact ();
-  printf ("Exploring further assuming this (read) run is not involved.\n");
+  eprintf ("Exploring further assuming this (read) run is not involved.\n");
   indac++;
 #endif
   result = oki_nisynch (sys, trace_index - 1, role_to_run, label_to_index);
@@ -252,13 +252,14 @@ oki_nisynch_send (const System sys, const int trace_index,
   // 1. Assume that this run is not yet involved 
 #ifdef OKIDEBUG
   indact ();
-  printf ("Exploring further assuming (send) run %i is not involved.\n", rid);
+  eprintf ("Exploring further assuming (send) run %i is not involved.\n",
+	   rid);
   indac++;
 #endif
   result = oki_nisynch (sys, trace_index - 1, role_to_run, label_to_index);
 #ifdef OKIDEBUG
   indact ();
-  printf (">%i<\n", result);
+  eprintf (">%i<\n", result);
   indac--;
 #endif
   if (result)
@@ -266,7 +267,7 @@ oki_nisynch_send (const System sys, const int trace_index,
 
 #ifdef OKIDEBUG
   indact ();
-  printf ("Exploring when %i is involved.\n", rid);
+  eprintf ("Exploring when %i is involved.\n", rid);
 #endif
   // 2. It is involved. Then either already used for this role, or will be now.
   rolename = sys->runs[rid].role->nameterm;
@@ -289,9 +290,9 @@ oki_nisynch_send (const System sys, const int trace_index,
 
 #ifdef OKIDEBUG
 	      indact ();
-	      printf ("Matching messages found for label ");
+	      eprintf ("Matching messages found for label ");
 	      termPrint (rd->label);
-	      printf ("\n");
+	      eprintf ("\n");
 #endif
 	      /**
 	       *@todo Optimization can be done when old_run == rid, no copy of role_to_run needs to be made.
@@ -303,10 +304,10 @@ oki_nisynch_send (const System sys, const int trace_index,
 		termmapSet (label_to_index_buf, rd->label, LABEL_GOOD);
 #ifdef OKIDEBUG
 	      indact ();
-	      printf ("In NI-Synch scan, assuming %i run is involved.\n",
-		      rid);
+	      eprintf ("In NI-Synch scan, assuming %i run is involved.\n",
+		       rid);
 	      indact ();
-	      printf
+	      eprintf
 		("Exploring further assuming this matching, which worked.\n");
 	      indac++;
 #endif
@@ -315,7 +316,7 @@ oki_nisynch_send (const System sys, const int trace_index,
 			     label_to_index_buf);
 #ifdef OKIDEBUG
 	      indact ();
-	      printf (">%i<\n", result);
+	      eprintf (">%i<\n", result);
 	      indac--;
 #endif
 	      termmapDelete (label_to_index_buf);
@@ -348,10 +349,10 @@ oki_nisynch (const System sys, const int trace_index,
 
 #ifdef OKIDEBUG
   indact ();
-  printf ("Checking event %i", trace_index);
-  printf (" = #%i : ", sys->traceRun[trace_index]);
+  eprintf ("Checking event %i", trace_index);
+  eprintf (" = #%i : ", sys->traceRun[trace_index]);
   roledefPrint (sys->traceEvent[trace_index]);
-  printf ("\n");
+  eprintf ("\n");
 #endif
 
   type = sys->traceEvent[trace_index]->type;
@@ -471,16 +472,16 @@ check_claim_niagree (const System sys, const int i)
     {
 #ifdef DEBUG
       warning ("Claim has failed!");
-      printf ("To be exact, claim label ");
+      eprintf ("To be exact, claim label ");
       termPrint (cl->label);
-      printf (" with prec set ");
+      eprintf (" with prec set ");
       termlistPrint (cl->prec);
-      printf ("\n");
-      printf ("i: %i\nf: ", i);
+      eprintf ("\n");
+      eprintf ("i: %i\nf: ", i);
       termmapPrint (f);
-      printf ("\ng: ");
+      eprintf ("\ng: ");
       termmapPrint (g);
-      printf ("\n");
+      eprintf ("\n");
 #endif
 
     }

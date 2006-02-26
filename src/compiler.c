@@ -13,6 +13,7 @@
 #include "compiler.h"
 #include "switches.h"
 #include "specialterm.h"
+#include "warshall.h"
 #include "hidelevel.h"
 
 /*
@@ -1304,8 +1305,9 @@ void
 compute_prec_sets (const System sys)
 {
   Term *eventlabels;		// array: maps events to labels
-  int *prec;			// array: maps event*event to precedence
+  unsigned int *prec;		// array: maps event*event to precedence
   int size;			// temp constant: rolecount * roleeventmax
+  int rowsize;
   int r1, r2, ev1, ev2;		// some counters
   int i, j;
   Claimlist cl;
@@ -1316,11 +1318,6 @@ compute_prec_sets (const System sys)
     return r * sys->roleeventmax + lev;
   }
 
-  // Assist: compute matrix index from i*i
-  int index2 (int i1, int i2)
-  {
-    return i1 * size + i2;
-  }
   // Assist: yield roledef from r, lev
   Roledef roledef_re (int r, int lev)
   {
@@ -1382,7 +1379,8 @@ compute_prec_sets (const System sys)
 		while (ev2 < sys->roleeventmax)
 		  {
 		    eprintf ("%i ",
-			     prec[index2 (index (r2, ev2), index (r1, ev1))]);
+			     BIT (prec + rowsize * index (r2, ev2),
+				  index (r1, ev1)));
 		    ev2++;
 		  }
 		eprintf (" ");
@@ -1403,21 +1401,9 @@ compute_prec_sets (const System sys)
   //eprintf ("Rolecount: %i\n", sys->rolecount);
   //eprintf ("Maxevent : %i\n", sys->roleeventmax);
   size = sys->rolecount * sys->roleeventmax;
+  rowsize = WORDSIZE (size);
   eventlabels = memAlloc (size * sizeof (Term));
-  prec = memAlloc (size * size * sizeof (int));
-  // Clear tables
-  i = 0;
-  while (i < size)
-    {
-      eventlabels[i] = NULL;
-      j = 0;
-      while (j < size)
-	{
-	  prec[index2 (i, j)] = 0;
-	  j++;
-	}
-      i++;
-    }
+  prec = (unsigned int *) CALLOC (1, rowsize * size * sizeof (unsigned int));
   // Assign labels
   r1 = 0;
   while (r1 < sys->rolecount)
@@ -1444,7 +1430,7 @@ compute_prec_sets (const System sys)
       ev1 = 0;
       while (ev1 < (sys->roleeventmax - 1))
 	{
-	  prec[index2 (index (r1, ev1), index (r1, ev1 + 1))] = 1;
+	  SETBIT (prec + rowsize * index (r1, ev1), index (r1, ev1 + 1));
 	  ev1++;
 	}
       r1++;
@@ -1473,7 +1459,8 @@ compute_prec_sets (const System sys)
 		      if (rd2 != NULL && rd2->type == READ
 			  && isTermEqual (rd1->label, rd2->label))
 			{
-			  prec[index2 (index (r1, ev1), index (r2, ev2))] = 1;
+			  SETBIT (prec + rowsize * index (r1, ev1),
+				  index (r2, ev2));
 			}
 		      ev2++;
 		    }
@@ -1484,14 +1471,18 @@ compute_prec_sets (const System sys)
 	}
       r1++;
     }
-  //[x] show_matrix ();
 
   /*
    * Compute transitive closure (Warshall).
    */
-  warshall (prec, size);
+  transitive_closure (prec, size);
 
-  // [x] show_matrix ();
+#ifdef DEBUG
+  if (DEBUGL (5))
+    {
+      show_matrix ();
+    }
+#endif
 
   /*
    * Last phase: Process all individual claims
@@ -1550,7 +1541,7 @@ compute_prec_sets (const System sys)
 	  rd = roledef_re (r2, ev2);
 	  while (rd != NULL)
 	    {
-	      if (prec[index2 (index (r2, ev2), claim_index)] == 1)
+	      if (BIT (prec + rowsize * index (r2, ev2), claim_index))
 		{
 		  // This event precedes the claim
 
@@ -1620,8 +1611,9 @@ compute_prec_sets (const System sys)
 		  while (ev_scan < sys->roleeventmax)
 		    {
 		      // if this event preceds the claim, replace the label term
-		      if (prec[index2 (index (r_scan, ev_scan), claim_index)]
-			  == 1)
+		      if (BIT
+			  (prec + rowsize * index (r_scan, ev_scan),
+			   claim_index))
 			{
 			  Roledef rd;
 
@@ -1699,7 +1691,7 @@ compute_prec_sets (const System sys)
    * Cleanup
    */
   memFree (eventlabels, size * sizeof (Term));
-  memFree (prec, size * size * sizeof (int));
+  FREE (prec);
 
 #ifdef DEBUG
   if (DEBUGL (2))

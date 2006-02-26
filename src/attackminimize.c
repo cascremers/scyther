@@ -92,7 +92,7 @@ attackMinimize (const System sys, struct tracebuf *tb)
 	    }
 	  if (i == tb->length)
 	    {
-	      printf ("Some step error.\n");
+	      eprintf ("Some step error.\n");
 	      exit (1);
 	    }
 
@@ -119,7 +119,7 @@ attackMinimize (const System sys, struct tracebuf *tb)
 	    }
 	  if (i < 0)
 	    {
-	      printf ("Some i<0 error.\n");
+	      eprintf ("Some i<0 error.\n");
 	      exit (1);
 	    }
 

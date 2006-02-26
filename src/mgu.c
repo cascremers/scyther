@@ -40,24 +40,24 @@ showSubst (Term t)
     return;
 
   indent ();
-  printf ("Substituting ");
+  eprintf ("Substituting ");
   termPrint (t);
-  printf (", typed ");
+  eprintf (", typed ");
   termlistPrint (t->stype);
   if (realTermLeaf (t->subst))
     {
-      printf ("->");
+      eprintf ("->");
       termlistPrint (t->subst->stype);
     }
   else
     {
-      printf (", composite term");
+      eprintf (", composite term");
     }
   if (t->type != VARIABLE)
     {
-      printf (" (bound roleconstant)");
+      eprintf (" (bound roleconstant)");
     }
-  printf ("\n");
+  eprintf ("\n");
 #endif
 }
 

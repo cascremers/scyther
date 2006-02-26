@@ -173,7 +173,7 @@ constraintlistDelete (Constraintlist cl)
   if (cl->prev != NULL)
     {
       /* TODO maybe this should cause a warning? */
-      printf ("WARNING: clDelete with non-empty prev\n");
+      eprintf ("WARNING: clDelete with non-empty prev\n");
       cl->prev->next = NULL;
     }
   while (cl != NULL)
@@ -198,7 +198,7 @@ constraintlistDestroy (Constraintlist cl)
   if (cl->prev != NULL)
     {
       /* TODO maybe this should cause a warning? */
-      printf ("WARNING: clDestroy with non-empty prev\n");
+      eprintf ("WARNING: clDestroy with non-empty prev\n");
       cl->prev = NULL;
     }
   while (cl != NULL)
@@ -248,14 +248,14 @@ void
 constraintPrint (Constraint co)
 {
   indent ();
-  printf ("Constraint ");
+  eprintf ("Constraint ");
   if (co == NULL)
     {
-      printf ("[empty]\n");
+      eprintf ("[empty]\n");
       return;
     }
   termPrint (co->term);
-  printf (" :\n");
+  eprintf (" :\n");
   knowledgePrint (co->know);
 }
 
@@ -265,7 +265,7 @@ constraintlistPrint (Constraintlist cl)
   if (cl == NULL)
     {
       indent ();
-      printf ("[empty constraintlist]\n");
+      eprintf ("[empty constraintlist]\n");
       return;
     }
   while (cl != NULL)

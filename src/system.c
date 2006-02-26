@@ -18,6 +18,7 @@
 #include "mgu.h"
 #include "switches.h"
 #include "binding.h"
+#include "depend.h"
 #include "specialterm.h"
 
 //! Global flag that signals LaTeX output.
@@ -193,6 +194,13 @@ systemDone (const System sys)
   while (sys->maxruns > 0)
     {
       roleInstanceDestroy (sys);
+    }
+
+  /* undo bindings (for arachne) */
+
+  if (switches.engine == ARACHNE_ENGINE)
+    {
+      bindingDone ();
     }
 
   /* clear substructures */
@@ -812,6 +820,12 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 
   /* erase any substitutions in the role definition, as they are now copied */
   termlistSubstReset (role->variables);
+
+  /* length */
+  runs[rid].rolelength = roledef_length (runs[rid].start);
+
+  /* new graph to create */
+  dependPushRun (sys);
 }
 
 
@@ -949,6 +963,9 @@ roleInstanceModelchecker (const System sys, const Protocol protocol,
       /* Determine first read with variables besides agents */
       runs[rid].firstNonAgentRead = firstNonAgentRead (sys, rid);	// symmetry reduction type II
     }
+
+  /* length */
+  runs[rid].rolelength = roledef_length (runs[rid].start);
 }
 
 //! Instantiate a role by making a new run
@@ -988,6 +1005,12 @@ roleInstanceDestroy (const System sys)
 
       runid = sys->maxruns - 1;
       myrun = sys->runs[runid];
+
+      // Reset graph
+      if (switches.engine == ARACHNE_ENGINE)
+	{
+	  dependPopRun ();
+	}
 
       // Destroy roledef
       roledefDestroy (myrun.start);

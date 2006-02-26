@@ -44,6 +44,7 @@ struct run
   Role role;			//!< Role of this run.
   Termlist agents;		//!< Agents involved in this run.
   int step;			//!< Current execution point in the run (integer)
+  int rolelength;		//!< Length of role
   Roledef index;		//!< Current execution point in the run (roledef pointer)
   Roledef start;		//!< Head of the run definition.
   Knowledge know;		//!< Current knowledge of the run.

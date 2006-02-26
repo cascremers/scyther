@@ -2,10 +2,8 @@
 #include "switches.h"
 #include "memory.h"
 #include "arachne.h"
-
-extern int *graph;
-extern int nodes;
-extern int graph_uordblks;
+#include "depend.h"
+#include <limits.h>
 
 extern Protocol INTRUDER;	// Pointers, to be set by the Init of arachne.c
 extern Role I_M;		// Same here.
@@ -16,6 +14,70 @@ extern Role I_RRSD;
 #define isGoal(rd)	(rd->type == READ && !rd->internal)
 #define isBound(rd)	(rd->bound)
 #define length		step
+
+
+//! Determine ranks for all nodes
+/**
+ * Some crude algorithm I sketched on the blackboard.
+ */
+int
+graph_ranks (int *ranks, int nodes)
+{
+  int i;
+  int todo;
+  int rank;
+
+#ifdef DEBUG
+  if (hasCycle ())
+    {
+      error ("Graph ranks tried, but a cycle exists!");
+    }
+#endif
+
+  i = 0;
+  while (i < nodes)
+    {
+      ranks[i] = INT_MAX;
+      i++;
+    }
+
+  todo = nodes;
+  rank = 0;
+  while (todo > 0)
+    {
+      // There are still unassigned nodes
+      int n;
+
+      n = 0;
+      while (n < nodes)
+	{
+	  if (ranks[n] == INT_MAX)
+	    {
+	      // Does this node have incoming stuff from stuff with equal rank or higher?
+	      int refn;
+
+	      refn = 0;
+	      while (refn < nodes)
+		{
+		  if (ranks[refn] >= rank && getNode (refn, n))
+		    refn = nodes + 1;
+		  else
+		    refn++;
+		}
+	      if (refn == nodes)
+		{
+		  ranks[n] = rank;
+		  todo--;
+		}
+	    }
+	  n++;
+	}
+      rank++;
+    }
+  return rank;
+}
+
+
 
 //! Iterate over all events that have an incoming arrow to the current one (forgetting the intruder for a moment)
 void
@@ -42,7 +104,7 @@ iterate_incoming_arrows (const System sys, void (*func) (), const int run,
 	  while (found == 0 && ev2 > 0)
 	    {
 	      ev2--;
-	      if (graph[graph_nodes (nodes, run2, ev2, run, ev)] != 0)
+	      if (isDependEvent (run2, ev2, run, ev))
 		{
 		  found = 1;
 		}
@@ -72,12 +134,8 @@ iterate_incoming_arrows (const System sys, void (*func) (), const int run,
 		      ev3 = 0;
 		      while (other_route == 0 && ev3 < sys->runs[run3].length)
 			{
-			  if (graph
-			      [graph_nodes
-			       (nodes, run2, ev2, run3, ev3)] != 0
-			      &&
-			      graph[graph_nodes
-				    (nodes, run3, ev3, run, ev)] != 0)
+			  if (isDependEvent (run2, ev2, run3, ev3)
+			      && isDependEvent (run3, ev3, run, ev))
 			    {
 			      // other route found
 			      other_route = 1;
@@ -123,7 +181,7 @@ iterate_outgoing_arrows (const System sys, void (*func) (), const int run,
 	  ev2 = 0;
 	  while (found == 0 && ev2 < sys->runs[run2].length)
 	    {
-	      if (graph[graph_nodes (nodes, run, ev, run2, ev2)] != 0)
+	      if (isDependEvent (run, ev, run2, ev2))
 		{
 		  found = 1;
 		}
@@ -157,12 +215,8 @@ iterate_outgoing_arrows (const System sys, void (*func) (), const int run,
 		      ev3 = 0;
 		      while (other_route == 0 && ev3 < sys->runs[run3].length)
 			{
-			  if (graph
-			      [graph_nodes
-			       (nodes, run, ev, run3, ev3)] != 0
-			      &&
-			      graph[graph_nodes
-				    (nodes, run3, ev3, run2, ev2)] != 0)
+			  if (isDependEvent (run, ev, run3, ev3)
+			      && isDependEvent (run3, ev3, run2, ev2))
 			    {
 			      // other route found
 			      other_route = 1;
@@ -196,6 +250,7 @@ dotSemiState (const System sys)
   int *ranks;
   int maxrank;
   int from_intruder_count;
+  int nodes;
 
   void node (const int run, const int index)
   {
@@ -231,15 +286,10 @@ dotSemiState (const System sys)
   from_intruder_count = 0;	// number of terms that can come from the initial knowledge
 
   // Needed for the bindings later on: create graph
-  goal_graph_create ();		// create graph
-  if (warshall (graph, nodes) == 0)	// determine closure
-    {
-      eprintf
-	("// This graph was not completely closed transitively because it contains a cycle!\n");
-    }
 
+  nodes = nodeCount ();
   ranks = memAlloc (nodes * sizeof (int));
-  maxrank = graph_ranks (graph, ranks, nodes);	// determine ranks
+  maxrank = graph_ranks (ranks, nodes);	// determine ranks
 
 #ifdef DEBUG
   // For debugging purposes, we also display an ASCII version of some stuff in the comments
@@ -272,7 +322,7 @@ dotSemiState (const System sys)
 		ev2 = 0;
 		while (ev2 < sys->runs[run2].length)
 		  {
-		    if (graph[graph_nodes (nodes, run2, ev2, run, ev)] != 0)
+		    if (isDependEvent (run2, ev2, run, ev))
 		      {
 			if (notfirstev)
 			  eprintf (",");
@@ -518,6 +568,43 @@ dotSemiState (const System sys)
 	("\tintruder [label=\"Initial intruder knowledge\", color=red];\n");
     }
 
+  // For debugging we might add more stuff: full dependencies
+#ifdef DEBUG
+  {
+    int r1;
+
+    for (r1 = 0; r1 < sys->maxruns; r1++)
+      {
+	if (sys->runs[r1].protocol != INTRUDER)
+	  {
+	    int e1;
+
+	    for (e1 = 0; e1 < sys->runs[r1].step; e1++)
+	      {
+		int r2;
+
+		for (r2 = 0; r2 < sys->maxruns; r2++)
+		  {
+		    if (sys->runs[r2].protocol != INTRUDER)
+		      {
+			int e2;
+
+			for (e2 = 0; e2 < sys->runs[r2].step; e2++)
+			  {
+			    if (isDependEvent (r1, e1, r2, e2))
+			      {
+				eprintf ("\tr%ii%i -> r%ii%i [color=grey];\n",
+					 r1, e1, r2, e2);
+			      }
+			  }
+		      }
+		  }
+	      }
+	  }
+      }
+  }
+#endif
+
   // Fourth, all ranking info
   {
     int myrank;
@@ -555,7 +642,7 @@ dotSemiState (const System sys)
 		ev = 0;
 		while (ev < sys->runs[run].step)
 		  {
-		    if (myrank == ranks[node_number (run, ev)])
+		    if (myrank == ranks[eventNode (run, ev)])
 		      {
 			if (count == 0)
 			  eprintf ("\t{ rank = same; ");
@@ -572,6 +659,14 @@ dotSemiState (const System sys)
 	myrank++;
       }
   }
+
+#ifdef DEBUG
+  // Debug: print dependencies
+  if (DEBUGL (3))
+    {
+      dependPrint ();
+    }
+#endif
 
   // clean memory
   memFree (ranks, nodes * sizeof (int));	// ranks

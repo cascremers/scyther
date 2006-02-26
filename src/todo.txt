@@ -1,3 +1,8 @@
+- Old version enforced some extra orders:
+  1. M_0 roles were ordered before any other roles.
+  2. Local constants order: if a run has a local variable instantiated by
+  somebody else's variable, that should occur then after the initial sending
+  of that value...
 - Test 'sk(x)' in goals, somewhere before assessing a state (dus at the
   beginning of iterate), immediately reduce to 'sk(Eve)'. Test with
   --experimental. To that end, reintroduce a state-reporting switch.
@@ -7,24 +12,6 @@
   this requires some work at instantiation, because instantiated term
   couples should be added to the inverses list, and removed at
   descruction.
-- Warshall is taking a third of the time running.
-  - Make 'dirty' flag.
-  - Make a push-graph structure, where old graphs are simply remembered?
-    Does this help at all?
-  - Improve the speed of the thing by finally moving to a bit-thing.
-  Required interface:
-  * Abstract graph (node relations)
-    - make_empty_graph of size n (with ->cycle=0)
-    - destroy graph
-    - get_transitive_relation (g,n1,n2) (enforces closure)
-    - set_transitive_relation (g,n1,n2) (sets dirty flag, checks cycle)
-    - has_cycle (g)
-  * High-level (event dependencies)
-    - make_deps for current sys (make_empty+fill), returning cycle flag
-    - destroy_deps(G)
-    - set_deps (G,r1,s1,r2,s2), returning cycle flag
-    - get_deps (G,r1,s1,r2,s2)
-    - get_cycle_flag (G)
 - Simple timestamps could be added by prefixing send message before the
   role, sending any timestamp constants out first to the intruder. These
   should of course be hidden in the output somehow.

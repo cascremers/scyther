@@ -267,7 +267,6 @@ main (int argc, char **argv)
   if (switches.engine == ARACHNE_ENGINE)
     {
       arachneDone ();
-      bindingDone ();
     }
   knowledgeDestroy (sys->know);
   systemDone (sys);

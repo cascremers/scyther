@@ -20,12 +20,12 @@ is_goal_selectable (const Binding b)
 {
   if (b != NULL)
     {
-      if (!b->blocked && !b->done)
+      if ((!b->blocked) && (!b->done))
 	{
-	  return 1;
+	  return true;
 	}
     }
-  return 0;
+  return false;
 }
 
 //! Count selectable goals
