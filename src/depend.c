@@ -98,6 +98,7 @@ dependPrint ()
     r1 = 0;
     o1 = 0;
     eprintf ("Printing dependency graph.\n");
+    eprintf ("Y axis nodes comes before X axis node.\n");
     for (n1 = 0; n1 < nodeCount (); n1++)
       {
 	int n2;

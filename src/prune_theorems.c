@@ -47,7 +47,7 @@ correctLocalOrder (const System sys)
 		{
 		  indentPrint ();
 		  eprintf ("Pruned because ordering for term ");
-		  termPrint (t);
+		  termSubstPrint (t);
 		  eprintf
 		    (" cannot be correct: the first send r%ii%i occurs after the read r%ii%i.\n",
 		     r2, e2, r1, e1);
@@ -282,7 +282,10 @@ prune_theorems (const System sys)
   /*
    * Check for correct orderings involving local constants
    */
-  correctLocalOrder (sys);
+  if (switches.experimental & 8 != 0)
+    {
+      correctLocalOrder (sys);
+    }
 
   /**
    * Check whether the bindings are valid

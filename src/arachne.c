@@ -164,18 +164,30 @@ arachneDone ()
 void
 indentPrefixPrint (const int annotate, const int jumps)
 {
+  void counterPrint ()
+  {
+    if (switches.engine == ARACHNE_ENGINE)
+      {
+	statesFormat (sys->current_claim->states);
+	eprintf ("\t");
+      }
+    eprintf ("%i", annotate);
+    eprintf ("\t");
+  }
+
   if (switches.output == ATTACK && globalError == 0)
     {
       // Arachne, attack, not an error
       // We assume that means DOT output
-      eprintf ("// %i\t", annotate);
+      eprintf ("// ");
+      counterPrint ();
     }
   else
     {
       // If it is not to stdout, or it is not an attack...
       int i;
 
-      eprintf ("%i\t", annotate);
+      counterPrint ();
       for (i = 0; i < jumps; i++)
 	{
 	  if (i % 3 == 0)
@@ -763,6 +775,25 @@ getPriorityOfNeededKey (const System sys, const Term keyneeded)
   return prioritylevel;
 }
 
+//! Report failed binding
+void
+report_failed_binding (Binding b, int run, int index)
+{
+  if (switches.output == PROOF)
+    {
+      indentPrint ();
+      eprintf ("Failed to bind the binding at r%ii%i with term ", b->run_to,
+	       b->ev_to);
+      termPrint (b->term);
+      eprintf (" to the source r%ii%i because of orderings.\n", run, index);
+#ifdef DEBUG
+      if (DEBUGL (5))
+	{
+	  dependPrint ();
+	}
+#endif
+    }
+}
 
 //! Make a decryption chain from a binding to some run,index using the key list, and callback if this works.
 /**
@@ -780,6 +811,10 @@ createDecryptionChain (const Binding b, const int run, const int index,
 	  callback ();
 	  goal_unbind (b);
 	  return;
+	}
+      else
+	{
+	  report_failed_binding (b, run, index);
 	}
     }
   else
@@ -858,6 +893,10 @@ createDecryptionChain (const Binding b, const int run, const int index,
 	    createDecryptionChain (bnew, run, index, keylist->next, callback);
 	    goal_unbind (b);
 	  }
+	else
+	  {
+	    report_failed_binding (b, smallrun, 2);
+	  }
 	/*
 	 * clean up
 	 */
@@ -908,32 +947,59 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	  {
 	    int neworders;
 	    int allgood;
+	    Term tvar;
 
 	    // the idea is, that a substitution in run x with
 	    // something containing should be wrapped; this
 	    // occurs for all subterms of other runs.
-	    int makeDepend (Term t)
+	    int makeDepend (Term tsmall)
 	    {
-	      int r1, e1;
+	      Term tsubst;
 
-	      r1 = TermRunid (t);
-	      e1 = firstOccurrence (sys, r1, t, SEND);
-	      if (dependPushEvent (r1, e1, run, index))
+	      tsubst = deVar (tsmall);
+	      if (!realTermVariable (tsubst))
 		{
-		  neworders++;
-		  return true;
+		  // Only for non-variables (i.e. local constants)
+		  int r1, e1, r2, e2;
+
+		  r1 = TermRunid (tsubst);
+		  e1 = firstOccurrence (sys, r1, tsubst, SEND);
+		  if (e1 >= 0)
+		    {
+		      r2 = TermRunid (tvar);
+		      e2 = firstOccurrence (sys, r2, tsubst, READ);
+		      if (e2 >= 0)
+			{
+
+			  if (dependPushEvent (r1, e1, r2, e2))
+			    {
+			      neworders++;
+			      return true;
+			    }
+			  else
+			    {
+			      allgood = false;
+			      if (switches.output == PROOF)
+				{
+				  indentPrint ();
+				  eprintf ("Substitution for ");
+				  termSubstPrint (sl->term);
+				  eprintf (" (subterm ");
+				  termPrint (tsmall);
+				  eprintf (") could not be safely bound.\n");
+				}
+			      return false;
+			    }
+			}
+		    }
 		}
-	      else
-		{
-		  allgood = false;
-		  return false;
-		}
+	      return true;
 	    }
 
 	    neworders = 0;
 	    allgood = true;
-	    iterateTermOther (run, sl->term, makeDepend);
-
+	    tvar = sl->term;
+	    iterateTermOther (run, tvar, makeDepend);
 	    if (allgood)
 	      {
 		wrapSubst (sl->next);

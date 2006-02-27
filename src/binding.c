@@ -230,25 +230,28 @@ goal_add (Term term, const int run, const int ev, const int level)
   else
     {
       // Determine whether we already had it
-      int nope;
+      int createnew;
 
       int testSame (void *data)
       {
 	Binding b;
 
 	b = (Binding) data;
-	if (isTermEqual (b->term, term) && run == b->run_to && ev == b->ev_to)
-	  {			// abort scan, report
-	    return false;
+	if (isTermEqual (b->term, term))
+	  {
+	    // binding of same term
+	    if (run == b->run_to && ev == b->ev_to)
+	      {
+		// identical binding 
+		createnew = false;
+	      }
 	  }
-	else
-	  {			// proceed with scan
-	    return true;
-	  }
+	return true;
       }
 
-      nope = list_iterate (sys->bindings, testSame);
-      if (nope)
+      createnew = true;
+      list_iterate (sys->bindings, testSame);
+      if (createnew)
 	{
 	  // Add a new binding
 	  Binding b;
@@ -436,5 +439,66 @@ unique_origination ()
 int
 bindings_c_minimal ()
 {
-  return unique_origination ();
+  if (!unique_origination ())
+    {
+      return false;
+    }
+
+  {
+    List bl;
+
+    // For all goals
+    bl = sys->bindings;
+    while (bl != NULL)
+      {
+	Binding b;
+
+	b = (Binding) bl->data;
+	// Check for a valid binding; it has to be 'done' and sensibly bound (not as in tuple expanded stuff)
+	if (valid_binding (b))
+	  {
+	    int run;
+	    int node_from;
+
+	    // Find all preceding events
+	    for (run = 0; run < sys->maxruns; run++)
+	      {
+		int ev;
+
+		//!@todo hardcoded reference to step, should be length
+		for (ev = 0; ev < sys->runs[run].step; ev++)
+		  {
+		    if (isDependEvent (run, ev, b->run_from, b->ev_from))
+		      {
+			// this node is *before* the from node
+			Roledef rd;
+
+			rd = roledef_shift (sys->runs[run].start, ev);
+			if (termInTerm (rd->message, b->term))
+			  {
+			    // This term already occurs as interm in a previous node!
+#ifdef DEBUG
+			    if (DEBUGL (4))
+			      {
+				// Report this
+				indentPrint ();
+				eprintf ("Binding for ");
+				termPrint (b->term);
+				eprintf
+				  (" at r%i i%i is not c-minimal because it occurred before at r%i i%i in ",
+				   b->run_from, b->ev_from, run, ev);
+				termPrint (rd->message);
+				eprintf ("\n");
+			      }
+#endif
+			    return false;
+			  }
+		      }
+		  }
+	      }
+	  }
+	bl = bl->next;
+      }
+  }
+  return true;
 }

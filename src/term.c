@@ -1428,6 +1428,27 @@ termHidelevel (const Term tsmall, Term tbig)
     }
 }
 
+//! Show a substitution of t
+void
+termSubstPrint (Term t)
+{
+  if (realTermVariable (t))
+    {
+      Term tbuf;
+
+      tbuf = t->subst;
+      t->subst = NULL;
+      termPrint (t);
+      t->subst = tbuf;
+      eprintf (":=");
+      termSubstPrint (t->subst);
+    }
+  else
+    {
+      termPrint (t);
+    }
+}
+
 // Iterate over subterm constants of other runs in a term
 // Callback should return true to progress. This is reported in the final thing.
 int

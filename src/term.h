@@ -204,6 +204,7 @@ Term freshTermPrefix (Term prefixterm);
 int isTermFunctionName (Term t);
 Term getTermFunction (Term t);
 unsigned int termHidelevel (const Term tsmall, Term tbig);
+void termSubstPrint (Term t);
 
 int iterateTermOther (const int myrun, Term t, int (*callback) (Term t));
 

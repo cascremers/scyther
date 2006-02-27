@@ -1595,7 +1595,7 @@ iterateEventsType (const System sys, const int run, const int evtype,
 // Iterate over all 'others': local variables of a run that are instantiated and contain some term of another run.
 int
 iterateLocalToOther (const System sys, const int myrun,
-		     int (*callback) (Term t))
+		     int (*callback) (Term tlocal))
 {
   Termlist tlo, tls;
 
@@ -1642,14 +1642,23 @@ firstOccurrence (const System sys, const int r, Term t, int evtype)
     return true;
   }
 
-  if (iterateEventsType (sys, r, evtype, checkOccurs))
+  firste = -1;
+  iterateEventsType (sys, r, evtype, checkOccurs);
+#ifdef DEBUG
+  if (DEBUGL (3))
     {
-      globalError++;
-      eprintf ("Desired term ");
-      termPrint (t);
-      eprintf (" does not occur.\n");
-      globalError--;
-      error ("(in run %i in event type %i.)", r, evtype);
+      if (firste == -1)
+	{
+	  globalError++;
+	  eprintf ("Warning: Desired term ");
+	  termPrint (t);
+	  eprintf (" does not occur");
+	  eprintf (" in run %i in event type %i.\n", r, evtype);
+	  runPrint (sys->runs[r].start);
+	  eprintf ("\n");
+	  globalError--;
+	}
     }
+#endif
   return firste;
 }

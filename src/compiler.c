@@ -1420,6 +1420,11 @@ compute_prec_sets (const System sys)
 	  ev1++;
 	  rd = rd->next;
 	}
+      while (ev1 < sys->roleeventmax)
+	{
+	  eventlabels[index (r1, ev1)] = NULL;
+	  ev1++;
+	}
       //eprintf ("\n");
       r1++;
     }
@@ -1517,6 +1522,7 @@ compute_prec_sets (const System sys)
 	}
       while (r1 < sys->rolecount
 	     && !isTermEqual (label, eventlabels[index (r1, ev1)]));
+
       if (r1 == sys->rolecount)
 	{
 	  error
