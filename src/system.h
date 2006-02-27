@@ -224,6 +224,17 @@ int isAgentTrusted (const System sys, Term agent);
 int isAgentlistTrusted (const System sys, Termlist agents);
 int isRunTrusted (const System sys, const int run);
 
+int iterateRuns (const System sys, int (*callback) (int r));
+int iterateRegularRuns (const System sys, int (*callback) (int r));
+int iterateEvents (const System sys, const int run,
+		   int (*callback) (Roledef rd, int ev));
+int iterateEventsType (const System sys, const int run, const int evtype,
+		       int (*callback) (Roledef rd, int ev));
+int iterateLocalToOther (const System sys, const int myrun,
+			 int (*callback) (Term t));
+int firstOccurrence (const System sys, const int r, Term t, int evtype);
+
+
 //! Equality for run structure naming
 /**
  * For the modelchecker, there was an index called step. In Strand Space

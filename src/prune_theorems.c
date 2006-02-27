@@ -17,6 +17,53 @@ extern Protocol INTRUDER;
 extern int proofDepth;
 extern int max_encryption_level;
 
+
+//! Check locals occurrence
+/*
+ * Returns true if the order is correct
+ */
+int
+correctLocalOrder (const System sys)
+{
+  int checkRun (int r1)
+  {
+    int checkTerm (Term t)
+    {
+      if (!isTermVariable (t))
+	{
+	  int r2;
+	  int e1, e2;
+
+	  // t is a term from r2 that occurs in r1
+	  r2 = TermRunid (t);
+	  e1 = firstOccurrence (sys, r1, t, READ);
+	  e2 = firstOccurrence (sys, r2, t, SEND);
+
+	  // thus, it should not be the case that e1 occurs before e2
+	  if (isDependEvent (r1, e1, r2, e2))
+	    {
+	      // That's not good!
+	      if (switches.output == PROOF)
+		{
+		  indentPrint ();
+		  eprintf ("Pruned because ordering for term ");
+		  termPrint (t);
+		  eprintf
+		    (" cannot be correct: the first send r%ii%i occurs after the read r%ii%i.\n",
+		     r2, e2, r1, e1);
+		}
+	      return false;
+	    }
+	}
+      return true;
+
+    }
+    return iterateLocalToOther (sys, r1, checkTerm);
+  }
+
+  return iterateRegularRuns (sys, checkRun);
+}
+
 //! Check initiator roles
 /**
  * Returns false iff an agent type is wrong
@@ -231,6 +278,11 @@ prune_theorems (const System sys)
 	return 1;
       }
   }
+
+  /*
+   * Check for correct orderings involving local constants
+   */
+  correctLocalOrder (sys);
 
   /**
    * Check whether the bindings are valid

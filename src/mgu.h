@@ -20,6 +20,10 @@ int termMguInTerm (Term t1, Term t2, int (*iterator) (Termlist));
 int termMguSubTerm (Term t1, Term t2, int (*iterator) (Termlist, Termlist),
 		    Termlist inverses, Termlist keylist);
 void termlistSubstReset (Termlist tl);
-void unify (Term t1, Term t2, Termlist tl, void (*callback) (Termlist));
 
+// The new iteration methods
+int unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist));
+int
+subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
+	      int (*callback) (Termlist, Termlist));
 #endif

@@ -1427,10 +1427,10 @@ compute_prec_sets (const System sys)
   r1 = 0;
   while (r1 < sys->rolecount)
     {
-      ev1 = 0;
-      while (ev1 < (sys->roleeventmax - 1))
+      ev1 = 1;
+      while (ev1 < (sys->roleeventmax))
 	{
-	  SETBIT (prec + rowsize * index (r1, ev1), index (r1, ev1 + 1));
+	  SETBIT (prec + rowsize * index (r1, ev1 - 1), index (r1, ev1));
 	  ev1++;
 	}
       r1++;
@@ -1471,6 +1471,13 @@ compute_prec_sets (const System sys)
 	}
       r1++;
     }
+
+#ifdef DEBUG
+  if (DEBUGL (5))
+    {
+      show_matrix ();
+    }
+#endif
 
   /*
    * Compute transitive closure (Warshall).

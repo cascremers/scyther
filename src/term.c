@@ -925,8 +925,8 @@ termOrder (Term t1, Term t2)
 
 //! Generic term iteration
 int
-term_iterate (const Term term, int (*leaf) (), int (*nodel) (),
-	      int (*nodem) (), int (*noder) ())
+term_iterate (const Term term, int (*leaf) (Term t), int (*nodel) (Term t),
+	      int (*nodem) (Term t), int (*noder) (Term t))
 {
   if (term != NULL)
     {
@@ -977,8 +977,8 @@ term_iterate (const Term term, int (*leaf) (), int (*nodel) (),
 
 //! Generic term iteration
 int
-term_iterate_deVar (Term term, int (*leaf) (), int (*nodel) (),
-		    int (*nodem) (), int (*noder) ())
+term_iterate_deVar (Term term, int (*leaf) (Term t), int (*nodel) (Term t),
+		    int (*nodem) (Term t), int (*noder) (Term t))
 {
   term = deVar (term);
   if (term != NULL)
@@ -1045,7 +1045,7 @@ term_iterate_deVar (Term term, int (*leaf) (), int (*nodel) (),
  * well. It is up to func to decide wether or not to recurse.
  */
 int
-term_iterate_leaves (const Term term, int (*func) ())
+term_iterate_leaves (const Term term, int (*func) (Term t))
 {
   if (term != NULL)
     {
@@ -1069,13 +1069,13 @@ term_iterate_leaves (const Term term, int (*func) ())
 
 //! Iterate over open leaves (i.e. respect variable closure)
 int
-term_iterate_open_leaves (const Term term, int (*func) ())
+term_iterate_open_leaves (const Term term, int (*func) (Term t))
 {
   int testleaf (const Term t)
   {
     if (substVar (t))
       {
-	return term_iterate_open_leaves (t, func);
+	return term_iterate_open_leaves (t->subst, func);
       }
     else
       {
@@ -1426,4 +1426,23 @@ termHidelevel (const Term tsmall, Term tbig)
 	    }
 	}
     }
+}
+
+// Iterate over subterm constants of other runs in a term
+// Callback should return true to progress. This is reported in the final thing.
+int
+iterateTermOther (const int myrun, Term t, int (*callback) (Term t))
+{
+  int testOther (Term t)
+  {
+    int run;
+
+    run = TermRunid (t);
+    if (run >= 0 && run != myrun)
+      {
+	return callback (t);
+      }
+    return true;
+  }
+  return term_iterate_deVar (t, testOther, NULL, NULL, NULL);
 }

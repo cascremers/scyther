@@ -41,6 +41,14 @@ struct depeventgraph
 typedef struct depeventgraph *Depeventgraph;
 
 /*
+ * External
+ * ---------------------------------------------------------------
+ */
+
+extern Protocol INTRUDER;	//!< The intruder protocol
+extern Role I_M;		//!< special role; precedes all other events always
+
+/*
  * Globals
  * ---------------------------------------------------------------
  */
@@ -266,18 +274,12 @@ dependPopGeneric (void)
   currentdepgraph = dgprev;
 }
 
-//! Construct graph dependencies from sys
-/**
- * uses currentdepgraph->sys
- */
+// Dependencies from role order
 void
-dependFromSys (void)
+dependDefaultRoleOrder (void)
 {
   int r;
-  List bl;
 
-  // There are two types of orderings.
-  // 1. Role orderings (within runs)
   for (r = 0; r < currentdepgraph->sys->maxruns; r++)
     {
       int e;
@@ -287,10 +289,14 @@ dependFromSys (void)
 	  setDependEvent (r, e - 1, r, e);
 	}
     }
+}
 
-  // 2. Binding orderings
-  // We implicitly assume these cause no cycles (by construction this is
-  // correct)
+// Dependencies fro bindings order
+void
+dependDefaultBindingOrder (void)
+{
+  List bl;
+
   for (bl = currentdepgraph->sys->bindings; bl != NULL; bl = bl->next)
     {
       Binding b;
@@ -311,6 +317,17 @@ dependFromSys (void)
 	    }
 	}
     }
+}
+
+//! Construct graph dependencies from sys
+/**
+ * uses currentdepgraph->sys
+ */
+void
+dependFromSys (void)
+{
+  dependDefaultRoleOrder ();
+  dependDefaultBindingOrder ();
 }
 
 //! Detect whether the graph has a cycle. If so, a node can get to itself (through the cycle)
@@ -386,6 +403,9 @@ isDependEvent (const int r1, const int e1, const int r2, const int e2)
 void
 dependPushRun (const System sys)
 {
+#ifdef DEBUG
+  debug (5, "Push dependGraph for new run\n");
+#endif
   dependPushGeneric (dependCreate (sys));
   dependFromSys ();
 }
@@ -401,6 +421,9 @@ dependPopRun (void)
       globalError--;
       error ("Trying to pop graph created for new binding.");
     }
+#ifdef DEBUG
+  debug (5, "Pop dependGraph for new run\n");
+#endif
   dependPopGeneric ();
 }
 
@@ -432,12 +455,21 @@ dependPushEvent (const int r1, const int e1, const int r2, const int e2)
   else
     {
       // No immediate cycle: new graph, return true TODO disabled
-      if ((1 == 0) && ((r1 == r2) && (e1 == e2))
-	  || isDependEvent (r1, e1, r2, e2))
+      if ((1 == 1) && (((r1 == r2) && (e1 == e2))
+		       || isDependEvent (r1, e1, r2, e2)))
 	{
 	  // if n->n or the binding already existed, no changes
 	  // no change: add zombie
 	  currentdepgraph->zombie += 1;
+#ifdef DEBUG
+	  debug (5, "Push dependGraph for new event (zombie push)\n");
+	  if (DEBUGL (5))
+	    {
+	      globalError++;
+	      eprintf ("r%ii%i --> r%ii%i\n", r1, e1, r2, e2);
+	      globalError--;
+	    }
+#endif
 	}
       else
 	{
@@ -455,6 +487,15 @@ dependPushEvent (const int r1, const int e1, const int r2, const int e2)
 	      dependPopEvent ();
 	      return false;
 	    }
+#ifdef DEBUG
+	  debug (5, "Push dependGraph for new event (real push)\n");
+	  if (DEBUGL (5))
+	    {
+	      globalError++;
+	      eprintf ("r%ii%i --> r%ii%i\n", r1, e1, r2, e2);
+	      globalError--;
+	    }
+#endif
 	}
       return true;
     }
@@ -464,22 +505,31 @@ dependPushEvent (const int r1, const int e1, const int r2, const int e2)
 void
 dependPopEvent (void)
 {
-  if (currentdepgraph->fornewrun)
-    {
-      globalError++;
-      dependPrint ();
-      globalError--;
-      error ("Trying to pop graph created for new run.");
-    }
   if (currentdepgraph->zombie > 0)
     {
       // zombie pushed
+#ifdef DEBUG
+      debug (5, "Pop dependGraph for new event (zombie pop)\n");
+#endif
       currentdepgraph->zombie -= 1;
     }
   else
     {
-      // real graph
-      dependPopGeneric ();
+      if (currentdepgraph->fornewrun)
+	{
+	  globalError++;
+	  dependPrint ();
+	  globalError--;
+	  error ("Trying to pop graph created for new run.");
+	}
+      else
+	{
+	  // real graph
+#ifdef DEBUG
+	  debug (5, "Pop dependGraph for new event (real pop)\n");
+#endif
+	  dependPopGeneric ();
+	}
     }
 }
 

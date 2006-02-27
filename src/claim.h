@@ -9,8 +9,8 @@ int arachne_claim_nisynch (const System sys, const int claim_run,
 			   const int claim_index);
 
 int prune_claim_specifics (const System sys);
-void add_claim_specifics (const System sys, const Claimlist cl, const
-			  Roledef rd);
+int add_claim_specifics (const System sys, const Claimlist cl, const
+			 Roledef rd, int (*callback) (void));
 void count_false_claim (const System sys);
 int property_check (const System sys);
 

@@ -117,30 +117,36 @@ termlistSubstReset (Termlist tl)
  * The callback receives a list of variables, that were previously open, but are now closed
  * in such a way that the two terms unify. 
  *
+ * The callback must return true for the iteration to proceed: if it returns false, a single call would abort the scan.
+ * The return value shows this: it is false if the scan was aborted, and true if not.
  */
-void
-unify (Term t1, Term t2, Termlist tl, void (*callback) (Termlist))
+int
+unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
 {
+  int proceed;
+
+  proceed = true;
   /* added for speed */
   t1 = deVar (t1);
   t2 = deVar (t2);
   if (t1 == t2)
     {
-      callback (tl);
-      return;
+      return proceed && callback (tl);
     }
 
   int callsubst (Termlist tl, Term t, Term tsubst)
   {
+    int proceed;
+
     t->subst = tsubst;
 #ifdef DEBUG
     showSubst (t);
 #endif
     tl = termlistAdd (tl, t);
-    callback (tl);
+    proceed = callback (tl);
     tl = termlistDelTerm (tl);
     t->subst = NULL;
-    return;
+    return proceed;
   }
 
   if (!(hasTermVariable (t1) || hasTermVariable (t2)))
@@ -149,13 +155,12 @@ unify (Term t1, Term t2, Termlist tl, void (*callback) (Termlist))
       if (isTermEqual (t1, t2))
 	{
 	  // Equal!
-	  callback (tl);
-	  return;
+	  return proceed && callback (tl);
 	}
       else
 	{
 	  // Can never be fixed, no variables
-	  return;
+	  return proceed;
 	}
     }
 
@@ -183,8 +188,7 @@ unify (Term t1, Term t2, Termlist tl, void (*callback) (Termlist))
 	  t1 = t2;
 	  t2 = t3;
 	}
-      callsubst (tl, t1, t2);
-      return;
+      return proceed && callsubst (tl, t1, t2);
     }
 
   /* symmetrical tests for single variable.
@@ -193,61 +197,115 @@ unify (Term t1, Term t2, Termlist tl, void (*callback) (Termlist))
   if (realTermVariable (t2))
     {
       if (termSubTerm (t1, t2) || !goodsubst (t2, t1))
-	return;
+	return proceed;
       else
 	{
-	  callsubst (tl, t2, t1);
-	  return;
+	  return proceed && callsubst (tl, t2, t1);
 	}
     }
   if (realTermVariable (t1))
     {
       if (termSubTerm (t2, t1) || !goodsubst (t1, t2))
-	return;
+	return proceed;
       else
 	{
-	  callsubst (tl, t1, t2);
-	  return;
+	  return proceed && callsubst (tl, t1, t2);
 	}
     }
 
   /* left & right are compounds with variables */
   if (t1->type != t2->type)
-    return;
+    return proceed;
 
   /* identical compound types */
 
   /* encryption first */
   if (realTermEncrypt (t1))
     {
-      void unify_combined_enc (Termlist tl)
+      int unify_combined_enc (Termlist tl)
       {
 	// now the keys are unified (subst in this tl)
 	// and we try the inner terms
-	unify (TermOp (t1), TermOp (t2), tl, callback);
-	return;
+	return unify (TermOp (t1), TermOp (t2), tl, callback);
       }
 
-      unify (TermKey (t1), TermKey (t2), tl, unify_combined_enc);
-      return;
+      return proceed
+	&& unify (TermKey (t1), TermKey (t2), tl, unify_combined_enc);
     }
 
   /* tupling second
      non-associative version ! TODO other version */
   if (isTermTuple (t1))
     {
-      void unify_combined_tup (Termlist tl)
+      int unify_combined_tup (Termlist tl)
       {
 	// now the keys are unified (subst in this tl)
 	// and we try the inner terms
-	unify (TermOp2 (t1), TermOp2 (t2), tl, callback);
-	return;
+	return unify (TermOp2 (t1), TermOp2 (t2), tl, callback);
       }
-      unify (TermOp1 (t1), TermOp1 (t2), tl, unify_combined_tup);
-      return;
+      return proceed
+	&& unify (TermOp1 (t1), TermOp1 (t2), tl, unify_combined_tup);
     }
 
-  return;
+  return proceed;
+}
+
+
+//! Subterm unification
+/**
+ * Try to unify (a subterm of) tbig with tsmall.
+ *
+ * Callback is called with a list of substitutions, and a list of terms that
+ * need to be decrypted in order for this to work.
+ *
+ * E.g. subtermUnify ( {{m}k1}k2, m ) yields a list : {{m}k1}k2, {m}k1 (where
+ * the {m}k1 is the last added node to the list)
+ *
+ * The callback should return true for the iteration to proceed, or false to abort.
+ * The final result is this flag.
+ */
+int
+subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
+	      int (*callback) (Termlist, Termlist))
+{
+  int proceed;
+
+  int keycallback (Termlist tl)
+  {
+    return callback (tl, keylist);
+  }
+
+  proceed = true;
+
+  // Devar
+  tbig = deVar (tbig);
+  tsmall = deVar (tsmall);
+
+  // Three options:
+  // 1. simple unification
+  proceed = proceed && unify (tbig, tsmall, tl, keycallback);
+
+  // [2/3]: complex
+  // 2. interm unification
+  if (realTermTuple (tbig))
+    {
+      proceed = proceed
+	&& subtermUnify (TermOp1 (tbig), tsmall, tl, keylist, callback);
+      proceed = proceed
+	&& subtermUnify (TermOp2 (tbig), tsmall, tl, keylist, callback);
+    }
+
+  // 3. unification with encryption needed
+  if (realTermEncrypt (tbig))
+    {
+      // extend the keylist
+      keylist = termlistAdd (keylist, tbig);
+      proceed = proceed
+	&& subtermUnify (TermOp (tbig), tsmall, tl, keylist, callback);
+      // remove last item again
+      keylist = termlistDelTerm (keylist);
+    }
+  return proceed;
 }
 
 

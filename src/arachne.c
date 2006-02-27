@@ -378,41 +378,48 @@ fixAgentKeylevels (void)
 int
 add_read_goals (const int run, const int old, const int new)
 {
-  int count;
-  int i;
-  Roledef rd;
+  if (new <= sys->runs[run].height)
+    {
+      return 0;
+    }
+  else
+    {
+      int count;
+      int i;
+      Roledef rd;
 
-  sys->runs[run].height = new;
-  i = old;
-  rd = roledef_shift (sys->runs[run].start, i);
-  count = 0;
-  while (i < new && rd != NULL)
-    {
-      if (rd->type == READ)
+      sys->runs[run].height = new;
+      i = old;
+      rd = roledef_shift (sys->runs[run].start, i);
+      count = 0;
+      while (i < new && rd != NULL)
 	{
-	  if (switches.output == PROOF)
+	  if (rd->type == READ)
 	    {
-	      if (count == 0)
+	      if (switches.output == PROOF)
 		{
-		  indentPrint ();
-		  eprintf ("Thus, we must also produce ");
+		  if (count == 0)
+		    {
+		      indentPrint ();
+		      eprintf ("Thus, we must also produce ");
+		    }
+		  else
+		    {
+		      eprintf (", ");
+		    }
+		  termPrint (rd->message);
 		}
-	      else
-		{
-		  eprintf (", ");
-		}
-	      termPrint (rd->message);
+	      count = count + goal_add (rd->message, run, i, 0);
 	    }
-	  count = count + goal_add (rd->message, run, i, 0);
+	  rd = rd->next;
+	  i++;
 	}
-      rd = rd->next;
-      i++;
+      if ((count > 0) && switches.output == PROOF)
+	{
+	  eprintf ("\n");
+	}
+      return count;
     }
-  if ((count > 0) && switches.output == PROOF)
-    {
-      eprintf ("\n");
-    }
-  return count;
 }
 
 //! Determine the run that follows from a substitution.
@@ -756,114 +763,75 @@ getPriorityOfNeededKey (const System sys, const Term keyneeded)
   return prioritylevel;
 }
 
-//! Try to bind a specific existing run to a goal.
+
+//! Make a decryption chain from a binding to some run,index using the key list, and callback if this works.
 /**
- * The idea is that we try to bind it this specific run and index. If this
- * requires keys, then we should add such goals as well with the required
- * decryptor things.
- *
- * The key goals are bound to the goal. Iterates on success.
+ * Callback return value is int, but is effectively ignored.
  */
 void
-bind_existing_to_goal (const Binding b, const int run, const int index)
+createDecryptionChain (const Binding b, const int run, const int index,
+		       Termlist keylist, int (*callback) (void))
 {
-  int old_length;
-  int newgoals;
-  Term goalterm;
-
-  int subterm_unification_needs (Term tbig, const int r, const int e)
-  {
-    Term t;
-
-    void bind_iterate (Termlist tl)
+  if (keylist == NULL)
     {
-      if (goal_bind (b, r, e))
+      // Immediate binding, no key needed.
+      if (goal_bind (b, run, index))
 	{
-	  if (switches.output == PROOF)
-	    {
-	      indentPrint ();
-	      eprintf ("Iterating for ");
-	      termPrint (b->term);
-	      eprintf (" to occur first in ");
-	      termPrint (roledef_shift (sys->runs[run].start, index)->
-			 message);
-	      eprintf ("\n");
-	    }
-	  iterate ();
+	  callback ();
 	  goal_unbind (b);
+	  return;
 	}
     }
+  else
+    {
+      Term tdecr, tkey;
+      int smallrun;
 
-    t = deVar (b->term);
-    tbig = deVar (tbig);
+      // Some decryptor is needed for the term in the list
 
-    // First check whether it unifies in a simple way
-    unify (t, tbig, NULL, bind_iterate);
+      indentDepth++;
 
-    // The other options are unification on subparts
-    if (realTermTuple (tbig))
+      tdecr = keylist->term;
+      tkey = inverseKey (sys->know->inverses, TermKey (tdecr));
+      smallrun = create_decryptor (tdecr, tkey);
       {
-	// Either one will do
-	subterm_unification_needs (TermOp1 (tbig), r, e);
-	subterm_unification_needs (TermOp1 (tbig), r, e);
-      }
-    if (realTermEncrypt (tbig))
-      {
-	Term keyneeded;
 	Roledef rddecrypt;
-	int smallrun;
-	int prioritylevel;
-	int newgoals;
 	Binding bnew;
+	int newgoals;
+	int prioritylevel;
 
-	indentDepth++;
-	// Maybe we can bind to the inner thing. Try.
-	// Add decryptor run
-	keyneeded = inverseKey (sys->know->inverses, TermKey (tbig));
-	prioritylevel = getPriorityOfNeededKey (sys, keyneeded);
-	smallrun = create_decryptor (tbig, keyneeded);
+	/*
+	 * 2. Add goal bindings
+	 */
+
 	rddecrypt = sys->runs[smallrun].start;
+	// Add goal for tdecr copy
+	newgoals = goal_add (rddecrypt->message, smallrun, 0, 0);
+	if (newgoals != 1)
+	  {
+	    error
+	      ("Added %i goals (instead of one) for decryptor goal 1, weird.",
+	       newgoals);
+	  }
+
+	// This is the unique new goal 
+	bnew = (Binding) sys->bindings->data;
+
+	// Add goal for needed key copy
+	prioritylevel = getPriorityOfNeededKey (sys, tkey);
+	newgoals += goal_add (rddecrypt->next->message, smallrun, 1,
+			      prioritylevel);
 
 	if (switches.output == PROOF)
 	  {
 	    indentPrint ();
 	    eprintf
 	      ("This introduces the obligation to decrypt the following subterm: ");
-	    termPrint (tbig);
+	    termPrint (tdecr);
 	    eprintf (" to be decrypted using ");
-	    termPrint (keyneeded);
+	    termPrint (tkey);
 	    eprintf ("\n");
-	  }
 
-	/*
-	 * 2. Add goal bindings
-	 */
-
-	newgoals = goal_add (rddecrypt->message, smallrun, 0, 0);
-	if (newgoals >= 0)
-	  {
-	    if (newgoals > 1)
-	      {
-		error
-		  ("Added more than one goal for decryptor goal 1, weird.");
-	      }
-	    else
-	      {
-		// This is the unique new goal then
-		bnew = (Binding) sys->bindings->data;
-	      }
-	  }
-	else
-	  {
-	    error ("No new binding added for inner message.");
-	    // No new binding? Weird, but fair enough
-	    bnew = NULL;
-	  }
-
-	newgoals += goal_add (rddecrypt->next->message, smallrun, 1,
-			      prioritylevel);
-	if (switches.output == PROOF)
-	  {
 	    indentPrint ();
 	    eprintf
 	      ("To this end, we added two new goals and one new send: ");
@@ -878,256 +846,121 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	/*
 	 * 3. Bind open goal to decryptor? 
 	 */
-	if (goal_bind (bnew, r, e))
+	if (goal_bind (b, smallrun, 2))
 	  {
 	    if (switches.output == PROOF)
 	      {
 		indentPrint ();
-		eprintf ("Bound: trying new subterm_unfication_needs.\n");
+		eprintf ("Bound: trying new createDecryptionChain.\n");
 	      }
-	    subterm_unification_needs (TermOp (tbig), smallrun, 2);
-	    goal_unbind (bnew);
+
+	    // Iterate with the new goal
+	    createDecryptionChain (bnew, run, index, keylist->next, callback);
+	    goal_unbind (b);
 	  }
 	/*
 	 * clean up
 	 */
-	termDelete (keyneeded);
 	goal_remove_last (newgoals);
-	semiRunDestroy ();
-	indentDepth--;
       }
-  }
+      semiRunDestroy ();
+      termDelete (tkey);
 
-  old_length = sys->runs[run].height;
-  if (index >= old_length)
-    {
-      newgoals = add_read_goals (run, old_length, index + 1);
+      indentDepth--;
     }
-  else
-    {
-      newgoals = 0;
-    }
-  goalterm = roledef_shift (sys->runs[run].start, index)->message;
-  subterm_unification_needs (goalterm, run, index);
-  if (newgoals > 0)
-    {
-      goal_remove_last (newgoals);
-    }
-  sys->runs[run].height = old_length;
 }
+
 
 //! Try to bind a specific existing run to a goal.
 /**
- * The key goals are bound to the goal.
+ * The idea is that we try to bind it this specific run and index. If this
+ * requires keys, then we should add such goals as well with the required
+ * decryptor things.
  *
- *@todo This is currently NOT correct. The point is that the key chain
- * cannot uniquely define a path through a term in general, and
- * a rewrite of termMguSubterm is needed. It should not yield the
- * needed keys, but simply the path throught the term. This would enable
- * reconstruction of the keys anyway. TODO
- *      
- *@param b	binding to fix (bind), destination filled in
- *@param run	run of binding start
- *@param index	index in run of binding start
+ * The key goals are bound to the goal. Iterates on success.
  */
-int
-bind_existing_to_goal_old (const Binding b, const int run, const int index)
+void
+bind_existing_to_goal (const Binding b, const int run, const int index)
 {
-  Roledef rd;
-  int flag;
-  int old_length;
-  int newgoals;
-  int found;
+  Term bigterm;
 
-  int subterm_iterate (Termlist substlist, Termlist cryptlist)
+  int unifiesWithKeys (Termlist substlist, Termlist keylist)
   {
-    int flag;
-
-    found++;
-    flag = 1;
-    /**
-     * Now create the new bindings
-     */
+    int old_length;
     int newgoals;
-    int newruns;
-    int stillvalid;
 
-    Binding smalltermbinding;
+    // We need some adapting because the height would increase; we therefore
+    // have to add read goals before we know whether it unifies.
+    old_length = sys->runs[run].height;
+    newgoals = add_read_goals (run, old_length, index + 1);
 
-    stillvalid = true;		// New stuff is valid (no cycles)
-    newgoals = 0;		// No new goals introduced (yet)
-    newruns = 0;		// New runs introduced
-    smalltermbinding = b;	// Start off with destination binding
+    {
+      // wrap substitution lists
 
-    indentDepth++;
-#ifdef DEBUG
-    if (DEBUGL (4))
+      void wrapSubst (Termlist sl)
       {
-	eprintf ("Trying to bind the small term ");
-	termPrint (b->term);
-	eprintf (" as coming from the big send ");
-	termPrint (rd->message);
-	eprintf (" , binding ");
-	termPrint (b->term);
-	eprintf ("\nCrypted list needed: ");
-	termlistPrint (cryptlist);
-	eprintf ("\n");
-      }
-#endif
-    if (cryptlist != NULL && switches.output == PROOF)
-      {
-	indentPrint ();
-	eprintf
-	  ("This introduces the obligation to decrypt the following encrypted subterms: ");
-	termlistPrint (cryptlist);
-	eprintf ("\n");
-      }
-
-    /* The order of the cryptlist is inner -> outer */
-    while (stillvalid && cryptlist != NULL && smalltermbinding != NULL)
-      {
-	/*
-	 * Invariants:
-	 *
-	 * smalltermbinding     binding to be satisfied next (and for which a decryptor is needed)
-	 */
-	Term keyneeded;
-	int prioritylevel;
-	int smallrun;
-	int count;
-	Roledef rddecrypt;
-	Binding bnew;
-	int res;
-
-	/*
-	 * 1. Add decryptor
-	 */
-
-	keyneeded =
-	  inverseKey (sys->know->inverses, TermKey (cryptlist->term));
-	prioritylevel = getPriorityOfNeededKey (sys, keyneeded);
-	smallrun = create_decryptor (cryptlist->term, keyneeded);
-	rddecrypt = sys->runs[smallrun].start;
-	termDelete (keyneeded);
-	newruns++;
-
-	/*
-	 * 2. Add goal bindings
-	 */
-
-	count = goal_add (rddecrypt->message, smallrun, 0, 0);
-	newgoals = newgoals + count;
-	if (count >= 0)
+	if (sl == NULL)
 	  {
-	    if (count > 1)
-	      {
-		error
-		  ("Added more than one goal for decryptor goal 1, weird.");
-	      }
-	    else
-	      {
-		// This is the unique new goal then
-		bnew = (Binding) sys->bindings->data;
-	      }
+	    // new create key goals, bind etc.
+	    createDecryptionChain (b, run, index, keylist, iterate);
 	  }
 	else
 	  {
-	    // No new binding? Weird, but fair enough
-	    bnew = NULL;
-	  }
-	newgoals =
-	  newgoals + goal_add (rddecrypt->next->message, smallrun, 1,
-			       prioritylevel);
+	    int neworders;
+	    int allgood;
 
-	/*
-	 * 3. Bind open goal to decryptor
-	 */
+	    // the idea is, that a substitution in run x with
+	    // something containing should be wrapped; this
+	    // occurs for all subterms of other runs.
+	    int makeDepend (Term t)
+	    {
+	      int r1, e1;
 
-	res = goal_bind (smalltermbinding, smallrun, 2);	// returns 0 iff invalid
-	if (res != 0)
-	  {
-	    // Allright, good binding, proceed with next
-	    smalltermbinding = bnew;
-	  }
-	else
-	  {
-	    stillvalid = false;
-	  }
+	      r1 = TermRunid (t);
+	      e1 = firstOccurrence (sys, r1, t, SEND);
+	      if (dependPushEvent (r1, e1, run, index))
+		{
+		  neworders++;
+		  return true;
+		}
+	      else
+		{
+		  allgood = false;
+		  return false;
+		}
+	    }
 
-	/* progression */
-	cryptlist = cryptlist->next;
-      }
+	    neworders = 0;
+	    allgood = true;
+	    iterateTermOther (run, sl->term, makeDepend);
 
-    /*
-     * Decryptors for any nested keys have been added. Now we can fill the
-     * final binding.
-     */
-
-    if (stillvalid)
-      {
-	if (goal_bind (smalltermbinding, run, index))
-	  {
-	    proof_suppose_binding (b);
-#ifdef DEBUG
-	    if (DEBUGL (4))
+	    if (allgood)
 	      {
-		indentPrint ();
-		eprintf ("Added %i new goals, iterating.\n", newgoals);
+		wrapSubst (sl->next);
 	      }
-#endif
-	    /* Iterate process */
-	    indentDepth++;
-	    flag = flag && iterate ();
-	    indentDepth--;
-
-	    goal_unbind (b);
-	  }
-	else
-	  {
-	    proof_cannot_bind (b, run, index);
+	    while (neworders > 0)
+	      {
+		neworders--;
+		dependPopEvent ();
+	      }
 	  }
       }
 
+      wrapSubst (substlist);
+    }
+
+    // undo
     goal_remove_last (newgoals);
-    while (newruns > 0)
-      {
-	semiRunDestroy ();
-	newruns--;
-      }
-
-    indentDepth--;
-    return flag;
+    sys->runs[run].height = old_length;
+    return true;
   }
 
-  //----------------------------
-  // Roledef entry
-  rd = roledef_shift (sys->runs[run].start, index);
-
-  // Fix length
-  old_length = sys->runs[run].height;
-  if ((index + 1) > old_length)
-    newgoals = add_read_goals (run, old_length, index + 1);
-  else
-    newgoals = 0;
-
-  // Bind to existing run
-  found = 0;
-  flag = termMguSubTerm (b->term, rd->message,
-			 subterm_iterate, sys->know->inverses, NULL);
-  // Did it work?
-  if (found == 0 && switches.output == PROOF)
-    {
-      indentPrint ();
-      eprintf ("Cannot bind ");
-      termPrint (b->term);
-      eprintf (" to run %i, index %i because it does not subterm-unify.\n",
-	       run, index);
-    }
-  // Reset length
-  goal_remove_last (newgoals);
-  sys->runs[run].height = old_length;
-  return flag;
+  bigterm = roledef_shift (sys->runs[run].start, index)->message;
+  subtermUnify (bigterm, b->term, NULL, NULL, unifiesWithKeys);
 }
+
+
+
 
 //! Bind a goal to an existing regular run, if possible
 int
@@ -1181,11 +1014,12 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
 	      const int index)
 {
   int run;
-  int newgoals;
 
   run = semiRunCreate (p, r);
   proof_suppose_run (run, 0, index + 1);
   {
+    int newgoals;
+
     newgoals = add_read_goals (run, 0, index + 1);
     indentDepth++;
     bind_existing_to_goal (b, run, index);
@@ -1269,6 +1103,9 @@ printSemiState ()
 }
 
 //! Check if a binding duplicates an old one: if so, simply connect
+/**
+ * If it returns true, it has bound the b_new binding, which we must unbind later.
+ */
 int
 bind_old_goal (const Binding b_new)
 {
@@ -1339,7 +1176,36 @@ bind_goal_new_m0 (const Binding b)
 		    termPrint (b->term);
 		    eprintf (" from the initial knowledge.\n");
 		  }
-		flag = flag && iterate ();
+
+		{
+		  // Now we also want to add bindings to have this run before all other runs
+		  void wrapRunOrders (const int otherrun)
+		  {
+		    if (otherrun < 0)
+		      {
+			// No more runs to do
+			flag = flag && iterate ();
+		      }
+		    else
+		      {
+			if (otherrun != run)
+			  {
+			    if (dependPushEvent (run, 0, otherrun, 0))
+			      {
+				wrapRunOrders (otherrun - 1);
+				dependPopEvent ();
+			      }
+			  }
+			else
+			  {
+			    wrapRunOrders (otherrun - 1);
+			  }
+		      }
+		  }
+
+		  wrapRunOrders (sys->maxruns - 1);
+		}
+
 		goal_unbind (b);
 	      }
 	    else
@@ -1389,10 +1255,6 @@ bind_goal_new_encrypt (const Binding b)
 
   if (!realTermLeaf (term))
     {
-      int run;
-      int index;
-      int newgoals;
-      Roledef rd;
       Term t1, t2;
 
       if (!realTermEncrypt (term))
@@ -1407,40 +1269,53 @@ bind_goal_new_encrypt (const Binding b)
 
       if (t2 != TERM_Hidden)
 	{
+	  int run;
+
 	  can_be_encrypted = 1;
 	  run = semiRunCreate (INTRUDER, I_RRS);
-	  rd = sys->runs[run].start;
-	  rd->message = termDuplicateUV (t1);
-	  rd->next->message = termDuplicateUV (t2);
-	  rd->next->next->message = termDuplicateUV (term);
-	  index = 2;
-	  proof_suppose_run (run, 0, index + 1);
-	  if (switches.output == PROOF)
-	    {
-	      indentPrint ();
-	      eprintf ("* Encrypting ");
-	      termPrint (term);
-	      eprintf (" using term ");
-	      termPrint (t1);
-	      eprintf (" and key ");
-	      termPrint (t2);
-	      eprintf ("\n");
-	    }
-	  newgoals = add_read_goals (run, 0, index + 1);
+	  {
+	    int index;
+	    Roledef rd;
 
-	  indentDepth++;
-	  if (goal_bind (b, run, index))
+	    rd = sys->runs[run].start;
+	    rd->message = termDuplicateUV (t1);
+	    rd->next->message = termDuplicateUV (t2);
+	    rd->next->next->message = termDuplicateUV (term);
+	    index = 2;
+	    proof_suppose_run (run, 0, index + 1);
+	    if (switches.output == PROOF)
+	      {
+		indentPrint ();
+		eprintf ("* Encrypting ");
+		termPrint (term);
+		eprintf (" using term ");
+		termPrint (t1);
+		eprintf (" and key ");
+		termPrint (t2);
+		eprintf ("\n");
+	      }
+
 	    {
-	      proof_suppose_binding (b);
-	      flag = flag && iterate ();
-	      goal_unbind (b);
+	      int newgoals;
+	      newgoals = add_read_goals (run, 0, index + 1);
+	      {
+
+		indentDepth++;
+		if (goal_bind (b, run, index))
+		  {
+		    proof_suppose_binding (b);
+		    flag = flag && iterate ();
+		    goal_unbind (b);
+		  }
+		else
+		  {
+		    proof_cannot_bind (b, run, index);
+		  }
+		indentDepth--;
+	      }
+	      goal_remove_last (newgoals);
 	    }
-	  else
-	    {
-	      proof_cannot_bind (b, run, index);
-	    }
-	  indentDepth--;
-	  goal_remove_last (newgoals);
+	  }
 	  semiRunDestroy ();
 	}
     }
@@ -1455,7 +1330,6 @@ bind_goal_new_encrypt (const Binding b)
 	  eprintf (" cannot be constructed by encryption.\n");
 	}
     }
-
 
   return flag;
 }
@@ -1637,7 +1511,7 @@ bind_goal_old_intruder_run (Binding b)
 
 //! Bind a goal in all possible ways
 int
-bind_goal (const Binding b)
+bind_goal_all_options (const Binding b)
 {
   if (b->blocked)
     {
@@ -2091,26 +1965,28 @@ iterate ()
 	{
 	  if (!prune_bounds (sys))
 	    {
-	      Binding b;
+	      Binding btup;
 
 	      // Are there any tuple goals?
-	      b = select_tuple_goal ();
-	      if (b != NULL)
+	      btup = select_tuple_goal ();
+	      if (btup != NULL)
 		{
 		  // Expand tuple goal
 		  int count;
 
 		  // mark as blocked for iteration
-		  binding_block (b);
+		  binding_block (btup);
 		  // simply adding will detect the tuple and add the new subgoals
-		  count = goal_add (b->term, b->run_to, b->ev_to, b->level);
+		  count =
+		    goal_add (btup->term, btup->run_to, btup->ev_to,
+			      btup->level);
 
 		  // Show this in output
 		  if (switches.output == PROOF)
 		    {
 		      indentPrint ();
 		      eprintf ("Expanding tuple goal ");
-		      termPrint (b->term);
+		      termPrint (btup->term);
 		      eprintf (" into %i subgoals.\n", count);
 		    }
 
@@ -2119,7 +1995,7 @@ iterate ()
 
 		  // undo
 		  goal_remove_last (count);
-		  binding_unblock (b);
+		  binding_unblock (btup);
 		}
 	      else
 		{
@@ -2159,7 +2035,7 @@ iterate ()
 		      /*
 		       * bind this goal in all possible ways and iterate
 		       */
-		      flag = bind_goal (b);
+		      flag = bind_goal_all_options (b);
 		    }
 		}
 	    }
@@ -2316,9 +2192,11 @@ arachne ()
 		{
 		  // others we simply test...
 		  int run;
+		  int newruns;
 		  Protocol p;
 		  Role r;
 
+		  newruns = 0;
 		  sys->current_claim = cl;
 		  attack_length = INT_MAX;
 		  attack_leastcost = INT_MAX;
@@ -2338,34 +2216,57 @@ arachne ()
 		      eprintf (" at index %i.\n", cl->ev);
 		    }
 		  indentDepth++;
+
 		  run = semiRunCreate (p, r);
-		  proof_suppose_run (run, 0, cl->ev + 1);
-		  add_read_goals (run, 0, cl->ev + 1);
+		  newruns++;
+		  {
+		    int newgoals;
 
-	      /**
-	       * Add specific goal info
-	       */
-		  add_claim_specifics (sys, cl,
-				       roledef_shift (sys->runs[run].start,
-						      cl->ev));
-
+		    int realStart (void)
+		    {
 #ifdef DEBUG
-		  if (DEBUGL (5))
-		    {
-		      printSemiState ();
-		    }
+		      if (DEBUGL (5))
+			{
+			  printSemiState ();
+			}
 #endif
-		  iterate_buffer_attacks ();
-
-		  //! Destroy
-		  while (sys->bindings != NULL)
-		    {
-		      goal_remove_last (1);
+		      return iterate_buffer_attacks ();
 		    }
-		  while (sys->maxruns > 0)
+
+		    proof_suppose_run (run, 0, cl->ev + 1);
+		    newgoals = add_read_goals (run, 0, cl->ev + 1);
+
+		      /**
+		       * Add specific goal info and iterate
+		       */
+		    add_claim_specifics (sys, cl,
+					 roledef_shift (sys->runs[run].start,
+							cl->ev), realStart);
+
+
+		    goal_remove_last (newgoals);
+		  }
+		  //! Destroy
+		  while (sys->maxruns > 0 && newruns > 0)
 		    {
 		      semiRunDestroy ();
+		      newruns--;
 		    }
+#ifdef DEBUG
+		  if (sys->bindings != NULL)
+		    {
+		      error ("sys->bindings NOT empty after claim test.");
+		    }
+		  if (sys->maxruns != 0)
+		    {
+		      error ("%i undestroyed runs left after claim test.",
+			     sys->maxruns);
+		    }
+		  if (newruns != 0)
+		    {
+		      error ("Lost %i runs after claim test.", newruns);
+		    }
+#endif
 
 		  //! Indent back
 		  indentDepth--;

@@ -30,6 +30,9 @@ int globalLatex;
 //! Global count of protocols
 int protocolCount;
 
+//! External
+extern Protocol INTRUDER;
+
 //! Switch for indent or not.
 static int indentState = 0;
 //! Current indent depth.
@@ -1512,4 +1515,141 @@ enoughAttacks (const System sys)
 	}
     }
   return 0;
+}
+
+//! Iterate over runs.
+/**
+ * Callback should return true in order to continue.
+ */
+int
+iterateRuns (const System sys, int (*callback) (int r))
+{
+  int r;
+
+  for (r = 0; r < sys->maxruns; r++)
+    {
+      if (!callback (r))
+	{
+	  return false;
+	}
+    }
+  return true;
+}
+
+//! Iterate over non-intruder runs.
+/**
+ * Callback should return true in order to continue.
+ */
+int
+iterateRegularRuns (const System sys, int (*callback) (int r))
+{
+  int regular (int r)
+  {
+    if (sys->runs[r].protocol != INTRUDER)
+      {
+	return callback (r);
+      }
+    return true;
+  }
+
+  return iterateRuns (sys, regular);
+}
+
+// Iterate over events in a certain run (increasing through role)
+int
+iterateEvents (const System sys, const int run,
+	       int (*callback) (Roledef rd, int ev))
+{
+  int e;
+  Roledef rd;
+
+  rd = sys->runs[run].start;
+  for (e = 0; e < sys->runs[run].step; e++)
+    {
+      if (!callback (rd, e))
+	{
+	  return false;
+	}
+      rd = rd->next;
+    }
+  return true;
+}
+
+// Iterate over event type in a certain run (increasing through role)
+int
+iterateEventsType (const System sys, const int run, const int evtype,
+		   int (*callback) (Roledef rd, int ev))
+{
+  int selectEvent (Roledef rd, int e)
+  {
+    if (rd->type == evtype)
+      {
+	return callback (rd, e);
+      }
+    return true;
+  }
+
+  return iterateEvents (sys, run, selectEvent);
+}
+
+// Iterate over all 'others': local variables of a run that are instantiated and contain some term of another run.
+int
+iterateLocalToOther (const System sys, const int myrun,
+		     int (*callback) (Term t))
+{
+  Termlist tlo, tls;
+
+  int addOther (Term t)
+  {
+    tlo = termlistAddNew (tlo, t);
+    return true;
+  }
+
+  tlo = NULL;
+  // construct all others occuring in the reads
+  for (tls = sys->runs[myrun].locals; tls != NULL; tls = tls->next)
+    {
+      iterateTermOther (myrun, tls->term, addOther);
+    }
+  // now iterate over all of them
+  for (tls = tlo; tls != NULL; tls = tls->next)
+    {
+      if (!callback (tls->term))
+	{
+	  return false;
+	}
+    }
+
+  // clean up
+  termlistDelete (tlo);
+  return true;
+}
+
+//! Get first read/send occurrence (event index) of term t in run r
+int
+firstOccurrence (const System sys, const int r, Term t, int evtype)
+{
+  int firste;
+
+  int checkOccurs (Roledef rd, int e)
+  {
+    if (termSubTerm (rd->message, t) || termSubTerm (rd->from, t)
+	|| termSubTerm (rd->to, t))
+      {
+	firste = e;
+	return false;
+      }
+    return true;
+  }
+
+  if (iterateEventsType (sys, r, evtype, checkOccurs))
+    {
+      globalError++;
+      eprintf ("Desired term ");
+      termPrint (t);
+      eprintf (" does not occur.\n");
+      globalError--;
+      error ("(in run %i in event type %i.)", r, evtype);
+    }
+  return firste;
 }

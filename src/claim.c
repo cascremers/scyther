@@ -739,12 +739,19 @@ prune_claim_specifics (const System sys)
   return 0;
 }
 
-//! Setup system for specific claim test
-void
-add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd)
+//! Setup system for specific claim test and iterate
+int
+add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd,
+		     int (*callback) (void))
 {
+  /*
+   * different cases
+   */
   if (cl->type == CLAIM_Secret)
     {
+      int newgoals;
+      int flag;
+
       /**
        * Secrecy claim
        */
@@ -764,7 +771,12 @@ add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd)
        * be reached (without reaching the attack).
        */
       cl->count = statesIncrease (cl->count);
-      goal_add (rd->message, 0, cl->ev, 0);	// Assumption that all claims are in run 0
+      newgoals = goal_add (rd->message, 0, cl->ev, 0);	// Assumption that all claims are in run 0
+
+      flag = callback ();
+
+      goal_remove_last (newgoals);
+      return flag;
     }
 
   if (cl->type == CLAIM_Reachable)
@@ -779,7 +791,10 @@ add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd)
 	  rolecount = termlistLength (protocol->rolenames);
 	  switches.runs = rolecount;
 	}
+      return callback ();
     }
+
+  return callback ();
 }
 
 //! Count a false claim

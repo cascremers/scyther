@@ -186,12 +186,14 @@ Term tupleProject (Term tt, int n);
 int termSize (Term t);
 float termDistance (Term t1, Term t2);
 int termOrder (Term t1, Term t2);
-int term_iterate (const Term term, int (*leaf) (), int (*nodel) (),
-		  int (*nodem) (), int (*noder) ());
-int term_iterate_deVar (Term term, int (*leaf) (), int (*nodel) (),
-			int (*nodem) (), int (*noder) ());
-int term_iterate_leaves (const Term t, int (*func) ());
-int term_iterate_open_leaves (const Term term, int (*func) ());
+int term_iterate (const Term term, int (*leaf) (Term t),
+		  int (*nodel) (Term t), int (*nodem) (Term t),
+		  int (*noder) (Term t));
+int term_iterate_deVar (Term term, int (*leaf) (Term t),
+			int (*nodel) (Term t), int (*nodem) (Term t),
+			int (*noder) (Term t));
+int term_iterate_leaves (const Term t, int (*func) (Term t));
+int term_iterate_open_leaves (const Term term, int (*func) (Term t));
 void term_rolelocals_are_variables ();
 int term_encryption_level (const Term term);
 float term_constrain_level (const Term term);
@@ -203,5 +205,6 @@ int isTermFunctionName (Term t);
 Term getTermFunction (Term t);
 unsigned int termHidelevel (const Term tsmall, Term tbig);
 
+int iterateTermOther (const int myrun, Term t, int (*callback) (Term t));
 
 #endif
