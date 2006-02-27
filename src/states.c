@@ -33,8 +33,5 @@ statesSmallerThan (const states_t states, unsigned long int reflint)
 __inline__ void
 statesFormat (const states_t states)
 {
-  if (states < 1000000)
-    eprintf ("%lu", states);
-  else
-    eprintf ("%.3e", statesDouble (states));
+  eprintf ("%lu", states);
 }
