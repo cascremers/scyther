@@ -1615,7 +1615,7 @@ bind_goal_all_options (const Binding b)
 	{
 	  int know_only;
 
-	  know_only = 0;
+	  know_only = false;
 
 	  if (1 == 0)		// blocked for now
 	    {
@@ -1640,12 +1640,12 @@ bind_goal_all_options (const Binding b)
 			  eprintf
 			    (" is never sent from a regular run, so we only intruder construct it.\n");
 			}
-		      know_only = 1;
+		      know_only = true;
 		    }
 		}
 	    }
 
-	  if (switches.experimental & 4)
+	  if (switches.experimental & 16)
 	    {
 	      // Keylevel lemmas: improves on the previous one
 	      if (!isPossiblySent (b->term))
@@ -1665,21 +1665,33 @@ bind_goal_all_options (const Binding b)
 			}
 		      eprintf ("\n");
 		    }
-		  know_only = 1;
+		  know_only = true;
 		}
 	    }
-#ifdef DEBUG
-	  else
+
+	  if (!(switches.experimental & 32))
 	    {
-	      if (DEBUGL (5) && know_only == 1)
+		    /**
+		     * Note: this is slightly weaker than the previous & 16,
+		     * but it actually differs in such minimal cases that it
+		     * might be better to simply have the (much cleaner)
+		     * keylevel lemma.
+		     *
+		     * That's why this is default and the other isn't.
+		     */
+
+	      // Hidelevel variant
+	      int hlf;
+
+	      hlf = hidelevelFlag (sys, b->term);
+	      if (hlf == HLFLAG_NONE || hlf == HLFLAG_KNOW)
 		{
-		  eprintf
-		    ("Keylevel lemma is weaker than function lemma for term ");
-		  termPrint (b->term);
-		  eprintf ("\n");
+		  know_only = true;
 		}
 	    }
-#endif
+
+
+	  // Allright, proceed
 
 	  proofDepth++;
 	  if (know_only)

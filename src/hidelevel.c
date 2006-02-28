@@ -9,6 +9,8 @@
 #include "system.h"
 #include "memory.h"
 
+extern Term TERM_Hidden;
+
 //! hide level within protocol
 unsigned int
 protocolHidelevel (const System sys, const Term t)
@@ -80,6 +82,9 @@ hidelevelCompute (const System sys)
 
   sys->hidden = NULL;
   tl = sys->globalconstants;
+
+  // Add 'hidden' terms
+  tl = termlistAdd (tl, TERM_Hidden);
 
 #ifdef DEBUG
   if (DEBUGL (4))
