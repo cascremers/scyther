@@ -39,34 +39,70 @@ correctLocalOrder (const System sys)
 
 	  // t is a term from r2 that occurs in r1
 	  r2 = TermRunid (t);
-	  e1 = firstOccurrence (sys, r1, t, READ);
+	  e1 = firstOccurrence (sys, r1, t, ANYEVENT);
 	  if (e1 >= 0)
 	    {
-	      e2 = firstOccurrence (sys, r2, t, SEND);
-	      if (e2 >= 0)
+	      if (roledef_shift (sys->runs[r1].start, e1)->type == READ)
 		{
-
-		  // thus, it should not be the case that e1 occurs before e2
-		  if (isDependEvent (r1, e1, r2, e2))
+		  e2 = firstOccurrence (sys, r2, t, SEND);
+		  if (e2 >= 0)
 		    {
-		      // That's not good!
-		      if (switches.output == PROOF)
+		      // thus, it should not be the case that e1 occurs before e2
+		      if (isDependEvent (r1, e1, r2, e2))
 			{
-			  indentPrint ();
-			  eprintf ("Pruned because ordering for term ");
-			  termSubstPrint (t);
-			  eprintf
-			    (" cannot be correct: the first send r%ii%i occurs after the read r%ii%i.\n",
-			     r2, e2, r1, e1);
+			  // That's not good!
+			  if (switches.output == PROOF)
+			    {
+			      indentPrint ();
+			      eprintf ("Pruned because ordering for term ");
+			      termSubstPrint (t);
+			      eprintf
+				(" cannot be correct: the first send r%ii%i occurs after the read r%ii%i.\n",
+				 r2, e2, r1, e1);
+			    }
+			  flag = false;
+			  return false;
 			}
-		      flag = false;
-		      return false;
+		    }
+		  else
+		    {
+		      globalError++;
+		      eprintf ("Error: term ");
+		      termSubstPrint (t);
+		      eprintf
+			(" from run %i should occur in run %i, but it doesn't.\n",
+			 r2, r2);
+		      globalError--;
+		      error ("Abort");
 		    }
 		}
+	      else
+		{
+		  // not a read first?
+		  globalError++;
+		  eprintf ("Error: term ");
+		  termSubstPrint (t);
+		  eprintf
+		    (" from run %i should occur in run %i first in a READ event, but it occurs first in another event.\n",
+		     r2, r1);
+		  globalError--;
+		  error ("Abort");
+		}
 	    }
-	}
-      return true;
+	  else
+	    {
+	      globalError++;
+	      eprintf ("Error: term ");
+	      termSubstPrint (t);
+	      eprintf
+		(" from run %i should occur in run %i, but it doesn't.\n", r2,
+		 r1);
+	      globalError--;
+	      error ("Abort");
+	    }
+	  return true;
 
+	}
     }
 
     return iterateLocalToOther (sys, r1, checkTerm);

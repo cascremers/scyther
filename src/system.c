@@ -1576,13 +1576,16 @@ iterateEvents (const System sys, const int run,
 }
 
 // Iterate over event type in a certain run (increasing through role)
+/**
+ * If evtype == ANYEVENT then it does not matter.
+ */
 int
 iterateEventsType (const System sys, const int run, const int evtype,
 		   int (*callback) (Roledef rd, int ev))
 {
   int selectEvent (Roledef rd, int e)
   {
-    if (rd->type == evtype)
+    if (evtype == ANYEVENT || rd->type == evtype)
       {
 	return callback (rd, e);
       }

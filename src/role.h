@@ -9,7 +9,7 @@
 #include "states.h"
 
 enum eventtype
-{ READ, SEND, CLAIM };
+{ READ, SEND, CLAIM, ANYEVENT };
 
 //! The container for the claim info list
 /**
