@@ -296,7 +296,7 @@ prune_theorems (const System sys)
   /*
    * Check for correct orderings involving local constants
    */
-  if (switches.experimental & 8)
+  if (!(switches.experimental & 8))
     {
       if (!correctLocalOrder (sys))
 	{
@@ -320,22 +320,19 @@ prune_theorems (const System sys)
 
       b = bl->data;
 
-      if (switches.experimental & 4)
+      // Check for "Hidden" interm goals
+      //!@TODO in the future, this can be subsumed by adding TERM_Hidden to the hidelevel constructs
+      if (termInTerm (b->term, TERM_Hidden))
 	{
-	  // Check for "Hidden" interm goals
-	  //!@TODO in the future, this can be subsumed by adding TERM_Hidden to the hidelevel constructs
-	  if (termInTerm (b->term, TERM_Hidden))
+	  // Prune the state: we can never meet this
+	  if (switches.output == PROOF)
 	    {
-	      // Prune the state: we can never meet this
-	      if (switches.output == PROOF)
-		{
-		  indentPrint ();
-		  eprintf ("Pruned because intruder can never construnct ");
-		  termPrint (b->term);
-		  eprintf ("\n");
-		}
-	      return true;
+	      indentPrint ();
+	      eprintf ("Pruned because intruder can never construnct ");
+	      termPrint (b->term);
+	      eprintf ("\n");
 	    }
+	  return true;
 	}
 
       if (switches.experimental & 4)
