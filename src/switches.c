@@ -926,26 +926,27 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-#ifdef DEBUG
   /* ==================
    *  Experimental options
    *
-   *  Only with debugging version
+   *  Only for experts
    */
 
-  if (detect (' ', "experimental", 1))
+  if (switches.expert)
     {
-      if (!process)
+      if (detect (' ', "experimental", 1))
 	{
-	  /* unpredictable behaviour, can change throughout versions */
-	}
-      else
-	{
-	  switches.experimental = integer_argument ();
-	  return index;
+	  if (!process)
+	    {
+	      /* unpredictable behaviour, can change throughout versions */
+	    }
+	  else
+	    {
+	      switches.experimental = integer_argument ();
+	      return index;
+	    }
 	}
     }
-#endif
 
   /* ==================
    *  Misc switches
