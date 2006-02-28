@@ -992,14 +992,14 @@ term_iterate_deVar (Term term, int (*leaf) (Term t), int (*nodel) (Term t),
 	    }
 	  else
 	    {
-	      return 1;
+	      return true;
 	    }
 	}
       else
 	{
 	  int flag;
 
-	  flag = 1;
+	  flag = true;
 
 	  if (nodel != NULL)
 	    flag = flag && nodel (term);
@@ -1014,6 +1014,8 @@ term_iterate_deVar (Term term, int (*leaf) (Term t), int (*nodel) (Term t),
 	    flag = flag
 	      &&
 	      (term_iterate_deVar (TermOp (term), leaf, nodel, nodem, noder));
+
+	  // Center
 
 	  if (nodem != NULL)
 	    flag = flag && nodem (term);
@@ -1036,7 +1038,7 @@ term_iterate_deVar (Term term, int (*leaf) (Term t), int (*nodel) (Term t),
 	  return flag;
 	}
     }
-  return 1;
+  return true;
 }
 
 //! Iterate over the leaves in a term

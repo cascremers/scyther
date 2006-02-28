@@ -1598,6 +1598,7 @@ iterateLocalToOther (const System sys, const int myrun,
 		     int (*callback) (Term tlocal))
 {
   Termlist tlo, tls;
+  int flag;
 
   int addOther (Term t)
   {
@@ -1605,24 +1606,31 @@ iterateLocalToOther (const System sys, const int myrun,
     return true;
   }
 
+  flag = true;
   tlo = NULL;
   // construct all others occuring in the reads
   for (tls = sys->runs[myrun].locals; tls != NULL; tls = tls->next)
     {
-      iterateTermOther (myrun, tls->term, addOther);
+      Term tt;
+
+      tt = tls->term;
+      if (realTermVariable (tt) && tt->subst != NULL);
+      {
+	iterateTermOther (myrun, tt->subst, addOther);
+      }
     }
   // now iterate over all of them
-  for (tls = tlo; tls != NULL; tls = tls->next)
+  for (tls = tlo; flag && (tls != NULL); tls = tls->next)
     {
       if (!callback (tls->term))
 	{
-	  return false;
+	  flag = false;
 	}
     }
 
   // clean up
   termlistDelete (tlo);
-  return true;
+  return flag;
 }
 
 //! Get first read/send occurrence (event index) of term t in run r

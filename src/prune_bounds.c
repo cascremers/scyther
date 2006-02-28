@@ -108,7 +108,7 @@ prune_bounds (const System sys)
   /**
    * This should be removed once the hidelevel lemma works correctly
    */
-  if (switches.experimental & 4 == 0)
+  if (switches.experimental & 4)
     {
       if ((switches.match < 2)
 	  && (num_intruder_runs >

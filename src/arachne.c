@@ -1645,7 +1645,7 @@ bind_goal_all_options (const Binding b)
 		}
 	    }
 
-	  if (switches.experimental & 4 == 0)
+	  if (switches.experimental & 4)
 	    {
 	      // Keylevel lemmas: improves on the previous one
 	      if (!isPossiblySent (b->term))
