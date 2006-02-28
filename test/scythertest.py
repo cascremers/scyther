@@ -117,9 +117,7 @@ def default_arguments(plist,match,bounds):
 
     args += " --plain"
 
-    extra = get_extra_parameters()
-    if extra != "":
-        args = extra + " " + args
+    args = get_extra_parameters() + " " + args
     return args
 
 # Yield test results

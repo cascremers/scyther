@@ -36,26 +36,33 @@ def parse(scout):
             # Determine timeout, count states
             nc += 1
             timeout = False
+            localstates = 0
             for d in data:
                 if d.startswith("states="):
-                    st = st + int(d[7:])
+                    localstates += int(d[7:])
                 if d.startswith("time="):
                     timeout = True
 
-            # Determine claim status
+            # Only count the states if no timeout (otherwise not
+            # dependable)
             if not timeout:
-                tag = data[4]
-                if tag == 'Fail':
+                st += localstates
+
+            # Determine claim status
+            tag = data[4]
+            if tag == 'Fail':
                     ra += 1
-                elif tag == 'Ok':
-                    if l.rfind("proof of correctness") != -1:
-                        rp += 1
-                    else:
-                        rb += 1
-                else:
-                    print "Weird tag [%s] in line [%s]." % (tag, l)
             else:
-                to += 1
+                if not timeout:
+                    if tag == 'Ok':
+                        if l.rfind("proof of correctness") != -1:
+                            rp += 1
+                        else:
+                            rb += 1
+                    else:
+                        print "Weird tag [%s] in line [%s]." % (tag, l)
+                else:
+                    to += 1
 
     return (ra,rb,rp,nc,st,to)
 
@@ -79,7 +86,7 @@ def test_goal_selector(goalselector, options,branchbound):
 
     global hurry
 
-    scythertest.set_extra_parameters("--count-states --heuristic=" + str(goalselector))
+    scythertest.add_extra_parameters("--count-states --heuristic=" + str(goalselector))
     result = str(goalselector)
     plist = protocollist.from_literature()
     np = len(plist)
@@ -90,6 +97,7 @@ def test_goal_selector(goalselector, options,branchbound):
     claims = 0
     states = 0
     timeouts = 0
+    undecidedprotocols = []
     for p in plist:
         (status,scout) = scythertest.default_test([p], \
                 int(options.match), \
@@ -101,11 +109,14 @@ def test_goal_selector(goalselector, options,branchbound):
         attacks += ra
         bounds += rb
         proofs += rp
+        # is something undecided for this protocol?
+        if (rb > 0) or (to > 0):
+            undecidedprotocols += [p]
 
         if hurry and (bounds * states) > branchbound:
             return (-1,0,0,0,0,0)
     
-    return (attacks,bounds,proofs,claims,np,states,timeouts)
+    return (attacks,bounds,proofs,claims,np,states,timeouts,undecidedprotocols)
 
 # Max
 class maxor:
@@ -177,8 +188,12 @@ def main():
     timeoutsmax = maxor(2)
     decidemax = maxor(1)
 
-    for g in range(1,16):
-            (ra,rb,rp,nc,np,st,timeouts) = test_goal_selector(g, options,
+    problems = {}
+    sharedproblems = []
+    firstproblem = True
+
+    for g in range(1,8):
+            (ra,rb,rp,nc,np,st,timeouts,prot_undec) = test_goal_selector(g, options,
                     boundstatesmax.get())
 
             res = str(g)
@@ -205,9 +220,30 @@ def main():
                 res = shows (res, statesmax, st)
                 res = shows (res, boundstatesmax, boundstates)
 
+            problems[g] = prot_undec
+            if firstproblem:
+                firstproblem = False
+                sharedproblems = prot_undec
+            else:
+                nl = []
+                for p in sharedproblems:
+                    if p in prot_undec:
+                        nl += [p]
+                sharedproblems = nl
+
             print res
     print
     print "Goal selector scan completed."
+    print
+    print "%i shared problem protocols:" % len(sharedproblems)
+    print sharedproblems
+    print
+    for g in problems.keys():
+        print g, 
+        print " has %i extra problems: " % (len(problems[g]) - len(sharedproblems)),
+        print [ p for p in problems[g] if p not in sharedproblems ]
+    print
+    print
 
 # Only if main stuff
 if __name__ == '__main__':
