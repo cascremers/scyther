@@ -141,6 +141,12 @@ goal_bind (const Binding b, const int run, const int ev)
       if (dependPushEvent (run, ev, b->run_to, b->ev_to))
 	{
 	  b->done = true;
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      binding_print (b);
+	      eprintf ("\n");
+	    }
 	  return true;
 	}
     }
@@ -350,7 +356,7 @@ labels_ordered (Termmap runs, Termlist labels)
 int
 valid_binding (Binding b)
 {
-  if (b->done && !b->blocked)
+  if (b->done && (!b->blocked))
     return true;
   else
     return false;
@@ -458,7 +464,6 @@ bindings_c_minimal ()
 	if (valid_binding (b))
 	  {
 	    int run;
-	    int node_from;
 
 	    // Find all preceding events
 	    for (run = 0; run < sys->maxruns; run++)
@@ -493,6 +498,14 @@ bindings_c_minimal ()
 #endif
 			    return false;
 			  }
+		      }
+		    else
+		      {
+			// If this event is not before the target, then the
+			// next in the run certainly is not either (because
+			// that would imply that this one is before it)
+			// Thus, we effectively exit the loop.
+			break;
 		      }
 		  }
 	      }

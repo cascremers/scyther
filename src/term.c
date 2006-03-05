@@ -249,25 +249,25 @@ termSubTerm (Term t, Term tsub)
 
   if (isTermEqual (t, tsub))
     {
-      return 1;
+      return true;
     }
   else
     {
       if (t == NULL)
 	{
-	  return 0;
+	  return false;
 	}
       else
 	{
 	  if (tsub == NULL)
 	    {
-	      return 1;
+	      return true;
 	    }
 	  else
 	    {
 	      if (realTermLeaf (t))
 		{
-		  return 0;
+		  return false;
 		}
 	      else
 		{
@@ -296,13 +296,13 @@ termInTerm (Term t, Term tsub)
   tsub = deVar (tsub);
 
   if (isTermEqual (t, tsub))
-    return 1;
+    return true;
   if (realTermLeaf (t))
-    return 0;
+    return false;
   if (realTermTuple (t))
     return (termInTerm (TermOp1 (t), tsub) || termInTerm (TermOp2 (t), tsub));
   else
-    return 0;
+    return false;
 }
 
 //! Print a term to stdout.

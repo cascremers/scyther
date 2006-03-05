@@ -87,6 +87,7 @@ arachneInit (const System mysys)
   {
     rd = roledefAdd (rd, event, NULL, NULL, NULL, message, NULL);
   }
+
   Role add_role (const char *rolenamestring)
   {
     Role r;
@@ -886,7 +887,10 @@ createDecryptionChain (const Binding b, const int run, const int index,
 	    if (switches.output == PROOF)
 	      {
 		indentPrint ();
-		eprintf ("Bound: trying new createDecryptionChain.\n");
+		eprintf ("Bound ");
+		termPrint (b->term);
+		eprintf (" to r%ii%i: trying new createDecryptionChain.\n",
+			 smallrun, 2);
 	      }
 
 	    // Iterate with the new goal
@@ -940,6 +944,19 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
       {
 	if (sl == NULL)
 	  {
+	    if (switches.output == PROOF)
+	      {
+		Roledef rd;
+
+		indentPrint ();
+		eprintf ("Suppose ");
+		termPrint (b->term);
+		eprintf (" originates first at run %i, event %i, as part of ",
+			 run, index);
+		rd = roledef_shift (sys->runs[run].start, index);
+		termPrint (rd->message);
+		eprintf ("\n");
+	      }
 	    // new create key goals, bind etc.
 	    createDecryptionChain (b, run, index, keylist, iterate);
 	  }
@@ -960,12 +977,14 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 	      if (!realTermVariable (tsubst))
 		{
 		  // Only for non-variables (i.e. local constants)
-		  int r1, e1, r2, e2;
+		  int r1, e1;
 
 		  r1 = TermRunid (tsubst);
 		  e1 = firstOccurrence (sys, r1, tsubst, SEND);
 		  if (e1 >= 0)
 		    {
+		      int r2, e2;
+
 		      r2 = TermRunid (tvar);
 		      e2 = firstOccurrence (sys, r2, tsubst, READ);
 		      if (e2 >= 0)
