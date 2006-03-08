@@ -194,6 +194,7 @@ int iterateEventsType (const System sys, const int run, const int evtype,
 int iterateLocalToOther (const System sys, const int myrun,
 			 int (*callback) (Term t));
 int firstOccurrence (const System sys, const int r, Term t, int evtype);
+Roledef eventRoledef (const System sys, const int run, const int ev);
 
 
 //! Equality for run structure naming

@@ -208,4 +208,6 @@ void termSubstPrint (Term t);
 
 int iterateTermOther (const int myrun, Term t, int (*callback) (Term t));
 
+extern char *RUNSEP;		// by default, set to "#"
+
 #endif

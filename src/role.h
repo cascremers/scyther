@@ -161,5 +161,6 @@ void rolesPrint (Role r);
 int roledef_iterate_events (Roledef rd, int (*func) ());
 int roledef_length (const Roledef rd);
 Roledef roledef_shift (Roledef rd, int i);
+int roledefSubTerm (Roledef rd, Term tsub);
 
 #endif

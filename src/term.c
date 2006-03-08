@@ -21,6 +21,7 @@
 
 /* public flag */
 int rolelocal_variable;
+char *RUNSEP;
 
 /* external definitions */
 
@@ -44,6 +45,7 @@ void
 termsInit (void)
 {
   rolelocal_variable = 0;
+  RUNSEP = "#";
   return;
 }
 
@@ -333,7 +335,7 @@ termPrint (Term term)
 	eprintf ("V");
       if (TermRunid (term) >= 0)
 	{
-	  eprintf ("#%i", TermRunid (term));
+	  eprintf ("%s%i", RUNSEP, TermRunid (term));
 	}
       if (term->subst != NULL)
 	{

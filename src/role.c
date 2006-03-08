@@ -319,3 +319,18 @@ roledef_shift (Roledef rd, int i)
     }
   return rd;
 }
+
+// Check whether a term is a subterm of a roledef
+int
+roledefSubTerm (Roledef rd, Term tsub)
+{
+  if (rd == NULL)
+    {
+      return false;
+    }
+  else
+    {
+      return (termSubTerm (rd->from, tsub) ||
+	      termSubTerm (rd->to, tsub) || termSubTerm (rd->message, tsub));
+    }
+}

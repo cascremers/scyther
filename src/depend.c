@@ -542,3 +542,29 @@ eventNode (const int r, const int e)
 {
   return eventtonode (currentdepgraph, r, e);
 }
+
+//! Iterate over any preceding events
+int
+iteratePrecedingEvents (const System sys, int (*func) (int run, int ev),
+			const int run, const int ev)
+{
+  int run2;
+
+  for (run2 = 0; run2 < sys->maxruns; run2++)
+    {
+      int ev2;
+
+      for (ev2 = 0; ev2 < sys->runs[run2].step; ev2++)
+	{
+	  if (isDependEvent (run2, ev2, run, ev))
+	    {
+	      if (!func (run2, ev2))
+		{
+		  return false;
+		}
+	      break;
+	    }
+	}
+    }
+  return true;
+}

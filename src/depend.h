@@ -38,5 +38,7 @@ void setDependEvent (const int r1, const int e1, const int r2, const int e2);
 int hasCycle ();
 int eventNode (const int r, const int e);
 int nodeCount (void);
+int iteratePrecedingEvents (const System sys, int (*func) (int run, int ev),
+			    const int run, const int ev);
 
 #endif

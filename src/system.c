@@ -1413,3 +1413,10 @@ firstOccurrence (const System sys, const int r, Term t, int evtype)
 #endif
   return firste;
 }
+
+//! Get the roledef of an event
+Roledef
+eventRoledef (const System sys, const int run, const int ev)
+{
+  return roledef_shift (sys->runs[run].start, ev);
+}
