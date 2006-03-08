@@ -357,7 +357,7 @@ prune_theorems (const System sys)
       b = bl->data;
 
       // Check for "Hidden" interm goals
-      //!@TODO in the future, this can be subsumed by adding TERM_Hidden to the hidelevel constructs
+      //! @todo in the future, this can be subsumed by adding TERM_Hidden to the hidelevel constructs
       if (termInTerm (b->term, TERM_Hidden))
 	{
 	  // Prune the state: we can never meet this
@@ -376,7 +376,7 @@ prune_theorems (const System sys)
 	  // Check for SK-type function occurrences
 	  //!@todo Needs a LEMMA, although this seems to be quite straightforward to prove.
 	  // The idea is that functions are never sent as a whole, but only used in applications.
-	  //!@TODO Subsumed by hidelevel lemma later
+	  //! @todo Subsumed by hidelevel lemma later
 	  if (isTermFunctionName (b->term))
 	    {
 	      if (!inKnowledge (sys->know, b->term))
@@ -397,7 +397,7 @@ prune_theorems (const System sys)
       // Check for encryption levels
       /*
        * if (switches.match < 2
-       *!@TODO Doesn't work yet as desired for Tickets. Prove lemma first.
+       *! @todo Doesn't work yet as desired for Tickets. Prove lemma first.
        */
       if (switches.experimental & 2)
 	{

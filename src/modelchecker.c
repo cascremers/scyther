@@ -32,13 +32,13 @@
    Some forward declarations.
 */
 
-__inline__ int traverseSimple (const System oldsys);
-__inline__ int traverseNonReads (const System oldsys);
-__inline__ int traversePOR4 (const System oldsys);
-__inline__ int traversePOR5 (const System oldsys);
-__inline__ int traversePOR6 (const System oldsys);
-__inline__ int traversePOR7 (const System oldsys);
-__inline__ int traversePOR8 (const System oldsys);
+int traverseSimple (const System oldsys);
+int traverseNonReads (const System oldsys);
+int traversePOR4 (const System oldsys);
+int traversePOR5 (const System oldsys);
+int traversePOR6 (const System oldsys);
+int traversePOR7 (const System oldsys);
+int traversePOR8 (const System oldsys);
 int propertyCheck (const System sys);
 int executeTry (const System sys, int run);
 int claimSecrecy (const System sys, const Term t);
