@@ -4,7 +4,6 @@
 #include "termlist.h"
 #include "substitution.h"
 #include "mgu.h"
-#include "memory.h"
 #include "type.h"
 #include "specialterm.h"
 

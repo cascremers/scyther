@@ -5,18 +5,16 @@
  * Contains the main switch handling.
  */
 
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
 #include "system.h"
 #include "debug.h"
 #include "version.h"
 #include "timer.h"
 #include "switches.h"
 #include "error.h"
-#include "string.h"
 #include "specialterm.h"
-#include "memory.h"
-#include <limits.h>
-#include <stdlib.h>
 
 struct switchdata switches;
 
@@ -37,9 +35,7 @@ void
 switchesInit (int argc, char **argv)
 {
   // Methods
-  switches.engine = ARACHNE_ENGINE;	// default is arachne engine
   switches.match = 0;		// default matching
-  switches.clp = 0;
   switches.tupling = 0;
 
   // Pruning and Bounding
@@ -49,20 +45,6 @@ switchesInit (int argc, char **argv)
   switches.runs = 5;		// default is 5 for usability, but -r 0 or --maxruns=0 will set it back to INT_MAX
   switches.filterClaim = NULL;	// default check all claims
   switches.maxAttacks = 0;	// no maximum default
-
-  // Modelchecker
-  switches.traverse = 12;	// default traversal method
-  switches.forceChoose = 1;	// force explicit chooses by default
-  switches.chooseFirst = 0;	// no priority to chooses by default
-  switches.readSymmetries = 0;	// don't force read symmetries by default
-  switches.agentSymmetries = 1;	// default enable agent symmetry
-  switches.orderSymmetries = 0;	// don't force symmetry order reduction by default
-  switches.pruneNomoreClaims = 1;	// default cutter when there are no more claims
-  switches.reduceEndgame = 1;	// default cutter of last events in a trace
-  switches.reduceClaims = 1;	// default remove claims from duplicate instance choosers
-  // Parallellism
-  switches.scenario = 0;
-  switches.scenarioSize = 0;
 
   // Arachne
   switches.heuristic = 3;	// default goal selection method
@@ -94,9 +76,6 @@ switchesInit (int argc, char **argv)
   switches.extendNonReads = 0;	// default off
   switches.extendTrivial = 0;	// default off
   switches.plain = false;	// default colors
-
-  // Obsolete
-  switches.latex = 0;		// latex output?
 
   // Process the environment variable SCYTHERFLAGS
   process_environment ();
@@ -147,7 +126,7 @@ openFileStdin (char *filename)
 	nameindex++;
       }
 
-    buffer = (char *) memAlloc (buflen);
+    buffer = (char *) malloc (buflen);
     memcpy (buffer, prefix, prefixlen);
     memcpy (buffer + nameindex, filename, namelen);
     buffer[buflen - 1] = '\0';
@@ -164,7 +143,7 @@ openFileStdin (char *filename)
 	result = true;
       }
 
-    memFree (buffer, buflen);
+    free (buffer);
     return result;
   }
 
@@ -379,41 +358,6 @@ switcher (const int process, int index, int commandline)
   /* ==================
    *  Generic options
    */
-  if (detect (' ', "arachne", 0))
-    {
-      if (!process)
-	{
-	  /*
-	   * Obsolete switch, as it is now the default behaviour.
-	   */
-	}
-      else
-	{
-	  // Select arachne engine
-	  switches.engine = ARACHNE_ENGINE;
-	  return index;
-	}
-    }
-
-  if (detect (' ', "modelchecker", 0))
-    {
-      if (!process)
-	{
-	  /*
-	   * Discourage
-	   *
-	   helptext ("   --modelchecker",
-	   "select Model checking engine [Arachne]");
-	   */
-	}
-      else
-	{
-	  // Select arachne engine
-	  switches.engine = POR_ENGINE;
-	  return index;
-	}
-    }
-
   if (detect ('d', "dot-output", 0))
     {
       if (!process)
@@ -786,19 +730,6 @@ switcher (const int process, int index, int commandline)
 
   /* obsolete, worked for modelchecker
    *
-   if (detect (' ', "latex", 0))
-   {
-   if (!process)
-   {
-   helptext ("   --latex", "output attacks in LaTeX format [ASCII]");
-   }
-   else
-   {
-   switches.latex = 1;
-   return index;
-   }
-   }
-
    if (detect (' ', "state-space", 0))
    {
    if (!process)
@@ -1225,7 +1156,7 @@ process_environment (void)
 	  char *argn;
 
 	  /* make a safe copy */
-	  args = (char *) memAlloc (slen + 1);
+	  args = (char *) malloc (slen + 1);
 	  memcpy (args, flags, slen + 1);
 
 	  /* warning */

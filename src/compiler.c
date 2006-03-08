@@ -5,7 +5,6 @@
 #include "term.h"
 #include "termlist.h"
 #include "label.h"
-#include "memory.h"
 #include "system.h"
 #include "knowledge.h"
 #include "symbol.h"
@@ -438,7 +437,7 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
     }
 
   // Assert: label is unique, add claimlist info
-  cl = memAlloc (sizeof (struct claimlist));
+  cl = malloc (sizeof (struct claimlist));
   cl->type = claim;
   cl->label = label;
   cl->parameter = msg;
@@ -1003,15 +1002,9 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
       Term rolename;
       Role r;
 
-      if (switches.engine == ARACHNE_ENGINE)
-	{
-	  rolename = levelVar (tcroles->t1.sym);
-	  rolename->stype = termlistAdd (NULL, TERM_Agent);
-	}
-      else
-	{
-	  rolename = levelConst (tcroles->t1.sym);
-	}
+      rolename = levelVar (tcroles->t1.sym);
+      rolename->stype = termlistAdd (NULL, TERM_Agent);
+
       /* add name to list of role names */
       pr->rolenames = termlistAppend (pr->rolenames, rolename);
       /* make new (empty) current protocol with name */
@@ -1402,7 +1395,7 @@ compute_prec_sets (const System sys)
   //eprintf ("Maxevent : %i\n", sys->roleeventmax);
   size = sys->rolecount * sys->roleeventmax;
   rowsize = WORDSIZE (size);
-  eventlabels = memAlloc (size * sizeof (Term));
+  eventlabels = malloc (size * sizeof (Term));
   prec = (unsigned int *) CALLOC (1, rowsize * size * sizeof (unsigned int));
   // Assign labels
   r1 = 0;
@@ -1703,7 +1696,7 @@ compute_prec_sets (const System sys)
   /*
    * Cleanup
    */
-  memFree (eventlabels, size * sizeof (Term));
+  free (eventlabels);
   FREE (prec);
 
 #ifdef DEBUG

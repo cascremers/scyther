@@ -9,23 +9,13 @@
 #include "termlist.h"
 #include "knowledge.h"
 #include "system.h"
-#include "memory.h"
-#include "constraint.h"
 #include "debug.h"
-#include "output.h"
-#include "tracebuf.h"
 #include "role.h"
 #include "mgu.h"
 #include "switches.h"
 #include "binding.h"
 #include "depend.h"
 #include "specialterm.h"
-
-//! Global flag that signals LaTeX output.
-/**
- * True iff LaTeX output is desired.
- */
-int globalLatex;
 
 //! Global count of protocols
 int protocolCount;
@@ -42,7 +32,7 @@ static int indentDepth = 0;
 Run
 makeRun ()
 {
-  return (Run) memAlloc (sizeof (struct run));
+  return (Run) malloc (sizeof (struct run));
 }
 
 
@@ -54,12 +44,11 @@ makeRun ()
 System
 systemInit ()
 {
-  System sys = (System) memAlloc (sizeof (struct system));
+  System sys = (System) malloc (sizeof (struct system));
 
   /* initially, no trace ofcourse */
   sys->step = 0;
   sys->shortestattack = INT_MAX;
-  sys->attack = tracebufInit ();
   sys->maxtracelength = INT_MAX;
 
   /* init rundefs */
@@ -75,7 +64,6 @@ systemInit ()
   sys->hidden = NULL;
   sys->secrets = NULL;		// list of claimed secrets
   sys->synchronising_labels = NULL;
-  sys->attack = NULL;		// clash with prev. attack declaration TODO
   /* no protocols => no protocol preprocessed */
   sys->rolecount = 0;
   sys->roleeventmax = 0;
@@ -83,14 +71,7 @@ systemInit ()
   sys->labellist = NULL;
   sys->attackid = 0;		// First attack will have id 1, because the counter is increased before any attacks are displayed.
 
-  /* matching CLP */
-  sys->constraints = NULL;	// no initial constraints
-
-  /* Arachne assist */
-  if (switches.engine == ARACHNE_ENGINE)
-    {
-      bindingInit (sys);
-    }
+  bindingInit (sys);
   sys->bindings = NULL;
   sys->current_claim = NULL;
 
@@ -126,22 +107,11 @@ systemReset (const System sys)
       cl = cl->next;
     }
 
-  sys->knowPhase = 0;		// knowledge transition id
-
   termlistDestroy (sys->secrets);	// remove old secrets list
   sys->secrets = NULL;		// list of claimed secrets
 
   /* transfer switches */
   sys->maxtracelength = switches.maxtracelength;
-
-  /* POR init */
-  sys->PORphase = -1;
-  sys->PORdone = 1;		// mark as 'something done' with previous reads
-
-  /* global latex switch: ugly, but otherwise I must carry it into every
-   * single subprocedure such as termPrint */
-
-  globalLatex = switches.latex;
 
   /* propagate mgu_mode */
 
@@ -188,10 +158,10 @@ systemDone (const System sys)
   /* clear globals, which were defined in systemStart */
 
   s = sys->maxtracelength + 1;
-  memFree (sys->traceEvent, s * sizeof (Roledef));
-  memFree (sys->traceRun, s * sizeof (int));
-  memFree (sys->traceKnow, s * sizeof (Knowledge));
-  memFree (sys->traceNode, s * sizeof (states_t));
+  free (sys->traceEvent);
+  free (sys->traceRun);
+  free (sys->traceKnow);
+  free (sys->traceNode);
 
   /* clear roledefs */
   while (sys->maxruns > 0)
@@ -201,10 +171,7 @@ systemDone (const System sys)
 
   /* undo bindings (for arachne) */
 
-  if (switches.engine == ARACHNE_ENGINE)
-    {
-      bindingDone ();
-    }
+  bindingDone ();
 
   /* clear substructures */
   termlistDestroy (sys->secrets);
@@ -226,8 +193,6 @@ statesPrint (const System sys)
 {
   statesFormat (sys->states);
   eprintf (" states traversed.\n");
-  if (globalLatex)
-    eprintf ("\n");
 }
 
 //! Destroy a system memory block and system::runs
@@ -238,8 +203,8 @@ statesPrint (const System sys)
 void
 systemDestroy (const System sys)
 {
-  memFree (sys->runs, sys->maxruns * sizeof (struct run));
-  memFree (sys, sizeof (struct system));
+  free (sys->runs);
+  free (sys);
 }
 
 //! Ensures that a run can be added to the system.
@@ -263,8 +228,7 @@ ensureValidRun (const System sys, int run)
   /* update size parameter */
   oldsize = sys->maxruns;
   sys->maxruns = run + 1;
-  sys->runs =
-    (Run) memRealloc (sys->runs, sizeof (struct run) * (sys->maxruns));
+  sys->runs = (Run) realloc (sys->runs, sizeof (struct run) * (sys->maxruns));
 
   /* create runs, set the new pointer(s) to NULL */
   for (i = oldsize; i < sys->maxruns; i++)
@@ -282,15 +246,7 @@ ensureValidRun (const System sys, int run)
       myrun.artefacts = NULL;
       myrun.substitutions = NULL;
 
-      if (switches.engine == POR_ENGINE)
-	{
-	  myrun.know = knowledgeDuplicate (sys->know);
-	}
-      else
-	{
-	  // Arachne etc.
-	  myrun.know = NULL;
-	}
+      myrun.know = NULL;
 
       myrun.prevSymmRun = -1;
       myrun.firstNonAgentRead = -1;
@@ -366,61 +322,26 @@ not_read_first (const Roledef rdstart, const Term t)
 Term
 agentOfRunRole (const System sys, const int run, const Term role)
 {
-  if (switches.engine != ARACHNE_ENGINE)
+  Termlist agents;
+
+  // Agent variables have the same symbol as the role names, so
+  // we can scan for this.
+  agents = sys->runs[run].agents;
+  while (agents != NULL)
     {
-      // Non-arachne
-      Termlist roles;
-      Termlist agents;
+      Term agent;
 
-      roles = sys->runs[run].protocol->rolenames;
-      agents = sys->runs[run].agents;
-
-      /* TODO stupid reversed order, lose that soon */
-      if (agents != NULL)
+      agent = agents->term;
+      if (TermSymb (role) == TermSymb (agent))
 	{
-	  agents = termlistForward (agents);
-	  while (agents != NULL && roles != NULL)
-	    {
-	      if (isTermEqual (roles->term, role))
-		{
-		  return agents->term;
-		}
-	      agents = agents->prev;
-	      roles = roles->next;
-	    }
+	  return agent;
 	}
       else
 	{
-	  error
-	    ("Agent list for run %i is empty, so agentOfRunRole is not usable.",
-	     run);
+	  agents = agents->next;
 	}
-      return NULL;
     }
-  else
-    {
-      // Arachne engine
-      Termlist agents;
-
-      // Agent variables have the same symbol as the role names, so
-      // we can scan for this.
-      agents = sys->runs[run].agents;
-      while (agents != NULL)
-	{
-	  Term agent;
-
-	  agent = agents->term;
-	  if (TermSymb (role) == TermSymb (agent))
-	    {
-	      return agent;
-	    }
-	  else
-	    {
-	      agents = agents->next;
-	    }
-	}
-      return NULL;
-    }
+  return NULL;
 }
 
 //! Yield the actor agent of a run in the system.
@@ -837,148 +758,9 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 }
 
 
-
-//! Instantiate a role by making a new run for the Modelchecker
-/**
- * This involves creation of a new run(id).
- * Copy & subst of Roledef, Agent knowledge.
- * Tolist might contain type constants.
-*/
-
-void
-roleInstanceModelchecker (const System sys, const Protocol protocol,
-			  const Role role, const Termlist paramlist,
-			  Termlist substlist)
-{
-  int rid;
-  Run runs;
-  Roledef rd;
-  Termlist scanfrom, scanto;
-  Termlist fromlist = NULL;
-  Termlist tolist = NULL;
-  Termlist artefacts = NULL;
-  Term extterm = NULL;
-
-  /* claim runid, allocate space */
-  rid = sys->maxruns;
-  ensureValidRun (sys, rid);
-  runs = sys->runs;
-
-  /* duplicate roledef in buffer rd */
-  rd = roledefDuplicate (role->roledef);
-
-  /* set parameters */
-  /* generic setup */
-  runs[rid].protocol = protocol;
-  runs[rid].role = role;
-  runs[rid].step = 0;
-  runs[rid].firstReal = 0;
-
-  /* scan for types in agent list */
-  /* scanners */
-  // Default engine adheres to scenario
-  scanfrom = protocol->rolenames;
-  scanto = paramlist;
-  while (scanfrom != NULL && scanto != NULL)
-    {
-      fromlist = termlistAdd (fromlist, scanfrom->term);
-      if (scanto->term->stype != NULL &&
-	  inTermlist (scanto->term->stype, TERM_Type))
-	{
-	  Term newvar;
-
-	  /* There is a TYPE constant in the parameter list.
-	   * Generate a new local variable for this run, with this type */
-	  newvar = makeTermType (VARIABLE, TermSymb (scanfrom->term), rid);
-	  artefacts = termlistAdd (artefacts, newvar);
-	  sys->variables = termlistAdd (sys->variables, newvar);
-	  newvar->stype = termlistAdd (NULL, scanto->term);
-	  tolist = termlistAdd (tolist, newvar);
-	  /* newvar is apparently new, but it might occur
-	   * in the first event if it's a read, in which
-	   * case we forget it */
-	  if (switches.forceChoose || not_read_first (rd, scanfrom->term))
-	    {
-	      /* this term is forced as a choose, or it does not occur in the (first) read event */
-	      if (extterm == NULL)
-		{
-		  extterm = newvar;
-		}
-	      else
-		{
-		  extterm = makeTermTuple (newvar, extterm);
-		  artefacts = termlistAdd (artefacts, extterm);
-		}
-	    }
-	}
-      else
-	{
-	  /* not a type constant, add to list */
-	  tolist = termlistAdd (tolist, scanto->term);
-	}
-      scanfrom = scanfrom->next;
-      scanto = scanto->next;
-    }
-
-  /* set agent list */
-  runs[rid].agents = termlistDuplicate (tolist);
-
-  run_prefix_read (sys, rid, rd, extterm);
-
-  /* duplicate all locals form this run */
-  scanto = role->locals;
-  while (scanto != NULL)
-    {
-      Term t = scanto->term;
-      if (!inTermlist (fromlist, t))
-	{
-	  Term newt;
-
-	  newt = create_new_local (t, rid);
-	  if (newt != NULL)
-	    {
-	      artefacts = termlistAdd (artefacts, newt);
-	      if (realTermVariable (newt))
-		{
-		  sys->variables = termlistAdd (sys->variables, newt);
-		}
-	      fromlist = termlistAdd (fromlist, t);
-	      tolist = termlistAdd (tolist, newt);
-	    }
-	}
-      scanto = scanto->next;
-    }
-
-  /* TODO this is not what we want yet, also local knowledge. The local
-   * knowledge (list?) also needs to be substituted on invocation. */
-  runs[rid].know = knowledgeDuplicate (sys->know);
-
-  /* now adjust the local run copy */
-  run_localize (sys, rid, fromlist, tolist, substlist);
-
-  termlistDelete (fromlist);
-  runs[rid].locals = tolist;
-  runs[rid].artefacts = artefacts;
-
-  /* erase any substitutions in the role definition, as they are now copied */
-  termlistSubstReset (role->variables);
-
-  if (switches.engine == POR_ENGINE)
-    {
-      /* Determine symmetric run */
-      runs[rid].prevSymmRun = staticRunSymmetry (sys, rid);	// symmetry reduction static analysis
-
-      /* Determine first read with variables besides agents */
-      runs[rid].firstNonAgentRead = firstNonAgentRead (sys, rid);	// symmetry reduction type II
-    }
-
-  /* length */
-  runs[rid].rolelength = roledef_length (runs[rid].start);
-}
-
 //! Instantiate a role by making a new run
 /**
- * Generic splitter. Splits into the arachne version, or the modelchecker version.
+ * Just forwards to Arachne version.
  *
  * This involves creation of a new run(id).
  * Copy & subst of Roledef, Agent knowledge.
@@ -988,14 +770,7 @@ void
 roleInstance (const System sys, const Protocol protocol, const Role role,
 	      const Termlist paramlist, Termlist substlist)
 {
-  if (switches.engine == ARACHNE_ENGINE)
-    {
-      roleInstanceArachne (sys, protocol, role, paramlist, substlist);
-    }
-  else
-    {
-      roleInstanceModelchecker (sys, protocol, role, paramlist, substlist);
-    }
+  roleInstanceArachne (sys, protocol, role, paramlist, substlist);
 }
 
 //! Destroy roleInstance
@@ -1015,10 +790,7 @@ roleInstanceDestroy (const System sys)
       myrun = sys->runs[runid];
 
       // Reset graph
-      if (switches.engine == ARACHNE_ENGINE)
-	{
-	  dependPopRun ();
-	}
+      dependPopRun ();
 
       // Destroy roledef
       roledefDestroy (myrun.start);
@@ -1056,16 +828,13 @@ roleInstanceDestroy (const System sys)
        * Arachne does real-time reduction of memory, POR does not
        * Artefact removal can only be done if knowledge sets are empty, as with Arachne
        */
-      if (switches.engine == ARACHNE_ENGINE)
+      Termlist artefacts;
+      // Remove artefacts
+      artefacts = myrun.artefacts;
+      while (artefacts != NULL)
 	{
-	  Termlist artefacts;
-	  // Remove artefacts
-	  artefacts = myrun.artefacts;
-	  while (artefacts != NULL)
-	    {
-	      memFree (artefacts->term, sizeof (struct term));
-	      artefacts = artefacts->next;
-	    }
+	  free (artefacts->term);
+	  artefacts = artefacts->next;
 	}
 
       /**
@@ -1096,7 +865,7 @@ roleInstanceDestroy (const System sys)
       // Reduce run count
       sys->maxruns = sys->maxruns - 1;
       sys->runs =
-	(Run) memRealloc (sys->runs, sizeof (struct run) * (sys->maxruns));
+	(Run) realloc (sys->runs, sizeof (struct run) * (sys->maxruns));
     }
 }
 
@@ -1132,10 +901,10 @@ systemStart (const System sys)
   s = sys->maxtracelength + 1;
 
   /* freed in systemDone */
-  sys->traceEvent = memAlloc (s * sizeof (Roledef));
-  sys->traceRun = memAlloc (s * sizeof (int));
-  sys->traceKnow = memAlloc (s * sizeof (Knowledge));
-  sys->traceNode = memAlloc (s * sizeof (states_t));
+  sys->traceEvent = malloc (s * sizeof (Roledef));
+  sys->traceRun = malloc (s * sizeof (int));
+  sys->traceKnow = malloc (s * sizeof (Knowledge));
+  sys->traceNode = malloc (s * sizeof (states_t));
 
   /* clear, for niceties */
   for (i = 0; i < s; i++)
@@ -1182,7 +951,7 @@ protocolCreate (Term name)
 {
   Protocol p;
 
-  p = memAlloc (sizeof (struct protocol));
+  p = malloc (sizeof (struct protocol));
   p->nameterm = name;
   p->roles = NULL;
   p->rolenames = NULL;
@@ -1356,35 +1125,6 @@ void
 violatedClaimPrint (const System sys, const int i)
 {
   eprintf ("Claim stuk");
-}
-
-//! Yield the real length of an attack.
-/**
- * AttackLength yields the real (user friendly) length of an attack by omitting
- * the redundant events but also the choose events.
- */
-
-int
-attackLength (struct tracebuf *tb)
-{
-  int len, i;
-
-  len = 0;
-  i = 0;
-  while (i < tb->length)
-    {
-      if (tb->status[i] != S_RED)
-	{
-	  /* apparently not redundant */
-	  if (!(tb->event[i]->type == READ && tb->event[i]->internal))
-	    {
-	      /* and no internal read, so it counts */
-	      len++;
-	    }
-	}
-      i++;
-    }
-  return len;
 }
 
 void

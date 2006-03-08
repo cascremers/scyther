@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include "match_clp.h"
 #include "system.h"
-#include "memory.h"
 #include "constraint.h"
 #include "mgu.h"
 #include "memory.h"

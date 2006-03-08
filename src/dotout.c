@@ -1,9 +1,9 @@
+#include <stdlib.h>
+#include <limits.h>
 #include "system.h"
 #include "switches.h"
-#include "memory.h"
 #include "arachne.h"
 #include "depend.h"
-#include <limits.h>
 
 extern Protocol INTRUDER;	// Pointers, to be set by the Init of arachne.c
 extern Role I_M;		// Same here.
@@ -238,8 +238,7 @@ iterate_outgoing_arrows (const System sys, void (*func) (), const int run,
 
 //! Display the current semistate using dot output format.
 /**
- * This is not as nice as we would like it. Furthermore, the function is too big, and needs to be split into functional parts that
- * will allow the generation of LaTeX code as well.
+ * This is not as nice as we would like it. Furthermore, the function is too big.
  */
 void
 dotSemiState (const System sys)
@@ -288,7 +287,7 @@ dotSemiState (const System sys)
   // Needed for the bindings later on: create graph
 
   nodes = nodeCount ();
-  ranks = memAlloc (nodes * sizeof (int));
+  ranks = malloc (nodes * sizeof (int));
   maxrank = graph_ranks (ranks, nodes);	// determine ranks
 
 #ifdef DEBUG
@@ -669,7 +668,7 @@ dotSemiState (const System sys)
 #endif
 
   // clean memory
-  memFree (ranks, nodes * sizeof (int));	// ranks
+  free (ranks);			// ranks
 
   // close graph
   eprintf ("};\n\n");

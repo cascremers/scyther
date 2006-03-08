@@ -5,7 +5,6 @@
 #include "termmap.h"
 #include "termlist.h"
 #include "knowledge.h"
-#include "constraint.h"
 #include "states.h"
 #include "role.h"
 #include "list.h"
@@ -73,34 +72,6 @@ struct varbuf
 //! Shorthand for varbuf pointer.
 typedef struct varbuf *Varbuf;
 
-//! Trace buffer.
-struct tracebuf
-{
-  //! Length of trace.
-  int length;
-  //! Length of trace minus the redundant events.
-  int reallength;
-  //! Array of events.
-  Roledef *event;
-  //! Array of run identifiers for each event.
-  int *run;
-  //! Array of status flags for each event.
-  /**
-   *\sa S_OKE, S_RED, S_TOD, S_UNK
-   */
-  int *status;
-  //! Array for matching sends to reads.
-  int *link;
-  //! Index of violated claim in trace.
-  int violatedclaim;
-  //! Array of knowledge sets for each event.
-  Knowledge *know;
-  //! List of terms required to be in the final knowledge.
-  Termlist requiredterms;
-  //! List of variables in the system.
-  Varbuf variables;
-};
-
 //! Structure for information on special terms (cacheing)
 struct hiddenterm
 {
@@ -166,18 +137,9 @@ struct system
   Knowledge *traceKnow;		//!< Trace intruder knowledge: Maxruns * maxRoledef
   states_t *traceNode;		//!< Trace node traversal: Maxruns * maxRoledef
 
-  /* POR reduction assistance */
-  int PORphase;			//!< -1: init (all sends), 0...: recurse reads
-  int PORdone;			//!< Simple bit to denote something was done.
-  int knowPhase;		//!< Which knowPhase have we already explored?
-  Constraintlist constraints;	//!< Only needed for CLP match
-
   /* Arachne assistance */
   List bindings;		//!< List of bindings
   Claimlist current_claim;	//!< The claim under current investigation
-
-  //! Shortest attack storage.
-  struct tracebuf *attack;
 };
 
 typedef struct system *System;
@@ -212,7 +174,6 @@ int untrustedAgent (const System sys, Termlist agents);
 int getMaxTraceLength (const System sys);
 void agentsOfRunPrint (const System sys, const int run);
 void violatedClaimPrint (const System sys, int i);
-int attackLength (struct tracebuf *tb);
 void commandlinePrint (FILE * stream);
 
 int compute_rolecount (const System sys);

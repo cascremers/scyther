@@ -122,8 +122,8 @@ Symbol mkstring(char *name)
 	}
 	// make new name
 	len = strlen(name);
-	s = (char *)memAlloc(len+1);
-	sl = (Stringlist) memAlloc(sizeof(struct stringlist));
+	s = (char *)malloc(len+1);
+	sl = (Stringlist) malloc(sizeof(struct stringlist));
 	strncpy(s,name,len);
 	sl->next = allocatedStrings;
 	allocatedStrings = sl;
@@ -151,8 +151,8 @@ void strings_cleanup(void)
 	{
 		sl = allocatedStrings;
 		allocatedStrings = sl->next;
-		memFree(sl->string, strlen(sl->string)+1);
-		memFree(sl, sizeof(struct stringlist));
+		free(sl->string);
+		free(sl);
 	}
 }
 

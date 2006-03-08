@@ -4,10 +4,10 @@
  * instead of fully recomputing the required data each time again.
  */
 
+#include <stdlib.h>
 #include <limits.h>
 #include "hidelevel.h"
 #include "system.h"
-#include "memory.h"
 
 extern Term TERM_Hidden;
 
@@ -115,7 +115,7 @@ hidelevelCompute (const System sys)
 	{
 	  Hiddenterm ht;
 
-	  ht = (Hiddenterm) memAlloc (sizeof (struct hiddenterm));
+	  ht = (Hiddenterm) malloc (sizeof (struct hiddenterm));
 	  ht->term = tl->term;
 	  ht->hideminimum = l;
 	  ht->hideprotocol = l2;

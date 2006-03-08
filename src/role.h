@@ -5,7 +5,6 @@
 #include "termmap.h"
 #include "termlist.h"
 #include "knowledge.h"
-#include "constraint.h"
 #include "states.h"
 
 enum eventtype

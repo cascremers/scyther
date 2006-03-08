@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include "termlist.h"
 #include "knowledge.h"
-#include "memory.h"
 #include "system.h"
 #include "debug.h"
 
@@ -47,7 +46,7 @@ knowledgeDone (void)
 Knowledge
 makeKnowledge ()
 {
-  return (Knowledge) memAlloc (sizeof (struct knowledge));
+  return (Knowledge) malloc (sizeof (struct knowledge));
 }
 
 //! Create a new empty knowledge structure.
@@ -107,7 +106,7 @@ knowledgeDelete (Knowledge know)
       termlistDelete (know->basic);
       termlistDelete (know->encrypt);
       termlistDelete (know->vars);
-      memFree (know, sizeof (struct knowledge));
+      free (know);
     }
 }
 
@@ -126,7 +125,7 @@ knowledgeDestroy (Knowledge know)
       termlistDestroy (know->encrypt);
       termlistDestroy (know->vars);
       // termlistDestroy(know->inverses);
-      memFree (know, sizeof (struct knowledge));
+      free (know);
     }
 }
 

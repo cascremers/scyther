@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include "termmap.h"
 #include "debug.h"
-#include "memory.h"
 
 //! Open termmaps code.
 void
@@ -26,7 +25,7 @@ Termmap
 makeTermmap (void)
 {
   /* inline candidate */
-  return (Termmap) memAlloc (sizeof (struct termmap));
+  return (Termmap) malloc (sizeof (struct termmap));
 }
 
 //! Get function result
@@ -102,7 +101,7 @@ termmapDelete (const Termmap f)
   if (f != NULL)
     {
       termmapDelete (f->next);
-      memFree (f, sizeof (struct termmap));
+      free (f);
     }
 }
 

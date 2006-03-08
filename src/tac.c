@@ -27,7 +27,7 @@ tacDone (void)
 
       tf = ts;
       ts = ts->allnext;
-      memFree (tf, sizeof (struct tacnode));
+      free (tf);
     }
 }
 
@@ -37,7 +37,7 @@ tacCreate (int op)
 {
   /* maybe even store in scrapping list, so we could delete them
    * all later */
-  Tac t = memAlloc (sizeof (struct tacnode));
+  Tac t = malloc (sizeof (struct tacnode));
   t->allnext = allocatedTacs;
   allocatedTacs = t;
   t->lineno = yylineno;

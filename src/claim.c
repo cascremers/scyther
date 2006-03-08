@@ -17,7 +17,6 @@
 #include "arachne.h"
 #include "specialterm.h"
 #include "switches.h"
-#include "memory.h"
 
 //! When none of the runs match
 #define MATCH_NONE 0

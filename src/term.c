@@ -10,13 +10,12 @@
  * pointer comparison, which is what we want.
  */
 
-#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <string.h>
 #include "term.h"
 #include "debug.h"
-#include "memory.h"
 #include "ctype.h"
 #include "specialterm.h"
 
@@ -26,7 +25,6 @@ int rolelocal_variable;
 /* external definitions */
 
 extern int inTermlist ();	// suppresses a warning, but at what cost?
-extern int globalLatex;
 
 /* forward declarations */
 
@@ -63,7 +61,7 @@ termsDone (void)
 Term
 makeTerm ()
 {
-  return (Term) memAlloc (sizeof (struct term));
+  return (Term) malloc (sizeof (struct term));
 }
 
 //! Create a fresh encrypted term from two existing terms.
@@ -335,17 +333,11 @@ termPrint (Term term)
 	eprintf ("V");
       if (TermRunid (term) >= 0)
 	{
-	  if (globalLatex && globalError == 0)
-	    eprintf ("\\sharp%i", TermRunid (term));
-	  else
-	    eprintf ("#%i", TermRunid (term));
+	  eprintf ("#%i", TermRunid (term));
 	}
       if (term->subst != NULL)
 	{
-	  if (globalLatex)
-	    eprintf ("\\rightarrow");
-	  else
-	    eprintf ("->");
+	  eprintf ("->");
 	  termPrint (term->subst);
 	}
     }
@@ -370,21 +362,10 @@ termPrint (Term term)
       else
 	{
 	  /* normal encryption */
-	  if (globalLatex)
-	    {
-	      eprintf ("\\{");
-	      termTuplePrint (TermOp (term));
-	      eprintf ("\\}_{");
-	      termPrint (TermKey (term));
-	      eprintf ("}");
-	    }
-	  else
-	    {
-	      eprintf ("{");
-	      termTuplePrint (TermOp (term));
-	      eprintf ("}");
-	      termPrint (TermKey (term));
-	    }
+	  eprintf ("{");
+	  termTuplePrint (TermOp (term));
+	  eprintf ("}");
+	  termPrint (TermKey (term));
 	}
     }
 }
@@ -432,7 +413,7 @@ termDuplicate (const Term term)
   if (realTermLeaf (term))
     return term;
 
-  newterm = (Term) memAlloc (sizeof (struct term));
+  newterm = (Term) malloc (sizeof (struct term));
   memcpy (newterm, term, sizeof (struct term));
   if (realTermEncrypt (term))
     {
@@ -464,7 +445,7 @@ termNodeDuplicate (const Term term)
   if (realTermLeaf (term))
     return term;
 
-  newterm = (Term) memAlloc (sizeof (struct term));
+  newterm = (Term) malloc (sizeof (struct term));
   memcpy (newterm, term, sizeof (struct term));
   return newterm;
 }
@@ -485,7 +466,7 @@ termDuplicateDeep (const Term term)
   if (term == NULL)
     return NULL;
 
-  newterm = (Term) memAlloc (sizeof (struct term));
+  newterm = (Term) malloc (sizeof (struct term));
   memcpy (newterm, term, sizeof (struct term));
   if (!realTermLeaf (term))
     {
@@ -519,7 +500,7 @@ termDuplicateUV (Term term)
   if (realTermLeaf (term))
     return term;
 
-  newterm = (Term) memAlloc (sizeof (struct term));
+  newterm = (Term) malloc (sizeof (struct term));
   memcpy (newterm, term, sizeof (struct term));
   if (realTermEncrypt (term))
     {
@@ -543,7 +524,7 @@ realTermDuplicate (const Term term)
   if (term == NULL)
     return NULL;
 
-  newterm = (Term) memAlloc (sizeof (struct term));
+  newterm = (Term) malloc (sizeof (struct term));
   if (realTermLeaf (term))
     {
       memcpy (newterm, term, sizeof (struct term));
@@ -587,7 +568,7 @@ termDelete (const Term term)
 	  termDelete (TermOp1 (term));
 	  termDelete (TermOp2 (term));
 	}
-      memFree (term, sizeof (struct term));
+      free (term);
     }
 }
 

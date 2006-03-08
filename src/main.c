@@ -26,8 +26,6 @@
  *
  * 3  Okay	Attack found
  *
- * However, if the --scenario=-1 switch is used, the exit code is used to return the number of scenarios.
- *
  * \section coding Coding conventions
  *
  * Usually, each source file except main.c has an myfileInit() and myfileDone() function
@@ -43,8 +41,6 @@
 #include <limits.h>
 #include "system.h"
 #include "debug.h"
-#include "modelchecker.h"
-#include "memory.h"
 #include "symbol.h"
 #include "pheading.h"
 #include "symbol.h"
@@ -52,8 +48,6 @@
 #include "tac.h"
 #include "timer.h"
 #include "compiler.h"
-#include "latex.h"
-#include "output.h"
 #include "binding.h"
 #include "switches.h"
 #include "specialterm.h"
@@ -83,9 +77,6 @@ main (int argc, char **argv)
 {
   int nerrors;
   int exitcode = EXIT_NOATTACK;
-
-  /* Initialize memory routines */
-  memInit ();
 
   /* initialize symbols */
   termsInit ();
@@ -126,16 +117,8 @@ main (int argc, char **argv)
 
   /* compile */
 
-  if (switches.engine != ARACHNE_ENGINE)
-    {
-      // Compile as many runs as possible
-      compile (spdltac, switches.runs);
-    }
-  else
-    {
-      // Compile no runs for Arachne
-      compile (spdltac, 0);
-    }
+  // Compile no runs for Arachne
+  compile (spdltac, 0);
   scanner_cleanup ();
 
   /* preprocess */
@@ -173,11 +156,6 @@ main (int argc, char **argv)
    * ---------------------------------------
    */
 
-  /* Latex only makes sense for attacks */
-  if (switches.latex && switches.output != ATTACK)
-    {
-      error ("Scyther can only generate LaTeX output for attacks.");
-    }
 #ifdef DEBUG
   if (DEBUGL (4))
     {
@@ -185,10 +163,8 @@ main (int argc, char **argv)
     }
 #endif
 
-  if (switches.engine == ARACHNE_ENGINE)
-    {
-      arachneInit (sys);
-    }
+  arachneInit (sys);
+
   /*
    * ---------------------------------------
    *  Start real stuff
@@ -198,10 +174,6 @@ main (int argc, char **argv)
   /* xml init */
   if (switches.xml)
     xmlOutInit ();
-
-  /* latex header? */
-  if (switches.latex)
-    latexInit (sys, argc, argv);
 
   /* model check system */
 #ifdef DEBUG
@@ -216,58 +188,19 @@ main (int argc, char **argv)
    * ---------------------------------------
    */
 
-  /* Display shortest attack, if any */
+  /* Exitcodes are *not* correct anymore */
 
-  if (sys->attack != NULL && sys->attack->length != 0)
-    {
-      if (switches.output == ATTACK)
-	{
-	  attackDisplay (sys);
-	}
-      /* mark exit code */
-      exitcode = EXIT_ATTACK;
-    }
-  else
-    {
-      /* check if there is a claim type that was never reached */
-      Claimlist cl_scan;
-
-      cl_scan = sys->claimlist;
-      while (cl_scan != NULL)
-	{
-	  if (cl_scan->failed == STATES0)
-	    {
-	      /* mark exit code */
-	      exitcode = EXIT_NOCLAIM;
-	    }
-	  cl_scan = cl_scan->next;
-	}
-
-    }
-
-  /* latex closeup */
-  if (switches.latex)
-    latexDone (sys);
+  exitcode = EXIT_ATTACK;
 
   /* xml closeup */
   if (switches.xml)
     xmlOutDone ();
 
-  /* Transfer any scenario counting to the exit code,
-   * assuming that there is no error. */
-  if (exitcode != EXIT_ERROR && switches.scenario < 0)
-    {
-      exitcode = sys->countScenario;
-    }
-
   /*
    * Now we clean up any memory that was allocated.
    */
 
-  if (switches.engine == ARACHNE_ENGINE)
-    {
-      arachneDone ();
-    }
+  arachneDone ();
   knowledgeDestroy (sys->know);
   systemDone (sys);
   colorDone ();
@@ -283,7 +216,6 @@ main (int argc, char **argv)
 
   /* memory clean up? */
   strings_cleanup ();
-  memDone ();
 
 exit:
   return exitcode;
@@ -337,66 +269,6 @@ timersPrint (const System sys)
   if (switches.output != SUMMARY)
     {
       globalError++;
-    }
-
-  //**********************************************************************
-
-  /* states traversed */
-
-  if (switches.engine == POR_ENGINE)
-    {
-      eprintf ("states\t");
-      statesPrintShort (sys);
-      eprintf ("\n");
-
-      /* scenario info */
-
-      if (switches.scenario > 0)
-	{
-	  eprintf ("scen_st\t");
-	  statesFormat (sys->statesScenario);
-	  eprintf ("\n");
-	}
-
-      /* flag
-       *
-       * L n          Attack of length <n>
-       * None         failed claim
-       * NoClaim      no claims
-       */
-
-      eprintf ("attack\t");
-      if (sys->claims == STATES0)
-	{
-	  eprintf ("NoClaim\n");
-	}
-      else
-	{
-	  if (sys->failed != STATES0)
-	    eprintf ("L:%i\n", attackLength (sys->attack));
-	  else
-	    eprintf ("None\n");
-	}
-
-#ifndef NOTIMERS
-      /* print time */
-
-      double seconds;
-      seconds = (double) clock () / CLOCKS_PER_SEC;
-      eprintf ("time\t%.3e\n", seconds);
-
-      /* states per second */
-
-      eprintf ("st/sec\t");
-      if (seconds > 0)
-	{
-	  eprintf ("%.3e\n", statesDouble (sys->states) / seconds);
-	}
-      else
-	{
-	  eprintf ("<inf>\n");
-	}
-#endif
     }
 
   //**********************************************************************
@@ -559,13 +431,10 @@ timersPrint (const System sys)
 	    }
 
 	  /* states (if asked) */
-	  if (switches.engine == ARACHNE_ENGINE)
+	  if (switches.countStates)
 	    {
-	      if (switches.countStates)
-		{
-		  eprintf ("\tstates=");
-		  statesFormat (cl_scan->states);
-		}
+	      eprintf ("\tstates=");
+	      statesFormat (cl_scan->states);
 	    }
 
 	  /* any warnings */
@@ -591,108 +460,7 @@ timersPrint (const System sys)
     }
 }
 
-//! Analyse the model by incremental runs.
-/*
- * This procedure considers mainly incremental searches, and settings
- * parameters for that. The real work is handled by modelCheck.
- */
-
-void
-MC_incRuns (const System sys)
-{
-  /*
-   * incremental runs check
-   *
-   * note: we assume that at least one run needs to be checked.
-   */
-  int maxruns = sys->maxruns;
-  int runs = 1;
-  int flag = 1;
-  int res;
-
-  do
-    {
-      systemReset (sys);
-      sys->maxruns = runs;
-      systemRuns (sys);
-      fprintf (stderr, "%i of %i runs in incremental runs search.\n",
-	       runs, maxruns);
-      res = modelCheck (sys);
-      fprintf (stderr, "\n");
-      if (res)
-	{
-	  /* Apparently a violation occurred. If we are searching
-	   * the whole space, then we just continue.  However, if
-	   * we're looking to prune, ``the buck stops here''. */
-
-	  if (switches.prune != 0)
-	    {
-	      flag = 0;
-	    }
-	}
-      runs++;
-    }
-  while (flag && runs <= maxruns);
-  sys->maxruns = maxruns;
-}
-
-//! Analyse the model by incremental trace lengths.
-/*
- * This procedure considers mainly incremental searches, and settings
- * parameters for that. The real work is handled by modelCheck.
- */
-
-void
-MC_incTraces (const System sys)
-{
-  /*
-   * incremental traces check
-   *
-   * note: we assume that at least one run needs to be checked.
-   */
-  int maxtracelen;
-  int tracelen;
-  int tracestep;
-  int flag;
-  int res;
-
-  tracestep = 3;		/* what is a sensible stepping size? */
-  flag = 1;
-
-  maxtracelen = getMaxTraceLength (sys);
-  tracelen = maxtracelen - tracestep;
-  while (tracelen > 6)		/* what is a reasonable minimum? */
-    tracelen -= tracestep;
-
-  flag = 1;
-
-  do
-    {
-      systemReset (sys);
-      sys->maxtracelength = tracelen;
-      systemRuns (sys);
-      fprintf (stderr,
-	       "%i of %i trace length in incremental trace length search.\n",
-	       tracelen, maxtracelen);
-      res = modelCheck (sys);
-      fprintf (stderr, "\n");
-      if (res)
-	{
-	  /* Apparently a violation occurred. If we are searching
-	   * the whole space, then we just continue.  However, if
-	   * we're looking to prune, ``the buck stops here''. */
-
-	  if (switches.prune != 0)
-	    {
-	      flag = 0;
-	    }
-	}
-      tracelen += tracestep;
-    }
-  while (flag && tracelen <= maxtracelen);
-}
-
-//! Analyse the model with a fixed scenario.
+//! Analyse the model
 /**
  * Traditional handywork.
  */
@@ -720,26 +488,8 @@ MC_single (const System sys)
 int
 modelCheck (const System sys)
 {
-  if (switches.output == STATESPACE)
-    {
-      graphInit (sys);
-    }
-
   /* modelcheck the system */
-  switch (switches.engine)
-    {
-    case POR_ENGINE:
-      if (sys->maxruns > 0)
-	traverse (sys);
-      else
-	warning ("Model checking system with empty scenario.");
-      break;
-    case ARACHNE_ENGINE:
-      arachne ();
-      break;
-    default:
-      error ("Unknown engine type %i.", switches.engine);
-    }
+  arachne ();
 
   /* clean up any states display */
   if (switches.reportStates > 0)
@@ -749,18 +499,5 @@ modelCheck (const System sys)
     }
 
   timersPrint (sys);
-  if (switches.output == STATESPACE)
-    {
-      graphDone (sys);
-    }
-  if (switches.scenario > 0)
-    {
-      /* Traversing a scenario. Maybe we ran out. */
-      if (switches.scenario > sys->countScenario)
-	{
-	  /* Signal as error */
-	  exit (1);
-	}
-    }
   return (sys->failed != STATES0);
 }

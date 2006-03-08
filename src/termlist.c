@@ -3,7 +3,6 @@
 #include "termlist.h"
 #include "specialterm.h"
 #include "debug.h"
-#include "memory.h"
 
 /*
  * Shared stuff
@@ -45,7 +44,7 @@ Termlist
 makeTermlist ()
 {
   /* inline candidate */
-  return (Termlist) memAlloc (sizeof (struct termlist));
+  return (Termlist) malloc (sizeof (struct termlist));
 }
 
 //! Duplicate a termlist.
@@ -113,7 +112,7 @@ termlistDelete (Termlist tl)
     }
 #endif
   termlistDelete (tl->next);
-  memFree (tl, sizeof (struct termlist));
+  free (tl);
 }
 
 
@@ -129,7 +128,7 @@ termlistDestroy (Termlist tl)
     return;
   termlistDestroy (tl->next);
   termDelete (tl->term);
-  memFree (tl, sizeof (struct termlist));
+  free (tl);
 }
 
 //! Determine whether a term is an element of a termlist.
@@ -345,7 +344,7 @@ termlistDelTerm (Termlist tl)
     }
   if (tl->next != NULL)
     (tl->next)->prev = tl->prev;
-  memFree (tl, sizeof (struct termlist));
+  free (tl);
   return newhead;
 }
 

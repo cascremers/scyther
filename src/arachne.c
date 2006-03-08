@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <float.h>
+#include <string.h>
 #ifdef DEBUG
 #include <malloc.h>
 #endif
@@ -23,7 +24,6 @@
 #include "states.h"
 #include "mgu.h"
 #include "arachne.h"
-#include "memory.h"
 #include "error.h"
 #include "claim.h"
 #include "debug.h"
@@ -167,11 +167,8 @@ indentPrefixPrint (const int annotate, const int jumps)
 {
   void counterPrint ()
   {
-    if (switches.engine == ARACHNE_ENGINE)
-      {
-	statesFormat (sys->current_claim->states);
-	eprintf ("\t");
-      }
+    statesFormat (sys->current_claim->states);
+    eprintf ("\t");
     eprintf ("%i", annotate);
     eprintf ("\t");
   }
@@ -1770,7 +1767,7 @@ createNewTermGeneric (Termlist tl, Term t)
     }
 
   /* Make a new term with the free number */
-  newterm = (Term) memAlloc (sizeof (struct term));
+  newterm = (Term) malloc (sizeof (struct term));
   memcpy (newterm, t, sizeof (struct term));
   TermRunid (newterm) = freenumber;
 
@@ -1839,7 +1836,7 @@ deleteNewTerm (Term t)
       /* if it has a positive runid, it did not come from the intruder
        * knowledge, so it must have been constructed.
        */
-      memFree (t, sizeof (struct term));
+      free (t);
     }
 }
 

@@ -4,6 +4,8 @@
  *
  */
 
+#include <stdlib.h>
+#include <string.h>
 #include "depend.h"
 #include "term.h"
 #include "system.h"

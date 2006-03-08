@@ -15,9 +15,7 @@ struct switchdata
   char **argv;
 
   // Methods
-  int engine;			//!< Engine type (POR_ENGINE,ARACHNE_ENGINE)
   int match;			//!< Matching type.
-  int clp;			//!< Do we use clp?
   int tupling;			//!< Tupling is by default 0: right-associative, optionally 1: left-associative.
 
   // Pruning and Bounding
@@ -27,20 +25,6 @@ struct switchdata
   int runs;			//!< The number of runs as in the switch
   Term filterClaim;		//!< Which claim should be checked?
   int maxAttacks;		//!< When not 0, maximum number of attacks
-
-  // Modelchecker
-  int traverse;			//!< Traversal method
-  int forceChoose;		//!< Force chooses for each run, even if involved in first read
-  int chooseFirst;		//!< Priority to chooses, implicit and explicit
-  int readSymmetries;		//!< Enable read symmetry reduction
-  int agentSymmetries;		//!< Enable agent symmetry reduction
-  int orderSymmetries;		//!< Enable symmetry order reduction
-  int pruneNomoreClaims;	//!< Enable no more claims cutter
-  int reduceEndgame;		//!< Enable endgame cutter
-  int reduceClaims;		//!< Symmetry reduction on claims (only works when switchAgentSymm is true)
-  // Parallellism
-  int scenario;			//!< -1 to count, 0 for disable, 1-n to select the choose scenario
-  int scenarioSize;		//!< Scenario size, also called fixed trace prefix length
 
   // Arachne
   int heuristic;		//!< Goal selection method for Arachne engine
@@ -72,13 +56,6 @@ struct switchdata
   int extendNonReads;		//!< Show further events in arachne xml output.
   int extendTrivial;		//!< Show further events in arachne xml output, based on knowledge underapproximation. (Includes at least the events of the nonreads extension)
   int plain;			//!< Disable color output
-
-  //! Latex output switch.
-  /**
-   * Obsolete. Use globalLatex instead.
-   *\sa globalLatex
-   */
-  int latex;
 };
 
 extern struct switchdata switches;	//!< pointer to switchdata structure

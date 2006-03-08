@@ -2,7 +2,7 @@
  * Label info
  */
 
-#include "memory.h"
+#include <stdlib.h>
 #include "term.h"
 #include "label.h"
 #include "list.h"
@@ -14,7 +14,7 @@ label_create (const Term label, const Protocol protocol)
 {
   Labelinfo li;
 
-  li = (Labelinfo) memAlloc (sizeof (struct labelinfo));
+  li = (Labelinfo) malloc (sizeof (struct labelinfo));
   li->label = label;
   li->protocol = protocol;
   li->sendrole = NULL;
@@ -26,7 +26,7 @@ label_create (const Term label, const Protocol protocol)
 void
 label_destroy (Labelinfo linfo)
 {
-  memFree (linfo, sizeof (struct labelinfo));
+  free (linfo);
 }
 
 //! Given a list of label infos, yield the correct one or NULL

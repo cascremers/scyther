@@ -46,7 +46,6 @@ enum exittypes
 #include "system.h"
 #include "debug.h"
 #include "modelchecker.h"
-#include "memory.h"
 #include "symbol.h"
 #include "pheading.h"
 #include "symbol.h"
@@ -54,8 +53,6 @@ enum exittypes
 #include "tac.h"
 #include "timer.h"
 #include "compiler.h"
-#include "latex.h"
-#include "output.h"
 #include "binding.h"
 #include "version.h"
 #include "specialterm.h"
@@ -130,8 +127,6 @@ main (int argc, char **argv)
   struct arg_int *switch_goal_select_method =
     arg_int0 (NULL, "goal-select", NULL,
 	      "use goal selection method <int> (default 3)");
-  struct arg_lit *switch_latex_output =
-    arg_lit0 (NULL, "latex", "output attacks in LaTeX format");
   struct arg_lit *switch_empty =
     arg_lit0 ("e", "empty", "do not generate output");
   struct arg_lit *switch_progress_bar =
@@ -343,8 +338,6 @@ main (int argc, char **argv)
 #else
   debugSet (0);
 #endif
-  /* Initialize memory routines */
-  memInit ();
 
   /* initialize symbols */
   termsInit ();
@@ -668,11 +661,8 @@ main (int argc, char **argv)
    * Now we clean up any memory that was allocated.
    */
 
-  if (switches.engine == ARACHNE_ENGINE)
-    {
-      arachneDone ();
-      bindingDone ();
-    }
+  arachneDone ();
+  bindingDone ();
   knowledgeDestroy (sys->know);
   systemDone (sys);
   compilerDone ();
@@ -687,7 +677,6 @@ main (int argc, char **argv)
 
   /* memory clean up? */
   strings_cleanup ();
-  memDone ();
 
 exit:
   /* deallocate each non-null entry in argtable[] */

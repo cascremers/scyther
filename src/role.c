@@ -4,26 +4,22 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <limits.h>
 #include "term.h"
 #include "termlist.h"
 #include "knowledge.h"
 #include "system.h"
-#include "memory.h"
-#include "constraint.h"
 #include "debug.h"
-#include "output.h"
-#include "tracebuf.h"
 #include "role.h"
 
-extern int globalLatex;		// from system.c
 extern int protocolCount;	// from system.c
 
 //! Allocate memory the size of a roledef struct.
 Roledef
 makeRoledef ()
 {
-  return (Roledef) memAlloc (sizeof (struct roledef));
+  return (Roledef) malloc (sizeof (struct roledef));
 }
 
 //! Print a role event.
@@ -71,21 +67,9 @@ roledefPrintGeneric (Roledef rd, int print_actor)
 	  label = TermOp2 (label);
 	}
 
-      //! Print latex/normal
-      if (globalLatex)
-	{
-	  eprintf ("$_{");
-	  termPrint (label);
-	  eprintf ("}$");
-	}
-      else
-	{
-	  eprintf ("_");
-	  termPrint (label);
-	}
+      eprintf ("_");
+      termPrint (label);
     }
-  if (globalLatex)
-    eprintf ("$");
   eprintf ("(");
   if (!(rd->from == NULL && rd->to == NULL))
     {
@@ -104,8 +88,6 @@ roledefPrintGeneric (Roledef rd, int print_actor)
     }
   termPrint (rd->message);
   eprintf (" )");
-  if (globalLatex)
-    eprintf ("$");
 }
 
 //! Print a roledef
@@ -166,7 +148,7 @@ roledefDelete (Roledef rd)
   if (rd == NULL)
     return;
   roledefDelete (rd->next);
-  memFree (rd, sizeof (struct roledef));
+  free (rd);
   return;
 }
 
@@ -180,7 +162,7 @@ roledefDestroy (Roledef rd)
   termDelete (rd->from);
   termDelete (rd->to);
   termDelete (rd->message);
-  memFree (rd, sizeof (struct roledef));
+  free (rd);
   return;
 }
 
@@ -237,7 +219,7 @@ roleCreate (Term name)
 {
   Role r;
 
-  r = memAlloc (sizeof (struct role));
+  r = malloc (sizeof (struct role));
   r->nameterm = name;
   r->roledef = NULL;
   r->locals = NULL;

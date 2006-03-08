@@ -8,7 +8,6 @@
 #include "system.h"
 #include "binding.h"
 #include "warshall.h"
-#include "memory.h"
 #include "debug.h"
 #include "term.h"
 #include "termmap.h"
@@ -34,7 +33,7 @@ binding_create (Term term, int run_to, int ev_to)
 {
   Binding b;
 
-  b = memAlloc (sizeof (struct binding));
+  b = malloc (sizeof (struct binding));
   b->done = false;
   b->blocked = false;
   b->run_from = -1;
@@ -54,7 +53,7 @@ binding_destroy (Binding b)
     {
       goal_unbind (b);
     }
-  memFree (b, sizeof (struct binding));
+  free (b);
 }
 
 /*

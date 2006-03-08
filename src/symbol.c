@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 #include <limits.h>
 
 #include "symbol.h"
 #include "debug.h"
-#include "memory.h"
 
 /*
    Symbol processor.
@@ -59,7 +59,7 @@ symbolsDone (void)
     {
       s = symb_alloc;
       symb_alloc = s->allocnext;
-      memFree (s, sizeof (struct symbol));
+      free (s);
     }
 }
 
@@ -79,7 +79,7 @@ get_symb (void)
     }
   else
     {
-      t = (Symbol) memAlloc (sizeof (struct symbol));
+      t = (Symbol) malloc (sizeof (struct symbol));
       t->allocnext = symb_alloc;
       symb_alloc = t;
     }
@@ -225,13 +225,14 @@ symbolNextFree (Symbol prefixsymbol)
   if (prefixsymbol != NULL)
     {
       prefixstr = (char *) prefixsymbol->text;
+      len = strlen (prefixstr);
     }
   else
     {
       prefixstr = "";
+      len = 0;
     }
 
-  len = strlen (prefixstr);
   n = 1;
   while (n <= 9999)
     {
@@ -250,7 +251,7 @@ symbolNextFree (Symbol prefixsymbol)
 	   * Thus, some precaution is necessary.
 	   * [x][CC]
 	   */
-	  newstring = (char *) memAlloc (slen + 1);
+	  newstring = (char *) malloc (slen + 1);
 	  memcpy (newstring, buffer, slen + 1);
 
 	  /* This persistent string can be used to return a fresh symbol */
