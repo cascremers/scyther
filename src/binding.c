@@ -361,6 +361,55 @@ valid_binding (Binding b)
     return false;
 }
 
+//! Iterate over valid bindings
+/**
+ * Iterator should return true to proceed
+ */
+int
+iterate_bindings (int (*func) (Binding b))
+{
+  List bl;
+
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (valid_binding (b))
+	{
+	  if (!func (b))
+	    {
+	      return false;
+	    }
+	}
+
+    }
+  return true;
+}
+
+
+
+//! Iterate over preceding bindings (this does not include stuff bound to the same destination)
+/**
+ * Iterator should return true to proceed
+ */
+int
+iterate_preceding_bindings (const int run, const int ev,
+			    int (*func) (Binding b))
+{
+  int precs (Binding b)
+  {
+    if (isDependEvent (b->run_to, b->ev_to, run, ev))
+      {
+	return func (b);
+      }
+    return true;
+  }
+
+  return iterate_bindings (precs);
+}
+
+
 //! Check for unique origination
 /*
  * Contrary to a previous version, we simply check for unique origination.
@@ -434,6 +483,7 @@ unique_origination ()
     }
   return true;
 }
+
 
 //! Prune invalid state w.r.t. <=C minimal requirement
 /**

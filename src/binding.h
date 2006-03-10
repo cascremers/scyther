@@ -43,6 +43,10 @@ int binding_block (Binding b);
 int binding_unblock (Binding b);
 int labels_ordered (Termmap runs, Termlist labels);
 
+int iterate_bindings (int (*func) (Binding b));
+int iterate_preceding_bindings (const int run, const int ev,
+				int (*func) (Binding b));
+
 int bindings_c_minimal ();
 
 #endif

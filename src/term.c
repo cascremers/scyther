@@ -364,9 +364,9 @@ termPrint (Term term)
       else
 	{
 	  /* normal encryption */
-	  eprintf ("{");
+	  eprintf ("{ ");
 	  termTuplePrint (TermOp (term));
-	  eprintf ("}");
+	  eprintf (" }");
 	  termPrint (TermKey (term));
 	}
     }
