@@ -162,15 +162,19 @@ prune_bounds (const System sys)
     actioncount = countIntruderActions ();
 
     // Limit intruder actions in any case
-    if (!(switches.intruder) && actioncount > 0)
+    if (!switches.intruder)
       {
-	if (switches.output == PROOF)
+	if (actioncount > 0)
 	  {
-	    indentPrint ();
-	    eprintf
-	      ("Pruned: no intruder allowed.\n", switches.maxIntruderActions);
+	    if (switches.output == PROOF)
+	      {
+		indentPrint ();
+		eprintf
+		  ("Pruned: no intruder allowed.\n",
+		   switches.maxIntruderActions);
+	      }
+	    return 1;
 	  }
-	return 1;
       }
 
     // Limit on intruder events count
