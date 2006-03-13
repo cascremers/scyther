@@ -39,7 +39,7 @@ selfInitiator (const System sys, const int run)
 	    }
 	  else
 	    {
-	      termlistAdd (seen, agent);
+	      seen = termlistAdd (seen, agent);
 	    }
 	  agents = agents->next;
 	}
@@ -88,7 +88,7 @@ attackCost (const System sys)
   cost = 0;
 
   cost += get_semitrace_length ();
-  cost += 5 * selfInitiators (sys);
+  cost += 8 * selfInitiators (sys);
 
   return cost;
 }
