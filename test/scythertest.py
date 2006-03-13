@@ -72,9 +72,10 @@ def add_extra_parameters(args):
     global g_extra
 
     if args != "":
-        if g_extra != "":
-            g_extra = g_extra + " "
-        g_extra = g_extra + args
+        if g_extra.find(args) == -1:
+            if g_extra != "":
+                g_extra = g_extra + " "
+            g_extra = g_extra + args
 
 # Yield arguments, given a bound type:
 #     0: fast

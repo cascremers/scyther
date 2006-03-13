@@ -23,6 +23,7 @@ from tempfile import NamedTemporaryFile, gettempdir
 CacheTimer = 0.1
 ScytherProgram = "scyther"
 RetrieveFromCache = True
+LastArguments = ""
 
 #----------------------------------------------------------------------------
 # How to override Scyther program setting
@@ -62,17 +63,28 @@ def scythercall (argumentstring, inputfile):
 #    argstring:    a smaller string
 def evaluate (argumentstring, inputstring):
 
-    def cacheid():
-        m = md5.new()
-    
+    global LastArguments
+
+    def getversion():
         # Determine scyther version
         (status, scout) = scythercall ("--version", "")
         if status == 1 or status < 0:
             # some problem
             print "Problem with determining scyther version!"
             os.exit()
-        # Add version to hash
-        m.update (scout)
+        ll = scout.splitlines()
+        versionline = ll[1].split()
+        if versionline[0] != "Revision":
+            print "Could not find revision ID in:"
+            print scout
+
+        return versionline[1]
+
+    def cacheid():
+        m = md5.new()
+    
+        # Determine scyther version
+        m.update (version)
 
         # Add inputfile to hash
         m.update (inputstring)
@@ -96,9 +108,9 @@ def evaluate (argumentstring, inputstring):
 
     # Determine name
     def cachefilename(id):
-        fn = gettempdir() + "/scyther/"
-        fn = fn + slashcutter(id,"/",3,2)
-        fn = fn + ".txt"
+        fn = gettempdir() + "/scyther/" + version + "/"
+        fn += slashcutter(id,"/",3,2)
+        fn += ".txt"
         return fn
 
     # Ensure directory
@@ -142,6 +154,12 @@ def evaluate (argumentstring, inputstring):
         # cache file as well. For now, we just return 0 status.
         #print "Retrieved cached version for [%s]." % argumentstring
         return (0,res)
+
+    # Retrieve version
+    version = getversion()
+
+    # Store for later refernce
+    LastArguments = argumentstring
 
     # Determine the unique filename for this test
     cachefile = cachefilename(cacheid())
