@@ -1,12 +1,11 @@
+- If no attack/state output is needed, maybe the attack heuristic should
+  be simpler (which means just weighting the trace length etc.) in order
+  to avoid uneccesary continuation of the search. Maybe even stop
+  altogether after finding *an* attack.
 - For the TimeStamps etc, we can implement an 'auto-leak' of such local
   constants. This should works also with a modifier of sorts (e.g.
   'predictable') and such constants should be leaked to the intruder at
   the start of the run, possibly by prefixing a send.
-- best heuristic currently for -t8: ignore sendsfirst, just look at the
-  previous event and continue at that run.
-- termPrint must currently be encapsulated in a math environment to work in
-  latex output, I wil change this later to some ensure mathmode construct,
-  probably with something like latexTermPrint.
 - The trace incremental search should start at something like 'distance of
   first claim + SOMECONST * runs'. SOMECONST relates to the partial-order
   induced trace prolonings.
@@ -14,35 +13,6 @@
 - Because the properties checked are related to the partial order reductions,
   it makes sense to check 'all secrecy claims' or 'all synchronisation claims'
   at once.
-- Once an attack is generated, we know the actual scenario and the trace
-  length. We might re-use this information to generate the shortest attack
-  using no partial order reduction.  Note that choosing a wise method of
-  finding that is a mathematical issue: searching -t1 is exponential, so how
-  do we step trough these traces in order to find the shortest trace in the
-  quickest way? This can be determined under some (statistical) assumptions.
-- The incremental check can be done much easier, by just retrying the main
-  loop explore with different parameters. It keeps everything nicely intact.
-  We must check for fails however, and how pruning is affected.
-- Incremental check can at least be done in two ways: either by limiting the
-  number of runs (big axe method) or by limiting the trace length (nice).
-  There is a drawback to trace length only: the superfluous sends of the
-  algorithm in a scenario with many runs might interfere with the usefulness
-  of short traces. Maybe some heuristic that reduces the runs automatically is
-  required. (e.g. 'number of runs is at most MaxTraceLength/MaxRoleLength' or
-  something like that). Do analysis.
-- If synch checking is expensive, introduce a limit (for -p0 stuff).
-  Basically, after the limit (if -p0 is set), we stop checking synch claims.
-  This then is default behaviour, to be overridden or changed by a switch.
-- clp does not yet consider the matching for variables that have not been
-  instantiated. This *might* lead to some improvement, e.g. when there is only
-  one candidate for the variable. In general, I don't think it will help.
-- match_clp.c 1.25 introduced the variable_in_invkey brancher, which hasn't
-  been thoroughly tested yet. Please do test.
-- Brutus is slower than -t4. CLP is much, much faster however than both.
-- It is very important to have variables in the run agent list, because it
-  dramatically decreases the complexity of the system, as opposed to just
-  creating runs for all possibilities. However, this explicitly introduces the
-  clp problem of var encryptions (see above).
 - Given originator assumptions and such, we might want to implement the
   compiler, that for non-typed matching, it will ignore all type definitions
   in the code (as in, putting them in stype, but still considering Function).

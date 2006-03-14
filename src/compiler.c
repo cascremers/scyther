@@ -816,10 +816,12 @@ roleCompile (Term nameterm, Tac tc)
 		 * in which case we assume that the agent names are possibly received as variables
 		 */
 		thisRole->initiator = 0;
+		firstEvent = 0;
 	      }
 	    commEvent (READ, tc);
 	    break;
 	  case TAC_SEND:
+	    firstEvent = 0;
 	    commEvent (SEND, tc);
 	    break;
 	  case TAC_CLAIM:
@@ -836,7 +838,6 @@ roleCompile (Term nameterm, Tac tc)
 	      }
 	    break;
 	  }
-	firstEvent = 0;
 	tc = tc->next;
       }
   }

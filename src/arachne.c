@@ -2065,22 +2065,27 @@ iterate ()
 	      btup = select_tuple_goal ();
 	      if (btup != NULL)
 		{
-		  // Expand tuple goal
+		  /* Substitution or something resulted in a tuple goal: we immediately split them into compounds.
+		   */
 		  int count;
+		  Term tupletermbuffer;
 
-		  // mark as blocked for iteration
-		  binding_block (btup);
-		  // simply adding will detect the tuple and add the new subgoals
+		  tupletermbuffer = btup->term;
+
+		  /*
+		   * We solve this by replacing the tuple goal by the left term, and adding a goal for the right term.
+		   */
+		  btup->term = TermOp1 (tupletermbuffer);
 		  count =
-		    goal_add (btup->term, btup->run_to, btup->ev_to,
-			      btup->level);
+		    goal_add (TermOp2 (tupletermbuffer), btup->run_to,
+			      btup->ev_to, btup->level);
 
 		  // Show this in output
 		  if (switches.output == PROOF)
 		    {
 		      indentPrint ();
 		      eprintf ("Expanding tuple goal ");
-		      termPrint (btup->term);
+		      termPrint (tupletermbuffer);
 		      eprintf (" into %i subgoals.\n", count);
 		    }
 
@@ -2089,7 +2094,7 @@ iterate ()
 
 		  // undo
 		  goal_remove_last (count);
-		  binding_unblock (btup);
+		  btup->term = tupletermbuffer;
 		}
 	      else
 		{

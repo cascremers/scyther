@@ -361,7 +361,7 @@ valid_binding (Binding b)
     return false;
 }
 
-//! Iterate over valid bindings
+//! Iterate over all bindings
 /**
  * Iterator should return true to proceed
  */
@@ -375,14 +375,10 @@ iterate_bindings (int (*func) (Binding b))
       Binding b;
 
       b = (Binding) bl->data;
-      if (valid_binding (b))
+      if (!func (b))
 	{
-	  if (!func (b))
-	    {
-	      return false;
-	    }
+	  return false;
 	}
-
     }
   return true;
 }
