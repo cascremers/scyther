@@ -226,26 +226,27 @@ ensureValidRun (const System sys, int run)
   for (i = oldsize; i < sys->maxruns; i++)
     {
       /* init run */
-      struct run myrun = sys->runs[i];
-      myrun.protocol = NULL;
-      myrun.role = NULL;
-      myrun.agents = NULL;
-      myrun.step = 0;
-      myrun.index = NULL;
-      myrun.start = NULL;
+      sys->runs[i].protocol = NULL;
+      sys->runs[i].role = NULL;
+      sys->runs[i].step = 0;
+      sys->runs[i].rolelength = 0;
 
-      myrun.rho = NULL;
-      myrun.sigma = NULL;
-      myrun.constants = NULL;
-      myrun.locals = NULL;
-      myrun.artefacts = NULL;
-      myrun.substitutions = NULL;
+      sys->runs[i].index = NULL;
+      sys->runs[i].start = NULL;
+      sys->runs[i].know = NULL;
 
-      myrun.know = NULL;
+      sys->runs[i].rho = NULL;
+      sys->runs[i].sigma = NULL;
+      sys->runs[i].constants = NULL;
 
-      myrun.prevSymmRun = -1;
-      myrun.firstNonAgentRead = -1;
-      myrun.firstReal = 0;
+      sys->runs[i].locals = NULL;
+      sys->runs[i].artefacts = NULL;
+      sys->runs[i].substitutions = NULL;
+
+
+      sys->runs[i].prevSymmRun = -1;
+      sys->runs[i].firstNonAgentRead = -1;
+      sys->runs[i].firstReal = 0;
     }
 }
 
@@ -321,7 +322,7 @@ agentOfRunRole (const System sys, const int run, const Term role)
 
   // Agent variables have the same symbol as the role names, so
   // we can scan for this.
-  agents = sys->runs[run].agents;
+  agents = sys->runs[run].rho;
   while (agents != NULL)
     {
       Term agent;
@@ -367,7 +368,7 @@ staticRunSymmetry (const System sys, const int rid)
 
   ridSymm = -1;
   runs = sys->runs;
-  agents = runs[rid].agents;
+  agents = runs[rid].rho;
   while (agents != NULL)
     {
       if (isTermVariable (agents->term))
@@ -378,7 +379,7 @@ staticRunSymmetry (const System sys, const int rid)
   if (ridSymm == -1)
     return -1;
 
-  agents = runs[rid].agents;
+  agents = runs[rid].rho;
   while (ridSymm >= 0)
     {
       /* compare protocol name, role name */
@@ -391,7 +392,7 @@ staticRunSymmetry (const System sys, const int rid)
 
 	  isEqual = 1;
 	  al = agents;
-	  alSymm = runs[ridSymm].agents;
+	  alSymm = runs[ridSymm].rho;
 	  while (isEqual && al != NULL)
 	    {
 	      /* determine equality */
@@ -572,7 +573,6 @@ run_localize (const System sys, const int rid, Termlist fromlist,
 }
 
 
-
 //! Instantiate a role by making a new run for Arachne
 /**
  * This involves creation of a new run(id).
@@ -588,13 +588,8 @@ roleInstanceArachne (const System sys, const Protocol protocol,
   int rid;
   Run runs;
   Roledef rd;
-  Termlist scanfrom, scanto;
   Termlist fromlist = NULL;	// deleted at the end
   Termlist tolist = NULL;	// -> .locals
-  Termlist artefacts = NULL;	// -> .artefacts
-  Termlist rho = NULL;		// -> .rho
-  Termlist sigma = NULL;	// -> .sigma
-  Termlist constants = NULL;	// -> .constants
   Term extterm = NULL;		// construction thing (will go to artefacts)
 
   /* claim runid, allocate space */
@@ -615,119 +610,101 @@ roleInstanceArachne (const System sys, const Protocol protocol,
   runs[rid].step = 0;
   runs[rid].firstReal = 0;
 
-  /* scan for types in agent list */
-  /* scanners */
-  /**
-   * Because of pre-instantiation unification, some variables might already have been filled in.
-   * Ignore agent list; instead rely on role->variables.
+  /* Now we need to create local terms corresponding to rho, sigma, and any local constants.
+   *
+   * We maintain our stuff in a from/to list.
    */
-  runs[rid].agents = NULL;
 
-  scanfrom = role->variables;
-  while (scanfrom != NULL)
-    {
-      Term newt, oldt;
+  void createLocal (Term oldt, int isvariable, int isrole)
+  {
+    Term newt;
 
-      /* Some care has to be taken: after we use this instantiation, we might reset it.
-       * That is not strictly necessary: whoever set it first, is responsible for getting rid
-       * of it again.
-       */
-      oldt = scanfrom->term;
-      newt = deVar (oldt);
-      if (realTermVariable (newt))
-	{
-	  /* This is a variable of the role, that is not instantiated yet.
-	   * Thus, it needs a local copy.
-	   */
-	  newt = makeTermType (VARIABLE, TermSymb (newt), rid);
-	  newt->stype = oldt->stype;
-	  artefacts = termlistAddNew (artefacts, newt);
-	}
-      /* Now we add any role names to the agent list. Note that
-       * instantiations do not matter: because if the variable is
-       * instantiated, the rolename will be as well, and thus they will be
-       * equal anyway.
-       */
-      if (inTermlist (protocol->rolenames, oldt))
-	{
-	  /* Add the agent name or role variable... */
-	  runs[rid].agents = termlistAppend (runs[rid].agents, newt);
+    // Create new term with the same symbol
+    if (isvariable)
+      {
+	// Force variable
+	newt = makeTermType (VARIABLE, TermSymb (oldt), rid);
+      }
+    else
+      {
+	// Force local (weirdly enough called global)
+	newt = makeTermType (GLOBAL, TermSymb (oldt), rid);
+      }
+    newt->stype = oldt->stype;	// copy list of types
+    newt->roleVar = isrole;	// set role status
 
-	  if (isTermVariable (newt))
-	    {
-	      // It is a protocol role name
+    // Add to copy list
+    TERMLISTADD (fromlist, oldt);
+    TERMLISTADD (tolist, newt);
 
-	      // Flag this
-	      newt->roleVar = 1;
-	      newt->stype = termlistAddNew (newt->stype, TERM_Agent);
+    // Add to registration lists
+    // Everything to destructor list
+    TERMLISTADD (runs[rid].artefacts, newt);
+    // Variable / Constant?
+    if (isvariable)
+      {
+	TERMLISTADD (sys->variables, newt);
+	if (isrole)
+	  {
+	    // role variable
+	    /*
+	     * We use append to make sure the order is
+	     * consistent with the role names list.
+	     */
+	    TERMLISTAPPEND (runs[rid].rho, newt);
+	    if (!role->initiator)
+	      {
+		// For non-initiators, we prepend the reading of the role names
 
-	      // maybe add choose?
-	      // Note that for anything but full type flaws, this is not an issue.
-	      // In the POR reduction, force choose was the default. Here it is not.
-	      /*
-	       * [x]
-	       * TODO currently disabled: something weird was goind on causing weird prunes,
-	       * for match=2. Investigate later.
-	       */
-	      if (0 && not_read_first (rd, oldt) && switches.match == 2)
-		{
-		  /* this term is forced as a choose, or it does not occur in the (first) read event */
-		  if (extterm == NULL)
-		    {
-		      extterm = newt;
-		    }
-		  else
-		    {
-		      extterm = makeTermTuple (newt, extterm);
-		      // NOTE: don't these get double deleted? By roledefdestroy?
-		      artefacts = termlistAddNew (artefacts, extterm);
-		    }
-		}
-	    }
-	}
-      fromlist = termlistAdd (fromlist, oldt);
-      tolist = termlistAdd (tolist, newt);
+		// XXX disabled for now TODO [x] [cc]
+		if (0 == 1 && not_read_first (rd, oldt))
+		  {
+		    /* this term is forced as a choose, or it does not occur in the (first) read event */
+		    if (extterm == NULL)
+		      {
+			extterm = newt;
+		      }
+		    else
+		      {
+			extterm = makeTermTuple (newt, extterm);
+			// NOTE: don't these get double deleted? By roledefdestroy?
+			TERMLISTAPPEND (runs[rid].artefacts, extterm);
+		      }
+		  }
+	      }
+	  }
+	else
+	  {
+	    // normal variable
+	    TERMLISTAPPEND (runs[rid].sigma, newt);
+	  }
+      }
+    else
+      {
+	// local constant
+	TERMLISTADD (runs[rid].constants, newt);
+      }
+  }
 
-      /*
-         eprintf ("Created for run %i: ", rid);
-         termPrint (oldt);
-         eprintf (" -> ");
-         termPrint (newt);
-         eprintf ("\n");
-       */
+  void createLocals (Termlist list, int isvariable, int isrole)
+  {
+    while (list != NULL)
+      {
+	createLocal (list->term, isvariable, isrole);
+	list = list->next;
+      }
+  }
 
-      scanfrom = scanfrom->next;
-    }
+  // Create rho, sigma, constants
+  createLocals (protocol->rolenames, true, true);
+  createLocals (role->declaredvars, true, false);
+  createLocals (role->declaredconsts, false, false);
 
   /* Now we prefix the read before rd, if extterm is not NULL.  Even if
    * extterm is NULL, rd is still set as the start and the index pointer of
    * the run.
    */
   run_prefix_read (sys, rid, rd, extterm);
-
-  /* duplicate all locals form this run */
-  scanto = role->locals;
-  while (scanto != NULL)
-    {
-      Term t = scanto->term;
-      if (!inTermlist (fromlist, t))
-	{
-	  Term newt;
-
-	  newt = create_new_local (t, rid);
-	  if (newt != NULL)
-	    {
-	      artefacts = termlistAddNew (artefacts, newt);
-	      if (realTermVariable (newt))
-		{
-		  sys->variables = termlistAdd (sys->variables, newt);
-		}
-	      fromlist = termlistAdd (fromlist, t);
-	      tolist = termlistAdd (tolist, newt);
-	    }
-	}
-      scanto = scanto->next;
-    }
 
   /* TODO this is not what we want yet, also local knowledge. The local
    * knowledge (list?) also needs to be substituted on invocation. */
@@ -738,7 +715,6 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 
   termlistDelete (fromlist);
   runs[rid].locals = tolist;
-  runs[rid].artefacts = artefacts;
 
   /* erase any substitutions in the role definition, as they are now copied */
   termlistSubstReset (role->variables);
@@ -795,6 +771,10 @@ roleInstanceDestroy (const System sys)
 
       // Destroy artefacts
       //
+      termlistDelete (myrun.rho);
+      termlistDelete (myrun.sigma);
+      termlistDelete (myrun.constants);
+
       // sys->variables might contain locals from the run: remove them
       {
 	Termlist tl;
@@ -822,19 +802,6 @@ roleInstanceDestroy (const System sys)
 	  }
       }
 
-      /*
-       * Arachne does real-time reduction of memory, POR does not
-       * Artefact removal can only be done if knowledge sets are empty, as with Arachne
-       */
-      Termlist artefacts;
-      // Remove artefacts
-      artefacts = myrun.artefacts;
-      while (artefacts != NULL)
-	{
-	  free (artefacts->term);
-	  artefacts = artefacts->next;
-	}
-
       /**
        * Undo the local copies of the substitutions. We cannot restore them however, so this might
        * prove a problem. We assume that the substlist fixes this at roleInstance time; it should be exact.
@@ -854,10 +821,23 @@ roleInstanceDestroy (const System sys)
 	}
       termlistDelete (myrun.substitutions);
 
+      /*
+       * Artefact removal can only be done if knowledge sets are empty, as with Arachne
+       */
+      {
+	Termlist artefacts;
+	// Remove artefacts
+	artefacts = myrun.artefacts;
+	while (artefacts != NULL)
+	  {
+	    free (artefacts->term);
+	    artefacts = artefacts->next;
+	  }
+      }
+
       // remove lists
       termlistDelete (myrun.artefacts);
       termlistDelete (myrun.locals);
-      termlistDelete (myrun.agents);
 
       // Destroy run struct allocation in array using realloc
       // Reduce run count
@@ -1059,7 +1039,7 @@ isRunTrusted (const System sys, const int run)
 {
   if (run >= 0 && run < sys->maxruns)
     {
-      if (!isAgentlistTrusted (sys, sys->runs[run].agents))
+      if (!isAgentlistTrusted (sys, sys->runs[run].rho))
 	{
 	  return 0;
 	}
@@ -1192,7 +1172,7 @@ void
 runInstancePrint (const System sys, const int run)
 {
   termPrint (sys->runs[run].role->nameterm);
-  termlistPrint (sys->runs[run].agents);
+  termlistPrint (sys->runs[run].rho);
 }
 
 //! Print an instantiated scenario (chooses and such)
@@ -1350,7 +1330,7 @@ iterateLocalToOther (const System sys, const int myrun,
   flag = true;
   tlo = NULL;
   // construct all others occuring in the reads
-  for (tls = sys->runs[myrun].locals; tls != NULL; tls = tls->next)
+  for (tls = sys->runs[myrun].sigma; tls != NULL; tls = tls->next)
     {
       Term tt;
 

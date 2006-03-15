@@ -25,7 +25,7 @@ selfInitiator (const System sys, const int run)
       Termlist agents;
       Termlist seen;
 
-      agents = sys->runs[run].agents;
+      agents = sys->runs[run].rho;
       seen = NULL;
       while (agents != NULL)
 	{

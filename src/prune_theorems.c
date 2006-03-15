@@ -137,7 +137,7 @@ initiatorAgentsType (const System sys)
 	{
 	  Termlist agents;
 
-	  agents = sys->runs[run].agents;
+	  agents = sys->runs[run].rho;
 	  while (agents != NULL)
 	    {
 	      if (!goodAgentType (agents->term))
@@ -221,7 +221,7 @@ prune_theorems (const System sys)
 	      // Check this initiator run
 	      Termlist tl;
 
-	      tl = sys->runs[run].agents;
+	      tl = sys->runs[run].rho;
 	      while (tl != NULL)
 		{
 		  Termlist tlscan;
@@ -280,7 +280,7 @@ prune_theorems (const System sys)
 	{
 	  if (sys->runs[run].protocol != INTRUDER)
 	    {
-	      if (sys->runs[run].agents != NULL)
+	      if (sys->runs[run].rho != NULL)
 		{
 		  Term actor;
 

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "tac.h"
 #include "memory.h"
 #include "switches.h"

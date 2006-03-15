@@ -53,10 +53,35 @@ extern Role I_RRSD;
  * spread over all the runs.
  */
 
+static System sys = NULL;
 
 /*
  * code
  */
+
+void
+printVisualRun (int rid)
+{
+  int run;
+  int display;
+
+  display = 1;
+  for (run = 0; run < rid; run++)
+    {
+      if (sys->runs[run].protocol != INTRUDER)
+	{
+	  display++;
+	}
+    }
+  eprintf ("#%i", display);
+}
+
+//! Remap term stuff
+void
+termPrintRemap (const Term t)
+{
+  termPrintCustom (t, "", "V", "(", ")", "\\{ ", " \\}", printVisualRun);
+}
 
 //! Draw node
 void
@@ -113,7 +138,7 @@ roledefDraw (Roledef rd)
 	    label = TermOp2 (label);
 	  }
 	eprintf ("_");
-	termPrint (label);
+	termPrintRemap (label);
       }
   }
 
@@ -122,29 +147,29 @@ roledefDraw (Roledef rd)
       eprintf ("read");
       optlabel ();
       eprintf (" from ");
-      termPrint (rd->from);
+      termPrintRemap (rd->from);
       eprintf ("\\n");
-      termPrint (rd->message);
+      termPrintRemap (rd->message);
     }
   if (rd->type == SEND)
     {
       eprintf ("send");
       optlabel ();
       eprintf (" to ");
-      termPrint (rd->to);
+      termPrintRemap (rd->to);
       eprintf ("\\n");
-      termPrint (rd->message);
+      termPrintRemap (rd->message);
     }
   if (rd->type == CLAIM)
     {
       eprintf ("claim");
       optlabel ();
       eprintf ("\\n");
-      termPrint (rd->to);
+      termPrintRemap (rd->to);
       if (rd->message != NULL)
 	{
 	  eprintf (" : ");
-	  termPrint (rd->message);
+	  termPrintRemap (rd->message);
 	}
     }
 }
@@ -159,7 +184,7 @@ chooseTermNode (const Term t)
 
     rsbuf = RUNSEP;
     RUNSEP = "x";
-    termPrint (t);
+    termPrintRemap (t);
     RUNSEP = rsbuf;
   }
 }
@@ -502,6 +527,27 @@ iterate_first_regular_occurrences (const System sys,
   return true;
 }
 
+//! Does a term occur in a run?
+int
+termOccursInRun (Term t, int run)
+{
+  Roledef rd;
+  int e;
+
+  rd = sys->runs[run].start;
+  e = 0;
+  while (e < sys->runs[run].step)
+    {
+      if (roledefSubTerm (rd, t))
+	{
+	  return true;
+	}
+      e++;
+      rd = rd->next;
+    }
+  return false;
+}
+
 //! Draw a class choice
 /**
  * \rho classes are already dealt with in the headers, so we should ignore them.
@@ -532,7 +578,7 @@ drawClass (const System sys, Binding b)
     run = TermRunid (varterm);
     if ((run >= 0) && (run < sys->maxruns))
       {
-	if (inTermlist (sys->runs[run].agents, varterm))
+	if (inTermlist (sys->runs[run].rho, varterm))
 	  {
 	    return;
 	  }
@@ -553,7 +599,7 @@ drawClass (const System sys, Binding b)
   eprintf ("\t");
   chooseTermNode (varterm);
   eprintf (" [label=\"Class:\\nAny ");
-  termPrint (varterm);
+  termPrintRemap (varterm);
   eprintf ("\"];\n");
   eprintf ("\t");
   chooseTermNode (varterm);
@@ -601,7 +647,7 @@ drawBinding (const System sys, Binding b)
 	  eprintf ("\t");
 	  arrow (sys, b);
 	  eprintf (" [label=\"");
-	  termPrint (b->term);
+	  termPrintRemap (b->term);
 	  eprintf ("\"]");
 	  eprintf (";\n");
 	}
@@ -658,7 +704,7 @@ drawBinding (const System sys, Binding b)
 		{
 		  // Only explicitly mention redirect term when it differs from the sent term
 		  eprintf ("\\n");
-		  termPrint (b->term);
+		  termPrintRemap (b->term);
 		}
 	      eprintf ("\"]");
 	      eprintf (";\n");
@@ -720,14 +766,14 @@ agentsOfRunPrintOthers (const System sys, const int run)
 	{
 	  Term agent;
 
-	  termPrint (roles->term);
+	  termPrintRemap (roles->term);
 	  eprintf (" is ");
 	  agent = agentOfRunRole (sys, run, roles->term);
 	  if (isTermVariable (agent))
 	    {
 	      eprintf ("any ");
 	    }
-	  termPrint (agent);
+	  termPrintRemap (agent);
 	  eprintf ("\\l");
 	}
       roles = roles->next;
@@ -767,7 +813,7 @@ drawRegularRuns (const System sys)
 	         eprintf ("\tsubgraph cluster_run%i {\n", run);
 	         eprintf ("\t\tlabel = \"");
 	         eprintf ("#%i: ", run);
-	         termPrint (sys->runs[run].protocol->nameterm);
+	         termPrintRemap (sys->runs[run].protocol->nameterm);
 	         eprintf (", ");
 	         agentsOfRunPrint (sys, run);
 	         eprintf ("\\nTesting the second line\";\n", run);
@@ -889,9 +935,9 @@ drawRegularRuns (const System sys)
 				  {
 				    eprintf ("Any ");
 				  }
-				termPrint (agentname);
+				termPrintRemap (agentname);
 				eprintf (" in role ");
-				termPrint (rolename);
+				termPrintRemap (rolename);
 				eprintf ("\\l");
 			      }
 
@@ -953,27 +999,82 @@ drawRegularRuns (const System sys)
 				if (showprotocol)
 				  {
 				    eprintf ("Protocol ");
-				    termPrint (sys->runs[run].protocol->
-					       nameterm);
+				    termPrintRemap (sys->runs[run].protocol->
+						    nameterm);
 				    eprintf ("\\l");
 				  }
 			      }
-			      eprintf ("Run #%i\\l", run);
+			      eprintf ("Run ");
+			      printVisualRun (run);
+			      eprintf ("\\l");
 
 
-			      // print the other agents
-			      eprintf ("|");
-			      if (termlistLength (sys->runs[run].agents) > 1)
+			      // rho, sigma, const
+			      void showLocal (Term told, Term tnew)
+			      {
+				if (realTermVariable (tnew))
+				  {
+				    // Variables are mapped, maybe. But then we wonder whether they occur in reads.
+				    termPrintRemap (told);
+				    if (termOccursInRun (tnew, run))
+				      {
+					eprintf (" : ");
+					termPrintRemap (deVar (tnew));
+				      }
+				    else
+				      {
+					eprintf (" is not read");
+				      }
+				  }
+				else
+				  {
+				    termPrintRemap (tnew);
+				  }
+				eprintf ("\\l");
+			      }
+			      void showLocals (Termlist tlold, Termlist tlnew,
+					       Term tavoid)
+			      {
+				while (tlold != NULL && tlnew != NULL)
+				  {
+				    if (!isTermEqual (tlold->term, tavoid))
+				      {
+					showLocal (tlold->term, tlnew->term);
+				      }
+				    tlold = tlold->next;
+				    tlnew = tlnew->next;
+				  }
+			      }
+
+			      if (termlistLength (sys->runs[run].rho) > 1)
 				{
+				  eprintf ("|");
 				  if (sys->runs[run].role->initiator)
 				    {
-				      eprintf ("Chooses:\\l");
+				      eprintf ("Initiates with:\\l");
 				    }
 				  else
 				    {
-				      eprintf ("Assumes:\\l");
+				      eprintf ("Responds to:\\l");
 				    }
-				  agentsOfRunPrintOthers (sys, run);
+				  showLocals (sys->runs[run].protocol->
+					      rolenames, sys->runs[run].rho,
+					      sys->runs[run].role->nameterm);
+				}
+
+			      if (sys->runs[run].constants != NULL)
+				{
+				  eprintf ("|Creates:\\l");
+				  showLocals (sys->runs[run].role->
+					      declaredconsts,
+					      sys->runs[run].constants, NULL);
+				}
+			      if (sys->runs[run].sigma != NULL)
+				{
+				  eprintf ("|Variables:\\l");
+				  showLocals (sys->runs[run].role->
+					      declaredvars,
+					      sys->runs[run].sigma, NULL);
 				}
 
 			      // close up
@@ -1113,7 +1214,7 @@ drawIntruderChoices (const System sys)
 	      eprintf ("\t");
 	      chooseTermNode (b->term);
 	      eprintf (" [label=\"Class: any ");
-	      termPrint (b->term);
+	      termPrintRemap (b->term);
 	      eprintf ("\",color=\"darkgreen\"];\n");
 
 	      iterate_first_regular_occurrences (sys, firsthere, b->term);
@@ -1135,7 +1236,7 @@ drawIntruderChoices (const System sys)
  * This is not as nice as we would like it. Furthermore, the function is too big.
  */
 void
-dotSemiState (const System sys)
+dotSemiState (const System mysys)
 {
   static int attack_number = 0;
   int run;
@@ -1145,16 +1246,18 @@ dotSemiState (const System sys)
   int from_intruder_count;
   int nodes;
 
+  sys = mysys;
+
   // Open graph
   attack_number++;
   eprintf ("digraph semiState%i {\n", attack_number);
   eprintf ("\tlabel = \"[Id %i] Protocol ", sys->attackid);
   p = (Protocol) sys->current_claim->protocol;
-  termPrint (p->nameterm);
+  termPrintRemap (p->nameterm);
   eprintf (", role ");
-  termPrint (sys->current_claim->rolename);
+  termPrintRemap (sys->current_claim->rolename);
   eprintf (", claim type ");
-  termPrint (sys->current_claim->type);
+  termPrintRemap (sys->current_claim->type);
   eprintf ("\";\n");
 
   // Globals
@@ -1242,39 +1345,41 @@ dotSemiState (const System sys)
 
   // For debugging we might add more stuff: full dependencies
 #ifdef DEBUG
-  {
-    int r1;
+  if (DEBUGL (3))
+    {
+      int r1;
 
-    for (r1 = 0; r1 < sys->maxruns; r1++)
-      {
-	if (sys->runs[r1].protocol != INTRUDER)
-	  {
-	    int e1;
+      for (r1 = 0; r1 < sys->maxruns; r1++)
+	{
+	  if (sys->runs[r1].protocol != INTRUDER)
+	    {
+	      int e1;
 
-	    for (e1 = 0; e1 < sys->runs[r1].step; e1++)
-	      {
-		int r2;
+	      for (e1 = 0; e1 < sys->runs[r1].step; e1++)
+		{
+		  int r2;
 
-		for (r2 = 0; r2 < sys->maxruns; r2++)
-		  {
-		    if (sys->runs[r2].protocol != INTRUDER)
-		      {
-			int e2;
+		  for (r2 = 0; r2 < sys->maxruns; r2++)
+		    {
+		      if (sys->runs[r2].protocol != INTRUDER)
+			{
+			  int e2;
 
-			for (e2 = 0; e2 < sys->runs[r2].step; e2++)
-			  {
-			    if (isDependEvent (r1, e1, r2, e2))
-			      {
-				eprintf ("\tr%ii%i -> r%ii%i [color=grey];\n",
-					 r1, e1, r2, e2);
-			      }
-			  }
-		      }
-		  }
-	      }
-	  }
-      }
-  }
+			  for (e2 = 0; e2 < sys->runs[r2].step; e2++)
+			    {
+			      if (isDependEvent (r1, e1, r2, e2))
+				{
+				  eprintf
+				    ("\tr%ii%i -> r%ii%i [color=grey];\n", r1,
+				     e1, r2, e2);
+				}
+			    }
+			}
+		    }
+		}
+	    }
+	}
+    }
 #endif
 
   // Intruder choices

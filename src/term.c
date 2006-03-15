@@ -313,7 +313,9 @@ termInTerm (Term t, Term tsub)
  *\sa termTuplePrint()
  */
 void
-termPrint (Term term)
+termPrintCustom (Term term, char *leftvar, char *rightvar, char *lefttup,
+		 char *righttup, char *leftenc, char *rightenc,
+		 void (*callback) (int rid))
 {
   if (term == NULL)
     {
@@ -330,23 +332,34 @@ termPrint (Term term)
 #endif
   if (realTermLeaf (term))
     {
+      if (term->type == VARIABLE && TermRunid (term) >= 0)
+	eprintf (leftvar);
       symbolPrint (TermSymb (term));
       if (term->type == VARIABLE && TermRunid (term) >= 0)
-	eprintf ("V");
+	eprintf (rightvar);
       if (TermRunid (term) >= 0)
 	{
-	  eprintf ("%s%i", RUNSEP, TermRunid (term));
+	  if (callback == NULL)
+	    {
+	      eprintf ("%s%i", RUNSEP, TermRunid (term));
+	    }
+	  else
+	    {
+	      callback (TermRunid (term));
+	    }
 	}
       if (term->subst != NULL)
 	{
 	  eprintf ("->");
-	  termPrint (term->subst);
+	  termPrintCustom (term->subst, leftvar, rightvar, lefttup, righttup,
+			   leftenc, rightenc, callback);
 	}
     }
   if (realTermTuple (term))
     {
       eprintf ("(");
-      termTuplePrint (term);
+      termTuplePrintCustom (term, leftvar, rightvar, lefttup, righttup,
+			    leftenc, rightenc, callback);
       eprintf (")");
       return;
     }
@@ -356,20 +369,30 @@ termPrint (Term term)
 	  && inTermlist (TermKey (term)->stype, TERM_Function))
 	{
 	  /* function application */
-	  termPrint (TermKey (term));
-	  eprintf ("(");
-	  termTuplePrint (TermOp (term));
-	  eprintf (")");
+	  termPrintCustom (TermKey (term), leftvar, rightvar, lefttup,
+			   righttup, leftenc, rightenc, callback);
+	  eprintf (lefttup);
+	  termTuplePrintCustom (TermOp (term), leftvar, rightvar, lefttup,
+				righttup, leftenc, rightenc, callback);
+	  eprintf (righttup);
 	}
       else
 	{
 	  /* normal encryption */
-	  eprintf ("{ ");
-	  termTuplePrint (TermOp (term));
-	  eprintf (" }");
-	  termPrint (TermKey (term));
+	  eprintf (leftenc);
+	  termTuplePrintCustom (TermOp (term), leftvar, rightvar, lefttup,
+				righttup, leftenc, rightenc, callback);
+	  eprintf (rightenc);
+	  termPrintCustom (TermKey (term), leftvar, rightvar, lefttup,
+			   righttup, leftenc, rightenc, callback);
 	}
     }
+}
+
+void
+termPrint (Term term)
+{
+  termPrintCustom (term, "", "V", "(", ")", "{ ", " }", NULL);
 }
 
 //! Print an inner (tuple) term to stdout, without brackets.
@@ -379,7 +402,9 @@ termPrint (Term term)
  * desirable to distinguish them.
  */
 void
-termTuplePrint (Term term)
+termTuplePrintCustom (Term term, char *leftvar, char *rightvar, char *lefttup,
+		      char *righttup, char *leftenc, char *rightenc,
+		      void (*callback) (int rid))
 {
   if (term == NULL)
     {
@@ -390,12 +415,21 @@ termTuplePrint (Term term)
   while (realTermTuple (term))
     {
       // To remove any brackets, change this into termTuplePrint.
-      termPrint (TermOp1 (term));
+      termPrintCustom (TermOp1 (term), leftvar, rightvar, lefttup, righttup,
+		       leftenc, rightenc, callback);
       eprintf (",");
       term = deVar (TermOp2 (term));
     }
-  termPrint (term);
+  termPrintCustom (term, leftvar, rightvar, lefttup, righttup, leftenc,
+		   rightenc, callback);
   return;
+}
+
+//! Print inner tuple
+void
+termTuplePrint (Term term)
+{
+  termTuplePrintCustom (term, "", "V", "(", ")", "{ ", " }", NULL);
 }
 
 //! Make a deep copy of a term.

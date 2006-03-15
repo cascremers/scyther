@@ -61,4 +61,7 @@ Term termlist_to_tuple (Termlist tl);
 Termlist tuple_to_termlist (Term t);
 Termlist termlistMinusTermlist (const Termlist tlbig, const Termlist tlsmall);
 
+#define TERMLISTADD(l,t)	l = termlistAdd (l,t)
+#define TERMLISTAPPEND(l,t)	l = termlistAppend (l,t)
+
 #endif

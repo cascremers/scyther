@@ -41,18 +41,21 @@ struct run
 {
   Protocol protocol;		//!< Protocol of this run.
   Role role;			//!< Role of this run.
-  Termlist agents;		//!< Agents involved in this run.
   int step;			//!< Current execution point in the run (integer)
   int rolelength;		//!< Length of role
+
   Roledef index;		//!< Current execution point in the run (roledef pointer)
   Roledef start;		//!< Head of the run definition.
   Knowledge know;		//!< Current knowledge of the run.
+
   Termlist rho;			//!< As in semantics (copies in artefacts)
   Termlist sigma;		//!< As in semantics (copies in artefacts)
   Termlist constants;		//!< As in semantics (copies in artefacts)
+
   Termlist locals;		//!< Locals of the run (will be deprecated eventually)
-  Termlist artefacts;		//!< Stuff created especially for this run.
+  Termlist artefacts;		//!< Stuff created especially for this run, which can also include tuples (anything allocated)
   Termlist substitutions;	//!< The substitutions as they came from the roledef unifier
+
   int prevSymmRun;		//!< Used for symmetry reduction. Either -1, or the previous run with the same role def and at least a single parameter.
   int firstNonAgentRead;	//!< Used for symmetry reductions for equal agents runs; -1 if there is no candidate.
   int firstReal;		//!< 1 if a choose was inserted, otherwise 0
