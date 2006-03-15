@@ -747,6 +747,11 @@ report_failed_binding (Binding b, int run, int index)
 
 //! Make a decryption chain from a binding to some run,index using the key list, and callback if this works.
 /**
+ * The key goals are bound to the goal, and then we iterate on that.
+ *
+ *@param b	binding to fix (bind), destination filled in
+ *@param run	run of binding start
+ *@param index	index in run of binding start
  * Callback return value is int, but is effectively ignored.
  */
 void
