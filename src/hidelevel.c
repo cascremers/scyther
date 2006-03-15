@@ -8,6 +8,7 @@
 #include <limits.h>
 #include "hidelevel.h"
 #include "system.h"
+#include "debug.h"
 
 extern Term TERM_Hidden;
 

@@ -93,11 +93,9 @@ systemReset (const System sys)
 
   /* some initial counters */
   sys->states = statesIncrease (STATES0);	//!< Initial state is not explored, so start counting at 1
-  sys->statesScenario = STATES0;
   sys->interval = sys->states;	//!< To keep in line with the states
   sys->claims = STATES0;
   sys->failed = STATES0;
-  sys->countScenario = 0;
   sys->explore = 1;		// do explore the space
   cl = sys->claimlist;
   while (cl != NULL)
@@ -136,12 +134,6 @@ systemRuns (const System sys)
 	  sys->lastChooseRun = run;
 	}
     }
-#ifdef DEBUG
-  if (switches.scenario < 0)
-    {
-      warning ("Last run with a choose: %i", sys->lastChooseRun);
-    }
-#endif
 }
 
 //! Delete a system structure and clear used memory for all buffers.

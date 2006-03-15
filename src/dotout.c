@@ -5,6 +5,7 @@
 #include "arachne.h"
 #include "binding.h"
 #include "depend.h"
+#include "debug.h"
 
 extern Protocol INTRUDER;	// Pointers, to be set by the Init of arachne.c
 extern Role I_M;		// Same here.
@@ -1126,64 +1127,6 @@ drawIntruderChoices (const System sys)
       eprintf ("\n");
     }
   termlistDelete (shown);
-}
-
-//! Ranking info
-void
-showRanks (const System sys, int maxrank, int *ranks)
-{
-  // Fourth, all ranking info
-  int myrank;
-
-#ifdef DEBUG
-  {
-    int n;
-
-    eprintf ("/* ranks: %i\n", maxrank);
-    n = 0;
-    while (n < nodes)
-      {
-	eprintf ("%i ", ranks[n]);
-	n++;
-      }
-    eprintf ("\n*/\n\n");
-  }
-#endif
-  myrank = 0;
-  while (myrank < maxrank)
-    {
-      int count;
-      int run;
-      int run1;
-      int ev1;
-
-      count = 0;
-      run = 0;
-      while (run < sys->maxruns)
-	{
-	  if (sys->runs[run].protocol != INTRUDER)
-	    {
-	      int ev;
-
-	      ev = 0;
-	      while (ev < sys->runs[run].step)
-		{
-		  if (myrank == ranks[eventNode (run, ev)])
-		    {
-		      if (count == 0)
-			eprintf ("\t{ rank = same; ");
-		      count++;
-		      eprintf ("r%ii%i; ", run, ev);
-		    }
-		  ev++;
-		}
-	    }
-	  run++;
-	}
-      if (count > 0)
-	eprintf ("}\t\t// rank %i\n", myrank);
-      myrank++;
-    }
 }
 
 

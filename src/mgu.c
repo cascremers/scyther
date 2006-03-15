@@ -5,6 +5,7 @@
 #include "substitution.h"
 #include "mgu.h"
 #include "type.h"
+#include "debug.h"
 #include "specialterm.h"
 
 /*

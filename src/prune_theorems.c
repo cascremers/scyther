@@ -78,13 +78,19 @@ correctLocalOrder (const System sys)
 		}
 	      else
 		{
-		  // not a read first?
+		  // not a read first? That's definitely impossible (can be caused by choices 
 		  globalError++;
 		  eprintf ("Error: term ");
 		  termSubstPrint (t);
 		  eprintf
-		    (" from run %i should occur in run %i first in a READ event, but it occurs first in another event.\n",
-		     r2, r1);
+		    (" from run %i should occur in run %i first in a READ event, but it occurs first in event %i.\n",
+		     r2, r1, e1);
+		  eprintf ("It occurs first in ");
+		  roledefPrint (eventRoledef (sys, r1, e1));
+		  eprintf ("\n");
+		  eprintf ("which starts with ");
+		  roledefPrint (eventRoledef (sys, r1, 0));
+		  eprintf ("\n");
 		  globalError--;
 		  error ("Abort");
 		}

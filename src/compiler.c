@@ -14,6 +14,7 @@
 #include "specialterm.h"
 #include "warshall.h"
 #include "hidelevel.h"
+#include "debug.h"
 
 /*
    Simple sys pointer as a global. Yields cleaner code although it's against programming standards.
