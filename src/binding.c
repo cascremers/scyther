@@ -220,7 +220,14 @@ goal_add (Term term, const int run, const int ev, const int level)
   term = deVar (term);
 #ifdef DEBUG
   if (term == NULL)
-    error ("Trying to add an emtpy goal term");
+    {
+      globalError++;
+      roledefPrint (eventRoledef (sys, run, ev));
+      eprintf ("\n");
+      globalError--;
+      error ("Trying to add an emtpy goal term to r%ii%i, with level %i.",
+	     run, ev, level);
+    }
   if (run >= sys->maxruns)
     error ("Trying to add a goal for a run that does not exist.");
   if (ev >= sys->runs[run].step)

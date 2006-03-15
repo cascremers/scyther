@@ -234,6 +234,9 @@ ensureValidRun (const System sys, int run)
       myrun.index = NULL;
       myrun.start = NULL;
 
+      myrun.rho = NULL;
+      myrun.sigma = NULL;
+      myrun.constants = NULL;
       myrun.locals = NULL;
       myrun.artefacts = NULL;
       myrun.substitutions = NULL;
@@ -589,6 +592,9 @@ roleInstanceArachne (const System sys, const Protocol protocol,
   Termlist fromlist = NULL;	// deleted at the end
   Termlist tolist = NULL;	// -> .locals
   Termlist artefacts = NULL;	// -> .artefacts
+  Termlist rho = NULL;		// -> .rho
+  Termlist sigma = NULL;	// -> .sigma
+  Termlist constants = NULL;	// -> .constants
   Term extterm = NULL;		// construction thing (will go to artefacts)
 
   /* claim runid, allocate space */

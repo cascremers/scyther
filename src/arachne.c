@@ -400,7 +400,7 @@ add_read_goals (const int run, const int old, const int new)
 
       sys->runs[run].height = new;
       i = old;
-      rd = roledef_shift (sys->runs[run].start, i);
+      rd = eventRoledef (sys, run, i);
       count = 0;
       while (i < new && rd != NULL)
 	{
@@ -430,54 +430,6 @@ add_read_goals (const int run, const int old, const int new)
 	}
       return count;
     }
-}
-
-//! Determine the run that follows from a substitution.
-/**
- * After an Arachne unification, stuff might go wrong w.r.t. nonce instantiation.
- * This function determines the run that is implied by a substitution list.
- * @returns >= 0: a run, -1 for invalid, -2 for any run.
- */
-int
-determine_unification_run (Termlist tl)
-{
-  int run;
-
-  run = -2;
-  while (tl != NULL)
-    {
-      //! Again, hardcoded reference to compiler.c. Level -3 means a local constant for a role.
-      if (tl->term->type != VARIABLE && TermRunid (tl->term) == -3)
-	{
-	  Term t;
-
-	  t = tl->term->subst;
-
-	  // It is required that it is actually a leaf, because we construct it.
-	  if (!realTermLeaf (t))
-	    {
-	      return -1;
-	    }
-	  else
-	    {
-	      if (run == -2)
-		{
-		  // Any run
-		  run = TermRunid (t);
-		}
-	      else
-		{
-		  // Specific run: compare
-		  if (run != TermRunid (t))
-		    {
-		      return -1;
-		    }
-		}
-	    }
-	}
-      tl = tl->next;
-    }
-  return run;
 }
 
 //! Determine trace length
@@ -1915,9 +1867,11 @@ makeTraceClass (const System sys, Termlist varlist)
       Term var;
 
       var = tl->term;
-      deleteNewTerm (var->subst);
-      var->subst = NULL;
-
+      if (realTermVariable (var))
+	{
+	  deleteNewTerm (var->subst);
+	  var->subst = NULL;
+	}
       tl = tl->next;
     }
   termlistDelete (varlist);
@@ -2067,34 +2021,39 @@ iterate ()
 		{
 		  /* Substitution or something resulted in a tuple goal: we immediately split them into compounds.
 		   */
-		  int count;
-		  Term tupletermbuffer;
+		  Term tuple;
 
-		  tupletermbuffer = btup->term;
-
-		  /*
-		   * We solve this by replacing the tuple goal by the left term, and adding a goal for the right term.
-		   */
-		  btup->term = TermOp1 (tupletermbuffer);
-		  count =
-		    goal_add (TermOp2 (tupletermbuffer), btup->run_to,
-			      btup->ev_to, btup->level);
-
-		  // Show this in output
-		  if (switches.output == PROOF)
+		  tuple = deVar (btup->term);
+		  if (realTermTuple (tuple))
 		    {
-		      indentPrint ();
-		      eprintf ("Expanding tuple goal ");
-		      termPrint (tupletermbuffer);
-		      eprintf (" into %i subgoals.\n", count);
+		      int count;
+		      Term tupletermbuffer;
+
+		      tupletermbuffer = btup->term;
+		      /*
+		       * We solve this by replacing the tuple goal by the left term, and adding a goal for the right term.
+		       */
+		      btup->term = TermOp1 (tuple);
+		      count =
+			goal_add (TermOp2 (tuple), btup->run_to,
+				  btup->ev_to, btup->level);
+
+		      // Show this in output
+		      if (switches.output == PROOF)
+			{
+			  indentPrint ();
+			  eprintf ("Expanding tuple goal ");
+			  termPrint (tupletermbuffer);
+			  eprintf (" into %i subgoals.\n", count);
+			}
+
+		      // iterate
+		      flag = iterate ();
+
+		      // undo
+		      goal_remove_last (count);
+		      btup->term = tupletermbuffer;
 		    }
-
-		  // iterate
-		  flag = iterate ();
-
-		  // undo
-		  goal_remove_last (count);
-		  btup->term = tupletermbuffer;
 		}
 	      else
 		{
