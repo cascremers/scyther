@@ -80,7 +80,7 @@ printVisualRun (int rid)
 void
 termPrintRemap (const Term t)
 {
-  termPrintCustom (t, "", "V", "(", ")", "\\{ ", " \\}", printVisualRun);
+  termPrintCustom (t, "", "", "(", ")", "\\{ ", " \\}", printVisualRun);
 }
 
 //! Draw node
@@ -933,7 +933,7 @@ drawRegularRuns (const System sys)
 				  agentOfRunRole (sys, run, rolename);
 				if (isTermVariable (agentname))
 				  {
-				    eprintf ("Any ");
+				    eprintf ("Any agent ");
 				  }
 				termPrintRemap (agentname);
 				eprintf (" in role ");
@@ -1018,8 +1018,37 @@ drawRegularRuns (const System sys)
 				    termPrintRemap (told);
 				    if (termOccursInRun (tnew, run))
 				      {
+					Term t;
+
+					t = deVar (tnew);
 					eprintf (" : ");
-					termPrintRemap (deVar (tnew));
+					if (realTermVariable (t))
+					  {
+					    eprintf ("any ");
+					    termPrintRemap (t);
+					    if ((!t->roleVar)
+						&& switches.match == 0
+						&& t->stype != NULL)
+					      {
+						Termlist tl;
+
+						eprintf (" of type ");
+						for (tl = t->stype;
+						     tl != NULL;
+						     tl = tl->next)
+						  {
+						    termPrintRemap (tl->term);
+						    if (tl->next != NULL)
+						      {
+							eprintf (",");
+						      }
+						  }
+					      }
+					  }
+					else
+					  {
+					    termPrintRemap (t);
+					  }
 				      }
 				    else
 				      {
