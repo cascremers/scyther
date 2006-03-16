@@ -1010,16 +1010,18 @@ drawRegularRuns (const System sys)
 
 
 			      // rho, sigma, const
-			      void showLocal (Term told, Term tnew)
+			      /* true if it has printed
+			       */
+			      int showLocal (Term told, Term tnew)
 			      {
 				if (realTermVariable (tnew))
 				  {
-				    // Variables are mapped, maybe. But then we wonder whether they occur in reads.
-				    termPrintRemap (told);
 				    if (termOccursInRun (tnew, run))
 				      {
 					Term t;
 
+					// Variables are mapped, maybe. But then we wonder whether they occur in reads.
+					termPrintRemap (told);
 					t = deVar (tnew);
 					eprintf (" : ");
 					if (realTermVariable (t))
@@ -1052,23 +1054,34 @@ drawRegularRuns (const System sys)
 				      }
 				    else
 				      {
-					eprintf (" is not read");
+					return false;
 				      }
 				  }
 				else
 				  {
 				    termPrintRemap (tnew);
 				  }
-				eprintf ("\\l");
+				return true;
 			      }
+
 			      void showLocals (Termlist tlold, Termlist tlnew,
-					       Term tavoid)
+					       Term tavoid, char *sep)
 			      {
+				int printsep;
+
+				printsep = false;
 				while (tlold != NULL && tlnew != NULL)
 				  {
 				    if (!isTermEqual (tlold->term, tavoid))
 				      {
-					showLocal (tlold->term, tlnew->term);
+					if (printsep)
+					  {
+					    eprintf (sep);
+					    printsep = false;
+					  }
+					printsep =
+					  showLocal (tlold->term,
+						     tlnew->term);
 				      }
 				    tlold = tlold->next;
 				    tlnew = tlnew->next;
@@ -1078,32 +1091,30 @@ drawRegularRuns (const System sys)
 			      if (termlistLength (sys->runs[run].rho) > 1)
 				{
 				  eprintf ("|");
-				  if (sys->runs[run].role->initiator)
-				    {
-				      eprintf ("Initiates with:\\l");
-				    }
-				  else
-				    {
-				      eprintf ("Responds to:\\l");
-				    }
 				  showLocals (sys->runs[run].protocol->
 					      rolenames, sys->runs[run].rho,
-					      sys->runs[run].role->nameterm);
+					      sys->runs[run].role->nameterm,
+					      "\\l");
+				  eprintf ("\\l");
 				}
 
 			      if (sys->runs[run].constants != NULL)
 				{
-				  eprintf ("|Creates:\\l");
+				  eprintf ("|Create ");
 				  showLocals (sys->runs[run].role->
 					      declaredconsts,
-					      sys->runs[run].constants, NULL);
+					      sys->runs[run].constants, NULL,
+					      ",");
+				  eprintf ("\\l");
 				}
 			      if (sys->runs[run].sigma != NULL)
 				{
-				  eprintf ("|Variables:\\l");
+				  eprintf ("|");
 				  showLocals (sys->runs[run].role->
 					      declaredvars,
-					      sys->runs[run].sigma, NULL);
+					      sys->runs[run].sigma, NULL,
+					      "\\l");
+				  eprintf ("\\l");
 				}
 
 			      // close up
