@@ -101,7 +101,7 @@ def default_arguments(plist,match,bounds):
         maxruns = 3*nmin
         maxlength = 4 + maxruns * 6
     elif bounds == 2:
-        timer = 20 * 60    # 20 minutes
+        timer = 10 * 60    # 10 minutes
         maxruns = 3*nmin
         maxlength = 4 + maxruns * 6
     else:

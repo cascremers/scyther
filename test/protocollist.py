@@ -24,6 +24,9 @@ def index(directory):
                 stack.append(fullname)
     return files
 
+def known_problems():
+    return ['needham-schroeder-lowe.spdl', 'kaochow-v2.spdl', 'needham-schroeder-sk.spdl', 'ccitt509-3.spdl', 'denning-sacco-lowe.spdl', 'kaochow-v3.spdl', 'ksl.spdl', 'ksl-lowe.spdl', 'denning-sacco.spdl', 'needham-schroeder-sk-amend.spdl', 'needham-schroeder-sk.spdl', 'andrew-ban-concrete.spdl', 'wmf.spdl', 'yahalom.spdl', 'wmf-lowe.spdl', 'needham-schroeder.spdl']
+
 def known_good_ones():
     list = [ \
     "ccitt509-1c.spdl",
@@ -112,6 +115,19 @@ def from_all():
     (good, bad, others) = make_lists()
     return good + bad + others
 
+def from_literature_no_problems():
+    bl = from_literature()
+    pl = known_problems()
+    dl = []
+    for p in bl:
+        test = True
+        for pbad in pl:
+            if p.endswith(pbad):
+                test = False
+        if test:
+            dl += [p]
+    return dl
+
 def select(type):
 
     (good, bad, others) = make_lists()
@@ -126,6 +142,9 @@ def select(type):
     elif n == 2:
         # 2 means from literature, no known attacks
         return from_good_literature()
+    elif n == 3:
+        # 3 means from litature, without the problem cases
+        return from_good_literature_no_problems()
     else:
         # Otherwise empty list
         return []

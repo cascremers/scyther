@@ -45,8 +45,9 @@ def parse(scout):
 
             # Only count the states if no timeout (otherwise not
             # dependable)
-            if not timeout:
-                st += localstates
+            ##if not timeout:
+            ##    st += localstates
+            st += localstates
 
             # Determine claim status
             tag = data[4]
@@ -88,7 +89,12 @@ def test_goal_selector(goalselector, options,branchbound):
 
     scythertest.add_extra_parameters("--count-states --heuristic=" + str(goalselector))
     result = str(goalselector)
-    plist = protocollist.from_literature()
+
+    # Selection of protocols
+    ##plist = protocollist.from_literature()
+    ##plist = protocollist.from_literature_no_problems()
+    plist = protocollist.from_all()
+
     np = len(plist)
 
     attacks = 0
