@@ -184,7 +184,7 @@ chooseTermNode (const Term t)
 
     rsbuf = RUNSEP;
     RUNSEP = "x";
-    termPrintRemap (t);
+    termPrint (t);
     RUNSEP = rsbuf;
   }
 }
@@ -598,7 +598,7 @@ drawClass (const System sys, Binding b)
   // not seen before: choose class
   eprintf ("\t");
   chooseTermNode (varterm);
-  eprintf (" [label=\"Class:\\nAny ");
+  eprintf (" [label=\"Any ");
   termPrintRemap (varterm);
   eprintf ("\"];\n");
   eprintf ("\t");
