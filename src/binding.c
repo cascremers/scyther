@@ -234,8 +234,9 @@ goal_add (Term term, const int run, const int ev, const int level)
     error
       ("Trying to add a goal for an event that is not in the semistate yet.");
 #endif
-  if (realTermTuple (term))
+  if (switches.intruder && realTermTuple (term))
     {
+      // Only split if there is an intruder
       return goal_add (TermOp1 (term), run, ev, level) +
 	goal_add (TermOp2 (term), run, ev, level);
     }
@@ -459,7 +460,16 @@ unique_origination ()
 		    {
 		      Termlist terms2, sharedterms;
 
-		      terms2 = tuple_to_termlist (b2->term);
+		      if (switches.intruder)
+			{
+			  // For intruder we work with sets here
+			  terms2 = tuple_to_termlist (b2->term);
+			}
+		      else
+			{
+			  // For regular agents we use terms
+			  terms2 = termlistAdd (NULL, b2->term);
+			}
 		      sharedterms = termlistConjunct (terms, terms2);
 
 		      // Compare terms
@@ -529,11 +539,22 @@ bindings_c_minimal ()
 		      {
 			// this node is *before* the from node
 			Roledef rd;
+			int occursthere;
 
 			rd = roledef_shift (sys->runs[run].start, ev);
-			if (termInTerm (rd->message, b->term))
+			if (switches.intruder)
 			  {
-			    // This term already occurs as interm in a previous node!
+			    // intruder: interm bindings should cater for the first occurrence
+			    occursthere = termInTerm (rd->message, b->term);
+			  }
+			else
+			  {
+			    // no intruder, then simple test
+			    occursthere = isTermEqual (rd->message, b->term);
+			  }
+			if (occursthere)
+			  {
+			    // This term already occurs in a previous node!
 #ifdef DEBUG
 			    if (DEBUGL (4))
 			      {

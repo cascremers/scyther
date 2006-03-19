@@ -1193,7 +1193,7 @@ bind_goal_new_m0 (const Binding b)
       Termlist subst;
 
       m0t = tl->term;
-      subst = termMguTerm (b->term, m0t);
+      subst = termMguTerm (b->term, m0t);	//! @todo This needs to be replace by the iterator one, but works for now
       if (subst != MGUFAIL)
 	{
 	  int run;
@@ -1296,7 +1296,7 @@ bind_goal_new_encrypt (const Binding b)
     {
       Term t1, t2;
 
-      if (!realTermEncrypt (term))
+      if (switches.intruder && (!realTermEncrypt (term)))
 	{
 	  // tuple construction
 	  error ("Goal that is a tuple should not occur!");
@@ -1407,20 +1407,21 @@ bind_goal_regular_run (const Binding b)
   int flag;
   int found;
 
-  int test_sub_unification (Termlist substlist, Termlist keylist)
-  {
-    // A unification exists; return the signal
-    return 0;
-  }
   /*
    * This is a local function so we have access to goal
    */
   int bind_this_role_send (Protocol p, Role r, Roledef rd, int index)
   {
+    int test_sub_unification (Termlist substlist, Termlist keylist)
+    {
+      // A unification exists; return the signal
+      return false;
+    }
+
     if (p == INTRUDER)
       {
 	// No intruder roles here
-	return 1;
+	return true;
       }
 
     // Test for interm unification
@@ -1437,9 +1438,8 @@ bind_goal_regular_run (const Binding b)
 	eprintf (", index %i\n", index);
       }
 #endif
-    if (!termMguSubTerm
-	(b->term, rd->message, test_sub_unification, sys->know->inverses,
-	 NULL))
+    if (!subtermUnify
+	(rd->message, b->term, NULL, NULL, test_sub_unification))
       {
 	int sflag;
 
@@ -1482,7 +1482,7 @@ bind_goal_regular_run (const Binding b)
       }
     else
       {
-	return 1;
+	return true;
       }
   }
 
@@ -2004,6 +2004,112 @@ select_tuple_goal ()
 }
 
 
+//! Iterate a binding
+/**
+ * For DY model, we unfold any tuples first, otherwise we skip that.
+ */
+int
+iterateOneBinding (void)
+{
+  Binding btup;
+  int flag;
+
+  // marker
+  flag = true;
+
+  // Are there any tuple goals?
+  if (switches.intruder)
+    {
+      // Maybe... (well, test)
+      btup = select_tuple_goal ();
+    }
+  else
+    {
+      // No, there are non that need to be expanded (no intruder)
+      btup = NULL;
+    }
+  if (btup != NULL)
+    {
+      /* Substitution or something resulted in a tuple goal: we immediately split them into compounds.
+       */
+      Term tuple;
+
+      tuple = deVar (btup->term);
+      if (realTermTuple (tuple))
+	{
+	  int count;
+	  Term tupletermbuffer;
+
+	  tupletermbuffer = btup->term;
+	  /*
+	   * We solve this by replacing the tuple goal by the left term, and adding a goal for the right term.
+	   */
+	  btup->term = TermOp1 (tuple);
+	  count =
+	    goal_add (TermOp2 (tuple), btup->run_to,
+		      btup->ev_to, btup->level);
+
+	  // Show this in output
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("Expanding tuple goal ");
+	      termPrint (tupletermbuffer);
+	      eprintf (" into %i subgoals.\n", count);
+	    }
+
+	  // iterate
+	  flag = iterate ();
+
+	  // undo
+	  goal_remove_last (count);
+	  btup->term = tupletermbuffer;
+	}
+    }
+  else
+    {
+      // No tuple goals; good
+      Binding b;
+
+		  /**
+		   * Not pruned: count
+		   */
+
+      sys->states = statesIncrease (sys->states);
+      sys->current_claim->states =
+	statesIncrease (sys->current_claim->states);
+
+		  /**
+		   * Check whether its a final state (i.e. all goals bound)
+		   */
+
+      b = (Binding) select_goal (sys);
+      if (b == NULL)
+	{
+	  /*
+	   * all goals bound, check for property
+	   */
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("All goals are now bound.\n");
+	    }
+	  sys->claims = statesIncrease (sys->claims);
+	  sys->current_claim->count =
+	    statesIncrease (sys->current_claim->count);
+	  flag = property_check (sys);
+	}
+      else
+	{
+	  /*
+	   * bind this goal in all possible ways and iterate
+	   */
+	  flag = bind_goal_all_options (b);
+	}
+    }
+  return flag;
+}
+
 //! Main recursive procedure for Arachne
 int
 iterate ()
@@ -2018,89 +2124,8 @@ iterate ()
 	{
 	  if (!prune_bounds (sys))
 	    {
-	      Binding btup;
-
-	      // Are there any tuple goals?
-	      btup = select_tuple_goal ();
-	      if (btup != NULL)
-		{
-		  /* Substitution or something resulted in a tuple goal: we immediately split them into compounds.
-		   */
-		  Term tuple;
-
-		  tuple = deVar (btup->term);
-		  if (realTermTuple (tuple))
-		    {
-		      int count;
-		      Term tupletermbuffer;
-
-		      tupletermbuffer = btup->term;
-		      /*
-		       * We solve this by replacing the tuple goal by the left term, and adding a goal for the right term.
-		       */
-		      btup->term = TermOp1 (tuple);
-		      count =
-			goal_add (TermOp2 (tuple), btup->run_to,
-				  btup->ev_to, btup->level);
-
-		      // Show this in output
-		      if (switches.output == PROOF)
-			{
-			  indentPrint ();
-			  eprintf ("Expanding tuple goal ");
-			  termPrint (tupletermbuffer);
-			  eprintf (" into %i subgoals.\n", count);
-			}
-
-		      // iterate
-		      flag = iterate ();
-
-		      // undo
-		      goal_remove_last (count);
-		      btup->term = tupletermbuffer;
-		    }
-		}
-	      else
-		{
-		  // No tuple goals; good
-		  Binding b;
-
-		  /**
-		   * Not pruned: count
-		   */
-
-		  sys->states = statesIncrease (sys->states);
-		  sys->current_claim->states =
-		    statesIncrease (sys->current_claim->states);
-
-		  /**
-		   * Check whether its a final state (i.e. all goals bound)
-		   */
-
-		  b = (Binding) select_goal (sys);
-		  if (b == NULL)
-		    {
-		      /*
-		       * all goals bound, check for property
-		       */
-		      if (switches.output == PROOF)
-			{
-			  indentPrint ();
-			  eprintf ("All goals are now bound.\n");
-			}
-		      sys->claims = statesIncrease (sys->claims);
-		      sys->current_claim->count =
-			statesIncrease (sys->current_claim->count);
-		      flag = property_check (sys);
-		    }
-		  else
-		    {
-		      /*
-		       * bind this goal in all possible ways and iterate
-		       */
-		      flag = bind_goal_all_options (b);
-		    }
-		}
+	      // Go and pick a binding for iteration
+	      flag = iterateOneBinding ();
 	    }
 	  else
 	    {

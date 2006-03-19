@@ -7,6 +7,7 @@
 #include "type.h"
 #include "debug.h"
 #include "specialterm.h"
+#include "switches.h"
 
 /*
    Most General Unifier
@@ -123,15 +124,12 @@ termlistSubstReset (Termlist tl)
 int
 unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
 {
-  int proceed;
-
-  proceed = true;
   /* added for speed */
   t1 = deVar (t1);
   t2 = deVar (t2);
   if (t1 == t2)
     {
-      return proceed && callback (tl);
+      return callback (tl);
     }
 
   int callsubst (Termlist tl, Term t, Term tsubst)
@@ -155,12 +153,12 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
       if (isTermEqual (t1, t2))
 	{
 	  // Equal!
-	  return proceed && callback (tl);
+	  return callback (tl);
 	}
       else
 	{
 	  // Can never be fixed, no variables
-	  return proceed;
+	  return true;
 	}
     }
 
@@ -188,7 +186,7 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
 	  t1 = t2;
 	  t2 = t3;
 	}
-      return proceed && callsubst (tl, t1, t2);
+      return callsubst (tl, t1, t2);
     }
 
   /* symmetrical tests for single variable.
@@ -197,25 +195,25 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
   if (realTermVariable (t2))
     {
       if (termSubTerm (t1, t2) || !goodsubst (t2, t1))
-	return proceed;
+	return true;
       else
 	{
-	  return proceed && callsubst (tl, t2, t1);
+	  return callsubst (tl, t2, t1);
 	}
     }
   if (realTermVariable (t1))
     {
       if (termSubTerm (t2, t1) || !goodsubst (t1, t2))
-	return proceed;
+	return true;
       else
 	{
-	  return proceed && callsubst (tl, t1, t2);
+	  return callsubst (tl, t1, t2);
 	}
     }
 
   /* left & right are compounds with variables */
   if (t1->type != t2->type)
-    return proceed;
+    return true;
 
   /* identical compound types */
 
@@ -229,8 +227,7 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
 	return unify (TermOp (t1), TermOp (t2), tl, callback);
       }
 
-      return proceed
-	&& unify (TermKey (t1), TermKey (t2), tl, unify_combined_enc);
+      return unify (TermKey (t1), TermKey (t2), tl, unify_combined_enc);
     }
 
   /* tupling second
@@ -243,11 +240,10 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
 	// and we try the inner terms
 	return unify (TermOp2 (t1), TermOp2 (t2), tl, callback);
       }
-      return proceed
-	&& unify (TermOp1 (t1), TermOp1 (t2), tl, unify_combined_tup);
+      return unify (TermOp1 (t1), TermOp1 (t2), tl, unify_combined_tup);
     }
 
-  return proceed;
+  return true;
 }
 
 
@@ -286,24 +282,28 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
   proceed = proceed && unify (tbig, tsmall, tl, keycallback);
 
   // [2/3]: complex
-  // 2. interm unification
-  if (realTermTuple (tbig))
+  if (switches.intruder)
     {
-      proceed = proceed
-	&& subtermUnify (TermOp1 (tbig), tsmall, tl, keylist, callback);
-      proceed = proceed
-	&& subtermUnify (TermOp2 (tbig), tsmall, tl, keylist, callback);
-    }
+      // 2. interm unification
+      // Only if there is an intruder
+      if (realTermTuple (tbig))
+	{
+	  proceed = proceed
+	    && subtermUnify (TermOp1 (tbig), tsmall, tl, keylist, callback);
+	  proceed = proceed
+	    && subtermUnify (TermOp2 (tbig), tsmall, tl, keylist, callback);
+	}
 
-  // 3. unification with encryption needed
-  if (realTermEncrypt (tbig))
-    {
-      // extend the keylist
-      keylist = termlistAdd (keylist, tbig);
-      proceed = proceed
-	&& subtermUnify (TermOp (tbig), tsmall, tl, keylist, callback);
-      // remove last item again
-      keylist = termlistDelTerm (keylist);
+      // 3. unification with encryption needed
+      if (realTermEncrypt (tbig))
+	{
+	  // extend the keylist
+	  keylist = termlistAdd (keylist, tbig);
+	  proceed = proceed
+	    && subtermUnify (TermOp (tbig), tsmall, tl, keylist, callback);
+	  // remove last item again
+	  keylist = termlistDelTerm (keylist);
+	}
     }
   return proceed;
 }
