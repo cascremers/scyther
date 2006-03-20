@@ -83,6 +83,43 @@ termPrintRemap (const Term t)
   termPrintCustom (t, "", "", "(", ")", "\\{ ", " \\}", printVisualRun);
 }
 
+//! Print a term; if it is a variable, show that
+void
+explainVariable (Term t)
+{
+  t = deVar (t);
+  if (realTermVariable (t))
+    {
+      eprintf ("any ");
+      if (t->roleVar)
+	{
+	  eprintf ("agent ");
+	}
+      termPrintRemap (t);
+      if (!t->roleVar)
+	{
+	  if (switches.match == 0 && t->stype != NULL)
+	    {
+	      Termlist tl;
+
+	      eprintf (" of type ");
+	      for (tl = t->stype; tl != NULL; tl = tl->next)
+		{
+		  termPrintRemap (tl->term);
+		  if (tl->next != NULL)
+		    {
+		      eprintf (",");
+		    }
+		}
+	    }
+	}
+    }
+  else
+    {
+      termPrintRemap (t);
+    }
+}
+
 //! Draw node
 void
 node (const System sys, const int run, const int index)
@@ -598,14 +635,60 @@ drawClass (const System sys, Binding b)
   // not seen before: choose class
   eprintf ("\t");
   chooseTermNode (varterm);
-  eprintf (" [label=\"Any ");
-  termPrintRemap (varterm);
+  eprintf (" [label=\"");
+  explainVariable (varterm);
   eprintf ("\"];\n");
   eprintf ("\t");
   chooseTermNode (varterm);
   eprintf (" -> ");
   node (sys, b->run_to, b->ev_to);
   eprintf (" [weight=\"2.0\",arrowhead=\"none\",style=\"dotted\"];\n");
+}
+
+//! Print label of a regular->regular transition node (when comm. is not exact)
+/**
+ * Note that we ignore any label differences, these are left implicit
+ */
+void
+regularModifiedLabel (Binding b)
+{
+  Roledef rdfrom;
+  Roledef rdto;
+
+  rdfrom = eventRoledef (sys, b->run_from, b->ev_from);
+  rdto = eventRoledef (sys, b->run_to, b->ev_to);
+
+  // First up: compare messages contents'
+  if (!isTermEqual (rdfrom->message, b->term))
+    {
+      // What is sent is not equal to what is bound
+      if (termInTerm (rdfrom->message, b->term))
+	{
+	  // Interm: simple select
+	  eprintf ("select ");
+	  termPrint (b->term);
+	  eprintf ("\\n");
+	}
+      else
+	{
+	  // I'm not quite sure
+	  eprintf ("modify\\n");
+	}
+    }
+
+  // Second: agent things
+  if (!isTermEqual (rdfrom->from, rdto->from))
+    {
+      eprintf ("fake sender ");
+      termPrint (rdto->from);
+      eprintf ("\\n");
+    }
+  if (!isTermEqual (rdfrom->to, rdto->to))
+    {
+      eprintf ("redirect to ");
+      termPrint (rdto->to);
+      eprintf ("\\n");
+    }
 }
 
 //! Draw a single binding
@@ -697,15 +780,8 @@ drawBinding (const System sys, Binding b)
 	      redirNode (sys, b);
 	      eprintf (" [style=filled,fillcolor=\"");
 	      printColor (INTRUDERCOLORH, INTRUDERCOLORL, INTRUDERCOLORS);
-	      eprintf ("\",label=\"redirect");
-	      if (!isTermEqual
-		  (eventRoledef (sys, b->run_from, b->ev_from)->message,
-		   b->term))
-		{
-		  // Only explicitly mention redirect term when it differs from the sent term
-		  eprintf ("\\n");
-		  termPrintRemap (b->term);
-		}
+	      eprintf ("\",label=\"");
+	      regularModifiedLabel (b);
 	      eprintf ("\"]");
 	      eprintf (";\n");
 
@@ -752,34 +828,6 @@ drawAllBindings (const System sys)
     }
   return fromintr;
 }
-
-//! Nicely format the role and agents we think we're talking to.
-void
-agentsOfRunPrintOthers (const System sys, const int run)
-{
-  Term role = sys->runs[run].role->nameterm;
-  Termlist roles = sys->runs[run].protocol->rolenames;
-
-  while (roles != NULL)
-    {
-      if (!isTermEqual (role, roles->term))
-	{
-	  Term agent;
-
-	  termPrintRemap (roles->term);
-	  eprintf (" is ");
-	  agent = agentOfRunRole (sys, run, roles->term);
-	  if (isTermVariable (agent))
-	    {
-	      eprintf ("any ");
-	    }
-	  termPrintRemap (agent);
-	  eprintf ("\\l");
-	}
-      roles = roles->next;
-    }
-}
-
 
 
 //! Draw regular runs
@@ -931,11 +979,7 @@ drawRegularRuns (const System sys)
 				rolename = sys->runs[run].role->nameterm;
 				agentname =
 				  agentOfRunRole (sys, run, rolename);
-				if (isTermVariable (agentname))
-				  {
-				    eprintf ("Any agent ");
-				  }
-				termPrintRemap (agentname);
+				explainVariable (agentname);
 				eprintf (" in role ");
 				termPrintRemap (rolename);
 				eprintf ("\\l");
@@ -1018,39 +1062,10 @@ drawRegularRuns (const System sys)
 				  {
 				    if (termOccursInRun (tnew, run))
 				      {
-					Term t;
-
 					// Variables are mapped, maybe. But then we wonder whether they occur in reads.
 					termPrintRemap (told);
-					t = deVar (tnew);
 					eprintf (" : ");
-					if (realTermVariable (t))
-					  {
-					    eprintf ("any ");
-					    termPrintRemap (t);
-					    if ((!t->roleVar)
-						&& switches.match == 0
-						&& t->stype != NULL)
-					      {
-						Termlist tl;
-
-						eprintf (" of type ");
-						for (tl = t->stype;
-						     tl != NULL;
-						     tl = tl->next)
-						  {
-						    termPrintRemap (tl->term);
-						    if (tl->next != NULL)
-						      {
-							eprintf (",");
-						      }
-						  }
-					      }
-					  }
-					else
-					  {
-					    termPrintRemap (t);
-					  }
+					explainVariable (tnew);
 				      }
 				    else
 				      {
@@ -1189,85 +1204,6 @@ drawIntruderRuns (const System sys)
 	}
     }
   //eprintf ("\t}\n\n");
-}
-
-//! Show intruder choices
-void
-drawIntruderChoices (const System sys)
-{
-  Termlist shown;
-  List bl;
-
-  shown = NULL;
-  for (bl = sys->bindings; bl != NULL; bl = bl->next)
-    {
-      Binding b;
-
-      b = (Binding) bl->data;
-      if ((!b->blocked) && (!b->done) && isTermVariable (b->term))
-	{
-	  /*
-	   * If the binding is not blocked, but also not done,
-	   * the intruder can apparently satisfy it at will.
-	   */
-
-	  if (!inTermlist (shown, b->term))
-	    {
-	      int firsthere (int run, int ev)
-	      {
-					/**
-					 * @todo This is not very efficient,
-					 * but maybe that is not really
-					 * needed here.
-					 */
-		int notearlier (int run2, int ev2)
-		{
-		  if (sys->runs[run2].protocol != INTRUDER)
-		    {
-		      return (!roledefSubTerm
-			      (eventRoledef (sys, run2, ev2), b->term));
-		    }
-		  else
-		    {
-		      return true;
-		    }
-		}
-
-		if (iteratePrecedingEvents (sys, notearlier, run, ev))
-		  {
-		    eprintf ("\t");
-		    chooseTermNode (b->term);
-		    eprintf (" -> ");
-		    node (sys, run, ev);
-		    eprintf (" [color=\"darkgreen\"];\n");
-		  }
-		return true;
-	      }
-
-	      // If the first then we add a header
-	      if (shown == NULL)
-		{
-		  eprintf ("// Showing intruder choices.\n");
-		}
-	      // Not in the list, show new node
-	      shown = termlistAdd (shown, b->term);
-	      eprintf ("\t");
-	      chooseTermNode (b->term);
-	      eprintf (" [label=\"Class: any ");
-	      termPrintRemap (b->term);
-	      eprintf ("\",color=\"darkgreen\"];\n");
-
-	      iterate_first_regular_occurrences (sys, firsthere, b->term);
-	    }
-	}
-
-    }
-
-  if (shown != NULL)
-    {
-      eprintf ("\n");
-    }
-  termlistDelete (shown);
 }
 
 
@@ -1421,9 +1357,6 @@ dotSemiState (const System mysys)
 	}
     }
 #endif
-
-  // Intruder choices
-  //drawIntruderChoices (sys);
 
   // Ranks
   //showRanks (sys, maxrank, ranks);
