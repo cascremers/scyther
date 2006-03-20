@@ -513,17 +513,14 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  /* 
-	   * Deprecated : use --untyped instead
-	   *
-	   helptext ("-m, --match=<int>",
-	   "type matching method [0] 0: No type-flaws allowed, 1: Allow basic type-flaws only, 2: Allow all type-flaws");
-	   */
+	  if (switches.expert)
+	    {
+	      helptext ("-m, --match=<int>",
+			"type matching method [0] 0: No type-flaws allowed, 1: Allow basic type-flaws only, 2: Allow all type-flaws (not complete for this beta)");
+	    }
 	}
       else
 	{
-	  warning
-	    ("'-m, --match' switch has been deprecated. Use '-u, --untyped' instead.");
 	  switches.match = integer_argument ();
 	  return index;
 	}
@@ -533,7 +530,10 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-u, --untyped", "Consider all variables to be untyped");
+	  /* unadvisable, implicit m2 whilst we will need m1 */
+	  /*
+	     helptext ("-u, --untyped", "Consider all variables to be untyped");
+	   */
 	}
       else
 	{
