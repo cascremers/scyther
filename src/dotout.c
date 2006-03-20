@@ -666,7 +666,7 @@ regularModifiedLabel (Binding b)
 	{
 	  // Interm: simple select
 	  eprintf ("select ");
-	  termPrint (b->term);
+	  termPrintRemap (b->term);
 	  eprintf ("\\n");
 	}
       else
@@ -680,13 +680,13 @@ regularModifiedLabel (Binding b)
   if (!isTermEqual (rdfrom->from, rdto->from))
     {
       eprintf ("fake sender ");
-      termPrint (rdto->from);
+      termPrintRemap (rdto->from);
       eprintf ("\\n");
     }
   if (!isTermEqual (rdfrom->to, rdto->to))
     {
       eprintf ("redirect to ");
-      termPrint (rdto->to);
+      termPrintRemap (rdto->to);
       eprintf ("\\n");
     }
 }
@@ -792,7 +792,7 @@ drawBinding (const System sys, Binding b)
 
 //! Draw dependecies (including intruder!)
 /**
- * Returns from_intruder_count
+ * Returns from_intruder_count (from M_0)
  */
 int
 drawAllBindings (const System sys)
@@ -817,7 +817,10 @@ drawAllBindings (const System sys)
 	      // from intruder?
 	      if (sys->runs[b->run_from].protocol == INTRUDER)
 		{
-		  fromintr++;
+		  if (sys->runs[b->run_from].role == I_M)
+		    {
+		      fromintr++;
+		    }
 		}
 	    }
 	  else
@@ -1119,7 +1122,7 @@ drawRegularRuns (const System sys)
 				  showLocals (sys->runs[run].role->
 					      declaredconsts,
 					      sys->runs[run].constants, NULL,
-					      ",");
+					      ", ");
 				  eprintf ("\\l");
 				}
 			      if (sys->runs[run].sigma != NULL)
