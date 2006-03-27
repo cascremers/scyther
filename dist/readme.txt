@@ -2,7 +2,7 @@
 
 				Scyther
 
-			       1.0-beta1
+			       1.0-beta2
 
 	       a verification tool for security protocols
 			     by Cas Cremers
@@ -62,7 +62,7 @@ the following information:
 
 @misc{wwwscyther,
   Author = "C.J.F. Cremers",
-  Title  = "Scyther security protocol verification tool: documentation",
+  Title  = "Scyther : Automated Verification of Security Protocols",
   Note   = "\url{http://www.win.tue.nl/~ccremers/scyther}",
   url    = "http://www.win.tue.nl/~ccremers/scyther"
 }
