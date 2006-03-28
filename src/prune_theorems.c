@@ -210,32 +210,13 @@ prune_theorems (const System sys)
    */
   if (switches.extravert)
     {
-      int run;
-
-      for (run = 0; run < sys->maxruns; run++)
+      if (selfInitiators (sys) > 0)
 	{
-	  // Check this run only if it is an initiator role
-	  if (sys->runs[run].role->initiator)
-	    {
-	      // Check this initiator run
-	      Termlist tl;
-	      Termlist found;
-
-	      found = NULL;
-	      for (tl = sys->runs[run].rho; tl != NULL; tl = tl->next)
-		{
-		  if (inTermlist (found, tl->term))
-		    {
-		      // XXX TODO
-		      // Still need to fix proof output for this
-		      //
-		      // Pruning because some agents are equal for this role.
-		      return true;
-		    }
-		  found = termlistAdd (found, tl->term);
-		}
-	      termlistDelete (found);
-	    }
+	  // XXX TODO
+	  // Still need to fix proof output for this
+	  //
+	  // Pruning because some agents are equal for this role.
+	  return true;
 	}
     }
 
