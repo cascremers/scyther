@@ -212,36 +212,29 @@ prune_theorems (const System sys)
     {
       int run;
 
-      run = 0;
-      while (run < sys->maxruns)
+      for (run = 0; run < sys->maxruns; run++)
 	{
 	  // Check this run only if it is an initiator role
 	  if (sys->runs[run].role->initiator)
 	    {
 	      // Check this initiator run
 	      Termlist tl;
+	      Termlist found;
 
-	      tl = sys->runs[run].rho;
-	      while (tl != NULL)
+	      found = NULL;
+	      for (tl = sys->runs[run].rho; tl != NULL; tl = tl->next)
 		{
-		  Termlist tlscan;
-
-		  tlscan = tl->next;
-		  while (tlscan != NULL)
+		  if (inTermlist (found, tl->term))
 		    {
-		      if (isTermEqual (tl->term, tlscan->term))
-			{
-			  // XXX TODO
-			  // Still need to fix proof output for this
-			  //
-			  // Pruning because some agents are equal for this role.
-			  return true;
-			}
-		      tlscan = tlscan->next;
+		      // XXX TODO
+		      // Still need to fix proof output for this
+		      //
+		      // Pruning because some agents are equal for this role.
+		      return true;
 		    }
-		  tl = tl->next;
+		  found = termlistAdd (found, tl->term);
 		}
-	      run++;
+	      termlistDelete (found);
 	    }
 	}
     }
