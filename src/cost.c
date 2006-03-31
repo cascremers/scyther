@@ -34,6 +34,7 @@ attackCost (const System sys)
 
   cost += get_semitrace_length ();
   cost += 8 * selfInitiators (sys);
+  cost += 4 * selfResponders (sys);
 
   return cost;
 }

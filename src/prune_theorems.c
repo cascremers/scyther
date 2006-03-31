@@ -208,9 +208,21 @@ prune_theorems (const System sys)
    * initiators. We still allow it for responder runs, because we assume the
    * responder is not checking this.
    */
-  if (switches.extravert)
+  if (switches.initUnique)
     {
       if (selfInitiators (sys) > 0)
+	{
+	  // XXX TODO
+	  // Still need to fix proof output for this
+	  //
+	  // Pruning because some agents are equal for this role.
+	  return true;
+	}
+    }
+
+  if (switches.respUnique)
+    {
+      if (selfResponders (sys) > 0)
 	{
 	  // XXX TODO
 	  // Still need to fix proof output for this

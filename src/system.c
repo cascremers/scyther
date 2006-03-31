@@ -1399,6 +1399,82 @@ eventRoledef (const System sys, const int run, const int ev)
   return roledef_shift (sys->runs[run].start, ev);
 }
 
+//! determine whether a run talks to itself
+int
+selfSession (const System sys, const int run)
+{
+  int self_session;
+  Termlist agents;
+  Termlist seen;
+
+  if (sys->runs[run].protocol == INTRUDER)
+    {
+      // Intruder has no self sessions
+      return false;
+    }
+
+  self_session = false;
+
+  agents = sys->runs[run].rho;
+  seen = NULL;
+  while (agents != NULL)
+    {
+      Term agent;
+
+      agent = deVar (agents->term);
+      if (inTermlist (seen, agent))
+	{
+	  // This agent was already in the seen list
+	  self_session = true;
+	}
+      else
+	{
+	  seen = termlistAdd (seen, agent);
+	}
+      agents = agents->next;
+    }
+  termlistDelete (seen);
+
+  return self_session;
+}
+
+//! determine whether a run is a so-called self-responder
+/**
+ * Alice starting a run with Bob, Charlie, Bob is also counted as self-response.
+ */
+int
+selfResponder (const System sys, const int run)
+{
+  if (sys->runs[run].role->initiator)
+    {
+      return false;
+    }
+  else
+    {
+      return selfSession (sys, run);
+    }
+}
+
+//! Count the number of any self-responders
+int
+selfResponders (const System sys)
+{
+  int count;
+  int run;
+
+  count = 0;
+  run = 0;
+  while (run < sys->maxruns)
+    {
+      if (selfInitiator (sys, run))
+	{
+	  count++;
+	}
+      run++;
+    }
+  return count;
+}
+
 //! determine whether a run is a so-called self-initiator
 /**
  * Alice starting a run with Bob, Charlie, Bob is also counted as self-initiation.
@@ -1406,36 +1482,14 @@ eventRoledef (const System sys, const int run, const int ev)
 int
 selfInitiator (const System sys, const int run)
 {
-  int self_initiator;
-
-  self_initiator = false;
   if (sys->runs[run].role->initiator)
     {
-      // An initiator
-      Termlist agents;
-      Termlist seen;
-
-      agents = sys->runs[run].rho;
-      seen = NULL;
-      while (agents != NULL)
-	{
-	  Term agent;
-
-	  agent = agents->term;
-	  if (inTermlist (seen, agent))
-	    {
-	      // This agent was already in the seen list
-	      self_initiator = true;
-	    }
-	  else
-	    {
-	      seen = termlistAdd (seen, agent);
-	    }
-	  agents = agents->next;
-	}
-      termlistDelete (seen);
+      return selfSession (sys, run);
     }
-  return self_initiator;
+  else
+    {
+      return false;
+    }
 }
 
 //! Count the number of any self-initiators

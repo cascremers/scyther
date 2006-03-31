@@ -51,7 +51,8 @@ switchesInit (int argc, char **argv)
   switches.maxIntruderActions = INT_MAX;	// max number of encrypt/decrypt events
   switches.agentTypecheck = 1;	// default do check agent types
   switches.concrete = true;	// default removes symbols, and makes traces concrete
-  switches.extravert = false;	// default allows also initiator Alice to talk to Alice
+  switches.initUnique = false;	// default allows initiator rho to contain duplicate terms
+  switches.respUnique = false;	// default allows responder rho to contain duplicate terms
   switches.intruder = true;	// default allows an intruder
 
   // Misc
@@ -812,7 +813,40 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  switches.extravert = true;
+	  switches.initUnique = true;
+	  switches.respUnique = true;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "init-unique", 0))
+    {
+      if (!process)
+	{
+	  /* discourage: hide
+	   *
+	   * Finds only attacks which exclude initiator Alice talking to Alice
+	   */
+	}
+      else
+	{
+	  switches.initUnique = true;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "resp-unique", 0))
+    {
+      if (!process)
+	{
+	  /* discourage: hide
+	   *
+	   * Finds only attacks which exclude initiator Alice talking to Alice
+	   */
+	}
+      else
+	{
+	  switches.respUnique = true;
 	  return index;
 	}
     }

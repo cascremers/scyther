@@ -31,7 +31,8 @@ struct switchdata
   int maxIntruderActions;	//!< Maximum number of intruder actions in the semitrace (encrypt/decrypt)
   int agentTypecheck;		//!< Check type of agent variables in all matching modes
   int concrete;			//!< Swap out variables at the end.
-  int extravert;		//!< Disallow Alice talking to Alice
+  int initUnique;		//!< Default allows duplicate terms in rho (init) 
+  int respUnique;		//!< Default allows duplicate terms in rho (resp)
   int intruder;			//!< Enable intruder actions (default)
 
   // Misc
