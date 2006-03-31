@@ -1426,6 +1426,7 @@ selfSession (const System sys, const int run)
 	{
 	  // This agent was already in the seen list
 	  self_session = true;
+	  break;
 	}
       else
 	{
@@ -1466,7 +1467,7 @@ selfResponders (const System sys)
   run = 0;
   while (run < sys->maxruns)
     {
-      if (selfInitiator (sys, run))
+      if (selfResponder (sys, run))
 	{
 	  count++;
 	}

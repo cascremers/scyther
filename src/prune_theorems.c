@@ -410,6 +410,15 @@ prune_theorems (const System sys)
 	    }
 	}
 
+      // To be on the safe side, we currently limit the encryption level to two. This is not a problem for known attacks, but should be addressed more carefully at some point.
+      /**
+       * @todo Fix untyped variables reasoning
+       */
+      if (term_encryption_level (b->term) > 2)
+	{
+	  return true;
+	}
+
       /**
        * Prune on the basis of hidelevel lemma
        */

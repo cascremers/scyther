@@ -1,3 +1,7 @@
+- De-classification does not work as desired. The name Alice is used
+  even if it already occurs somehwere in the system, which is not what
+  we want.
+- Heuristic could also punish more initiators.
 - If no attack/state output is needed, maybe the attack heuristic should
   be simpler (which means just weighting the trace length etc.) in order
   to avoid uneccesary continuation of the search. Maybe even stop
