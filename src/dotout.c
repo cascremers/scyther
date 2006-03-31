@@ -63,15 +63,30 @@ void
 printVisualRun (int rid)
 {
   int run;
+  int displayi;
+  int displayr;
   int display;
 
-  display = 1;
+  displayi = 0;
+  displayr = 0;
   for (run = 0; run < rid; run++)
     {
       if (sys->runs[run].protocol != INTRUDER)
 	{
-	  display++;
+	  displayr++;
 	}
+      else
+	{
+	  displayi++;
+	}
+    }
+  if (sys->runs[rid].protocol == INTRUDER)
+    {
+      display = sys->maxruns + displayi + 1;
+    }
+  else
+    {
+      display = displayr + 1;
     }
   eprintf ("#%i", display);
 }

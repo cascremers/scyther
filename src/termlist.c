@@ -520,11 +520,13 @@ termlistAddRealVariables (Termlist tl, Term t)
 Termlist
 termlistAddBasic (Termlist tl, Term t)
 {
+  t = deVar (t);
+
   if (t == NULL)
     return tl;
-  if (!isTermLeaf (t))
+  if (!realTermLeaf (t))
     {
-      if (isTermEncrypt (t))
+      if (realTermEncrypt (t))
 	return termlistAddBasic (termlistAddBasic (tl, TermOp (t)),
 				 TermKey (t));
       else

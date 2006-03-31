@@ -1732,6 +1732,36 @@ createNewTermGeneric (Termlist tl, Term t)
   return termlistPrepend (tl, newterm);
 }
 
+//! Construct a list of already used constants
+Termlist
+findUsedConstants (const System sys)
+{
+  int run;
+  Termlist tl;
+  Termlist tlconst;
+
+  tl = NULL;
+  tlconst = NULL;
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      tl = termlistAddBasics (tl, sys->runs[run].rho);
+      tl = termlistAddBasics (tl, sys->runs[run].sigma);
+    }
+  while (tl != NULL)
+    {
+      Term t;
+
+      t = tl->term;
+      if (!realTermVariable (t))
+	{
+	  tlconst = termlistAddNew (tlconst, t);
+	}
+      tl = tl->next;
+    }
+  termlistDelete (tl);
+  return tlconst;
+}
+
 //! Create a new term with incremented run rumber, starting at sys->maxruns.
 /**
  * This is a rather intricate function that tries to generate new terms of a
@@ -1812,7 +1842,7 @@ makeTraceConcrete (const System sys)
   int run;
 
   changedvars = NULL;
-  tlnew = NULL;
+  tlnew = findUsedConstants (sys);
   run = 0;
 
   while (run < sys->maxruns)
