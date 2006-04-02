@@ -588,3 +588,23 @@ bindings_c_minimal ()
   }
   return true;
 }
+
+//! Count the number of bindings that are done.
+int
+countBindingsDone ()
+{
+  int count;
+
+  int countDone (Binding b)
+  {
+    if (b->done)
+      {
+	count++;
+      }
+    return true;
+  }
+
+  count = 0;
+  iterate_bindings (countDone);
+  return count;
+}

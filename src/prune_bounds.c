@@ -17,8 +17,6 @@ extern int attack_leastcost;
 extern Protocol INTRUDER;
 extern int proofDepth;
 extern int max_encryption_level;
-extern int num_regular_runs;
-extern int num_intruder_runs;
 
 //! Prune determination for bounds
 /**
@@ -92,13 +90,14 @@ prune_bounds (const System sys)
 	}
     }
 
-  if (num_regular_runs > switches.runs)
+  if (sys->num_regular_runs > switches.runs)
     {
       // Hardcoded limit on runs
       if (switches.output == PROOF)
 	{
 	  indentPrint ();
-	  eprintf ("Pruned: too many regular runs (%i).\n", num_regular_runs);
+	  eprintf ("Pruned: too many regular runs (%i).\n",
+		   sys->num_regular_runs);
 	}
       return 1;
     }
@@ -111,7 +110,7 @@ prune_bounds (const System sys)
   if (switches.experimental & 1)
     {
       if ((switches.match < 2)
-	  && (num_intruder_runs >
+	  && (sys->num_intruder_runs >
 	      ((double) switches.runs * max_encryption_level * 8)))
 	{
 	  // Hardcoded limit on iterations
@@ -120,7 +119,7 @@ prune_bounds (const System sys)
 	      indentPrint ();
 	      eprintf
 		("Pruned: %i intruder runs is too much. (max encr. level %i)\n",
-		 num_intruder_runs, max_encryption_level);
+		 sys->num_intruder_runs, max_encryption_level);
 	    }
 	  return 1;
 	}

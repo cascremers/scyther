@@ -48,5 +48,6 @@ int iterate_preceding_bindings (const int run, const int ev,
 				int (*func) (Binding b));
 
 int bindings_c_minimal ();
+int countBindingsDone ();
 
 #endif

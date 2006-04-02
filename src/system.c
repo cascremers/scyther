@@ -107,6 +107,8 @@ systemReset (const System sys)
 
   termlistDestroy (sys->secrets);	// remove old secrets list
   sys->secrets = NULL;		// list of claimed secrets
+  sys->num_intruder_runs = 0;	// number of intruder runs
+  sys->num_regular_runs = 0;	// number of regular runs
 
   /* transfer switches */
   sys->maxtracelength = switches.maxtracelength;

@@ -32,10 +32,14 @@ attackCost (const System sys)
 
   cost = 0;
 
-  cost += get_semitrace_length ();
-  cost += 8 * selfInitiators (sys);
-  cost += 4 * selfResponders (sys);
-  cost += 2 * countInitiators (sys);
+  //cost += get_semitrace_length ();
+
+  cost += 10 * selfInitiators (sys);
+  cost += 7 * selfResponders (sys);
+  cost += 4 * sys->num_regular_runs;
+  cost += 3 * countInitiators (sys);
+  cost += 2 * countBindingsDone ();
+  cost += 1 * sys->num_intruder_runs;
 
   return cost;
 }

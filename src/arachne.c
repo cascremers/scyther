@@ -57,8 +57,6 @@ Role I_RRSD;			//!< Decrypt role of the intruder
 
 int proofDepth;			//!< Current depth of the proof
 int max_encryption_level;	//!< Maximum encryption level of any term
-int num_regular_runs;		//!< Current number of regular runs
-int num_intruder_runs;		//!< Current number of intruder runs
 
 static int indentDepth;
 static int prevIndentDepth;
@@ -132,8 +130,8 @@ arachneInit (const System mysys)
   add_event (SEND, NULL);
   I_RRSD = add_role ("I_D: Decrypt");
 
-  num_regular_runs = 0;
-  num_intruder_runs = 0;
+  sys->num_regular_runs = 0;
+  sys->num_intruder_runs = 0;
   max_encryption_level = 0;
 
   indentDepth = 0;
@@ -309,9 +307,9 @@ semiRunCreate (const Protocol p, const Role r)
   int run;
 
   if (p == INTRUDER)
-    num_intruder_runs++;
+    sys->num_intruder_runs++;
   else
-    num_regular_runs++;
+    sys->num_regular_runs++;
 #ifdef DEBUG
   if (DEBUGL (5))
     {
@@ -341,9 +339,9 @@ semiRunDestroy ()
       p = sys->runs[sys->maxruns - 1].protocol;
       roleInstanceDestroy (sys);
       if (p == INTRUDER)
-	num_intruder_runs--;
+	sys->num_intruder_runs--;
       else
-	num_regular_runs--;
+	sys->num_regular_runs--;
     }
 }
 
@@ -2277,8 +2275,8 @@ arachne ()
       error ("Something is wrong, number of runs >0.");
     }
 
-  num_regular_runs = 0;
-  num_intruder_runs = 0;
+  sys->num_regular_runs = 0;
+  sys->num_intruder_runs = 0;
 
   max_encryption_level = 0;
   iterate_role_events (determine_encrypt_max);
