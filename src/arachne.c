@@ -1706,7 +1706,7 @@ createNewTermGeneric (Termlist tl, Term t)
   Term newterm;
 
   /* Determine first free number */
-  freenumber = 0;
+  freenumber = sys->maxruns;
   tlscan = tl;
   while (tlscan != NULL)
     {
@@ -1831,6 +1831,8 @@ deleteNewTerm (Term t)
 /**
  * People find reading variables in attack outputs difficult.
  * Thus, we instantiate them in a sensible way to make things more readable.
+ *
+ * This happens after sys->maxruns is fixed. Intruder constants thus are numbered from sys->maxruns onwards.
  *
  * \sa makeTraceClass
  */

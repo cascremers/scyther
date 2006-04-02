@@ -67,28 +67,37 @@ printVisualRun (int rid)
   int displayr;
   int display;
 
-  displayi = 0;
-  displayr = 0;
-  for (run = 0; run < rid; run++)
+  if (rid < sys->maxruns)
     {
-      if (sys->runs[run].protocol != INTRUDER)
+      // < sys->maxruns means normal thing (not from makeTraceConcrete)
+      displayi = 0;
+      displayr = 0;
+      for (run = 0; run < rid; run++)
 	{
-	  displayr++;
+	  if (sys->runs[run].protocol != INTRUDER)
+	    {
+	      displayr++;
+	    }
+	  else
+	    {
+	      displayi++;
+	    }
+	}
+      if (sys->runs[rid].protocol == INTRUDER)
+	{
+	  display = sys->maxruns + displayi + 1;
 	}
       else
 	{
-	  displayi++;
+	  display = displayr + 1;
 	}
-    }
-  if (sys->runs[rid].protocol == INTRUDER)
-    {
-      display = sys->maxruns + displayi + 1;
+      eprintf ("#%i", display);
     }
   else
     {
-      display = displayr + 1;
+      // >= sys->maxruns means intruder choice
+      eprintf ("%i", (rid - sys->maxruns + 1));
     }
-  eprintf ("#%i", display);
 }
 
 //! Remap term stuff
