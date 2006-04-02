@@ -201,6 +201,7 @@ int iterateLocalToOther (const System sys, const int myrun,
 			 int (*callback) (Term t));
 int firstOccurrence (const System sys, const int r, Term t, int evtype);
 Roledef eventRoledef (const System sys, const int run, const int ev);
+int countInitiators (const System sys);
 int selfResponder (const System sys, const int run);
 int selfResponders (const System sys);
 int selfInitiator (const System sys, const int run);

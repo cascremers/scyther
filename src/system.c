@@ -1399,6 +1399,24 @@ eventRoledef (const System sys, const int run, const int ev)
   return roledef_shift (sys->runs[run].start, ev);
 }
 
+//! count the number of initiators
+int
+countInitiators (const System sys)
+{
+  int run;
+  int count;
+
+  count = 0;
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      if (sys->runs[run].role->initiator)
+	{
+	  count++;
+	}
+    }
+  return count;
+}
+
 //! determine whether a run talks to itself
 int
 selfSession (const System sys, const int run)
