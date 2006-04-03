@@ -36,7 +36,7 @@ attackCost (const System sys)
 
   cost += 10 * selfInitiators (sys);
   cost += 7 * selfResponders (sys);
-  cost += 4 * sys->num_regular_runs;
+  cost += 10 * sys->num_regular_runs;
   cost += 3 * countInitiators (sys);
   cost += 2 * countBindingsDone ();
   cost += 1 * sys->num_intruder_runs;

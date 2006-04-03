@@ -597,7 +597,7 @@ countBindingsDone ()
 
   int countDone (Binding b)
   {
-    if (b->done)
+    if ((!b->blocked) && b->done)
       {
 	count++;
       }
