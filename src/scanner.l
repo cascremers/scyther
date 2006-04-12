@@ -7,6 +7,7 @@
 #include "pheading.h"
 #include "memory.h"
 #include "tac.h"
+#include "switches.h"
 
 /* tokens for language */
 #include "parser.h"
@@ -47,7 +48,38 @@ integer		{digit}+
 text		\"({ascii_char}|{escaped_char})*\"
 id		@?({letter}|{digit}|[\^\-])+
 
+/* the "incl" state is used for picking up the name of an include file
+ */
+%x incl inclend
 %%
+include		BEGIN(incl);
+<incl>[ \t]*\"	/* eat the whitespace */
+<incl>[^\"]+	{ /* got the include file name */
+			/* try to open, using scytherdirs environment variable as well. */
+			yyin = openFileSearch (yytext, NULL);
+			if (! yyin)
+			{
+				error ("Could not open include file %s.", yytext);
+			}
+			yypush_buffer_state(yy_create_buffer(yyin, YY_BUF_SIZE ));
+			BEGIN(INITIAL);
+		}
+
+<inclend>\";?	{ /* eat the closing things */
+			BEGIN(INITIAL);
+		}
+
+<INITIAL><<EOF>>	{
+			yypop_buffer_state();
+			if (! YY_CURRENT_BUFFER )
+			{
+				yyterminate();
+			}
+			else
+			{
+				BEGIN(inclend);
+			}
+		}
 
 "/*"		{
 			register int c;

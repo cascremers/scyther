@@ -61,4 +61,6 @@ struct switchdata
 
 extern struct switchdata switches;	//!< pointer to switchdata structure
 
+FILE *openFileSearch (char *filename, FILE * reopener);
+
 #endif

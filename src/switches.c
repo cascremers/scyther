@@ -92,12 +92,14 @@ switchesDone (void)
 {
 }
 
-//! Open a (protocol) file instead of stdin
+//! Open a (protocol) file.
 /**
  * Uses the environment variable SCYTHERDIR to also search for files
+ *
+ * If reopener == NULL then we open a new file pointer, otherwise reopen this one.
  */
-int
-openFileStdin (char *filename)
+FILE *
+openFileSearch (char *filename, FILE * reopener)
 {
   const char *separators = ":;\n";
   char *dirs;
@@ -139,9 +141,20 @@ openFileStdin (char *filename)
       }
 
     // Now try to open it
-    if (freopen (buffer, "r", stdin) != NULL)
+    if (reopener != NULL)
       {
-	result = true;
+	if (freopen (buffer, "r", reopener) != NULL)
+	  {
+	    result = true;
+	  }
+      }
+    else
+      {
+	reopener = fopen (buffer, "r");
+	if (reopener != NULL)
+	  {
+	    result = true;
+	  }
       }
 
     free (buffer);
@@ -152,7 +165,7 @@ openFileStdin (char *filename)
 
   if (try (""))
     {
-      return true;
+      return reopener;
     }
 
   // Now try the environment variable
@@ -164,7 +177,7 @@ openFileStdin (char *filename)
 	  // try this one
 	  if (try (dirs))
 	    {
-	      return true;
+	      return reopener;
 	    }
 	  // skip to next
 	  dirs = strpbrk (dirs, separators);
@@ -181,7 +194,21 @@ openFileStdin (char *filename)
     }
 
   // Nope
-  return false;
+  return NULL;
+}
+
+//! Open a (protocol) file instead of stdin
+int
+openFileStdin (char *filename)
+{
+  if (openFileSearch (filename, stdin) == NULL)
+    {
+      return false;
+    }
+  else
+    {
+      return true;
+    }
 }
 
 //! Process a single switch or generate help text
