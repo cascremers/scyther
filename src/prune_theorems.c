@@ -410,12 +410,20 @@ prune_theorems (const System sys)
 	    }
 	}
 
-      // To be on the safe side, we currently limit the encryption level to two. This is not a problem for known attacks, but should be addressed more carefully at some point.
+      // To be on the safe side, we currently limit the encryption level. This is not a problem for known attacks, but should be addressed more carefully at some point.
       /**
        * @todo Fix untyped variables reasoning
        */
-      if (term_encryption_level (b->term) > 2)
+      if (term_encryption_level (b->term) > max_encryption_level)
 	{
+	  // Prune: we do not need to construct such terms
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("Pruned because the encryption level of ");
+	      termPrint (b->term);
+	      eprintf (" is too high.\n");
+	    }
 	  return true;
 	}
 

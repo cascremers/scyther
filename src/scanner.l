@@ -5,7 +5,6 @@
 
 #include <strings.h>
 #include "pheading.h"
-#include "memory.h"
 #include "tac.h"
 #include "switches.h"
 
