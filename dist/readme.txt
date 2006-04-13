@@ -2,7 +2,7 @@
 
 				Scyther
 
-			       1.0-beta2
+			       1.0-beta3
 
 	       a verification tool for security protocols
 			     by Cas Cremers
