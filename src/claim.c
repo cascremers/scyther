@@ -569,21 +569,24 @@ arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs)
 
       // Main
       linfo = label_find (sys->labellist, labels->term);
-      rd_send = get_label_event (linfo->sendrole, labels->term);
-      rd_read = get_label_event (linfo->readrole, labels->term);
+      if (!linfo->ignore)
+	{
+	  rd_send = get_label_event (linfo->sendrole, labels->term);
+	  rd_read = get_label_event (linfo->readrole, labels->term);
 
-      if (rd_send == NULL || rd_read == NULL)
-	{
-	  // False!
-	  flag = 0;
-	}
-      else
-	{
-	  // Compare
-	  if (events_match_rd (rd_send, rd_read) != MATCH_CONTENT)
+	  if (rd_send == NULL || rd_read == NULL)
 	    {
 	      // False!
 	      flag = 0;
+	    }
+	  else
+	    {
+	      // Compare
+	      if (events_match_rd (rd_send, rd_read) != MATCH_CONTENT)
+		{
+		  // False!
+		  flag = 0;
+		}
 	    }
 	}
 

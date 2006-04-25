@@ -8,17 +8,43 @@
 #include "list.h"
 #include "system.h"
 
+//! Retrieve rightmost thing of label
+Term
+rightMostTerm (Term t)
+{
+  if (t != NULL)
+    {
+      t = deVar (t);
+      if (realTermTuple (t))
+	{
+	  return rightMostTerm (TermOp2 (t));
+	}
+    }
+  return t;
+}
+
 //! Create a new labelinfo node
 Labelinfo
 label_create (const Term label, const Protocol protocol)
 {
   Labelinfo li;
+  Term tl;
 
   li = (Labelinfo) malloc (sizeof (struct labelinfo));
   li->label = label;
   li->protocol = protocol;
   li->sendrole = NULL;
   li->readrole = NULL;
+  // Should we ignore it?
+  li->ignore = false;
+  tl = rightMostTerm (label);
+  if (tl != NULL)
+    {
+      if (TermSymb (tl)->text[0] == '!')
+	{
+	  li->ignore = true;
+	}
+    }
   return li;
 }
 

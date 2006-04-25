@@ -343,16 +343,19 @@ labels_ordered (Termmap runs, Termlist labels)
       }
 
       linfo = label_find (sys->labellist, labels->term);
-      send_run = termmapGet (runs, linfo->sendrole);
-      read_run = termmapGet (runs, linfo->readrole);
-      send_ev = get_index (send_run);
-      read_ev = get_index (read_run);
-      if (!isDependEvent (send_run, send_ev, read_run, read_ev))
+      if (!linfo->ignore)
 	{
-	  // Not ordered; false
-	  return false;
-	}
+	  send_run = termmapGet (runs, linfo->sendrole);
+	  read_run = termmapGet (runs, linfo->readrole);
+	  send_ev = get_index (send_run);
+	  read_ev = get_index (read_run);
+	  if (!isDependEvent (send_run, send_ev, read_run, read_ev))
+	    {
+	      // Not ordered; false
+	      return false;
+	    }
 
+	}
       // Proceed
       labels = labels->next;
     }

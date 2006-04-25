@@ -45,7 +45,7 @@ ascii_char	[^\"\n]
 escaped_char	\\n|\\\"
 integer		{digit}+
 text		\"({ascii_char}|{escaped_char})*\"
-id		@?({letter}|{digit}|[\^\-])+
+id		@?({letter}|{digit}|[\^\-!'])+
 
 /* the "incl" state is used for picking up the name of an include file
  */
