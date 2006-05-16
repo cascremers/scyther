@@ -317,11 +317,6 @@ termPrintCustom (Term term, char *leftvar, char *rightvar, char *lefttup,
 		 char *righttup, char *leftenc, char *rightenc,
 		 void (*callback) (int rid))
 {
-  if (term == NULL)
-    {
-      eprintf ("*");
-      return;
-    }
 #ifdef DEBUG
   if (!DEBUGL (4))
     {
@@ -330,6 +325,11 @@ termPrintCustom (Term term, char *leftvar, char *rightvar, char *lefttup,
 #else
   term = deVar (term);
 #endif
+  if (term == NULL)
+    {
+      eprintf ("*");
+      return;
+    }
   if (realTermLeaf (term))
     {
       if (term->type == VARIABLE && TermRunid (term) >= 0)

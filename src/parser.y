@@ -49,7 +49,9 @@ int yylex(void);
 %type	<tac>	typeinfo1
 %type	<tac>	typeinfoN
 %type	<tac>	term
+%type	<tac>	basicterm
 %type	<tac>	termlist
+%type	<tac>	basictermlist
 %type	<tac>	key
 %type	<tac>	roleref
 
@@ -176,21 +178,21 @@ roleref		: ID '.' ID
 		  }
 		;
 
-declaration	: secretpref CONST termlist typeinfo1 ';'
+declaration	: secretpref CONST basictermlist typeinfo1 ';'
 		  {	Tac t = tacCreate(TAC_CONST);
 		  	t->t1.tac = $3;
 			t->t2.tac = $4;
 			t->t3.tac = $1;
 			$$ = t;
 		  }
-		| secretpref VAR termlist typeinfoN ';'
+		| secretpref VAR basictermlist typeinfoN ';'
 		  {	Tac t = tacCreate(TAC_VAR);
 		  	t->t1.tac = $3;
 			t->t2.tac = $4;
 			t->t3.tac = $1;
 			$$ = t;
 		  }
-		| SECRET termlist typeinfo1 ';'
+		| SECRET basictermlist typeinfo1 ';'
 		  {	Tac t = tacCreate(TAC_SECRET);
 		  	t->t1.tac = $2;
 			t->t2.tac = $3;
@@ -237,7 +239,7 @@ typeinfoN	: /* empty */
 		  	Tac t = tacCreate(TAC_UNDEF);
 			$$ = t;
 		  }
-		| ':' termlist
+		| ':' basictermlist
 		  {	
 		  	$$ = $2;
 		  }
@@ -254,12 +256,16 @@ optlabel        : /* empty */
                 ;
 
 
-term  		: ID
+basicterm	: ID
 		  {
 		  	Tac t = tacCreate(TAC_STRING);
 			t->t1.sym = $1;
 			$$ = t;
 		  }
+		;
+
+term  		: basicterm
+	          { }
 		| ID '(' termlist ')'
 		  {
 		  	Tac t = tacCreate(TAC_STRING);
@@ -279,6 +285,12 @@ term  		: ID
 termlist	: term
 		  { }
 		| term ',' termlist
+		  {	$$ = tacCat($1,$3); }
+		;
+
+basictermlist	: basicterm
+		  { }
+		| basicterm ',' basictermlist
 		  {	$$ = tacCat($1,$3); }
 		;
 

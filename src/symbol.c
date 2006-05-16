@@ -241,6 +241,7 @@ symbolNextFree (Symbol prefixsymbol)
       int slen;
 
       slen = sprintf (buffer, "%s%i", prefixstr, n);
+      buffer[slen] = EOS;
       symb = lookup (buffer);
       if (symb == NULL)
 	{
