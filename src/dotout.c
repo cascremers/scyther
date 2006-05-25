@@ -34,6 +34,7 @@ extern Role I_RRSD;
 #define RUNCOLORDELTA 0.2	// maximum hue delta between roles (0.2): smaller means role colors of a protocol become more similar.
 #define RUNCOLORCONTRACT 0.8	// contract from protocol edges: smaller means more distinction between protocols.
 #define UNTRUSTEDCOLORS 0.4
+#define MONOCHROMEFACTOR 0.7	// Monochrome settings. 0.0: all colors become white. 1.0: all colors remain the same lightness as the color versions.
 
 /*
  * Dot output
@@ -270,7 +271,7 @@ hlsValue (double n1, double n2, double hue)
 
 //! hls to rgb conversion
 void
-hlsrgb (int *r, int *g, int *b, double h, double l, double s)
+hlsrgbreal (int *r, int *g, int *b, double h, double l, double s)
 {
   double m1, m2;
 
@@ -304,6 +305,29 @@ hlsrgb (int *r, int *g, int *b, double h, double l, double s)
       *b = bytedouble (hlsValue (m1, m2, h - 120.0));
     }
 }
+
+//! hls to rgb conversion
+/**
+ * Secretly takes the monochrome switch into account
+ */
+void
+hlsrgb (int *r, int *g, int *b, double h, double l, double s)
+{
+  if (switches.monochrome)
+    {
+      // No colors: make lighter
+      s = 0;
+      h = 0;
+      l = 1 - ((1 - l) * MONOCHROMEFACTOR);
+      hlsrgbreal (r, g, b, h, l, s);
+    }
+  else
+    {
+      // colors
+      hlsrgbreal (r, g, b, h, l, s);
+    }
+}
+
 
 //! print color from h,l,s triplet
 void

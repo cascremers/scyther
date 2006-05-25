@@ -76,7 +76,8 @@ switchesInit (int argc, char **argv)
   switches.countStates = false;	// default off
   switches.extendNonReads = 0;	// default off
   switches.extendTrivial = 0;	// default off
-  switches.plain = false;	// default colors
+  switches.plain = false;	// default colors for terminal
+  switches.monochrome = false;	// default colors for dot
 
   // Process the environment variable SCYTHERFLAGS
   process_environment ();
@@ -888,6 +889,20 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.extendTrivial = 1;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "monochrome", 0))
+    {
+      if (!process)
+	{
+	  /* discourage: hide
+	   */
+	}
+      else
+	{
+	  switches.monochrome = true;
 	  return index;
 	}
     }

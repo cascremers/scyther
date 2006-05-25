@@ -56,7 +56,8 @@ struct switchdata
   int countStates;		//!< Count states
   int extendNonReads;		//!< Show further events in arachne xml output.
   int extendTrivial;		//!< Show further events in arachne xml output, based on knowledge underapproximation. (Includes at least the events of the nonreads extension)
-  int plain;			//!< Disable color output
+  int plain;			//!< Disable color output on terminal
+  int monochrome;		//!< Disable colors in dot output
 };
 
 extern struct switchdata switches;	//!< pointer to switchdata structure
