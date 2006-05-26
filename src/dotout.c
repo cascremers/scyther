@@ -33,7 +33,6 @@ extern Role I_RRSD;
 #define RUNCOLORDELTA 0.2	// maximum hue delta between roles (0.2): smaller means role colors of a protocol become more similar.
 #define RUNCOLORCONTRACT 0.8	// contract from protocol edges: smaller means more distinction between protocols.
 #define UNTRUSTEDCOLORS 0.4
-#define MONOCHROMEFACTOR 0.7	// Monochrome settings. 0.0: all colors become white. 1.0: all colors remain the same lightness as the color versions.
 
 #define CHOOSEWEIGHT "2.0"
 #define RUNWEIGHT "10.0"
@@ -317,19 +316,33 @@ hlsrgbreal (int *r, int *g, int *b, double h, double l, double s)
 void
 hlsrgb (int *r, int *g, int *b, double h, double l, double s)
 {
+  double closer (double l, double factor)
+  {
+    return l + ((1.0 - l) * factor);
+  }
+
   if (switches.monochrome)
     {
-      // No colors: make lighter
+      // No colors
       s = 0;
       h = 0;
-      l = 1 - ((1 - l) * MONOCHROMEFACTOR);
-      hlsrgbreal (r, g, b, h, l, s);
     }
-  else
+
+  if (switches.lightness > 0)
     {
-      // colors
-      hlsrgbreal (r, g, b, h, l, s);
+      // correction switch for lightness
+      if (switches.lightness == 100)
+	{
+	  l = 1.0;
+	}
+      else
+	{
+	  l = closer (l, ((double) switches.lightness / 100.0));
+	}
     }
+
+// convert
+  hlsrgbreal (r, g, b, h, l, s);
 }
 
 

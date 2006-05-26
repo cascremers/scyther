@@ -58,6 +58,7 @@ struct switchdata
   int extendTrivial;		//!< Show further events in arachne xml output, based on knowledge underapproximation. (Includes at least the events of the nonreads extension)
   int plain;			//!< Disable color output on terminal
   int monochrome;		//!< Disable colors in dot output
+  int lightness;		//!< Lightness increment 0-100
   int clusters;			//!> Enable clusters in output
 };
 

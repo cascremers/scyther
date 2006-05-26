@@ -78,6 +78,7 @@ switchesInit (int argc, char **argv)
   switches.extendTrivial = 0;	// default off
   switches.plain = false;	// default colors for terminal
   switches.monochrome = false;	// default colors for dot
+  switches.lightness = 0;	// lightness correction
   switches.clusters = false;	// default is no clusters for now
 
   // Process the environment variable SCYTHERFLAGS
@@ -904,6 +905,25 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.monochrome = true;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "lightness", 1))
+    {
+      if (!process)
+	{
+	  /* discourage: hide
+	   */
+	}
+      else
+	{
+	  switches.lightness = integer_argument ();
+	  if ((switches.lightness < 0) || (switches.lightness > 100))
+	    {
+	      error
+		("--lightness=x only accepts integer values between 0 and 100");
+	    }
 	  return index;
 	}
     }
