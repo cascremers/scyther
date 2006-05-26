@@ -562,7 +562,6 @@ iteratePrecedingEvents (const System sys, int (*func) (int run, int ev),
 		{
 		  return false;
 		}
-	      break;
 	    }
 	}
     }

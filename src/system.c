@@ -1295,7 +1295,32 @@ iterateEvents (const System sys, const int run,
   return true;
 }
 
-// Iterate over event type in a certain run (increasing through role)
+//! Iterate over all events in all runs
+/**
+ * This includes intruder as well as regular events
+ */
+int
+iterateAllEvents (const System sys,
+		  int (*callback) (int run, Roledef rd, int ev))
+{
+  int run;
+
+  int callwrapper (Roledef rd, int ev)
+  {
+    return callback (run, rd, ev);
+  }
+
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      if (!iterateEvents (sys, run, callwrapper))
+	{
+	  return false;
+	}
+    }
+  return true;
+}
+
+//! Iterate over event type in a certain run (increasing through role)
 /**
  * If evtype == ANYEVENT then it does not matter.
  */

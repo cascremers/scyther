@@ -37,6 +37,8 @@ extern Role I_RRSD;
 
 #define CHOOSEWEIGHT "2.0"
 #define RUNWEIGHT "10.0"
+//#define CHOOSEWEIGHT "1.0"
+//#define RUNWEIGHT "1.0"
 
 /*
  * Dot output
@@ -517,6 +519,30 @@ isCommunicationExact (const System sys, Binding b)
   return true;
 }
 
+//! Ignore some events
+int
+isEventIgnored (const System sys, int run, int ev)
+{
+  Roledef rd;
+
+  rd = eventRoledef (sys, run, ev);
+  if (rd->type == CLAIM)
+    {
+      if (run != 0)
+	{
+	  return true;
+	}
+      else
+	{
+	  if (ev != sys->current_claim->ev)
+	    {
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
 //! Determine ranks for all nodes
 /**
  * Some crude algorithm I sketched on the blackboard.
@@ -524,9 +550,19 @@ isCommunicationExact (const System sys, Binding b)
 int
 graph_ranks (int *ranks, int nodes)
 {
-  int i;
-  int todo;
+  int done;
   int rank;
+  int changes;
+
+  int getrank (int run, int ev)
+  {
+    return ranks[eventNode (run, ev)];
+  }
+
+  void setrank (int run, int ev, int rank)
+  {
+    ranks[eventNode (run, ev)] = rank;
+  }
 
 #ifdef DEBUG
   if (hasCycle ())
@@ -535,45 +571,82 @@ graph_ranks (int *ranks, int nodes)
     }
 #endif
 
-  i = 0;
-  while (i < nodes)
-    {
-      ranks[i] = INT_MAX;
-      i++;
-    }
+  {
+    int i;
 
-  todo = nodes;
+    for (i = 0; i < nodes; i++)
+      {
+	ranks[i] = INT_MAX;
+      }
+  }
+
   rank = 0;
-  while (todo > 0)
+  done = false;
+  changes = true;
+  while (!done)
     {
-      // There are still unassigned nodes
-      int n;
-
-      n = 0;
-      while (n < nodes)
+      int checkCanEventHappenNow (int run, Roledef rd, int ev)
+      {
+	//if (sys->runs[run].protocol != INTRUDER)
 	{
-	  if (ranks[n] == INT_MAX)
+	  if (getrank (run, ev) == INT_MAX)
 	    {
-	      // Does this node have incoming stuff from stuff with equal rank or higher?
-	      int refn;
+	      // Allright, this regular event is not assigned yet
+	      int precevent (int run2, int ev2)
+	      {
+		//if (sys->runs[run2].protocol != INTRUDER)
+		{
+		  // regular preceding event
+		  int rank2;
 
-	      refn = 0;
-	      while (refn < nodes)
-		{
-		  if (ranks[refn] >= rank && getNode (refn, n))
-		    refn = nodes + 1;
-		  else
-		    refn++;
+		  rank2 = getrank (run2, ev2);
+		  if (rank2 > rank)
+		    {
+		      // higher rank, this cannot be done
+		      return false;
+		    }
+		  if (rank2 == rank)
+		    {
+		      // equal rank: only if different run
+		      if ((sys->runs[run].protocol != INTRUDER)
+			  && (run2 == run))
+			{
+			  return false;
+			}
+		    }
 		}
-	      if (refn == nodes)
+		return true;
+	      }
+
+	      if (iteratePrecedingEvents (sys, precevent, run, ev))
 		{
-		  ranks[n] = rank;
-		  todo--;
+		  // we can do it!
+		  changes = true;
+		  setrank (run, ev, rank);
+		}
+	      else
+		{
+		  done = false;
 		}
 	    }
-	  n++;
 	}
-      rank++;
+	return true;
+      }
+
+
+      if (!changes)
+	{
+	  rank++;
+	  if (rank >= nodes)
+	    {
+	      warning ("Rank %i increased to the number of nodes %i.", rank,
+		       nodes);
+	      return rank;
+	    }
+	}
+      done = true;
+      changes = false;
+      iterateAllEvents (sys, checkCanEventHappenNow);
     }
   return rank;
 }
@@ -588,7 +661,7 @@ showRanks (const System sys, const int maxrank, const int *ranks,
 {
   int rank;
 
-  return;
+  //return;
 
   for (rank = 0; rank <= maxrank; rank++)
     {
@@ -604,18 +677,22 @@ showRanks (const System sys, const int maxrank, const int *ranks,
 
 	      for (ev = 0; ev < sys->runs[run].step; ev++)
 		{
-		  int n;
-
-		  n = eventNode (run, ev);
-		  if (ranks[n] == rank)
+		  if (!isEventIgnored (sys, run, ev))
 		    {
-		      if (found == 0)
+
+		      int n;
+
+		      n = eventNode (run, ev);
+		      if (ranks[n] == rank)
 			{
-			  eprintf ("\t{ rank = same; ");
+			  if (found == 0)
+			    {
+			      eprintf ("\t{ rank = same; ");
+			    }
+			  node (sys, run, ev);
+			  eprintf ("; ");
+			  found++;
 			}
-		      node (sys, run, n);
-		      eprintf ("; ");
-		      found++;
 		    }
 		}
 	    }
@@ -979,8 +1056,8 @@ showLocal (const int run, Term told, Term tnew)
  * always ends with a seperator if something was printed
  */
 int
-showLocals (const int run, Termlist tlold, Termlist tlnew, Term tavoid,
-	    char *sep)
+showLocals (const int run, Termlist tlold, Termlist tlnew,
+	    Term tavoid, char *sep)
 {
   int printsep;
   int anything;
@@ -1036,8 +1113,8 @@ printRunConstants (const System sys, const int run)
 
 //! Explain a run in two lines
 void
-printRunExplanation (const System sys, const int run, const char *runrolesep,
-		     const char *newline)
+printRunExplanation (const System sys, const int run,
+		     const char *runrolesep, const char *newline)
 {
   int hadcontent;
 
@@ -1183,24 +1260,7 @@ drawRegularRuns (const System sys)
 	      // Display the respective events
 	      while (index < sys->runs[run].length)
 		{
-		  int showthis;
-
-		  showthis = true;
-		  if (rd->type == CLAIM)
-		    {
-		      if (run != 0)
-			{
-			  showthis = false;
-			}
-		      else
-			{
-			  if (index != sys->current_claim->ev)
-			    {
-			      showthis = false;
-			    }
-			}
-		    }
-		  if (showthis)
+		  if (!isEventIgnored (sys, run, index))
 		    {
 		      // Print node itself
 		      eprintf ("\t\t");
@@ -1280,13 +1340,15 @@ drawRegularRuns (const System sys)
 				  printRunExplanation (sys, run, "\\l", "|");
 				  // close up
 				  eprintf ("}\", shape=record");
-				  eprintf (",style=filled,fillcolor=\"%s\"",
-					   colorbuf + 8);
+				  eprintf
+				    (",style=filled,fillcolor=\"%s\"",
+				     colorbuf + 8);
 				  eprintf ("];\n");
 				  eprintf ("\t\ts%i -> ", run);
 				  node (sys, run, index);
-				  eprintf (" [style=bold, weight=\"%s\"];\n",
-					   RUNWEIGHT);
+				  eprintf
+				    (" [style=bold, weight=\"%s\"];\n",
+				     RUNWEIGHT);
 				  prevnode = index;
 				}
 
@@ -1315,11 +1377,14 @@ drawIntruderRuns (const System sys)
 {
   int run;
 
-  /*
-     eprintf ("\tsubgraph intruder {\n");
-     eprintf ("\t\tlabel = \"Intruder\\nTesting the seconds.\";\n");
-     eprintf ("\t\tcolor = red;\n");
-   */
+  if (switches.clusters)
+    {
+      //eprintf ("\tsubgraph cluster_intruder {\n");
+      eprintf ("\tsubgraph intr {\n");
+      eprintf ("\t\tlabel = \"Intruder\";\n");
+      eprintf ("\t\tcolor = red;\n");
+    }
+
   for (run = 0; run < sys->maxruns; run++)
     {
       if (sys->runs[run].length > 0)
@@ -1357,7 +1422,10 @@ drawIntruderRuns (const System sys)
 	    }
 	}
     }
-  //eprintf ("\t}\n\n");
+  if (switches.clusters)
+    {
+      eprintf ("\t}\n\n");
+    }
 }
 
 //! Display the current semistate using dot output format.
@@ -1499,8 +1567,8 @@ dotSemiState (const System mysys)
 			      if (isDependEvent (r1, e1, r2, e2))
 				{
 				  eprintf
-				    ("\tr%ii%i -> r%ii%i [color=grey];\n", r1,
-				     e1, r2, e2);
+				    ("\tr%ii%i -> r%ii%i [color=grey];\n",
+				     r1, e1, r2, e2);
 				}
 			    }
 			}
@@ -1512,7 +1580,10 @@ dotSemiState (const System mysys)
 #endif
 
   // Ranks
-  showRanks (sys, maxrank, ranks, nodes);
+  if (switches.clusters)
+    {
+      showRanks (sys, maxrank, ranks, nodes);
+    }
 
 #ifdef DEBUG
   // Debug: print dependencies

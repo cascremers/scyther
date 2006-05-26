@@ -197,6 +197,8 @@ int iterateRuns (const System sys, int (*callback) (int r));
 int iterateRegularRuns (const System sys, int (*callback) (int r));
 int iterateEvents (const System sys, const int run,
 		   int (*callback) (Roledef rd, int ev));
+int iterateAllEvents (const System sys,
+		      int (*callback) (int run, Roledef rd, int ev));
 int iterateEventsType (const System sys, const int run, const int evtype,
 		       int (*callback) (Roledef rd, int ev));
 int iterateLocalToOther (const System sys, const int myrun,
