@@ -17,7 +17,6 @@ extern Role I_RRSD;
 #define isBound(rd)	(rd->bound)
 #define length		step
 
-
 #define CLAIMTEXTCOLOR "#ffffff"
 #define CLAIMCOLOR "#000000"
 #define GOODCOMMCOLOR "forestgreen"
@@ -35,6 +34,9 @@ extern Role I_RRSD;
 #define RUNCOLORCONTRACT 0.8	// contract from protocol edges: smaller means more distinction between protocols.
 #define UNTRUSTEDCOLORS 0.4
 #define MONOCHROMEFACTOR 0.7	// Monochrome settings. 0.0: all colors become white. 1.0: all colors remain the same lightness as the color versions.
+
+#define CHOOSEWEIGHT "2.0"
+#define RUNWEIGHT "10.0"
 
 /*
  * Dot output
@@ -576,6 +578,54 @@ graph_ranks (int *ranks, int nodes)
   return rank;
 }
 
+//! Display the ranks
+/**
+ * Reinstated after it had been gone for a while
+ */
+void
+showRanks (const System sys, const int maxrank, const int *ranks,
+	   const int nodes)
+{
+  int rank;
+
+  return;
+
+  for (rank = 0; rank <= maxrank; rank++)
+    {
+      int found;
+      int run;
+
+      found = 0;
+      for (run = 0; run < sys->maxruns; run++)
+	{
+	  if (sys->runs[run].protocol != INTRUDER)
+	    {
+	      int ev;
+
+	      for (ev = 0; ev < sys->runs[run].step; ev++)
+		{
+		  int n;
+
+		  n = eventNode (run, ev);
+		  if (ranks[n] == rank)
+		    {
+		      if (found == 0)
+			{
+			  eprintf ("\t{ rank = same; ");
+			}
+		      node (sys, run, n);
+		      eprintf ("; ");
+		      found++;
+		    }
+		}
+	    }
+	}
+      if (found > 0)
+	{
+	  eprintf ("}\n");
+	}
+    }
+}
 
 //! Iterate over events (in non-intruder runs) in which some value term occurs first.
 // Function should return true for iteration to continue.
@@ -690,7 +740,8 @@ drawClass (const System sys, Binding b)
   chooseTermNode (varterm);
   eprintf (" -> ");
   node (sys, b->run_to, b->ev_to);
-  eprintf (" [weight=\"2.0\",arrowhead=\"none\",style=\"dotted\"];\n");
+  eprintf (" [weight=\"%s\",arrowhead=\"none\",style=\"dotted\"];\n",
+	   CHOOSEWEIGHT);
 }
 
 //! Print label of a regular->regular transition node (when comm. is not exact)
@@ -880,6 +931,212 @@ drawAllBindings (const System sys)
   return fromintr;
 }
 
+//! Print "Alice in role R" of a run
+void
+printAgentInRole (const System sys, const int run)
+{
+  Term rolename;
+  Term agentname;
+
+  rolename = sys->runs[run].role->nameterm;
+  agentname = agentOfRunRole (sys, run, rolename);
+  explainVariable (agentname);
+  eprintf (" in role ");
+  termPrintRemap (rolename);
+}
+
+//! rho, sigma, const
+/* 
+ * true if it has printed
+   */
+int
+showLocal (const int run, Term told, Term tnew)
+{
+  if (realTermVariable (tnew))
+    {
+      if (termOccursInRun (tnew, run))
+	{
+	  // Variables are mapped, maybe. But then we wonder whether they occur in reads.
+	  termPrintRemap (told);
+	  eprintf (" : ");
+	  explainVariable (tnew);
+	}
+      else
+	{
+	  return false;
+	}
+    }
+  else
+    {
+      termPrintRemap (tnew);
+    }
+  return true;
+}
+
+
+//! show a list of locals
+/**
+ * always ends with a seperator if something was printed
+ */
+int
+showLocals (const int run, Termlist tlold, Termlist tlnew, Term tavoid,
+	    char *sep)
+{
+  int printsep;
+  int anything;
+
+  printsep = false;
+  anything = false;
+  while (tlold != NULL && tlnew != NULL)
+    {
+      if (!isTermEqual (tlold->term, tavoid))
+	{
+	  if (printsep)
+	    {
+	      eprintf (sep);
+	      printsep = false;
+	    }
+	  printsep = showLocal (run, tlold->term, tlnew->term);
+	  if (printsep)
+	    {
+	      anything = true;
+	    }
+	}
+      tlold = tlold->next;
+      tlnew = tlnew->next;
+    }
+  if (printsep)
+    {
+      eprintf (sep);
+    }
+  return anything;
+}
+
+//! Explain the local constants
+/**
+ * Return true iff something was printed
+ */
+int
+printRunConstants (const System sys, const int run)
+{
+  if (sys->runs[run].constants != NULL)
+    {
+      eprintf ("Create ");
+      showLocals (run, sys->runs[run].role->
+		  declaredconsts, sys->runs[run].constants, NULL, ", ");
+      eprintf ("\\l");
+      return true;
+    }
+  else
+    {
+      return false;
+    }
+}
+
+
+//! Explain a run in two lines
+void
+printRunExplanation (const System sys, const int run, const char *runrolesep,
+		     const char *newline)
+{
+  int hadcontent;
+
+  eprintf ("Run ");
+  printVisualRun (run);
+
+  eprintf (runrolesep);
+  // Print first line
+  printAgentInRole (sys, run);
+  eprintf ("\\l");
+
+  // Second line
+  // Possible protocol (if more than one)
+  {
+    int showprotocol;
+    Protocol p;
+    int morethanone;
+
+    // Simple case: don't show
+    showprotocol = false;
+
+    // Check whether the protocol spec has more than one
+    morethanone = false;
+    for (p = sys->protocols; p != NULL; p = p->next)
+      {
+	if (p != INTRUDER)
+	  {
+	    if (p != sys->runs[run].protocol)
+	      {
+		morethanone = true;
+		break;
+	      }
+	  }
+      }
+
+    // More than one?
+    if (morethanone)
+      {
+	if (run == 0)
+	  {
+	    // If this is run 0 we report the protocol anyway, even is there is only a single one in the attack
+	    showprotocol = true;
+	  }
+	else
+	  {
+	    int r;
+	    // For other runs we only report when there are multiple protocols
+	    showprotocol = false;
+	    for (r = 0; r < sys->maxruns; r++)
+	      {
+		if (sys->runs[r].protocol != INTRUDER)
+		  {
+		    if (sys->runs[r].protocol != sys->runs[run].protocol)
+		      {
+			showprotocol = true;
+			break;
+		      }
+		  }
+	      }
+	  }
+      }
+
+    // Use the result
+    if (showprotocol)
+      {
+	eprintf ("Protocol ");
+	termPrintRemap (sys->runs[run].protocol->nameterm);
+	eprintf ("\\l");
+      }
+  }
+
+  eprintf (newline);
+  hadcontent = false;
+
+  if (termlistLength (sys->runs[run].rho) > 1)
+    {
+      hadcontent = showLocals (run, sys->runs[run].protocol->
+			       rolenames, sys->runs[run].rho,
+			       sys->runs[run].role->nameterm, "\\l");
+    }
+
+  if (hadcontent)
+    {
+      eprintf (newline);
+      hadcontent = false;
+    }
+  hadcontent = printRunConstants (sys, run);
+
+  if (sys->runs[run].sigma != NULL)
+    {
+      if (hadcontent)
+	{
+	  eprintf (newline);
+	  hadcontent = false;
+	}
+      showLocals (run, sys->runs[run].role->
+		  declaredvars, sys->runs[run].sigma, NULL, "\\l");
+    }
+}
 
 //! Draw regular runs
 void
@@ -908,23 +1165,17 @@ drawRegularRuns (const System sys)
 	      rd = sys->runs[run].start;
 	      // Regular run
 
-	      /*
-	         eprintf ("\tsubgraph cluster_run%i {\n", run);
-	         eprintf ("\t\tlabel = \"");
-	         eprintf ("#%i: ", run);
-	         termPrintRemap (sys->runs[run].protocol->nameterm);
-	         eprintf (", ");
-	         agentsOfRunPrint (sys, run);
-	         eprintf ("\\nTesting the second line\";\n", run);
-	         if (run == 0)
-	         {
-	         eprintf ("\t\tcolor = red;\n");
-	         }
-	         else
-	         {
-	         eprintf ("\t\tcolor = blue;\n");
-	         }
-	       */
+	      if (switches.clusters)
+		{
+		  eprintf ("\tsubgraph cluster_run%i {\n", run);
+
+		  eprintf ("\t\tstyle=filled;\n");
+		  eprintf ("\t\tcolor=lightgrey;\n");
+
+		  eprintf ("\t\tlabel=\"");
+		  printRunExplanation (sys, run, " : ", "");
+		  eprintf ("\";\n\n");
+		}
 
 	      // set color
 	      setRunColorBuf (sys, run, colorbuf);
@@ -982,7 +1233,8 @@ drawRegularRuns (const System sys)
 			  node (sys, run, prevnode);
 			  eprintf (" -> ");
 			  node (sys, run, index);
-			  eprintf (" [style=\"bold\", weight=\"10.0\"]");
+			  eprintf (" [style=\"bold\", weight=\"%s\"]",
+				   RUNWEIGHT);
 			  eprintf (";\n");
 			  prevnode = index;
 			}
@@ -1018,187 +1270,38 @@ drawRegularRuns (const System sys)
 				    }
 				  rd = rd->next;
 				}
-			      // Draw the first box (HEADER)
-			      // This used to be drawn only if done && send_before_read, now we always draw it.
-			      eprintf ("\t\ts%i [label=\"{ ", run);
 
-			      // Print first line
-			      {
-				Term rolename;
-				Term agentname;
-
-				rolename = sys->runs[run].role->nameterm;
-				agentname =
-				  agentOfRunRole (sys, run, rolename);
-				explainVariable (agentname);
-				eprintf (" in role ");
-				termPrintRemap (rolename);
-				eprintf ("\\l");
-			      }
-
-			      // Second line
-			      // Possible protocol (if more than one)
-			      {
-				int showprotocol;
-				Protocol p;
-				int morethanone;
-
-				// Simple case: don't show
-				showprotocol = false;
-
-				// Check whether the protocol spec has more than one
-				morethanone = false;
-				for (p = sys->protocols; p != NULL;
-				     p = p->next)
-				  {
-				    if (p != INTRUDER)
-				      {
-					if (p != sys->runs[run].protocol)
-					  {
-					    morethanone = true;
-					    break;
-					  }
-				      }
-				  }
-
-				// More than one?
-				if (morethanone)
-				  {
-				    if (run == 0)
-				      {
-					// If this is run 0 we report the protocol anyway, even is there is only a single one in the attack
-					showprotocol = true;
-				      }
-				    else
-				      {
-					int r;
-					// For other runs we only report when there are multiple protocols
-					showprotocol = false;
-					for (r = 0; r < sys->maxruns; r++)
-					  {
-					    if (sys->runs[r].protocol !=
-						INTRUDER)
-					      {
-						if (sys->runs[r].protocol !=
-						    sys->runs[run].protocol)
-						  {
-						    showprotocol = true;
-						    break;
-						  }
-					      }
-					  }
-				      }
-				  }
-
-				// Use the result
-				if (showprotocol)
-				  {
-				    eprintf ("Protocol ");
-				    termPrintRemap (sys->runs[run].protocol->
-						    nameterm);
-				    eprintf ("\\l");
-				  }
-			      }
-			      eprintf ("Run ");
-			      printVisualRun (run);
-			      eprintf ("\\l");
-
-
-			      // rho, sigma, const
-			      /* true if it has printed
-			       */
-			      int showLocal (Term told, Term tnew)
-			      {
-				if (realTermVariable (tnew))
-				  {
-				    if (termOccursInRun (tnew, run))
-				      {
-					// Variables are mapped, maybe. But then we wonder whether they occur in reads.
-					termPrintRemap (told);
-					eprintf (" : ");
-					explainVariable (tnew);
-				      }
-				    else
-				      {
-					return false;
-				      }
-				  }
-				else
-				  {
-				    termPrintRemap (tnew);
-				  }
-				return true;
-			      }
-
-			      void showLocals (Termlist tlold, Termlist tlnew,
-					       Term tavoid, char *sep)
-			      {
-				int printsep;
-
-				printsep = false;
-				while (tlold != NULL && tlnew != NULL)
-				  {
-				    if (!isTermEqual (tlold->term, tavoid))
-				      {
-					if (printsep)
-					  {
-					    eprintf (sep);
-					    printsep = false;
-					  }
-					printsep =
-					  showLocal (tlold->term,
-						     tlnew->term);
-				      }
-				    tlold = tlold->next;
-				    tlnew = tlnew->next;
-				  }
-			      }
-
-			      if (termlistLength (sys->runs[run].rho) > 1)
+			      if (!switches.clusters)
 				{
-				  eprintf ("|");
-				  showLocals (sys->runs[run].protocol->
-					      rolenames, sys->runs[run].rho,
-					      sys->runs[run].role->nameterm,
-					      "\\l");
-				  eprintf ("\\l");
+				  // Draw the first box (HEADER)
+				  // This used to be drawn only if done && send_before_read, now we always draw it.
+				  eprintf ("\t\ts%i [label=\"{ ", run);
+
+				  printRunExplanation (sys, run, "\\l", "|");
+				  // close up
+				  eprintf ("}\", shape=record");
+				  eprintf (",style=filled,fillcolor=\"%s\"",
+					   colorbuf + 8);
+				  eprintf ("];\n");
+				  eprintf ("\t\ts%i -> ", run);
+				  node (sys, run, index);
+				  eprintf (" [style=bold, weight=\"%s\"];\n",
+					   RUNWEIGHT);
+				  prevnode = index;
 				}
 
-			      if (sys->runs[run].constants != NULL)
-				{
-				  eprintf ("|Create ");
-				  showLocals (sys->runs[run].role->
-					      declaredconsts,
-					      sys->runs[run].constants, NULL,
-					      ", ");
-				  eprintf ("\\l");
-				}
-			      if (sys->runs[run].sigma != NULL)
-				{
-				  eprintf ("|");
-				  showLocals (sys->runs[run].role->
-					      declaredvars,
-					      sys->runs[run].sigma, NULL,
-					      "\\l");
-				  eprintf ("\\l");
-				}
 
-			      // close up
-			      eprintf ("}\", shape=record");
-			      eprintf (",style=filled,fillcolor=\"%s\"",
-				       colorbuf + 8);
-			      eprintf ("];\n");
-			      eprintf ("\t\ts%i -> ", run);
-			      node (sys, run, index);
-			      eprintf (" [style=bold, weight=\"10.0\"];\n");
-			      prevnode = index;
 			    }
 			}
 		    }
 		  index++;
 		  rd = rd->next;
 		}
-	      //eprintf ("\t}\n");
+
+	      if (switches.clusters)
+		{
+		  eprintf ("\t}\n");
+		}
 
 	    }
 	}
@@ -1256,7 +1359,6 @@ drawIntruderRuns (const System sys)
     }
   //eprintf ("\t}\n\n");
 }
-
 
 //! Display the current semistate using dot output format.
 /**
@@ -1410,7 +1512,7 @@ dotSemiState (const System mysys)
 #endif
 
   // Ranks
-  //showRanks (sys, maxrank, ranks);
+  showRanks (sys, maxrank, ranks, nodes);
 
 #ifdef DEBUG
   // Debug: print dependencies

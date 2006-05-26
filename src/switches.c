@@ -78,6 +78,7 @@ switchesInit (int argc, char **argv)
   switches.extendTrivial = 0;	// default off
   switches.plain = false;	// default colors for terminal
   switches.monochrome = false;	// default colors for dot
+  switches.clusters = false;	// default is no clusters for now
 
   // Process the environment variable SCYTHERFLAGS
   process_environment ();
@@ -903,6 +904,20 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.monochrome = true;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "clusters", 0))
+    {
+      if (!process)
+	{
+	  /* discourage: hide
+	   */
+	}
+      else
+	{
+	  switches.clusters = true;
 	  return index;
 	}
     }
