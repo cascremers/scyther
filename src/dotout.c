@@ -1027,15 +1027,17 @@ printAgentInRole (const System sys, const int run)
  * true if it has printed
    */
 int
-showLocal (const int run, Term told, Term tnew)
+showLocal (const int run, Term told, Term tnew, char *prefix, char *cursep)
 {
   if (realTermVariable (tnew))
     {
       if (termOccursInRun (tnew, run))
 	{
 	  // Variables are mapped, maybe. But then we wonder whether they occur in reads.
+	  eprintf (cursep);
+	  eprintf (prefix);
 	  termPrintRemap (told);
-	  eprintf (" : ");
+	  eprintf (" -\\> ");
 	  explainVariable (tnew);
 	}
       else
@@ -1045,6 +1047,7 @@ showLocal (const int run, Term told, Term tnew)
     }
   else
     {
+      eprintf (prefix);
       termPrintRemap (tnew);
     }
   return true;
@@ -1053,38 +1056,29 @@ showLocal (const int run, Term told, Term tnew)
 
 //! show a list of locals
 /**
- * always ends with a seperator if something was printed
+ * never ends with the seperator
  */
 int
 showLocals (const int run, Termlist tlold, Termlist tlnew,
-	    Term tavoid, char *sep)
+	    Term tavoid, char *prefix, char *sep)
 {
-  int printsep;
   int anything;
+  char *cursep;
 
-  printsep = false;
+  cursep = "";
   anything = false;
   while (tlold != NULL && tlnew != NULL)
     {
       if (!isTermEqual (tlold->term, tavoid))
 	{
-	  if (printsep)
+	  if (showLocal (run, tlold->term, tlnew->term, prefix, cursep))
 	    {
-	      eprintf (sep);
-	      printsep = false;
-	    }
-	  printsep = showLocal (run, tlold->term, tlnew->term);
-	  if (printsep)
-	    {
+	      cursep = sep;
 	      anything = true;
 	    }
 	}
       tlold = tlold->next;
       tlnew = tlnew->next;
-    }
-  if (printsep)
-    {
-      eprintf (sep);
     }
   return anything;
 }
@@ -1098,9 +1092,9 @@ printRunConstants (const System sys, const int run)
 {
   if (sys->runs[run].constants != NULL)
     {
-      eprintf ("Create ");
+      eprintf ("Const ");
       showLocals (run, sys->runs[run].role->
-		  declaredconsts, sys->runs[run].constants, NULL, ", ");
+		  declaredconsts, sys->runs[run].constants, NULL, "", ", ");
       eprintf ("\\l");
       return true;
     }
@@ -1153,7 +1147,9 @@ printRunExplanation (const System sys, const int run,
     // More than one?
     if (morethanone)
       {
-	if (run == 0)
+	// This used to work for run 0 always...
+	//if (run == 0)
+	if (false)
 	  {
 	    // If this is run 0 we report the protocol anyway, even is there is only a single one in the attack
 	    showprotocol = true;
@@ -1189,15 +1185,39 @@ printRunExplanation (const System sys, const int run,
   eprintf (newline);
   hadcontent = false;
 
-  if (termlistLength (sys->runs[run].rho) > 1)
-    {
-      hadcontent = showLocals (run, sys->runs[run].protocol->
-			       rolenames, sys->runs[run].rho,
-			       sys->runs[run].role->nameterm, "\\l");
-    }
+  {
+    /*
+     * Originally, we ignored the actor in the rho list, but for more than two-party protocols, this was unclear.
+     */
+    int numroles;
+    int ignoreactor;
+
+    ignoreactor = false;	// set to true to ignore the actor
+    numroles = termlistLength (sys->runs[run].rho);
+
+    if (numroles > 1)
+      {
+	{
+	  Term ignoreterm;
+
+	  if (ignoreactor)
+	    {
+	      ignoreterm = sys->runs[run].role->nameterm;
+	    }
+	  else
+	    {
+	      ignoreterm = NULL;
+	    }
+	  hadcontent = showLocals (run, sys->runs[run].protocol->
+				   rolenames, sys->runs[run].rho,
+				   ignoreterm, "", "\\l");
+	}
+      }
+  }
 
   if (hadcontent)
     {
+      eprintf ("\\l");
       eprintf (newline);
       hadcontent = false;
     }
@@ -1210,8 +1230,12 @@ printRunExplanation (const System sys, const int run,
 	  eprintf (newline);
 	  hadcontent = false;
 	}
-      showLocals (run, sys->runs[run].role->
-		  declaredvars, sys->runs[run].sigma, NULL, "\\l");
+      if (showLocals (run, sys->runs[run].role->
+		      declaredvars, sys->runs[run].sigma, NULL, "Var ",
+		      "\\l"))
+	{
+	  eprintf ("\\l");
+	}
     }
 }
 
