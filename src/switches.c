@@ -23,6 +23,8 @@ extern struct tacnode *spdltac;
 const char *progname = "scyther";
 const char *releasetag = SVNVERSION;
 
+char *lastfoundprefix = NULL;
+
 // Forward declarations
 void process_environment (void);
 void process_switches (int commandline);
@@ -93,11 +95,18 @@ switchesInit (int argc, char **argv)
 void
 switchesDone (void)
 {
+  if (lastfoundprefix != NULL)
+    free (lastfoundprefix);
 }
 
 //! Open a (protocol) file.
 /**
  * Uses the environment variable SCYTHERDIR to also search for files
+ *
+ * If a file was opened before, this is stored in the static char* (initially
+ * NULL) lastfoundprefix. This prefix can override any other: the point of it is that
+ * if you find a file in a non-standard location, which then does an include,
+ * you want this to refer to the directory where you found that last file.
  *
  * If reopener == NULL then we open a new file pointer, otherwise reopen this one.
  */
@@ -108,6 +117,9 @@ openFileSearch (char *filename, FILE * reopener)
   char *dirs;
 
   //! try a filename and a prefix.
+  /**
+   * Prefixes don't have to end with "/"; this will be added automatically.
+   */
   int try (char *prefix)
   {
     char *buffer = NULL;
@@ -125,7 +137,7 @@ openFileSearch (char *filename, FILE * reopener)
     buflen = prefixlen + namelen + 1;
 
     // Does the prefix end with a slash? (it should)
-    if (nameindex > 0 && prefix[nameindex - 1] != '/')
+    if (prefixlen > 0 && prefix[prefixlen - 1] != '/')
       {
 	addslash = true;
 	buflen++;
@@ -139,37 +151,64 @@ openFileSearch (char *filename, FILE * reopener)
 
     // Add the slash in the center
     if (addslash)
-      {
-	buffer[nameindex - 1] = '/';
-      }
+      buffer[nameindex - 1] = '/';
 
     // Now try to open it
     if (reopener != NULL)
       {
 	if (freopen (buffer, "r", reopener) != NULL)
-	  {
-	    result = true;
-	  }
+	  result = true;
       }
     else
       {
 	reopener = fopen (buffer, "r");
 	if (reopener != NULL)
-	  {
-	    result = true;
-	  }
+	  result = true;
       }
 
+    if (result)
+      {
+	// There is a result. Does it have a prefix?
+	char *ls;
+
+	// Non-standard location, maybe we should warn for that
+	if (switches.expert)
+	  {
+	    globalError++;
+	    eprintf ("Reading file %s.\n", buffer);
+	    globalError--;
+	  }
+
+	// Compute the prefix (simply scan for the last slash, if any)
+	ls = strrchr (buffer, '/');
+	if (ls != NULL)
+	  {
+	    // Store it for any next includes or something like that
+	    // Clear the old one
+	    if (lastfoundprefix != NULL)
+	      free (lastfoundprefix);
+	    ls[0] = '\0';
+	    lastfoundprefix = buffer;
+	    return true;
+	  }
+      }
     free (buffer);
     return result;
   }
 
   // main code.
 
-  if (try (""))
+  // Try last file prefix (if it exists!)
+  if (lastfoundprefix != NULL)
     {
-      return reopener;
+      if (try (lastfoundprefix))
+	return reopener;
     }
+
+  // Try current directory
+
+  if (try (""))
+    return reopener;
 
   // Now try the environment variable
   dirs = getenv ("SCYTHERDIR");
@@ -179,9 +218,7 @@ openFileSearch (char *filename, FILE * reopener)
 	{
 	  // try this one
 	  if (try (dirs))
-	    {
-	      return reopener;
-	    }
+	    return reopener;
 	  // skip to next
 	  dirs = strpbrk (dirs, separators);
 	  if (dirs != NULL)
