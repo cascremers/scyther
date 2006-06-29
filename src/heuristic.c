@@ -236,6 +236,39 @@ newkeylevel (const int level)
     return 1;
 }
 
+//! count local constants
+float
+term_constcount (const System sys, Term t)
+{
+  int n, total;
+  float ratio;
+
+  int countMe (Term t)
+  {
+    if (TermRunid (t) >= 0)
+      {
+	total++;
+	if (!isTermVariable (t))
+	  {
+	    n++;
+	  }
+      }
+  }
+
+  n = 0;
+  total = 0;
+  term_iterate_deVar (t, countMe, NULL, NULL, NULL);
+  if (total == 0)
+    {
+      ratio = 1;
+    }
+  else
+    {
+      ratio = ((total - n) / total);
+    }
+  return ratio;
+}
+
 //! Determine the weight of a given goal
 /**
  * 0 to ... (lower is better)
@@ -287,11 +320,24 @@ computeGoalWeight (const System sys, const Binding b)
   // Bit 3: 8 nonce variables level (Cf. what I think is in Athena)
   erode (term_noncevariables_level (t));
 
+  // Bit 4: 16 use hidelevel (normal)
+  erode (1 * weighHidelevel (sys, t, 0.5, 0.5));
+  // Bit 5: 32 use known nonces (Athena try 2)
+  erode (term_constcount (sys, t));
+
+  // Bit 6: 64 use hidelevel (but only single-weight)
+  erode (weighHidelevel (sys, t, 0.5, 0.5));
+  // Bit 7: 128 use hidelevel (quadruple-weight)
+  erode (4 * weighHidelevel (sys, t, 0.5, 0.5));
+
+  // Bit 8: 256 use known nonces (Athena try 2), half weight
+  erode (0.5 * term_constcount (sys, t));
+
   // Define legal range
   if (smode > 0)
     error ("--heuristic mode %i is illegal", switches.heuristic);
 
-  // Return total weight
+  // Return
   return w;
 }
 
