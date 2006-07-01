@@ -5,16 +5,15 @@ prot			claims	attacks	correct	decided
 [boundruns4.txt]	518	234	214	86.4864864865%
 [boundruns5.txt]	518	236	228	89.5752895753%
 [boundruns6.txt]	518	236	234	90.7335907336%
-[boundruns7.txt]	518	236	234	90.7335907336%
+[boundruns7.txt]	518	236	236	91.1196911197%
 
-		time
 boundtime1.txt 0.44
 boundtime2.txt 2.26
 boundtime3.txt 10.08
 boundtime4.txt 37.98
 boundtime5.txt 149.73
 boundtime6.txt 591.45
-boundtime7.txt 590.43
+boundtime7.txt 2159.35
 
 Attack with 1 runs:
 ['simplest,I,Secret_3', 'woolamPi-1,R,Nisynch_R1', 'tmn,S,Secret_7', 'carkeybrokenlim,R,Nisynch_2', 'localclaims,R,Secret_r1', 'onetrace,I,Secret_4', 'tmn,R,Nisynch_R2', 'woolamPi-2,R,Nisynch_R1', 'woolamPi-3,R,Nisynch_R1']

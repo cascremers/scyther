@@ -9,4 +9,4 @@ rm boundruns?.txt
 \time -v -o boundtime4.txt ./test-all.sh scyther -r4 --plain >boundruns4.txt 
 \time -v -o boundtime5.txt ./test-all.sh scyther -r5 --plain >boundruns5.txt 
 \time -v -o boundtime6.txt ./test-all.sh scyther -r6 --plain >boundruns6.txt 
-\time -v -o boundtime7.txt ./test-all.sh scyther -r6 --plain >boundruns7.txt 
+\time -v -o boundtime7.txt ./test-all.sh scyther -r7 --plain >boundruns7.txt 

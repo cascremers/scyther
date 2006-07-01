@@ -1,9 +1,9 @@
 Command exited with non-zero status 123
-	Command being timed: "./test-all.sh scyther -r6 --plain"
-	User time (seconds): 590.43
-	System time (seconds): 1.32
-	Percent of CPU this job got: 86%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:25.74
+	Command being timed: "./test-all.sh scyther -r7 --plain"
+	User time (seconds): 2159.35
+	System time (seconds): 5.62
+	Percent of CPU this job got: 39%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:30:45
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
@@ -11,9 +11,9 @@ Command exited with non-zero status 123
 	Maximum resident set size (kbytes): 0
 	Average resident set size (kbytes): 0
 	Major (requiring I/O) page faults: 0
-	Minor (reclaiming a frame) page faults: 51110
-	Voluntary context switches: 200
-	Involuntary context switches: 131751
+	Minor (reclaiming a frame) page faults: 105332
+	Voluntary context switches: 202
+	Involuntary context switches: 541255
 	Swaps: 0
 	File system inputs: 0
 	File system outputs: 0
