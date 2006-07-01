@@ -152,17 +152,9 @@ def select(type):
 
 
 def main():
-    (good, bad, others) = make_lists()
-
-    def show (tag, list):
-        print tag + " (%i)" % len(list)
-        print
-        for l in list:
-            print l
-
-    show ("Good", good)
-    show ("Bad", bad)
-    show ("Others", others)
+    l = from_all()
+    for f in l:
+        print f
         
 
 if __name__ == '__main__':

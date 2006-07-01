@@ -198,7 +198,8 @@ def main():
     sharedproblems = []
     firstproblem = True
 
-    for g in range(1,8):
+    for g in range(-1,512):
+        if (g != 0) and ((g == -1) or ((g & (64+16+8+4+1)) == 0)):
             (ra,rb,rp,nc,np,st,timeouts,prot_undec) = test_goal_selector(g, options,
                     boundstatesmax.get())
 
