@@ -60,11 +60,15 @@ def timed(file):
     print file, " no time found"
 
 def all():
+    print "prot\t\t\tclaims\tattacks\tcorrect\tdecided"
     for i in range(1,8):
         analyze("boundruns%i.txt" % (i),i)
+
+    print
     for i in range(1,8):
         timed("boundtime%i.txt" % (i))
 
+    print
     for i in range(1,8):
         l = []
         for k in firstbroken.keys():

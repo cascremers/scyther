@@ -198,47 +198,47 @@ def main():
     sharedproblems = []
     firstproblem = True
 
-    for g in range(-1,512):
-        if (g != 0) and ((g == -1) or ((g & (64+16+8+4+1)) == 0)):
-            (ra,rb,rp,nc,np,st,timeouts,prot_undec) = test_goal_selector(g, options,
-                    boundstatesmax.get())
+    heuristics = [-1,32,2,128,162]
+    for g in heuristics:
+        (ra,rb,rp,nc,np,st,timeouts,prot_undec) = test_goal_selector(g, options,
+                boundstatesmax.get())
 
-            res = str(g)
-            if ra < 0:
-                # Error: not well bounded
-                res += "\tWent over bound, stopped investigation."
-            else:
-                undecided = rb + timeouts
-                boundstates = undecided * undecided * st
+        res = str(g)
+        if ra < 0:
+            # Error: not well bounded
+            res += "\tWent over bound, stopped investigation."
+        else:
+            undecided = rb + timeouts
+            boundstates = undecided * undecided * st
 
-                def shows (res, mx, data):
-                    return res + "\t" + str(data) + mx.reg(data)
+            def shows (res, mx, data):
+                return res + "\t" + str(data) + mx.reg(data)
 
-                decide = (100 * (ra + rp)) / nc
-    
-                res = shows (res, decidemax, decide)
-                res += "%"
-                res = shows (res, ramax, ra)
-                res = shows (res, rpmax, rp)
-                res = shows (res, rbmax, rb)
-                res = shows (res, timeoutsmax, timeouts)
-                res = res + "\t%i" % nc
-                res += "\t%i" % np
-                res = shows (res, statesmax, st)
-                res = shows (res, boundstatesmax, boundstates)
+            decide = (100 * (ra + rp)) / nc
 
-            problems[g] = prot_undec
-            if firstproblem:
-                firstproblem = False
-                sharedproblems = prot_undec
-            else:
-                nl = []
-                for p in sharedproblems:
-                    if p in prot_undec:
-                        nl += [p]
-                sharedproblems = nl
+            res = shows (res, decidemax, decide)
+            res += "%"
+            res = shows (res, ramax, ra)
+            res = shows (res, rpmax, rp)
+            res = shows (res, rbmax, rb)
+            res = shows (res, timeoutsmax, timeouts)
+            res = res + "\t%i" % nc
+            res += "\t%i" % np
+            res = shows (res, statesmax, st)
+            res = shows (res, boundstatesmax, boundstates)
 
-            print res
+        problems[g] = prot_undec
+        if firstproblem:
+            firstproblem = False
+            sharedproblems = prot_undec
+        else:
+            nl = []
+            for p in sharedproblems:
+                if p in prot_undec:
+                    nl += [p]
+            sharedproblems = nl
+
+        print res
     print
     print "Goal selector scan completed."
     print
