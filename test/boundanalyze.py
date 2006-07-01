@@ -2,7 +2,9 @@
 
 import os
 
-def analyze(file):
+firstbroken = {}
+
+def analyze(file,bound):
 
     claim = 0
     correct = 0
@@ -15,8 +17,16 @@ def analyze(file):
         for l in fp.readlines():
             if l.startswith("claim"):
                 claim = claim + 1
+    
+                dt = l.split('\t')
+                claimid = "%s,%s" % (dt[1],dt[2])
+
                 if l.find("\tFail\t") >= 0:
                     attack = attack + 1
+
+                    if claimid not in firstbroken.keys():
+                        firstbroken[claimid] = bound
+
                 else:
                     if l.find("bounds") >= 0:
                         boundokay = boundokay + 1
@@ -51,9 +61,17 @@ def timed(file):
 
 def all():
     for i in range(1,8):
-        analyze("boundruns%i.txt" % (i))
+        analyze("boundruns%i.txt" % (i),i)
     for i in range(1,8):
         timed("boundtime%i.txt" % (i))
+
+    for i in range(1,8):
+        l = []
+        for k in firstbroken.keys():
+            if firstbroken[k] == i:
+                l.append(k)
+        print "Attack with %i runs:" % i
+        print l
 
 all()
 
