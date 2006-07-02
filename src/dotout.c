@@ -1185,6 +1185,7 @@ showLocal (const int run, Term told, Term tnew, char *prefix, char *cursep)
     }
   else
     {
+      eprintf (cursep);
       eprintf (prefix);
       termPrintRemap (tnew);
     }
