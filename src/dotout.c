@@ -921,40 +921,47 @@ regularModifiedLabel (Binding b)
 {
   Roledef rdfrom;
   Roledef rdto;
+  int unknown;
 
   rdfrom = eventRoledef (sys, b->run_from, b->ev_from);
   rdto = eventRoledef (sys, b->run_to, b->ev_to);
+  unknown = true;
 
-  // First up: compare messages contents'
+  // First up: compare messages contents': what was sent, what is needed
   if (!isTermEqual (rdfrom->message, b->term))
     {
       // What is sent is not equal to what is bound
       if (termInTerm (rdfrom->message, b->term))
 	{
 	  // Interm: simple select
+	  unknown = false;
 	  eprintf ("select ");
 	  termPrintRemap (b->term);
 	  eprintf ("\\n");
-	}
-      else
-	{
-	  // I'm not quite sure
-	  eprintf ("modify\\n");
 	}
     }
 
   // Second: agent things
   if (!isTermEqual (rdfrom->from, rdto->from))
     {
+      unknown = false;
       eprintf ("fake sender ");
       termPrintRemap (rdto->from);
       eprintf ("\\n");
     }
   if (!isTermEqual (rdfrom->to, rdto->to))
     {
+      unknown = false;
       eprintf ("redirect to ");
       termPrintRemap (rdto->to);
       eprintf ("\\n");
+    }
+
+  // Any leftovers for which I don't have a good name yet.
+  if (unknown)
+    {
+      // I'm not quite sure, we call it 'combine' for now. TODO
+      eprintf ("combine\\n");
     }
 }
 
