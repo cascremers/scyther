@@ -148,6 +148,14 @@ explainVariable (Term t)
     }
 }
 
+
+//! Name of intruder node
+void
+intruderNodeM0 (void)
+{
+  eprintf ("intruder");
+}
+
 //! Draw node
 void
 node (const System sys, const int run, const int index)
@@ -156,7 +164,7 @@ node (const System sys, const int run, const int index)
     {
       if (sys->runs[run].role == I_M)
 	{
-	  eprintf ("intruder");
+	  intruderNodeM0 ();
 	}
       else
 	{
@@ -556,6 +564,75 @@ isEventIgnored (const System sys, int run, int ev)
   return false;
 }
 
+//! Check whether an event is a function application
+int
+isApplication (const System sys, const int run)
+{
+  if (sys->runs[run].protocol == INTRUDER)
+    {
+      if (sys->runs[run].role == I_RRS)
+	{
+	  Roledef rd;
+
+	  rd = sys->runs[run].start->next;
+	  if (rd != NULL)
+	    {
+	      if (isTermFunctionName (rd->message))
+		{
+		  return true;
+		}
+	    }
+	}
+    }
+  return false;
+}
+
+//! Check whether the event is an M_0 function application (special case of the previous)
+int
+isApplicationM0 (const System sys, const int run)
+{
+  if (isApplication (sys, run))
+    {
+      int from_m0;
+      List bl;
+
+      from_m0 = false;
+
+      for (bl = sys->bindings; bl != NULL; bl = bl->next)
+	{
+	  Binding b;
+
+	  b = (Binding) bl->data;
+	  if (!b->blocked)
+	    {
+	      // if the binding is not done (class choice) we might
+	      // still show it somewhere.
+	      if (b->done)
+		{
+		  // The '1' denotes that the key is in the second position
+		  if (b->run_to == run && b->ev_to == 1)
+		    {
+		      if (sys->runs[b->run_from].role == I_M)
+			{
+			  from_m0 = true;
+			}
+		      else
+			{
+			  return false;
+			}
+		    }
+		}
+	    }
+	}
+      if (from_m0)
+	{
+	  // Source from M_0, and no others
+	  return true;
+	}
+    }
+  return false;
+}
+
 //! Determine ranks for all nodes
 /**
  * Some crude algorithm I sketched on the blackboard.
@@ -880,6 +957,8 @@ regularModifiedLabel (Binding b)
     }
 }
 
+//! 
+
 //! Draw a single binding
 void
 drawBinding (const System sys, Binding b)
@@ -889,6 +968,28 @@ drawBinding (const System sys, Binding b)
   intr_from = (sys->runs[b->run_from].protocol == INTRUDER);
   intr_to = (sys->runs[b->run_to].protocol == INTRUDER);
 
+  // Pruning: things going to M0 applications are pruned;
+  if (isApplicationM0 (sys, b->run_to))
+    {
+      return;
+    }
+  if (isApplicationM0 (sys, b->run_from))
+    {
+      int run;
+      int ev;
+
+      eprintf ("\t");
+      intruderNodeM0 ();
+      eprintf (" -> ");
+      node (sys, b->run_to, b->ev_to);
+      eprintf (" [label=\"");
+      termPrintRemap (b->term);
+      eprintf ("\"]");
+      eprintf (";\n");
+      return;
+    }
+
+  // Normal drawing cases;
   if (intr_from)
     {
       // from intruder
@@ -1121,7 +1222,7 @@ printRunConstants (const System sys, const int run)
 //! Explain a run in two lines
 void
 printRunExplanation (const System sys, const int run,
-		     const char *runrolesep, const char *newline)
+		     char *runrolesep, const char *newline)
 {
   int hadcontent;
 
@@ -1429,9 +1530,9 @@ drawIntruderRuns (const System sys)
 	  if (sys->runs[run].protocol == INTRUDER)
 	    {
 	      // Intruder run
-	      if (sys->runs[run].role != I_M)
+	      if (sys->runs[run].role != I_M && !isApplicationM0 (sys, run))
 		{
-		  // Not an M_0 run, so we can draw it.
+		  // Not an M_0 run, and not an M0 function application, so we can draw it.
 		  eprintf ("\t\t");
 		  node (sys, run, 0);
 		  eprintf (" [style=filled,fillcolor=\"");
