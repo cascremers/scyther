@@ -587,47 +587,48 @@ isApplication (const System sys, const int run)
   return false;
 }
 
-//! Check whether the event is an M_0 function application (special case of the previous)
+//! Is an event enabled by M0 only?
 int
-isApplicationM0 (const System sys, const int run)
+isEnabledM0 (const System sys, const int run, const int ev)
 {
-  if (isApplication (sys, run))
+  List bl;
+
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
     {
-      int from_m0;
-      List bl;
+      Binding b;
 
-      from_m0 = false;
-
-      for (bl = sys->bindings; bl != NULL; bl = bl->next)
+      b = (Binding) bl->data;
+      if (!b->blocked)
 	{
-	  Binding b;
-
-	  b = (Binding) bl->data;
-	  if (!b->blocked)
+	  // if the binding is not done (class choice) we might
+	  // still show it somewhere.
+	  if (b->done)
 	    {
-	      // if the binding is not done (class choice) we might
-	      // still show it somewhere.
-	      if (b->done)
+	      if (b->run_to == run && b->ev_to == ev)
 		{
-		  // The '1' denotes that the key is in the second position
-		  if (b->run_to == run && b->ev_to == 1)
+		  if (sys->runs[b->run_from].role != I_M)
 		    {
-		      if (sys->runs[b->run_from].role == I_M)
-			{
-			  from_m0 = true;
-			}
-		      else
-			{
-			  return false;
-			}
+		      return false;
 		    }
 		}
 	    }
 	}
-      if (from_m0)
+    }
+  return true;
+}
+
+//! Check whether the event is an M_0 function application (special case of the previous)
+int
+isApplicationM0 (const System sys, const int run)
+{
+  if (sys->runs[run].length > 1)
+    {
+      if (isApplication (sys, run))
 	{
-	  // Source from M_0, and no others
-	  return true;
+	  if (isEnabledM0 (sys, run, 1))
+	    {
+	      return true;
+	    }
 	}
     }
   return false;
@@ -963,10 +964,27 @@ regularModifiedLabel (Binding b)
 void
 drawBinding (const System sys, Binding b)
 {
-  int intr_to, intr_from;
+  int intr_to, intr_from, m0_from;
+
+  void myarrow (const Binding b)
+  {
+    if (m0_from)
+      {
+	eprintf ("\t");
+	intruderNodeM0 ();
+	eprintf (" -> ");
+	node (sys, b->run_to, b->ev_to);
+      }
+    else
+      {
+	arrow (sys, b);
+      }
+
+  }
 
   intr_from = (sys->runs[b->run_from].protocol == INTRUDER);
   intr_to = (sys->runs[b->run_to].protocol == INTRUDER);
+  m0_from = false;
 
   // Pruning: things going to M0 applications are pruned;
   if (isApplicationM0 (sys, b->run_to))
@@ -975,18 +993,7 @@ drawBinding (const System sys, Binding b)
     }
   if (isApplicationM0 (sys, b->run_from))
     {
-      int run;
-      int ev;
-
-      eprintf ("\t");
-      intruderNodeM0 ();
-      eprintf (" -> ");
-      node (sys, b->run_to, b->ev_to);
-      eprintf (" [label=\"");
-      termPrintRemap (b->term);
-      eprintf ("\"]");
-      eprintf (";\n");
-      return;
+      m0_from = true;
     }
 
   // Normal drawing cases;
@@ -1018,7 +1025,7 @@ drawBinding (const System sys, Binding b)
 	{
 	  // intr->intr
 	  eprintf ("\t");
-	  arrow (sys, b);
+	  myarrow (b);
 	  eprintf (" [label=\"");
 	  termPrintRemap (b->term);
 	  eprintf ("\"]");
@@ -1028,7 +1035,7 @@ drawBinding (const System sys, Binding b)
 	{
 	  // intr->regular
 	  eprintf ("\t");
-	  arrow (sys, b);
+	  myarrow (b);
 	  eprintf (";\n");
 	}
     }
@@ -1039,7 +1046,7 @@ drawBinding (const System sys, Binding b)
 	{
 	  // regular->intr
 	  eprintf ("\t");
-	  arrow (sys, b);
+	  myarrow (b);
 	  eprintf (";\n");
 	}
       else
@@ -1051,7 +1058,7 @@ drawBinding (const System sys, Binding b)
 	  if (isCommunicationExact (sys, b))
 	    {
 	      eprintf ("\t");
-	      arrow (sys, b);
+	      myarrow (b);
 	      eprintf (" [style=bold,color=\"%s\"]", GOODCOMMCOLOR);
 	      eprintf (";\n");
 	    }
