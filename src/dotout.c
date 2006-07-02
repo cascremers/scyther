@@ -998,7 +998,8 @@ drawBinding (const System sys, Binding b)
     {
       return;
     }
-  if (isApplicationM0 (sys, b->run_from))
+  if (isApplicationM0 (sys, b->run_from) ||
+      sys->runs[b->run_from].role == I_M)
     {
       m0_from = true;
     }
@@ -1027,7 +1028,7 @@ drawBinding (const System sys, Binding b)
 	    }
 	}
 
-      // normal from intruder (not M0)
+      // normal from intruder, not seen before (might be M_0)
       if (intr_to)
 	{
 	  // intr->intr
@@ -1035,7 +1036,12 @@ drawBinding (const System sys, Binding b)
 	  myarrow (b);
 	  eprintf (" [label=\"");
 	  termPrintRemap (b->term);
-	  eprintf ("\"]");
+	  eprintf ("\"");
+	  if (m0_from)
+	    {
+	      eprintf (",weight=\"10.0\"");
+	    }
+	  eprintf ("]");
 	  eprintf (";\n");
 	}
       else
@@ -1043,6 +1049,10 @@ drawBinding (const System sys, Binding b)
 	  // intr->regular
 	  eprintf ("\t");
 	  myarrow (b);
+	  if (m0_from)
+	    {
+	      eprintf ("[weight=\"0.5\"]");
+	    }
 	  eprintf (";\n");
 	}
     }
