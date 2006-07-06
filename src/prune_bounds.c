@@ -137,7 +137,7 @@ prune_bounds (const System sys)
     }
 
   /* prune for cheaper */
-  if (switches.prune == 2 && attack_leastcost <= attackCost (sys))
+  if (switches.prune != 0 && attack_leastcost <= attackCost (sys))
     {
       // We already had an attack at least this cheap.
       if (switches.output == PROOF)

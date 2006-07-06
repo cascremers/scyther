@@ -1916,7 +1916,7 @@ makeTraceClass (const System sys, Termlist varlist)
 void
 attackOutputStart (void)
 {
-  if (switches.prune == 2)
+  if (switches.prune != 0)
     {
       FILE *fd;
 
@@ -2181,7 +2181,7 @@ iterate ()
 int
 iterate_buffer_attacks (void)
 {
-  if (switches.prune != 2)
+  if (switches.prune == 0)
     {
       return iterate ();
     }
