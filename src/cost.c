@@ -35,6 +35,22 @@ attackCost (const System sys)
     }
   if (switches.prune == 1)
     {
+      // Select the first attack.
+      // Implied by having the cost of traces after finding an attack to be always higher.
+      //
+      if (sys->current_claim->failed > 0)
+	{
+	  // we already have an attack
+	  return INT_MAX;
+	}
+      else
+	{
+	  // return some value relating to the cost (anything less than int_max will do)
+	  return 1;
+	}
+    }
+  if (switches.prune == 2)
+    {
       // Use nice heuristic cf. work of Gijs Hollestelle. Hand-picked parameters.
       int cost;
 
@@ -50,22 +66,6 @@ attackCost (const System sys)
       cost += 1 * sys->num_intruder_runs;
 
       return cost;
-    }
-  if (switches.prune == 2)
-    {
-      // Select the first attack.
-      // Implied by having the cost of traces after finding an attack to be always higher.
-      //
-      if (sys->current_claim->failed > 0)
-	{
-	  // we already have an attack
-	  return INT_MAX;
-	}
-      else
-	{
-	  // return some value relating to the cost (anything less than int_max will do)
-	  return 1;
-	}
     }
   error ("Unknown pruning method (cost function not found)");
 }

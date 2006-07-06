@@ -41,7 +41,7 @@ switchesInit (int argc, char **argv)
   switches.tupling = 0;
 
   // Pruning and Bounding
-  switches.prune = 1;		// default pruning method (use heuristic)
+  switches.prune = 2;		// default pruning method (use nice heuristic)
   switches.maxproofdepth = INT_MAX;
   switches.maxtracelength = INT_MAX;
   switches.runs = 5;		// default is 5 for usability, but -r 0 or --maxruns=0 will set it back to INT_MAX
@@ -711,7 +711,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  /* not very important
-	     helptext ("    --prune=<int>", "pruning method when an attack is found [1]");
+	     helptext ("    --prune=<int>", "pruning method when an attack is found [2]");
 	   */
 	}
       else
