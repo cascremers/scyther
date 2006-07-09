@@ -872,10 +872,13 @@ createDecryptionChain (const Binding b, const int run, const int index,
  * requires keys, then we should add such goals as well with the required
  * decryptor things.
  *
+ * The 'newdecr' boolean signals the addition of decryptors. If it is false, we should not add any.
+ *
  * The key goals are bound to the goal. Iterates on success.
  */
 void
-bind_existing_to_goal (const Binding b, const int run, const int index)
+bind_existing_to_goal (const Binding b, const int run, const int index,
+		       int newdecr)
 {
   Term bigterm;
 
@@ -884,6 +887,13 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
     int old_length;
     int newgoals;
 
+    // TODO this is a hack: in this case we really should not use subterm
+    // unification but interm instead. However, this effectively does the same
+    // by avoiding branches that get immediately pruned anyway.
+    if (!newdecr && keylist != NULL)
+      {
+	return true;
+      }
     // We need some adapting because the height would increase; we therefore
     // have to add read goals before we know whether it unifies.
     old_length = sys->runs[run].height;
@@ -999,7 +1009,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index)
 
 
 
-//! Bind a goal to an existing regular run, if possible
+//! Bind a goal to an existing regular run, if possible, by adding decr events
 int
 bind_existing_run (const Binding b, const Protocol p, const Role r,
 		   const int index)
@@ -1029,7 +1039,7 @@ bind_existing_run (const Binding b, const Protocol p, const Role r,
 	      eprintf ("%i. Can we bind it to run %i?\n", found, run);
 	    }
 	  indentDepth++;
-	  bind_existing_to_goal (b, run, index);
+	  bind_existing_to_goal (b, run, index, true);
 	  indentDepth--;
 	}
     }
@@ -1045,7 +1055,7 @@ bind_existing_run (const Binding b, const Protocol p, const Role r,
   return flag;
 }
 
-//! Bind a goal to a new run
+//! Bind a goal to a new run, possibly adding decr events
 int
 bind_new_run (const Binding b, const Protocol p, const Role r,
 	      const int index)
@@ -1059,7 +1069,7 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
 
     newgoals = add_read_goals (run, 0, index + 1);
     indentDepth++;
-    bind_existing_to_goal (b, run, index);
+    bind_existing_to_goal (b, run, index, true);
     indentDepth--;
     goal_remove_last (newgoals);
   }
@@ -1389,8 +1399,9 @@ bind_goal_new_intruder_run (const Binding b)
       eprintf (" from a new intruder run?\n");
     }
   indentDepth++;
-  flag = bind_goal_new_m0 (b);
-  flag = flag && bind_goal_new_encrypt (b);
+  //flag = bind_goal_new_m0 (b);
+  //flag = flag && bind_goal_new_encrypt (b);
+  flag = bind_goal_new_encrypt (b);
   indentDepth--;
   return flag;
 }
@@ -1530,7 +1541,8 @@ bind_goal_old_intruder_run (Binding b)
 			("Suppose it is from an existing intruder run.\n");
 		    }
 		  indentDepth++;
-		  bind_existing_to_goal (b, run, ev);
+		  bind_existing_to_goal (b, run, ev,
+					 (sys->runs[run].role != I_RRS));
 		  indentDepth--;
 		}
 	      rd = rd->next;
@@ -1669,7 +1681,7 @@ bind_goal_all_options (const Binding b)
 	    {
 	      // Special case: only from intruder
 	      flag = flag && bind_goal_old_intruder_run (b);
-	      flag = flag && bind_goal_new_intruder_run (b);
+	      //flag = flag && bind_goal_new_intruder_run (b);
 	    }
 	  else
 	    {
@@ -2354,15 +2366,46 @@ arachne ()
 		    proof_suppose_run (run, 0, cl->ev + 1);
 		    newgoals = add_read_goals (run, 0, cl->ev + 1);
 
+		    /**
+		     * Add initial knowledge node
+		     */
+		    {
+		      Termlist m0tl;
+		      Term m0t;
+		      int m0run;
+
+		      m0tl = knowledgeSet (sys->know);
+		      m0t = termlist_to_tuple (m0tl);
+		      // eprintf("Initial intruder knowledge node for ");
+		      // termPrint(m0t);
+		      // eprintf("\n");
+		      I_M->roledef->message = m0t;
+		      m0run = semiRunCreate (INTRUDER, I_M);
+		      newruns++;
+		      proof_suppose_run (m0run, 0, 1);
+		      sys->runs[m0run].height = 1;
+
+		      {
 		      /**
-		       * Add specific goal info and iterate
+		       * Add specific goal info and iterate algorithm
 		       */
-		    add_claim_specifics (sys, cl,
-					 roledef_shift (sys->runs[run].start,
-							cl->ev), realStart);
+			add_claim_specifics (sys, cl,
+					     roledef_shift (sys->runs[run].
+							    start, cl->ev),
+					     realStart);
+		      }
 
 
+		      // remove initial knowledge node
+		      termDelete (m0t);
+		      termlistDelete (m0tl);
+		      semiRunDestroy ();
+		      newruns--;
+		    }
+		    // remove claiming run goals 
 		    goal_remove_last (newgoals);
+		    semiRunDestroy ();
+		    newruns--;
 		  }
 		  //! Destroy
 		  while (sys->maxruns > 0 && newruns > 0)
