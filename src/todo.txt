@@ -1,3 +1,6 @@
+- --check is slightly f***ed up because there is no good semantics for
+  the --disable intruder check. As a result, it is now too strict can
+  cause correct protocols to fail. Fix.
 - When *not* asking for attack output, maybe we should default to
   --prune = 1. Then, if we ask for --xml output or --dot, we do:
   if --prune == 1 then --prune == 2 now :) unless otherwise specified.
