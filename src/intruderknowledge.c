@@ -108,7 +108,51 @@ initialIntruderKnowledge (const System sys)
       {
 	if (anySubTerm (t, p->rolenames))
 	  {
+	    Term f;
 	    // Has rolename subterms. We have to enumerate those.
+	    /**
+	     * Hack. Enumerating is not always good (or even desirable).
+	     * If some I knows sk(I), sk should not be in the intruder knowledge.
+	     * But for hash(I), we typically would have h; but if it is never used differently, it would suffice.
+	     * To sommarize, the operational semantics definition is perfectly fine, but maybe a bit strict sometimes.
+	     *
+	     * The hack is that if function application:
+	    */
+	    f = getTermFunction (t);
+	    if (f != NULL)
+	      {
+		// it's a function, right. So we see whether it is public. It is if it does not contain the actor...
+		if (!termSubTerm (t, actor))
+		  {
+		    // no actor, then nothing secret I guess.
+		    addSTerm (sys, f, NULL, NULL);
+		    return;
+		  }
+		else
+		  {
+		    // has actor. but does it contain even more?
+
+		    int allagents (Term t)
+		    {
+		      if (!inTermlist (sys->agentnames, t))
+			{
+			  if (!inTermlist (p->rolenames, t))
+			    {
+			      return false;
+			    }
+			}
+		      return true;
+		    }
+
+		    if (!term_iterate_leaves (TermOp (t), allagents))
+		      {
+			// something else as well, so that probably means a hash or something like that.
+			addSTerm (sys, f, NULL, NULL);
+			return;
+		      }
+		  }
+	      }
+	    // otherwise, we enumerate
 	    addEnumTerm (sys, t, actor, p->rolenames, NULL, NULL);
 	  }
 	else
@@ -124,7 +168,6 @@ initialIntruderKnowledge (const System sys)
 	  tl = tl->next;
 	}
     }
-
 
     eprintf ("Role ");
     termPrint (r->nameterm);
