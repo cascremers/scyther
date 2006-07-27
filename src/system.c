@@ -59,6 +59,7 @@ systemInit ()
   sys->protocols = NULL;
   sys->locals = NULL;
   sys->variables = NULL;
+  sys->agentnames = NULL;
   sys->untrusted = NULL;
   sys->globalconstants = NULL;
   sys->hidden = NULL;

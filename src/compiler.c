@@ -15,6 +15,7 @@
 #include "warshall.h"
 #include "hidelevel.h"
 #include "debug.h"
+#include "intruderknowledge.h"
 
 /*
    Simple sys pointer as a global. Yields cleaner code although it's against programming standards.
@@ -323,6 +324,7 @@ levelTacDeclaration (Tac tc, int isVar)
   Tac tscan;
   Termlist typetl = NULL;
   Term t;
+  int isAgent;
 
   // tscan contains the type list (as is const x,z: Term or var y: Term,Ding)
   tscan = tc->t2.tac;
@@ -353,6 +355,9 @@ levelTacDeclaration (Tac tc, int isVar)
       typetl = termlistAdd (typetl, t);
       tscan = tscan->next;
     }
+  /* check whether the type list contains the agent type */
+  isAgent = inTermlist (typetl, TERM_Agent);
+
   /* parse all constants and vars, because a single declaration can contain multiple ones */
   tscan = tc->t1.tac;
   while (tscan != NULL)
@@ -379,6 +384,10 @@ levelTacDeclaration (Tac tc, int isVar)
       else if (level == 0)
 	{
 	  sys->globalconstants = termlistAdd (sys->globalconstants, t);
+	  if (isAgent)
+	    {
+	      sys->agentnames = termlistAdd (sys->agentnames, t);
+	    }
 	}
       tscan = tscan->next;
     }
@@ -1813,21 +1822,8 @@ preprocess (const System sys)
    * compute hidelevels
    */
   hidelevelCompute (sys);
-
-  if (switches.check)
-    {
-      /*
-       * display initial role knowledge
-       */
-
-      int showRK (Protocol p, Role r)
-      {
-	eprintf ("Role ");
-	termPrint (r->nameterm);
-	eprintf (" knows ");
-	termlistPrint (r->knows);
-	eprintf ("\n");
-      }
-      iterateRoles (sys, showRK);
-    }
+  /*
+   * Initial knowledge
+   */
+  initialIntruderKnowledge (sys);
 }

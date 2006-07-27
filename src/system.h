@@ -128,6 +128,7 @@ struct system
   Protocol protocols;		//!< List of protocols in the system
   Termlist locals;		//!< List of local terms
   Termlist variables;		//!< List of all variables
+  Termlist agentnames;		//!< List of all agent names (trusted and untrusted)
   Termlist untrusted;		//!< List of untrusted agent names
   Termlist globalconstants;	//!< List of global constants
   Hiddenterm hidden;		//!< List of hiddenterm constructs for Hidelevel lemma
