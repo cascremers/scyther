@@ -54,6 +54,7 @@ int yylex(void);
 %type	<tac>	basictermlist
 %type	<tac>	key
 %type	<tac>	roleref
+%type	<tac>	knowsdecl
 
 %type   <value>	singular
 
@@ -145,6 +146,8 @@ roledef		: /* empty */
 		  {	$$ = tacCat($1,$2); }
 		| declaration roledef
 		  {	$$ = tacCat($1,$2); }
+		| knowsdecl roledef
+		  {	$$ = tacCat($1,$2); }
 		;
 
 event		: READT label '(' termlist ')' ';'
@@ -174,6 +177,13 @@ roleref		: ID '.' ID
 		  {	Tac t = tacCreate(TAC_ROLEREF);
 		  	t->t1.sym = $1;
 			t->t2.sym = $3;
+			$$ = t;
+		  }
+		;
+
+knowsdecl	: KNOWS termlist ';'
+		  {	Tac t = tacCreate(TAC_KNOWS);
+		  	t->t1.tac = $2;
 			$$ = t;
 		  }
 		;

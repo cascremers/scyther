@@ -134,6 +134,8 @@ struct role
   Termlist declaredconsts;
   //! Declared variables for this role
   Termlist declaredvars;
+  //! Initial role knowledge
+  Termlist knows;
   //! Flag for initiator roles
   int initiator;
   //! Flag for singular roles

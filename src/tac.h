@@ -22,6 +22,7 @@ enum tactypes
   TAC_STRING,
   TAC_ROLE,
   TAC_PROTOCOL,
+  TAC_KNOWS,
   TAC_RUN,
   TAC_ROLEREF,
   TAC_SECRET,

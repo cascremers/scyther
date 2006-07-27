@@ -44,6 +44,7 @@ Term tacTerm (Tac tc);
 Termlist tacTermlist (Tac tc);
 Term levelDeclare (Symbol s, int isVar, int level);
 void compute_role_variables (const System sys, Protocol p, Role r);
+void roleKnows (Tac tc);
 
 /*
  * Global stuff
@@ -828,6 +829,9 @@ roleCompile (Term nameterm, Tac tc)
 	  case TAC_CLAIM:
 	    commEvent (CLAIM, tc);
 	    break;
+	  case TAC_KNOWS:
+	    roleKnows (tc);
+	    break;
 	  default:
 	    if (!normalDeclaration (tc))
 	      {
@@ -857,6 +861,13 @@ roleCompile (Term nameterm, Tac tc)
   /* last bits */
   compute_role_variables (sys, thisProtocol, thisRole);
   levelDone ();
+}
+
+//! Initial role knowledge declaration
+void
+roleKnows (Tac tc)
+{
+  thisRole->knows = termlistConcat (thisRole->knows, tacTermlist (tc->t1.tac));
 }
 
 void
@@ -1801,4 +1812,17 @@ preprocess (const System sys)
    * compute hidelevels
    */
   hidelevelCompute (sys);
+  /*
+   * display initial role knowledge
+   */
+
+  int showRK (Protocol p, Role r)
+  {
+    eprintf ("Role ");
+    termPrint (r->nameterm);
+    eprintf (" knows ");
+    termlistPrint (r->knows);
+    eprintf ("\n");
+  }
+  iterateRoles (sys,showRK);
 }

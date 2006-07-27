@@ -229,6 +229,7 @@ roleCreate (Term name)
   r->initiator = 1;		//! Will be determined later, if a read is the first action (in compiler.c)
   r->singular = false;		// by default, a role is not singular
   r->next = NULL;
+  r->knows = NULL;
   return r;
 }
 

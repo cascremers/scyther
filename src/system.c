@@ -1381,6 +1381,31 @@ iterateLocalToOther (const System sys, const int myrun,
   return flag;
 }
 
+//! Iterate over all roles
+int
+iterateRoles (const System sys, int (*callback) (Protocol p, Role r))
+{
+  Protocol p;
+
+  p = sys->protocols;
+  while (p != NULL)
+    {
+      Role r;
+
+      r = p->roles;
+      while (r != NULL)
+	{
+	  if (!callback (p, r))
+	    {
+	      return false;
+	    }
+	  r = r->next;
+	}
+      p = p->next;
+    }
+  return true;
+}
+
 //! Get first read/send occurrence (event index) of term t in run r
 int
 firstOccurrence (const System sys, const int r, Term t, int evtype)

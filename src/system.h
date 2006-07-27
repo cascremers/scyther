@@ -203,6 +203,7 @@ int iterateEventsType (const System sys, const int run, const int evtype,
 		       int (*callback) (Roledef rd, int ev));
 int iterateLocalToOther (const System sys, const int myrun,
 			 int (*callback) (Term t));
+int iterateRoles (const System sys, int (*callback) (Protocol p, Role r));
 int firstOccurrence (const System sys, const int r, Term t, int evtype);
 Roledef eventRoledef (const System sys, const int run, const int ev);
 int countInitiators (const System sys);
