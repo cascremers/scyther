@@ -867,7 +867,8 @@ roleCompile (Term nameterm, Tac tc)
 void
 roleKnows (Tac tc)
 {
-  thisRole->knows = termlistConcat (thisRole->knows, tacTermlist (tc->t1.tac));
+  thisRole->knows =
+    termlistConcat (thisRole->knows, tacTermlist (tc->t1.tac));
 }
 
 void
@@ -1812,17 +1813,21 @@ preprocess (const System sys)
    * compute hidelevels
    */
   hidelevelCompute (sys);
-  /*
-   * display initial role knowledge
-   */
 
-  int showRK (Protocol p, Role r)
-  {
-    eprintf ("Role ");
-    termPrint (r->nameterm);
-    eprintf (" knows ");
-    termlistPrint (r->knows);
-    eprintf ("\n");
-  }
-  iterateRoles (sys,showRK);
+  if (switches.check)
+    {
+      /*
+       * display initial role knowledge
+       */
+
+      int showRK (Protocol p, Role r)
+      {
+	eprintf ("Role ");
+	termPrint (r->nameterm);
+	eprintf (" knows ");
+	termlistPrint (r->knows);
+	eprintf ("\n");
+      }
+      iterateRoles (sys, showRK);
+    }
 }
