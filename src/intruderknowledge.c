@@ -14,9 +14,11 @@ addSTerm (const System sys, Term t, Termlist fromlist, Termlist tolist)
 
   if (switches.check)
     {
+      globalError++;
       eprintf ("[ Adding ");
       termPrint (t2);
       eprintf (" to the initial intruder knowledge]\n");
+      globalError--;
     }
 }
 
@@ -95,6 +97,7 @@ initialIntruderKnowledge (const System sys)
 {
   if (switches.check)
     {
+      globalError++;
       eprintf ("Computing initial intruder knowledge.\n\n");
       eprintf ("Agent names      : ");
       termlistPrint (sys->agentnames);
@@ -102,6 +105,7 @@ initialIntruderKnowledge (const System sys)
       eprintf ("Untrusted agents : ");
       termlistPrint (sys->untrusted);
       eprintf ("\n");
+      globalError--;
     }
 
   /*
@@ -178,11 +182,13 @@ initialIntruderKnowledge (const System sys)
 
     if (switches.check)
       {
+	globalError++;
 	eprintf ("Role ");
 	termPrint (r->nameterm);
 	eprintf (" knows ");
 	termlistPrint (r->knows);
 	eprintf ("\n");
+	globalError--;
       }
 
     addListKnowledge (r->knows, r->nameterm);
