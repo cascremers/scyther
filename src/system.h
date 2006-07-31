@@ -139,6 +139,7 @@ struct system
   int lastChooseRun;		//!< Last run with a choose event
   Claimlist claimlist;		//!< List of claims in the system, with occurrence counts
   List labellist;		//!< List of labelinfo stuff
+  int knowledgedefined;		//!< True if knowledge is defined for some role (which triggers well-formedness check etc.)
 
   /* constructed trace pointers, static */
   Roledef *traceEvent;		//!< Trace roledefs: MaxRuns * maxRoledef
@@ -189,7 +190,6 @@ int compute_rolecount (const System sys);
 int compute_roleeventmax (const System sys);
 
 void scenarioPrint (const System sys);
-int system_iterate_roles (const System sys, int (*func) ());
 int isAgentTrusted (const System sys, Term agent);
 int isAgentlistTrusted (const System sys, Termlist agents);
 int isRunTrusted (const System sys, const int run);

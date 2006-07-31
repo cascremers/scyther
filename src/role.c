@@ -321,7 +321,7 @@ roledef_shift (Roledef rd, int i)
   return rd;
 }
 
-// Check whether a term is a subterm of a roledef
+//! Check whether a term is a subterm of a roledef
 int
 roledefSubTerm (Roledef rd, Term tsub)
 {
@@ -334,4 +334,173 @@ roledefSubTerm (Roledef rd, Term tsub)
       return (termSubTerm (rd->from, tsub) ||
 	      termSubTerm (rd->to, tsub) || termSubTerm (rd->message, tsub));
     }
+}
+
+/*
+ * Some stuff directly from the semantics
+ */
+
+//! Is a term readable (from some knowledge set)
+/**
+ * Returns value of predicate
+ */
+int
+Readable (Knowledge know, Term t)
+{
+  if (isTermVariable (t))
+    {
+      // Variable pattern
+      return true;
+    }
+  if (!isTermLeaf (t))
+    {
+      if (isTermTuple (t))
+	{
+	  // Tuple pattern
+	  Knowledge knowalt;
+	  int both;
+
+	  both = false;
+	  knowalt = knowledgeDuplicate (know);
+	  knowledgeAddTerm (knowalt, TermOp2 (t));
+	  if (Readable (knowalt, TermOp1 (t)))
+	    {
+	      // Yes, left half works
+	      knowledgeDelete (knowalt);
+	      knowalt = knowledgeDuplicate (know);
+	      knowledgeAddTerm (knowalt, TermOp1 (t));
+	      if (Readable (knowalt, TermOp2 (t)))
+		{
+		  both = true;
+		}
+	    }
+	  knowledgeDelete (knowalt);
+	  return both;
+	}
+      else
+	{
+	  // Encryption pattern
+	  // But we exclude functions
+	  if (getTermFunction (t) == NULL)
+	    {
+	      // Real encryption pattern
+	      Term inv;
+	      int either;
+
+	      // Left disjunct
+	      if (inKnowledge (know, t))
+		{
+		  return true;
+		}
+	      // Right disjunct
+	      inv = inverseKey (know->inverses, TermKey (t));
+	      either = false;
+	      if (inKnowledge (know, inv))
+		{
+		  if (Readable (know, TermOp (t)))
+		    {
+		      either = true;
+		    }
+		}
+	      termDelete (inv);
+	      return either;
+	    }
+	}
+    }
+  return inKnowledge (know, t);
+}
+
+//! Well-formed error reporting.
+void
+wfeError (Knowledge know, Roledef rd, char *errorstring, Term was,
+	  Term shouldbe)
+{
+  globalError++;
+  eprintf ("Well-formedness error.\n");
+  roledefPrint (rd);
+  eprintf ("\nKnowing ");
+  knowledgePrintShort (know);
+  eprintf ("\n");
+  if (was != NULL || shouldbe != NULL)
+    {
+      eprintf ("while parsing ");
+      termPrint (was);
+      if (shouldbe != NULL)
+	{
+	  eprintf (" which should have been ");
+	  termPrint (shouldbe);
+	}
+      eprintf ("\n");
+    }
+  globalError--;
+  error (errorstring);
+}
+
+
+//! Is an event well-formed
+/**
+ * Returns the new knowledge or NULL if it was not well-formed.
+ */
+Knowledge
+WellFormedEvent (Term role, Knowledge know, Roledef rd)
+{
+  if (rd == NULL)
+    {
+      return know;
+    }
+  if (rd->type == READ)
+    {
+      // Read
+      if (!isTermEqual (role, rd->to))
+	{
+	  wfeError (know, rd, "Reading role incorrect.", rd->to, role);
+	  return NULL;
+	}
+      if (!inKnowledge (know, rd->from))
+	{
+	  wfeError (know, rd, "Unknown sender role.", rd->from, NULL);
+	  return NULL;
+
+	}
+      if (!Readable (know, rd->message))
+	{
+	  wfeError (know, rd, "Cannot read message pattern.", rd->message,
+		    NULL);
+	  return NULL;
+	}
+      knowledgeAddTerm (know, rd->message);
+      return know;
+    }
+  if (rd->type == SEND)
+    {
+      // Send
+      if (!isTermEqual (role, rd->from))
+	{
+	  wfeError (know, rd, "Sending role incorrect.", rd->from, role);
+	  return NULL;
+	}
+      if (!inKnowledge (know, rd->to))
+	{
+	  wfeError (know, rd, "Unknown reading role.", rd->to, NULL);
+	  return NULL;
+
+	}
+      if (!inKnowledge (know, rd->message))
+	{
+	  wfeError (know, rd, "Unable to construct message.", rd->message,
+		    NULL);
+	  return NULL;
+	}
+    }
+  if (rd->type == CLAIM)
+    {
+      // Claim
+      if (!isTermEqual (role, rd->from))
+	{
+	  wfeError (know, rd, "Claiming role incorrect.", rd->from, role);
+	  return NULL;
+	}
+    }
+  // Unknown, false
+  return NULL;
 }

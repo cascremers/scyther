@@ -876,6 +876,7 @@ roleCompile (Term nameterm, Tac tc)
 void
 roleKnows (Tac tc)
 {
+  sys->knowledgedefined = true;	// apparently someone uses this, so we enable the check
   thisRole->knows =
     termlistConcat (thisRole->knows, tacTermlist (tc->t1.tac));
 }
@@ -1801,6 +1802,63 @@ checkUnusedVariables (const System sys)
     }
 }
 
+//! Is a complete role well-formed
+int
+WellFormedRole (const System sys, Protocol p, Role r)
+{
+  Knowledge know;
+  int okay;
+  Roledef rd;
+
+  okay = true;
+  know = emptyKnowledge ();
+  // Transfer inverses
+  know->inverses = sys->know->inverses;
+  // Add role knowledge
+  knowledgeAddTermlist (know, r->knows);
+  // Add role names
+  //@TODO this is not in the semantics as such, often implicit
+  knowledgeAddTermlist (know, p->rolenames);
+  // Add local constants
+  //@TODO this is not in the semantics as such, often implicit
+  knowledgeAddTermlist (know, r->declaredconsts);
+
+  // Test
+  rd = r->roledef;
+  while (rd != NULL)
+    {
+      Knowledge knowres;
+
+      knowres = WellFormedEvent (r->nameterm, know, rd);
+      if (knowres == NULL)
+	{
+	  okay = false;
+	  break;
+	}
+      else
+	{
+	  know = knowres;
+	  rd = rd->next;
+	}
+    }
+
+  // clean up
+  knowledgeDelete (know);
+  return okay;
+}
+
+//! Well-formedness check
+void
+checkWellFormed (const System sys)
+{
+  int thisRole (Protocol p, Role r)
+  {
+    return WellFormedRole (sys, p, r);
+  }
+
+  iterateRoles (sys, thisRole);
+}
+
 //! Preprocess after system compilation
 void
 preprocess (const System sys)
@@ -1817,7 +1875,10 @@ preprocess (const System sys)
   /*
    * check for ununsed variables
    */
-  checkUnusedVariables (sys);
+  if (switches.check)
+    {
+      checkUnusedVariables (sys);
+    }
   /*
    * compute hidelevels
    */
@@ -1825,5 +1886,15 @@ preprocess (const System sys)
   /*
    * Initial knowledge
    */
-  initialIntruderKnowledge (sys);
+  if (sys->knowledgedefined)
+    {
+      initialIntruderKnowledge (sys);
+    }
+  /*
+   * Check well-formedness
+   */
+  if (sys->knowledgedefined)
+    {
+      checkWellFormed (sys);
+    }
 }

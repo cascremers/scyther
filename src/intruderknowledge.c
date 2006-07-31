@@ -11,9 +11,12 @@ addSTerm (const System sys, Term t, Termlist fromlist, Termlist tolist)
   Term t2;
 
   t2 = termLocal (t, fromlist, tolist);
-  eprintf ("[ Adding ");
-  termPrint (t2);
-  eprintf (" to the initial intruder knowledge]\n");
+
+  /*
+     eprintf ("[ Adding ");
+     termPrint (t2);
+     eprintf (" to the initial intruder knowledge]\n");
+   */
 }
 
 //! Unfold the term for all possible options
@@ -89,13 +92,16 @@ anySubTerm (Term t, Termlist sublist)
 void
 initialIntruderKnowledge (const System sys)
 {
-  eprintf ("Computing initial intruder knowledge.\n\n");
-  eprintf ("Agent names      : ");
-  termlistPrint (sys->agentnames);
-  eprintf ("\n");
-  eprintf ("Untrusted agents : ");
-  termlistPrint (sys->untrusted);
-  eprintf ("\n");
+  if (switches.check)
+    {
+      eprintf ("Computing initial intruder knowledge.\n\n");
+      eprintf ("Agent names      : ");
+      termlistPrint (sys->agentnames);
+      eprintf ("\n");
+      eprintf ("Untrusted agents : ");
+      termlistPrint (sys->untrusted);
+      eprintf ("\n");
+    }
 
   /*
    * display initial role knowledge
@@ -169,11 +175,14 @@ initialIntruderKnowledge (const System sys)
 	}
     }
 
-    eprintf ("Role ");
-    termPrint (r->nameterm);
-    eprintf (" knows ");
-    termlistPrint (r->knows);
-    eprintf ("\n");
+    if (switches.check)
+      {
+	eprintf ("Role ");
+	termPrint (r->nameterm);
+	eprintf (" knows ");
+	termlistPrint (r->knows);
+	eprintf ("\n");
+      }
 
     addListKnowledge (r->knows, r->nameterm);
     return true;

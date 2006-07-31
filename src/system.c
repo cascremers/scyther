@@ -70,6 +70,7 @@ systemInit ()
   sys->roleeventmax = 0;
   sys->claimlist = NULL;
   sys->labellist = NULL;
+  sys->knowledgedefined = false;	// currently, we have backwards compatibility for empty role knowledge defs (disabling well-formedness rules)
   sys->attackid = 0;		// First attack will have id 1, because the counter is increased before any attacks are displayed.
 
   bindingInit (sys);
@@ -1192,33 +1193,6 @@ scenarioPrint (const System sys)
 	  eprintf ("\t");
 	}
     }
-}
-
-//! Iterate over all roles (AND)
-/**
- * Function called gets (sys,protocol,role)
- * If it returns 0, iteration aborts.
- */
-int
-system_iterate_roles (const System sys, int (*func) ())
-{
-  Protocol p;
-
-  p = sys->protocols;
-  while (p != NULL)
-    {
-      Role r;
-
-      r = p->roles;
-      while (r != NULL)
-	{
-	  if (!func (sys, p, r))
-	    return 0;
-	  r = r->next;
-	}
-      p = p->next;
-    }
-  return 1;
 }
 
 //! Determine whether we don't need any more attacks
