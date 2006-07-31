@@ -1853,7 +1853,8 @@ checkWellFormed (const System sys)
 {
   int thisRole (Protocol p, Role r)
   {
-    return WellFormedRole (sys, p, r);
+    WellFormedRole (sys, p, r);
+    return true;
   }
 
   iterateRoles (sys, thisRole);

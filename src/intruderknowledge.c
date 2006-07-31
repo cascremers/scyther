@@ -12,11 +12,12 @@ addSTerm (const System sys, Term t, Termlist fromlist, Termlist tolist)
 
   t2 = termLocal (t, fromlist, tolist);
 
-  /*
-     eprintf ("[ Adding ");
-     termPrint (t2);
-     eprintf (" to the initial intruder knowledge]\n");
-   */
+  if (switches.check)
+    {
+      eprintf ("[ Adding ");
+      termPrint (t2);
+      eprintf (" to the initial intruder knowledge]\n");
+    }
 }
 
 //! Unfold the term for all possible options

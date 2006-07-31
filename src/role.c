@@ -491,6 +491,7 @@ WellFormedEvent (Term role, Knowledge know, Roledef rd)
 		    NULL);
 	  return NULL;
 	}
+      return know;
     }
   if (rd->type == CLAIM)
     {
@@ -500,7 +501,12 @@ WellFormedEvent (Term role, Knowledge know, Roledef rd)
 	  wfeError (know, rd, "Claiming role incorrect.", rd->from, role);
 	  return NULL;
 	}
+      return know;
     }
   // Unknown, false
+  globalError++;
+  roledefPrint (rd);
+  globalError--;
+  error ("I don't know this event");
   return NULL;
 }
