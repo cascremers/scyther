@@ -7,6 +7,7 @@
 
 #include "list.h"
 #include <malloc.h>
+#include <stdlib.h>
 
 //! Make a node
 List

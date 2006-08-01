@@ -44,7 +44,6 @@
 #include "symbol.h"
 #include "pheading.h"
 #include "symbol.h"
-#include "parser.h"
 #include "tac.h"
 #include "timer.h"
 #include "compiler.h"
