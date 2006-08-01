@@ -222,73 +222,6 @@ exit:
   return exitcode;
 }
 
-//! Print something bad
-void
-printBad (char *s)
-{
-  eprintf ("%s%s%s", COLOR_Red, s, COLOR_Reset);
-}
-
-//! Print something good
-void
-printGood (char *s)
-{
-  eprintf ("%s%s%s", COLOR_Green, s, COLOR_Reset);
-}
-
-//! Print state (existState, isAttack)
-/**
- * Fail == ( existState xor isAttack )
- */
-void
-printOkFail (int existState, int isAttack)
-{
-  if (existState != isAttack)
-    {
-      printGood ("Ok");
-    }
-  else
-    {
-      printBad ("Fail");
-    }
-}
-
-//! Display time and state space size information using ASCII.
-/**
- * Displays also whether an attack was found or not.
- */
-
-void
-timersPrint (const System sys)
-{
-  Claimlist cl_scan;
-  int anyclaims;
-
-// #define NOTIMERS
-
-  /* display stats */
-
-  //**********************************************************************
-
-  /* Print also individual claims */
-  /* Note that if the output is set to empty, the claim output is redirected to stdout (for e.g. processing)
-   */
-  cl_scan = sys->claimlist;
-  anyclaims = false;
-  while (cl_scan != NULL)
-    {
-      if (claimStatusReport (sys, cl_scan))
-	{
-	  anyclaims = true;
-	}
-      cl_scan = cl_scan->next;
-    }
-  if (!anyclaims)
-    {
-      warning ("No claims in system.");
-    }
-}
-
 //! Analyse the model
 /**
  * Traditional handywork.
@@ -317,8 +250,10 @@ MC_single (const System sys)
 int
 modelCheck (const System sys)
 {
+  int claimcount;
+
   /* modelcheck the system */
-  arachne ();
+  claimcount = arachne ();
 
   /* clean up any states display */
   if (switches.reportStates > 0)
@@ -327,6 +262,10 @@ modelCheck (const System sys)
       fprintf (stderr, "                  \r");
     }
 
-  timersPrint (sys);
+  if (claimcount == 0)
+    {
+      warning ("No claims in system.");
+    }
+
   return (sys->failed != STATES0);
 }

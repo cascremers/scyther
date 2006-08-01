@@ -17,6 +17,7 @@
 #include "arachne.h"
 #include "specialterm.h"
 #include "switches.h"
+#include "color.h"
 
 //! When none of the runs match
 #define MATCH_NONE 0
@@ -847,6 +848,40 @@ property_check (const System sys)
 
   return flag;
 }
+
+/* claim status reporting */
+
+//! Print something bad
+void
+printBad (char *s)
+{
+  eprintf ("%s%s%s", COLOR_Red, s, COLOR_Reset);
+}
+
+//! Print something good
+void
+printGood (char *s)
+{
+  eprintf ("%s%s%s", COLOR_Green, s, COLOR_Reset);
+}
+
+//! Print state (existState, isAttack)
+/**
+ * Fail == ( existState xor isAttack )
+ */
+void
+printOkFail (int existState, int isAttack)
+{
+  if (existState != isAttack)
+    {
+      printGood ("Ok");
+    }
+  else
+    {
+      printBad ("Fail");
+    }
+}
+
 
 //! Report claim status
 int

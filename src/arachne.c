@@ -2363,6 +2363,7 @@ arachneClaim (Claimlist cl)
 		}
 	    }
 	}
+      claimStatusReport (sys, cl);
       return true;
     }
   else
