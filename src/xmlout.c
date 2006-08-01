@@ -998,7 +998,7 @@ xmlOutClaim (const System sys, Claimlist cl)
 
   xmlPrint ("<claimstatus>");
   xmlindent++;
-  xmlOutTerm ("claim", cl->type);
+  xmlOutTerm ("claimtype", cl->type);
   xmlOutTerm ("label", cl->label);
   xmlOutTerm ("protocol", p->nameterm);
   xmlOutTerm ("role", cl->rolename);
