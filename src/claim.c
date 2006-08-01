@@ -1064,6 +1064,7 @@ claimStatusReport (const System sys, Claimlist cl)
 	{
 	  globalError--;
 	}
+
       return true;
     }
 }

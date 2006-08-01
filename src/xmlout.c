@@ -19,6 +19,8 @@
 #include "arachne.h"		// for get_semitrace_length
 #include "switches.h"
 #include "specialterm.h"
+#include "claim.h"
+#include "dotout.h"
 
 #include "xmlout.h"
 
@@ -96,6 +98,16 @@ void
 xmlOutInteger (const char *tag, const int value)
 {
   xmlPrint ("<%s>%i</%s>", tag, value, tag);
+}
+
+//! Print a state counter element
+void
+xmlOutStates (const char *tag, states_t value)
+{
+  xmlIndentPrint ();
+  eprintf ("<%s>", tag);
+  statesFormat (value);
+  eprintf ("</%s>\n", tag);
 }
 
 //! Print a string
@@ -960,9 +972,55 @@ xmlOutSemitrace (const System sys)
   xmlOutRuns (sys);
   xmlindent--;
   xmlPrint ("</semitrace>");
+
+  if (switches.dot)
+    {
+      // dot encapsulated in XML
+      xmlPrint ("<dot>");
+      dotSemiState (sys);
+      xmlPrint ("</dot>");
+    }
+
   xmlindent--;
   xmlPrint ("</state>");
 
   /* restore only claim buffer */
   only_claim_label = buffer_only_claim_label;
+}
+
+//! Output for a claim
+void
+xmlOutClaim (const System sys, Claimlist cl)
+{
+  Protocol p;
+
+  p = (Protocol) cl->protocol;
+
+  xmlPrint ("<claimstatus>");
+  xmlindent++;
+  xmlOutTerm ("claim", cl->type);
+  xmlOutTerm ("label", cl->label);
+  xmlOutTerm ("protocol", p->nameterm);
+  xmlOutTerm ("role", cl->rolename);
+  xmlOutTerm ("parameter", cl->parameter);
+
+  if (!isTermEqual (cl->type, CLAIM_Empty))
+    {
+
+      // something to say about it
+      xmlOutStates ("failed", cl->failed);
+      xmlOutStates ("count", cl->count);
+      xmlOutStates ("states", cl->states);
+      if (cl->complete)
+	{
+	  xmlPrint ("<complete />");
+	}
+      if (cl->timebound)
+	{
+	  xmlPrint ("<timebound />");
+	}
+    }
+
+  xmlindent--;
+  xmlPrint ("</claimstatus>");
 }

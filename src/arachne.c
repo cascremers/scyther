@@ -2364,6 +2364,10 @@ arachneClaim (Claimlist cl)
 	    }
 	}
       claimStatusReport (sys, cl);
+      if (switches.xml)
+	{
+	  xmlOutClaim (sys, cl);
+	}
       return true;
     }
   else

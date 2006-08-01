@@ -49,6 +49,7 @@ struct switchdata
   int report;
   int reportClaims;		//!< Enable claims report
   int xml;			//!< xml output
+  int dot;			//!< dot output
   int human;			//!< human readable
   int reportMemory;		//!< Memory display switch.
   int reportTime;		//!< Time display switch.

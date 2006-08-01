@@ -70,7 +70,8 @@ switchesInit (int argc, char **argv)
   switches.output = SUMMARY;	// default is to show a summary
   switches.report = 0;
   switches.reportClaims = 0;	// default don't report on claims
-  switches.xml = 0;		// default no xml output (dot)
+  switches.xml = false;		// default no xml output 
+  switches.dot = false;		// default no dot output
   switches.human = false;	// not human friendly by default
   switches.reportMemory = 0;
   switches.reportTime = 0;
@@ -435,7 +436,7 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.output = ATTACK;
-	  switches.xml = 0;
+	  switches.dot = true;
 	  return index;
 	}
     }
@@ -449,7 +450,7 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.output = ATTACK;
-	  switches.xml = 1;
+	  switches.xml = true;
 	  return index;
 	}
     }
