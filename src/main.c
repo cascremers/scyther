@@ -53,6 +53,7 @@
 #include "specialterm.h"
 #include "color.h"
 #include "error.h"
+#include "claim.h"
 
 //! The global system state pointer
 System sys;
@@ -266,10 +267,6 @@ timersPrint (const System sys)
 // #define NOTIMERS
 
   /* display stats */
-  if (switches.output != SUMMARY)
-    {
-      globalError++;
-    }
 
   //**********************************************************************
 
@@ -280,183 +277,15 @@ timersPrint (const System sys)
   anyclaims = false;
   while (cl_scan != NULL)
     {
-      if (!isTermEqual (cl_scan->type, CLAIM_Empty))
+      if (claimStatusReport (sys, cl_scan))
 	{
-	  Protocol protocol;
-	  Term pname;
-	  Term rname;
-	  Termlist labellist;
-	  int isAttack;		// stores whether this claim failure constitutes an attack or not
-
-	  if (isTermEqual (cl_scan->type, CLAIM_Reachable))
-	    {
-	      // An attack on reachable is not really an attack, we're just generating the state space
-	      isAttack = false;
-	    }
-	  else
-	    {
-	      isAttack = true;
-	    }
 	  anyclaims = true;
-
-	  eprintf ("claim\t");
-
-	  protocol = (Protocol) cl_scan->protocol;
-	  pname = protocol->nameterm;
-	  rname = cl_scan->rolename;
-
-	  labellist = tuple_to_termlist (cl_scan->label);
-
-	  /* maybe the label contains duplicate info: if so, we remove it here */
-	  {
-	    Termlist tl;
-	    tl = labellist;
-	    while (tl != NULL)
-	      {
-		if (isTermEqual (tl->term, pname)
-		    || isTermEqual (tl->term, rname))
-		  {
-		    tl = termlistDelTerm (tl);
-		    labellist = tl;
-		  }
-		else
-		  {
-		    tl = tl->next;
-		  }
-	      }
-	  }
-
-	  termPrint (pname);
-	  eprintf (",");
-	  termPrint (rname);
-	  eprintf ("\t");
-	  /* second print event_label */
-	  termPrint (cl_scan->type);
-
-	  eprintf ("_");
-	  if (labellist != NULL)
-	    {
-	      Termlist tl;
-
-	      tl = labellist;
-	      while (tl != NULL)
-		{
-		  termPrint (tl->term);
-		  tl = tl->next;
-		  if (tl != NULL)
-		    {
-		      eprintf (",");
-		    }
-		}
-	      /* clean up */
-	      termlistDelete (labellist);
-	      labellist = NULL;
-	    }
-	  else
-	    {
-	      eprintf ("?");
-	    }
-	  /* add parameter */
-	  eprintf ("\t");
-	  if (cl_scan->parameter != NULL)
-	    {
-	      termPrint (cl_scan->parameter);
-	    }
-	  else
-	    {
-	      eprintf ("-");
-	    }
-
-	  /* now report the status */
-	  eprintf ("\t");
-	  if (cl_scan->count > 0 && cl_scan->failed > 0)
-	    {
-	      /* there is a state */
-	      printOkFail (true, isAttack);
-
-	      eprintf ("\t");
-	      /* are these all attacks? */
-	      eprintf ("[");
-	      if (cl_scan->complete)
-		{
-		  eprintf ("exactly");
-		}
-	      else
-		{
-		  eprintf ("at least");
-		}
-	      eprintf (" %i ", cl_scan->failed);
-	      if (isAttack)
-		{
-		  eprintf ("attack");
-		}
-	      else
-		{
-		  eprintf ("variant");
-		}
-	      if (cl_scan->failed != 1)
-		{
-		  eprintf ("s");
-		}
-	      eprintf ("]");
-	    }
-	  else
-	    {
-	      /* no state */
-	      printOkFail (false, isAttack);
-	      eprintf ("\t");
-
-	      /* subcases */
-	      if (cl_scan->count == 0)
-		{
-		  /* not encountered */
-		  eprintf ("[does not occur]");
-		}
-	      else
-		{
-		  /* does occur */
-		  if (cl_scan->complete)
-		    {
-		      /* complete proof */
-		      eprintf ("[proof of correctness]");
-		    }
-		  else
-		    {
-		      /* only due to bounds */
-		      eprintf ("[no attack within bounds]");
-		    }
-		}
-	      if (cl_scan->timebound)
-		eprintf ("\ttime=%i", get_time_limit ());
-	    }
-
-	  /* states (if asked) */
-	  if (switches.countStates)
-	    {
-	      eprintf ("\tstates=");
-	      statesFormat (cl_scan->states);
-	    }
-
-	  /* any warnings */
-	  if (cl_scan->warnings)
-	    {
-	      eprintf ("\t[read the warnings for more information]");
-	    }
-
-	  /* proceed to next claim */
-	  eprintf ("\n");
 	}
       cl_scan = cl_scan->next;
     }
   if (!anyclaims)
     {
       warning ("No claims in system.");
-    }
-
-  /* reset globalError */
-  if (switches.output != SUMMARY)
-    {
-      globalError--;
     }
 }
 

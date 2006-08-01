@@ -847,3 +847,188 @@ property_check (const System sys)
 
   return flag;
 }
+
+//! Report claim status
+int
+claimStatusReport (const System sys, Claimlist cl)
+{
+  if (isTermEqual (cl->type, CLAIM_Empty))
+    {
+      return false;
+    }
+  else
+    {
+      Protocol protocol;
+      Term pname;
+      Term rname;
+      Termlist labellist;
+      int isAttack;		// stores whether this claim failure constitutes an attack or not
+
+      if (switches.output != SUMMARY)
+	{
+	  globalError++;
+	}
+      if (isTermEqual (cl->type, CLAIM_Reachable))
+	{
+	  // An attack on reachable is not really an attack, we're just generating the state space
+	  isAttack = false;
+	}
+      else
+	{
+	  isAttack = true;
+	}
+
+      eprintf ("claim\t");
+
+      protocol = (Protocol) cl->protocol;
+      pname = protocol->nameterm;
+      rname = cl->rolename;
+
+      labellist = tuple_to_termlist (cl->label);
+
+      /* maybe the label contains duplicate info: if so, we remove it here */
+      {
+	Termlist tl;
+	tl = labellist;
+	while (tl != NULL)
+	  {
+	    if (isTermEqual (tl->term, pname)
+		|| isTermEqual (tl->term, rname))
+	      {
+		tl = termlistDelTerm (tl);
+		labellist = tl;
+	      }
+	    else
+	      {
+		tl = tl->next;
+	      }
+	  }
+      }
+
+      termPrint (pname);
+      eprintf (",");
+      termPrint (rname);
+      eprintf ("\t");
+      /* second print event_label */
+      termPrint (cl->type);
+
+      eprintf ("_");
+      if (labellist != NULL)
+	{
+	  Termlist tl;
+
+	  tl = labellist;
+	  while (tl != NULL)
+	    {
+	      termPrint (tl->term);
+	      tl = tl->next;
+	      if (tl != NULL)
+		{
+		  eprintf (",");
+		}
+	    }
+	  /* clean up */
+	  termlistDelete (labellist);
+	  labellist = NULL;
+	}
+      else
+	{
+	  eprintf ("?");
+	}
+      /* add parameter */
+      eprintf ("\t");
+      if (cl->parameter != NULL)
+	{
+	  termPrint (cl->parameter);
+	}
+      else
+	{
+	  eprintf ("-");
+	}
+
+      /* now report the status */
+      eprintf ("\t");
+      if (cl->count > 0 && cl->failed > 0)
+	{
+	  /* there is a state */
+	  printOkFail (true, isAttack);
+
+	  eprintf ("\t");
+	  /* are these all attacks? */
+	  eprintf ("[");
+	  if (cl->complete)
+	    {
+	      eprintf ("exactly");
+	    }
+	  else
+	    {
+	      eprintf ("at least");
+	    }
+	  eprintf (" %i ", cl->failed);
+	  if (isAttack)
+	    {
+	      eprintf ("attack");
+	    }
+	  else
+	    {
+	      eprintf ("variant");
+	    }
+	  if (cl->failed != 1)
+	    {
+	      eprintf ("s");
+	    }
+	  eprintf ("]");
+	}
+      else
+	{
+	  /* no state */
+	  printOkFail (false, isAttack);
+	  eprintf ("\t");
+
+	  /* subcases */
+	  if (cl->count == 0)
+	    {
+	      /* not encountered */
+	      eprintf ("[does not occur]");
+	    }
+	  else
+	    {
+	      /* does occur */
+	      if (cl->complete)
+		{
+		  /* complete proof */
+		  eprintf ("[proof of correctness]");
+		}
+	      else
+		{
+		  /* only due to bounds */
+		  eprintf ("[no attack within bounds]");
+		}
+	    }
+	  if (cl->timebound)
+	    eprintf ("\ttime=%i", get_time_limit ());
+	}
+
+      /* states (if asked) */
+      if (switches.countStates)
+	{
+	  eprintf ("\tstates=");
+	  statesFormat (cl->states);
+	}
+
+      /* any warnings */
+      if (cl->warnings)
+	{
+	  eprintf ("\t[read the warnings for more information]");
+	}
+
+      /* new line */
+      eprintf ("\n");
+
+      if (switches.output != SUMMARY)
+	{
+	  globalError--;
+	}
+      return true;
+    }
+}
