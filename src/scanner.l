@@ -50,18 +50,38 @@ id		@?({letter}|{digit}|[\^\-!'])+
 /* the "incl" state is used for picking up the name of an include file
  */
 %x incl inclend
+
+%{
+#define MAX_INCLUDE_DEPTH 10
+YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
+int include_stack_ptr = 0;
+%}
+
 %%
 include		BEGIN(incl);
 <incl>[ \t]*\"	/* eat the whitespace */
 <incl>[^\"]+	{ /* got the include file name */
-			/* try to open, using scytherdirs environment variable as well. */
-			yyin = openFileSearch (yytext, NULL);
-			if (! yyin)
-			{
-				error ("Could not open include file %s.", yytext);
-			}
-			yypush_buffer_state(yy_create_buffer(yyin, YY_BUF_SIZE ));
-			BEGIN(INITIAL);
+	                 if ( include_stack_ptr >= MAX_INCLUDE_DEPTH )
+	                     {
+	                     fprintf( stderr, "Includes nested too deeply" );
+	                     exit( 1 );
+	                     }
+	
+	                 include_stack[include_stack_ptr++] =
+	                     YY_CURRENT_BUFFER;
+	
+			 /* try to open, using scytherdirs environment variable as well. */
+			 yyin = openFileSearch (yytext, NULL);
+	
+			 if (! yyin)
+			 {
+			 	error ("could not open include file %s.", yytext);
+			 }
+	
+	                 yy_switch_to_buffer(
+	                     yy_create_buffer( yyin, YY_BUF_SIZE ) );
+	
+	                 BEGIN(INITIAL);
 		}
 
 <inclend>\";?	{ /* eat the closing things */
@@ -69,15 +89,18 @@ include		BEGIN(incl);
 		}
 
 <INITIAL><<EOF>>	{
-			yypop_buffer_state();
-			if (! YY_CURRENT_BUFFER )
-			{
-				yyterminate();
-			}
-			else
-			{
-				BEGIN(inclend);
-			}
+                 if ( --include_stack_ptr < 0 )
+                     {
+                        yyterminate();
+                     }
+
+                 else
+                     {
+                     	yy_delete_buffer( YY_CURRENT_BUFFER );
+                     	yy_switch_to_buffer(
+                        include_stack[include_stack_ptr] );
+			BEGIN(inclend);
+                     }
 		}
 
 "/*"		{
