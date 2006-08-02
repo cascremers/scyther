@@ -1,5 +1,11 @@
 #include "timer.h"
 
+/*
+ * Timer functions
+ *
+ * Currently, this only works under linux (where the linux macro is defined by the compiler). Otherwise, it simply assumes the timer is never passed.
+ */
+
 #ifdef linux
 #include <time.h>
 #include <sys/times.h>
@@ -58,6 +64,6 @@ passed_time_limit ()
 	return 0;
     }
 #else
-    return 0;
+  return 0;
 #endif
 }

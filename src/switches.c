@@ -10,19 +10,27 @@
 #include <limits.h>
 #include "system.h"
 #include "debug.h"
-#include "version.h"
 #include "timer.h"
 #include "switches.h"
 #include "error.h"
 #include "specialterm.h"
 
-struct switchdata switches;
+// Program name
+const char *progname = "scyther";
 
+// We only have the version thing under linux
+#ifdef linux
+#include "version.h"
+const char *releasetag = SVNVERSION;
+#else
+const char *releasetag = "Non-linux";
+#endif
+
+// Structures
+struct switchdata switches;
 extern struct tacnode *spdltac;
 
-const char *progname = "scyther";
-const char *releasetag = SVNVERSION;
-
+// Global
 char *lastfoundprefix = NULL;
 
 // Forward declarations
