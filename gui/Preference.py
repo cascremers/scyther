@@ -23,6 +23,7 @@
 
 import wx
 import os.path
+import sys
 from time import localtime,strftime
 
 #---------------------------------------------------------------------------
@@ -35,7 +36,7 @@ from time import localtime,strftime
 
 """ Locations of preferences. The last one is supposedly writable. """
 prefname = "scythergui-config"
-preflocs = ['/usr/local/lib/scyther','~/.scyther']
+preflocs = []
 
 #---------------------------------------------------------------------------
 
@@ -62,7 +63,7 @@ class Preferences(dict):
             Test default locations
             """
             for f in preflocs:
-                self.load(os.path.join(os.path.expanduser(f),prefname))
+                self.load(os.path.join(f,prefname))
 
         else:
             """
@@ -82,7 +83,7 @@ class Preferences(dict):
     def save(self):
 
         print "Saving preferences"
-        prefpath = os.path.expanduser(preflocs[-1])
+        prefpath = preflocs[-1]
         if not os.access(prefpath,os.W_OK):
             os.makedirs(prefpath)
         savename = os.path.join(prefpath,prefname)
@@ -104,7 +105,20 @@ def init():
     """
         Load the preferences from a file, if possible
     """
-    global prefs
+    global prefs,preflocs
+
+    sp = wx.StandardPaths.Get()
+    confdir = sp.GetConfigDir()
+    confdir += "/scyther"
+    print confdir
+    userconfdir = sp.GetUserConfigDir()
+    userconfdir += "/"
+    if sys.platform.startswith("lin"):
+        userconfdir += "."
+    userconfdir += "scyther"
+    print userconfdir
+
+    preflocs = [confdir,userconfdir]
 
     prefs = Preferences()
     prefs.load("")

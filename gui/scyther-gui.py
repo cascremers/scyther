@@ -45,6 +45,8 @@ class MySplashScreen(wx.SplashScreen):
 class ScytherApp(wx.App):
     def OnInit(self):
 
+        wx.GetApp().SetAppName("Scyther-gui")
+
         """
         Load preferences file
         """
