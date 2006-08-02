@@ -14,9 +14,10 @@ import Icon
 #---------------------------------------------------------------------------
 
 class AttackDisplay(wx.ScrolledWindow):
-    def __init__(self, daddy, parent, claim,attack):
+    def __init__(self, daddy, parent, attack):
 
         self.win = daddy
+        self.attack = attack
 
         wx.ScrolledWindow.__init__(self,parent,id=-1)
         # Wait for the attack to be computed
@@ -105,7 +106,7 @@ class AttackWindow(wx.Frame):
         if self.claim.failed <= 1:
             # Just a single window
             self.tabs = None
-            self.displays.append(AttackDisplay(self,self,self.claim,self.claim.attacks[0]))
+            self.displays.append(AttackDisplay(self,self,self.claim.attacks[0]))
         else:
             # Multiple tabs
             self.tabs = wx.Notebook(self,-1)

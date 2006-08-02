@@ -72,6 +72,8 @@ class ScytherThread(threading.Thread):
         """
 
         scyther = Scyther.Scyther()
+        
+        scyther.options = self.win.settings.ScytherArguments()
         if sys.platform.startswith('win'):
             scyther.program = "c:\\Scyther.exe"
             if not os.path.isfile(scyther.program):
