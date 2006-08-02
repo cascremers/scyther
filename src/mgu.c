@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include "term.h"
 #include "termlist.h"
-#include "substitution.h"
 #include "mgu.h"
 #include "type.h"
 #include "debug.h"

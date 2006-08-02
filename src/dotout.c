@@ -1247,7 +1247,7 @@ printRunConstants (const System sys, const int run)
 //! Explain a run in two lines
 void
 printRunExplanation (const System sys, const int run,
-		     char *runrolesep, const char *newline)
+		     char *runrolesep, char *newline)
 {
   int hadcontent;
 
