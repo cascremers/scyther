@@ -21,10 +21,10 @@ const char *progname = "scyther";
 // We only have the version thing under linux
 #ifdef linux
 #include "version.h"
-const char *releasetag = SVNVERSION;
 #else
-const char *releasetag = "Non-linux";
+#define SVNVERSION "Non-linux"
 #endif
+const char *releasetag = SVNVERSION;
 
 // Structures
 struct switchdata switches;
