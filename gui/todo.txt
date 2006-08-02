@@ -1,0 +1,9 @@
+- Ideally we somehow color the correct/incorrect tags in the editor.
+- Line numbering is needed for the editor window otherwise you cannot
+  interpret attacks.
+- Bottom bar should have obvious 'view' buttons for attacks that provide
+  views, to guide the user.
+- Preferences window.
+  - Save in local file on close.
+  - Scyther executable should be able to be set by means of preferences.
+    (Using a file select dialog)
