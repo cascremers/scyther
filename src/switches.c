@@ -1231,8 +1231,8 @@ switcher (const int process, int index, int commandline)
 	  /* try to open */
 	  if (!freopen (arg_pointer, "w", stdout))
 	    {
-	      fprintf (stderr, "Could not create output file '%s'.\n",
-		       arg_pointer);
+	      printfstderr ("Could not create output file '%s'.\n",
+			    arg_pointer);
 	      exit (1);
 	    }
 	  arg_next ();
@@ -1259,12 +1259,12 @@ switcher (const int process, int index, int commandline)
 	      // The file was not found. We have two options...
 	      if (this_arg[0] == '-')
 		{
-		  fprintf (stderr, "Unknown switch '%s'.\n", this_arg);
+		  printfstderr ("Unknown switch '%s'.\n", this_arg);
 		}
 	      else
 		{
-		  fprintf (stderr, "Could not open input file '%s'.\n",
-			   this_arg);
+		  printfstderr ("Could not open input file '%s'.\n",
+				this_arg);
 		}
 	      exit (1);
 	    }

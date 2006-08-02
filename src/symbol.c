@@ -318,7 +318,12 @@ getOutputStream (void)
   if (globalError == 0)
     return (FILE *) globalStream;
   else
+#ifdef linux
     return stderr;
+#else
+    // For non-linux, we simply omit it
+    return NULL;
+#endif
 }
 
 //! Print out according to globalError
@@ -336,9 +341,14 @@ void
 eprintf (char *fmt, ...)
 {
   va_list args;
+  FILE *stream;
 
   va_start (args, fmt);
-  vfprintf (getOutputStream (), fmt, args);
+  stream = getOutputStream ();
+  if (stream != NULL)
+    {
+      vfprintf (stream, fmt, args);
+    }
   va_end (args);
 }
 
@@ -346,5 +356,11 @@ eprintf (char *fmt, ...)
 void
 veprintf (const char *fmt, va_list args)
 {
-  vfprintf (getOutputStream (), fmt, args);
+  FILE *stream;
+
+  stream = getOutputStream ();
+  if (stream != NULL)
+    {
+      vfprintf (stream, fmt, args);
+    }
 }

@@ -7,6 +7,7 @@
 #include "pheading.h"
 #include "tac.h"
 #include "switches.h"
+#include "error.h"
 
 /* tokens for language */
 #include "parser.h"
@@ -63,7 +64,7 @@ include		BEGIN(incl);
 <incl>[^\"]+	{ /* got the include file name */
 	                 if ( include_stack_ptr >= MAX_INCLUDE_DEPTH )
 	                     {
-	                     fprintf( stderr, "Includes nested too deeply" );
+	                     printfstderr( "Includes nested too deeply" );
 	                     exit( 1 );
 	                     }
 	

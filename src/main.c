@@ -258,7 +258,7 @@ modelCheck (const System sys)
   if (switches.reportStates > 0)
     {
       //                States: 1.000e+06
-      fprintf (stderr, "                  \r");
+      printfstderr ("                  \r");
     }
 
   if (claimcount == 0)

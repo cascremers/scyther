@@ -10,6 +10,27 @@ error_die (void)
   exit (EXIT_ERROR);
 }
 
+//! print to stderror (must be generic to capture linux variants)
+void
+vprintfstderr (char *fmt, va_list args)
+{
+#ifdef linux
+  vfprintf (stderr, fmt, args);
+#else
+  // nothing for non-linux yet
+#endif
+}
+
+void
+printfstderr (char *fmt, ...)
+{
+  va_list args;
+
+  va_start (args, fmt);
+  vprintfstderr (fmt, args);
+  va_end (args);
+}
+
 //! Print error message header
 /**
  * Adapted from [K&R2], p. 174
@@ -18,7 +39,7 @@ error_die (void)
 void
 error_pre (void)
 {
-  fprintf (stderr, "error: ");
+  printfstderr ("error: ");
 }
 
 //! Print post-error message and die.
@@ -32,8 +53,8 @@ error_post (char *fmt, ...)
   va_list args;
 
   va_start (args, fmt);
-  vfprintf (stderr, fmt, args);
-  fprintf (stderr, "\n");
+  vprintfstderr (fmt, args);
+  printfstderr ("\n");
   va_end (args);
   exit (EXIT_ERROR);
 }
@@ -50,8 +71,8 @@ error (char *fmt, ...)
 
   error_pre ();
   va_start (args, fmt);
-  vfprintf (stderr, fmt, args);
-  fprintf (stderr, "\n");
+  vprintfstderr (fmt, args);
+  printfstderr ("\n");
   va_end (args);
   error_die ();
 }
@@ -66,8 +87,8 @@ warning (char *fmt, ...)
   va_list args;
 
   va_start (args, fmt);
-  fprintf (stderr, "warning: ");
-  vfprintf (stderr, fmt, args);
-  fprintf (stderr, "\n");
+  printfstderr ("warning: ");
+  vprintfstderr (fmt, args);
+  printfstderr ("\n");
   va_end (args);
 }

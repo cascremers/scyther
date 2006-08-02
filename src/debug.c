@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include "debug.h"
 #include "system.h"
+#include "error.h"
 
 static int debuglevel;
 
@@ -45,7 +46,7 @@ debug (int level, char *string)
   if (debugCond (level))
     {
       indent ();
-      fprintf (stderr, "DEBUG [%i]: %s\n", level, string);
+      printfstderr ("DEBUG [%i]: %s\n", level, string);
     }
 #endif
 }
