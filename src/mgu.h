@@ -3,7 +3,6 @@
 
 #include "term.h"
 #include "termlist.h"
-#include "substitution.h"
 
 //! A special constant do denote failure.
 /**

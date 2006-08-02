@@ -8,7 +8,6 @@
 #include "system.h"
 #include "knowledge.h"
 #include "symbol.h"
-#include "substitution.h"
 #include "compiler.h"
 #include "switches.h"
 #include "specialterm.h"
