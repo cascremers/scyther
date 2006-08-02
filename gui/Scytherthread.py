@@ -82,6 +82,7 @@ class ScytherThread(threading.Thread):
         self.summary = str(scyther)
 
         self.win.errors.update(self.summary)
+        self.win.report.update()
 
     def makeImages(self):
         """ create images """

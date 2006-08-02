@@ -345,38 +345,48 @@ class SummaryWindow(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 
     def update(self):
         self.DeleteAllItems()
-        self.claimlist = self.win.claimlist
-        for key in range(0,len(self.claimlist)):
-            cl = self.claimlist[key]
-            index = self.InsertStringItem(sys.maxint,cl.protocol)
-            self.SetStringItem(index,1,cl.role)
-            self.SetStringItem(index,2,cl.claim)
-            self.SetStringItem(index,3,cl.label)
-            self.SetStringItem(index,4,cl.param)
-            self.SetStringItem(index,5,cl.status)
-            self.SetStringItem(index,6,str(cl.attackcount))
-            self.SetStringItem(index,7,cl.comments)
-            self.SetItemData(index,key)
+        claims = self.win.claims
+        for key in range(0,len(claims)):
+            cl = claims[key]
+            index = self.InsertStringItem(sys.maxint,str(cl.protocol))
 
-            if cl.status == "Fail":
-                # Failed :(
-                item = self.GetItem(key)
-                item.SetTextColour(wx.RED)
-                self.SetItem(item)
+            def addThing(i,x):
+                self.SetStringItem(index,i,str(x))
+
+            addThing(1,cl.role)
+            addThing(2,cl.claimtype)
+            addThing(3,cl.shortlabel)
+            addThing(4,cl.parameter)
+            if cl.okay:
+                addThing(5,"Ok")
             else:
-                # Okay! But with bound?
-                if cl.comments.find("bounds") == -1:
-                    # No bounds, great :)
-                    item = self.GetItem(key)
-                    item.SetTextColour(wx.GREEN)
-                    self.SetItem(item)
+                addThing(5,"Fail")
+            addThing(6,cl.failed)
+            addThing(7,"Comments")
+
+            self.SetItemData(index,key)
+            key += 1
+
+            # if cl.okay == "Fail":
+            #     # Failed :(
+            #     item = self.GetItem(key)
+            #     item.SetTextColour(wx.RED)
+            #     self.SetItem(item)
+            # else:
+            #     # Okay! But with bound?
+            #     if cl.comments.find("bounds") == -1:
+            #         # No bounds, great :)
+            #         item = self.GetItem(key)
+            #         item.SetTextColour(wx.GREEN)
+            #         self.SetItem(item)
+            
         #for i in range(0,7):
         #    self.SetColumnWidth(i,wx.LIST_AUTOSIZE)
 
     def OnItemSelected(self, event):
         self.currentItem = event.m_itemIndex
-        cl = self.claimlist[self.currentItem]
-        if cl.attackcount > 0:
+        cl = self.win.claims[self.currentItem]
+        if len(cl.attacks) > 0:
             display = Attackwindow.AttackWindow(cl)
             display.Show(1)
         self.Refresh()

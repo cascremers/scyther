@@ -14,13 +14,13 @@ import Icon
 #---------------------------------------------------------------------------
 
 class AttackDisplay(wx.ScrolledWindow):
-    def __init__(self, daddy, parent, claim,attackid):
+    def __init__(self, daddy, parent, claim,attack):
 
         self.win = daddy
 
         wx.ScrolledWindow.__init__(self,parent,id=-1)
         # Wait for the attack to be computed
-        while attackid >= len(claim.attacks):
+        while not attack.pngfile:
             time.sleep(1)
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -31,7 +31,7 @@ class AttackDisplay(wx.ScrolledWindow):
         self.hbox.Add(self.box,1,wx.ALIGN_CENTER)
         self.SetSizer(self.hbox)
 
-        filename = claim.attacks[attackid].GetImage()
+        filename = attack.pngfile
         self.original = wx.Image(filename,wx.BITMAP_TYPE_PNG)
 
 
@@ -93,29 +93,24 @@ class AttackWindow(wx.Frame):
 
     def SetTitle(self):
 
-        if self.claim.attackcount == 1:
-            tstr = "Attack"
-        else:
-            tstr = "Attacks"
-
-        tstr += " for claim %s" % str(self.claim)
+        tstr = self.claim.stateName(len(self.claim.attacks))
+        tstr += " for claim %s" % self.claim.id
         super(AttackWindow, self).SetTitle(tstr)
-
 
     def CreateInteriorWindowComponents(self):
         ''' Create "interior" window components. In this case it is the
         attack picture. '''
 
         self.displays=[]
-        if self.claim.attackcount <= 1:
+        if self.claim.failed <= 1:
             # Just a single window
             self.tabs = None
-            self.displays.append(AttackDisplay(self,self,self.claim,0))
+            self.displays.append(AttackDisplay(self,self,self.claim,self.claim.attacks[0]))
         else:
             # Multiple tabs
             self.tabs = wx.Notebook(self,-1)
-            for i in range(0,self.claim.attackcount):
-                disp =  AttackDisplay(self,self.tabs,self.claim,i)
+            for i in range(0,len(self.claim.attacks)):
+                disp = AttackDisplay(self,self.tabs,self.claim.attacks[i])
                 classname = "Class %i" % ((i+1))
                 self.tabs.AddPage(disp, classname)
                 self.displays.append(disp)
