@@ -1,10 +1,12 @@
 #include "timer.h"
 
+#ifdef linux
 #include <time.h>
 #include <sys/times.h>
+static clock_t endwait = 0;
+#endif
 
 static int time_max_seconds = 0;
-static clock_t endwait = 0;
 
 //! Set initial time limit.
 /**
@@ -16,12 +18,16 @@ set_time_limit (int seconds)
   if (seconds > 0)
     {
       time_max_seconds = seconds;
+#ifdef linux
       endwait = seconds * CLK_TCK;
+#endif
     }
   else
     {
       time_max_seconds = 0;
+#ifdef linux
       endwait = 0;
+#endif
     }
 }
 
@@ -36,6 +42,7 @@ get_time_limit ()
 int
 passed_time_limit ()
 {
+#ifdef linux
   if (endwait <= 0)
     {
       return 0;
@@ -50,4 +57,7 @@ passed_time_limit ()
       else
 	return 0;
     }
+#else
+    return 0;
+#endif
 }
