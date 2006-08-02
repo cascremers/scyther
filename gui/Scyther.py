@@ -24,12 +24,15 @@ class Scyther(object):
         self.program = "scyther"
         self.options = ""
         self.spdl = None
+        self.inputfile = None
         self.claims = None
 
     def setInput(self,spdl):
         self.spdl = spdl
+        self.inputfile = None
 
     def setFile(self,filename):
+        self.inputfile = filename
         self.spdl = ""
         fp = open(filename,"r")
         for l in fp.readlines():
@@ -42,11 +45,14 @@ class Scyther(object):
         self.cmd = "%s --dot-output --xml-output --plain %s" % (self.program,self.options)
 
         if self.spdl:
-            # Write spdl to temp file
-            fp = tempfile.NamedTemporaryFile()
-            fp.write(self.spdl)
-            fp.flush()
-            self.cmd += " '%s'" % (fp.name)
+            if self.inputfile:
+                fp = open(self.inputfile,'r')
+            else:
+                # Write spdl to temp file
+                fp = tempfile.NamedTemporaryFile()
+                fp.write(self.spdl)
+                fp.flush()
+            self.cmd += " %s" % (fp.name)
 
         # If we are on windows, we don't get stderr. Maybe we need a
         # switch to enforce this.
@@ -56,9 +62,15 @@ class Scyther(object):
             # Non-linux does not generate stderr anyway
             cmdline = "%s" % (self.cmd)
 
+        print cmdline
+        confirm("Run this command?")
+
         result = os.popen(cmdline)
         xmlinput = result.read()
         result.close()
+
+        print xmlinput
+        confirm("Is this the correct output?")
 
         if self.spdl:
             fp.close()
@@ -79,35 +91,43 @@ class Scyther(object):
             return "Scyther has not been run yet."
 
 
-def basictest():
+def basicTest():
     # Some basic testing
-    if sys.platform.startswith('win'):
-        print "Dir test"
-        p = os.popen("dir")
-        print p.read()
-        print p.close()
-        confirm("See the dir?")
+    #if sys.platform.startswith('win'):
+    #    print "Dir test"
+    #    p = os.popen("dir")
+    #    print p.read()
+    #    print p.close()
+    #    confirm("See the dir?")
    
     # Scyther
     x = Scyther()
 
     if sys.platform.startswith('win'):
-        x.program = "c:\\Scyther.exe"
+        x.program = "Scyther.exe"
         if not os.path.isfile(x.program):
             print "I can't find the Scyther executable %s" % (x.program)
+        else:
+            p = os.popen("%s --help" % x.program)
+            print p.read()
+            confirm("Do you see the help?")
 
     x.setFile("ns3.spdl")
     x.verify()
     print x
+    confirm("See the output?")
+
+def simpleRun(args):
+    x = Scyther()
+    x.options = args
+    x.verify()
+    return x
 
 if __name__ == '__main__':
     pars = sys.argv[1:]
     if len(pars) == 0:
-        basictest()
+        basicTest()
     else:
-        x = Scyther()
-        x.options = " ".join(pars)
-        x.verify()
-        print x
+        print simpleRun(" ".join(pars))
 
 
