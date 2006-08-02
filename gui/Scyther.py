@@ -44,16 +44,6 @@ class Scyther(object):
         # Run Scyther on temp file
         self.cmd = "%s --dot-output --xml-output --plain %s" % (self.program,self.options)
 
-        if self.spdl:
-            if self.inputfile:
-                fp = open(self.inputfile,'r')
-            else:
-                # Write spdl to temp file
-                fp = tempfile.NamedTemporaryFile()
-                fp.write(self.spdl)
-                fp.flush()
-            self.cmd += " %s" % (fp.name)
-
         # If we are on windows, we don't get stderr. Maybe we need a
         # switch to enforce this.
         if sys.platform.startswith('linux'):
@@ -62,18 +52,12 @@ class Scyther(object):
             # Non-linux does not generate stderr anyway
             cmdline = "%s" % (self.cmd)
 
-        print cmdline
-        confirm("Run this command?")
-
-        result = os.popen(cmdline)
-        xmlinput = result.read()
-        result.close()
-
-        print xmlinput
-        confirm("Is this the correct output?")
-
+        pw,pr = os.popen2(cmdline)
         if self.spdl:
-            fp.close()
+            pw.write(self.spdl)
+        pw.close()
+        xmlinput = pr.read()
+        pr.close()
 
         xmlfile = StringIO.StringIO(xmlinput)
         reader = XMLReader.XMLReader()
@@ -107,10 +91,10 @@ def basicTest():
         x.program = "Scyther.exe"
         if not os.path.isfile(x.program):
             print "I can't find the Scyther executable %s" % (x.program)
-        else:
-            p = os.popen("%s --help" % x.program)
-            print p.read()
-            confirm("Do you see the help?")
+    pw,pr = os.popen2("%s --help" % x.program)
+    pw.close()
+    print pr.read()
+    confirm("Do you see the help?")
 
     x.setFile("ns3.spdl")
     x.verify()
