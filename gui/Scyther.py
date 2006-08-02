@@ -38,43 +38,36 @@ class Scyther(object):
 
     def verify(self):
 
+        # Run Scyther on temp file
+        self.cmd = "%s --dot-output --xml-output --plain %s" % (self.program,self.options)
+
         if self.spdl:
             # Write spdl to temp file
             fp = tempfile.NamedTemporaryFile()
             fp.write(self.spdl)
             fp.flush()
+            self.cmd += " '%s'" % (fp.name)
 
-            # Run Scyther on temp file
-            self.cmd = "%s %s --dot-output --xml-output --plain '%s'" % (self.program,self.options,fp.name)
+        # If we are on windows, we don't get stderr. Maybe we need a
+        # switch to enforce this.
+        if sys.platform.startswith('linux'):
+            cmdline = "%s 2>/dev/null" % (self.cmd)
+        else:
+            # Non-linux does not generate stderr anyway
+            cmdline = "%s" % (self.cmd)
 
-            # If we are on windows, we don't get stderr. Maybe we need a
-            # switch to enforce this.
-            if sys.platform.startswith('linux'):
-                cmdline = "%s 2>/dev/null" % (self.cmd)
-            else:
-                # Non-linux does not generate stderr anyway
-                cmdline = "%s" % (self.cmd)
+        result = os.popen(cmdline)
+        xmlinput = result.read()
+        result.close()
 
-            result = os.popen(cmdline)
-
-            xmlinput = result.read()
-
-
+        if self.spdl:
             fp.close()
 
-            xmlfile = StringIO.StringIO(xmlinput)
-            reader = XMLReader.XMLReader()
-            self.claims = reader.readXML(xmlfile)
+        xmlfile = StringIO.StringIO(xmlinput)
+        reader = XMLReader.XMLReader()
+        self.claims = reader.readXML(xmlfile)
 
-
-            # Cleanup
-            del(xmlinput)
-            del(xmlfile)
-            return self.claims
-
-        else:
-            # No input yet!
-            return ""
+        return self.claims
 
     def __str__(self):
         if self.claims:
@@ -105,8 +98,16 @@ def basictest():
 
     x.setFile("ns3.spdl")
     x.verify()
+    print x
 
 if __name__ == '__main__':
-    basictest()
+    pars = sys.argv[1:]
+    if len(pars) == 0:
+        basictest()
+    else:
+        x = Scyther()
+        x.options = " ".join(pars)
+        x.verify()
+        print x
 
 
