@@ -248,15 +248,11 @@ class ResultWindow(wx.Dialog):
             btn = wx.ContextHelpButton(self)
             btnsizer.AddButton(btn)
         
-        btn = wx.Button(self, wx.ID_OK)
-        btn.SetHelpText("The OK button completes the dialog")
+        btn = wx.Button(self, wx.ID_CLOSE)
+        btn.SetHelpText("Close window")
         btn.SetDefault()
         btnsizer.AddButton(btn)
 
-        btn = wx.Button(self, wx.ID_CANCEL)
-        btn.SetHelpText("The Cancel button cnacels the dialog. (Cool, huh?)")
-        btnsizer.AddButton(btn)
-        btnsizer.Realize()
 
         sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
