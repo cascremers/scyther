@@ -102,7 +102,7 @@ class AttackThread(threading.Thread):
         for cl in self.mainwin.claims:
             for attack in cl.attacks:
                 self.makeImage(attack)
-            if cl.button:
+            if cl.button and len(cl.attacks) > 0:
                 cl.button.Enable()
 
     def makeImage(self,attack):
@@ -195,14 +195,20 @@ class ResultWindow(wx.Frame):
         claims = mainwindow.claims
         self.grid = grid = wx.GridBagSizer(8,1+len(claims))
 
-        grid.Add(wx.StaticText(self,-1,"Protocol "),(0,0))
-        grid.Add(wx.StaticText(self,-1,"Role "),(0,1))
-        grid.Add(wx.StaticText(self,-1,"Label "),(0,2))
-        grid.Add(wx.StaticText(self,-1,"Claim type "),(0,3))
-        grid.Add(wx.StaticText(self,-1,"Parameter "),(0,4))
-        grid.Add(wx.StaticText(self,-1,"Status "),(0,5))
-        grid.Add(wx.StaticText(self,-1,"View "),(0,6))
+        def titlebar(x,title):
+            txt = wx.StaticText(self,-1,title + " ")
+            font = wx.Font(14,wx.NORMAL,wx.NORMAL,wx.NORMAL)
+            txt.SetFont(font)
+            grid.Add(txt,(0,x))
 
+        titlebar(0,"Protocol")
+        titlebar(1,"Role")
+        titlebar(2,"Label")
+        titlebar(3,"Claim type")
+        titlebar(4,"Parameter")
+        titlebar(5,"Status")
+        titlebar(6,"View")
+        titlebar(7,"Remarks")
 
         lastprot = None
         lastrole = None
@@ -236,30 +242,34 @@ class ResultWindow(wx.Frame):
             
                 blabel = "%i %s" % (n,cl.stateName(n))
                 cl.button = wx.Button(self,-1,blabel)
-                cl.button.Disable()
                 grid.Add(cl.button,(y,6))
+                cl.button.Disable()
                 self.Bind(wx.EVT_BUTTON, self.onViewButton,cl.button)
             else:
-                cl.button = None
+                blabel = "%i %s" % (n,cl.stateName(n))
+                cl.button = wx.Button(self,-1,blabel)
+                grid.Add(cl.button,(y,6))
+                cl.button.Disable()
+                #cl.button = None
 
             # remark something about completeness
             remark = ""
             if not cl.complete:
                 if n == 0:
                     # no attacks, no states within bounds
-                    remark = "(within bounds)"
+                    remark = "within bounds"
                 else:
                     # some attacks/states within bounds
-                    remark = "(at least, maybe more)"
+                    remark = "at least, maybe more"
             else:
                 if n == 0:
                     # no attacks, no states
-                    remark = "" 
+                    remark = "none"
                 else:
                     # there exist n states/attacks (within any number of runs)
-                    remark = "(exactly)"
+                    remark = "exactly"
 
-            grid.Add(wx.StaticText(self,-1,remark),(y,7))
+            grid.Add(wx.StaticText(self,-1," (%s)" % remark),(y,7))
                 
         sizer.Add(grid, 0,wx.ALIGN_CENTRE|wx.ALL,5)
 
