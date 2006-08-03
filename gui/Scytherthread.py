@@ -277,17 +277,10 @@ class ResultWindow(wx.Frame):
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
 
-        btnsizer = wx.StdDialogButtonSizer()
-        
-        btn = wx.Button(self, wx.ID_OK)
-        btn.SetHelpText("Close window")
-        btn.SetDefault()
+        btn = wx.Button(self, -1,"Close window")
         self.Bind(wx.EVT_BUTTON,self.onCloseButton,btn)
-        btnsizer.AddButton(btn)
 
-        btnsizer.Realize()
-
-        sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.ALIGN_RIGHT, 5)
+        sizer.Add(btn, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.ALIGN_RIGHT, 5)
 
         self.SetSizer(sizer)
         sizer.Fit(self)
