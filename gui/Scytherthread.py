@@ -206,26 +206,28 @@ class ResultWindow(wx.Frame):
 
         lastprot = None
         lastrole = None
-        for i in range(0,len(claims)):
+        for i in range(len(claims)-1,-1,-1):
             cl = claims[i]
+            # we reverse the display order of the claims!
+            y = len(claims)-i
 
             prot = str(cl.protocol)
             if prot != lastprot:
-                grid.Add(wx.StaticText(self,-1,prot),(i+1,0))
+                grid.Add(wx.StaticText(self,-1,prot),(y,0))
                 lastprot = prot
             role = str(cl.role)
             if role != lastrole:
-                grid.Add(wx.StaticText(self,-1,role),(i+1,1))
+                grid.Add(wx.StaticText(self,-1,role),(y,1))
                 lastrole = role
 
-            grid.Add(wx.StaticText(self,-1,str(cl.shortlabel)),(i+1,2))
-            grid.Add(wx.StaticText(self,-1,str(cl.claimtype)),(i+1,3))
-            grid.Add(wx.StaticText(self,-1,str(cl.parameter)),(i+1,4))
+            grid.Add(wx.StaticText(self,-1,str(cl.shortlabel)),(y,2))
+            grid.Add(wx.StaticText(self,-1,str(cl.claimtype)),(y,3))
+            grid.Add(wx.StaticText(self,-1,str(cl.parameter)),(y,4))
             if cl.okay:
                 okay = "Ok"
             else:
                 okay = "Fail"
-            grid.Add(wx.StaticText(self,-1,okay),(i+1,5))
+            grid.Add(wx.StaticText(self,-1,okay),(y,5))
 
             # add view button (if needed)
             n = len(cl.attacks)
@@ -235,7 +237,7 @@ class ResultWindow(wx.Frame):
                 blabel = "%i %s" % (n,cl.stateName(n))
                 cl.button = wx.Button(self,-1,blabel)
                 cl.button.Disable()
-                grid.Add(cl.button,(i+1,6))
+                grid.Add(cl.button,(y,6))
                 self.Bind(wx.EVT_BUTTON, self.onViewButton,cl.button)
             else:
                 cl.button = None
@@ -257,7 +259,7 @@ class ResultWindow(wx.Frame):
                     # there exist n states/attacks (within any number of runs)
                     remark = "(exactly)"
 
-            grid.Add(wx.StaticText(self,-1,remark),(i+1,7))
+            grid.Add(wx.StaticText(self,-1,remark),(y,7))
                 
         sizer.Add(grid, 0,wx.ALIGN_CENTRE|wx.ALL,5)
 
@@ -283,7 +285,8 @@ class ResultWindow(wx.Frame):
     def onViewButton(self,evt):
         btn = evt.GetEventObject()
         (y,x) = self.grid.GetItemPosition(btn)
-        cln = y-1
+        n = len(self.mainwindow.claims)
+        cln = n-y
         cl = self.mainwindow.claims[cln]
         w = Attackwindow.AttackWindow(cl)
 
