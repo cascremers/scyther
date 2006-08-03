@@ -193,7 +193,7 @@ class ResultWindow(wx.Frame):
 
         # set up grid
         claims = mainwindow.claims
-        self.grid = grid = wx.GridBagSizer(8,1+len(claims))
+        self.grid = grid = wx.GridBagSizer(7,1+len(claims))
 
         def titlebar(x,title):
             txt = wx.StaticText(self,-1,title + " ")
@@ -205,10 +205,9 @@ class ResultWindow(wx.Frame):
         titlebar(1,"Role")
         titlebar(2,"Label")
         titlebar(3,"Claim type")
-        titlebar(4,"Parameter")
-        titlebar(5,"Status")
-        titlebar(6,"View")
-        titlebar(7,"Remarks")
+        titlebar(4,"Status")
+        titlebar(5,"View")
+        titlebar(6,"Remarks")
 
         lastprot = None
         lastrole = None
@@ -227,13 +226,17 @@ class ResultWindow(wx.Frame):
                 lastrole = role
 
             grid.Add(wx.StaticText(self,-1,str(cl.shortlabel)),(y,2))
-            grid.Add(wx.StaticText(self,-1,str(cl.claimtype)),(y,3))
-            grid.Add(wx.StaticText(self,-1,str(cl.parameter)),(y,4))
+            claimdetails = str(cl.claimtype)
+            if cl.parameter:
+                claimdetails += " %s" % (cl.parameter)
+            grid.Add(wx.StaticText(self,-1,claimdetails),(y,3))
             if cl.okay:
-                okay = "Ok"
+                okay = wx.StaticText(self,-1,"Ok")
+                okay.SetBackgroundColour("green")
             else:
-                okay = "Fail"
-            grid.Add(wx.StaticText(self,-1,okay),(y,5))
+                okay = wx.StaticText(self,-1,"Fail")
+                okay.SetBackgroundColour("red")
+            grid.Add(okay,(y,4))
 
             # add view button (if needed)
             n = len(cl.attacks)
@@ -242,13 +245,13 @@ class ResultWindow(wx.Frame):
             
                 blabel = "%i %s" % (n,cl.stateName(n))
                 cl.button = wx.Button(self,-1,blabel)
-                grid.Add(cl.button,(y,6))
+                grid.Add(cl.button,(y,5))
                 cl.button.Disable()
                 self.Bind(wx.EVT_BUTTON, self.onViewButton,cl.button)
             else:
                 blabel = "%i %s" % (n,cl.stateName(n))
                 cl.button = wx.Button(self,-1,blabel)
-                grid.Add(cl.button,(y,6))
+                grid.Add(cl.button,(y,5))
                 cl.button.Disable()
                 #cl.button = None
 
@@ -269,18 +272,18 @@ class ResultWindow(wx.Frame):
                     # there exist n states/attacks (within any number of runs)
                     remark = "exactly"
 
-            grid.Add(wx.StaticText(self,-1," (%s)" % remark),(y,7))
+            grid.Add(wx.StaticText(self,-1," (%s)" % remark),(y,6))
                 
         sizer.Add(grid, 0,wx.ALIGN_CENTRE|wx.ALL,5)
 
-        # separator
-        line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+        # # separator
+        # line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
+        # sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
 
-        btn = wx.Button(self, -1,"Close window")
-        self.Bind(wx.EVT_BUTTON,self.onCloseButton,btn)
+        # btn = wx.Button(self, -1,"Close window")
+        # self.Bind(wx.EVT_BUTTON,self.onCloseButton,btn)
 
-        sizer.Add(btn, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.ALIGN_RIGHT, 5)
+        # sizer.Add(btn, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.ALIGN_RIGHT, 5)
 
         self.SetSizer(sizer)
         sizer.Fit(self)
