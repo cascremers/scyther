@@ -103,16 +103,18 @@ class AttackWindow(wx.Frame):
         attack picture. '''
 
         self.displays=[]
-        if self.claim.failed <= 1:
+        attacks = self.claim.attacks
+        n = len(attacks)
+        if n <= 1:
             # Just a single window
             self.tabs = None
-            self.displays.append(AttackDisplay(self,self,self.claim.attacks[0]))
+            self.displays.append(AttackDisplay(self,self,attacks[0]))
         else:
             # Multiple tabs
             self.tabs = wx.Notebook(self,-1)
-            for i in range(0,len(self.claim.attacks)):
-                disp = AttackDisplay(self,self.tabs,self.claim.attacks[i])
-                classname = "Class %i" % ((i+1))
+            for i in range(0,n):
+                disp = AttackDisplay(self,self.tabs,attacks[i])
+                classname = "%s %i" % (self.claim.stateName(),(i+1))
                 self.tabs.AddPage(disp, classname)
                 self.displays.append(disp)
 

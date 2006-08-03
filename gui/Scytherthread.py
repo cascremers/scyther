@@ -21,6 +21,7 @@ import Tempfile
 import Claim
 import Preference
 import Scyther
+import Attackwindow
 
 #---------------------------------------------------------------------------
 
@@ -101,6 +102,8 @@ class AttackThread(threading.Thread):
         for cl in self.mainwin.claims:
             for attack in cl.attacks:
                 self.makeImage(attack)
+            if cl.button:
+                cl.button.Enable()
 
     def makeImage(self,attack):
         """ create image for this particular attack """
@@ -109,6 +112,7 @@ class AttackThread(threading.Thread):
         pw,pr = os.popen2("dot -Tpng -o%s" % (fpname2))
         pw.write(attack.scytherDot)
         pw.close()
+        pr.close()
         attack.pngfile = fpname2  # this is where the file name is stored
 
 class VerificationWindow(wx.Dialog):
@@ -134,33 +138,8 @@ class VerificationWindow(wx.Dialog):
         # contents
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        label = wx.StaticText(self, -1, "This is a wx.Dialog")
-        label.SetHelpText("This is the help text for the label")
+        label = wx.StaticText(self, -1, "Verifying protocol")
         sizer.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-
-        box = wx.BoxSizer(wx.HORIZONTAL)
-
-        label = wx.StaticText(self, -1, "Field #1:")
-        label.SetHelpText("This is the help text for the label")
-        box.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-
-        text = wx.TextCtrl(self, -1, "", size=(80,-1))
-        text.SetHelpText("Here's some help text for field #1")
-        box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
-
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-
-        box = wx.BoxSizer(wx.HORIZONTAL)
-
-        label = wx.StaticText(self, -1, "Field #2:")
-        label.SetHelpText("This is the help text for the label")
-        box.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-
-        text = wx.TextCtrl(self, -1, "", size=(80,-1))
-        text.SetHelpText("Here's some help text for field #2")
-        box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
-
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
@@ -188,19 +167,20 @@ class VerificationWindow(wx.Dialog):
 
 #---------------------------------------------------------------------------
 
-class ResultWindow(wx.Dialog):
+class ResultWindow(wx.Frame):
     def __init__(
-            self, parent, ID, title, size=wx.DefaultSize, pos=wx.DefaultPosition, 
+            self, mainwindow, ID, title, size=wx.DefaultSize, pos=wx.DefaultPosition, 
             style=wx.DEFAULT_DIALOG_STYLE
             ):
+
+        self.mainwindow = mainwindow
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
         # so we can set an extra style that must be set before
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.SetExtraStyle(wx.DIALOG_EX_CONTEXTHELP)
-        pre.Create(parent, ID, title, pos, size, style)
+        pre.Create(mainwindow, ID, title, pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -211,53 +191,105 @@ class ResultWindow(wx.Dialog):
         # contents
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        label = wx.StaticText(self, -1, "This is a wx.Dialog")
-        label.SetHelpText("This is the help text for the label")
-        sizer.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+        # set up grid
+        claims = mainwindow.claims
+        self.grid = grid = wx.GridBagSizer(8,1+len(claims))
 
-        box = wx.BoxSizer(wx.HORIZONTAL)
+        grid.Add(wx.StaticText(self,-1,"Protocol "),(0,0))
+        grid.Add(wx.StaticText(self,-1,"Role "),(0,1))
+        grid.Add(wx.StaticText(self,-1,"Label "),(0,2))
+        grid.Add(wx.StaticText(self,-1,"Claim type "),(0,3))
+        grid.Add(wx.StaticText(self,-1,"Parameter "),(0,4))
+        grid.Add(wx.StaticText(self,-1,"Status "),(0,5))
+        grid.Add(wx.StaticText(self,-1,"View "),(0,6))
 
-        label = wx.StaticText(self, -1, "Field #1:")
-        label.SetHelpText("This is the help text for the label")
-        box.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        text = wx.TextCtrl(self, -1, "", size=(80,-1))
-        text.SetHelpText("Here's some help text for field #1")
-        box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
+        lastprot = None
+        lastrole = None
+        for i in range(0,len(claims)):
+            cl = claims[i]
 
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+            prot = str(cl.protocol)
+            if prot != lastprot:
+                grid.Add(wx.StaticText(self,-1,prot),(i+1,0))
+                lastprot = prot
+            role = str(cl.role)
+            if role != lastrole:
+                grid.Add(wx.StaticText(self,-1,role),(i+1,1))
+                lastrole = role
 
-        box = wx.BoxSizer(wx.HORIZONTAL)
+            grid.Add(wx.StaticText(self,-1,str(cl.shortlabel)),(i+1,2))
+            grid.Add(wx.StaticText(self,-1,str(cl.claimtype)),(i+1,3))
+            grid.Add(wx.StaticText(self,-1,str(cl.parameter)),(i+1,4))
+            if cl.okay:
+                okay = "Ok"
+            else:
+                okay = "Fail"
+            grid.Add(wx.StaticText(self,-1,okay),(i+1,5))
 
-        label = wx.StaticText(self, -1, "Field #2:")
-        label.SetHelpText("This is the help text for the label")
-        box.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+            # add view button (if needed)
+            n = len(cl.attacks)
+            if n > 0:
+                # Aha, something to show
+            
+                blabel = "%i %s" % (n,cl.stateName(n))
+                cl.button = wx.Button(self,-1,blabel)
+                cl.button.Disable()
+                grid.Add(cl.button,(i+1,6))
+                self.Bind(wx.EVT_BUTTON, self.onViewButton,cl.button)
+            else:
+                cl.button = None
 
-        text = wx.TextCtrl(self, -1, "", size=(80,-1))
-        text.SetHelpText("Here's some help text for field #2")
-        box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
+            # remark something about completeness
+            remark = ""
+            if not cl.complete:
+                if n == 0:
+                    # no attacks, no states within bounds
+                    remark = "(within bounds)"
+                else:
+                    # some attacks/states within bounds
+                    remark = "(at least, maybe more)"
+            else:
+                if n == 0:
+                    # no attacks, no states
+                    remark = "" 
+                else:
+                    # there exist n states/attacks (within any number of runs)
+                    remark = "(exactly)"
 
-        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+            grid.Add(wx.StaticText(self,-1,remark),(i+1,7))
+                
+        sizer.Add(grid, 0,wx.ALIGN_CENTRE|wx.ALL,5)
 
+        # separator
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
 
         btnsizer = wx.StdDialogButtonSizer()
         
-        if wx.Platform != "__WXMSW__":
-            btn = wx.ContextHelpButton(self)
-            btnsizer.AddButton(btn)
-        
-        btn = wx.Button(self, wx.ID_CLOSE)
+        btn = wx.Button(self, wx.ID_OK)
         btn.SetHelpText("Close window")
         btn.SetDefault()
+        self.Bind(wx.EVT_BUTTON,self.onCloseButton,btn)
         btnsizer.AddButton(btn)
 
+        btnsizer.Realize()
 
-        sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.ALIGN_RIGHT, 5)
 
         self.SetSizer(sizer)
         sizer.Fit(self)
+
+    def onViewButton(self,evt):
+        btn = evt.GetEventObject()
+        (y,x) = self.grid.GetItemPosition(btn)
+        cln = y-1
+        cl = self.mainwindow.claims[cln]
+        w = Attackwindow.AttackWindow(cl)
+
+    def onCloseButton(self,evt):
+        del(self.thread)
+        self.Destroy()
 
 #---------------------------------------------------------------------------
 
@@ -275,7 +307,7 @@ def RunScyther(mainwin,mode):
 
         # start the thread
         
-        mainwin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
+        verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
 
         mainwin.verified = False
         mainwin.settings.mode = mode
@@ -292,27 +324,20 @@ def RunScyther(mainwin,mode):
         del(t)
 
         # Cursor back to normal
-        mainwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        verifywin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
 
         if mainwin.verified:
                 # Great, we verified stuff, progress to the claim report
-                print "We verified stuff, hooray"
-                resultwin = ResultWindow(mainwin,-1,mode)
+                title = "Scyther results : %s" % mode
+                resultwin = ResultWindow(mainwin,-1,title)
         
                 t = AttackThread(mainwin,resultwin)
                 t.start()
 
+                resultwin.thread = t
                 resultwin.CenterOnScreen()
-                val = resultwin.ShowModal()
-                resultwin.Destroy()
+                resultwin.Show(1)
 
-                # kill thread anyway
-                del(t)
-
-        else:
-                # Verification was cancelled
-                print "We wuz cancelled!"
-        
         busy.release()
 
 
