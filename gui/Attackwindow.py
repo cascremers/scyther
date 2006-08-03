@@ -136,9 +136,11 @@ class AttackWindow(wx.Frame):
         # Add fit button
         bmp = wx.ArtProvider_GetBitmap(wx.ART_MISSING_IMAGE,wx.ART_TOOLBAR,(20,20))
         if not bmp.Ok():
-            bmp = wx.EmptyBitmap(20,20)
+            bmp = wx.EmptyBitmap(32,32)
         tb.AddCheckTool(wx.ID_ZOOM_FIT, bmp, bmp, 'Toggle zoom', 'Toggle zoom level')
         self.Bind(wx.EVT_TOOL, self.OnFit, id=wx.ID_ZOOM_FIT)
+
+        tb.Realize()
 
         # And shortcut
         aTable = wx.AcceleratorTable([

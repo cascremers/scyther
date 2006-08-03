@@ -114,19 +114,28 @@ class MainWindow(wx.Frame):
                 | wx.TB_TEXT
                 )
 
-        bmp = wx.ArtProvider_GetBitmap(wx.ART_EXECUTABLE_FILE,wx.ART_TOOLBAR,(20,20))
+        #print "Default toolbar tool size: %s\n" % tb.GetToolBitmapSize()
+
+        tsize = (32,32)
+
+        bmp = wx.ArtProvider_GetBitmap(wx.ART_EXECUTABLE_FILE,wx.ART_TOOLBAR,tsize)
         if not bmp.Ok():
-            bmp = wx.EmptyBitmap(20,20)
+            bmp = wx.EmptyBitmap(tsize)
+
+        # add the actual tools
         tb.AddSimpleTool(ID_VERIFY, bmp,"Verify","Verify claims")
         self.Bind(wx.EVT_TOOL, self.OnVerify, id=ID_VERIFY)
         tb.AddSimpleTool(ID_STATESPACE, bmp,"Statespace","Generate statespace for all roles")
         self.Bind(wx.EVT_TOOL, self.OnStatespace, id=ID_STATESPACE)
+
         tb.AddSeparator()
 
         tb.AddSimpleTool(ID_CHECK, bmp,"Check","Check protocol")
         self.Bind(wx.EVT_TOOL, self.OnCheck, id=ID_CHECK)
         tb.AddSimpleTool(ID_AUTOVERIFY, bmp,"Default claims","Verify default claims")
         self.Bind(wx.EVT_TOOL, self.OnAutoVerify, id=ID_AUTOVERIFY)
+
+        tb.Realize()
 
     def CreateMenu(self, bar, name, list):
 
