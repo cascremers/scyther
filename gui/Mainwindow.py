@@ -67,34 +67,20 @@ class MainWindow(wx.Frame):
         ''' Create "interior" window components. In this case it is just a
             simple multiline text control. '''
 
-        self.splitter = wx.SplitterWindow(self,-1)
-        self.splitter.daddy = self
-
         # Top: input
-        self.top = wx.Notebook(self.splitter,-1)
+        self.top = wx.Notebook(self,-1)
         self.control = wx.TextCtrl(self.top, style=wx.TE_MULTILINE)
         if self.load:
             textfile = open(os.path.join(self.dirname, self.filename), 'r')
             self.control.SetValue(textfile.read())
             os.chdir(self.dirname)
             textfile.close()
-        self.top.AddPage(self.control,"Protocol")
+        self.top.AddPage(self.control,"Protocol description")
         self.settings = SettingsWindow(self.top,self)
-        self.top.AddPage(self.settings,"Settings")
-
-        # Bottom: output
-        self.bottom = wx.Notebook(self.splitter,-1)
-        self.report = SummaryWindow(self.bottom,self)
-        self.bottom.AddPage(self.report,"Claim summary")
-        self.errors = ErrorWindow(self.bottom,self)
-        self.bottom.AddPage(self.errors,"Detailed output")
+        self.top.AddPage(self.settings,"Verification parameters")
 
         #self.report.SetValue("Welcome.")
 
-        # Combine
-        self.splitter.SetMinimumPaneSize(20)
-        self.splitter.SplitHorizontally(self.top, self.bottom)
-        self.splitter.SetSashPosition(510)
         self.Show(1)
 
 
@@ -328,91 +314,6 @@ class SettingsWindow(wx.Panel):
 
 #---------------------------------------------------------------------------
 
-class SummaryWindow(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-
-    def __init__(self,parent,daddy):
-        wx.ListCtrl.__init__(self,parent,-1, style=wx.LC_REPORT
-                | wx.BORDER_NONE
-                | wx.LC_SORT_ASCENDING
-                | wx.LC_SINGLE_SEL
-                )
-        listmix.ListCtrlAutoWidthMixin.__init__(self)
-
-        self.win = daddy
-        self.currentItem = -1
-
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
-
-        self.InsertColumn(0, "Protocol")
-        self.InsertColumn(1, "Role")
-        self.InsertColumn(2, "Claim")
-        self.InsertColumn(3, "Label")
-        self.InsertColumn(4, "Parameters")
-        self.InsertColumn(5, "Status")
-        self.InsertColumn(6, "Attacks")
-        self.InsertColumn(7, "Comments")
-
-    def update(self):
-        self.DeleteAllItems()
-        claims = self.win.claims
-        for key in range(0,len(claims)):
-            cl = claims[key]
-            index = self.InsertStringItem(sys.maxint,str(cl.protocol))
-
-            def addThing(i,x):
-                self.SetStringItem(index,i,str(x))
-
-            addThing(1,cl.role)
-            addThing(2,cl.claimtype)
-            addThing(3,cl.shortlabel)
-            addThing(4,cl.parameter)
-            if cl.okay:
-                addThing(5,"Ok")
-            else:
-                addThing(5,"Fail")
-            addThing(6,cl.failed)
-            addThing(7,"Comments")
-
-            self.SetItemData(index,key)
-            key += 1
-
-            # if cl.okay == "Fail":
-            #     # Failed :(
-            #     item = self.GetItem(key)
-            #     item.SetTextColour(wx.RED)
-            #     self.SetItem(item)
-            # else:
-            #     # Okay! But with bound?
-            #     if cl.comments.find("bounds") == -1:
-            #         # No bounds, great :)
-            #         item = self.GetItem(key)
-            #         item.SetTextColour(wx.GREEN)
-            #         self.SetItem(item)
-            
-        #for i in range(0,7):
-        #    self.SetColumnWidth(i,wx.LIST_AUTOSIZE)
-
-    def OnItemSelected(self, event):
-        self.currentItem = event.m_itemIndex
-        cl = self.win.claims[self.currentItem]
-        if len(cl.attacks) > 0:
-            display = Attackwindow.AttackWindow(cl)
-            display.Show(1)
-        self.Refresh()
-        event.Skip()
-
-#---------------------------------------------------------------------------
-
-class ErrorWindow(wx.TextCtrl):
-
-    def __init__(self,parent,daddy):
-        wx.TextCtrl.__init__(self,parent,-1, style=wx.TE_MULTILINE)
-        self.win = daddy
-    
-    def update(self,summary):
-        self.SetValue(summary)
-
-#---------------------------------------------------------------------------
 
     
 
