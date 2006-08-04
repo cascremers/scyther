@@ -289,7 +289,6 @@ def RunScyther(mainwin,mode):
     # if the thread terminames, it should close the window normally, and we end up here as well.
 
     val = verifywin.ShowModal()
-    verifywin.Destroy()
 
     # Cursor back to normal
     verifywin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
