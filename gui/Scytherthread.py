@@ -35,6 +35,7 @@ class ScytherThread(threading.Thread):
         self.verifywin = verifywin
         self.spdl = spdl
         self.details = details
+        self.verified = False
 
         self.claims = []
 
@@ -47,7 +48,7 @@ class ScytherThread(threading.Thread):
         # Results are done (claimstatus can be reported)
 
         # Shoot down the verification window and let the RunScyther function handle the rest
-        self.mainwin.verified = True
+        self.verified = True
         self.verifywin.Close()
 
     def claimResults(self):
@@ -148,12 +149,32 @@ class ResultWindow(wx.Frame):
         self.thread = None
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
 
+        self.BuildTable()
+
+
+    def onViewButton(self,evt):
+        btn = evt.GetEventObject()
+        (y,x) = self.grid.GetItemPosition(btn)
+        n = len(self.mainwindow.claims)
+        cln = n-y
+        cl = self.mainwindow.claims[cln]
+        w = Attackwindow.AttackWindow(cl)
+
+    def onCloseWindow(self,evt):
+        # TODO we should kill self.thread
+        self.mainwindow.claims = None
+        self.Destroy()
+
+
+    def BuildTable(self):
         # Now continue with the normal construction of the dialog
         # contents
         sizer = wx.BoxSizer(wx.VERTICAL)
 
+        # For these claims...
+        claims = self.mainwindow.claims
+
         # set up grid
-        claims = mainwindow.claims
         self.grid = grid = wx.GridBagSizer(7,1+len(claims))
 
         def titlebar(x,title,width=1):
@@ -170,99 +191,83 @@ class ResultWindow(wx.Frame):
             resultxt = "Results"
         titlebar(5,resulttxt,2)
 
-        lastprot = None
-        lastrole = None
+        self.lastprot = None
+        self.lastrole = None
         for index in range(0,len(claims)):
-            cl = claims[len(claims)-index-1]
             # we reverse the display order of the claims!
-            y = index+1
+            cl = claims[len(claims)-index-1]
+            self.BuildClaim(grid,cl,index+1)
 
-            # a support function
-            def addtxt(txt,column):
-                grid.Add(wx.StaticText(self,-1,txt),(y,column),(1,1),wx.ALIGN_CENTER_VERTICAL)
-
-            # button for ok/fail
-            tsize = (16,16)
-            if cl.okay:
-                bmp = wx.ArtProvider_GetBitmap(wx.ART_TICK_MARK,wx.ART_CMN_DIALOG,tsize)
-            else:
-                bmp = wx.ArtProvider_GetBitmap(wx.ART_CROSS_MARK,wx.ART_CMN_DIALOG,tsize)
-            if not bmp.Ok():
-                bmp = wx.EmptyBitmap(tsize)
-            bmpfield = wx.StaticBitmap(self,-1,bmp)
-
-            grid.Add(bmpfield,(y,0),(1,1),wx.ALIGN_CENTER_VERTICAL)
-
-            # protocol, role, label
-            prot = str(cl.protocol)
-            if prot != lastprot:
-                addtxt(prot,1)
-                lastprot = prot
-            role = str(cl.role)
-            if role != lastrole:
-                addtxt(role,2)
-                lastrole = role
-            addtxt(str(cl.shortlabel),3)
-
-            claimdetails = str(cl.claimtype)
-            if cl.parameter:
-                claimdetails += " %s  " % (cl.parameter)
-            addtxt(claimdetails,4)
-
-            # add view button (if needed)
-            n = len(cl.attacks)
-            cl.button = wx.Button(self,-1,"%i %s" % (n,cl.stateName(n)))
-            grid.Add(cl.button,(y,5),(1,1),wx.ALIGN_CENTER_VERTICAL)
-            cl.button.Disable()
-            if n > 0:
-                # Aha, something to show
-                self.Bind(wx.EVT_BUTTON, self.onViewButton,cl.button)
-
-            # remark something about completeness
-            remark = ""
-            if not cl.complete:
-                if n == 0:
-                    # no attacks, no states within bounds
-                    remark = "within bounds"
-                else:
-                    # some attacks/states within bounds
-                    remark = "at least, maybe more"
-            else:
-                if n == 0:
-                    # no attacks, no states
-                    remark = "none"
-                else:
-                    # there exist n states/attacks (within any number of runs)
-                    remark = "exactly"
-            addtxt(" (%s)" % remark,6)
-                
         sizer.Add(grid, 0,wx.ALIGN_CENTRE|wx.ALL,5)
-
-        # # separator
-        # line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-        # sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
-
-        # btn = wx.Button(self, -1,"Close window")
-        # self.Bind(wx.EVT_BUTTON,self.onCloseButton,btn)
-
-        # sizer.Add(btn, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.ALIGN_RIGHT, 5)
-
 
         self.SetSizer(sizer)
         sizer.Fit(self)
 
+    def BuildClaim(self,grid,cl,ypos):
+        # a support function
+        def addtxt(txt,column):
+            grid.Add(wx.StaticText(self,-1,txt),(ypos,column),(1,1),wx.ALIGN_CENTER_VERTICAL)
 
-    def onViewButton(self,evt):
-        btn = evt.GetEventObject()
-        (y,x) = self.grid.GetItemPosition(btn)
-        n = len(self.mainwindow.claims)
-        cln = n-y
-        cl = self.mainwindow.claims[cln]
-        w = Attackwindow.AttackWindow(cl)
+        # button for ok/fail
+        tsize = (16,16)
+        if cl.okay:
+            bmp = wx.ArtProvider_GetBitmap(wx.ART_TICK_MARK,wx.ART_CMN_DIALOG,tsize)
+        else:
+            bmp = wx.ArtProvider_GetBitmap(wx.ART_CROSS_MARK,wx.ART_CMN_DIALOG,tsize)
+        if not bmp.Ok():
+            bmp = wx.EmptyBitmap(tsize)
+        bmpfield = wx.StaticBitmap(self,-1,bmp)
 
-    def onCloseWindow(self,evt):
-        # TODO we should kill self.thread
-        self.Destroy()
+        grid.Add(bmpfield,(ypos,0),(1,1),wx.ALIGN_CENTER_VERTICAL)
+
+        # protocol, role, label
+        prot = str(cl.protocol)
+        showPR = False
+        if prot != self.lastprot:
+            self.lastprot = prot
+            showPR = True
+        role = str(cl.role)
+        if role != self.lastrole:
+            self.lastrole = role
+            showPR = True
+        if showPR:
+            addtxt(prot,1)
+            addtxt(role,2)
+        
+        addtxt(str(cl.shortlabel),3)
+
+        claimdetails = str(cl.claimtype)
+        if cl.parameter:
+            claimdetails += " %s  " % (cl.parameter)
+        addtxt(claimdetails,4)
+
+        # add view button (if needed)
+        n = len(cl.attacks)
+        cl.button = wx.Button(self,-1,"%i %s" % (n,cl.stateName(n)))
+        grid.Add(cl.button,(ypos,5),(1,1),wx.ALIGN_CENTER_VERTICAL)
+        cl.button.Disable()
+        if n > 0:
+            # Aha, something to show
+            self.Bind(wx.EVT_BUTTON, self.onViewButton,cl.button)
+
+        # remark something about completeness
+        remark = ""
+        if not cl.complete:
+            if n == 0:
+                # no attacks, no states within bounds
+                remark = "within bounds"
+            else:
+                # some attacks/states within bounds
+                remark = "at least, maybe more"
+        else:
+            if n == 0:
+                # no attacks, no states
+                remark = "none"
+            else:
+                # there exist n states/attacks (within any number of runs)
+                remark = "exactly"
+        addtxt(" (%s)" % remark,6)
+                
 
 #---------------------------------------------------------------------------
 
@@ -279,7 +284,6 @@ def RunScyther(mainwin,mode):
     
     verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
 
-    mainwin.verified = False
     mainwin.settings.mode = mode
     t =  ScytherThread(mainwin,mainwin.control.GetValue(),"",verifywin)
     t.start()
@@ -293,7 +297,7 @@ def RunScyther(mainwin,mode):
     # Cursor back to normal
     verifywin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
 
-    if mainwin.verified:
+    if t.verified:
         # Great, we verified stuff, progress to the claim report
         title = "Scyther results : %s" % mode
         resultwin = ResultWindow(mainwin,-1,title)
