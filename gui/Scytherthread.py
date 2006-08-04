@@ -152,20 +152,18 @@ class ResultWindow(wx.Frame):
 
     def onViewButton(self,evt):
         btn = evt.GetEventObject()
-        (y,x) = self.grid.GetItemPosition(btn)
-        n = len(self.parent.claims)
-        cln = n-y
-        cl = self.parent.claims[cln]
-        w = Attackwindow.AttackWindow(cl)
+        w = Attackwindow.AttackWindow(btn.claim)
+        w.Show(True)
 
     def onCloseWindow(self,evt):
         # TODO we should kill self.thread
 
         # Clean up
         for cl in self.parent.claims:
-            if cl.pngfile:
-                os.unlink(cl.pngfile)
-                cl.pngfile = None
+            for attack in cl.attacks:
+                if attack.pngfile:
+                    os.unlink(attack.pngfile)
+                    attack.pngfile = None
         self.parent.claims = None
 
         self.Destroy()
@@ -249,6 +247,7 @@ class ResultWindow(wx.Frame):
         # add view button (if needed)
         n = len(cl.attacks)
         cl.button = wx.Button(self,-1,"%i %s" % (n,cl.stateName(n)))
+        cl.button.claim = cl
         grid.Add(cl.button,(ypos,5),(1,1),wx.ALIGN_CENTER_VERTICAL)
         cl.button.Disable()
         if n > 0:

@@ -49,24 +49,27 @@ class AttackDisplay(wx.ScrolledWindow):
         self.SetScrollbars(0,0,0,0,0,0)
 
         bmp = self.original
-        if self.win.fit:
-            W = bmp.GetWidth()
-            H = bmp.GetHeight()
-            (sw,sh) = self.win.GetClientSizeTuple()
+        if not bmp.Ok():
+            bmp = wx.EmptyBitmap((1,1))
+        else:
+            if self.win.fit:
+                W = bmp.GetWidth()
+                H = bmp.GetHeight()
+                (sw,sh) = self.win.GetClientSizeTuple()
 
-            if W > sw:
-                # correct width
-                factor = float(sw) / W
-                W = sw
-                H = H * factor
-            if H > sh:
-                # correct height
-                factor = float(sh) / H
-                H = sh
-                W = W * factor
+                if W > sw:
+                    # correct width
+                    factor = float(sw) / W
+                    W = sw
+                    H = H * factor
+                if H > sh:
+                    # correct height
+                    factor = float(sh) / H
+                    H = sh
+                    W = W * factor
 
 
-            bmp = self.original.Scale(W,H)
+                bmp = self.original.Scale(W,H)
 
         self.Image.SetBitmap(wx.BitmapFromImage(bmp))
         #self.box.SetItemMinSize(self.Image.GetContainingSizer())
