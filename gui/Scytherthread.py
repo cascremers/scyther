@@ -25,11 +25,6 @@ import Attackwindow
 
 #---------------------------------------------------------------------------
 
-""" Global declaration """
-(UpdateAttackEvent, EVT_UPDATE_ATTACK) = wx.lib.newevent.NewEvent()
-busy = threading.Semaphore()
-
-
 #---------------------------------------------------------------------------
 
 class ScytherThread(threading.Thread):
@@ -47,14 +42,9 @@ class ScytherThread(threading.Thread):
 
     def run(self):
 
-        evt = UpdateAttackEvent(status="Running Scyther...")
-        wx.PostEvent(self.mainwin, evt)
-
         self.claimResults()
 
         # Results are done (claimstatus can be reported)
-        evt = UpdateAttackEvent(status="Done.")
-        wx.PostEvent(self.mainwin, evt)
 
         # Shoot down the verification window and let the RunScyther function handle the rest
         self.mainwin.verified = True
@@ -71,6 +61,7 @@ class ScytherThread(threading.Thread):
         
         scyther.options = self.mainwin.settings.ScytherArguments()
         if sys.platform.startswith('win'):
+            """ Windows """
             scyther.program = "c:\\Scyther.exe"
             if not os.path.isfile(scyther.program):
                 print "I can't find the Scyther executable %s" % (scyther.program)
@@ -90,9 +81,6 @@ class AttackThread(threading.Thread):
         threading.Thread.__init__ ( self )
 
     def run(self):
-
-        evt = UpdateAttackEvent(status="Generating attack graphs...")
-        wx.PostEvent(self.mainwin, evt)
 
         # create the images in the background
         self.makeImages()
@@ -115,30 +103,19 @@ class AttackThread(threading.Thread):
         pr.close()
         attack.pngfile = fpname2  # this is where the file name is stored
 
+#---------------------------------------------------------------------------
+
 class VerificationWindow(wx.Dialog):
     def __init__(
-            self, parent, ID, title, size=wx.DefaultSize, pos=wx.DefaultPosition, 
+            self, parent, ID, title, pos=wx.DefaultPosition, size=wx.DefaultSize, 
             style=wx.DEFAULT_DIALOG_STYLE
             ):
 
-        # Instead of calling wx.Dialog.__init__ we precreate the dialog
-        # so we can set an extra style that must be set before
-        # creation, and then we create the GUI dialog using the Create
-        # method.
-        pre = wx.PreDialog()
-        pre.SetExtraStyle(wx.DIALOG_EX_CONTEXTHELP)
-        pre.Create(parent, ID, title, pos, size, style)
+        wx.Dialog.__init__(self,parent,ID,title,pos,size,style)
 
-        # This next step is the most important, it turns this Python
-        # object into the real wrapper of the dialog (instead of pre)
-        # as far as the wxPython extension is concerned.
-        self.PostCreate(pre)
-
-        # Now continue with the normal construction of the dialog
-        # contents
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        label = wx.StaticText(self, -1, "Verifying protocol")
+        label = wx.StaticText(self, -1, "Verifying protocol description")
         sizer.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
@@ -146,17 +123,7 @@ class VerificationWindow(wx.Dialog):
 
         btnsizer = wx.StdDialogButtonSizer()
         
-        if wx.Platform != "__WXMSW__":
-            btn = wx.ContextHelpButton(self)
-            btnsizer.AddButton(btn)
-        
-        btn = wx.Button(self, wx.ID_OK)
-        btn.SetHelpText("The OK button completes the dialog")
-        btn.SetDefault()
-        btnsizer.AddButton(btn)
-
         btn = wx.Button(self, wx.ID_CANCEL)
-        btn.SetHelpText("The Cancel button cnacels the dialog. (Cool, huh?)")
         btnsizer.AddButton(btn)
         btnsizer.Realize()
 
@@ -168,24 +135,18 @@ class VerificationWindow(wx.Dialog):
 #---------------------------------------------------------------------------
 
 class ResultWindow(wx.Frame):
+
     def __init__(
-            self, mainwindow, ID, title, size=wx.DefaultSize, pos=wx.DefaultPosition, 
-            style=wx.DEFAULT_DIALOG_STYLE
+            self, mainwindow, ID, title, pos=wx.DefaultPosition, size=wx.DefaultSize, 
+            style=wx.DEFAULT_FRAME_STYLE
             ):
 
         self.mainwindow = mainwindow
+        
+        wx.Frame.__init__(self,mainwindow,ID,title,pos,size,style)
 
-        # Instead of calling wx.Dialog.__init__ we precreate the dialog
-        # so we can set an extra style that must be set before
-        # creation, and then we create the GUI dialog using the Create
-        # method.
-        pre = wx.PreDialog()
-        pre.Create(mainwindow, ID, title, pos, size, style)
-
-        # This next step is the most important, it turns this Python
-        # object into the real wrapper of the dialog (instead of pre)
-        # as far as the wxPython extension is concerned.
-        self.PostCreate(pre)
+        self.thread = None
+        self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
 
         # Now continue with the normal construction of the dialog
         # contents
@@ -195,19 +156,19 @@ class ResultWindow(wx.Frame):
         claims = mainwindow.claims
         self.grid = grid = wx.GridBagSizer(7,1+len(claims))
 
-        def titlebar(x,title):
-            txt = wx.StaticText(self,-1,title + " ")
+        def titlebar(x,title,width=1):
+            txt = wx.StaticText(self,-1,title)
             font = wx.Font(14,wx.NORMAL,wx.NORMAL,wx.NORMAL)
             txt.SetFont(font)
-            grid.Add(txt,(0,x))
+            grid.Add(txt,(0,x),(1,width))
 
-        titlebar(0,"Protocol")
-        titlebar(1,"Role")
-        titlebar(2,"Label")
-        titlebar(3,"Claim type")
-        titlebar(4,"Status")
-        titlebar(5,"View")
-        titlebar(6,"Remarks")
+        titlebar(0,"Claim",5)
+        if len(claims) > 0:
+            sn = claims[0].stateName(2)
+            resulttxt = sn[0].upper() + sn[1:]
+        else:
+            resultxt = "Results"
+        titlebar(5,resulttxt,2)
 
         lastprot = None
         lastrole = None
@@ -216,44 +177,46 @@ class ResultWindow(wx.Frame):
             # we reverse the display order of the claims!
             y = len(claims)-i
 
+            # a support function
+            def addtxt(txt,column):
+                grid.Add(wx.StaticText(self,-1,txt),(y,column),(1,1),wx.ALIGN_CENTER_VERTICAL)
+
+            # button for ok/fail
+            tsize = (16,16)
+            if cl.okay:
+                bmp = wx.ArtProvider_GetBitmap(wx.ART_TICK_MARK,wx.ART_CMN_DIALOG,tsize)
+            else:
+                bmp = wx.ArtProvider_GetBitmap(wx.ART_CROSS_MARK,wx.ART_CMN_DIALOG,tsize)
+            if not bmp.Ok():
+                bmp = wx.EmptyBitmap(tsize)
+            bmpfield = wx.StaticBitmap(self,-1,bmp)
+
+            grid.Add(bmpfield,(y,0),(1,1),wx.ALIGN_CENTER_VERTICAL)
+
+            # protocol, role, label
             prot = str(cl.protocol)
             if prot != lastprot:
-                grid.Add(wx.StaticText(self,-1,prot),(y,0))
+                addtxt(prot,1)
                 lastprot = prot
             role = str(cl.role)
             if role != lastrole:
-                grid.Add(wx.StaticText(self,-1,role),(y,1))
+                addtxt(role,2)
                 lastrole = role
+            addtxt(str(cl.shortlabel),3)
 
-            grid.Add(wx.StaticText(self,-1,str(cl.shortlabel)),(y,2))
             claimdetails = str(cl.claimtype)
             if cl.parameter:
-                claimdetails += " %s" % (cl.parameter)
-            grid.Add(wx.StaticText(self,-1,claimdetails),(y,3))
-            if cl.okay:
-                okay = wx.StaticText(self,-1,"Ok")
-                okay.SetBackgroundColour("green")
-            else:
-                okay = wx.StaticText(self,-1,"Fail")
-                okay.SetBackgroundColour("red")
-            grid.Add(okay,(y,4))
+                claimdetails += " %s  " % (cl.parameter)
+            addtxt(claimdetails,4)
 
             # add view button (if needed)
             n = len(cl.attacks)
+            cl.button = wx.Button(self,-1,"%i %s" % (n,cl.stateName(n)))
+            grid.Add(cl.button,(y,5),(1,1),wx.ALIGN_CENTER_VERTICAL)
+            cl.button.Disable()
             if n > 0:
                 # Aha, something to show
-            
-                blabel = "%i %s" % (n,cl.stateName(n))
-                cl.button = wx.Button(self,-1,blabel)
-                grid.Add(cl.button,(y,5))
-                cl.button.Disable()
                 self.Bind(wx.EVT_BUTTON, self.onViewButton,cl.button)
-            else:
-                blabel = "%i %s" % (n,cl.stateName(n))
-                cl.button = wx.Button(self,-1,blabel)
-                grid.Add(cl.button,(y,5))
-                cl.button.Disable()
-                #cl.button = None
 
             # remark something about completeness
             remark = ""
@@ -271,8 +234,7 @@ class ResultWindow(wx.Frame):
                 else:
                     # there exist n states/attacks (within any number of runs)
                     remark = "exactly"
-
-            grid.Add(wx.StaticText(self,-1," (%s)" % remark),(y,6))
+            addtxt(" (%s)" % remark,6)
                 
         sizer.Add(grid, 0,wx.ALIGN_CENTRE|wx.ALL,5)
 
@@ -285,8 +247,10 @@ class ResultWindow(wx.Frame):
 
         # sizer.Add(btn, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.ALIGN_RIGHT, 5)
 
+
         self.SetSizer(sizer)
         sizer.Fit(self)
+
 
     def onViewButton(self,evt):
         btn = evt.GetEventObject()
@@ -296,8 +260,8 @@ class ResultWindow(wx.Frame):
         cl = self.mainwindow.claims[cln]
         w = Attackwindow.AttackWindow(cl)
 
-    def onCloseButton(self,evt):
-        del(self.thread)
+    def onCloseWindow(self,evt):
+        # TODO we should kill self.thread
         self.Destroy()
 
 #---------------------------------------------------------------------------
@@ -305,49 +269,44 @@ class ResultWindow(wx.Frame):
 
 def RunScyther(mainwin,mode):
 
-    global busy
+    # Verification window
 
-    if (busy.acquire(False)):
+    verifywin = VerificationWindow(mainwin,-1,mode)
+    verifywin.CenterOnScreen()
+    verifywin.Show(True)
 
-        # Verification window
+    # start the thread
+    
+    verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
 
-        verifywin = VerificationWindow(mainwin,-1,mode)
-        verifywin.CenterOnScreen()
+    mainwin.verified = False
+    mainwin.settings.mode = mode
+    t =  ScytherThread(mainwin,mainwin.control.GetValue(),"",verifywin)
+    t.start()
 
-        # start the thread
-        
-        verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
+    # start the window and show until something happens
+    # if it terminates, this is a cancel, and should also kill the thread. (what happens to a spawned Scyther in that case?)
+    # if the thread terminames, it should close the window normally, and we end up here as well.
 
-        mainwin.verified = False
-        mainwin.settings.mode = mode
-        t =  ScytherThread(mainwin,mainwin.control.GetValue(),"",verifywin)
+    val = verifywin.ShowModal()
+    verifywin.Destroy()
+
+    # Cursor back to normal
+    verifywin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+
+    if mainwin.verified:
+        # Great, we verified stuff, progress to the claim report
+        title = "Scyther results : %s" % mode
+        resultwin = ResultWindow(mainwin,-1,title)
+        resultwin.Show(1)
+
+        t = AttackThread(mainwin,resultwin)
         t.start()
 
-        # start the window and show until something happens
-        # if it terminates, this is a cancel, and should also kill the thread. (what happens to a spawned Scyther in that case?)
-        # if the thread terminames, it should close the window normally, and we end up here as well.
+        resultwin.thread = t
+        resultwin.CenterOnScreen()
+        resultwin.Show(True)
 
-        val = verifywin.ShowModal()
-        verifywin.Destroy()
-        # kill thread anyway
-        del(t)
-
-        # Cursor back to normal
-        verifywin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
-
-        if mainwin.verified:
-                # Great, we verified stuff, progress to the claim report
-                title = "Scyther results : %s" % mode
-                resultwin = ResultWindow(mainwin,-1,title)
-        
-                t = AttackThread(mainwin,resultwin)
-                t.start()
-
-                resultwin.thread = t
-                resultwin.CenterOnScreen()
-                resultwin.Show(1)
-
-        busy.release()
 
 
 
