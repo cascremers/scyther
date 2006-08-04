@@ -172,10 +172,10 @@ class ResultWindow(wx.Frame):
 
         lastprot = None
         lastrole = None
-        for i in range(len(claims)-1,-1,-1):
-            cl = claims[i]
+        for index in range(0,len(claims)):
+            cl = claims[len(claims)-index-1]
             # we reverse the display order of the claims!
-            y = len(claims)-i
+            y = index+1
 
             # a support function
             def addtxt(txt,column):
