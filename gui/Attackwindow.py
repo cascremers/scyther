@@ -21,7 +21,7 @@ class AttackDisplay(wx.ScrolledWindow):
 
         wx.ScrolledWindow.__init__(self,parent,id=-1)
         # Wait for the attack to be computed
-        while not attack.pngfile:
+        while not attack.file:
             time.sleep(1)
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -32,7 +32,7 @@ class AttackDisplay(wx.ScrolledWindow):
         self.hbox.Add(self.box,1,wx.ALIGN_CENTER)
         self.SetSizer(self.hbox)
 
-        filename = attack.pngfile
+        filename = attack.file
         self.original = wx.Image(filename,wx.BITMAP_TYPE_PNG)
 
 

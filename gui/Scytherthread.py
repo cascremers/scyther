@@ -100,7 +100,8 @@ class AttackThread(threading.Thread):
         pw.write(attack.scytherDot)
         pw.close()
         pr.close()
-        attack.pngfile = fpname2  # this is where the file name is stored
+        attack.file = fpname2  # this is where the file name is stored
+        attack.filetype = "png"
 
 #---------------------------------------------------------------------------
 
@@ -135,6 +136,14 @@ class VerificationWindow(wx.Dialog):
 
 class ResultWindow(wx.Frame):
 
+    """
+    Displays the claims status and contains buttons to show the actual
+    attack graphs
+
+    TODO: this really should have a statusbar, and maybe a second tab
+    for any error output.
+    """
+
     def __init__(
             self, parent, parentwindow, title, pos=wx.DefaultPosition, size=wx.DefaultSize, 
             style=wx.DEFAULT_DIALOG_STYLE
@@ -156,14 +165,9 @@ class ResultWindow(wx.Frame):
         w.Show(True)
 
     def onCloseWindow(self,evt):
-        # TODO we should kill self.thread
+        """ TODO we should kill self.thread """
 
         # Clean up
-        for cl in self.parent.claims:
-            for attack in cl.attacks:
-                if attack.pngfile:
-                    os.unlink(attack.pngfile)
-                    attack.pngfile = None
         self.parent.claims = None
 
         self.Destroy()
