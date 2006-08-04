@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="64px"
+   height="64px"
+   id="svg1307"
+   sodipodi:version="0.32"
+   inkscape:version="0.43"
+   sodipodi:docbase="/home/cas/svn/scyther/gui/images"
+   sodipodi:docname="verify-button.svg"
+   inkscape:export-filename="/home/cas/svn/scyther/gui/images/verify-button.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs1309">
+    <linearGradient
+       id="linearGradient4899">
+      <stop
+         id="stop4901"
+         offset="0"
+         style="stop-color:#0046f2;stop-opacity:1;" />
+      <stop
+         style="stop-color:#020000;stop-opacity:0.87628865;"
+         offset="0.184128"
+         id="stop4909" />
+      <stop
+         id="stop4911"
+         offset="0.4384"
+         style="stop-color:#000000;stop-opacity:0.17525773;" />
+      <stop
+         id="stop4905"
+         offset="1"
+         style="stop-color:#000000;stop-opacity:0;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3097">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop3099" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="0.34"
+         id="stop9319" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0.01030928;"
+         offset="1"
+         id="stop3101" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3087">
+      <stop
+         style="stop-color:#7aa9d1;stop-opacity:1;"
+         offset="0"
+         id="stop3089" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="1"
+         id="stop3091" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3087"
+       id="linearGradient3093"
+       x1="1.9183818"
+       y1="32.478516"
+       x2="61.899799"
+       y2="32.478516"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3097"
+       id="linearGradient4891"
+       x1="30.326704"
+       y1="17.40625"
+       x2="30.213068"
+       y2="47.625"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4899"
+       id="linearGradient4907"
+       gradientUnits="userSpaceOnUse"
+       x1="30.463837"
+       y1="50.009491"
+       x2="30.463837"
+       y2="14.947165" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="12.296875"
+     inkscape:cx="32"
+     inkscape:cy="32"
+     inkscape:current-layer="layer2"
+     showgrid="true"
+     inkscape:document-units="px"
+     inkscape:grid-bbox="true"
+     showguides="false"
+     inkscape:guide-bbox="true"
+     inkscape:window-width="1280"
+     inkscape:window-height="953"
+     inkscape:window-x="0"
+     inkscape:window-y="0">
+    <sodipodi:guide
+       orientation="horizontal"
+       position="52.545455"
+       id="guide1319" />
+    <sodipodi:guide
+       orientation="horizontal"
+       position="9.4545455"
+       id="guide1321" />
+    <sodipodi:guide
+       orientation="vertical"
+       position="2.5454545"
+       id="guide1323" />
+    <sodipodi:guide
+       orientation="vertical"
+       position="61.636364"
+       id="guide1325" />
+    <sodipodi:guide
+       orientation="vertical"
+       position="12.909091"
+       id="guide1327" />
+    <sodipodi:guide
+       orientation="vertical"
+       position="50.181818"
+       id="guide1329" />
+    <sodipodi:guide
+       orientation="horizontal"
+       position="31.090909"
+       id="guide1331" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata1312">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     inkscape:label="button shadow"
+     inkscape:groupmode="layer"
+     style="display:inline"
+     sodipodi:insensitive="true">
+    <path
+       style="opacity:0.30303034;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.09100008;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53977272;display:inline"
+       d="M 2.3636368,32.334335 L 12.909092,15.46489 L 50.181818,15.3928 L 61.454546,32.766884 L 50.363636,57.492142 L 12.727273,57.564235 L 2.3636368,32.334335 z "
+       id="path4897"
+       sodipodi:nodetypes="ccccccc" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="button"
+     style="display:inline">
+    <path
+       style="fill:url(#linearGradient3093);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.89050996px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 2.3636368,32.334335 L 12.909092,15.46489 L 50.181818,15.3928 L 61.454546,32.766884 L 50.363636,49.492142 L 12.727273,49.564235 L 2.3636368,32.334335 z "
+       id="path1317"
+       sodipodi:nodetypes="ccccccc" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer5"
+     inkscape:label="button darkfade"
+     sodipodi:insensitive="true">
+    <path
+       style="opacity:0.66161613;fill:url(#linearGradient4907);fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.89050996px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;display:inline"
+       d="M 2.3636368,32.334335 L 12.909092,15.46489 L 50.181818,15.3928 L 61.454546,32.766884 L 50.363636,49.492142 L 12.727273,49.564235 L 2.3636368,32.334335 z "
+       id="path5804"
+       sodipodi:nodetypes="ccccccc" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer4"
+     inkscape:label="light"
+     style="display:inline"
+     sodipodi:insensitive="true">
+    <path
+       sodipodi:type="inkscape:offset"
+       inkscape:radius="0"
+       inkscape:original="M 48.0625 17.40625 L 15.09375 17.46875 L 5.78125 32.375 L 14.9375 47.625 L 48.21875 47.5625 L 58.03125 32.75 L 48.0625 17.40625 z "
+       xlink:href="#path2210"
+       style="fill:url(#linearGradient4891);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.89050996px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;display:inline"
+       id="path2212"
+       d="M 48.0625,17.40625 L 15.09375,17.46875 L 5.78125,32.375 L 14.9375,47.625 L 48.21875,47.5625 L 58.03125,32.75 L 48.0625,17.40625 z "
+       inkscape:href="#path2210" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="text"
+     style="display:inline"
+     sodipodi:insensitive="true">
+    <text
+       xml:space="preserve"
+       style="font-size:13px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;opacity:0.35353537;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Monospace"
+       x="31.191406"
+       y="38.815918"
+       id="text4893"
+       sodipodi:linespacing="100%"><tspan
+         sodipodi:role="line"
+         id="tspan4895"
+         x="31.191406"
+         y="38.815918">CLAIM</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:13px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Monospace"
+       x="31.191406"
+       y="36.815918"
+       id="text1333"
+       sodipodi:linespacing="100%"><tspan
+         sodipodi:role="line"
+         id="tspan1335"
+         x="31.191406"
+         y="36.815918">CLAIM</tspan></text>
+  </g>
+</svg>

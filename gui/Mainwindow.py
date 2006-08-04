@@ -102,24 +102,26 @@ class MainWindow(wx.Frame):
 
         #print "Default toolbar tool size: %s\n" % tb.GetToolBitmapSize()
 
-        tsize = (32,32)
+        tsize = (64,64)
 
-        bmp = wx.ArtProvider_GetBitmap(wx.ART_EXECUTABLE_FILE,wx.ART_TOOLBAR,tsize)
-        if not bmp.Ok():
-            bmp = wx.EmptyBitmap(tsize)
+        bmpverify = wx.Bitmap("images/verify-button.png",wx.BITMAP_TYPE_PNG)
+        bmpcharacterize = wx.Bitmap("images/characterize-button.png",wx.BITMAP_TYPE_PNG)
+        #bmp = wx.ArtProvider_GetBitmap(wx.ART_EXECUTABLE_FILE,wx.ART_TOOLBAR,tsize)
+        #if not bmp.Ok():
+        #    bmp = wx.EmptyBitmap(tsize)
 
         # add the actual tools
-        tb.AddSimpleTool(ID_VERIFY, bmp,"Verify","Verify claims")
+        tb.AddSimpleTool(ID_VERIFY, bmpverify,"Verify","Verify claims")
         self.Bind(wx.EVT_TOOL, self.OnVerify, id=ID_VERIFY)
-        tb.AddSimpleTool(ID_STATESPACE, bmp,"Statespace","Generate statespace for all roles")
+        tb.AddSimpleTool(ID_STATESPACE, bmpcharacterize,"Statespace","Generate statespace for all roles")
         self.Bind(wx.EVT_TOOL, self.OnStatespace, id=ID_STATESPACE)
 
-        tb.AddSeparator()
+        # tb.AddSeparator()
 
-        tb.AddSimpleTool(ID_CHECK, bmp,"Check","Check protocol")
-        self.Bind(wx.EVT_TOOL, self.OnCheck, id=ID_CHECK)
-        tb.AddSimpleTool(ID_AUTOVERIFY, bmp,"Default claims","Verify default claims")
-        self.Bind(wx.EVT_TOOL, self.OnAutoVerify, id=ID_AUTOVERIFY)
+        # tb.AddSimpleTool(ID_CHECK, bmp,"Check","Check protocol")
+        # self.Bind(wx.EVT_TOOL, self.OnCheck, id=ID_CHECK)
+        # tb.AddSimpleTool(ID_AUTOVERIFY, bmp,"Default claims","Verify default claims")
+        # self.Bind(wx.EVT_TOOL, self.OnAutoVerify, id=ID_AUTOVERIFY)
 
         tb.Realize()
 
