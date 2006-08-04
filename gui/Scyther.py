@@ -26,9 +26,9 @@ class Scyther(object):
         if sys.platform.startswith('win'):
             """ Windows """
             # TODO hardcoded for now, bad
-            scyther.program = "c:\\Scyther.exe"
-            if not os.path.isfile(scyther.program):
-                print "I can't find the Scyther executable %s" % (scyther.program)
+            self.program = "c:\\Scyther.exe"
+            if not os.path.isfile(self.program):
+                print "I can't find the Scyther executable at %s" % (self.program)
         else:
             """ Non-windows """
             self.program = "scyther"

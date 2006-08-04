@@ -83,7 +83,7 @@ class AttackDisplay(wx.ScrolledWindow):
             if not bmp.Ok():
                 bmp = wx.EmptyBitmap((1,1))
             else:
-                (H,W) = (bmp.GetWidth(), bmp.GetHeight())
+                (W,H) = (bmp.GetWidth(), bmp.GetHeight())
                 if self.win.fit:
                     (H,W) = makefit(H,W)
                     bmp = self.original.Scale(W,H)
