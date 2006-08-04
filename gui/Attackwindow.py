@@ -90,9 +90,8 @@ class AttackDisplay(wx.ScrolledWindow):
             self.Image.SetBitmap(wx.BitmapFromImage(bmp))
         elif self.attack.filetype == "ps":
             pil = self.original.copy()
-            (H,W) = (sh,sw)
-            # (H,W) = pil.size
-            # (H,W) = makefit(H,W)
+            (H,W) = pil.size
+            (H,W) = makefit(H,W)
             # we really only want antialias when it's smaller
             pil.thumbnail((H,W),Image.ANTIALIAS)
 
