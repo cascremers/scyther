@@ -48,7 +48,7 @@ class ScytherThread(threading.Thread):
 
         # Shoot down the verification window and let the RunScyther function handle the rest
         self.mainwin.verified = True
-        self.verifywin.Destroy()
+        self.verifywin.Close()
 
     def claimResults(self):
         """ Convert spdl to result (using Scyther)
@@ -138,7 +138,7 @@ class ResultWindow(wx.Frame):
 
     def __init__(
             self, mainwindow, ID, title, pos=wx.DefaultPosition, size=wx.DefaultSize, 
-            style=wx.DEFAULT_FRAME_STYLE
+            style=wx.DEFAULT_DIALOG_STYLE
             ):
 
         self.mainwindow = mainwindow
