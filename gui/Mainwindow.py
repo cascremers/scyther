@@ -221,7 +221,7 @@ class MainWindow(wx.Frame):
             os.chdir(self.dirname)
 
     def RunScyther(self, mode):
-        Scytherthread.RunScyther(self,mode)
+        s = Scytherthread.ScytherRun(self,mode)
 
     def OnVerify(self, event):
         self.RunScyther("verify")
@@ -288,7 +288,7 @@ class SettingsWindow(wx.Panel):
     def EvtMisc(self,evt):
         self.misc = evt.GetString()
 
-    def ScytherArguments(self):
+    def ScytherArguments(self,mode):
         """ Note: constructed strings should have a space at the end to
             correctly separate the options.
         """
@@ -301,11 +301,11 @@ class SettingsWindow(wx.Panel):
         tstr += "--match=%s " % (str(self.match))
 
         # Verification type
-        if self.mode == "check":
+        if mode == "check":
             tstr += "--check "
-        if self.mode == "autoverify":
+        elif mode == "autoverify":
             tstr += "--auto-claims "
-        elif self.mode == "statespace":
+        elif mode == "statespace":
             tstr += "--state-space "
 
         # Anything else?

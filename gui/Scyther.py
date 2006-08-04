@@ -21,7 +21,18 @@ from Misc import *
 
 class Scyther(object):
     def __init__ ( self):
-        self.program = "scyther"
+
+        # Where is my executable?
+        if sys.platform.startswith('win'):
+            """ Windows """
+            # TODO hardcoded for now, bad
+            scyther.program = "c:\\Scyther.exe"
+            if not os.path.isfile(scyther.program):
+                print "I can't find the Scyther executable %s" % (scyther.program)
+        else:
+            """ Non-windows """
+            self.program = "scyther"
+
         self.options = ""
         self.spdl = None
         self.inputfile = None

@@ -28,16 +28,17 @@ import Attackwindow
 #---------------------------------------------------------------------------
 
 class ScytherThread(threading.Thread):
+
+    """ The reason this is a thread is because we might to decide to
+    abort it. However, apparently Python has no good support for killing
+    threads yet :( """
+
     # Override Thread's __init__ method to accept the parameters needed:
-    def __init__ ( self, mainwin, spdl, details, verifywin ):
+    def __init__ ( self, parent ):
 
-        self.mainwin = mainwin
-        self.verifywin = verifywin
-        self.spdl = spdl
-        self.details = details
-        self.verified = False
-
-        self.claims = []
+        self.parent = parent
+        parent.verified = False
+        parent.claims = []
 
         threading.Thread.__init__ ( self )
 
@@ -48,35 +49,32 @@ class ScytherThread(threading.Thread):
         # Results are done (claimstatus can be reported)
 
         # Shoot down the verification window and let the RunScyther function handle the rest
-        self.verified = True
-        self.verifywin.Close()
+        self.parent.verified = True
+        self.parent.verifywin.Close()
 
     def claimResults(self):
         """ Convert spdl to result (using Scyther)
-
-        The list of claim goes back to self.mainwin.claims, which is a
-        property of the main window
         """
 
         scyther = Scyther.Scyther()
         
-        scyther.options = self.mainwin.settings.ScytherArguments()
-        if sys.platform.startswith('win'):
-            """ Windows """
-            scyther.program = "c:\\Scyther.exe"
-            if not os.path.isfile(scyther.program):
-                print "I can't find the Scyther executable %s" % (scyther.program)
+        scyther.options = self.parent.options
 
-        scyther.setInput(self.spdl)
-        self.mainwin.claims = scyther.verify()
-        self.summary = str(scyther)
+        scyther.setInput(self.parent.spdl)
+        self.parent.claims = scyther.verify()
+        self.parent.summary = str(scyther)
 
+#---------------------------------------------------------------------------
 
 class AttackThread(threading.Thread):
-    # Override Thread's __init__ method to accept the parameters needed:
-    def __init__ ( self, mainwin, resultwin ):
 
-        self.mainwin = mainwin
+    """ This is a thread because it computes images from stuff in the
+    background """
+
+    # Override Thread's __init__ method to accept the parameters needed:
+    def __init__ ( self, parent, resultwin ):
+
+        self.parent = parent
         self.resultwin = resultwin
 
         threading.Thread.__init__ ( self )
@@ -88,7 +86,7 @@ class AttackThread(threading.Thread):
 
     def makeImages(self):
         """ create images """
-        for cl in self.mainwin.claims:
+        for cl in self.parent.claims:
             for attack in cl.attacks:
                 self.makeImage(attack)
             if cl.button and len(cl.attacks) > 0:
@@ -138,13 +136,13 @@ class VerificationWindow(wx.Dialog):
 class ResultWindow(wx.Frame):
 
     def __init__(
-            self, mainwindow, ID, title, pos=wx.DefaultPosition, size=wx.DefaultSize, 
+            self, parent, parentwindow, title, pos=wx.DefaultPosition, size=wx.DefaultSize, 
             style=wx.DEFAULT_DIALOG_STYLE
             ):
 
-        self.mainwindow = mainwindow
+        self.parent = parent
         
-        wx.Frame.__init__(self,mainwindow,ID,title,pos,size,style)
+        wx.Frame.__init__(self,parentwindow,-1,title,pos,size,style)
 
         self.thread = None
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
@@ -155,14 +153,21 @@ class ResultWindow(wx.Frame):
     def onViewButton(self,evt):
         btn = evt.GetEventObject()
         (y,x) = self.grid.GetItemPosition(btn)
-        n = len(self.mainwindow.claims)
+        n = len(self.parent.claims)
         cln = n-y
-        cl = self.mainwindow.claims[cln]
+        cl = self.parent.claims[cln]
         w = Attackwindow.AttackWindow(cl)
 
     def onCloseWindow(self,evt):
         # TODO we should kill self.thread
-        self.mainwindow.claims = None
+
+        # Clean up
+        for cl in self.parent.claims:
+            if cl.pngfile:
+                os.unlink(cl.pngfile)
+                cl.pngfile = None
+        self.parent.claims = None
+
         self.Destroy()
 
 
@@ -172,7 +177,7 @@ class ResultWindow(wx.Frame):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # For these claims...
-        claims = self.mainwindow.claims
+        claims = self.parent.claims
 
         # set up grid
         self.grid = grid = wx.GridBagSizer(7,1+len(claims))
@@ -272,44 +277,51 @@ class ResultWindow(wx.Frame):
 #---------------------------------------------------------------------------
 
 
-def RunScyther(mainwin,mode):
+class ScytherRun(object):
+    def __init__(self,mainwin,mode):
 
-    # Verification window
+        self.mainwin = mainwin
+        self.mode = mode
+        self.spdl = mainwin.control.GetValue()
 
-    verifywin = VerificationWindow(mainwin,-1,mode)
-    verifywin.CenterOnScreen()
-    verifywin.Show(True)
+        # Verification window
 
-    # start the thread
-    
-    verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
+        self.verifywin = verifywin = VerificationWindow(mainwin,-1,mode)
+        verifywin.CenterOnScreen()
+        verifywin.Show(True)
 
-    mainwin.settings.mode = mode
-    t =  ScytherThread(mainwin,mainwin.control.GetValue(),"",verifywin)
-    t.start()
+        # start the thread
+        
+        self.options = mainwin.settings.ScytherArguments(mode)
+        self.verified = False
+        verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
 
-    # start the window and show until something happens
-    # if it terminates, this is a cancel, and should also kill the thread. (what happens to a spawned Scyther in that case?)
-    # if the thread terminames, it should close the window normally, and we end up here as well.
-
-    val = verifywin.ShowModal()
-
-    # Cursor back to normal
-    verifywin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
-
-    if t.verified:
-        # Great, we verified stuff, progress to the claim report
-        title = "Scyther results : %s" % mode
-        resultwin = ResultWindow(mainwin,-1,title)
-        resultwin.Show(1)
-
-        t = AttackThread(mainwin,resultwin)
+        t = ScytherThread(self)
         t.start()
 
-        resultwin.thread = t
-        resultwin.CenterOnScreen()
-        resultwin.Show(True)
+        # start the window and show until something happens
+        # if it terminates, this is a cancel, and should also kill the thread. (what happens to a spawned Scyther in that case?)
+        # if the thread terminames, it should close the window normally, and we end up here as well.
 
+        val = verifywin.ShowModal()
+
+        # Cursor back to normal
+        verifywin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+
+        if self.verified:
+            # Great, we verified stuff, progress to the claim report
+            title = "Scyther results : %s" % mode
+            self.resultwin = resultwin = ResultWindow(self,mainwin,title)
+            resultwin.Show(1)
+
+            t = AttackThread(self,resultwin)
+            t.start()
+
+            resultwin.thread = t
+            resultwin.CenterOnScreen()
+            resultwin.Show(True)
+
+#---------------------------------------------------------------------------
 
 
 
