@@ -5,6 +5,12 @@
 """ Import externals """
 import wx
 import time
+# Python Imaging library?
+usePIL = True
+try:
+    import Image
+except ImportError:
+    usePIL = False 
 
 #---------------------------------------------------------------------------
 
@@ -33,7 +39,15 @@ class AttackDisplay(wx.ScrolledWindow):
         self.SetSizer(self.hbox)
 
         filename = attack.file
-        self.original = wx.Image(filename,wx.BITMAP_TYPE_PNG)
+        if attack.filetype == "png":
+            self.original = wx.Image(filename,wx.BITMAP_TYPE_PNG)
+        elif attack.filetype == "ps":
+            # depends on PIL lib
+            self.original = Image.open(filename)
+        else:
+            print "Unknown file type %s." % (self.filetype)
+
+
 
 
         self.update()
@@ -47,16 +61,11 @@ class AttackDisplay(wx.ScrolledWindow):
     def update(self):
 
         self.SetScrollbars(0,0,0,0,0,0)
+        (sh,sw) = self.win.GetClientSizeTuple()
+        (W,H) = (sw,sh)
 
-        bmp = self.original
-        if not bmp.Ok():
-            bmp = wx.EmptyBitmap((1,1))
-        else:
+        def makefit(H,W):
             if self.win.fit:
-                W = bmp.GetWidth()
-                H = bmp.GetHeight()
-                (sw,sh) = self.win.GetClientSizeTuple()
-
                 if W > sw:
                     # correct width
                     factor = float(sw) / W
@@ -67,18 +76,40 @@ class AttackDisplay(wx.ScrolledWindow):
                     factor = float(sh) / H
                     H = sh
                     W = W * factor
+            return (int(H),int(W))
+
+        if self.attack.filetype == "png":
+            bmp = self.original
+            if not bmp.Ok():
+                bmp = wx.EmptyBitmap((1,1))
+            else:
+                (H,W) = (bmp.GetWidth(), bmp.GetHeight())
+                if self.win.fit:
+                    (H,W) = makefit(H,W)
+                    bmp = self.original.Scale(W,H)
+            self.Image.SetBitmap(wx.BitmapFromImage(bmp))
+        elif self.attack.filetype == "ps":
+            pil = self.original.copy()
+            (H,W) = (sh,sw)
+            # (H,W) = pil.size
+            # (H,W) = makefit(H,W)
+            # we really only want antialias when it's smaller
+            pil.thumbnail((H,W),Image.ANTIALIAS)
+
+            image = wx.EmptyImage(pil.size[0],pil.size[1])
+            image.SetData(pil.convert('RGB').tostring())
+            self.Image.SetBitmap(image.ConvertToBitmap())
+        else:
+            print "Unknown file type %s." % (self.attack.filetype)
 
 
-                bmp = self.original.Scale(W,H)
-
-        self.Image.SetBitmap(wx.BitmapFromImage(bmp))
         #self.box.SetItemMinSize(self.Image.GetContainingSizer())
         self.box.Layout()
 
         # wx.StaticBitmap(self, -1, bmp, (0, 0), (bmp.GetWidth(), bmp.GetHeight()))
         step = 20
-        xn = int(bmp.GetWidth() / step) + 1
-        yn = int(bmp.GetHeight() / step) + 1
+        xn = int(W / step) + 1
+        yn = int(H / step) + 1
         self.SetScrollbars(step,step,xn,yn,0,0)
 
         self.Refresh()

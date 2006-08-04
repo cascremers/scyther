@@ -4,12 +4,18 @@
 
 """ Import externals """
 import wx
-import wx.lib.newevent
 import os
 import sys
 import re
 import threading
 import StringIO
+
+# Python Imaging library?
+usePIL = True
+try:
+    import Image
+except ImportError:
+    usePIL = False 
 
 #---------------------------------------------------------------------------
 
@@ -94,14 +100,25 @@ class AttackThread(threading.Thread):
 
     def makeImage(self,attack):
         """ create image for this particular attack """
+        global usePIL
 
-        (fd2,fpname2) = Tempfile.tempcleaned(".png")
-        pw,pr = os.popen2("dot -Tpng -o%s" % (fpname2))
+        if usePIL:
+            # If we have the PIL library, we can do postscript! great
+            # stuff.
+            type = "ps"
+            ext = ".ps"
+        else:
+            # Ye olde pnge file
+            type = "png"
+            ext = ".png"
+
+        (fd2,fpname2) = Tempfile.tempcleaned(ext)
+        pw,pr = os.popen2("dot -T%s -o%s" % (type,fpname2))
         pw.write(attack.scytherDot)
         pw.close()
         pr.close()
         attack.file = fpname2  # this is where the file name is stored
-        attack.filetype = "png"
+        attack.filetype = type
 
 #---------------------------------------------------------------------------
 
