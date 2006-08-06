@@ -37,6 +37,7 @@ class Scyther(object):
         self.spdl = None
         self.inputfile = None
         self.claims = None
+        self.errors = None
 
     def setInput(self,spdl):
         self.spdl = spdl
@@ -55,20 +56,25 @@ class Scyther(object):
         # Run Scyther on temp file
         self.cmd = "%s --dot-output --xml-output --plain %s" % (self.program,self.options)
 
-        # If we are on windows, we don't get stderr. Maybe we need a
-        # switch to enforce this.
-        if sys.platform.startswith('linux'):
-            cmdline = "%s 2>/dev/null" % (self.cmd)
-        else:
-            # Non-linux does not generate stderr anyway
-            cmdline = "%s" % (self.cmd)
-
-        pw,pr = os.popen2(cmdline)
+        (stdin,stdout,stderr) = os.popen3(self.cmd)
         if self.spdl:
-            pw.write(self.spdl)
-        pw.close()
-        xmlinput = pr.read()
-        pr.close()
+            stdin.write(self.spdl)
+        stdin.close()
+
+        # In the order below, or stuff breaks (hangs), as described at
+        # http://mail.python.org/pipermail/python-dev/2000-September/009460.html
+        #
+        # TODO this is annoying: we would like to determine progress
+        # from the error output (maybe this can also be done by flushing
+        # the XML at certain points...)
+        xmlinput = stdout.read()
+        self.errors = stderr.readlines()
+        
+        # close
+        stdout.close()
+        stderr.close()
+
+        print self.errors
 
         xmlfile = StringIO.StringIO(xmlinput)
         reader = XMLReader.XMLReader()
