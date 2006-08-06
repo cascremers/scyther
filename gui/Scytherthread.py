@@ -28,6 +28,7 @@ import Claim
 import Preference
 import Scyther
 import Attackwindow
+import Icon
 
 #---------------------------------------------------------------------------
 
@@ -179,15 +180,15 @@ class ResultWindow(wx.Frame):
             style=wx.DEFAULT_DIALOG_STYLE
             ):
 
-        self.parent = parent
-        
         wx.Frame.__init__(self,parentwindow,-1,title,pos,size,style)
+        Icon.ScytherIcon(self)
 
+        self.parent = parent
         self.thread = None
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
 
+        self.CreateStatusBar()
         self.BuildTable()
-
 
     def onViewButton(self,evt):
         btn = evt.GetEventObject()

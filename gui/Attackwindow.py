@@ -47,9 +47,6 @@ class AttackDisplay(wx.ScrolledWindow):
         else:
             print "Unknown file type %s." % (self.filetype)
 
-
-
-
         self.update()
 
         # TODO self.Bind(wxSizeEvent
@@ -157,7 +154,6 @@ class AttackWindow(wx.Frame):
     def CreateExteriorWindowComponents(self):
         ''' Create "exterior" window components, such as menu and status
         bars '''
-        self.CreateStatusBar()
         self.SetupToolBar()
 
     def SetupToolBar(self):

@@ -88,7 +88,6 @@ class MainWindow(wx.Frame):
         ''' Create "exterior" window components, such as menu and status
             bar. '''
         self.CreateMenus()
-        self.CreateStatusBar()
         self.SetupToolBar()
         self.SetTitle()
 
@@ -102,13 +101,16 @@ class MainWindow(wx.Frame):
 
         #print "Default toolbar tool size: %s\n" % tb.GetToolBitmapSize()
 
-        tsize = (64,64)
 
-        bmpverify = wx.Bitmap("images/verify-button.png",wx.BITMAP_TYPE_PNG)
-        bmpcharacterize = wx.Bitmap("images/characterize-button.png",wx.BITMAP_TYPE_PNG)
-        #bmp = wx.ArtProvider_GetBitmap(wx.ART_EXECUTABLE_FILE,wx.ART_TOOLBAR,tsize)
-        #if not bmp.Ok():
-        #    bmp = wx.EmptyBitmap(tsize)
+        def getBmp(name):
+            bmp = wx.Bitmap(os.path.join("images","%s.png" % name),wx.BITMAP_TYPE_PNG)
+            if not bmp.Ok():
+                tsize = (32,32)
+                bmp = wx.EmptyBitmap(tsize)
+            return bmp
+
+        bmpverify = getBmp("verify-button")
+        bmpcharacterize = getBmp("characterize-button")
 
         # add the actual tools
         tb.AddSimpleTool(ID_VERIFY, bmpverify,"Verify","Verify claims")
