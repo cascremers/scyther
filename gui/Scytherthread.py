@@ -112,13 +112,26 @@ class AttackThread(threading.Thread):
             type = "png"
             ext = ".png"
 
+        # command to write to temporary file
         (fd2,fpname2) = Tempfile.tempcleaned(ext)
-        pw,pr = os.popen2("dot -T%s -o%s" % (type,fpname2))
-        pw.write(attack.scytherDot)
-        pw.close()
-        pr.close()
-        attack.file = fpname2  # this is where the file name is stored
+        f = os.fdopen(fd2,'w')
+        cmd = "dot -T%s" % (type)
+
+        # execute command
+        cin,cout = os.popen2(cmd)
+        cin.write(attack.scytherDot)
+        cin.close()
+
+        for l in cout.read():
+            f.write(l)
+
+        cout.close()
+        f.flush()
+        f.close()
+
+        # if this is done, store and report
         attack.filetype = type
+        attack.file = fpname2  # this is where the file name is stored
 
 #---------------------------------------------------------------------------
 
