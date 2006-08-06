@@ -1,6 +1,9 @@
 #ifndef ERROR
 #define ERROR
 
+//! usestderr is defined iff we use it
+#define USESTDERR
+
 //! Types of exit codes
 enum exittypes
 { EXIT_NOATTACK = 0, EXIT_ERROR = 1, EXIT_NOCLAIM = 2, EXIT_ATTACK = 3 };

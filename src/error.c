@@ -14,10 +14,10 @@ error_die (void)
 void
 vprintfstderr (char *fmt, va_list args)
 {
-#ifdef linux
+#ifdef USESTDERR
   vfprintf (stderr, fmt, args);
 #else
-  // nothing for non-linux yet
+  // no alternative yet
 #endif
 }
 

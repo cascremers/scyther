@@ -318,10 +318,10 @@ getOutputStream (void)
   if (globalError == 0)
     return (FILE *) globalStream;
   else
-#ifdef linux
+#ifdef USESTDERR
     return stderr;
 #else
-    // For non-linux, we simply omit it
+    // we simply omit it
     return NULL;
 #endif
 }
