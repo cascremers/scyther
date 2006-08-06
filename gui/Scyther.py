@@ -38,6 +38,7 @@ class Scyther(object):
         self.inputfile = None
         self.claims = None
         self.errors = None
+        self.errorcount = 0
 
     def setInput(self,spdl):
         self.spdl = spdl
@@ -69,13 +70,18 @@ class Scyther(object):
         # the XML at certain points...)
         xmlinput = stdout.read()
         self.errors = stderr.readlines()
+
+        # filter out any non-errors (say maybe only claim etc) and count
+        # them.
+        # TODO for now this simply counts the lines
+        self.errorcount = len(self.errors)
         
         # close
         stdout.close()
         stderr.close()
 
         # Report any errors (if there are some)
-        if len(self.errors) > 0:
+        if self.errorcount > 0:
             print self.errors
 
         if len(xmlinput) > 0:
