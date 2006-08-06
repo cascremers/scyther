@@ -226,7 +226,7 @@ class ResultWindow(wx.Frame):
             sn = claims[0].stateName(2)
             resulttxt = sn[0].upper() + sn[1:]
         else:
-            resultxt = "Results"
+            resulttxt = "Results"
         titlebar(5,resulttxt,2)
 
         self.lastprot = None

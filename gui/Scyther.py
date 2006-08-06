@@ -74,11 +74,17 @@ class Scyther(object):
         stdout.close()
         stderr.close()
 
-        print self.errors
+        # Report any errors (if there are some)
+        if len(self.errors) > 0:
+            print self.errors
 
-        xmlfile = StringIO.StringIO(xmlinput)
-        reader = XMLReader.XMLReader()
-        self.claims = reader.readXML(xmlfile)
+        if len(xmlinput) > 0:
+            xmlfile = StringIO.StringIO(xmlinput)
+            reader = XMLReader.XMLReader()
+            self.claims = reader.readXML(xmlfile)
+        else:
+            # no output...
+            self.claims = []
 
         return self.claims
 
