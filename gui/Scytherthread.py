@@ -275,8 +275,8 @@ class ResultWindow(wx.Frame):
 
         claimdetails = str(cl.claimtype)
         if cl.parameter:
-            claimdetails += " %s  " % (cl.parameter)
-        addtxt(claimdetails,4)
+            claimdetails += " %s" % (cl.parameter)
+        addtxt(claimdetails + "  ",4)
 
         # add view button (if needed)
         n = len(cl.attacks)
@@ -345,7 +345,7 @@ class ScytherRun(object):
             # Great, we verified stuff, progress to the claim report
             title = "Scyther results : %s" % mode
             self.resultwin = resultwin = ResultWindow(self,mainwin,title)
-            resultwin.Show(1)
+            resultwin.Show(True)
 
             t = AttackThread(self,resultwin)
             t.start()
