@@ -5,7 +5,7 @@
 """ Import externals """
 import wx
 import sys
-from optparse import OptionParser
+from optparse import OptionParser, SUPPRESS_HELP
 
 #---------------------------------------------------------------------------
 
@@ -17,17 +17,23 @@ import Misc
 #---------------------------------------------------------------------------
 
 def parseArgs():
-    usage = "usage: %s [optional initial settings]" % sys.argv[0]
-    parser = OptionParser(usage=usage)
+    usage = "usage: %s [options] [inputfile]" % sys.argv[0]
+    description = "scyther-gui is a graphical user interface for the scyther protocol verification tool."
+    parser = OptionParser(usage=usage,description=description)
 
     # command
-    parser.add_option("-V","--verify",dest="command",default=None,action="store_const",const="verify")
-    parser.add_option("-s","--state-space",dest="command",default=None,action="store_const",const="statespace")
-    parser.add_option("-a","--auto-claims",dest="command",default=None,action="store_const",const="autoverify")
-    parser.add_option("-c","--check",dest="command",default=None,action="store_const",const="check")
+    parser.add_option("-V","--verify",dest="command",default=None,action="store_const",const="verify",
+            help="Immediately verify the claims of the protocol (requires input file)")
+    parser.add_option("-s","--state-space",dest="command",default=None,action="store_const",const="statespace",
+            help="Immediately generate the complete characterization of the protocol (requires input file)")
+    parser.add_option("-a","--auto-claims",dest="command",default=None,action="store_const",const="autoverify",
+            help="Immediately verified protocol using default claims (requires input file)")
+    parser.add_option("-c","--check",dest="command",default=None,action="store_const",const="check",
+            help="Immediately check protocol (requires input file)")
 
-    # misc debug etc
-    parser.add_option("","--test",dest="test",default=False,action="store_true")
+    # misc debug etc (not shown in the --help output)
+    parser.add_option("","--test",dest="test",default=False,action="store_true",
+            help=SUPPRESS_HELP)
 
     return parser.parse_args()
 
