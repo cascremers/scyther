@@ -80,10 +80,6 @@ class Scyther(object):
         stdout.close()
         stderr.close()
 
-        # Report any errors (if there are some)
-        if self.errorcount > 0:
-            print self.errors
-
         if len(xmlinput) > 0:
             xmlfile = StringIO.StringIO(xmlinput)
             reader = XMLReader.XMLReader()

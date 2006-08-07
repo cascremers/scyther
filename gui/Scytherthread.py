@@ -63,7 +63,7 @@ class ScytherThread(threading.Thread):
         """ Convert spdl to result (using Scyther)
         """
 
-        scyther = Scyther.Scyther()
+        self.parent.scyther = scyther = Scyther.Scyther()
         
         scyther.options = self.parent.options
 
@@ -158,7 +158,41 @@ class VerificationWindow(wx.Dialog):
         btnsizer.AddButton(btn)
         btnsizer.Realize()
 
-        sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.ALIGN_CENTER, 5)
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+
+#---------------------------------------------------------------------------
+
+class ErrorWindow(wx.Dialog):
+    def __init__(
+            self, parent, ID, title, pos=wx.DefaultPosition, size=wx.DefaultSize, 
+            style=wx.DEFAULT_DIALOG_STYLE,errors=[]
+            ):
+
+        wx.Dialog.__init__(self,parent,ID,title,pos,size,style)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        label = wx.StaticText(self, -1, "Errors")
+        sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+
+        line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
+        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+
+        label = wx.StaticText(self, -1, "".join(errors))
+        sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+
+        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+
+        btnsizer = wx.StdDialogButtonSizer()
+        
+        btn = wx.Button(self, wx.ID_OK)
+        btnsizer.AddButton(btn)
+        btnsizer.Realize()
+
+        sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.ALIGN_CENTER, 5)
 
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -343,17 +377,29 @@ class ScytherRun(object):
         verifywin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
 
         if self.verified:
-            # Great, we verified stuff, progress to the claim report
-            title = "Scyther results : %s" % mode
-            self.resultwin = resultwin = ResultWindow(self,mainwin,title)
-            resultwin.Show(True)
+            # Scyther program is done (the alternative is that it was
+            # cancelled)
+            if self.scyther.errorcount == 0:
+                # Great, we verified stuff, progress to the claim report
+                title = "Scyther results : %s" % mode
+                self.resultwin = resultwin = ResultWindow(self,mainwin,title)
+                resultwin.Show(True)
 
-            t = AttackThread(self,resultwin)
-            t.start()
+                t = AttackThread(self,resultwin)
+                t.start()
 
-            resultwin.thread = t
-            resultwin.CenterOnScreen()
-            resultwin.Show(True)
+                resultwin.thread = t
+                resultwin.CenterOnScreen()
+                resultwin.Show(True)
+            else:
+                # Darn, some errors. report.
+                title = "Scyther errors : %s" % mode
+                errorwin = ErrorWindow(mainwin,-1,title,errors=self.scyther.errors)
+                errorwin.Show(True)
+                errorwin.CenterOnScreen()
+                val = errorwin.ShowModal()
+
+
 
 #---------------------------------------------------------------------------
 
