@@ -15,7 +15,7 @@ import Misc
 
 def ScytherIcon(window):
         """ Set a nice Scyther icon """
-        iconfile = Misc.mypath("scyther-gui-32.ico")
+        iconfile = Misc.mypath(os.path.join("images","scyther-gui-32.ico"))
         if os.path.isfile(iconfile):
             icon = wx.Icon(iconfile,wx.BITMAP_TYPE_ICO)
             window.SetIcon(icon)

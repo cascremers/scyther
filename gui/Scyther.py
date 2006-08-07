@@ -7,6 +7,7 @@
 
 """ Import externals """
 import os
+import os.path
 import sys
 import StringIO
 import tempfile
@@ -26,13 +27,14 @@ class Scyther(object):
         if sys.platform.startswith('win'):
             """ Windows """
             # TODO hardcoded for now, bad
-            self.program = "c:\\Scyther.exe"
+            self.program = os.path.join("bin","Scyther.exe")
             if not os.path.isfile(self.program):
                 print "I can't find the Scyther executable at %s" % (self.program)
         else:
             """ Non-windows """
-            self.program = "scyther"
+            self.program = os.path.join("bin","scyther")
 
+        # defaults
         self.options = ""
         self.spdl = None
         self.inputfile = None
@@ -113,7 +115,7 @@ def basicTest():
     x = Scyther()
 
     if sys.platform.startswith('win'):
-        x.program = "Scyther.exe"
+        x.program = os.path.join("bin","Scyther.exe")
         if not os.path.isfile(x.program):
             print "I can't find the Scyther executable %s" % (x.program)
     pw,pr = os.popen2("%s --help" % x.program)
