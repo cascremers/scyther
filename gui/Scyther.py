@@ -41,6 +41,7 @@ class Scyther(object):
         self.claims = None
         self.errors = None
         self.errorcount = 0
+        self.run = False
 
     def setInput(self,spdl):
         self.spdl = spdl
@@ -77,6 +78,7 @@ class Scyther(object):
         # them.
         # TODO for now this simply counts the lines
         self.errorcount = len(self.errors)
+        print self.errorcount
         
         # close
         stdout.close()
@@ -90,14 +92,18 @@ class Scyther(object):
             # no output...
             self.claims = []
 
+        self.run = True
         return self.claims
 
     def __str__(self):
-        if self.claims:
-            s = ""
-            for cl in self.claims:
-                s += str(cl) + "\n"
-            return s
+        if self.run:
+            if self.errorcount > 0:
+                return "%i errors:\n%s" % (self.errorcount, "".join(self.errors))
+            else:
+                s = "Claim results:\n"
+                for cl in self.claims:
+                    s += str(cl) + "\n"
+                return s
         else:
             return "Scyther has not been run yet."
 
@@ -110,23 +116,9 @@ def basicTest():
     #    print p.read()
     #    print p.close()
     #    confirm("See the dir?")
+    #
+    print "I don't know what to test now."
    
-    # Scyther
-    x = Scyther()
-
-    if sys.platform.startswith('win'):
-        x.program = os.path.join("bin","Scyther.exe")
-        if not os.path.isfile(x.program):
-            print "I can't find the Scyther executable %s" % (x.program)
-    pw,pr = os.popen2("%s --help" % x.program)
-    pw.close()
-    print pr.read()
-    confirm("Do you see the help?")
-
-    x.setFile("ns3.spdl")
-    x.verify()
-    print x
-    confirm("See the output?")
 
 def simpleRun(args):
     x = Scyther()
