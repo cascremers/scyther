@@ -85,6 +85,7 @@ class AttackDisplay(wx.ScrolledWindow):
                     (H,W) = makefit(H,W)
                     bmp = self.original.Scale(H,W)
             self.Image.SetBitmap(wx.BitmapFromImage(bmp))
+
         elif self.attack.filetype == "ps":
             pil = self.original.copy()
             (H,W) = pil.size
