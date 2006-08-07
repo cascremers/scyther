@@ -58,22 +58,25 @@ class AttackDisplay(wx.ScrolledWindow):
     def update(self):
 
         self.SetScrollbars(0,0,0,0,0,0)
-        (sh,sw) = self.win.GetClientSizeTuple()
+        (sw,sh) = self.win.GetClientSizeTuple()
         (W,H) = (sw,sh)
 
-        def makefit(H,W):
+        def makefit(W,H):
             if self.win.fit:
-                if W > sw:
-                    # correct width
-                    factor = float(sw) / W
-                    W = sw
-                    H = H * factor
-                if H > sh:
-                    # correct height
-                    factor = float(sh) / H
-                    H = sh
-                    W = W * factor
-            return (int(H),int(W))
+                # determine scaling factors for fitting
+                wfactor = float(sw) / W
+                hfactor = float(sh) / H
+
+                # select smallest factor (so it will fit)
+                if hfactor < wfactor:
+                    factor = hfactor
+                else:
+                    factor = wfactor
+    
+                # apply scaling factor
+                W = W * factor
+                H = H * factor
+            return (int(W),int(H))
 
         if self.attack.filetype == "png":
             bmp = self.original
@@ -82,16 +85,16 @@ class AttackDisplay(wx.ScrolledWindow):
             else:
                 (W,H) = (bmp.GetWidth(), bmp.GetHeight())
                 if self.win.fit:
-                    (H,W) = makefit(H,W)
-                    bmp = self.original.Scale(H,W)
+                    (W,H) = makefit(W,H)
+                    bmp = self.original.Scale(W,H)
             self.Image.SetBitmap(wx.BitmapFromImage(bmp))
 
         elif self.attack.filetype == "ps":
             pil = self.original.copy()
-            (H,W) = pil.size
-            (H,W) = makefit(H,W)
+            (W,H) = pil.size
+            (W,H) = makefit(W,H)
             # we really only want antialias when it's smaller
-            pil.thumbnail((H,W),Image.ANTIALIAS)
+            pil.thumbnail((W,H),Image.ANTIALIAS)
 
             image = wx.EmptyImage(pil.size[0],pil.size[1])
             image.SetData(pil.convert('RGB').tostring())
