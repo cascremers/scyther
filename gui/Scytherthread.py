@@ -138,11 +138,11 @@ class AttackThread(threading.Thread):
 
 class VerificationWindow(wx.Dialog):
     def __init__(
-            self, parent, ID, title, pos=wx.DefaultPosition, size=wx.DefaultSize, 
+            self, parent, title, pos=wx.DefaultPosition, size=wx.DefaultSize, 
             style=wx.DEFAULT_DIALOG_STYLE
             ):
 
-        wx.Dialog.__init__(self,parent,ID,title,pos,size,style)
+        wx.Dialog.__init__(self,parent,-1,title,pos,size,style)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -167,11 +167,11 @@ class VerificationWindow(wx.Dialog):
 
 class ErrorWindow(wx.Dialog):
     def __init__(
-            self, parent, ID, title, pos=wx.DefaultPosition, size=wx.DefaultSize, 
+            self, parent, title, pos=wx.DefaultPosition, size=wx.DefaultSize, 
             style=wx.DEFAULT_DIALOG_STYLE,errors=[]
             ):
 
-        wx.Dialog.__init__(self,parent,ID,title,pos,size,style)
+        wx.Dialog.__init__(self,parent,-1,title,pos,size,style)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -266,9 +266,7 @@ class ResultWindow(wx.Frame):
         self.lastprot = None
         self.lastrole = None
         for index in range(0,len(claims)):
-            # we reverse the display order of the claims!
-            cl = claims[len(claims)-index-1]
-            self.BuildClaim(grid,cl,index+1)
+            self.BuildClaim(grid,claims[index],index+1)
 
         sizer.Add(grid, 0,wx.ALIGN_CENTRE|wx.ALL,5)
 
@@ -354,7 +352,7 @@ class ScytherRun(object):
 
         # Verification window
 
-        self.verifywin = verifywin = VerificationWindow(mainwin,-1,mode)
+        self.verifywin = verifywin = VerificationWindow(mainwin,"Running Scyther %s process" % mode)
         verifywin.CenterOnScreen()
         verifywin.Show(True)
 
@@ -394,7 +392,7 @@ class ScytherRun(object):
             else:
                 # Darn, some errors. report.
                 title = "Scyther errors : %s" % mode
-                errorwin = ErrorWindow(mainwin,-1,title,errors=self.scyther.errors)
+                errorwin = ErrorWindow(mainwin,title,errors=self.scyther.errors)
                 errorwin.Show(True)
                 errorwin.CenterOnScreen()
                 val = errorwin.ShowModal()
