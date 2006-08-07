@@ -270,7 +270,7 @@ class SettingsWindow(wx.Panel):
         # Bound on the number of runs
         self.maxruns = int(Preference.get('maxruns','5'))
         r1 = wx.StaticText(self,-1,"Maximum number of runs (0 disables bound)")
-        l1 = wx.SpinCtrl(self, -1, "",size=(150,-1))
+        l1 = wx.SpinCtrl(self, -1, "",style=wx.RIGHT)
         l1.SetRange(0,100)
         l1.SetValue(self.maxruns)
         self.Bind(wx.EVT_SPINCTRL,self.EvtRuns,l1)
@@ -279,8 +279,8 @@ class SettingsWindow(wx.Panel):
         self.match = int(Preference.get('match','0'))
         claimoptions = ['typed matching','find basic type flaws','find all type flaws']
         r2 = wx.StaticText(self,-1,"Matching type")
-        l2 = wx.RadioBox(self, -1, "",
-                wx.DefaultPosition,wx.DefaultSize,claimoptions,1,wx.RA_SPECIFY_COLS)
+        #l2 = wx.RadioBox(self, -1, "", wx.DefaultPosition,wx.DefaultSize,claimoptions,1,wx.RA_SPECIFY_COLS)
+        l2 = self.ch = wx.Choice(self,-1,choices=claimoptions)
         l2.SetSelection(self.match)
         self.Bind(wx.EVT_RADIOBOX,self.EvtMatch,l2)
 

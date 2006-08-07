@@ -281,7 +281,7 @@ class ResultWindow(wx.Frame):
         for index in range(0,len(claims)):
             self.BuildClaim(grid,claims[index],index+1)
 
-        sizer.Add(grid, 0,wx.ALIGN_CENTRE|wx.ALL,5)
+        sizer.Add(grid, 0,wx.ALIGN_CENTER|wx.ALL,5)
 
         self.SetSizer(sizer)
         sizer.Fit(self)
