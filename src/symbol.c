@@ -6,6 +6,7 @@
 
 #include "symbol.h"
 #include "debug.h"
+#include "error.h"
 
 /*
    Symbol processor.
