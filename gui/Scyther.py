@@ -55,6 +55,15 @@ class Scyther(object):
             self.spdl += l
         fp.close()
 
+    def addFile(self,filename):
+        self.inputfile = None
+        if not self.spdl:
+            self.spdl = ""
+        fp = open(filename,"r")
+        for l in fp.readlines():
+            self.spdl += l
+        fp.close()
+
     def verify(self):
 
         # Run Scyther on temp file
@@ -97,6 +106,13 @@ class Scyther(object):
 
         self.run = True
         return self.claims
+
+    def getClaim(self,claimid):
+        if self.claims:
+            for cl in self.claims:
+                if cl.id == claimid:
+                    return cl
+        return None
 
     def __str__(self):
         if self.run:
