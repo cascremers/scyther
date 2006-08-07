@@ -5,6 +5,7 @@
 """ Import externals """
 import wx
 import sys
+from optparse import OptionParser
 
 #---------------------------------------------------------------------------
 
@@ -12,6 +13,23 @@ import sys
 import Preference
 import Mainwindow
 import Misc
+
+#---------------------------------------------------------------------------
+
+def parseArgs():
+    usage = "usage: %s [optional initial settings]" % sys.argv[0]
+    parser = OptionParser(usage=usage)
+
+    # command
+    parser.add_option("-V","--verify",dest="command",default=None,action="store_const",const="verify")
+    parser.add_option("-s","--state-space",dest="command",default=None,action="store_const",const="statespace")
+    parser.add_option("-a","--auto-claims",dest="command",default=None,action="store_const",const="autoverify")
+    parser.add_option("-c","--check",dest="command",default=None,action="store_const",const="check")
+
+    # misc debug etc
+    parser.add_option("","--test",dest="test",default=False,action="store_true")
+
+    return parser.parse_args()
 
 #---------------------------------------------------------------------------
 
@@ -42,37 +60,32 @@ class MySplashScreen(wx.SplashScreen):
             self.Raise()
         
 
+#---------------------------------------------------------------------------
 
 class ScytherApp(wx.App):
     def OnInit(self):
 
         wx.GetApp().SetAppName("Scyther-gui")
 
-        """
-        Load preferences file
-        """
+        # Parse arguments
+        (opts,args) = parseArgs()
 
+        # Load preferences file
         Preference.init()
 
         """
         Create and show the splash screen.  It will then create and show
         the main frame when it is time to do so.
+        
+        The splash screen is disabled for automatic commands, and also
+        by a setting in the preferences file.
         """
+        if not opts.command:
+            if not (Preference.get('splashscreen') in ['false','off','disable','0']):
+                splash = MySplashScreen()
+                splash.Show()
 
-
-        splash = MySplashScreen()
-        splash.Show()
-
-        """ Build up """
-        infile = ''
-        args = sys.argv[1:]
-        if len(args) > 0:
-            if args[0] == 'test':
-                infile = 'scythergui-default.spdl'
-            else:
-                infile = args[0]
-
-        self.mainWindow = Mainwindow.MainWindow(infile)
+        self.mainWindow = Mainwindow.MainWindow(opts,args)
         self.SetTopWindow(self.mainWindow)
         self.mainWindow.Show()
 

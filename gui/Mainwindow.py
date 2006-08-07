@@ -28,16 +28,28 @@ ID_CHECK = 103
 
 class MainWindow(wx.Frame):
 
-    def __init__(self, filename=''):
+    def __init__(self, opts, args):
         super(MainWindow, self).__init__(None, size=(600,800))
+
+        self.opts = opts
+        self.args = args
+
         self.dirname = '.'
 
-        if filename != '' and os.path.isfile(filename):
-            self.filename = filename
+        self.filename = 'noname.spdl'
+        self.load = False
+
+        # test
+        if opts.test:
+            self.filename = 'scythergui-default.spdl'
             self.load = True
-        else:
-            self.filename = 'noname.spdl'
-            self.load = False
+
+        # if there is an argument (file), we load it
+        if len(args) > 0:
+            filename = args[0]
+            if filename != '' and os.path.isfile(filename):
+                self.filename = filename
+                self.load = True
 
         Icon.ScytherIcon(self)
 
@@ -62,6 +74,8 @@ class MainWindow(wx.Frame):
         self.pnglist = []
 
         #self.SetTitle(self.title) 
+
+        self.firstCommand()
 
     def CreateInteriorWindowComponents(self):
         ''' Create "interior" window components. In this case it is just a
@@ -236,6 +250,12 @@ class MainWindow(wx.Frame):
 
     def OnCheck(self, event):
         self.RunScyther("check")
+
+    def firstCommand(self):
+        if self.opts.command:
+            # Trigger a command automatically
+            self.RunScyther(self.opts.command)
+                
 
 #---------------------------------------------------------------------------
 

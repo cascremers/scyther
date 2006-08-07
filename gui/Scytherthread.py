@@ -366,7 +366,7 @@ class ScytherRun(object):
         # Verification window
 
         self.verifywin = verifywin = VerificationWindow(mainwin,"Running Scyther %s process" % mode)
-        verifywin.CenterOnScreen()
+        verifywin.Center()
         verifywin.Show(True)
 
         # start the thread
@@ -381,11 +381,7 @@ class ScytherRun(object):
         # start the window and show until something happens
         # if it terminates, this is a cancel, and should also kill the thread. (what happens to a spawned Scyther in that case?)
         # if the thread terminames, it should close the window normally, and we end up here as well.
-
         val = verifywin.ShowModal()
-
-        # Cursor back to normal
-        verifywin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
 
         if self.verified:
             # Scyther program is done (the alternative is that it was
@@ -402,23 +398,25 @@ class ScytherRun(object):
                     else:
                         txt = "Done."
                     resultwin.SetStatusText(txt)
+                    resultwin.Refresh()
 
                 def claimDone(claim):
                     if claim.button and len(claim.attacks) > 0:
                         claim.button.Enable()
+                        resultwin.Refresh()
 
                 t = AttackThread(self,resultwin,claimDone,attackDone)
                 t.start()
 
                 resultwin.thread = t
-                resultwin.CenterOnScreen()
+                resultwin.Center()
                 resultwin.Show(True)
+
             else:
                 # Darn, some errors. report.
                 title = "Scyther errors : %s" % mode
                 errorwin = ErrorWindow(mainwin,title,errors=self.scyther.errors)
-                errorwin.Show(True)
-                errorwin.CenterOnScreen()
+                errorwin.Center()
                 val = errorwin.ShowModal()
 
 
