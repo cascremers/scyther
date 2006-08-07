@@ -4,6 +4,7 @@
 
 """ Import externals """
 import wx
+import sys
 
 #---------------------------------------------------------------------------
 
@@ -63,7 +64,15 @@ class ScytherApp(wx.App):
         splash.Show()
 
         """ Build up """
-        self.mainWindow = Mainwindow.MainWindow('scythergui-default.spdl')
+        infile = ''
+        args = sys.argv[1:]
+        if len(args) > 0:
+            if args[0] == 'test':
+                infile = 'scythergui-default.spdl'
+            else:
+                infile = args[0]
+
+        self.mainWindow = Mainwindow.MainWindow(infile)
         self.SetTopWindow(self.mainWindow)
         self.mainWindow.Show()
 

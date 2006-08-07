@@ -72,13 +72,16 @@ class Scyther(object):
         # from the error output (maybe this can also be done by flushing
         # the XML at certain points...)
         xmlinput = stdout.read()
-        self.errors = stderr.readlines()
+        errlines = stderr.readlines()
 
         # filter out any non-errors (say maybe only claim etc) and count
         # them.
-        # TODO for now this simply counts the lines
+        self.errors = []
+        for l in errlines:
+            if not l.startswith("claim\t"):
+                self.errors.append(l.strip())
+
         self.errorcount = len(self.errors)
-        print self.errorcount
         
         # close
         stdout.close()
