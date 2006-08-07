@@ -464,8 +464,24 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
   cl->roles = NULL;
   cl->alwaystrue = false;
   cl->warnings = false;
-  cl->next = sys->claimlist;
-  sys->claimlist = cl;
+
+  /* add the claim to the end of the current list */
+  cl->next = NULL;
+  if (sys->claimlist == NULL)
+    {
+      sys->claimlist = cl;
+    }
+  else
+    {
+      Claimlist cl2;
+
+      cl2 = sys->claimlist;
+      while (cl2->next != NULL)
+	{
+	  cl2 = cl2->next;
+	}
+      cl2->next = cl;
+    }
 
   /* add the role event */
   role->roledef = roledefAdd (role->roledef, CLAIM, label,
