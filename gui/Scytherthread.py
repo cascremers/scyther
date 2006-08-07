@@ -205,8 +205,10 @@ class ResultWindow(wx.Frame):
     Displays the claims status and contains buttons to show the actual
     attack graphs
 
-    TODO: this really should have a statusbar, and maybe a second tab
-    for any error output.
+    TODO: this really should have a statusbar that works.
+
+    TODO: on windows, it updates really slow, and the background is the
+    wrong colour. Basically, it inhales air. Hard.
     """
 
     def __init__(
