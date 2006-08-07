@@ -101,7 +101,7 @@ class Scyther(object):
     def __str__(self):
         if self.run:
             if self.errorcount > 0:
-                return "%i errors:\n%s" % (self.errorcount, "".join(self.errors))
+                return "%i errors:\n%s" % (self.errorcount, "\n".join(self.errors))
             else:
                 s = "Claim results:\n"
                 for cl in self.claims:
