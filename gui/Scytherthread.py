@@ -131,7 +131,7 @@ class AttackThread(threading.Thread):
         cmd = "dot -T%s" % (type)
 
         # execute command
-        cin,cout = os.popen2(cmd)
+        cin,cout = os.popen2(cmd,'b')
         cin.write(attack.scytherDot)
         cin.close()
 
