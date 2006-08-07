@@ -26,9 +26,6 @@ class AttackDisplay(wx.ScrolledWindow):
         self.attack = attack
 
         wx.ScrolledWindow.__init__(self,parent,id=-1)
-        # Wait for the attack to be computed
-        while not attack.file:
-            time.sleep(1)
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Image = wx.StaticBitmap(self, -1, wx.EmptyBitmap(1,1))
@@ -47,8 +44,6 @@ class AttackDisplay(wx.ScrolledWindow):
         else:
             print "Unknown file type %s." % (self.filetype)
 
-        self.update()
-
         # TODO self.Bind(wxSizeEvent
 
     def OnSize(self,event):
@@ -58,7 +53,7 @@ class AttackDisplay(wx.ScrolledWindow):
     def update(self):
 
         self.SetScrollbars(0,0,0,0,0,0)
-        (sw,sh) = self.win.GetClientSizeTuple()
+        (sw,sh) = self.GetClientSizeTuple()
         (W,H) = (sw,sh)
 
         def makefit(W,H):
@@ -114,14 +109,24 @@ class AttackDisplay(wx.ScrolledWindow):
 
         self.Refresh()
 
+#---------------------------------------------------------------------------
 
 class AttackWindow(wx.Frame):
     def __init__(self,cl):
+        global usePIL
+
         super(AttackWindow, self).__init__(None, size=(400,800))
         self.claim = cl
-        self.fit = False
+
+        # TODO maybe fitting defaults should come from Preferences.
+        # Now, it is default yes if it looks nice (i.e. we are using
+        # PIL)
+        if usePIL:
+            self.fit = True
+        else:
+            self.fit = False
+
         self.CreateInteriorWindowComponents()
-        self.CreateExteriorWindowComponents()
 
         Icon.ScytherIcon(self)
         self.SetTitle()
@@ -136,52 +141,37 @@ class AttackWindow(wx.Frame):
         ''' Create "interior" window components. In this case it is the
         attack picture. '''
 
+        # Make zoom buttons
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        buttons = wx.BoxSizer(wx.HORIZONTAL)
+        bt = wx.Button(self,wx.ID_ZOOM_100)
+        buttons.Add(bt,0)
+        self.Bind(wx.EVT_BUTTON, self.OnZoom100, bt)
+        bt = wx.Button(self,wx.ID_ZOOM_FIT)
+        buttons.Add(bt,0)
+        self.Bind(wx.EVT_BUTTON, self.OnZoomFit, bt)
+        sizer.Add(buttons, 0, wx.ALIGN_LEFT)
+        
+        # Add attacks (possible with tabs)
         self.displays=[]
         attacks = self.claim.attacks
         n = len(attacks)
         if n <= 1:
             # Just a single window
-            self.tabs = None
-            self.displays.append(AttackDisplay(self,self,attacks[0]))
+            dp = AttackDisplay(self, self, attacks[0])
+            self.displays.append(dp)
         else:
             # Multiple tabs
-            self.tabs = wx.Notebook(self,-1)
+            dp = wx.Notebook(self,-1)
             for i in range(0,n):
-                disp = AttackDisplay(self,self.tabs,attacks[i])
+                disp = AttackDisplay(self,dp,attacks[i])
                 classname = "%s %i" % (self.claim.stateName(),(i+1))
-                self.tabs.AddPage(disp, classname)
+                dp.AddPage(disp, classname)
                 self.displays.append(disp)
 
-        self.Show(1)
+        sizer.Add(dp, 1, wx.EXPAND,1)
 
-
-    def CreateExteriorWindowComponents(self):
-        ''' Create "exterior" window components, such as menu and status
-        bars '''
-        self.SetupToolBar()
-
-    def SetupToolBar(self):
-
-        tb = self.CreateToolBar(wx.TB_HORIZONTAL
-                | wx.NO_BORDER
-                | wx.TB_FLAT
-                | wx.TB_TEXT
-                )
-
-        # Add fit button
-        bmp = wx.ArtProvider_GetBitmap(wx.ART_MISSING_IMAGE,wx.ART_TOOLBAR,(20,20))
-        if not bmp.Ok():
-            bmp = wx.EmptyBitmap(32,32)
-        tb.AddCheckTool(wx.ID_ZOOM_FIT, bmp, bmp, 'Toggle zoom', 'Toggle zoom level')
-        self.Bind(wx.EVT_TOOL, self.OnFit, id=wx.ID_ZOOM_FIT)
-
-        tb.Realize()
-
-        # And shortcut
-        aTable = wx.AcceleratorTable([
-                                      (wx.ACCEL_NORMAL, ord('Z'), wx.ID_ZOOM_FIT)
-                                      ])
-        self.SetAcceleratorTable(aTable)
+        self.SetSizer(sizer)
 
     def update(self):
         for t in self.displays:
@@ -199,4 +189,16 @@ class AttackWindow(wx.Frame):
 
         self.fit = False
         self.update()
+
+    def OnSize(self):
+        self.Refresh()
+
+    def OnZoom100(self,evt):
+        self.fit = False
+        self.update()
+
+    def OnZoomFit(self,evt):
+        self.fit = True
+        self.update()
+
 
