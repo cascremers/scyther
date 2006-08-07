@@ -79,25 +79,37 @@ class AttackThread(threading.Thread):
     background """
 
     # Override Thread's __init__ method to accept the parameters needed:
-    def __init__ ( self, parent, resultwin ):
+    def __init__ ( self, parent, resultwin, callbackclaim=None,callbackattack=None ):
 
         self.parent = parent
         self.resultwin = resultwin
+        self.callbackclaim = callbackclaim
+        self.callbackattack = callbackattack
+        self.totalattacks = 0
+        for cl in self.parent.claims:
+            for attack in cl.attacks:
+                self.totalattacks += 1
 
         threading.Thread.__init__ ( self )
 
     def run(self):
 
         # create the images in the background
+        # when the images of a claim are done, callback is called with
+        # the claim
         self.makeImages()
 
     def makeImages(self):
         """ create images """
+        done = 0
         for cl in self.parent.claims:
             for attack in cl.attacks:
                 self.makeImage(attack)
-            if cl.button and len(cl.attacks) > 0:
-                cl.button.Enable()
+                done += 1
+                if self.callbackattack:
+                    self.callbackattack(attack,self.totalattacks,done)
+            if self.callbackclaim:
+                self.callbackclaim(cl)
 
     def makeImage(self,attack):
         """ create image for this particular attack """
@@ -238,7 +250,6 @@ class ResultWindow(wx.Frame):
         self.parent.claims = None
 
         self.Destroy()
-
 
     def BuildTable(self):
         # Now continue with the normal construction of the dialog
@@ -385,7 +396,18 @@ class ScytherRun(object):
                 self.resultwin = resultwin = ResultWindow(self,mainwin,title)
                 resultwin.Show(True)
 
-                t = AttackThread(self,resultwin)
+                def attackDone(attack,total,done):
+                    if done < total:
+                        txt = "Generating attack graphs (%i of %i done)." % (done,total)
+                    else:
+                        txt = "Done."
+                    resultwin.SetStatusText(txt)
+
+                def claimDone(claim):
+                    if claim.button and len(claim.attacks) > 0:
+                        claim.button.Enable()
+
+                t = AttackThread(self,resultwin,claimDone,attackDone)
                 t.start()
 
                 resultwin.thread = t
