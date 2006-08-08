@@ -6,7 +6,7 @@ import Term
 
 class Claim(object):
     def __init__(self):
-        self.id = None          # a unique id string, like 'ns3,r,r3'
+        self.id = None          # a unique id string, consisting of 'protocol,label'
         self.claimtype = None
         self.label = None
         self.shortlabel = None
@@ -36,7 +36,7 @@ class Claim(object):
         self.shortlabel = label
 
         # determine id
-        self.id = "%s,%s,%s" % (self.protocol,self.role,self.shortlabel)
+        self.id = "%s,%s" % (self.protocol,self.shortlabel)
 
         # some additional properties
         if str(self.claimtype) == 'Reachable':
