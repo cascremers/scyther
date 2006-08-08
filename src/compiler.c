@@ -566,7 +566,6 @@ commEvent (int event, Tac tc)
        * This can be a weird choice if it is a read or send, because in that case
        * we cannot chain them anymore and the send-read correspondence is lost.
        */
-      warning ("Generated fresh label for line %i.", tc->lineno);
       label = freshTermPrefix (thisRole->nameterm);
     }
   else
