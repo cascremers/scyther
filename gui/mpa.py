@@ -23,6 +23,7 @@ def MyScyther(protocollist,filter=None):
     s.verify()
     return s
     
+
 def getCorrectIsolatedClaims(protocolset):
     """
     Given a set of protocols, determine the correct claims when run in
@@ -62,6 +63,7 @@ def verifyMPAlist(mpalist,claimid):
     else:
         return True
 
+
 def constructMPAlist(protocolset,claimid,mpalist,length,start,callback):
     """
     Append a list of parallel protocols, without duplicates,
@@ -83,6 +85,7 @@ def constructMPAlist(protocolset,claimid,mpalist,length,start,callback):
         # list is long enough: callback
         return callback(mpalist,claimid)
     
+
 def findMPA(protocolset,protocol,claimid,maxcount=3):
     """
     The protocol claim is assumed to be correct. When does it break?
@@ -103,6 +106,7 @@ def findMPA(protocolset,protocol,claimid,maxcount=3):
         count += 1
     return None
 
+
 def findAllMPA(protocolset,maxcount=3):
     """
     Given a set of protocols, find multi-protocol attacks
@@ -114,7 +118,12 @@ def findAllMPA(protocolset,maxcount=3):
         if mpalist:
             print "Darn, MPA on %s (%s) using %s" % (claimid,protocol,mpalist)
 
+
+
 if __name__ == '__main__':
+    """
+    Simple test case
+    """
     list = ['me.spdl','ns3.spdl','nsl3.spdl']
     findAllMPA(list)
 
