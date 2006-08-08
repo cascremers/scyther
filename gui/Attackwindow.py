@@ -36,6 +36,8 @@ class AttackDisplay(wx.ScrolledWindow):
         self.hbox.Add(self.box,1,wx.ALIGN_CENTER)
         self.SetSizer(self.hbox)
 
+        self.original = None
+
         filename = attack.file
         if attack.filetype == "png":
             self.original = wx.Image(filename,wx.BITMAP_TYPE_PNG)
@@ -46,6 +48,7 @@ class AttackDisplay(wx.ScrolledWindow):
             print "Unknown file type %s." % (self.filetype)
 
         # TODO self.Bind(wxSizeEvent
+        self.Fit()
 
     def OnSize(self,event):
         self.update()
@@ -196,10 +199,12 @@ class AttackWindow(wx.Frame):
         self.Refresh()
 
     def OnZoom100(self,evt):
+        self.Refresh()
         self.fit = False
         self.update()
 
     def OnZoomFit(self,evt):
+        self.Refresh()
         self.fit = True
         self.update()
 
