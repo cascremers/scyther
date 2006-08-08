@@ -34,14 +34,17 @@ class Scyther(object):
             """ Non-windows """
             self.program = os.path.join("bin","scyther")
 
-        # defaults
-        self.options = ""
+        # Init
         self.spdl = None
         self.inputfile = None
         self.claims = None
         self.errors = None
         self.errorcount = 0
         self.run = False
+        self.output = None
+
+        # defaults
+        self.xml = True     # this results in a claim end, otherwise we simply get the output
 
     def setInput(self,spdl):
         self.spdl = spdl
@@ -67,7 +70,10 @@ class Scyther(object):
     def verify(self):
 
         # Run Scyther on temp file
-        self.cmd = "%s --dot-output --xml-output --plain %s" % (self.program,self.options)
+        self.cmd = self.program
+        if self.xml:
+            self.cmd += " --dot-output --xml-output --plain"
+        self.cmd += " " + self.options
 
         (stdin,stdout,stderr) = os.popen3(self.cmd)
         if self.spdl:
@@ -80,7 +86,7 @@ class Scyther(object):
         # TODO this is annoying: we would like to determine progress
         # from the error output (maybe this can also be done by flushing
         # the XML at certain points...)
-        xmlinput = stdout.read()
+        output = stdout.read()
         errlines = stderr.readlines()
 
         # filter out any non-errors (say maybe only claim etc) and count
@@ -96,16 +102,21 @@ class Scyther(object):
         stdout.close()
         stderr.close()
 
-        if len(xmlinput) > 0:
-            xmlfile = StringIO.StringIO(xmlinput)
-            reader = XMLReader.XMLReader()
-            self.claims = reader.readXML(xmlfile)
+        if self.xml:
+            if len(output) > 0:
+                xmlfile = StringIO.StringIO(output)
+                reader = XMLReader.XMLReader()
+                self.claims = reader.readXML(xmlfile)
+            else:
+                # no output...
+                self.claims = []
+            result = self.claims
         else:
-            # no output...
-            self.claims = []
+            self.output = output
+            result = self.output
 
         self.run = True
-        return self.claims
+        return result
 
     def getClaim(self,claimid):
         if self.claims:
@@ -119,10 +130,13 @@ class Scyther(object):
             if self.errorcount > 0:
                 return "%i errors:\n%s" % (self.errorcount, "\n".join(self.errors))
             else:
-                s = "Claim results:\n"
-                for cl in self.claims:
-                    s += str(cl) + "\n"
-                return s
+                if self.xml:
+                    s = "Claim results:\n"
+                    for cl in self.claims:
+                        s += str(cl) + "\n"
+                    return s
+                else:
+                    return self.output
         else:
             return "Scyther has not been run yet."
 

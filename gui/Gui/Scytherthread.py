@@ -20,13 +20,13 @@ except ImportError:
 #---------------------------------------------------------------------------
 
 """ Import scyther components """
-import XMLReader
+import Scyther.XMLReader as XMLReader
+import Scyther.Claim as Claim
+import Scyther.Scyther as Scyther
 
 """ Import scyther-gui components """
 import Tempfile
-import Claim
 import Preference
-import Scyther
 import Attackwindow
 import Icon
 

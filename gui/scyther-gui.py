@@ -10,9 +10,9 @@ from optparse import OptionParser, SUPPRESS_HELP
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
-import Preference
-import Mainwindow
-import Misc
+import Gui.Preference as Preference
+import Gui.Mainwindow as Mainwindow
+import Gui.Misc as Misc
 
 #---------------------------------------------------------------------------
 

@@ -6,7 +6,7 @@ Test script to execute multi-protocol attacks on some test set.
 
 """
 
-import Scyther
+import Scyther.Scyther as Scyther
 
 def MyScyther(protocollist,filter=None):
     """
