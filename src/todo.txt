@@ -1,9 +1,3 @@
-- Add --filter-claim and --filter-label switches; parse as symbols, and
-  turn into (global?) terms, add to switches termlists. Later check them
-  using two new term functions:
-  const char *termSymbolString(Term t);
-  int termSymbolEqual(Term t1, Term t2);
-  Iteration through the termlist should be done by hand.
 - --check is slightly f***ed up because there is no good semantics for
   the --disable intruder check. As a result, it is now too strict can
   cause correct protocols to fail. Fix.

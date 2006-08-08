@@ -53,7 +53,8 @@ switchesInit (int argc, char **argv)
   switches.maxproofdepth = INT_MAX;
   switches.maxtracelength = INT_MAX;
   switches.runs = 5;		// default is 5 for usability, but -r 0 or --maxruns=0 will set it back to INT_MAX
-  switches.filterClaim = NULL;	// default check all claims
+  switches.filterProtocol = NULL;	// default check all claims
+  switches.filterLabel = NULL;	// default check all claims
   switches.maxAttacks = 0;	// no maximum default
 
   // Arachne
@@ -299,6 +300,20 @@ switcher (const int process, int index, int commandline)
     arg_pointer = argv[index];
   }
 
+  //! Retrieve a (string) argument
+  char *string_argument (void)
+  {
+    char *result;
+
+    if (arg_pointer == NULL)
+      {
+	error ("Argument expected.");
+      }
+    result = arg_pointer;
+    arg_next ();
+    return result;
+  }
+
   //! Parse an argument into an integer
   int integer_argument (void)
   {
@@ -476,6 +491,30 @@ switcher (const int process, int index, int commandline)
 	{
 	  // Proof
 	  switches.output = PROOF;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "claim", 1))
+    {
+      if (!process)
+	{
+	  helptext ("--claim=<protocol>[,<label>]",
+		    "check only a certain claim");
+	}
+      else
+	{
+	  char *second;
+
+	  switches.filterProtocol = string_argument ();
+	  second = strchr (switches.filterProtocol, ',');
+	  if (second != NULL)
+	    {
+	      // Cut off first part (turn ',' into '\0'; string is disposable) and proceed to next character.
+	      second[0] = '\0';
+	      second++;
+	      switches.filterLabel = second;
+	    }
 	  return index;
 	}
     }

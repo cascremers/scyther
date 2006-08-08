@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <string.h>
 #include "tac.h"
 #include "term.h"
 #include "termlist.h"
@@ -431,11 +432,31 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
   Claimlist cl;
   Term labeltuple;
 
-  /* check for ignored claim types */
-  if (switches.filterClaim != NULL && switches.filterClaim != claim)
+  if (switches.filterProtocol != NULL)
     {
-      /* abort the construction of the node */
-      return;
+      // only this protocol
+      if (strcmp
+	  (switches.filterProtocol, TermSymb (protocol->nameterm)->text) != 0)
+	{
+	  // not this protocol; return
+	  return NULL;
+	}
+      // and maybe also a specific label?
+      if (switches.filterLabel != NULL)
+	{
+	  Term t;
+
+	  t = label;
+	  while (isTermTuple (t))
+	    {
+	      t = TermOp2 (t);
+	    }
+	  if (strcmp (switches.filterLabel, TermSymb (t)->text) != 0)
+	    {
+	      // not this label; return
+	      return NULL;
+	    }
+	}
     }
 
   /* generate full unique label */
@@ -556,16 +577,15 @@ commEvent (int event, Tac tc)
 	  /* effectively, labels are bound to the protocol */
 	  level--;
 	  /* leaves a garbage tuple. dunnoh what to do with it */
-	  label =
-	    makeTermTuple (thisProtocol->nameterm, levelConst (tc->t1.sym));
+	  label = levelConst (tc->t1.sym);
 	  level++;
 	}
       else
 	{
 	  /* leaves a garbage tuple. dunnoh what to do with it */
-	  label = makeTermTuple (thisProtocol->nameterm, label);
 	}
     }
+  label = makeTermTuple (thisProtocol->nameterm, label);
 
   /**
    * Parse the specific event type
@@ -1017,17 +1037,28 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
   Protocol pr;
   Term t;
 
-  if (levelFind (prots, level) != NULL)
-    {
-      globalError++;
-      eprintf ("error: Double declaration of protocol ");
-      symbolPrint (prots);
-      eprintf (" ");
-      errorTac (tc->lineno);
-    }
   /* make new (empty) current protocol with name */
   pr = protocolCreate (levelConst (prots));
   thisProtocol = pr;
+  {
+    // check for double name declarations
+    Protocol prold;
+
+    prold = sys->protocols;
+    while (prold != NULL)
+      {
+	if (isTermEqual (pr->nameterm, prold->nameterm))
+	  {
+	    globalError++;
+	    eprintf ("error: Double declaration of protocol ");
+	    symbolPrint (prots);
+	    eprintf (" ");
+	    errorTac (tc->lineno);
+	  }
+	prold = prold->next;
+      }
+  }
+
   /* add protocol to list */
   pr->next = sys->protocols;
   sys->protocols = pr;

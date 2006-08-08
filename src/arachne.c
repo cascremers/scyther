@@ -2238,129 +2238,125 @@ arachneClaim (Claimlist cl)
   // Skip the dummy claims
   if (!isTermEqual (cl->type, CLAIM_Empty))
     {
-      // Any other claims might be filterered
-      if (switches.filterClaim == NULL || switches.filterClaim == cl->type)
+      // Some claims are always true!
+      if (!cl->alwaystrue)
 	{
-	  // Some claims are always true!
-	  if (!cl->alwaystrue)
+	  // others we simply test...
+	  int run;
+	  int newruns;
+	  Protocol p;
+	  Role r;
+
+	  newruns = 0;
+	  sys->current_claim = cl;
+	  attack_length = INT_MAX;
+	  attack_leastcost = INT_MAX;
+	  cl->complete = 1;
+	  p = (Protocol) cl->protocol;
+	  r = (Role) cl->role;
+
+	  if (switches.output == PROOF)
 	    {
-	      // others we simply test...
-	      int run;
-	      int newruns;
-	      Protocol p;
-	      Role r;
+	      indentPrint ();
+	      eprintf ("Testing Claim ");
+	      termPrint (cl->type);
+	      eprintf (" from ");
+	      termPrint (p->nameterm);
+	      eprintf (", ");
+	      termPrint (r->nameterm);
+	      eprintf (" at index %i.\n", cl->ev);
+	    }
+	  indentDepth++;
 
-	      newruns = 0;
-	      sys->current_claim = cl;
-	      attack_length = INT_MAX;
-	      attack_leastcost = INT_MAX;
-	      cl->complete = 1;
-	      p = (Protocol) cl->protocol;
-	      r = (Role) cl->role;
+	  run = semiRunCreate (p, r);
+	  newruns++;
+	  {
+	    int newgoals;
 
-	      if (switches.output == PROOF)
-		{
-		  indentPrint ();
-		  eprintf ("Testing Claim ");
-		  termPrint (cl->type);
-		  eprintf (" from ");
-		  termPrint (p->nameterm);
-		  eprintf (", ");
-		  termPrint (r->nameterm);
-		  eprintf (" at index %i.\n", cl->ev);
-		}
-	      indentDepth++;
-
-	      run = semiRunCreate (p, r);
-	      newruns++;
-	      {
-		int newgoals;
-
-		int realStart (void)
-		{
+	    int realStart (void)
+	    {
 #ifdef DEBUG
-		  if (DEBUGL (5))
-		    {
-		      printSemiState ();
-		    }
-#endif
-		  return iterate_buffer_attacks ();
+	      if (DEBUGL (5))
+		{
+		  printSemiState ();
 		}
+#endif
+	      return iterate_buffer_attacks ();
+	    }
 
-		proof_suppose_run (run, 0, cl->ev + 1);
-		newgoals = add_read_goals (run, 0, cl->ev + 1);
+	    proof_suppose_run (run, 0, cl->ev + 1);
+	    newgoals = add_read_goals (run, 0, cl->ev + 1);
 
 		    /**
 		     * Add initial knowledge node
 		     */
-		{
-		  Termlist m0tl;
-		  Term m0t;
-		  int m0run;
+	    {
+	      Termlist m0tl;
+	      Term m0t;
+	      int m0run;
 
-		  m0tl = knowledgeSet (sys->know);
-		  m0t = termlist_to_tuple (m0tl);
-		  // eprintf("Initial intruder knowledge node for ");
-		  // termPrint(m0t);
-		  // eprintf("\n");
-		  I_M->roledef->message = m0t;
-		  m0run = semiRunCreate (INTRUDER, I_M);
-		  newruns++;
-		  proof_suppose_run (m0run, 0, 1);
-		  sys->runs[m0run].height = 1;
+	      m0tl = knowledgeSet (sys->know);
+	      m0t = termlist_to_tuple (m0tl);
+	      // eprintf("Initial intruder knowledge node for ");
+	      // termPrint(m0t);
+	      // eprintf("\n");
+	      I_M->roledef->message = m0t;
+	      m0run = semiRunCreate (INTRUDER, I_M);
+	      newruns++;
+	      proof_suppose_run (m0run, 0, 1);
+	      sys->runs[m0run].height = 1;
 
-		  {
+	      {
 		      /**
 		       * Add specific goal info and iterate algorithm
 		       */
-		    add_claim_specifics (sys, cl,
-					 roledef_shift (sys->runs[run].
-							start, cl->ev),
-					 realStart);
-		  }
-
-
-		  // remove initial knowledge node
-		  termDelete (m0t);
-		  termlistDelete (m0tl);
-		  semiRunDestroy ();
-		  newruns--;
-		}
-		// remove claiming run goals 
-		goal_remove_last (newgoals);
-		semiRunDestroy ();
-		newruns--;
+		add_claim_specifics (sys, cl,
+				     roledef_shift (sys->runs[run].
+						    start, cl->ev),
+				     realStart);
 	      }
-	      //! Destroy
-	      while (sys->maxruns > 0 && newruns > 0)
-		{
-		  semiRunDestroy ();
-		  newruns--;
-		}
+
+
+	      // remove initial knowledge node
+	      termDelete (m0t);
+	      termlistDelete (m0tl);
+	      semiRunDestroy ();
+	      newruns--;
+	    }
+	    // remove claiming run goals 
+	    goal_remove_last (newgoals);
+	    semiRunDestroy ();
+	    newruns--;
+	  }
+	  //! Destroy
+	  while (sys->maxruns > 0 && newruns > 0)
+	    {
+	      semiRunDestroy ();
+	      newruns--;
+	    }
 #ifdef DEBUG
-	      if (sys->bindings != NULL)
-		{
-		  error ("sys->bindings NOT empty after claim test.");
-		}
-	      if (sys->maxruns != 0)
-		{
-		  error ("%i undestroyed runs left after claim test.",
-			 sys->maxruns);
-		}
-	      if (newruns != 0)
-		{
-		  error ("Lost %i runs after claim test.", newruns);
-		}
+	  if (sys->bindings != NULL)
+	    {
+	      error ("sys->bindings NOT empty after claim test.");
+	    }
+	  if (sys->maxruns != 0)
+	    {
+	      error ("%i undestroyed runs left after claim test.",
+		     sys->maxruns);
+	    }
+	  if (newruns != 0)
+	    {
+	      error ("Lost %i runs after claim test.", newruns);
+	    }
 #endif
 
-	      //! Indent back
-	      indentDepth--;
+	  //! Indent back
+	  indentDepth--;
 
-	      if (switches.output == PROOF)
-		{
-		  indentPrint ();
-		  eprintf ("Proof complete for this claim.\n");
-		}
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf ("Proof complete for this claim.\n");
 	    }
 	}
       claimStatusReport (sys, cl);

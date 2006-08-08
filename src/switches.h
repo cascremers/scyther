@@ -23,7 +23,8 @@ struct switchdata
   int maxproofdepth;		//!< Maximum proof depth
   int maxtracelength;		//!< Maximum trace length allowed
   int runs;			//!< The number of runs as in the switch
-  Term filterClaim;		//!< Which claim should be checked?
+  char *filterProtocol;		//!< Which claim should be checked?
+  char *filterLabel;		//!< Which claim should be checked?
   int maxAttacks;		//!< When not 0, maximum number of attacks
 
   // Arachne
