@@ -298,12 +298,15 @@ defineUsertype (Tac tcdu)
 	  /* oi!, there's already one. Let's hope is is a type too. */
 	  if (inTermlist (tfind->stype, TERM_Type))
 	    {
-	      /* phew. warn anyway */
-	      globalError++;
-	      eprintf ("warning: double declaration of usertype ");
-	      termPrint (tfind);
-	      eprintf ("\n");
-	      globalError--;
+	      if (switches.check)
+		{
+		  /* phew. warn anyway */
+		  globalError++;
+		  eprintf ("warning: double declaration of usertype ");
+		  termPrint (tfind);
+		  eprintf ("\n");
+		  globalError--;
+		}
 	    }
 	  else
 	    {
@@ -1807,16 +1810,19 @@ checkRoleVariables (const System sys, const Protocol p, const Role r)
     {
       if (!inTermlist (vars, declared->term))
 	{
-	  // Warning
-	  globalError++;
-	  eprintf ("warning: variable ");
-	  termPrint (declared->term);
-	  eprintf (" was declared in role ");
-	  termPrint (p->nameterm);
-	  eprintf (",");
-	  termPrint (r->nameterm);
-	  eprintf (" but never used in a read event.\n");
-	  globalError--;
+	  if (switches.check)
+	    {
+	      // Warning
+	      globalError++;
+	      eprintf ("warning: variable ");
+	      termPrint (declared->term);
+	      eprintf (" was declared in role ");
+	      termPrint (p->nameterm);
+	      eprintf (",");
+	      termPrint (r->nameterm);
+	      eprintf (" but never used in a read event.\n");
+	      globalError--;
+	    }
 	}
       declared = declared->next;
     }
