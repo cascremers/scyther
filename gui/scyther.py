@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Scyther interface
+# python wrapper for the Scyther command-line tool
 #
 
 #---------------------------------------------------------------------------

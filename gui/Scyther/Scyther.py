@@ -10,7 +10,6 @@ import os
 import os.path
 import sys
 import StringIO
-import tempfile
 
 #---------------------------------------------------------------------------
 
@@ -37,6 +36,7 @@ class Scyther(object):
         # Init
         self.spdl = None
         self.inputfile = None
+        self.options = ""
         self.claims = None
         self.errors = None
         self.errorcount = 0
@@ -103,13 +103,19 @@ class Scyther(object):
         stderr.close()
 
         if self.xml:
+            self.validxml = False
             if len(output) > 0:
+                if output.startswith("<scyther>"):
+                    self.validxml = True
+
+            if self.validxml:
                 xmlfile = StringIO.StringIO(output)
                 reader = XMLReader.XMLReader()
                 self.claims = reader.readXML(xmlfile)
             else:
-                # no output...
+                # no xml output... store whatever comes out
                 self.claims = []
+                self.output = output
             result = self.claims
         else:
             self.output = output
@@ -130,8 +136,8 @@ class Scyther(object):
             if self.errorcount > 0:
                 return "%i errors:\n%s" % (self.errorcount, "\n".join(self.errors))
             else:
-                if self.xml:
-                    s = "Claim results:\n"
+                if self.xml and self.validxml:
+                    s = "Verification results:\n"
                     for cl in self.claims:
                         s += str(cl) + "\n"
                     return s
@@ -139,31 +145,5 @@ class Scyther(object):
                     return self.output
         else:
             return "Scyther has not been run yet."
-
-
-def basicTest():
-    # Some basic testing
-    #if sys.platform.startswith('win'):
-    #    print "Dir test"
-    #    p = os.popen("dir")
-    #    print p.read()
-    #    print p.close()
-    #    confirm("See the dir?")
-    #
-    print "I don't know what to test now."
-   
-
-def simpleRun(args):
-    x = Scyther()
-    x.options = args
-    x.verify()
-    return x
-
-if __name__ == '__main__':
-    pars = sys.argv[1:]
-    if len(pars) == 0:
-        basicTest()
-    else:
-        print simpleRun(" ".join(pars))
 
 
