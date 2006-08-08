@@ -26,6 +26,7 @@ class AttackDisplay(wx.ScrolledWindow):
         self.attack = attack
 
         wx.ScrolledWindow.__init__(self,parent,id=-1)
+	self.SetBackgroundColour('White')
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Image = wx.StaticBitmap(self, -1, wx.EmptyBitmap(1,1))
@@ -116,6 +117,7 @@ class AttackWindow(wx.Frame):
         global usePIL
 
         super(AttackWindow, self).__init__(None, size=(400,800))
+	self.SetBackgroundColour('Default')
         self.claim = cl
 
         # TODO maybe fitting defaults should come from Preferences.
