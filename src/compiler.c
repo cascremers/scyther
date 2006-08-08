@@ -704,9 +704,12 @@ commEvent (int event, Tac tc)
 
 	  if (isClaimlabelUsed (sys, label))
 	    {
-	      warning
-		("Claim label is not unique at line %i, generating fresh label.",
-		 tc->lineno);
+	      if (switches.check)
+		{
+		  warning
+		    ("Claim label is not unique at line %i, generating fresh label.",
+		     tc->lineno);
+		}
 	    }
 
 	  if (!isTermEqual (fromrole, thisRole->nameterm))
