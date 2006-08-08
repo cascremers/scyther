@@ -256,7 +256,6 @@ class ResultWindow(wx.Frame):
     def BuildTable(self):
         # Now continue with the normal construction of the dialog
         # contents
-        sizer = wx.BoxSizer(wx.VERTICAL)
 
         # For these claims...
         claims = self.parent.claims
@@ -283,10 +282,8 @@ class ResultWindow(wx.Frame):
         for index in range(0,len(claims)):
             self.BuildClaim(grid,claims[index],index+1)
 
-        sizer.Add(grid, 0,wx.ALIGN_CENTER|wx.ALL,5)
-
-        self.SetSizer(sizer)
-        sizer.Fit(self)
+        self.SetSizer(grid)
+        self.Fit()
 
     def BuildClaim(self,grid,cl,ypos):
         # a support function
@@ -392,7 +389,6 @@ class ScytherRun(object):
                 # Great, we verified stuff, progress to the claim report
                 title = "Scyther results : %s" % mode
                 self.resultwin = resultwin = ResultWindow(self,mainwin,title)
-                resultwin.Show(True)
 
                 def attackDone(attack,total,done):
                     if done < total:
@@ -405,14 +401,16 @@ class ScytherRun(object):
                 def claimDone(claim):
                     if claim.button and len(claim.attacks) > 0:
                         claim.button.Enable()
-                        resultwin.Refresh()
+                        #resultwin.Refresh()
+
+                resultwin.Center()
+                resultwin.Show(True)
+		wx.Yield()
 
                 t = AttackThread(self,resultwin,claimDone,attackDone)
                 t.start()
 
                 resultwin.thread = t
-                resultwin.Center()
-                resultwin.Show(True)
 
             else:
                 # Darn, some errors. report.

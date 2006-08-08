@@ -52,7 +52,7 @@ class Preferences(dict):
                 key = line[:split].strip()
                 data = line[(split+1):]
                 self[key] = data.decode("string_escape")
-                print "Read %s=%s" % (key,self[key])
+                #print "Read %s=%s" % (key,self[key])
 
     def load(self,file=""):
         if file == None:
@@ -110,13 +110,13 @@ def init():
     sp = wx.StandardPaths.Get()
     confdir = sp.GetConfigDir()
     confdir += "/scyther"
-    print confdir
+    #print confdir
     userconfdir = sp.GetUserConfigDir()
     userconfdir += "/"
     if sys.platform.startswith("lin"):
         userconfdir += "."
     userconfdir += "scyther"
-    print userconfdir
+    #print userconfdir
 
     preflocs = [confdir,userconfdir]
 
