@@ -107,9 +107,9 @@ class AttackThread(threading.Thread):
                 self.makeImage(attack)
                 done += 1
                 if self.callbackattack:
-                    self.callbackattack(attack,self.totalattacks,done)
+                    wx.CallAfter(self.callbackattack,attack,self.totalattacks,done)
             if self.callbackclaim:
-                self.callbackclaim(cl)
+                wx.CallAfter(self.callbackclaim,cl)
 
     def makeImage(self,attack):
         """ create image for this particular attack """
