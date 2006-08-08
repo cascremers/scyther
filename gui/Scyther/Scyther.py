@@ -26,12 +26,12 @@ class Scyther(object):
         if sys.platform.startswith('win'):
             """ Windows """
             # TODO hardcoded for now, bad
-            self.program = os.path.join("bin","Scyther.exe")
+            self.program = "Scyther.exe"
             if not os.path.isfile(self.program):
                 print "I can't find the Scyther executable at %s" % (self.program)
         else:
             """ Non-windows """
-            self.program = os.path.join("bin","scyther")
+            self.program = "scyther"
 
         # Init
         self.spdl = None
