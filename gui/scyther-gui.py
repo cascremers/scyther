@@ -42,7 +42,7 @@ def parseArgs():
 
 class MySplashScreen(wx.SplashScreen):
     def __init__(self):
-        bmp = wx.Image(os.path.join("images","scyther-splash.png")).ConvertToBitmap()
+        bmp = wx.Image(os.path.join("Images","scyther-splash.png")).ConvertToBitmap()
         wx.SplashScreen.__init__(self, bmp,
                                  wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT,
                                  5000, None, -1)
@@ -100,6 +100,10 @@ class ScytherApp(wx.App):
 
     def OnExit(self):
         """ Tear down """
+
+
+#---------------------------------------------------------------------------
+
 
 if __name__ == '__main__':
     scythergui = ScytherApp()

@@ -117,7 +117,7 @@ class MainWindow(wx.Frame):
 
 
         def getBmp(name):
-            bmp = wx.Bitmap(os.path.join("images","%s.png" % name),wx.BITMAP_TYPE_PNG)
+            bmp = wx.Bitmap(os.path.join("Images","%s.png" % name),wx.BITMAP_TYPE_PNG)
             if not bmp.Ok():
                 tsize = (32,32)
                 bmp = wx.EmptyBitmap(tsize)
