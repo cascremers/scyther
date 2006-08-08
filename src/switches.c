@@ -495,12 +495,12 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "claim", 1))
+  if (detect (' ', "filter", 1))
     {
       if (!process)
 	{
-	  helptext ("--claim=<protocol>[,<label>]",
-		    "check only a certain claim");
+	  helptext ("--filter=<protocol>[,<label>]",
+		    "check only certain claims");
 	}
       else
 	{

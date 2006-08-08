@@ -421,10 +421,15 @@ isClaimlabelUsed (const System sys, const Term label)
 
 //! Generate a fresh claim label
 Term
-generateFreshClaimlabel (const System sys, const Role role, const Term claim)
+generateFreshClaimlabel (const System sys, const Protocol protocol,
+			 const Role role, const Term claim)
 {
+  Term label;
+
   /* Simply use the role as a prefix */
-  return freshTermPrefix (role->nameterm);
+  label = freshTermPrefix (role->nameterm);
+  label = makeTermTuple (protocol->nameterm, label);
+  return label;
 }
 
 //! Create a claim and add it to the claims list, and add the role event.
@@ -434,6 +439,14 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 {
   Claimlist cl;
   Term labeltuple;
+
+  /* generate full unique label */
+  /* is the label empty or used? */
+  if (label == NULL || isClaimlabelUsed (sys, label))
+    {
+      /* simply generate a fresh one */
+      label = generateFreshClaimlabel (sys, protocol, role, claim);
+    }
 
   if (switches.filterProtocol != NULL)
     {
@@ -447,27 +460,26 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
       // and maybe also a specific label?
       if (switches.filterLabel != NULL)
 	{
-	  Term t;
-
-	  t = label;
-	  while (isTermTuple (t))
+	  if (label == NULL)
 	    {
-	      t = TermOp2 (t);
-	    }
-	  if (strcmp (switches.filterLabel, TermSymb (t)->text) != 0)
-	    {
-	      // not this label; return
 	      return NULL;
 	    }
-	}
-    }
+	  else
+	    {
+	      Term t;
 
-  /* generate full unique label */
-  /* is the label empty or used? */
-  if (label == NULL || isClaimlabelUsed (sys, label))
-    {
-      /* simply generate a fresh one */
-      label = generateFreshClaimlabel (sys, role, claim);
+	      t = label;
+	      while (isTermTuple (t))
+		{
+		  t = TermOp2 (t);
+		}
+	      if (strcmp (switches.filterLabel, TermSymb (t)->text) != 0)
+		{
+		  // not this label; return
+		  return NULL;
+		}
+	    }
+	}
     }
 
   // Assert: label is unique, add claimlist info
@@ -710,6 +722,7 @@ commEvent (int event, Tac tc)
 		    ("Claim label is not unique at line %i, generating fresh label.",
 		     tc->lineno);
 		}
+	      // the reported new label will be generated later in claimCreate()
 	    }
 
 	  if (!isTermEqual (fromrole, thisRole->nameterm))

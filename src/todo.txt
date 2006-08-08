@@ -1,3 +1,5 @@
+- There is something weird when automatically generating claim labels
+  and trying to filter on them (try eg duplicates)
 - --check is slightly f***ed up because there is no good semantics for
   the --disable intruder check. As a result, it is now too strict can
   cause correct protocols to fail. Fix.
