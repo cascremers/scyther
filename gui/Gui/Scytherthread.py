@@ -283,7 +283,7 @@ class ResultWindow(wx.Frame):
             views += self.BuildClaim(grid,claims[index],index+1)
 
         if views > 0:
-            titlebar(6,"View",1)
+            titlebar(7,"View",1)
 
         self.SetSizer(grid)
         self.Fit()
@@ -350,6 +350,7 @@ class ResultWindow(wx.Frame):
         # remark something about completeness
         remark = ""
         atxt = cl.stateName(n)
+        vstatus = ""
         if not cl.complete:
             if n == 0:
                 # no attacks, no states within bounds
@@ -357,15 +358,27 @@ class ResultWindow(wx.Frame):
             else:
                 # some attacks/states within bounds
                 remark = "At least %i %s" % (n,atxt)
+                if not self.state:
+                    vstatus = "Falsified"
         else:
             if n == 0:
                 # no attacks, no states
                 remark = "No %s" % (atxt)
+                if cl.state:
+                    vstatus = "Falsified"
+                else:
+                    vstatus = "Verified"
             else:
                 # there exist n states/attacks (within any number of runs)
                 remark = "Exactly %i %s" % (n,atxt)
-        addtxt(remark,xpos)
-        xpos += 1
+                if cl.state:
+                    vstatus = "Verified"
+                else:
+                    vstatus = "Falsified"
+
+        addtxt(vstatus,xpos)
+        addtxt(remark,xpos+1)
+        xpos += 2
                 
         # add view button (enabled later if needed)
         if n > 0:
@@ -427,22 +440,19 @@ class ScytherRun(object):
 
                 def attackDone(attack,total,done):
                     if resultwin:
-                        if done < total:
-                            txt = "Generating attack graphs (%i of %i done)." % (done,total)
-                        else:
-                            txt = "Done."
+                        txt = "Generating attack graphs (%i of %i done)." % (done,total)
                         resultwin.SetStatusText(txt)
-                        resultwin.Refresh()
+                        #resultwin.Refresh()
 
                 def claimDone(claim):
                     if resultwin:
                         if claim.button and len(claim.attacks) > 0:
                             claim.button.Enable()
-                            #resultwin.Refresh()
 
                 def allDone():
                     if resultwin:
                         resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+                        resultwin.SetStatusText("Done.")
 
                 resultwin.Center()
                 resultwin.Show(True)
