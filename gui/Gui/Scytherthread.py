@@ -275,6 +275,7 @@ class ResultWindow(wx.Frame):
 
         titlebar(0,"Claim",4)
         titlebar(4,"Status",2)
+        titlebar(6,"Comments",1)
 
         self.lastprot = None
         self.lastrole = None
@@ -298,16 +299,19 @@ class ResultWindow(wx.Frame):
 
         # protocol, role, label
         prot = str(cl.protocol)
-        showPR = False
+        showP = False
+        showR = False
         if prot != self.lastprot:
             self.lastprot = prot
-            showPR = True
+            showP = True
+            showR = True
         role = str(cl.role)
         if role != self.lastrole:
             self.lastrole = role
-            showPR = True
-        if showPR:
+            showR = True
+        if showP:
             addtxt(prot,xpos)
+        if showR:
             addtxt(role,xpos+1)
         xpos += 2
         
@@ -358,7 +362,7 @@ class ResultWindow(wx.Frame):
             else:
                 # some attacks/states within bounds
                 remark = "At least %i %s" % (n,atxt)
-                if not self.state:
+                if not cl.state:
                     vstatus = "Falsified"
         else:
             if n == 0:
