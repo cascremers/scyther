@@ -138,7 +138,7 @@ class AttackWindow(wx.Frame):
 
     def SetTitle(self):
 
-        tstr = self.claim.stateName(len(self.claim.attacks))
+        tstr = self.claim.stateName(len(self.claim.attacks),True)
         tstr += " for claim %s" % self.claim.id
         super(AttackWindow, self).SetTitle(tstr)
 
@@ -170,7 +170,7 @@ class AttackWindow(wx.Frame):
             dp = wx.Notebook(self,-1)
             for i in range(0,n):
                 disp = AttackDisplay(self,dp,attacks[i])
-                classname = "%s %i" % (self.claim.stateName(),(i+1))
+                classname = "%s %i" % (self.claim.stateName(1,True),(i+1))
                 dp.AddPage(disp, classname)
                 self.displays.append(disp)
 

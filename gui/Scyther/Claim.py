@@ -68,8 +68,8 @@ class Claim(object):
             # attacks...
             self.okay = (not self.okay)
 
-    def stateName(self,count=1):
-        return stateDescription(self.state,count)
+    def stateName(self,count=1,caps=False):
+        return stateDescription(self.state,count,caps)
 
     def __str__(self):
         s = "claim id [%s]" % (self.id)
