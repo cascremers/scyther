@@ -81,6 +81,17 @@ class MainWindow(wx.Frame):
         ''' Create "interior" window components. In this case it is just a
             simple multiline text control. '''
 
+        ## Make zoom buttons
+        #sizer = wx.BoxSizer(wx.VERTICAL)
+        #buttons = wx.BoxSizer(wx.HORIZONTAL)
+        #bt = wx.Button(self,ID_VERIFY)
+        #buttons.Add(bt,0)
+        #self.Bind(wx.EVT_BUTTON, self.OnVerify, bt)
+        #bt = wx.Button(self,ID_STATESPACE)
+        #buttons.Add(bt,0)
+        #self.Bind(wx.EVT_BUTTON, self.OnStatespace, bt)
+        #sizer.Add(buttons, 0, wx.ALIGN_LEFT)
+
         # Top: input
         self.top = wx.Notebook(self,-1)
         self.control = wx.TextCtrl(self.top, style=wx.TE_MULTILINE)
@@ -93,51 +104,14 @@ class MainWindow(wx.Frame):
         self.settings = SettingsWindow(self.top,self)
         self.top.AddPage(self.settings,"Verification parameters")
 
-        #self.report.SetValue("Welcome.")
-
-        self.Show(1)
-
+        #sizer.Add(self.top,1,wx.EXPAND,1)
+        #self.SetSizer(sizer)
 
     def CreateExteriorWindowComponents(self):
         ''' Create "exterior" window components, such as menu and status
             bar. '''
         self.CreateMenus()
-        self.SetupToolBar()
         self.SetTitle()
-
-    def SetupToolBar(self):
-
-        tb = self.CreateToolBar(wx.TB_HORIZONTAL
-                #| wx.NO_BORDER
-                #| wx.TB_FLAT
-                )
-
-        #print "Default toolbar tool size: %s\n" % tb.GetToolBitmapSize()
-
-        def getBmp(name):
-            bmp = wx.Image(os.path.join("Images","%s.png" % name),wx.BITMAP_TYPE_PNG).ConvertToBitmap()
-            if not bmp.Ok():
-                bmp = wx.EmptyBitmap(32,32)
-            return bmp
-
-        bmpverify = getBmp("verify-button")
-        bmpcharacterize = getBmp("characterize-button")
-
-        # add the actual tools
-        tb.AddSimpleTool(ID_VERIFY, bmpverify,shortHelpString="Verify claims in protocol")
-        self.Bind(wx.EVT_TOOL, self.OnVerify, id=ID_VERIFY)
-        tb.AddSimpleTool(ID_STATESPACE,
-                bmpcharacterize,shortHelpString="Generate statespace for all roles")
-        self.Bind(wx.EVT_TOOL, self.OnStatespace, id=ID_STATESPACE)
-
-        # tb.AddSeparator()
-
-        # tb.AddSimpleTool(ID_CHECK, bmp,"Check","Check protocol")
-        # self.Bind(wx.EVT_TOOL, self.OnCheck, id=ID_CHECK)
-        # tb.AddSimpleTool(ID_AUTOVERIFY, bmp,"Default claims","Verify default claims")
-        # self.Bind(wx.EVT_TOOL, self.OnAutoVerify, id=ID_AUTOVERIFY)
-
-        tb.Realize()
 
     def CreateMenu(self, bar, name, list):
 
@@ -181,8 +155,7 @@ class MainWindow(wx.Frame):
     def SetTitle(self):
         # MainWindow.SetTitle overrides wx.Frame.SetTitle, so we have to
         # call it using super:
-        super(MainWindow, self).SetTitle('Scyther-gui: %s'%self.filename)
-
+        super(MainWindow, self).SetTitle('Scyther: %s'%self.filename)
 
     # Helper methods:
 
@@ -252,6 +225,7 @@ class MainWindow(wx.Frame):
     def firstCommand(self):
         if self.opts.command:
             # Trigger a command automatically
+            self.Show(True)
             self.RunScyther(self.opts.command)
                 
 
