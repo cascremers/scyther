@@ -426,20 +426,23 @@ class ScytherRun(object):
                 self.resultwin = resultwin = ResultWindow(self,mainwin,title)
 
                 def attackDone(attack,total,done):
-                    if done < total:
-                        txt = "Generating attack graphs (%i of %i done)." % (done,total)
-                    else:
-                        txt = "Done."
-                    resultwin.SetStatusText(txt)
-                    resultwin.Refresh()
+                    if resultwin:
+                        if done < total:
+                            txt = "Generating attack graphs (%i of %i done)." % (done,total)
+                        else:
+                            txt = "Done."
+                        resultwin.SetStatusText(txt)
+                        resultwin.Refresh()
 
                 def claimDone(claim):
-                    if claim.button and len(claim.attacks) > 0:
-                        claim.button.Enable()
-                        #resultwin.Refresh()
+                    if resultwin:
+                        if claim.button and len(claim.attacks) > 0:
+                            claim.button.Enable()
+                            #resultwin.Refresh()
 
                 def allDone():
-                    resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+                    if resultwin:
+                        resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
 
                 resultwin.Center()
                 resultwin.Show(True)

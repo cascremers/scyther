@@ -34,7 +34,7 @@ class MainWindow(wx.Frame):
         self.opts = opts
         self.args = args
 
-        self.dirname = '.'
+        self.dirname = os.path.abspath('.')
 
         self.filename = 'noname.spdl'
         self.load = False
@@ -264,7 +264,6 @@ class SettingsWindow(wx.Panel):
         wx.Panel.__init__(self,parent,-1)
 
         self.win = daddy
-
 
         # Bound on the number of runs
         self.maxruns = int(Preference.get('maxruns','5'))
