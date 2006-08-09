@@ -13,8 +13,9 @@
 
     match
     maxruns
-    scyther
     scytheroptions
+    bindir          where the scyther executables reside
+    splashscreen    0/1
 """
 
 #---------------------------------------------------------------------------

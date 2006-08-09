@@ -19,19 +19,32 @@ from Misc import *
 
 #---------------------------------------------------------------------------
 
+""" Globals """
+bindir="."
+
+#---------------------------------------------------------------------------
+
+def init(dir):
+    global bindir
+
+    bindir = dir
+
+#---------------------------------------------------------------------------
+
 class Scyther(object):
     def __init__ ( self):
+        global bindir
 
         # Where is my executable?
         if sys.platform.startswith('win'):
             """ Windows """
             # TODO hardcoded for now, bad
-            self.program = "Scyther.exe"
+            self.program = os.path.join(bindir,"Scyther.exe")
             if not os.path.isfile(self.program):
                 print "I can't find the Scyther executable at %s" % (self.program)
         else:
-            """ Non-windows """
-            self.program = "scyther"
+            """ Non-windows (linux) """
+            self.program = os.path.join(bindir,"scyther")
 
         # Init
         self.spdl = None

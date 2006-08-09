@@ -14,6 +14,7 @@ from optparse import OptionParser, SUPPRESS_HELP
 import Gui.Preference as Preference
 import Gui.Mainwindow as Mainwindow
 import Gui.Misc as Misc
+import Scyther.Scyther as Scyther
 
 #---------------------------------------------------------------------------
 
@@ -75,10 +76,15 @@ class ScytherApp(wx.App):
         wx.GetApp().SetAppName("Scyther-gui")
 
         # Parse arguments
+        basedir = os.path.abspath(os.path.dirname(sys.argv[0]))
         (opts,args) = parseArgs()
 
         # Load preferences file
         Preference.init()
+
+        # Init Scyther libs
+        bindir = Preference.get("bindir",os.path.join(basedir,"Scyther"))
+        Scyther.init(bindir)
 
         """
         Create and show the splash screen.  It will then create and show
