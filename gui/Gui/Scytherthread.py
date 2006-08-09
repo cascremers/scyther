@@ -261,13 +261,14 @@ class ResultWindow(wx.Frame):
         claims = self.parent.claims
 
         # set up grid
-        self.grid = grid = wx.GridBagSizer(7,1+len(claims))
+        self.grid = grid = wx.GridBagSizer(0,0)
+        #self.grid = grid = wx.GridBagSizer(7,1+len(claims))
 
         def titlebar(x,title,width=1):
             txt = wx.StaticText(self,-1,title)
             font = wx.Font(14,wx.NORMAL,wx.NORMAL,wx.NORMAL)
             txt.SetFont(font)
-            grid.Add(txt,(0,x),(1,width))
+            grid.Add(txt,(0,x),(1,width),wx.ALL,10)
 
         titlebar(0,"Claim",5)
         if len(claims) > 0:
@@ -288,7 +289,7 @@ class ResultWindow(wx.Frame):
     def BuildClaim(self,grid,cl,ypos):
         # a support function
         def addtxt(txt,column):
-            grid.Add(wx.StaticText(self,-1,txt),(ypos,column),(1,1),wx.ALIGN_CENTER_VERTICAL)
+            grid.Add(wx.StaticText(self,-1,txt),(ypos,column),(1,1),wx.ALIGN_CENTER_VERTICAL|wx.ALL,10)
 
         # button for ok/fail
         tsize = (16,16)
@@ -300,7 +301,7 @@ class ResultWindow(wx.Frame):
             bmp = wx.EmptyBitmap(tsize)
         bmpfield = wx.StaticBitmap(self,-1,bmp)
 
-        grid.Add(bmpfield,(ypos,0),(1,1),wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(bmpfield,(ypos,0),(1,1),wx.ALIGN_CENTER_VERTICAL|wx.ALL,10)
 
         # protocol, role, label
         prot = str(cl.protocol)
@@ -327,7 +328,7 @@ class ResultWindow(wx.Frame):
         n = len(cl.attacks)
         cl.button = wx.Button(self,-1,"%i %s" % (n,cl.stateName(n)))
         cl.button.claim = cl
-        grid.Add(cl.button,(ypos,5),(1,1),wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(cl.button,(ypos,5),(1,1),wx.ALIGN_CENTER_VERTICAL|wx.ALL,1)
         cl.button.Disable()
         if n > 0:
             # Aha, something to show
