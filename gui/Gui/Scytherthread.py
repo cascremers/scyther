@@ -266,22 +266,21 @@ class ResultWindow(wx.Frame):
 
         def titlebar(x,title,width=1):
             txt = wx.StaticText(self,-1,title)
-            font = wx.Font(14,wx.NORMAL,wx.NORMAL,wx.NORMAL)
+            font = wx.Font(14,wx.NORMAL,wx.NORMAL,wx.BOLD)
             txt.SetFont(font)
             grid.Add(txt,(0,x),(1,width),wx.ALL,10)
 
-        titlebar(0,"Claim",5)
-        if len(claims) > 0:
-            sn = claims[0].stateName(2)
-            resulttxt = sn[0].upper() + sn[1:]
-        else:
-            resulttxt = "Results"
-        titlebar(5,resulttxt,2)
+        titlebar(0,"Claim",4)
+        titlebar(4,"Status",2)
 
         self.lastprot = None
         self.lastrole = None
+        views = 0
         for index in range(0,len(claims)):
-            self.BuildClaim(grid,claims[index],index+1)
+            views += self.BuildClaim(grid,claims[index],index+1)
+
+        if views > 0:
+            titlebar(6,"View",1)
 
         self.SetSizer(grid)
         self.Fit()
@@ -291,17 +290,8 @@ class ResultWindow(wx.Frame):
         def addtxt(txt,column):
             grid.Add(wx.StaticText(self,-1,txt),(ypos,column),(1,1),wx.ALIGN_CENTER_VERTICAL|wx.ALL,10)
 
-        # button for ok/fail
-        tsize = (16,16)
-        if cl.okay:
-            bmp = wx.ArtProvider_GetBitmap(wx.ART_TICK_MARK,wx.ART_CMN_DIALOG,tsize)
-        else:
-            bmp = wx.ArtProvider_GetBitmap(wx.ART_CROSS_MARK,wx.ART_CMN_DIALOG,tsize)
-        if not bmp.Ok():
-            bmp = wx.EmptyBitmap(tsize)
-        bmpfield = wx.StaticBitmap(self,-1,bmp)
-
-        grid.Add(bmpfield,(ypos,0),(1,1),wx.ALIGN_CENTER_VERTICAL|wx.ALL,10)
+        n = len(cl.attacks)
+        xpos = 0
 
         # protocol, role, label
         prot = str(cl.protocol)
@@ -314,44 +304,85 @@ class ResultWindow(wx.Frame):
             self.lastrole = role
             showPR = True
         if showPR:
-            addtxt(prot,1)
-            addtxt(role,2)
+            addtxt(prot,xpos)
+            addtxt(role,xpos+1)
+        xpos += 2
         
-        addtxt(str(cl.shortlabel),3)
+        addtxt(str(cl.id),xpos)
+        xpos += 1
 
+        # claim parameters
         claimdetails = str(cl.claimtype)
         if cl.parameter:
             claimdetails += " %s" % (cl.parameter)
-        addtxt(claimdetails + "  ",4)
+        addtxt(claimdetails + "  ",xpos)
+        xpos += 1
 
-        # add view button (if needed)
-        n = len(cl.attacks)
-        cl.button = wx.Button(self,-1,"%i %s" % (n,cl.stateName(n)))
-        cl.button.claim = cl
-        grid.Add(cl.button,(ypos,5),(1,1),wx.ALIGN_CENTER_VERTICAL|wx.ALL,1)
-        cl.button.Disable()
-        if n > 0:
-            # Aha, something to show
-            self.Bind(wx.EVT_BUTTON, self.onViewButton,cl.button)
+        # button for ok/fail
+        if None:
+            # old style buttons (but they looked ugly on windows)
+            tsize = (16,16)
+            if cl.okay:
+                bmp = wx.ArtProvider_GetBitmap(wx.ART_TICK_MARK,wx.ART_CMN_DIALOG,tsize)
+            else:
+                bmp = wx.ArtProvider_GetBitmap(wx.ART_CROSS_MARK,wx.ART_CMN_DIALOG,tsize)
+            if not bmp.Ok():
+                bmp = wx.EmptyBitmap(tsize)
+            bmpfield = wx.StaticBitmap(self,-1,bmp)
+            grid.Add(bmpfield,(ypos,xpos),(1,1),wx.ALIGN_CENTER_VERTICAL|wx.ALL,10)
+        else:
+            # new style text control Ok/Fail
+            def makeTC(txt,colour):
+                txt = wx.StaticText(self,-1,txt)
+                font = wx.Font(11,wx.NORMAL,wx.NORMAL,wx.BOLD)
+                txt.SetFont(font)
+                txt.SetForegroundColour(colour)
+                grid.Add(txt,(ypos,xpos),(1,1),wx.ALL,10)
+            if cl.okay:
+                makeTC("Ok","forest green")
+            else:
+                makeTC("Fail","red")
+        xpos += 1
 
         # remark something about completeness
         remark = ""
+        atxt = cl.stateName(n)
         if not cl.complete:
             if n == 0:
                 # no attacks, no states within bounds
-                remark = "within bounds"
+                remark = "No %s within bounds" % (atxt)
             else:
                 # some attacks/states within bounds
-                remark = "at least, maybe more"
+                remark = "At least %i %s" % (n,atxt)
         else:
             if n == 0:
                 # no attacks, no states
-                remark = "none"
+                remark = "No %s" % (atxt)
             else:
                 # there exist n states/attacks (within any number of runs)
-                remark = "exactly"
-        addtxt(" (%s)" % remark,6)
+                remark = "Exactly %i %s" % (n,atxt)
+        addtxt(remark,xpos)
+        xpos += 1
                 
+        # add view button (enabled later if needed)
+        if n > 0:
+            cl.button = wx.Button(self,-1,"%i %s" % (n,cl.stateName(n)))
+            cl.button.claim = cl
+            grid.Add(cl.button,(ypos,xpos),(1,1),wx.ALIGN_CENTER_VERTICAL|wx.ALL,5)
+            cl.button.Disable()
+            if n > 0:
+                # Aha, something to show
+                self.Bind(wx.EVT_BUTTON, self.onViewButton,cl.button)
+        else:
+            cl.button = None
+        xpos += 1
+
+        # Return 1 if there is a view possible
+        if n > 0:
+            return 1
+        else:
+            return 0
+
 
 #---------------------------------------------------------------------------
 

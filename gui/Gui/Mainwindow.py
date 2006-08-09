@@ -108,13 +108,13 @@ class MainWindow(wx.Frame):
     def SetupToolBar(self):
 
         tb = self.CreateToolBar(wx.TB_HORIZONTAL
-                | wx.NO_BORDER
-                | wx.TB_FLAT
+                #| wx.NO_BORDER
+                #| wx.TB_FLAT
                 | wx.TB_TEXT
+                | wx.TB_NOICONS
                 )
 
         #print "Default toolbar tool size: %s\n" % tb.GetToolBitmapSize()
-
 
         def getBmp(name):
             bmp = wx.Bitmap(os.path.join("Images","%s.png" % name),wx.BITMAP_TYPE_PNG)
@@ -127,9 +127,10 @@ class MainWindow(wx.Frame):
         bmpcharacterize = getBmp("characterize-button")
 
         # add the actual tools
-        tb.AddSimpleTool(ID_VERIFY, bmpverify,"Verify","Verify claims")
+        tb.AddSimpleTool(ID_VERIFY, bmpverify,shortHelpString="Verify")
         self.Bind(wx.EVT_TOOL, self.OnVerify, id=ID_VERIFY)
-        tb.AddSimpleTool(ID_STATESPACE, bmpcharacterize,"Statespace","Generate statespace for all roles")
+        tb.AddSimpleTool(ID_STATESPACE,
+                bmpcharacterize,shortHelpString="Statespace")
         self.Bind(wx.EVT_TOOL, self.OnStatespace, id=ID_STATESPACE)
 
         # tb.AddSeparator()
