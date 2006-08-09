@@ -83,7 +83,7 @@ class Scyther(object):
     def verify(self):
 
         # Run Scyther on temp file
-        self.cmd = self.program
+        self.cmd = "\"%s\"" % self.program
         if self.xml:
             self.cmd += " --dot-output --xml-output --plain"
         self.cmd += " " + self.options
