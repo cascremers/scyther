@@ -15,6 +15,7 @@ import Preference
 import Attackwindow
 import Scytherthread
 import Icon
+import Scyther.Claim as Claim
 
 #---------------------------------------------------------------------------
 
@@ -256,6 +257,17 @@ class SettingsWindow(wx.Panel):
 
         ### MISC expert stuff
 
+        # Bound on the number of classes/attacks
+        self.maxattacks = int(Preference.get('maxattacks','100'))
+        stname = Claim.stateDescription(True,2,False)
+        atname = Claim.stateDescription(False,2,False)
+        txt = "%s/%s" % (stname,atname)
+        r9 = wx.StaticText(self,-1,"Maximum number of %s for all claims combined (0 disables maximum)" % txt)
+        l9 = wx.SpinCtrl(self, -1, "",style=wx.RIGHT)
+        l9.SetRange(0,100)
+        l9.SetValue(self.maxattacks)
+        self.Bind(wx.EVT_SPINCTRL,self.EvtMaxAttacks,l9)
+
         self.misc = Preference.get('scytheroptions','')
         r10 = wx.StaticText(self,-1,"Additional parameters for the Scyther tool")
         l10 = wx.TextCtrl(self,-1,self.misc,size=(150,-1))
@@ -266,6 +278,7 @@ class SettingsWindow(wx.Panel):
         sizer = wx.FlexGridSizer(cols=3, hgap=space,vgap=space)
         sizer.AddMany([ l1,r1, (0,0),
                         l2,r2, (0,0),
+                        l9,r9, (0,0),
                         l10,r10, (0,0),
                         ])
         self.SetSizer(sizer)
@@ -276,6 +289,9 @@ class SettingsWindow(wx.Panel):
 
     def EvtRuns(self,evt):
         self.maxruns = evt.GetInt()
+
+    def EvtMaxAttacks(self,evt):
+        self.maxattacks = evt.GetInt()
 
     def EvtMisc(self,evt):
         self.misc = evt.GetString()
@@ -291,6 +307,9 @@ class SettingsWindow(wx.Panel):
         tstr += "--max-runs=%s " % (str(self.maxruns))
         # Matching type
         tstr += "--match=%s " % (str(self.match))
+        # Max attacks/classes
+        if self.maxattacks != 0:
+            tstr += "--max-attacks=%s " % (str(self.maxattacks))
 
         # Verification type
         if mode == "check":
