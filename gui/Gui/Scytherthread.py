@@ -64,11 +64,12 @@ class ScytherThread(threading.Thread):
         """
 
         self.parent.scyther = scyther = Scyther.Scyther()
-        
         scyther.options = self.parent.options
-
         scyther.setInput(self.parent.spdl)
+
+        # verification start
         self.parent.claims = scyther.verify()
+
         self.parent.summary = str(scyther)
 
 #---------------------------------------------------------------------------

@@ -250,10 +250,9 @@ class SettingsWindow(wx.Panel):
         self.match = int(Preference.get('match','0'))
         claimoptions = ['typed matching','find basic type flaws','find all type flaws']
         r2 = wx.StaticText(self,-1,"Matching type")
-        #l2 = wx.RadioBox(self, -1, "", wx.DefaultPosition,wx.DefaultSize,claimoptions,1,wx.RA_SPECIFY_COLS)
         l2 = self.ch = wx.Choice(self,-1,choices=claimoptions)
         l2.SetSelection(self.match)
-        self.Bind(wx.EVT_RADIOBOX,self.EvtMatch,l2)
+        self.Bind(wx.EVT_CHOICE,self.EvtMatch,l2)
 
         ### MISC expert stuff
 

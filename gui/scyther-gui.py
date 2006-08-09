@@ -33,6 +33,10 @@ def parseArgs():
     parser.add_option("-c","--check",dest="command",default=None,action="store_const",const="check",
             help="Immediately check protocol (requires input file)")
 
+    # no-splash
+    parser.add_option("-N","--no-splash",dest="splashscreen",default=True,action="store_const",const=False,
+            help="Do not show the splash screen")
+
     # misc debug etc (not shown in the --help output)
     parser.add_option("","--test",dest="test",default=False,action="store_true",
             help=SUPPRESS_HELP)
@@ -83,7 +87,7 @@ class ScytherApp(wx.App):
         Preference.init()
 
         # Init Scyther libs from preferences
-        bindir = Preference.get("bindir",os.path.join(basedir,"Scyther"))
+        bindir = Preference.get("bindir",Scyther.getBinDir())
         Scyther.setBinDir(bindir)
 
         """
@@ -94,7 +98,7 @@ class ScytherApp(wx.App):
         by a setting in the preferences file.
         """
         if not opts.command:
-            if not (Preference.get('splashscreen') in ['false','off','disable','0']):
+            if opts.splashscreen and not (Preference.get('splashscreen') in ['false','off','disable','0']):
                 splash = MySplashScreen()
                 splash.Show()
 

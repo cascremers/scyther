@@ -29,6 +29,11 @@ def setBinDir(dir):
 
     bindir = dir
 
+def getBinDir():
+    global bindir
+
+    return bindir
+
 #---------------------------------------------------------------------------
 
 class Scyther(object):
@@ -36,15 +41,16 @@ class Scyther(object):
         global bindir
 
         # Where is my executable?
+        prefix = os.path.abspath(bindir)
         if sys.platform.startswith('win'):
             """ Windows """
             # TODO hardcoded for now, bad
-            self.program = os.path.join(bindir,"Scyther.exe")
+            self.program = os.path.join(prefix,"Scyther.exe")
             if not os.path.isfile(self.program):
                 print "I can't find the Scyther executable at %s" % (self.program)
         else:
             """ Non-windows (linux) """
-            self.program = os.path.join(bindir,"scyther")
+            self.program = os.path.join(prefix,"scyther")
 
         # Init
         self.spdl = None

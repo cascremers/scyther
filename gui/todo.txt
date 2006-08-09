@@ -1,11 +1,6 @@
 URGENT
-- Splash screen image is not located correctly (after dir move), causing
-  the windows version to break.
 
 TO BE DONE
-- Verify buttons need redesign and must be smaller (or maybe simply move
-  to text)
-- Windows buttons are not visible now.
 
 WOULD LIKE TO HAVE
 - Attacks are not kept centered well.
