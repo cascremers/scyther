@@ -110,8 +110,6 @@ class MainWindow(wx.Frame):
         tb = self.CreateToolBar(wx.TB_HORIZONTAL
                 #| wx.NO_BORDER
                 #| wx.TB_FLAT
-                | wx.TB_TEXT
-                | wx.TB_NOICONS
                 )
 
         #print "Default toolbar tool size: %s\n" % tb.GetToolBitmapSize()
@@ -168,12 +166,12 @@ class MainWindow(wx.Frame):
              [(ID_VERIFY, '&Verify protocol\tF1','Verify the protocol in the buffer using Scyther',
                  self.OnVerify) ,
              (ID_STATESPACE, 'Generate &statespace\tF2','TODO' ,
-                 self.OnAutoVerify) ,
+                 self.OnStatespace) ,
              (None, None, None, None),
              (ID_CHECK, '&Check protocol\tF5','TODO',
-                 self.OnStatespace) ,
+                 self.OnCheck) ,
              (ID_AUTOVERIFY, 'Verify &automatic claims\tF6','TODO',
-                 self.OnCheck)
+                 self.OnAutoVerify) 
              ])
         self.CreateMenu(menuBar, '&Help',
             [(wx.ID_ABOUT, '&About', 'Information about this program',
