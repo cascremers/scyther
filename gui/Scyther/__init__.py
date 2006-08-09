@@ -6,4 +6,4 @@
 #
 import Scyther
 
-Scyther.init(__path__[0])
+Scyther.setBinDir(__path__[0])

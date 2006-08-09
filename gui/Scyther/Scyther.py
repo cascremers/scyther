@@ -24,7 +24,7 @@ bindir="."
 
 #---------------------------------------------------------------------------
 
-def init(dir):
+def setBinDir(dir):
     global bindir
 
     bindir = dir

@@ -82,9 +82,9 @@ class ScytherApp(wx.App):
         # Load preferences file
         Preference.init()
 
-        # Init Scyther libs
+        # Init Scyther libs from preferences
         bindir = Preference.get("bindir",os.path.join(basedir,"Scyther"))
-        Scyther.init(bindir)
+        Scyther.setBinDir(bindir)
 
         """
         Create and show the splash screen.  It will then create and show
