@@ -1,0 +1,4 @@
+wxicon icon Images/scyther-gui-64.ico
+wxicon icon Images/scyther-gui-32.ico
+wxicon icon Images/scyther-gui-16.ico
+#include "wx/msw/wx.rc"
