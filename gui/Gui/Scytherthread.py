@@ -79,12 +79,13 @@ class AttackThread(threading.Thread):
     background """
 
     # Override Thread's __init__ method to accept the parameters needed:
-    def __init__ ( self, parent, resultwin, callbackclaim=None,callbackattack=None ):
+    def __init__ ( self, parent, resultwin, callbackclaim=None,callbackattack=None,callbackdone=None ):
 
         self.parent = parent
         self.resultwin = resultwin
         self.callbackclaim = callbackclaim
         self.callbackattack = callbackattack
+        self.callbackdone = callbackdone
         self.totalattacks = 0
         for cl in self.parent.claims:
             for attack in cl.attacks:
@@ -110,6 +111,8 @@ class AttackThread(threading.Thread):
                     wx.CallAfter(self.callbackattack,attack,self.totalattacks,done)
             if self.callbackclaim:
                 wx.CallAfter(self.callbackclaim,cl)
+        if self.callbackdone:
+            wx.CallAfter(self.callbackdone)
 
     def makeImage(self,attack):
         """ create image for this particular attack """
@@ -435,11 +438,16 @@ class ScytherRun(object):
                         claim.button.Enable()
                         #resultwin.Refresh()
 
+                def allDone():
+                    resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+
                 resultwin.Center()
                 resultwin.Show(True)
-		wx.Yield()
+                resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROWWAIT))
 
-                t = AttackThread(self,resultwin,claimDone,attackDone)
+                wx.Yield()
+
+                t = AttackThread(self,resultwin,claimDone,attackDone,allDone)
                 t.start()
 
                 resultwin.thread = t
