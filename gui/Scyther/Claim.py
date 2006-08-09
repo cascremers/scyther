@@ -4,6 +4,20 @@
 
 import Term
 
+def stateDescription(okay,n=1,caps=False):
+    if okay:
+        s = "trace class"
+        if n != 1:
+            s += "es"
+    else:
+        s = "attack"
+        if n != 1:
+            s += "s"
+    if caps:
+        s = s[0].upper() + s[1:]
+    return s
+
+
 class Claim(object):
     def __init__(self):
         self.id = None          # a unique id string, consisting of 'protocol,label'
@@ -55,13 +69,7 @@ class Claim(object):
             self.okay = (not self.okay)
 
     def stateName(self,count=1):
-        if self.state:
-            s = "state"
-        else:
-            s = "attack"
-        if count != 1:
-            s += "s"
-        return s
+        return stateDescription(self.state,count)
 
     def __str__(self):
         s = "claim id [%s]" % (self.id)

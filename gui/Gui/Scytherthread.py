@@ -285,7 +285,7 @@ class ResultWindow(wx.Frame):
             views += self.BuildClaim(grid,claims[index],index+1)
 
         if views > 0:
-            titlebar(7,"View",1)
+            titlebar(7,"Classes",1)
 
         self.SetSizer(grid)
         self.Fit()
