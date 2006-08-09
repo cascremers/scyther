@@ -11,3 +11,5 @@ WOULD LIKE TO HAVE
   - Save in local file on close.
   - Scyther executable should be able to be set by means of preferences.
     (Using a file select dialog)
+- Refactoring: constructing the comment of a claim (now in
+  Gui/Scytherthread) should really be in Scyther/Claim.
