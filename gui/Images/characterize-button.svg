@@ -14,11 +14,11 @@
    id="svg1307"
    sodipodi:version="0.32"
    inkscape:version="0.43"
-   sodipodi:docbase="/home/cas/svn/scyther/gui/images"
+   sodipodi:docbase="/home/cas/svn/scyther/gui/Images"
    sodipodi:docname="characterize-button.svg"
-   inkscape:export-filename="/home/cas/svn/scyther/gui/images/characterize-button.png"
-   inkscape:export-xdpi="90"
-   inkscape:export-ydpi="90">
+   inkscape:export-filename="/home/cas/svn/scyther/gui/Images/characterize-button.png"
+   inkscape:export-xdpi="45"
+   inkscape:export-ydpi="45">
   <defs
      id="defs1309">
     <linearGradient
@@ -105,8 +105,8 @@
      inkscape:pageshadow="2"
      inkscape:zoom="12.296875"
      inkscape:cx="32"
-     inkscape:cy="53.817265"
-     inkscape:current-layer="layer6"
+     inkscape:cy="25.734125"
+     inkscape:current-layer="layer3"
      showgrid="true"
      inkscape:document-units="px"
      inkscape:grid-bbox="true"
@@ -219,17 +219,6 @@
      id="layer3"
      inkscape:label="text"
      style="display:inline">
-    <text
-       xml:space="preserve"
-       style="font-size:13px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;opacity:0.35353537;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Monospace"
-       x="31.191406"
-       y="42.815918"
-       id="text4893"
-       sodipodi:linespacing="100%"><tspan
-         sodipodi:role="line"
-         id="tspan4895"
-         x="31.191406"
-         y="42.815918">REACH</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:13px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Monospace"

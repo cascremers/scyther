@@ -115,20 +115,19 @@ class MainWindow(wx.Frame):
         #print "Default toolbar tool size: %s\n" % tb.GetToolBitmapSize()
 
         def getBmp(name):
-            bmp = wx.Bitmap(os.path.join("Images","%s.png" % name),wx.BITMAP_TYPE_PNG)
+            bmp = wx.Image(os.path.join("Images","%s.png" % name),wx.BITMAP_TYPE_PNG).ConvertToBitmap()
             if not bmp.Ok():
-                tsize = (32,32)
-                bmp = wx.EmptyBitmap(tsize)
+                bmp = wx.EmptyBitmap(32,32)
             return bmp
 
         bmpverify = getBmp("verify-button")
         bmpcharacterize = getBmp("characterize-button")
 
         # add the actual tools
-        tb.AddSimpleTool(ID_VERIFY, bmpverify,shortHelpString="Verify")
+        tb.AddSimpleTool(ID_VERIFY, bmpverify,shortHelpString="Verify claims in protocol")
         self.Bind(wx.EVT_TOOL, self.OnVerify, id=ID_VERIFY)
         tb.AddSimpleTool(ID_STATESPACE,
-                bmpcharacterize,shortHelpString="Statespace")
+                bmpcharacterize,shortHelpString="Generate statespace for all roles")
         self.Bind(wx.EVT_TOOL, self.OnStatespace, id=ID_STATESPACE)
 
         # tb.AddSeparator()
