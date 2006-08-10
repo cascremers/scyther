@@ -71,6 +71,35 @@ class Claim(object):
     def stateName(self,count=1,caps=False):
         return stateDescription(self.state,count,caps)
 
+    def getOkay(self):
+        """
+        returns "Ok" or "Fail"
+        """
+        if self.okay:
+            return "Ok"
+        else:
+            return "Fail"
+
+    def getRank(self):
+        """
+        Return claim rank
+        0 - really failed
+        1 - probably failed
+        2 - probably okay
+        3 - really okay
+        """
+        if not self.okay:
+            # not okay
+            if self.complete:
+                return 0
+            else:
+                return 1
+        else:
+            # okay!
+            if not self.complete:
+                return 2
+            else:
+                return 3
     def getComment(self):
         """
         returns a sentence describing the results for this claim
@@ -94,35 +123,13 @@ class Claim(object):
                 remark = "Exactly %i %s" % (n,atxt)
         return remark + "."
 
-    def getOkay(self):
-        """
-        returns "Ok" or "Fail"
-        """
-        if self.okay:
-            return "Ok"
-        else:
-            return "Fail"
 
     def getVerified(self):
         """
         returns an element of [None,'Verified','Falsified']
         """
-        n = len(self.attacks)
-        if self.state:
-            # this is about reachability
-            if n > 0:
-                return "Verified"
-            else:
-                if self.complete:
-                    return "Falsified"
-        else:
-            # this is about attacks
-            if n > 0:
-                return "Falsified"
-            else:
-                if self.complete:
-                    return "Verified"
-        return None
+        rl = ['Falsified',None,None,'Verified']
+        return rl[self.getRank()]
 
     def __str__(self):
         """
