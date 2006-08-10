@@ -71,15 +71,6 @@ class Claim(object):
     def stateName(self,count=1,caps=False):
         return stateDescription(self.state,count,caps)
 
-    def getOkay(self):
-        """
-        returns "Ok" or "Fail"
-        """
-        if self.okay:
-            return "Ok"
-        else:
-            return "Fail"
-
     def getRank(self):
         """
         Return claim rank
@@ -88,15 +79,16 @@ class Claim(object):
         2 - probably okay
         3 - really okay
         """
+        n = len(self.attacks)
         if not self.okay:
             # not okay
-            if self.complete:
+            if (self.state and self.complete) or ((not self.state) and (n > 0)):
                 return 0
             else:
                 return 1
         else:
             # okay!
-            if not self.complete:
+            if not ((self.state and (n > 0)) or ((not self.state) and self.complete)):
                 return 2
             else:
                 return 3
@@ -129,8 +121,9 @@ class Claim(object):
         """
         returns an element of [None,'Verified','Falsified']
         """
-        rl = ['Falsified',None,None,'Verified']
-        return rl[self.getRank()]
+        opts = ['Falsified',None,None,'Verified']
+        return opts[self.getRank()]
+
 
     def __str__(self):
         """
@@ -141,11 +134,7 @@ class Claim(object):
             s+= " %s" % self.parameter
 
         # determine status
-        s+= " : %s status : %i %s" % (self.getOkay(),self.failed,self.stateName(self.failed))
-        vt = self.getVerified()
-        if vt:
-            s+= ", and thus the claim is %s" % vt
-        s+= ". %s" % self.getComment()
+        s+= "\t: %s" % self.getComment()
 
         return s
 
