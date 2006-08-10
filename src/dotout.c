@@ -1620,11 +1620,6 @@ dotSemiState (const System mysys)
   termPrintRemap (sys->current_claim->type);
   eprintf ("\";\n");
 
-  // Globals
-  eprintf ("\tfontname=Helvetica;\n");
-  eprintf ("\tnode [fontname=Helvetica];\n");
-  eprintf ("\tedge [fontname=Helvetica];\n");
-
   // Needed for the bindings later on: create graph
 
   nodes = nodeCount ();
