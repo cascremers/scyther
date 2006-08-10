@@ -142,16 +142,18 @@ class AttackWindow(wx.Frame):
         ''' Create "interior" window components. In this case it is the
         attack picture. '''
 
-        # Make zoom buttons
         sizer = wx.BoxSizer(wx.VERTICAL)
-        buttons = wx.BoxSizer(wx.HORIZONTAL)
-        bt = wx.Button(self,wx.ID_ZOOM_100)
-        buttons.Add(bt,0)
-        self.Bind(wx.EVT_BUTTON, self.OnZoom100, bt)
-        bt = wx.Button(self,wx.ID_ZOOM_FIT)
-        buttons.Add(bt,0)
-        self.Bind(wx.EVT_BUTTON, self.OnZoomFit, bt)
-        sizer.Add(buttons, 0, wx.ALIGN_LEFT)
+
+        # Make zoom buttons
+        if Preference.usePIL():
+            buttons = wx.BoxSizer(wx.HORIZONTAL)
+            bt = wx.Button(self,wx.ID_ZOOM_100)
+            buttons.Add(bt,0)
+            self.Bind(wx.EVT_BUTTON, self.OnZoom100, bt)
+            bt = wx.Button(self,wx.ID_ZOOM_FIT)
+            buttons.Add(bt,0)
+            self.Bind(wx.EVT_BUTTON, self.OnZoomFit, bt)
+            sizer.Add(buttons, 0, wx.ALIGN_LEFT)
         
         # Add attacks (possible with tabs)
         self.displays=[]
