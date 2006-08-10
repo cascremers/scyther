@@ -100,6 +100,7 @@ class Claim(object):
                 return 2
             else:
                 return 3
+
     def getComment(self):
         """
         returns a sentence describing the results for this claim
