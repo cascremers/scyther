@@ -2,7 +2,7 @@
 
   Requirements:
   	
-	windows:	python (enthought)	code.enthough.com/enthon
+	windows:	python (enthought)	code.enthought.com/enthon
 	(all python dependencies, only need graphviz)
 
 	python				www.python.org
