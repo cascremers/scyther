@@ -58,8 +58,8 @@ class MainWindow(wx.Frame):
         self.CreateExteriorWindowComponents()
 
         aTable = wx.AcceleratorTable([
-                                      #(wx.ACCEL_ALT,  ord('X'), exitID),
-                                      (wx.ACCEL_CTRL, ord('W'), wx.ID_EXIT),
+                                      (wx.ACCEL_ALT,  ord('X'), wx.ID_EXIT),
+                                      (wx.ACCEL_CTRL, ord('Q'), wx.ID_EXIT),
                                       (wx.ACCEL_NORMAL, wx.WXK_F1,
                                           ID_VERIFY),
                                       (wx.ACCEL_NORMAL, wx.WXK_F2,
@@ -134,7 +134,7 @@ class MainWindow(wx.Frame):
              (wx.ID_SAVEAS, 'Save &As', 'Save the file under a different name',
                 self.OnSaveAs),
              (None, None, None, None),
-             (wx.ID_EXIT, 'E&xit\tCTRL-W', 'Terminate the program',
+             (wx.ID_EXIT, 'E&xit\tCTRL-Q', 'Terminate the program',
                  self.OnExit)])
         self.CreateMenu(menuBar, '&Verify',
              [(ID_VERIFY, '&Verify protocol\tF1','Verify the protocol in the buffer using Scyther',

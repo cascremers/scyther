@@ -78,7 +78,7 @@ class AttackDisplay(wx.ScrolledWindow):
         if self.attack.filetype == "png":
             bmp = self.original
             if not bmp.Ok():
-                bmp = wx.EmptyBitmap((1,1))
+                bmp = wx.EmptyImage(1,1)
             else:
                 (W,H) = (bmp.GetWidth(), bmp.GetHeight())
                 if self.win.fit:

@@ -109,6 +109,62 @@ class AttackThread(threading.Thread):
         if self.callbackdone:
             wx.CallAfter(self.callbackdone)
 
+    def writeGraph(self,txt,fp):
+
+        def graphLine(txt):
+            fp.write("\t%s;\n" % (txt))
+
+        def setAttr(EdgeNodeDefAll,atxt):
+            if EdgeNodeDefAll == 3:
+                setAttr(0,atxt)
+                setAttr(1,atxt)
+                setAttr(2,atxt)
+            else:
+                if EdgeNodeDefAll == 0:
+                    edge = "edge"
+                elif EdgeNodeDefAll == 1:
+                    edge = "node"
+                else:
+                    graphLine("%s" % atxt)
+                    return
+                graphLine("%s [%s]" % (edge,atxt))
+
+        def oldFontDefs(txt):
+            """
+            Old hack. Remove after windows recompile TODO
+            """
+            if txt.startswith("\tfontname"):
+                return True
+            if txt.startswith("\tfontsize"):
+                return True
+            if txt.startswith("\tnode [fontname"):
+                return True
+            if txt.startswith("\tnode [fontsize"):
+                return True
+            if txt.startswith("\tedge [fontname"):
+                return True
+            if txt.startswith("\tedge [fontsize"):
+                return True
+            return False
+
+        for l in txt.splitlines():
+            # hack to get rid of font defs
+            # TODO remove this once new windows version is compiled
+            if not oldFontDefs(l):
+                fp.write(l)
+                if l.startswith("digraph"):
+                    # Write additional stuff for this graph
+                    graphLine("rankdir=TB")
+                    graphLine("nodesep=0.1")
+                    graphLine("ranksep=0.001")
+                    graphLine("mindist=0.1")
+                    setAttr(3,"fontname=Sans")
+                    setAttr(3,"fontsize=10")
+                    setAttr(1,"height=\"0.01\"")
+                    setAttr(1,"width=\"0.01\"")
+                    setAttr(1,"margin=\"0.08,0.03\"")
+                    #setAttr(0,"decorate=true")
+
     def makeImage(self,attack):
         """ create image for this particular attack """
         if Preference.usePIL():
@@ -124,11 +180,13 @@ class AttackThread(threading.Thread):
         # command to write to temporary file
         (fd2,fpname2) = Tempfile.tempcleaned(ext)
         f = os.fdopen(fd2,'w')
+
         cmd = "dot -T%s" % (type)
 
         # execute command
         cin,cout = os.popen2(cmd,'b')
-        cin.write(attack.scytherDot)
+    
+        self.writeGraph(attack.scytherDot,cin)
         cin.close()
 
         for l in cout.read():
