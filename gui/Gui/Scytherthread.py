@@ -395,16 +395,22 @@ class ResultWindow(wx.Frame):
             grid.Add(bmpfield,(ypos,xpos),(1,1),wx.ALIGN_CENTER_VERTICAL|wx.ALL,10)
         else:
             # new style text control Ok/Fail
-            def makeTC(txt,colour):
-                txt = wx.StaticText(self,-1,txt)
+            def makeTC(colour):
+                txt = wx.StaticText(self,-1,cl.getOkay())
                 font = wx.Font(11,wx.NORMAL,wx.NORMAL,wx.BOLD)
                 txt.SetFont(font)
                 txt.SetForegroundColour(colour)
                 grid.Add(txt,(ypos,xpos),(1,1),wx.ALL,10)
             if cl.okay:
-                makeTC("Ok","forest green")
+                if cl.getVerified():
+                    makeTC("forest green")
+                else:
+                    makeTC("dark green")
             else:
-                makeTC("Fail","red")
+                if cl.getVerified():
+                    makeTC("red")
+                else:
+                    makeTC("dark red")
         xpos += 1
 
         # verified?

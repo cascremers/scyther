@@ -94,6 +94,15 @@ class Claim(object):
                 remark = "Exactly %i %s" % (n,atxt)
         return remark + "."
 
+    def getOkay(self):
+        """
+        returns "Ok" or "Fail"
+        """
+        if self.okay:
+            return "Ok"
+        else:
+            return "Fail"
+
     def getVerified(self):
         """
         returns an element of [None,'Verified','Falsified']
@@ -119,25 +128,16 @@ class Claim(object):
         """
         Resulting string
         """
-        s = "claim id [%s]" % (self.id)
-        s+= " " + str(self.claimtype)
+        s = "claim id [%s], %s" % (self.id,self.claimtype)
         if self.parameter:
-            s+= " " + str(self.parameter)
+            s+= " %s" % self.parameter
 
         # determine status
-        s+= " : "
-        if self.okay:
-            s+= "[Ok] "
-        else:
-            s+= "[Fail] "
-
-        s+= " %i " % (self.failed)
-        s+= self.stateName(self.failed)
-
+        s+= " : %s status : %i %s" % (self.getOkay(),self.failed,self.stateName(self.failed))
         vt = self.getVerified()
         if vt:
-            s+= " (%s)" % vt
-        s+= " [%s]" % self.getComment()
+            s+= ", and thus the claim is %s" % vt
+        s+= ". %s" % self.getComment()
 
         return s
 
