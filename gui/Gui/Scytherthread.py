@@ -160,8 +160,7 @@ class AttackThread(threading.Thread):
                     graphLine("ranksep=0.001")
                     graphLine("mindist=0.1")
                     if sys.platform.startswith("lin"):
-                        #setAttr(3,"fontname=\"Sans\"")
-                        setAttr(3,"fontname=\"Arial\"")
+                        setAttr(3,"fontname=\"Sans\"")
                     else:
                         setAttr(3,"fontname=\"Arial\"")
                     setAttr(3,"fontsize=10")
