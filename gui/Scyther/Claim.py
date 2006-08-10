@@ -71,17 +71,73 @@ class Claim(object):
     def stateName(self,count=1,caps=False):
         return stateDescription(self.state,count,caps)
 
+    def getComment(self):
+        """
+        returns a sentence describing the results for this claim
+        """
+        n = len(self.attacks)
+        atxt = self.stateName(n)
+        remark = ""
+        if not self.complete:
+            if n == 0:
+                # no attacks, no states within bounds
+                remark = "No %s within bounds" % (atxt)
+            else:
+                # some attacks/states within bounds
+                remark = "At least %i %s" % (n,atxt)
+        else:
+            if n == 0:
+                # no attacks, no states
+                remark = "No %s" % (atxt)
+            else:
+                # there exist n states/attacks (within any number of runs)
+                remark = "Exactly %i %s" % (n,atxt)
+        return remark + "."
+
+    def getVerified(self):
+        """
+        returns an element of [None,'Verified','Falsified']
+        """
+        n = len(self.attacks)
+        if self.state:
+            # this is about reachability
+            if n > 0:
+                return "Verified"
+            else:
+                if self.complete:
+                    return "Falsified"
+        else:
+            # this is about attacks
+            if n > 0:
+                return "Falsified"
+            else:
+                if self.complete:
+                    return "Verified"
+        return None
+
     def __str__(self):
+        """
+        Resulting string
+        """
         s = "claim id [%s]" % (self.id)
         s+= " " + str(self.claimtype)
         if self.parameter:
             s+= " " + str(self.parameter)
 
         # determine status
-        s+= " : %i " % (self.failed)
+        s+= " : "
+        if self.okay:
+            s+= "[Ok] "
+        else:
+            s+= "[Fail] "
+
+        s+= " %i " % (self.failed)
         s+= self.stateName(self.failed)
-        if self.complete:
-            s+= " (complete)"
+
+        vt = self.getVerified()
+        if vt:
+            s+= " (%s)" % vt
+        s+= " [%s]" % self.getComment()
 
         return s
 

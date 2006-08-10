@@ -370,6 +370,7 @@ class ResultWindow(wx.Frame):
             addtxt(role,xpos+1)
         xpos += 2
         
+        # claim id
         addtxt(str(cl.id),xpos)
         xpos += 1
 
@@ -406,38 +407,15 @@ class ResultWindow(wx.Frame):
                 makeTC("Fail","red")
         xpos += 1
 
-        # remark something about completeness
-        remark = ""
-        atxt = cl.stateName(n)
-        vstatus = ""
-        if not cl.complete:
-            if n == 0:
-                # no attacks, no states within bounds
-                remark = "No %s within bounds" % (atxt)
-            else:
-                # some attacks/states within bounds
-                remark = "At least %i %s" % (n,atxt)
-                if not cl.state:
-                    vstatus = "Falsified"
-        else:
-            if n == 0:
-                # no attacks, no states
-                remark = "No %s" % (atxt)
-                if cl.state:
-                    vstatus = "Falsified"
-                else:
-                    vstatus = "Verified"
-            else:
-                # there exist n states/attacks (within any number of runs)
-                remark = "Exactly %i %s" % (n,atxt)
-                if cl.state:
-                    vstatus = "Verified"
-                else:
-                    vstatus = "Falsified"
+        # verified?
+        vt = cl.getVerified()
+        if vt:
+            addtxt(vt,xpos)
+        xpos += 1
 
-        addtxt(vstatus,xpos)
-        addtxt(remark,xpos+1)
-        xpos += 2
+        # remark something 
+        addtxt(cl.getComment(),xpos)
+        xpos += 1
                 
         # add view button (enabled later if needed)
         if n > 0:
