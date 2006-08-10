@@ -154,6 +154,7 @@ class AttackThread(threading.Thread):
                 fp.write(l)
                 if l.startswith("digraph"):
                     # Write additional stuff for this graph
+                    graphLine("dpi=96")
                     graphLine("rankdir=TB")
                     graphLine("nodesep=0.1")
                     graphLine("ranksep=0.001")
