@@ -34,10 +34,31 @@ from time import localtime,strftime
 #---------------------------------------------------------------------------
 
 """ Globals """
+# Do we have the Python Imaging library?
+havePIL = True
+try:
+    import Image
+except ImportError:
+    havePIL = False 
 
 """ Locations of preferences. The last one is supposedly writable. """
 prefname = "scythergui-config"
 preflocs = []
+
+#---------------------------------------------------------------------------
+
+def usePIL():
+    """
+    Determine whether or not we should use the PIL library
+    """
+    global havePIL
+
+    # Only if we have it, and it is windows.
+    if havePIL:
+        if sys.platform.startswith("lin"):
+            return True
+
+    return False
 
 #---------------------------------------------------------------------------
 

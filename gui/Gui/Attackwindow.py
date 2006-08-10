@@ -5,18 +5,16 @@
 """ Import externals """
 import wx
 import time
-# Python Imaging library?
-usePIL = True
-try:
-    import Image
-except ImportError:
-    usePIL = False 
 
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
 import Icon
+import Preference
 
+#---------------------------------------------------------------------------
+if Preference.usePIL():
+    import Image
 #---------------------------------------------------------------------------
 
 class AttackDisplay(wx.ScrolledWindow):
@@ -117,8 +115,6 @@ class AttackDisplay(wx.ScrolledWindow):
 
 class AttackWindow(wx.Frame):
     def __init__(self,cl):
-        global usePIL
-
         super(AttackWindow, self).__init__(None, size=(400,800))
         self.SetBackgroundColour('Default')
         self.claim = cl
@@ -126,7 +122,7 @@ class AttackWindow(wx.Frame):
         # TODO maybe fitting defaults should come from Preferences.
         # Now, it is default yes if it looks nice (i.e. we are using
         # PIL)
-        if usePIL:
+        if Preference.usePIL():
             self.fit = True
         else:
             self.fit = False

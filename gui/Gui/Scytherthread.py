@@ -10,13 +10,6 @@ import re
 import threading
 import StringIO
 
-# Python Imaging library?
-usePIL = True
-try:
-    import Image
-except ImportError:
-    usePIL = False 
-
 #---------------------------------------------------------------------------
 
 """ Import scyther components """
@@ -31,7 +24,8 @@ import Attackwindow
 import Icon
 
 #---------------------------------------------------------------------------
-
+if Preference.usePIL():
+    import Image
 #---------------------------------------------------------------------------
 
 class ScytherThread(threading.Thread):
@@ -117,9 +111,7 @@ class AttackThread(threading.Thread):
 
     def makeImage(self,attack):
         """ create image for this particular attack """
-        global usePIL
-
-        if usePIL:
+        if Preference.usePIL():
             # If we have the PIL library, we can do postscript! great
             # stuff.
             type = "ps"
