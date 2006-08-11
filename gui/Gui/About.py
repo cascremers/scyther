@@ -16,7 +16,10 @@ class AboutScyther(wx.Dialog):
     text = '''
 <html>
 <body bgcolor="#ffffff">
-    <center><h2>Scyther</h2></center>
+    <center>
+        <h1>Scyther</h1>
+        Version 1.0-beta 4
+    </center>
 <hr>
 <p>
     <b>Scyther</b> is an automatic tool for the verification and
@@ -34,6 +37,7 @@ class AboutScyther(wx.Dialog):
     Credits: Cas Cremers (Scyther theory, backend, and main GUI
     code), Gijs Hollestelle (Python wrapper for Scyther XML output).
 </p>
+<hr>
 '''
 
     def __init__(self,parent):
