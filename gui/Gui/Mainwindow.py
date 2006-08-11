@@ -178,7 +178,12 @@ class MainWindow(wx.Frame):
     # Event handlers:
 
     def OnAbout(self, event):
-        msg = "Scyther GUI\n\nScyther and Scyther GUI\ndeveloped by Cas Cremers"
+        msg = "Scyther"
+        msg += "\n"
+        msg += "\nScyther and Scyther GUI"
+        msg += "\ndeveloped by Cas Cremers 2004-2006"
+        msg += "\n"
+        msg += "\nCredits: Gijs Hollestelle (Python wrapper around Scyther XML)"
         dialog = wx.MessageDialog(self,msg, 'About scyther-gui', wx.OK)
         dialog.ShowModal()
         dialog.Destroy()
