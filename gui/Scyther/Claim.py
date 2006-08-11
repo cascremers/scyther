@@ -106,9 +106,23 @@ class Claim(object):
         Returns a colour that expresses the state
         """
         colours = ['#FF0000',
-                   '#AA4000',
-                   '#558000',
-                   '#00C000']
+                   '#800000',
+                   '#005800',
+                   '#00B000']
+        return colours[self.getRank()]
+
+    def getOkay(self):
+        """
+        Returns a very brief statement about the claim.
+
+        Originally the two mid options had a question mark appended, but
+        from a users' point of view this might only be more confusing,
+        so I took them out again.
+        """
+        colours = ['Fail',
+                   'Fail',
+                   'Ok',
+                   'Ok']
         return colours[self.getRank()]
 
     def getComment(self):

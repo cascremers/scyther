@@ -381,10 +381,7 @@ class ResultWindow(wx.Frame):
         else:
             # new style text control Ok/Fail
             rankc = cl.getColour()
-            if cl.okay:
-                rankt = "Ok"
-            else:
-                rankt = "Fail"
+            rankt = cl.getOkay()
             txt = wx.StaticText(self,-1,rankt)
             font = wx.Font(11,wx.NORMAL,wx.NORMAL,wx.BOLD)
             txt.SetFont(font)
