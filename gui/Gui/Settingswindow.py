@@ -16,14 +16,31 @@ import Scyther.Claim as Claim
 
 class MyGrid(wx.GridBagSizer):
 
-    def stepInit(self):
+    def __init__(self,parent):
+        wx.GridBagSizer.__init__(self,hgap=5, vgap=5)
         self.ypos = 0
+        self.parent = parent
 
     def stepAdd(self,ctrl,txt):
-        self.Add(ctrl,(self.ypos,0),flag=wx.ALIGN_RIGHT)
-        self.Add(txt,(self.ypos,1),flag=wx.ALIGN_CENTER_VERTICAL)
+        self.Add(ctrl,(self.ypos,1),flag=wx.ALIGN_LEFT)
+        self.Add(txt,(self.ypos,0),flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         self.ypos += 1
 
+    def lineAdd(self):
+        line = wx.StaticLine(self.parent,-1)
+        self.Add(line,pos=(self.ypos,0),span=(1,2),flag=wx.EXPAND|wx.ALIGN_BOTTOM)
+        self.ypos += 1
+
+    def titleAdd(self,title,firstLine=True):
+        if firstLine:
+            self.lineAdd()
+        self.ypos += 1
+        txt = wx.StaticText(self.parent,-1,title)
+        font = wx.Font(12,wx.DEFAULT,wx.BOLD,wx.NORMAL)
+        txt.SetFont(font)
+        self.Add(txt,pos=(self.ypos,0),span=(1,2),flag=wx.ALIGN_CENTER)
+        self.ypos += 1
+        self.lineAdd()
 
 #---------------------------------------------------------------------------
 
@@ -33,9 +50,10 @@ class SettingsWindow(wx.Panel):
         wx.Panel.__init__(self,parent,-1)
 
         self.win = daddy
-        space = 10
-        grid = MyGrid(hgap=space,vgap=space)
-        grid.stepInit()
+        grid = MyGrid(self)
+
+        ### Parameters
+        grid.titleAdd("Verification parameters",False)
 
         # Bound on the number of runs
         self.maxruns = int(Preference.get('maxruns','5'))
@@ -56,6 +74,7 @@ class SettingsWindow(wx.Panel):
         grid.stepAdd(l2,r2)
 
         ### MISC expert stuff
+        grid.titleAdd("Advanced parameters")
 
         # Bound on the number of classes/attacks
         self.maxattacks = int(Preference.get('maxattacks','100'))
@@ -76,6 +95,7 @@ class SettingsWindow(wx.Panel):
         grid.stepAdd(l10,r10)
 
         ### Graph output stuff
+        grid.titleAdd("Graph output parameters")
 
         # Bound on the number of classes/attacks
         if sys.platform.startswith("lin"):
@@ -91,6 +111,7 @@ class SettingsWindow(wx.Panel):
         grid.stepAdd(ctrl,txt)
 
         ### Combine
+        grid.lineAdd()
         self.SetSizer(grid)
         self.SetAutoLayout(True)
 

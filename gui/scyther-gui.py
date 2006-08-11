@@ -11,6 +11,7 @@ from optparse import OptionParser, SUPPRESS_HELP
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
+import Gui.About as About
 import Gui.Preference as Preference
 import Gui.Mainwindow as Mainwindow
 import Gui.Misc as Misc
@@ -76,6 +77,14 @@ class MySplashScreen(wx.SplashScreen):
 
 #---------------------------------------------------------------------------
 
+def isSplashNeeded(opts):
+    if not opts.command:
+        if opts.splashscreen and not (Preference.get('splashscreen') in ['false','off','disable','0']):
+            return True
+    return False
+
+#---------------------------------------------------------------------------
+
 class ScytherApp(wx.App):
     def OnInit(self):
 
@@ -99,14 +108,18 @@ class ScytherApp(wx.App):
         #The splash screen is disabled for automatic commands, and also
         #by a setting in the preferences file.
         #"""
-        #if not opts.command:
-        #    if opts.splashscreen and not (Preference.get('splashscreen') in ['false','off','disable','0']):
-        #        splash = MySplashScreen(basedir)
-        #        splash.Show()
+        #if isSplashNeeded(opts):
+        #    splash = MySplashScreen(basedir)
+        #    splash.Show()
 
         self.mainWindow = Mainwindow.MainWindow(opts,args)
         self.SetTopWindow(self.mainWindow)
         self.mainWindow.Show()
+
+        if isSplashNeeded(opts):
+            dlg = About.AboutScyther(self.mainWindow)
+            dlg.ShowModal()
+            dlg.Destroy()
 
         return True
 

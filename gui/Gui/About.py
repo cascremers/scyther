@@ -16,24 +16,32 @@ class AboutScyther(wx.Dialog):
     text = '''
 <html>
 <body bgcolor="#ffffff">
-<center><table bgcolor = "#000000" width="100%" cellspacing="0"
-cellpadding="0" border="1">
-<tr>
-    <td align="center"><h1>Scyther</h1></td>
-</tr>
-</table>
-</center>
-<p><b>Scyther</b> is cool.
-        Scyther and Scyther GUI
-        developed by Cas Cremers 2004-2006
-        Credits: Gijs Hollestelle (Python wrapper around Scyther XML)
+    <center><h2>Scyther</h2></center>
+<hr>
+<p>
+    <b>Scyther</b> is an automatic tool for the verification and
+    falsification of security protocols.
+</p>
+<p>
+    Scyther and Scyther GUI developed by
+    Cas Cremers 2004-2006.
+</p>
+<p>
+    For news and updates visit the Scyther pages at 
+    http://www.win.tue.nl/~ccremers/scyther/index.html
+</p>
+<p>
+    Credits: Cas Cremers (Scyther theory, backend, and main GUI
+    code), Gijs Hollestelle (Python wrapper for Scyther XML output).
 </p>
 '''
 
     def __init__(self,parent):
         wx.Dialog.__init__(self, parent, -1, 'About Scyther',
-                size=(440,400))
+                size=(400,300))
         html = wx.html.HtmlWindow(self)
+        if "gtk2" in wx.PlatformInfo:
+            html.SetStandardFonts()
         html.SetPage(self.text)
         button = wx.Button(self, wx.ID_OK, "Okay")
 
