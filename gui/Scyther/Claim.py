@@ -105,10 +105,10 @@ class Claim(object):
         """
         Returns a colour that expresses the state
         """
-        colours = ['red',
-                   'dark red',
-                   'dark green',
-                   'pale green']
+        colours = ['#FF0000',
+                   '#800000',
+                   '#006000',
+                   '#00C000']
         return colours[self.getRank()]
 
     def getComment(self):
