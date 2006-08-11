@@ -12,6 +12,7 @@ import os.path
 import Settingswindow
 import Scytherthread
 import Icon
+import About
 
 #---------------------------------------------------------------------------
 
@@ -138,8 +139,9 @@ class MainWindow(wx.Frame):
              (ID_STATESPACE, 'Generate &statespace\tF2','TODO' ,
                  self.OnStatespace) ,
              (None, None, None, None),
-             (ID_CHECK, '&Check protocol\tF5','TODO',
-                 self.OnCheck) ,
+             ### Disabled for now (given that it is not reliable enough yet)
+             #(ID_CHECK, '&Check protocol\tF5','TODO',
+             #    self.OnCheck) ,
              (ID_AUTOVERIFY, 'Verify &automatic claims\tF6','TODO',
                  self.OnAutoVerify) 
              ])
@@ -178,15 +180,9 @@ class MainWindow(wx.Frame):
     # Event handlers:
 
     def OnAbout(self, event):
-        msg = "Scyther"
-        msg += "\n"
-        msg += "\nScyther and Scyther GUI"
-        msg += "\ndeveloped by Cas Cremers 2004-2006"
-        msg += "\n"
-        msg += "\nCredits: Gijs Hollestelle (Python wrapper around Scyther XML)"
-        dialog = wx.MessageDialog(self,msg, 'About scyther-gui', wx.OK)
-        dialog.ShowModal()
-        dialog.Destroy()
+        dlg = About.AboutScyther(self)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def OnExit(self, event):
         self.Close()  # Close the main window.

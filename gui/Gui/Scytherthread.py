@@ -148,8 +148,9 @@ class AttackThread(threading.Thread):
                     setAttr("fontname=\"Helvetica\"")
                 else:
                     setAttr("fontname=\"Arial\"")
-                fontsize = self.parent.mainwin.settings.fontsize
-                setAttr("fontsize=%s" % fontsize)
+                if self.parent and self.parent.mainwin:
+                    fontsize = self.parent.mainwin.settings.fontsize
+                    setAttr("fontsize=%s" % fontsize)
                 setAttr("height=\"0.01\"",NODE)
                 setAttr("width=\"0.01\"",NODE)
                 setAttr("margin=\"0.08,0.03\"",NODE)

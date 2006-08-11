@@ -46,8 +46,10 @@ def parseArgs():
 #---------------------------------------------------------------------------
 
 class MySplashScreen(wx.SplashScreen):
-    def __init__(self):
-        bmp = wx.Image(os.path.join("Images","scyther-splash.png")).ConvertToBitmap()
+    def __init__(self,basedir):
+        path = os.path.join(basedir,"Images")
+        image = os.path.join(path,"scyther-splash.png")
+        bmp = wx.Image(image).ConvertToBitmap()
         wx.SplashScreen.__init__(self, bmp,
                                  wx.SPLASH_CENTRE_ON_SCREEN | wx.SPLASH_TIMEOUT,
                                  5000, None, -1)
@@ -90,17 +92,17 @@ class ScytherApp(wx.App):
         bindir = Preference.get("bindir",Scyther.getBinDir())
         Scyther.setBinDir(bindir)
 
-        """
-        Create and show the splash screen.  It will then create and show
-        the main frame when it is time to do so.
-        
-        The splash screen is disabled for automatic commands, and also
-        by a setting in the preferences file.
-        """
-        if not opts.command:
-            if opts.splashscreen and not (Preference.get('splashscreen') in ['false','off','disable','0']):
-                splash = MySplashScreen()
-                splash.Show()
+        #"""
+        #Create and show the splash screen.  It will then create and show
+        #the main frame when it is time to do so.
+        #
+        #The splash screen is disabled for automatic commands, and also
+        #by a setting in the preferences file.
+        #"""
+        #if not opts.command:
+        #    if opts.splashscreen and not (Preference.get('splashscreen') in ['false','off','disable','0']):
+        #        splash = MySplashScreen(basedir)
+        #        splash.Show()
 
         self.mainWindow = Mainwindow.MainWindow(opts,args)
         self.SetTopWindow(self.mainWindow)
