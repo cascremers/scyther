@@ -5,17 +5,13 @@
 """ Import externals """
 import wx
 import os.path
-import sys
-import wx.lib.mixins.listctrl as listmix
 
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
-import Preference
-import Attackwindow
+import Settingswindow
 import Scytherthread
 import Icon
-import Scyther.Claim as Claim
 
 #---------------------------------------------------------------------------
 
@@ -102,7 +98,7 @@ class MainWindow(wx.Frame):
             os.chdir(self.dirname)
             textfile.close()
         self.top.AddPage(self.control,"Protocol description")
-        self.settings = SettingsWindow(self.top,self)
+        self.settings = Settingswindow.SettingsWindow(self.top,self)
         self.top.AddPage(self.settings,"Verification parameters")
 
         #sizer.Add(self.top,1,wx.EXPAND,1)
@@ -231,102 +227,4 @@ class MainWindow(wx.Frame):
                 
 
 #---------------------------------------------------------------------------
-
-class SettingsWindow(wx.Panel):
-
-    def __init__(self,parent,daddy):
-        wx.Panel.__init__(self,parent,-1)
-
-        self.win = daddy
-
-        # Bound on the number of runs
-        self.maxruns = int(Preference.get('maxruns','5'))
-        r1 = wx.StaticText(self,-1,"Maximum number of runs (0 disables bound)")
-        l1 = wx.SpinCtrl(self, -1, "",style=wx.RIGHT)
-        l1.SetRange(0,100)
-        l1.SetValue(self.maxruns)
-        self.Bind(wx.EVT_SPINCTRL,self.EvtRuns,l1)
-
-        # Matchin options
-        self.match = int(Preference.get('match','0'))
-        claimoptions = ['typed matching','find basic type flaws','find all type flaws']
-        r2 = wx.StaticText(self,-1,"Matching type")
-        l2 = self.ch = wx.Choice(self,-1,choices=claimoptions)
-        l2.SetSelection(self.match)
-        self.Bind(wx.EVT_CHOICE,self.EvtMatch,l2)
-
-        ### MISC expert stuff
-
-        # Bound on the number of classes/attacks
-        self.maxattacks = int(Preference.get('maxattacks','100'))
-        stname = Claim.stateDescription(True,2,False)
-        atname = Claim.stateDescription(False,2,False)
-        txt = "%s/%s" % (stname,atname)
-        r9 = wx.StaticText(self,-1,"Maximum number of %s for all claims combined (0 disables maximum)" % txt)
-        l9 = wx.SpinCtrl(self, -1, "",style=wx.RIGHT)
-        l9.SetRange(0,100)
-        l9.SetValue(self.maxattacks)
-        self.Bind(wx.EVT_SPINCTRL,self.EvtMaxAttacks,l9)
-
-        self.misc = Preference.get('scytheroptions','')
-        r10 = wx.StaticText(self,-1,"Additional parameters for the Scyther tool")
-        l10 = wx.TextCtrl(self,-1,self.misc,size=(150,-1))
-        self.Bind(wx.EVT_TEXT,self.EvtMisc,l10)
-
-        # Combine
-        space = 10
-        sizer = wx.FlexGridSizer(cols=3, hgap=space,vgap=space)
-        sizer.AddMany([ l1,r1, (0,0),
-                        l2,r2, (0,0),
-                        l9,r9, (0,0),
-                        l10,r10, (0,0),
-                        ])
-        self.SetSizer(sizer)
-        self.SetAutoLayout(True)
-
-    def EvtMatch(self,evt):
-        self.match = evt.GetInt()
-
-    def EvtRuns(self,evt):
-        self.maxruns = evt.GetInt()
-
-    def EvtMaxAttacks(self,evt):
-        self.maxattacks = evt.GetInt()
-
-    def EvtMisc(self,evt):
-        self.misc = evt.GetString()
-
-    def ScytherArguments(self,mode):
-        """ Note: constructed strings should have a space at the end to
-            correctly separate the options.
-        """
-
-        tstr = ""
-
-        # Number of runs
-        tstr += "--max-runs=%s " % (str(self.maxruns))
-        # Matching type
-        tstr += "--match=%s " % (str(self.match))
-        # Max attacks/classes
-        if self.maxattacks != 0:
-            tstr += "--max-attacks=%s " % (str(self.maxattacks))
-
-        # Verification type
-        if mode == "check":
-            tstr += "--check "
-        elif mode == "autoverify":
-            tstr += "--auto-claims "
-        elif mode == "statespace":
-            tstr += "--state-space "
-
-        # Anything else?
-        if self.misc != "":
-            tstr += " " + self.misc + " "
-
-        return tstr
-
-#---------------------------------------------------------------------------
-
-
-    
 
