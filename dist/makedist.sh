@@ -9,28 +9,27 @@
 #	A distribution is a directory
 #
 #	   scyther/
-#	      - readme.txt file with some indications from this
-#	        directory.
-#	      demo/
-#	        - demo files
+#	      - everything from ../gui
 #	      SPORE/
 #	        - spore files
-#	      scyther/
-#	        - scyther executable
 #	      
 
 #------------------------------------------------------------------------------
 #
 #	Parameters
 
-ARCHIVE=scyther.tgz
+RELEASE="scyther-1.0-beta4"
+
+ARCHIVE="$RELEASE.tgz"
+ZIPPED="$RELEASE.zip"
 
 #	Creates a temporary subdirectory here.
 TMPDIR=/tmp/scytherdist
 WORKNAME=scyther
 
 #	Repository
-SVNROOT=https://svn.win.tue.nl/repos/ecss/trunk/protocols/spdl
+PROTROOT=https://svn.win.tue.nl/repos/ecss/trunk/protocols/spdl
+SVNROOT=https://svn.win.tue.nl/repos/scyther/trunk
 
 #------------------------------------------------------------------------------
 #
@@ -39,6 +38,7 @@ SVNROOT=https://svn.win.tue.nl/repos/ecss/trunk/protocols/spdl
 WORKDIR=$TMPDIR/$WORKNAME
 CURDIR=$PWD
 DEST=$PWD/$ARCHIVE
+ZIPDEST=$PWD/$ZIPPED
 
 #------------------------------------------------------------------------------
 #
@@ -46,11 +46,9 @@ DEST=$PWD/$ARCHIVE
 
 #	Remove old remnants and create a new directory
 rm -f $DEST
+rm -f $ZIPDEST
 rm -rf $TMPDIR
 mkdir $TMPDIR
-
-#	Create scyther/
-mkdir $WORKDIR
 
 #------------------------------------------------------------------------------
 #
@@ -58,12 +56,8 @@ mkdir $WORKDIR
 
 
 #	Fill
-svn export $SVNROOT/SPORE $WORKDIR/SPORE
-svn export $SVNROOT/demo $WORKDIR/demo
-svn export $SVNROOT/scyther $WORKDIR/bin
-
-#	Readme
-cp readme.txt $WORKDIR
+svn export $SVNROOT/gui $WORKDIR
+svn export $PROTROOT/SPORE $WORKDIR/SPORE
 
 #------------------------------------------------------------------------------
 #
@@ -72,6 +66,7 @@ cp readme.txt $WORKDIR
 #	Compress
 cd $TMPDIR
 tar zcvf $DEST $WORKNAME
+zip -r $ZIPDEST $WORKNAME
 
 #	Remove garbage
 rm -rf $TMPDIR
