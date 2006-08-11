@@ -5,6 +5,7 @@
 """ Import externals """
 import wx
 import os.path
+import sys
 
 #---------------------------------------------------------------------------
 
@@ -15,7 +16,9 @@ import Misc
 
 def ScytherIcon(window):
         """ Set a nice Scyther icon """
-        iconfile = Misc.mypath(os.path.join("images","scyther-gui-32.ico"))
+        basedir = os.path.abspath(os.path.dirname(sys.argv[0]))
+        path = os.path.join(basedir,"Images")
+        iconfile = Misc.mypath(os.path.join(path,"scyther-gui-32.ico"))
         if os.path.isfile(iconfile):
             icon = wx.Icon(iconfile,wx.BITMAP_TYPE_ICO)
             window.SetIcon(icon)
