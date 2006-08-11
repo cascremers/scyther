@@ -46,6 +46,7 @@ class AttackDisplay(wx.ScrolledWindow):
             print "Unknown file type %s." % (self.filetype)
 
         # TODO self.Bind(wxSizeEvent
+        self.update(True)
         self.Fit()
 
     def OnSize(self,event):
