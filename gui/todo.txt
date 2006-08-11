@@ -11,7 +11,9 @@ WOULD LIKE TO HAVE
 
 - Font selector for graphs.
 - Nice graph scaling for all platforms (now only supported under Linux
-  using the Python Imaging Library through postscript)
+  using the Python Imaging Library through postscript; currently
+  wxPython does not support any cross-platform vector format out of the
+  box, as SVG is still only a non-default build option.)
 - Support for using an external editor.
   - toggle for 'watch file'.
     - toggle for 'auto-verify on change' or something like that.

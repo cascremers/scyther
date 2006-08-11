@@ -2,7 +2,11 @@
 
 """
 
-Test script to execute multi-protocol attacks on some test set.
+Example script to show how to perform large-scale tests using the
+Scyther Python API (contained in the Scyther subdirectory)
+
+In this example, multi-protocol attack analysis is performed on a small
+test set.
 
 """
 
@@ -111,21 +115,26 @@ def findAllMPA(protocolset,maxcount=3):
     """
     Given a set of protocols, find multi-protocol attacks
     """
-    (protocolset,correct) = getCorrectIsolatedClaims(protocolset)
-    print correct
-    for (protocol,claimid) in correct:
-        mpalist = findMPA(protocolset,protocol,claimid,maxcount=3)
-        if mpalist:
-            print "Darn, MPA on %s (%s) using %s" % (claimid,protocol,mpalist)
 
+    # Find all correct claims in each protocol
+    (protocolset,correct) = getCorrectIsolatedClaims(protocolset)
+    # For all these claims...
+    for (protocol,claimid) in correct:
+        # Try to find multi-protocol attacks
+        findMPA(protocolset,protocol,claimid,maxcount=3)
 
 
 if __name__ == '__main__':
     """
-    Simple test case
+    Simple test case with a few protocols
     """
+
     list = ['me.spdl','ns3.spdl','nsl3.spdl']
+    print "Performing multi-protocol analysis for the following protocols:", list
+    print
     findAllMPA(list)
+    print
+    print "Analysis complete."
 
 
 
