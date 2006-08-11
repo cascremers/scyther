@@ -55,7 +55,7 @@ class MainWindow(wx.Frame):
         self.CreateExteriorWindowComponents()
 
         aTable = wx.AcceleratorTable([
-                                      (wx.ACCEL_ALT,  ord('X'), wx.ID_EXIT),
+                                      (wx.ACCEL_CTRL,  ord('W'), wx.ID_EXIT),
                                       (wx.ACCEL_CTRL, ord('Q'), wx.ID_EXIT),
                                       (wx.ACCEL_NORMAL, wx.WXK_F1,
                                           ID_VERIFY),
@@ -100,7 +100,7 @@ class MainWindow(wx.Frame):
             textfile.close()
         self.top.AddPage(self.control,"Protocol description")
         self.settings = Settingswindow.SettingsWindow(self.top,self)
-        self.top.AddPage(self.settings,"Verification parameters")
+        self.top.AddPage(self.settings,"Settings")
 
         #sizer.Add(self.top,1,wx.EXPAND,1)
         #self.SetSizer(sizer)
