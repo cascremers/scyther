@@ -49,10 +49,14 @@ class AttackDisplay(wx.ScrolledWindow):
         self.Fit()
 
     def OnSize(self,event):
-        self.update()
+        self.update(False)
         event.Skip()
 
-    def update(self):
+    def update(self,force=True):
+
+        if not force:
+            if not self.win.fit:
+                return
 
         self.SetScrollbars(0,0,0,0,0,0)
         (sw,sh) = self.GetClientSizeTuple()
@@ -174,9 +178,9 @@ class AttackWindow(wx.Frame):
 
         self.SetSizer(sizer)
 
-    def update(self):
+    def update(self,force=False):
         for t in self.displays:
-            t.update()
+            t.update(force)
 
     def OnFit(self,event):
 
@@ -184,24 +188,24 @@ class AttackWindow(wx.Frame):
             self.fit = False
         else:
             self.fit = True
-        self.update()
+        self.update(True)
 
     def OnRealSize(self):
 
         self.fit = False
-        self.update()
+        self.update(True)
 
     def OnSize(self):
         self.Refresh()
 
     def OnZoom100(self,evt):
         self.fit = False
-        self.update()
+        self.update(True)
         self.Refresh()
 
     def OnZoomFit(self,evt):
         self.fit = True
-        self.update()
+        self.update(True)
         self.Refresh()
 
 
