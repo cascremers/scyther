@@ -28,7 +28,8 @@ class MyGrid(wx.GridBagSizer):
 
     def lineAdd(self):
         line = wx.StaticLine(self.parent,-1)
-        self.Add(line,pos=(self.ypos,0),span=(1,2),flag=wx.EXPAND|wx.ALIGN_BOTTOM)
+        # Currently it is not expanded, and thus invisible.
+        self.Add(line,pos=(self.ypos,0),span=(1,2),flag=wx.TOP|wx.BOTTOM)
         self.ypos += 1
 
     def titleAdd(self,title,firstLine=True):
@@ -36,7 +37,7 @@ class MyGrid(wx.GridBagSizer):
             self.lineAdd()
         self.ypos += 1
         txt = wx.StaticText(self.parent,-1,title)
-        font = wx.Font(12,wx.DEFAULT,wx.BOLD,wx.NORMAL)
+        font = wx.Font(12,wx.DEFAULT,wx.NORMAL,wx.BOLD)
         txt.SetFont(font)
         self.Add(txt,pos=(self.ypos,0),span=(1,2),flag=wx.ALIGN_CENTER)
         self.ypos += 1
