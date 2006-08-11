@@ -15,6 +15,8 @@
 #include "error.h"
 #include "specialterm.h"
 
+#include "release.h"
+
 // Program name
 const char *progname = "scyther";
 
@@ -1175,12 +1177,16 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  printf ("'%s' model checker for security protocols.\n", progname);
+	  printf ("Version %s.\n", RELEASEVERSION);
+	  if (switches.expert)
+	  {
 #ifdef DEBUG
 	  printf ("Revision %s, compiled with debugging support.\n",
 		  SVNVERSION);
 #else
 	  printf ("Revision %s\n", SVNVERSION);
 #endif
+	  }
 	  printf ("Code by Cas Cremers\n");
 	  exit (0);
 	}
