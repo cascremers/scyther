@@ -1,15 +1,28 @@
 URGENT
 
+-
+
 TO BE DONE
 
+- Config file should use Python's confParse module.
+- Save preferences in local file on close.
+
 WOULD LIKE TO HAVE
-- Attacks are not kept centered well.
+
+- Font selector for graphs.
+- Nice graph scaling for all platforms (now only supported under Linux
+  using the Python Imaging Library through postscript)
+- Support for using an external editor.
+  - toggle for 'watch file'.
+    - toggle for 'auto-verify on change' or something like that.
 - Ideally we somehow color the correct/incorrect tags in the editor.
 - Line numbering is needed for the editor window otherwise you cannot
   interpret attacks. Probably use wx.Py editor things.
-- Preferences window.
-  - Save in local file on close.
-  - Scyther executable should be able to be set by means of preferences.
-    (Using a file select dialog)
-- Refactoring: constructing the comment of a claim (now in
-  Gui/Scytherthread) should really be in Scyther/Claim.
+- Scyther executable should be able to be set by means of preferences.
+- Save attacks (dot/xml/png) to file.
+
+IN AN IDEAL WORLD...
+
+- Use Python modules to generate the attack graphs from the XML, also
+  allow for eg. ASCII output.
+

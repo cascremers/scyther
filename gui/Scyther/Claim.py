@@ -93,6 +93,24 @@ class Claim(object):
             else:
                 return 3
 
+    def getVerified(self):
+        """
+        returns an element of [None,'Verified','Falsified']
+        """
+        opts = ['Falsified',None,None,'Verified']
+        return opts[self.getRank()]
+
+
+    def getColour(self):
+        """
+        Returns a colour that expresses the state
+        """
+        colours = ['red',
+                   'dark red',
+                   'dark green',
+                   'pale green']
+        return colours[self.getRank()]
+
     def getComment(self):
         """
         returns a sentence describing the results for this claim
@@ -115,14 +133,6 @@ class Claim(object):
                 # there exist n states/attacks (within any number of runs)
                 remark = "Exactly %i %s" % (n,atxt)
         return remark + "."
-
-
-    def getVerified(self):
-        """
-        returns an element of [None,'Verified','Falsified']
-        """
-        opts = ['Falsified',None,None,'Verified']
-        return opts[self.getRank()]
 
 
     def __str__(self):

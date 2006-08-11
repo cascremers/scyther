@@ -83,7 +83,7 @@ class SettingsWindow(wx.Panel):
         else:
             defsize = 11
         self.fontsize = int(Preference.get('fontsize',defsize))
-        txt = wx.StaticText(self,-1,"Attack graph font size")
+        txt = wx.StaticText(self,-1,"Attack graph font size (in points)")
         ctrl = wx.SpinCtrl(self, -1, "",style=wx.RIGHT)
         ctrl.SetRange(6,32)
         ctrl.SetValue(self.fontsize)

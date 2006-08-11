@@ -380,15 +380,15 @@ class ResultWindow(wx.Frame):
             grid.Add(bmpfield,(ypos,xpos),(1,1),wx.ALIGN_CENTER_VERTICAL|wx.ALL,10)
         else:
             # new style text control Ok/Fail
-            rank = cl.getRank()
-            rankt = [('Fail','red'),
-                     ('Fail','dark red'),
-                     ('Ok','dark green'),
-                     ('Ok','forest green')]
-            txt = wx.StaticText(self,-1,rankt[rank][0])
+            rankc = cl.getColour()
+            if cl.okay:
+                rankt = "Ok"
+            else:
+                rankt = "Fail"
+            txt = wx.StaticText(self,-1,rankt)
             font = wx.Font(11,wx.NORMAL,wx.NORMAL,wx.BOLD)
             txt.SetFont(font)
-            txt.SetForegroundColour(rankt[rank][1])
+            txt.SetForegroundColour(rankc)
             grid.Add(txt,(ypos,xpos),(1,1),wx.ALL,10)
         xpos += 1
 
