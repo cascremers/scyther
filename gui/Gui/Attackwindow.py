@@ -115,7 +115,7 @@ class AttackDisplay(wx.ScrolledWindow):
 
 class AttackWindow(wx.Frame):
     def __init__(self,cl):
-        super(AttackWindow, self).__init__(None, size=(400,800))
+        super(AttackWindow, self).__init__(None, size=(400,700))
         self.SetBackgroundColour('Default')
         self.claim = cl
 
