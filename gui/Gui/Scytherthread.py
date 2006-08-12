@@ -151,9 +151,9 @@ class AttackThread(threading.Thread):
                 if self.parent and self.parent.mainwin:
                     fontsize = self.parent.mainwin.settings.fontsize
                     setAttr("fontsize=%s" % fontsize)
-                setAttr("height=\"0.01\"",NODE)
-                setAttr("width=\"0.01\"",NODE)
-                setAttr("margin=\"0.08,0.03\"",NODE)
+                setAttr("height=\"0.1\"",NODE)
+                setAttr("width=\"1.0\"",NODE)
+                setAttr("margin=\"0.3,0.03\"",NODE)
 
     def makeImage(self,attack):
         """ create image for this particular attack """
