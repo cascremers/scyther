@@ -30,6 +30,9 @@ WORKNAME=scyther
 #	Repository
 PROTROOT=https://svn.win.tue.nl/repos/ecss/trunk/protocols/spdl
 SVNROOT=https://svn.win.tue.nl/repos/scyther/trunk
+DOCROOT=https://svn.win.tue.nl/repos/ecss/trunk/papers/scythermanual
+
+MANUAL=scyther-manual.pdf
 
 #------------------------------------------------------------------------------
 #
@@ -39,6 +42,7 @@ WORKDIR=$TMPDIR/$WORKNAME
 CURDIR=$PWD
 DEST=$PWD/$ARCHIVE
 ZIPDEST=$PWD/$ZIPPED
+DOCDEST=$WORKDIR/doc
 
 #------------------------------------------------------------------------------
 #
@@ -58,6 +62,8 @@ mkdir $TMPDIR
 #	Fill
 svn export $SVNROOT/gui $WORKDIR
 svn export $PROTROOT/SPORE $WORKDIR/SPORE
+
+svn cat $DOCROOT/$MANUAL >$WORKDIR/$MANUAL
 
 #------------------------------------------------------------------------------
 #
