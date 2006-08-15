@@ -821,10 +821,6 @@ property_check (const System sys)
 
   flag = 1;
 
-  /* Do we need any? */
-  if (enoughAttacks (sys))
-    return flag;
-
   /**
    * By the way the claim is handled, this automatically means a flaw.
    */

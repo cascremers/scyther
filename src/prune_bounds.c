@@ -45,6 +45,19 @@ prune_bounds (const System sys)
       return 1;
     }
 
+  /* prune for number of attacks */
+  if (enoughAttacks (sys))
+    {
+      // Oh no, we ran out of time!
+      if (switches.output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf
+	    ("Pruned: we already found the maximum number of attacks.\n");
+	}
+      return 1;
+    }
+
   /* prune for proof depth */
   if (proofDepth > switches.maxproofdepth)
     {

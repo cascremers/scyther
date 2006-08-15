@@ -1,3 +1,5 @@
+- I've started on sanitizing the --max-attacks switch. It now prunes as a
+  bound, but it also needs to limit per-claim, I guess.
 - There is something weird when automatically generating claim labels
   and trying to filter on them (try eg duplicates)
 - --check is slightly f***ed up because there is no good semantics for
