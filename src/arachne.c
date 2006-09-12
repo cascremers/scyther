@@ -11,8 +11,10 @@
 #include <limits.h>
 #include <float.h>
 #include <string.h>
+#ifndef OSXHOST
 #ifdef DEBUG
 #include <malloc.h>
+#endif
 #endif
 
 #include "term.h"

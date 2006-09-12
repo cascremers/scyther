@@ -14,7 +14,9 @@
 #include "arachne.h"
 #include "switches.h"
 #include "depend.h"
+#ifndef OSXHOST
 #include <malloc.h>
+#endif
 
 static System sys;		//!< local storage of system pointer
 

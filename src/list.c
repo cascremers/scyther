@@ -6,7 +6,9 @@
  */
 
 #include "list.h"
+#ifndef OSXHOST
 #include <malloc.h>
+#endif
 #include <stdlib.h>
 
 //! Make a node
