@@ -1,3 +1,13 @@
+- Nested functions should be avoided: their implementation requires an
+  executable stack, which is bad for security purposes. However, many of
+  the iterator functions need to pass a function and possibly some
+  variables. Currently, the variables are handled by the nested function
+  mechanism (the iterated nested function and address variables of the
+  function it is part of), which would not work anymore. A possible
+  solution seems variable argument count functions, but this is fairly
+  cumbersome and might impact on performance. Alternatively, iterators
+  can be implemented as macros, which is probably the fastest, but maybe
+  less readable.
 - I've started on sanitizing the --max-attacks switch. It now prunes as a
   bound, but it also needs to limit per-claim, I guess.
 - There is something weird when automatically generating claim labels
