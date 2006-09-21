@@ -41,16 +41,34 @@ class Scyther(object):
         global bindir
 
         # Where is my executable?
+        #
+        # Auto-detect platform and infer executable name from that
+        #
         prefix = os.path.abspath(bindir)
-        if sys.platform.startswith('win'):
+        if "linux" in sys.platform:
+
+            """ linux """
+            self.program = os.path.join(prefix,"scyther")
+
+        elif "darwin" in sys.platform:
+
+            """ OS X """
+            # Preferably, we test for architecture (PPC/Intel) until we
+            # know how to build a universal binary
+            self.program = os.path.join(prefix,"scyther-osx")
+
+        elif sys.platform.startswith('win'):
+
             """ Windows """
             # TODO hardcoded for now, bad
             self.program = os.path.join(prefix,"Scyther.exe")
             if not os.path.isfile(self.program):
                 print "I can't find the Scyther executable at %s" % (self.program)
         else:
-            """ Non-windows (linux) """
-            self.program = os.path.join(prefix,"scyther")
+
+            """ Unsupported"""
+            print "ERROR: I'm sorry, the %s platform is unsupported at the moment" % (sys.platform)
+            sys.exit()
 
         # Init
         self.spdl = None
