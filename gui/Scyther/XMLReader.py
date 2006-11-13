@@ -10,13 +10,22 @@
 # cElementTree module
 #
 
+import sys
+
 # Check for cElementTree presence. Otherwise use ElementTree.
 useiter = True
 try:
     import cElementTree
 except ImportError:
     useiter = False 
-    from elementtree import ElementTree
+    try:
+        from elementtree import ElementTree
+    except ImportError:
+        print """
+ERROR: Could not locate elementtree or cElementTree package.
+Please install one of them in order to work with the Scyther python interface.
+        """
+        sys.exit(1)
 
 ## Simply pick cElementTree
 #import cElementTree
@@ -28,7 +37,6 @@ import Term
 import Attack
 import Trace
 import Claim
-import sys
         
 class XMLReader(object):
     
@@ -298,4 +306,4 @@ class XMLReader(object):
             else:
                 print >>sys.stderr,"Warning unknown tag in attack: %s" % event.tag
         return attack
-    
+

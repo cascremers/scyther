@@ -3,8 +3,16 @@
 #---------------------------------------------------------------------------
 
 """ Import externals """
-import wx
 import sys
+try:
+    import wx
+except ImportError:
+    print """
+ERROR: Could not find the required wxPython package.
+Please install this package in order to use the graphical user
+interface of Scyther.
+    """
+    sys.exit(1)
 import os
 from optparse import OptionParser, SUPPRESS_HELP
 
