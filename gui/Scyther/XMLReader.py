@@ -22,8 +22,13 @@ except ImportError:
         from elementtree import ElementTree
     except ImportError:
         print """
-ERROR: Could not locate elementtree or cElementTree package.
+ERROR:
+
+Could not locate either the [elementtree] or the [cElementTree] package.
 Please install one of them in order to work with the Scyther python interface.
+The [cElementTree] packages can be found at http://effbot.org/zone/celementtree.htm
+
+Note that you can still use the Scyther binaries in the 'Bin' directory.
         """
         sys.exit(1)
 

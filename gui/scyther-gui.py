@@ -8,9 +8,14 @@ try:
     import wx
 except ImportError:
     print """
-ERROR: Could not find the required wxPython package.
+ERROR:
+
+Could not find the required [wxPython] package.
 Please install this package in order to use the graphical user
 interface of Scyther.
+The [wxPython] packages can be found at http://www.wxpython.org/
+
+Note that you can still use the Scyther binaries in the 'Bin' directory.
     """
     sys.exit(1)
 import os
