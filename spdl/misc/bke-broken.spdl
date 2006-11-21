@@ -1,0 +1,48 @@
+/* 
+	Bilateral Key Exchange with Public Key protocol (bkebroken)
+	Broken version with man in the middle attack.
+*/
+
+usertype Key;
+
+const pk,h: Function;
+secret sk,hinv: Function;
+
+inversekeys (pk,sk);
+inversekeys (h,hinv);
+
+protocol bkebroken(I,R)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+		var kir: Key;
+
+		send_1 (I,R, { ni,I }pk(R) );
+		read_2 (R,I, { h(ni),nr,kir }pk(I) );
+		send_3 (I,R, { h(nr),kir }pk(R) );
+		claim_4 (I, Secret, kir );
+	}
+
+	role R
+	{
+		var ni: Nonce;
+		const nr: Nonce;
+		const kir: Key;
+
+		read_1 (I,R, { ni,I }pk(R) );
+		send_2 (R,I, { h(ni),nr,kir }pk(I) );
+		read_3 (I,R, { h(nr),kir }pk(R) );
+		claim_5 (R, Secret, kir );
+	}
+}
+
+const a,b,e: Agent;
+
+untrusted e;
+compromised sk(e);
+const ne: Nonce;
+
+run bkebroken.I(a,Agent);
+run bkebroken.R(Agent,b);

@@ -1,0 +1,63 @@
+# 1 "tls-HSDDM05.cpp"
+# 1 "<built-in>"
+# 1 "<command line>"
+# 1 "tls-HSDDM05.cpp"
+# 23 "tls-HSDDM05.cpp"
+usertype Params, String;
+
+const pk,hash: Function;
+secret sk,unhash: Function;
+inversekeys(pk,sk);
+inversekeys(hash,unhash);
+
+const clientstring,serverstring: String;
+
+const Alice, Bob, Eve: Agent;
+const Terence: Agent;
+
+protocol tlsmitchell(X,Y)
+{
+        role X
+        {
+                const Nx: Nonce;
+                const msecret: Nonce;
+                const pa: Params;
+                var Ny: Nonce;
+                var pb: Params;
+
+                send_1( X,Y, X,Nx,pa );
+                read_2( Y,X, Ny,pb,{ Y,pk(Y) }sk(Terence) );
+                send_3( X,Y, { X,pk(X) }sk(Terence),
+                             { X,Nx,pa,Ny,pb,{ Y,pk(Y) }sk(Terence) }sk(X),
+                             { msecret }pk(Y),
+                             hash(msecret, X,Nx,pa,Ny,pb,{ Y,pk(Y) }sk(Terence), clientstring)
+                          );
+                read_4( Y,X, hash(msecret, X,Nx,pa,Ny,pb,{ Y,pk(Y) }sk(Terence),{ X,pk(X) }sk(Terence),{ X,Nx,pa,Ny,pb,{ Y,pk(Y) }sk(Terence) }sk(X),{ msecret }pk(Y), hash(msecret, X,Nx,pa,Ny,pb,{ Y,pk(Y) }sk(Terence), clientstring), serverstring) );
+
+                claim_X1( X, Secret, msecret );
+        }
+
+        role Y
+        {
+                var Nx: Nonce;
+                var msecret: Nonce;
+                var pa: Params;
+                const Ny: Nonce;
+                const pb: Params;
+
+                read_1( X,Y, X,Nx,pa );
+                send_2( Y,X, Ny,pb,{ Y,pk(Y) }sk(Terence) );
+                read_3( X,Y, { X,pk(X) }sk(Terence),
+                             { X,Nx,pa,Ny,pb,{ Y,pk(Y) }sk(Terence) }sk(X),
+                             { msecret }pk(Y),
+                             hash(msecret, X,Nx,pa,Ny,pb,{ Y,pk(Y) }sk(Terence), clientstring)
+                          );
+                send_4( Y,X, hash(msecret, X,Nx,pa,Ny,pb,{ Y,pk(Y) }sk(Terence),{ X,pk(X) }sk(Terence),{ X,Nx,pa,Ny,pb,{ Y,pk(Y) }sk(Terence) }sk(X),{ msecret }pk(Y), hash(msecret, X,Nx,pa,Ny,pb,{ Y,pk(Y) }sk(Terence), clientstring), serverstring) );
+
+                claim_Y1( Y, Secret, msecret );
+        }
+}
+
+
+untrusted Eve;
+compromised sk(Eve);

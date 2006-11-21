@@ -1,0 +1,69 @@
+// 12/05/06
+// S. Mauw
+// Using Identity Based Encryption primitive to make NSL authentication.
+// The only requirement on the server communications is that the
+// sending of the private key is secret.
+
+const pk: Function;  //public-private keys are used to model a secure channel
+secret sk: Function; //from the keyserver to the parties
+const ibepublic: Function; //publicly known key construction from server
+                           //parameters and recipient name
+secret ibesecret: Function;//secret key determined by server for recipient
+const param: Function;     //public security parameter of server
+inversekeys (pk,sk);
+inversekeys (ibepublic,ibesecret);
+
+protocol ibe(I,R,S)
+{
+	role I
+	{
+                const ni: Nonce;
+                var nr: Nonce;
+
+//Note that we are not interested in the order of server messages.
+	        read_!1(S,I, param(S) );
+                send_3(I,R, {I,ni}ibepublic(param(S),R) );
+                read_4(R,I, {ni,nr,R}ibepublic(param(S),I) );
+                send_5(I,R, {nr}ibepublic(param(S),R) );
+
+
+                claim_i1(I,Secret,ni);
+                claim_i2(I,Secret,nr);
+                claim_i3(I,Niagree);
+                claim_i4(I,Nisynch);
+	}	
+	
+	role R
+	{
+                var ni: Nonce;
+                const nr: Nonce;
+
+	        read_!2(S,R, {ibesecret(param(S),R)}pk(R) );
+                read_3(I,R, {I,ni}ibepublic(param(S),R) );
+                send_4(R,I, {ni,nr,R}ibepublic(param(S),I) );
+                read_5(I,R, {nr}ibepublic(param(S),R) );
+
+                claim_r1(R,Secret,ni);
+                claim_r2(R,Secret,nr);
+                claim_r3(R,Niagree);
+                claim_r4(R,Nisynch);
+	}
+
+	role S
+	{
+		read_!0(S,S, R,S);			// workaround for the fact that R & S are roles, so Scyther should not jump to conclusions (remove it and see what happens)
+	        send_!1(S,I, param(S) );
+	        send_!2(S,R, {ibesecret(param(S),R)}pk(R) );
+
+                claim_s1(S,Secret,ibesecret(param(S),R));
+	}
+}
+
+const Alice, Bob, Carol, Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+compromised ibesecret(param(Eve),Alice);
+compromised ibesecret(param(Eve),Bob);
+compromised ibesecret(param(Eve),Carol);

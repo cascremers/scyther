@@ -1,0 +1,72 @@
+/*
+ * Needham-Schroeder symmetric
+ */
+
+/* symmetric */
+
+usertype SessionKey;
+secret k: Function;
+
+/* agents */
+
+const a,b,e: Agent;
+
+
+/* untrusted e */
+
+untrusted e;
+const ne: Nonce;
+const kee: SessionKey;
+
+compromised k(e,e);
+compromised k(e,a);
+compromised k(e,b);
+compromised k(a,e);
+compromised k(b,e);
+
+/* {}x used for public (invertible) function modeling */
+
+usertype PseudoFunction;
+const succ: PseudoFunction;
+
+usertype Ticket;
+
+protocol nssymmetric(A,S,B) 
+{
+	role A
+	{
+		const na: Nonce;
+		var T: Ticket;
+		var kab: SessionKey;
+		var nb: Nonce;
+
+		send_1(A,S, A,B,na );
+		read_2(S,A, { na,B,kab,T }k(A,S) );
+		send_3(A,B, T );
+		read_4(B,A, { nb }kab );
+		send_5(A,B, { {nb}succ }kab );
+
+		claim_6(A, Secret, kab);
+	}
+
+	role S
+	{
+		const kab: SessionKey;
+		var na: Nonce;
+
+		read_1(A,S, A,B,na );
+		send_2(S,A, { na,B,kab, { kab,A }k(B,S) }k(A,S) );
+	}
+
+	role B
+	{
+		var kab: SessionKey;
+		const nb: Nonce;
+
+		read_3(A,B, { kab,A }k(B,S) );
+		send_4(B,A, { nb }kab );
+		read_5(A,B, { {nb}succ }kab );
+
+		claim_7(B, Secret, kab);
+	}
+}

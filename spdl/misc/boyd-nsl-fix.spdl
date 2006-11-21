@@ -1,0 +1,55 @@
+/*
+ * Boyd fix for NS(L)
+ *
+ * From the paper "Towards Extensional Goals in Authentication
+ * Protocols"
+ *
+ * Broken. Best shown by attack id 4.
+ */
+
+const pk: Function;
+secret sk: Function;
+inversekeys (pk,sk);
+const hash: Function;
+secret unhash: Function;
+inversekeys (hash,unhash);
+
+protocol boydNS(I,R)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+
+		send_1(I,R, {ni}pk(R),I );
+		read_2(R,I, {nr}pk(I),hash(ni,R) );
+		send_3(I,R, hash(nr, I,R) );
+		claim_i1(I,Secret,ni);
+		claim_i2(I,Secret,nr);
+		claim_i3(I,Niagree);
+		claim_i4(I,Nisynch);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		const nr: Nonce;
+
+		read_1(I,R, {ni}pk(R),I );
+		send_2(R,I, {nr}pk(I),hash(ni,R) );
+		read_3(I,R, hash(nr, I,R) );
+		claim_r1(R,Secret,ni);
+		claim_r2(R,Secret,nr);
+		claim_r3(R,Niagree);
+		claim_r4(R,Nisynch);
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+
+run boydNS.I(Agent,Agent);
+run boydNS.R(Agent,Agent);

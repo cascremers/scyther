@@ -1,0 +1,32 @@
+const pk: Function;
+secret sk: Function;
+inversekeys (pk,sk);
+
+protocol r5bound(I,R)
+{
+	role R
+	{
+		var k1: Nonce;
+		var ni: Nonce;
+		const k2: Nonce;
+
+		read_1 (I,R, ni );
+		send_2 (R,I, { ni }sk(R) );
+		read_3 (I,R, {{{ {k1}pk(R) }sk(I)}sk(I)}sk(I) );
+		send_4 (R,I, {k2}k1 );
+
+		claim_6 (R, Secret, k2);
+	}
+}
+
+const Alice, Bob: Agent;
+const ne: Nonce;
+
+run r5bound.R(Agent);
+run r5bound.R(Agent);
+
+run r5bound.R(Agent);
+run r5bound.R(Agent);
+
+run r5bound.R(Agent);
+run r5bound.R(Agent);

@@ -1,0 +1,776 @@
+Slave1:multiparty% ./test-heuristics.py
+Starting with [11, 15]
+Testing using P 3 and 5 runs.
+Testing protocol 11.
+Heuristic 0:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=0 --timer=20
+states  7488
+attack  NoClaim
+time    2.007e+01
+st/sec  3.731e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 1:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=1 --timer=20
+states  3869
+attack  NoClaim
+time    2.004e+01
+st/sec  1.931e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 2:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=2 --timer=20
+states  6543
+attack  NoClaim
+time    2.006e+01
+st/sec  3.262e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 3:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=3 --timer=20
+states  9003
+attack  NoClaim
+time    2.005e+01
+st/sec  4.490e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  1       correct: bounded_proof
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 4:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=4 --timer=20
+states  6375
+attack  NoClaim
+time    2.008e+01
+st/sec  3.175e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 5:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=5 --timer=20
+states  4282
+attack  NoClaim
+time    2.007e+01
+st/sec  2.134e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  4       correct: bounded_proof  time=20
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 6:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=6 --timer=20
+states  6791
+attack  NoClaim
+time    2.002e+01
+st/sec  3.392e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 7:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=7 --timer=20
+states  8115
+attack  NoClaim
+time    2.004e+01
+st/sec  4.049e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  14      correct: bounded_proof  time=20
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 8:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=8 --timer=20
+states  9649
+attack  NoClaim
+time    2.003e+01
+st/sec  4.817e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 9:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=9 --timer=20
+states  3873
+attack  NoClaim
+time    2.005e+01
+st/sec  1.932e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 10:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=10 --timer=20
+states  11954
+attack  NoClaim
+time    2.007e+01
+st/sec  5.956e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 11:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=11 --timer=20
+states  7367
+attack  NoClaim
+time    2.003e+01
+st/sec  3.678e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 12:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=12 --timer=20
+states  6271
+attack  NoClaim
+time    2.005e+01
+st/sec  3.128e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 13:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=13 --timer=20
+states  4729
+attack  NoClaim
+time    2.006e+01
+st/sec  2.357e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 14:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=14 --timer=20
+states  7566
+attack  NoClaim
+time    2.002e+01
+st/sec  3.779e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 15:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=15 --timer=20
+states  8496
+attack  NoClaim
+time    2.005e+01
+st/sec  4.237e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 16:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=16 --timer=20
+states  7453
+attack  NoClaim
+time    2.003e+01
+st/sec  3.721e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 17:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=17 --timer=20
+states  3888
+attack  NoClaim
+time    2.004e+01
+st/sec  1.940e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 18:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=18 --timer=20
+states  6582
+attack  NoClaim
+time    2.003e+01
+st/sec  3.286e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 19:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=19 --timer=20
+states  9022
+attack  NoClaim
+time    2.001e+01
+st/sec  4.509e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  1       correct: bounded_proof
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 20:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=20 --timer=20
+states  6393
+attack  NoClaim
+time    2.003e+01
+st/sec  3.192e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 21:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=21 --timer=20
+states  4284
+attack  NoClaim
+time    2.002e+01
+st/sec  2.140e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  4       correct: bounded_proof  time=20
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 22:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=22 --timer=20
+states  6769
+attack  NoClaim
+time    2.001e+01
+st/sec  3.383e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 23:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=23 --timer=20
+states  8175
+attack  NoClaim
+time    2.002e+01
+st/sec  4.083e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  14      correct: bounded_proof  time=20
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 24:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=24 --timer=20
+states  9625
+attack  NoClaim
+time    2.003e+01
+st/sec  4.805e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 25:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=25 --timer=20
+states  3883
+attack  NoClaim
+time    2.002e+01
+st/sec  1.940e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 26:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=26 --timer=20
+states  11992
+attack  NoClaim
+time    2.004e+01
+st/sec  5.984e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 27:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=27 --timer=20
+states  7361
+attack  NoClaim
+time    2.004e+01
+st/sec  3.673e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 28:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=28 --timer=20
+states  6277
+attack  NoClaim
+time    2.004e+01
+st/sec  3.132e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 29:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=29 --timer=20
+states  4728
+attack  NoClaim
+time    2.005e+01
+st/sec  2.358e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 30:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=30 --timer=20
+states  7610
+attack  NoClaim
+time    2.004e+01
+st/sec  3.797e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 31:
+./multinsl-generator.py 3 11 | scyther -a -r5 -m2 --summary  --goal-select=31 --timer=20
+states  8506
+attack  NoClaim
+time    2.003e+01
+st/sec  4.247e+02
+claim   mnsl3v11        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v11        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v11        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Testing protocol 15.
+Heuristic 0:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=0 --timer=20
+states  7499
+attack  NoClaim
+time    2.003e+01
+st/sec  3.744e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 1:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=1 --timer=20
+states  3866
+attack  NoClaim
+time    2.004e+01
+st/sec  1.929e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 2:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=2 --timer=20
+states  6558
+attack  NoClaim
+time    2.003e+01
+st/sec  3.274e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 3:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=3 --timer=20
+states  8933
+attack  NoClaim
+time    2.002e+01
+st/sec  4.462e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  1       correct: bounded_proof
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 4:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=4 --timer=20
+states  6354
+attack  NoClaim
+time    2.002e+01
+st/sec  3.174e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 5:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=5 --timer=20
+states  4278
+attack  NoClaim
+time    2.004e+01
+st/sec  2.135e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  4       correct: bounded_proof  time=20
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 6:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=6 --timer=20
+states  6749
+attack  NoClaim
+time    2.002e+01
+st/sec  3.371e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 7:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=7 --timer=20
+states  8166
+attack  NoClaim
+time    2.003e+01
+st/sec  4.077e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  14      correct: bounded_proof  time=20
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 8:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=8 --timer=20
+states  9805
+attack  NoClaim
+time    2.006e+01
+st/sec  4.888e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 9:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=9 --timer=20
+states  3873
+attack  NoClaim
+time    2.004e+01
+st/sec  1.933e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 10:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=10 --timer=20
+states  10729
+attack  NoClaim
+time    2.006e+01
+st/sec  5.348e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 11:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=11 --timer=20
+states  6679
+attack  NoClaim
+time    2.005e+01
+st/sec  3.331e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 12:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=12 --timer=20
+states  6119
+attack  NoClaim
+time    2.005e+01
+st/sec  3.052e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 13:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=13 --timer=20
+states  3513
+attack  NoClaim
+time    2.009e+01
+st/sec  1.749e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 14:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=14 --timer=20
+states  7548
+attack  NoClaim
+time    2.004e+01
+st/sec  3.766e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 15:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=15 --timer=20
+states  8461
+attack  NoClaim
+time    2.002e+01
+st/sec  4.226e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 16:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=16 --timer=20
+states  7503
+attack  NoClaim
+time    2.003e+01
+st/sec  3.746e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 17:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=17 --timer=20
+states  3837
+attack  NoClaim
+time    2.003e+01
+st/sec  1.916e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 18:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=18 --timer=20
+states  6537
+attack  NoClaim
+time    2.005e+01
+st/sec  3.260e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 19:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=19 --timer=20
+states  8893
+attack  NoClaim
+time    2.004e+01
+st/sec  4.438e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  1       correct: bounded_proof
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 20:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=20 --timer=20
+states  6325
+attack  NoClaim
+time    2.003e+01
+st/sec  3.158e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 21:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=21 --timer=20
+states  4253
+attack  NoClaim
+time    2.005e+01
+st/sec  2.121e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  4       correct: bounded_proof  time=20
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 22:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=22 --timer=20
+states  6756
+attack  NoClaim
+time    2.004e+01
+st/sec  3.371e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 23:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=23 --timer=20
+states  8149
+attack  NoClaim
+time    2.003e+01
+st/sec  4.068e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  14      correct: bounded_proof  time=20
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 24:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=24 --timer=20
+states  9785
+attack  NoClaim
+time    2.004e+01
+st/sec  4.883e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 25:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=25 --timer=20
+states  3832
+attack  NoClaim
+time    2.006e+01
+st/sec  1.910e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 26:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=26 --timer=20
+states  10699
+attack  NoClaim
+time    2.009e+01
+st/sec  5.326e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 27:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=27 --timer=20
+states  6672
+attack  NoClaim
+time    2.006e+01
+st/sec  3.326e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 28:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=28 --timer=20
+states  6136
+attack  NoClaim
+time    2.010e+01
+st/sec  3.053e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 29:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=29 --timer=20
+states  3521
+attack  NoClaim
+time    2.009e+01
+st/sec  1.753e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 30:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=30 --timer=20
+states  7584
+attack  NoClaim
+time    2.006e+01
+st/sec  3.781e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+Heuristic 31:
+./multinsl-generator.py 3 15 | scyther -a -r5 -m2 --summary  --goal-select=31 --timer=20
+states  8369
+attack  NoClaim
+time    2.004e+01
+st/sec  4.176e+02
+claim   mnsl3v15        R2V     Nisynch_R2b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R2V     Secret_R2a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R1V     Nisynch_R1b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R1V     Secret_R1a      found:  1       correct: bounded_proof  time=20
+claim   mnsl3v15        R0V     Nisynch_R0b     found:  0       correct: does_not_occur
+claim   mnsl3v15        R0V     Secret_R0a      found:  1       correct: bounded_proof  time=20
+
+
+13,25 work well.

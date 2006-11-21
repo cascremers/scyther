@@ -1,0 +1,63 @@
+/*
+ * Breaker for localclaims protocol; sequential composition variant 1
+ *
+ * Starts out as NSL3; last message (label3) has added name to avoid
+ * confusion with the later messages.
+ *
+ * Added messages labeled with x1 and x2 to allow for breaking the other
+ * protocol.
+ */
+const pk: Function;
+secret sk: Function;
+inversekeys (pk,sk);
+
+protocol lcbreakerS1(I,R)
+{
+	role I
+	{
+		const ni,ni2: Nonce;
+		var nr: Nonce;
+		var x: Nonce;
+
+		send_1(I,R, {I,ni}pk(R) );
+		read_2(R,I, {ni,nr,R}pk(I) );
+		send_3(I,R, {nr,I}pk(R) );
+
+		read_x1(R,I, { x }pk(I) );
+		send_x2(I,R, { x }ni );
+
+		send_lc(I,R, {ni2}pk(R) );
+
+		claim_i0(I,Secret,ni2);
+		claim_i1(I,Secret,ni);
+		claim_i2(I,Secret,nr);
+	}	
+	
+	role R
+	{
+		var ni,ni2: Nonce;
+		const nr: Nonce;
+		const x: Nonce;
+
+		read_1(I,R, {I,ni}pk(R) );
+		send_2(R,I, {ni,nr,R}pk(I) );
+		read_3(I,R, {nr,I}pk(R) );
+
+		send_x1(R,I, { x }pk(I) );
+		read_x2(I,R, { x }ni );
+
+		read_lc(I,R, {ni2}pk(R) );
+
+		claim_r0(R,Secret,ni2);
+		claim_r1(R,Secret,ni);
+		claim_r2(R,Secret,nr);
+	}
+}
+
+const Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+
+

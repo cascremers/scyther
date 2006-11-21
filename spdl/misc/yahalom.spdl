@@ -1,0 +1,54 @@
+// Yahalom protocol
+
+const a,b,s : Agent;
+secret k : Function;
+
+usertype Nonce, Ticket, SessionKey;
+
+
+protocol yahalom(A,B,S)
+{
+	role A
+	{
+		const na: Nonce;
+		var nb: Nonce;
+		var ticket: Ticket;
+		var kab: SessionKey;
+
+		send_1(A,B, A,na);
+		read_3(S,A, nb, {B,kab,na,nb}k(A,S), ticket );
+		send_4(A,B, ticket, {nb}kab );
+
+		claim_5(A, Secret,kab);
+	}
+
+	role B
+	{
+		const nb: Nonce;
+		var na: Nonce;
+		var ticket: Ticket;
+		var kab: SessionKey;
+
+		read_1(A,B, A,na);
+		send_2(B,S, B,nb, {A,na,nb}k(B,S) );
+		read_4(A,B, {A,kab}k(B,S) , {nb}kab );
+
+		claim_6(B, Secret,kab);
+	}
+
+	role S
+	{
+		const kab: SessionKey;
+		var na,nb: Nonce;
+
+		read_2(B,S, B,nb, {A,na}k(B,S) );
+		send_3(S,A, nb, {B,kab,na,nb}k(A,S), {A,kab}k(B,S) );
+	}
+}
+
+run yahalom.A(Agent,Agent,s);
+run yahalom.A(Agent,Agent,s);
+run yahalom.B(Agent,Agent,s);
+run yahalom.B(Agent,Agent,s);
+run yahalom.S(Agent,Agent,s);
+

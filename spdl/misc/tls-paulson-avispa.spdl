@@ -1,0 +1,76 @@
+# 1 "tls-paulson-avispa.cpp"
+# 1 "<built-in>"
+# 1 "<command line>"
+# 1 "tls-paulson-avispa.cpp"
+# 25 "tls-paulson-avispa.cpp"
+usertype Params, Bool, SessionID;
+
+const pk,hash: Function;
+secret sk,unhash: Function;
+inversekeys(pk,sk);
+inversekeys(hash,unhash);
+
+const keygen: Function;
+secret unkeygen: Function;
+inversekeys(keygen, unkeygen);
+
+const pa,pb: Params;
+const Terence: Agent;
+const false,true: Bool;
+
+
+protocol tlspaulson-avispa(a,b)
+{
+ role a
+ {
+  const na: Nonce;
+  const sid: SessionID;
+  const pms: Nonce;
+  var nb: Nonce;
+  var pb: Params;
+
+  send_1( a,b, a,na,sid,pa );
+  read_2( b,a, nb,sid,pb );
+  read_3( b,a, { b,pk(b) }sk(Terence) );
+  send_4( a,b, { a,pk(a) }sk(Terence) );
+  send_5( a,b, { pms }pk(b) );
+  send_6( a,b, { hash(nb,b,pms) }sk(a) );
+  send_7( a,b, { hash(hash(pms,na,nb),a,na,sid,pa,pb,nb,sid,pb,{ a,pk(a) }sk(Terence),{ b,pk(b) }sk(Terence),{pms}pk(b)) }keygen(a,na,nb,hash(pms,na,nb)) );
+  read_8( b,a, { hash(hash(pms,na,nb),a,na,sid,pa,pb,nb,sid,pb,{ a,pk(a) }sk(Terence),{ b,pk(b) }sk(Terence),{pms}pk(b)) }keygen(b,na,nb,hash(pms,na,nb)) );
+
+  claim_9a(a, Secret, keygen(b,na,nb,hash(pms,na,nb)));
+  claim_9b(a, Secret, keygen(a,na,nb,hash(pms,na,nb)));
+  claim_9c(a, Niagree);
+
+ }
+
+ role b
+ {
+  var na: Nonce;
+  var sid: SessionID;
+  var pms: Nonce;
+  const nb: Nonce;
+  const pb: Params;
+
+  read_1( a,b, a,na,sid,pa );
+  send_2( b,a, nb,sid,pb );
+  send_3( b,a, { b,pk(b) }sk(Terence) );
+  read_4( a,b, { a,pk(a) }sk(Terence) );
+  read_5( a,b, { pms }pk(b) );
+  read_6( a,b, { hash(nb,b,pms) }sk(a) );
+  read_7( a,b, { hash(hash(pms,na,nb),a,na,sid,pa,pb,nb,sid,pb,{ a,pk(a) }sk(Terence),{ b,pk(b) }sk(Terence),{pms}pk(b)) }keygen(a,na,nb,hash(pms,na,nb)) );
+  send_8( b,a, { hash(hash(pms,na,nb),a,na,sid,pa,pb,nb,sid,pb,{ a,pk(a) }sk(Terence),{ b,pk(b) }sk(Terence),{pms}pk(b)) }keygen(b,na,nb,hash(pms,na,nb)) );
+
+  claim_10a(b, Secret, keygen(b,na,nb,hash(pms,na,nb)));
+  claim_10b(b, Secret, keygen(a,na,nb,hash(pms,na,nb)));
+  claim_10c(b, Niagree);
+ }
+}
+
+const Alice, Bob, Eve: Agent;
+
+untrusted Eve;
+compromised sk(Eve);
+const ne: Nonce;
+const side: SessionID;
+const pe: Params;

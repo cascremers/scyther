@@ -1,0 +1,70 @@
+usertype Sessionkey;
+usertype Ticket;
+usertype Timestamp;
+secret k: Function;
+
+protocol kaochow3(I,R,S)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+		var kir,kt: Sessionkey;
+		var T2: Ticket;
+
+		send_1 (I,S, I,R,ni);
+		read_3 (R,I, R, {I,R,ni,kir,kt}k(I,S), {ni, kir}kt, nr, T2 );
+		send_4 (I,R, {nr,kir}kt, T2 );
+
+		claim_5 (I, Nisynch);
+		claim_6 (I, Niagree);
+		claim_7 (I, Secret, kir);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		const nr: Nonce;
+		var kir,kt: Sessionkey;
+		var T: Ticket;
+		const tr: Timestamp;
+
+		read_2 (S,R, T, { I,R,ni,kir,kt }k(R,S)  ); 
+		send_3 (R,I, R, T, {ni, kir}kt, nr, {I,R,tr,kir}k(R,S) );
+		read_4 (I,R, {nr,kir}kt, {I,R,tr,kir}k(R,S) );
+
+		claim_8 (R, Nisynch);
+		claim_9 (R, Niagree);
+		claim_10 (R, Secret, kir);
+	}
+
+	role S
+	{
+		var ni: Nonce;
+		const kir, kt: Sessionkey;
+
+		read_1 (I,S, I,R,ni);
+		send_2 (S,R, {I,R,ni,kir,kt}k(I,S), { I,R,ni,kir,kt }k(R,S)  ); 
+	}
+}
+
+const Alice,Bob,Simon,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const te: Ticket;
+const ke: Sessionkey;
+compromised k(Eve,Eve);
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Eve,Simon);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
+compromised k(Simon,Eve);
+
+run kaochow3.I(Agent,Agent,Simon);
+run kaochow3.R(Agent,Agent,Simon);
+run kaochow3.S(Agent,Agent,Simon);
+run kaochow3.I(Agent,Agent,Simon);
+run kaochow3.R(Agent,Agent,Simon);
+run kaochow3.S(Agent,Agent,Simon);

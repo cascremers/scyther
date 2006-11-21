@@ -1,0 +1,55 @@
+/*
+ * Woo-lam version from Spore, Pi f
+ *
+ * Only one-way verification version
+ */
+
+usertype Server, SessionKey, Ticket;
+secret k: Function;
+
+const Alice, Bob, Charlie, Eve: Agent;
+const Simon: Server;
+
+const ne: Nonce;
+const ke: SessionKey;
+untrusted Eve;
+compromised k(Eve,Simon);
+
+protocol woolampif(A,B,S)
+{
+	role A
+	{
+		var Nb: Nonce;
+
+		send_1(A,B, A);
+		read_2(B,A, Nb);
+		send_3(A,B, { A,B,Nb }k(A,S) );
+	}
+
+	role B
+	{
+		const Nb: Nonce;
+		var T: Ticket;
+
+		read_1(A,B, A);
+		send_2(B,A, Nb);
+		read_3(A,B, T);
+		send_4(B,S, { A,B,Nb, T }k(B,S) );
+		read_5(S,B, { A,B,Nb }k(B,S) );
+
+		claim_6(B,Niagree);
+		claim_7(B,Nisynch);
+	}
+
+	role S
+	{
+		var Nb: Nonce;
+
+		read_4(B,S, { A,B,Nb, { A,B,Nb }k(A,S) }k(B,S) );
+		send_5(S,B, { A,B,Nb }k(B,S) );
+	}
+}
+
+run woolampif.B(Alice,Bob,Simon);
+run woolampif.B(Alice,Bob,Simon);
+

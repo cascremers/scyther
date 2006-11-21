@@ -1,0 +1,53 @@
+usertype SessionKey;
+secret k: Function;
+
+protocol andrewLoweBan(I,R)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+		var kir: SessionKey;
+
+		send_1(I,R, I,ni );
+		read_2(R,I, {ni,kir,I}k(I,R) );
+		send_3(I,R, {ni}kir );
+		read_4(R,I, nr );
+		claim_5(I,Nisynch);
+		claim_5b(I,Niagree);
+		claim_6(I,Secret, kir);
+		claim_7(I,Secret, k(I,R));
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		const nr: Nonce;
+		const kir: SessionKey;
+
+		read_1(I,R, I,ni );
+		send_2(R,I, {ni,kir,I}k(I,R) );
+		read_3(I,R, {ni}kir );
+		send_4(R,I, nr );
+		claim_8(R,Nisynch);
+		claim_8b(R,Niagree);
+		claim_9(R,Secret, kir);
+		claim_10(R,Secret, k(I,R));
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const kee: SessionKey;
+compromised k(Eve,Eve);
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
+
+run andrewLoweBan.I(Agent,Agent);
+run andrewLoweBan.R(Agent,Agent);
+run andrewLoweBan.I(Agent,Agent);
+run andrewLoweBan.R(Agent,Agent);

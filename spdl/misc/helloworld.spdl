@@ -1,0 +1,17 @@
+usertype String, World;
+secret HelloWorld, k: String;
+
+protocol hw(initiator,world)
+{
+	role initiator
+	{
+		send_1(initiator, world, HelloWorld);
+		/* claim_2(initiator, Secret, HelloWorld); */
+	}
+}
+
+const Alice, Bob: Agent;
+const Earth, Mars: World;
+
+run hw.initiator(Agent,World);
+

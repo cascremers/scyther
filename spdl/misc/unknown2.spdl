@@ -1,0 +1,69 @@
+usertype SessionKey;
+secret k: Function;
+
+protocol unknown2(I,R,S)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+		var kir: SessionKey;
+		var T;
+
+		send_1(I,R, ni );
+		read_3(S,I, { I,R,kir,ni,nr }k(I,S), T );
+		send_4(I,R, T, {nr}kir );
+
+		claim_i1(I,Nisynch);
+		claim_i2(I,Niagree);
+		claim_i3(I,Secret, kir);
+	}	
+	
+	role R
+	{
+		const nr: Nonce;
+		var ni: Nonce;
+		var kir: SessionKey;
+
+		read_1(I,R, ni );
+		send_2(R,S, { I,R,ni,nr }k(R,S) );
+		read_4(I,R, { I,R,kir,ni,nr }k(R,S), {nr}kir );
+
+		claim_r1(R,Nisynch);
+		claim_r2(R,Niagree);
+		claim_r3(R,Secret, kir);
+	}
+
+	role S
+	{
+		const kir: SessionKey;
+		var ni,nr: Nonce;
+
+		read_2(R,S, { I,R,ni,nr }k(R,S) );
+		send_3(S,I, { I,R,kir,ni,nr }k(I,S), { I,R,kir,ni,nr }k(R,S) );
+
+/*
+		claim_s1(S,Nisynch);
+		claim_s2(S,Niagree);
+		claim_s3(S,Secret, kir);
+		*/
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const kee: SessionKey;
+compromised k(Eve,Eve);
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
+
+run unknown2.I(Agent,Agent,Agent);
+run unknown2.R(Agent,Agent,Agent);
+run unknown2.S(Agent,Agent,Agent);
+run unknown2.R(Agent,Agent,Agent);
+run unknown2.I(Agent,Agent,Agent);
+run unknown2.S(Agent,Agent,Agent);

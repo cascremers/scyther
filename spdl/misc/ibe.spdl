@@ -1,0 +1,50 @@
+// 12/05/06
+// S. Mauw
+// Modeling of Identity Based Encryption primitive.
+
+const pk: Function;
+secret sk: Function;
+const ibepublic: Function;
+secret ibesecret: Function;
+const param: Function;
+inversekeys (pk,sk);
+inversekeys (ibepublic,ibesecret);
+
+protocol ibe(I,R,S)
+{
+	role I
+	{
+		const ni: Nonce;
+
+	        read_1(S,I, param(S) );
+		send_3(I,R, {ni}ibepublic(param(S),R) );
+
+		claim_i1(I,Secret,ni);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+
+	        read_2(S,R, {ibesecret(param(S),R)}pk(R) );
+		read_3(I,R, {ni}ibepublic(param(S),R) );
+
+		claim_r1(R,Secret,ni);
+		//of course this claim is invalid
+	}
+
+	role S
+	{
+	        send_1(S,I, param(S) );
+	        send_2(S,R, {ibesecret(param(S),R)}pk(R) );
+	}
+}
+
+const Alice, Bob, Carol, Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+compromised ibesecret(param(Eve),Alice);
+compromised ibesecret(param(Eve),Bob);
+compromised ibesecret(param(Eve),Carol);

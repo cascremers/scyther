@@ -1,0 +1,96 @@
+/*
+ * This is a model of the TLS version as modeled by Paulson
+ * 
+ * Slightly modified to correspond exactly to the version in the Avispa
+ * repository by Paul Hankes Drielsma.
+ *
+ * The .cpp file cannot be fed into scyther directly; rather, one needs
+ * to type:
+ *
+ * 	cpp tls-paulson.cpp >tls-paulson.spdl
+ *
+ * in order to generate a valid spdl file for scyther.
+ *
+ * This allows for macro expansion, as seen in the next part.
+ *
+ */
+
+#define CERT(a) { a,pk(a) }sk(Terence)
+#define MSG a,na,sid,pa,pb,nb,sid,pb,CERT(a),CERT(b),{pms}pk(b) 
+#define M hash(pms,na,nb)
+#define F hash(M,MSG)
+#define CLIENTK keygen(a,na,nb,M)
+#define SERVERK keygen(b,na,nb,M)
+
+usertype Params, Bool, SessionID;
+
+const pk,hash: Function;
+secret sk,unhash: Function;
+inversekeys(pk,sk);
+inversekeys(hash,unhash);
+
+const keygen: Function;
+secret unkeygen: Function;
+inversekeys(keygen, unkeygen);
+
+const pa,pb: Params;
+const Terence: Agent;
+const false,true: Bool;
+
+
+protocol tlspaulson-avispa(a,b)
+{
+	role a
+	{
+		const na: Nonce;
+		const sid: SessionID;
+		const pms: Nonce;
+		var nb: Nonce;
+		var pb: Params;
+
+		send_1( a,b, a,na,sid,pa );
+		read_2( b,a, nb,sid,pb );
+		read_3( b,a, CERT(b) );
+		send_4( a,b, CERT(a) );
+		send_5( a,b, { pms }pk(b) );
+		send_6( a,b, { hash(nb,b,pms) }sk(a) );
+		send_7( a,b, { F }CLIENTK );
+		read_8( b,a, { F }SERVERK );
+
+		claim_9a(a, Secret, SERVERK);
+		claim_9b(a, Secret, CLIENTK);
+		claim_9c(a, Niagree);
+
+	}	
+	
+	role b
+	{
+		var na: Nonce;
+		var sid: SessionID;
+		var pms: Nonce;
+		const nb: Nonce;
+		const pb: Params;
+
+		read_1( a,b, a,na,sid,pa );
+		send_2( b,a, nb,sid,pb );
+		send_3( b,a, CERT(b) );
+		read_4( a,b, CERT(a) );
+		read_5( a,b, { pms }pk(b) );
+		read_6( a,b, { hash(nb,b,pms) }sk(a) );
+		read_7( a,b, { F }CLIENTK );
+		send_8( b,a, { F }SERVERK );
+
+		claim_10a(b, Secret, SERVERK);
+		claim_10b(b, Secret, CLIENTK);
+		claim_10c(b, Niagree);
+	}
+}
+
+const Alice, Bob, Eve: Agent;
+
+untrusted Eve;
+compromised sk(Eve);
+const ne: Nonce;
+const side: SessionID;
+const pe: Params;
+

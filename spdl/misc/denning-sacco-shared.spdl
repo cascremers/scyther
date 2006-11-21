@@ -1,0 +1,74 @@
+/*
+* Denning-Sacco shared key
+* CJ, but modeled after Sjouke's protocol list
+*/
+
+/* default includes */
+
+/* asymmetric */
+
+const pk,hash: Function;
+secret sk,unhash: Function;
+
+/* symmetric */
+
+usertype SessionKey, Time, Ticket;
+secret k: Function;
+
+/* agents */
+
+const a,b,e: Agent;
+
+
+/* untrusted e */
+
+untrusted e;
+const ne: Nonce;
+const kee: SessionKey;
+
+compromised k(e,e);
+compromised k(e,a);
+compromised k(e,b);
+compromised k(a,e);
+compromised k(b,e);
+
+protocol denningsaccosh(A,S,B)
+{
+	role A
+	{
+		var t: Time;
+		var T: Ticket;
+		var kab: SessionKey;
+
+		send_1 (A,S, A,S );
+		read_2 (S,A, {B, kab, t, T}k(A,S) );
+		send_3 (A,B, T);
+
+		claim_4 (A, Secret, kab);
+		claim_5 (A, Nisynch);
+		claim_6 (A, Niagree);
+	}
+
+	role S
+	{
+		const t: Time;
+		const kab: SessionKey;
+
+		read_1 (A,S, A,S );
+		send_2 (S,A, {B, kab, t, { kab, A,t }k(B,S) }k(A,S) );
+	}
+
+	role B
+	{
+		var t: Time;
+		var kab: SessionKey;
+
+		read_3 (A,B, { kab, A,t }k(B,S) );
+
+		claim_7 (B, Secret, kab);
+		claim_8 (B, Nisynch);
+		claim_9 (B, Niagree);
+	}
+}
+
+

@@ -1,0 +1,65 @@
+/*
+ * Yahalom Paulson-strengthened
+ * As in Sjouke's list
+ */
+
+usertype Sessionkey, Ticket;
+
+const Alice,Bob,Simon,Eve : Agent;
+secret k : Function;
+
+untrusted Eve;
+compromised k(Eve,Simon);
+const ne: Nonce;
+const kee: Sessionkey;
+
+protocol yahalompaulson(I,R,S)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+		var kir: Sessionkey;
+		var T: Ticket;
+
+		send_1(I,R, I,ni);
+		read_3(S,I, nr, {R,kir,ni}k(I,S), T );
+		send_4(I,R, T, {nr}kir );
+
+		claim_8(I, Secret,kir);
+		claim_9(I, Nisynch);
+		claim_10(I, Niagree);
+	}
+
+	role R
+	{
+		const nr: Nonce;
+		var ni: Nonce;
+		var kir: Sessionkey;
+
+		read_1(I,R, I,ni);
+		send_2(R,S, R,nr,{I,ni}k(R,S) );
+		read_4(I,R, {I,R,kir,nr}k(R,S), {nr}kir );
+
+		claim_11(R, Secret,kir);
+		claim_12(R, Nisynch);
+		claim_13(R, Niagree);
+	}
+
+	role S
+	{
+		const kir: Sessionkey;
+		var ni,nr: Nonce;
+
+		read_2(R,S, R,nr, {I,ni}k(R,S) );
+		send_3(S,I, nr, { R,kir,ni }k(I,S), {I,R,kir,nr}k(R,S) );
+	}
+}
+
+run yahalompaulson.I(Agent,Agent,Simon);
+run yahalompaulson.R(Agent,Agent,Simon);
+run yahalompaulson.S(Agent,Agent,Simon);
+
+run yahalompaulson.I(Agent,Agent,Simon);
+run yahalompaulson.R(Agent,Agent,Simon);
+

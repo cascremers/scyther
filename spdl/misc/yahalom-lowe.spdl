@@ -1,0 +1,65 @@
+/*
+ * Yahalom Lowe
+ * As in Sjouke's list
+ */
+
+usertype Sessionkey;
+
+const Alice,Bob,Simon,Eve : Agent;
+secret k : Function;
+
+untrusted Eve;
+compromised k(Eve,Simon);
+const ne: Nonce;
+const kee: Sessionkey;
+
+protocol yahalomlowe(I,R,S)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+		var kir: Sessionkey;
+
+		send_1(I,R, I,ni);
+		read_3(S,I, {R,kir,ni,nr}k(I,S) );
+		send_5(I,R, {I,R,S,nr}kir );
+
+		claim_8(I, Secret,kir);
+		claim_9(I, Niagree);
+		claim_10(I, Nisynch);
+	}
+
+	role R
+	{
+		const nr: Nonce;
+		var ni: Nonce;
+		var kir: Sessionkey;
+
+		read_1(I,R, I,ni);
+		send_2(R,S, {I,ni,nr}k(R,S) );
+		read_4(S,R, {I,kir}k(R,S) );
+		read_5(I,R, {I,R,S,nr}kir );
+		claim_11(R, Secret,kir);
+		claim_12(R, Nisynch);
+		claim_13(R, Niagree);
+	}
+
+	role S
+	{
+		const kir: Sessionkey;
+		var ni,nr: Nonce;
+
+		read_2(R,S, {I,ni,nr}k(R,S) );
+		send_3(S,I, {R,kir,ni,nr}k(I,S) );
+		send_4(S,R, {I,kir}k(R,S) );
+	}
+}
+
+run yahalomlowe.I(Agent,Agent,Simon);
+run yahalomlowe.R(Agent,Agent,Simon);
+run yahalomlowe.S(Agent,Agent,Simon);
+
+run yahalomlowe.I(Agent,Agent,Simon);
+run yahalomlowe.R(Agent,Agent,Simon);
+

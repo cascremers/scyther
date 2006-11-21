@@ -1,0 +1,48 @@
+usertype SesKey, Server;
+secret const k : Function;
+
+/* Version from the Brutus reports
+*/
+
+protocol wmfbrutus(A,B,S)
+{
+	role A
+	{
+		const kab : SesKey;
+
+		send_1(A,S, A, { B,kab }k(A,S) );
+	}
+
+	role B
+	{
+		var kab : SesKey;
+
+		read_2(S,B, { A, kab }k(B,S) );
+
+		claim_3(B, Secret,kab);
+	}
+
+	role S
+	{
+		var kab : SesKey;
+
+		read_1(A,S, A, { B,kab }k(A,S) );
+		send_2(S,B, { A, kab }k(B,S) );
+	}
+}
+
+const Alice, Bob, Eve: Agent;
+const Simon: Server;
+
+untrusted Eve;
+compromised k(Eve,Simon);
+
+run wmfbrutus.A(Agent, Agent, Simon);
+run wmfbrutus.B(Agent, Agent, Simon);
+run wmfbrutus.A(Agent, Agent, Simon);
+run wmfbrutus.B(Agent, Agent, Simon);
+run wmfbrutus.A(Agent, Agent, Simon);
+run wmfbrutus.B(Agent, Agent, Simon);
+
+run wmfbrutus.S(Agent, Agent, Simon);
+

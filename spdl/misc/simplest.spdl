@@ -1,0 +1,20 @@
+
+secret k: Nonce;
+const Alice,Bob,Charlie: Agent;
+const ne: Nonce;
+
+protocol simplest(I)
+{
+	role I
+	{
+		var x: Nonce;
+		const n: Nonce;
+
+		read_1(I,I, x);
+		send_2(I,I, n, {n, x}k );
+		claim_3(I, Secret, n);
+	}
+}
+
+run simplest.I(Alice);
+run simplest.I(Alice);
