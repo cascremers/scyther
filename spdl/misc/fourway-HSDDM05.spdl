@@ -1,0 +1,53 @@
+# 1 "fourway-HSDDM05.cpp"
+# 1 "<built-in>"
+# 1 "<command line>"
+# 1 "fourway-HSDDM05.cpp"
+# 10 "fourway-HSDDM05.cpp"
+usertype Params, String;
+
+const hash: Function;
+secret unhash: Function;
+inversekeys(hash,unhash);
+secret pmk: Function;
+
+const msg1,msg2,msg3,msg4: String;
+
+const Alice, Bob, Eve: Agent;
+
+protocol fourway(X,Y)
+{
+        role X
+        {
+                const x: Nonce;
+                var y: Nonce;
+
+                send_1( X,Y, x,msg1 );
+                read_2( Y,X, y,msg2,hash( hash( pmk(X,Y),x,y ),y,msg2 ) );
+                send_3( X,Y, x,msg3,hash( hash( pmk(X,Y),x,y ),x,msg3 ) );
+                read_4( Y,X, msg4,hash( hash( pmk(X,Y),x,y ),msg4 ) );
+
+                claim_X1( X, Secret, hash( pmk(X,Y),x,y ) );
+                claim_X2( X, Niagree );
+        }
+
+        role Y
+        {
+                var x: Nonce;
+                const y: Nonce;
+
+                read_1( X,Y, x,msg1 );
+                send_2( Y,X, y,msg2,hash( hash( pmk(X,Y),x,y ),y,msg2 ) );
+                read_3( X,Y, x,msg3,hash( hash( pmk(X,Y),x,y ),x,msg3 ) );
+                send_4( Y,X, msg4,hash( hash( pmk(X,Y),x,y ),msg4 ) );
+
+                claim_Y1( Y, Secret, hash( pmk(X,Y),x,y ) );
+                claim_Y2( Y, Niagree );
+        }
+}
+
+
+untrusted Eve;
+compromised pmk(Eve,Alice);
+compromised pmk(Eve,Bob);
+compromised pmk(Alice,Eve);
+compromised pmk(Bob,Eve);
