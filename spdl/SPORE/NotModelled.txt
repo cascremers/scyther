@@ -1,0 +1,23 @@
+The following protocols have not been modelled for use in Scyther:
+
+- CAM http://www.lsv.ens-cachan.fr/spore/cam.html
+This protocol only consists of one message and corresponding database actions.
+The description given in SPORE is unsuitable for formalisation.
+
+- Diffie Helman http://www.lsv.ens-cachan.fr/spore/diffieHelman.html
+This protocol relies on algebraic properties that can not be modelled in
+scyther.
+
+- GJM http://www.lsv.ens-cachan.fr/spore/gjm.html
+This protocol contains complicated if-then-else constructions that can
+not be modelled in scyther.
+
+- Gong http://www.lsv.ens-cachan.fr/spore/gong.html
+This protocol relies on algebraic properties that can not be modelled in
+scyther.
+
+- SK3
+This protocol relies on algebraic properties that can not be modelled in
+scyther. It also has the notion of channels that can not be attacked,
+which can not be modelled in scyther either.
+

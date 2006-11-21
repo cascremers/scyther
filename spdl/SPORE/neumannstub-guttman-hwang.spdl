@@ -1,0 +1,116 @@
+# Neumann Stubblebine
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/neumannStubblebine.html
+#
+# Note:
+# This protocol uses a ticket so scyther will only be able to verify
+# the protocol using the ARACHNE engine (-a)
+#
+# Note:
+# In SPORE this protocol is not described correctly, there are in fact 2
+# different protocols (the key establishment protocol and the repeated
+# authentication protocol)
+
+usertype Server, SessionKey, TimeStamp, TicketKey;
+usertype ExpiredTimeStamp;
+secret k: Function;
+
+const Alice, Bob, Simon, Eve: Agent;
+const Fresh: Function;
+const Compromised: Function;
+
+const ne: Nonce;
+const kee: SessionKey;
+untrusted Eve;
+compromised k(Eve,Simon);
+
+protocol neustub-GuttmanHwang^Repeat(I,R,S)
+{
+    const Kir: SessionKey;
+
+    role I
+    {
+        const Mi: Nonce;
+        var Mr: Nonce;
+        const Kir: SessionKey;
+        const Tr: TimeStamp;
+
+        send_5(I,R,Mi,{I,Kir,Tr}k(R,S));
+        read_6(R,I,{Mi,Mr}Kir);
+        send_7(I,R,{I,Mr}Kir);
+        claim_I1(I,Secret, Kir);
+        claim_I2(I,Niagree);
+        claim_I3(I,Nisynch);
+        claim_I4(I,Empty,(Fresh,Kir));
+    }
+
+    role R
+    {
+        const Mr: Nonce;
+        var Tr: TimeStamp;
+        var Kir: SessionKey;
+        var Mi: Nonce;
+        
+        read_5(I,R,Mi,{I,Kir,Tr}k(R,S));
+        send_6(R,I,{Mi,Mr}Kir);
+        read_7(I,R,{I,Mr}Kir);
+        claim_R1(R,Secret, Kir);
+        claim_R2(R,Niagree);
+        claim_R3(R,Nisynch);
+        claim_R4(R,Empty,(Fresh,Kir));
+    }
+
+    role S 
+    {
+    }
+}
+protocol neustub-GuttmanHwang(I,R,S)
+{
+    role I
+    {
+        const Ni: Nonce;
+        var Nr: Nonce;
+        var T: Ticket;
+        var Tb: TimeStamp;
+        var Kir: SessionKey;
+        
+        send_1(I,R, I, Ni);
+        read_!3(S,I, { R,Ni,Kir,Tb}k(I,S), T, Nr);
+        send_!4(I,R,T,{Nr}Kir);
+        
+        claim_I1(I,Secret, Kir);
+        claim_I2(I,Niagree);
+        claim_I3(I,Nisynch);
+        claim_I4(I,Empty,(Fresh,Kir));
+    }
+
+    role R
+    {
+        var Ni,Mi: Nonce;
+        const Nr,Mr: Nonce;
+        var Kir: SessionKey;
+        const Tb: TimeStamp;
+        var T: Ticket;
+        
+        read_1(I,R, I, Ni);
+        send_!2(R,S, R, {I, Ni, Tb ,Nr}k(R,S));
+        read_!4(I,R,{I,Kir,Tb}k(R,S),{Nr}Kir);
+    
+        claim_R1(R,Secret, Kir);
+        claim_R2(R,Niagree);
+        claim_R3(R,Nisynch);
+        claim_R4(R,Empty,(Fresh,Kir));
+    }
+
+    role S
+    {
+        var Ni, Nr: Nonce;
+        const Kir: SessionKey;
+        var Tb: TimeStamp;
+
+        read_!2(R,S, R, {I,Ni,Tb,Nr}k(R,S));
+        send_!3(S,I, { R, Ni, Kir, Tb}k(I,S), { I,Kir,Tb}k(R,S),Nr );
+    }
+}
+

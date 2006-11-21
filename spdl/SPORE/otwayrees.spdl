@@ -1,0 +1,87 @@
+# Otway Rees
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/otwayRees.html
+#
+#
+# Note:
+# This protocol uses a ticket so scyther will only be able to verify
+# the protocol using the ARACHNE engine (-a)
+#
+
+
+secret const k : Function;
+const Fresh: Function;
+const Compromised: Function;
+
+usertype String,SessionKey;
+
+protocol otwayRees^KeyCompromise(C)
+{
+    // Read the names of 3 agents and disclose a session between them including
+    // corresponding session key to simulate key compromise
+    role C {
+        const Ni,Nr: Nonce;
+        const M: String;
+        const Kir: SessionKey;
+        var I,R,S: Agent;
+
+        read_C1(C,C,    I,R,S);
+        send_C2(C,C,    M,I,R,{Ni,M,I,R}k(I,S),
+                        {Nr,M,I,R}k(R,S),
+                        {Ni,Kir}k(I,S), {Nr,Kir}k(R,S),
+                        Kir
+               );
+        claim_C3(C,Empty, (Compromised,Kir));
+    }
+}
+
+protocol otwayrees(I,R,S)
+{
+    role I
+    {
+        const Ni : Nonce;
+        const M : String;
+        var Kir : SessionKey;
+
+        send_1(I,R, M,I,R,{Ni,M,I,R}k(I,S) );
+        read_4(R,I, M,{Ni,Kir}k(I,S) );
+
+        claim_I1(I, Secret,Kir);
+        claim_I2(I, Nisynch);
+        claim_I3(I, Empty, (Fresh,Kir));
+    }
+
+    role R
+    {
+        var M : String;
+        const Nr : Nonce;
+        var Kir : SessionKey;
+        var T1,T2: Ticket;
+
+        read_1(I,R, M,I,R, T1 );
+        send_2(R,S, M,I,R, T1, { Nr,M,I,R }k(R,S) );
+        read_3(S,R, M, T2, { Nr,Kir }k(R,S) );
+        send_4(R,I, M, T2 );
+
+        claim_R1(R, Secret,Kir);
+        claim_R2(R, Nisynch);
+        claim_R3(R, Empty, (Fresh,Kir));
+    }
+
+    role S
+    {
+        var Ni,Nr : Nonce;
+        var M : String;
+        const Kir : SessionKey;
+        
+        read_2(R,S, M,I,R, { Ni,M,I,R}k(I,S), { Nr,M,I,R }k(R,S) );
+        send_3(S,R, M, { Ni,Kir }k(I,S) , { Nr,Kir }k(R,S) );
+    }
+}
+
+const Alice, Bob, Eve, Simon: Agent;
+
+untrusted Eve;
+compromised k(Eve,Simon);
+

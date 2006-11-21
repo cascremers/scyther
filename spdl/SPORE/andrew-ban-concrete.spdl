@@ -1,0 +1,96 @@
+# BAN concrete Andrew Secure RPC
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/andrewBAN2.html
+#
+# Note:
+# The shared key between I and R is modelled as k(I,R) currently
+# there is no way to express that this key is equal to k(R,I)
+# In order to overcome this a 'dummy' role X has been hadded that recrypts
+# a given term crypted with k(I,R) with k(R,I)
+#
+# Note:
+# Read 4 by the Initatior has been placed after the synchronisation claim
+# as it allows trivial synchronisation attacks otherwise (the message is 
+# completely fresh and can therefore always be replaced by an arbitrary value 
+# created by the intruder) which are not considered in SPORE
+#
+
+usertype SessionKey;
+secret k: Function;
+const Fresh: Function;
+const Compromised: Function;
+
+protocol @swapkey(X)
+{
+    # Protocol added to work around the symmetry problems where k(I,R) != k(R,I)
+    role X
+    {
+        var I,R: Agent;
+        var T:Ticket;
+        read_X1(X,X,I,R,{T}k(I,R));
+        send_X2(X,X,{T}k(R,I));
+    }
+}
+
+protocol andrew-Concrete^KeyCompromise(C)
+{
+    // Read the names of 3 agents and disclose a session between them including
+    // corresponding session key to simulate key compromise
+    role C {
+        const ni,nr: Nonce;
+        const kir: SessionKey;
+        var I,R: Agent;
+
+        read_C1(C,C,    I,R);
+        send_C2(C,C,    (I,ni),
+                        {ni,kir}k(I,R),
+                        {ni}kir,
+                        nr,
+                        kir
+               );
+        claim_C3(C,Empty, (Compromised,kir));
+    }
+}
+
+
+protocol andrew-Concrete(I,R)
+{
+    
+    role I
+    {
+        const ni: Nonce;
+        var nr: Nonce;
+        var kir: SessionKey;
+        
+        send_1(I,R, I,ni );
+        read_2(R,I, {ni,kir}k(I,R) );
+        send_3(I,R, {ni}kir);
+        claim_I1(I,Secret,kir);
+        claim_I2(I,Nisynch);
+        claim_I3(I,Empty,(Fresh,kir));
+        read_6(R,I, nr);
+    }    
+    
+    role R
+    {
+        var ni: Nonce;
+        const nr: Nonce;
+        const kir: SessionKey;
+
+        read_1(I,R, I,ni );
+        send_2(R,I, {ni,kir}k(I,R) );
+        read_3(I,R, {ni}kir);
+        send_6(R,I, nr);
+        claim_R1(R,Secret,kir);
+        claim_R2(R,Nisynch);
+        claim_R3(R,Empty,(Fresh,kir));
+    }
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const kee: SessionKey;
+

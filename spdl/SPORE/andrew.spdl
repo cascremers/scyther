@@ -1,0 +1,85 @@
+# Andrew Secure RPC
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/andrew.html
+#
+# Note:
+# The shared key between I and R is modelled as k(I,R) currently
+# there is no way to express that this key is equal to k(R,I)
+# So it is possile that certain attacks that use this property are not found
+#
+
+usertype SessionKey;
+secret k: Function;
+const succ: Function;
+const Fresh: Function;
+const Compromised: Function;
+
+protocol andrew^KeyCompromise(C)
+{
+    // Read the names of 2 agents and disclose a session between them including
+    // corresponding session key to simulate key compromise
+    role C {
+        const ni,nr,nr2: Nonce;
+        const kir: SessionKey;
+        var I,R: Agent;
+
+        read_C1(C,C,    I,R);
+        send_C2(C,C,    (I,{ni}k(I,R)),
+                        {succ(ni),nr}k(I,R),
+                        {succ(nr)}k(I,R),
+                        {kir,nr2}k(I,R),
+                        kir
+               );
+        claim_C3(C,Empty, (Compromised,kir));
+    }
+}
+
+protocol andrew(I,R)
+{
+    role I
+    {
+        const ni: Nonce;
+        var nr,nr2: Nonce;
+        var kir: SessionKey;
+
+        send_1(I,R, I,{ni}k(I,R) );
+        read_2(R,I, {succ(ni),nr}k(I,R) );
+        send_3(I,R, {succ(nr)}k(I,R) );
+        read_4(R,I, {kir,nr2}k(I,R) );
+        claim_I1(I,Secret,kir);
+        claim_I2(I,Nisynch);
+        claim_I3(I,Niagree);
+        claim_I4(I,Empty,(Fresh,kir));
+    }    
+    
+    role R
+    {
+        var ni: Nonce;
+        const nr,nr2: Nonce;
+        const kir: SessionKey;
+
+        read_1(I,R, I,{ni}k(I,R) );
+        send_2(R,I, {succ(ni),nr}k(I,R) );
+        read_3(I,R, {succ(nr)}k(I,R) );
+        send_4(R,I, {kir,nr2}k(I,R) );
+        claim_R1(R,Secret,kir);
+        claim_R2(R,Nisynch);
+        claim_R3(R,Niagree);
+        claim_R4(R,Empty,(Fresh,kir));
+    }
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const kee: SessionKey;
+compromised k(Eve,Eve);
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
+
+
+
