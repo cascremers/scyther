@@ -746,7 +746,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  /* not very important
-	     helptext ("    --max-attacks=<int>", "when not 0, maximum number of attacks [0]");
+	     helptext ("    --max-attacks=<int>", "when not 0, maximum number of attacks/states per claim [0]");
 	   */
 	}
       else
