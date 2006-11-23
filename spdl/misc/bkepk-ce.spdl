@@ -8,23 +8,13 @@
 usertype Key;
 
 const pk,hash: Function;
-secret sk: Function;
+secret sk,unhash: Function;
 
 inversekeys (pk,sk);
+inversekeys (hash,unhash);
 
-protocol bkeCE(A,B,testnonce)
+protocol bkeCE(A,B)
 {
-	role B
-	{
-		const nb: Nonce;
-		var na: Nonce;
-		var kab: Key;
-
-		send_1 (B,A, B,{ nb,B }pk(A) );
-		read_2 (A,B, { hash(nb),na,A,kab }pk(B) );
-		send_3 (B,A, { hash(na) }kab );
-	}
-
 	role A
 	{
 		var nb: Nonce;
@@ -34,14 +24,25 @@ protocol bkeCE(A,B,testnonce)
 		read_1 (B,A, B,{ nb,B }pk(A) );
 		send_2 (A,B, { hash(nb),na,A,kab }pk(B) );
 		read_3 (B,A, { hash(na) }kab );
+
+		claim_A1 (A, Secret, na);
+		claim_A2 (A, Secret, nb);
 	}
 
-	role testnonce
+	role B
 	{
-		var n: Nonce;
+		const nb: Nonce;
+		var na: Nonce;
+		var kab: Key;
 
-		read_4 (testnonce,testnonce, n);
+		send_1 (B,A, B,{ nb,B }pk(A) );
+		read_2 (A,B, { hash(nb),na,A,kab }pk(B) );
+		send_3 (B,A, { hash(na) }kab );
+
+		claim_B1 (B, Secret, na);
+		claim_B2 (B, Secret, nb);
 	}
+
 }
 
 const Alice,Bob,Eve;
@@ -50,12 +51,3 @@ compromised sk(Eve);
 untrusted Eve;
 
 
-run bkeCE.A(Alice,Bob,Alice);
-run bkeCE.A(Alice,Bob,Alice);
-run bkeCE.B(Alice,Bob,Alice);
-run bkeCE.B(Alice,Bob,Alice);
-run bkeCE.testnonce(Alice,Bob,Alice);
-run bkeCE.testnonce(Alice,Bob,Alice);
-
-run bkeCE.A(Alice,Bob,Alice);
-run bkeCE.testnonce(Alice,Bob,Alice);
