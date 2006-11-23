@@ -56,7 +56,7 @@ def getScytherBackend():
     elif sys.platform.startswith('win'):
 
         """ Windows """
-        scythername = "Scyther.exe"
+        scythername = "scyther-w32.exe"
 
     else:
 
