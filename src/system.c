@@ -1197,7 +1197,7 @@ scenarioPrint (const System sys)
 
 //! Determine whether we don't need any more attacks
 /**
- * Returns 1 (true) iff no more attacks are needed.
+ * Returns 1 (true) iff no more attacks are needed for this claim.
  */
 int
 enoughAttacks (const System sys)
@@ -1207,7 +1207,9 @@ enoughAttacks (const System sys)
     {
       if (switches.maxAttacks != 0)
 	{
-	  if (sys->attackid >= switches.maxAttacks)
+	  // Note: we're comparing states (some type of large integer) to regular
+	  // integers, and hope that the compiler solves it :)
+	  if (sys->current_claim->failed >= switches.maxAttacks)
 	    {
 	      return 1;
 	    }
