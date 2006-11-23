@@ -762,6 +762,13 @@ switcher (const int process, int index, int commandline)
 	{
 	  /* not very important
 	     helptext ("    --prune=<int>", "pruning method when an attack is found [2]");
+
+	     Semantics:
+	     0 - Show all attacks (up to the maximum)
+	     1 - Show first attack
+	     2 - Show 'best' attack (use heuristics)
+
+	     Thus, a value of '0' means multiple attacks are output, otherwise just one.
 	   */
 	}
       else
@@ -1179,14 +1186,14 @@ switcher (const int process, int index, int commandline)
 	  printf ("'%s' model checker for security protocols.\n", progname);
 	  printf ("Version %s.\n", RELEASEVERSION);
 	  if (switches.expert)
-	  {
+	    {
 #ifdef DEBUG
-	  printf ("Revision %s, compiled with debugging support.\n",
-		  SVNVERSION);
+	      printf ("Revision %s, compiled with debugging support.\n",
+		      SVNVERSION);
 #else
-	  printf ("Revision %s\n", SVNVERSION);
+	      printf ("Revision %s\n", SVNVERSION);
 #endif
-	  }
+	    }
 	  printf ("Code by Cas Cremers\n");
 	  exit (0);
 	}

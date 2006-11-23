@@ -1202,11 +1202,15 @@ scenarioPrint (const System sys)
 int
 enoughAttacks (const System sys)
 {
-  if (switches.maxAttacks != 0)
+  // Only if we are outputting more than one
+  if (switches.prune == 0)
     {
-      if (sys->attackid >= switches.maxAttacks)
+      if (switches.maxAttacks != 0)
 	{
-	  return 1;
+	  if (sys->attackid >= switches.maxAttacks)
+	    {
+	      return 1;
+	    }
 	}
     }
   return 0;

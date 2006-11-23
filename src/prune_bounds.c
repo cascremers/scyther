@@ -45,10 +45,10 @@ prune_bounds (const System sys)
       return 1;
     }
 
-  /* prune for number of attacks */
+  /* prune for number of attacks if we are actually outputting them */
   if (enoughAttacks (sys))
     {
-      // Oh no, we ran out of time!
+      // Oh no, we ran out of possible attacks!
       if (switches.output == PROOF)
 	{
 	  indentPrint ();
