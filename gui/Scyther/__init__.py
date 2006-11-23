@@ -5,5 +5,7 @@
 #   order to correctly find the executables
 #
 import Scyther
+import os.path
 
-Scyther.setBinDir(__path__[0])
+bindir = os.path.join(__path__[0],"..","Bin")
+Scyther.setBinDir(bindir)

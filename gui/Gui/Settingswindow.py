@@ -77,8 +77,8 @@ class SettingsWindow(wx.Panel):
         ### MISC expert stuff
         grid.titleAdd("Advanced parameters")
 
-        # Bound on the number of classes/attacks
-        self.maxattacks = int(Preference.get('maxattacks','100'))
+        # Bound on the number of patterns
+        self.maxattacks = int(Preference.get('maxattacks','10'))
         stname = Claim.stateDescription(True,2,False)
         atname = Claim.stateDescription(False,2,False)
         txt = "%s/%s" % (stname,atname)

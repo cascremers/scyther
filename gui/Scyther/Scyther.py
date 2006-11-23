@@ -19,10 +19,10 @@ from Misc import *
 
 #---------------------------------------------------------------------------
 
-""" Globals """
-bindir="../Bin"
-
-#---------------------------------------------------------------------------
+"""
+The default path for the binaries is set in __init__.py in the (current)
+directory 'Scyther'.
+"""
 
 def setBinDir(dir):
     global bindir
@@ -36,41 +36,48 @@ def getBinDir():
 
 #---------------------------------------------------------------------------
 
+def getScytherBackend():
+    # Where is my executable?
+    #
+    # Auto-detect platform and infer executable name from that
+    #
+    if "linux" in sys.platform:
+
+        """ linux """
+        scythername = "scyther-linux"
+
+    elif "darwin" in sys.platform:
+
+        """ OS X """
+        # Preferably, we test for architecture (PPC/Intel) until we
+        # know how to build a universal binary
+        scythername = "scyther-osx"
+
+    elif sys.platform.startswith('win'):
+
+        """ Windows """
+        scythername = "Scyther.exe"
+
+    else:
+
+        """ Unsupported"""
+        print "ERROR: I'm sorry, the %s platform is unsupported at the moment" % (sys.platform)
+        sys.exit()
+
+    program = os.path.join(getBinDir(),scythername)
+    if not os.path.isfile(program):
+        print "I can't find the Scyther executable at %s" % (program)
+        return None
+
+    return program
+
+#---------------------------------------------------------------------------
+
 class Scyther(object):
     def __init__ ( self):
-        global bindir
-
-        # Where is my executable?
-        #
-        # Auto-detect platform and infer executable name from that
-        #
-        prefix = os.path.abspath(bindir)
-        if "linux" in sys.platform:
-
-            """ linux """
-            self.program = os.path.join(prefix,"scyther")
-
-        elif "darwin" in sys.platform:
-
-            """ OS X """
-            # Preferably, we test for architecture (PPC/Intel) until we
-            # know how to build a universal binary
-            self.program = os.path.join(prefix,"scyther-osx")
-
-        elif sys.platform.startswith('win'):
-
-            """ Windows """
-            # TODO hardcoded for now, bad
-            self.program = os.path.join(prefix,"Scyther.exe")
-            if not os.path.isfile(self.program):
-                print "I can't find the Scyther executable at %s" % (self.program)
-        else:
-
-            """ Unsupported"""
-            print "ERROR: I'm sorry, the %s platform is unsupported at the moment" % (sys.platform)
-            sys.exit()
 
         # Init
+        self.program = getScytherBackend()
         self.spdl = None
         self.inputfile = None
         self.options = ""
@@ -105,6 +112,10 @@ class Scyther(object):
         fp.close()
 
     def verify(self):
+        """ Should return a list of results """
+
+        if self.program == None:
+            return []
 
         # Run Scyther on temp file
         self.cmd = "\"%s\"" % self.program
