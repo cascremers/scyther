@@ -6,7 +6,7 @@
  * The .cpp file cannot be fed into scyther directly; rather, one needs
  * to type: (for *nix type systems with cpp)
  *
- * 	cpp tls-mitchell.cpp >tls-mitchell.spdl
+ * 	cpp tls-HSDDM05.cpp >tls-HSDDM05.spdl
  *
  * in order to generate a valid spdl file for the Scyther.
  *
@@ -15,8 +15,13 @@
  *
  */
 #define CERT(a) { a,pk(a) }sk(Terence)
-#define handShake1 X,Nx,pa,Ny,pb,CERT(Y)
-#define handShake2 handShake1,CERT(X),{ handShake1 }sk(X),{ msecret }pk(Y), hash(msecret, handShake1, clientstring)
+#define msg1 X,Nx,pa
+#define msg2 Ny,pb,CERT(Y)
+#define handShake1 msg1,msg2
+#define msg3 CERT(X),{handShake1}sk(X),{msecret}pk(Y),hash(msecret,handShake1,clientstring)
+#define handShake2 msg1,msg2,msg3
+#define msg4 hash(msecret,handShake2,serverstring)
+
 
 /* below is just Scyther input and no further macro definitions */
 
@@ -32,7 +37,7 @@ const clientstring,serverstring: String;
 const Alice, Bob, Eve: Agent;
 const Terence: Agent;
 
-protocol tlsmitchell(X,Y)
+protocol tls-HSDDM05(X,Y)
 {
 	role X
 	{
@@ -42,14 +47,10 @@ protocol tlsmitchell(X,Y)
 		var Ny: Nonce;
 		var pb: Params;
 
-		send_1( X,Y, X,Nx,pa );
-		read_2( Y,X, Ny,pb,CERT(Y) );
-		send_3( X,Y, CERT(X),
-			     { handShake1 }sk(X),
-			     { msecret }pk(Y),
-			     hash(msecret, handShake1, clientstring)
-			  );
-		read_4( Y,X, hash(msecret, handShake2, serverstring) );
+		send_1( X,Y, msg1 );
+		read_2( Y,X, msg2 );
+		send_3( X,Y, msg3 );
+		read_4( Y,X, msg4 );
 
 		claim_X1( X, Secret, msecret );
 	}	
@@ -62,14 +63,10 @@ protocol tlsmitchell(X,Y)
 		const Ny: Nonce;
 		const pb: Params;
 
-		read_1( X,Y, X,Nx,pa );
-		send_2( Y,X, Ny,pb,CERT(Y) );
-		read_3( X,Y, CERT(X),
-			     { handShake1 }sk(X),
-			     { msecret }pk(Y),
-			     hash(msecret, handShake1, clientstring)
-			  );
-		send_4( Y,X, hash(msecret, handShake2, serverstring) );
+		read_1( X,Y, msg1 );
+		send_2( Y,X, msg2 );
+		read_3( X,Y, msg3 );
+		send_4( Y,X, msg4 );
 
 		claim_Y1( Y, Secret, msecret );
 	}
