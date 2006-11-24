@@ -5,8 +5,11 @@
 # This is a simple hack to be able to quickly use the graphical output
 # of Scyther if one only has graphviz, but not elementtree and wxPython.
 #
-# Notes: only works under Linux currently, because of silly assumptions
+# Note 1: only works under Linux currently, because of silly assumptions
 # on temporary directories and pdf viewers.
+#
+# Note 2: this code assumes that both scyther-linux and dot can be found in the
+# environment (i.e. PATH variable)
 #
 import os,sys,commands
 import os.path
@@ -30,7 +33,7 @@ def generateTemp(extension='tmp'):
 def scyther_to_dotfile():
     """ Run Scyther, return dotfile name """
 
-    scythername = os.path.join(os.path.dirname(__file__),"scyther-linux")
+    scythername = "scyther-linux"
     args = " ".join(sys.argv[1:])
     tmpdotfile = generateTemp('dot')
 
