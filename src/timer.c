@@ -25,7 +25,7 @@ set_time_limit (int seconds)
     {
       time_max_seconds = seconds;
 #ifdef linux
-      endwait = seconds * CLK_TCK;
+      endwait = seconds * CLOCKS_PER_SEC;
 #endif
     }
   else
