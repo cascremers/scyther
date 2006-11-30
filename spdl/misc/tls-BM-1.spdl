@@ -1,0 +1,65 @@
+/*
+ * This is a model of a version of the TLS protocol as modeled in
+ * Boyd, Mathuria "Protocols for Authentication and key establishment"
+ *
+ * It's a very simplified form.
+ */
+
+
+
+
+
+
+
+
+
+
+
+
+/* below is just Scyther input and no further macro definitions */
+
+const pk,hash: Function;
+secret sk,unhash: Function;
+inversekeys(pk,sk);
+inversekeys(hash,unhash);
+
+const Alice, Bob, Eve: Agent;
+const Terence: Agent;
+
+protocol tls-bm-1(A,B)
+{
+	role A
+	{
+		const na: Nonce;
+		const pmk: Nonce;
+		var nb: Nonce;
+
+		send_1( A,B, na );
+		read_2( B,A, nb );
+		send_3( A,B, { pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A),{ hash(na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A)) }hash(pmk,na,nb) );
+		read_4( B,A, { na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A),{ hash(na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A)) }hash(pmk,na,nb) }hash(pmk,na,nb) );
+
+		claim_A1( A, Secret, hash(pmk,na,nb) );
+		claim_A2( A, Nisynch );
+	}	
+	
+	role B
+	{
+		var na: Nonce;
+		var pmk: Nonce;
+		const nb: Nonce;
+
+		read_1( A,B, na );
+		send_2( B,A, nb );
+		read_3( A,B, { pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A),{ hash(na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A)) }hash(pmk,na,nb) );
+		send_4( B,A, { na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A),{ hash(na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A)) }hash(pmk,na,nb) }hash(pmk,na,nb) );
+
+		claim_B1( B, Secret, hash(pmk,na,nb) );
+		claim_B2( B, Nisynch );
+	}
+}
+
+
+untrusted Eve;
+compromised sk(Eve);
+
