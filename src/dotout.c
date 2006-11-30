@@ -100,7 +100,7 @@ printVisualRun (int rid)
   else
     {
       // >= sys->maxruns means intruder choice
-      eprintf ("%i", (rid - sys->maxruns + 1));
+      eprintf ("Intruder%i", (rid - sys->maxruns + 1));
     }
 }
 
@@ -109,6 +109,17 @@ void
 termPrintRemap (const Term t)
 {
   termPrintCustom (t, "", "", "(", ")", "\\{ ", " \\}", printVisualRun);
+}
+
+//! Remap term list
+void
+termlistPrintRemap (Termlist tl)
+{
+  while (tl != NULL)
+    {
+      termPrintRemap(tl->term);
+      tl = tl->next;
+    }
 }
 
 //! Print a term; if it is a variable, show that
@@ -1689,13 +1700,58 @@ dotSemiState (const System mysys)
   from_intruder_count = drawAllBindings (sys);
 
   // Third, the intruder node (if needed)
-  if (from_intruder_count > 0)
+    {
+  /*
+   * Stupid brute analysis, can probably be done much more efficient, but
+   * this is not a timing critical bit, so we just do it like this.
+   */
+  Termlist found;
+  List bl;
+
+  // collect the intruder-generated constants
+  found = NULL;
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (!b->blocked)
+	{
+	  int addsubterms(Term t)
+	    {
+	      if (TermRunid(t) >= sys->maxruns)
+		{
+                  // >= sys->maxruns means intruder choice
+	          found = termlistAddNew(found, t);
+		}
+	      return true;
+	    }
+
+	  term_iterate_open_leaves(b->term, addsubterms);
+	}
+    }
+
+  // now maybe we draw the node
+  if ((from_intruder_count > 0) || (found != NULL))
     {
       eprintf
-	("\tintruder [label=\"Initial intruder knowledge\", style=filled,fillcolor=\"");
+	("\tintruder [\n");
+      eprintf ("\t\tlabel=\"");
+      eprintf ("Initial intruder knowledge");
+      if (found != NULL)
+	{
+	  eprintf ("\\n");
+	  eprintf ("The intruder generates: ");
+	  termlistPrintRemap (found);
+	}
+      eprintf ("\",\n");
+      eprintf ("\t\tstyle=filled,fillcolor=\"");
       printColor (INTRUDERCOLORH, INTRUDERCOLORL, INTRUDERCOLORS);
-      eprintf ("\"];\n");
+      eprintf ("\"\n\t];\n");
     }
+  termlistDelete(found);
+    }
+
   // eprintf ("\t};\n");
 
   // For debugging we might add more stuff: full dependencies
