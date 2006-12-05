@@ -1740,6 +1740,9 @@ createNewTermGeneric (Termlist tl, Term t)
   memcpy (newterm, t, sizeof (struct term));
   TermRunid (newterm) = freenumber;
 
+  /* The type of the new term should be that of the parent! */
+  newterm->stype = termlistAppend (NULL, t);
+
   /* return */
   return termlistPrepend (tl, newterm);
 }

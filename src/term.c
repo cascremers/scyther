@@ -315,7 +315,7 @@ termInTerm (Term t, Term tsub)
 void
 termPrintCustom (Term term, char *leftvar, char *rightvar, char *lefttup,
 		 char *righttup, char *leftenc, char *rightenc,
-		 void (*callback) (int rid))
+		 void (*callback) (const Term t))
 {
 #ifdef DEBUG
   if (!DEBUGL (4))
@@ -345,7 +345,7 @@ termPrintCustom (Term term, char *leftvar, char *rightvar, char *lefttup,
 	    }
 	  else
 	    {
-	      callback (TermRunid (term));
+	      callback (term);
 	    }
 	}
       if (term->subst != NULL)
@@ -404,7 +404,7 @@ termPrint (Term term)
 void
 termTuplePrintCustom (Term term, char *leftvar, char *rightvar, char *lefttup,
 		      char *righttup, char *leftenc, char *rightenc,
-		      void (*callback) (int rid))
+		      void (*callback) (const Term t))
 {
   if (term == NULL)
     {

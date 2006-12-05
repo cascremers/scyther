@@ -5,6 +5,7 @@
 #include "arachne.h"
 #include "binding.h"
 #include "depend.h"
+#include "type.h"
 #include "debug.h"
 
 extern Protocol INTRUDER;	// Pointers, to be set by the Init of arachne.c
@@ -63,8 +64,29 @@ static System sys = NULL;
  * code
  */
 
+//! Is this term chosen by the intruder?
+int
+isIntruderChoice (const Term t)
+{
+  if (realTermLeaf (t))
+    {
+      if (TermRunid (t) >= sys->maxruns)
+	{
+	  // Chosen by intruder
+	  // However, if it is a rolename, this is not really what we mean
+	  if (!(t->roleVar || isAgentType (t->stype)))
+	    {
+	      // Not a role variable, and chosen by the intruder: that's it
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
+//! Print the run identifier in some meaningful way
 void
-printVisualRun (int rid)
+printVisualRunID (int rid)
 {
   int run;
   int displayi;
@@ -99,9 +121,18 @@ printVisualRun (int rid)
     }
   else
     {
-      // >= sys->maxruns means intruder choice
-      eprintf ("Intruder%i", (rid - sys->maxruns + 1));
+      eprintf ("%i", (rid - sys->maxruns + 1));
     }
+}
+
+void
+printVisualRun (const Term t)
+{
+  if (isIntruderChoice (t))
+    {
+      eprintf ("Intruder");
+    }
+  printVisualRunID (TermRunid (t));
 }
 
 //! Remap term stuff
@@ -113,12 +144,16 @@ termPrintRemap (const Term t)
 
 //! Remap term list
 void
-termlistPrintRemap (Termlist tl)
+termlistPrintRemap (Termlist tl, char *sep)
 {
   while (tl != NULL)
     {
-      termPrintRemap(tl->term);
+      termPrintRemap (tl->term);
       tl = tl->next;
+      if (tl != NULL)
+	{
+	  eprintf ("%s", sep);
+	}
     }
 }
 
@@ -1263,7 +1298,7 @@ printRunExplanation (const System sys, const int run,
   int hadcontent;
 
   eprintf ("Run ");
-  printVisualRun (run);
+  printVisualRunID (run);
 
   eprintf (runrolesep);
   // Print first line
@@ -1700,57 +1735,55 @@ dotSemiState (const System mysys)
   from_intruder_count = drawAllBindings (sys);
 
   // Third, the intruder node (if needed)
-    {
-  /*
-   * Stupid brute analysis, can probably be done much more efficient, but
-   * this is not a timing critical bit, so we just do it like this.
-   */
-  Termlist found;
-  List bl;
+  {
+    /*
+     * Stupid brute analysis, can probably be done much more efficient, but
+     * this is not a timing critical bit, so we just do it like this.
+     */
+    Termlist found;
+    List bl;
 
-  // collect the intruder-generated constants
-  found = NULL;
-  for (bl = sys->bindings; bl != NULL; bl = bl->next)
-    {
-      Binding b;
+    // collect the intruder-generated constants
+    found = NULL;
+    for (bl = sys->bindings; bl != NULL; bl = bl->next)
+      {
+	Binding b;
 
-      b = (Binding) bl->data;
-      if (!b->blocked)
-	{
-	  int addsubterms(Term t)
+	b = (Binding) bl->data;
+	if (!b->blocked)
+	  {
+	    int addsubterms (Term t)
 	    {
-	      if (TermRunid(t) >= sys->maxruns)
+	      if (isIntruderChoice (t))
 		{
-                  // >= sys->maxruns means intruder choice
-	          found = termlistAddNew(found, t);
+		  found = termlistAddNew (found, t);
 		}
 	      return true;
 	    }
 
-	  term_iterate_open_leaves(b->term, addsubterms);
-	}
-    }
+	    term_iterate_open_leaves (b->term, addsubterms);
+	  }
+      }
 
-  // now maybe we draw the node
-  if ((from_intruder_count > 0) || (found != NULL))
-    {
-      eprintf
-	("\tintruder [\n");
-      eprintf ("\t\tlabel=\"");
-      eprintf ("Initial intruder knowledge");
-      if (found != NULL)
-	{
-	  eprintf ("\\n");
-	  eprintf ("The intruder generates: ");
-	  termlistPrintRemap (found);
-	}
-      eprintf ("\",\n");
-      eprintf ("\t\tstyle=filled,fillcolor=\"");
-      printColor (INTRUDERCOLORH, INTRUDERCOLORL, INTRUDERCOLORS);
-      eprintf ("\"\n\t];\n");
-    }
-  termlistDelete(found);
-    }
+    // now maybe we draw the node
+    if ((from_intruder_count > 0) || (found != NULL))
+      {
+	eprintf ("\tintruder [\n");
+	eprintf ("\t\tlabel=\"");
+	eprintf ("Initial intruder knowledge");
+	if (found != NULL)
+	  {
+	    eprintf ("\\n");
+	    eprintf ("The intruder generates: ");
+	    termlistPrintRemap (found, ", ");
+	  }
+	eprintf ("\",\n");
+	eprintf ("\t\tstyle=filled,fillcolor=\"");
+	printColor (INTRUDERCOLORH, INTRUDERCOLORL, INTRUDERCOLORS);
+	eprintf ("\"\n\t];\n");
+      }
+    termlistDelete (found);
+  }
 
   // eprintf ("\t};\n");
 

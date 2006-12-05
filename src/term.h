@@ -174,11 +174,11 @@ int termSubTerm (Term t, Term tsub);
 int termInTerm (Term t, Term tsub);
 void termPrintCustom (Term term, char *leftvar, char *rightvar, char *lefttup,
 		      char *righttup, char *leftenc, char *rightenc,
-		      void (*callback) (int rid));
+		      void (*callback) (const Term t));
 void termPrint (Term term);
 void termTuplePrintCustom (Term term, char *leftvar, char *rightvar,
 			   char *lefttup, char *righttup, char *leftenc,
-			   char *rightenc, void (*callback) (int rid));
+			   char *rightenc, void (*callback) (const Term t));
 void termTuplePrint (Term term);
 Term termDuplicate (const Term term);
 Term termNodeDuplicate (const Term term);
