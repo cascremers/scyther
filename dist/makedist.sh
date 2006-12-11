@@ -18,7 +18,7 @@
 #
 #	Parameters
 
-RELEASE="scyther-1.0-beta4"
+RELEASE="scyther-1.0-beta5"
 
 ARCHIVE="$RELEASE.tgz"
 ZIPPED="$RELEASE.zip"
