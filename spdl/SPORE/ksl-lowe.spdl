@@ -4,10 +4,6 @@
 # http://www.lsv.ens-cachan.fr/spore/kslLowe.html
 #
 # Note:
-# This protocol uses a ticket so scyther will only be able to verify
-# the protocol using the ARACHNE engine (-a)
-#
-# Note:
 # According to SPORE there are no attacks on this protocol, scyther
 # finds one however. This has to be investigated further.
 
