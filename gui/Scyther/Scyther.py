@@ -10,6 +10,7 @@ import os
 import os.path
 import sys
 import StringIO
+import tempfile
 
 #---------------------------------------------------------------------------
 
@@ -117,30 +118,29 @@ class Scyther(object):
         if self.program == None:
             return []
 
-        # Run Scyther on temp file
+        # Generate a temproary file for the error output
+        errorfile = tempfile.NamedTemporaryFile()
+
+        # Generate command line for the Scyther process
         self.cmd = "\"%s\"" % self.program
         if self.xml:
             self.cmd += " --dot-output --xml-output --plain"
+        self.cmd += " --errors=%s" % (errorfile.name)
         self.cmd += " " + self.options
 
-        (stdin,stdout,stderr) = os.popen3(self.cmd)
+        # Start the process, push input, get output
+        (stdin,stdout) = os.popen2(self.cmd)
         if self.spdl:
             stdin.write(self.spdl)
         stdin.close()
-
-        # In the order below, or stuff breaks (hangs), as described at
-        # http://mail.python.org/pipermail/python-dev/2000-September/009460.html
-        #
-        # TODO this is annoying: we would like to determine progress
-        # from the error output (maybe this can also be done by flushing
-        # the XML at certain points...)
         output = stdout.read()
-        errlines = stderr.readlines()
 
+        # get errors
         # filter out any non-errors (say maybe only claim etc) and count
         # them.
         self.errors = []
-        for l in errlines:
+        errorfile.seek(0)
+        for l in errorfile.readlines():
             if not l.startswith("claim\t"):
                 self.errors.append(l.strip())
 
@@ -148,7 +148,7 @@ class Scyther(object):
         
         # close
         stdout.close()
-        stderr.close()
+        errorfile.close()
 
         if self.xml:
             self.validxml = False
