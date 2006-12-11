@@ -1,1 +1,1 @@
-#define RELEASEVERSION "1.0-beta 4"
+#define RELEASEVERSION "1.0-beta 5"

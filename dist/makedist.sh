@@ -28,9 +28,9 @@ TMPDIR=/tmp/scytherdist
 WORKNAME=scyther
 
 #	Repository
-PROTROOT=https://svn.win.tue.nl/repos/ecss/trunk/protocols/spdl
+PROTROOT=https://svn.win.tue.nl/repos/scyther/trunk/spdl
 SVNROOT=https://svn.win.tue.nl/repos/scyther/trunk
-DOCROOT=https://svn.win.tue.nl/repos/ecss/trunk/papers/scythermanual
+DOCROOT=https://svn.win.tue.nl/repos/scyther/trunk/manual
 
 MANUAL=scyther-manual.pdf
 

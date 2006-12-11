@@ -1451,7 +1451,7 @@ process_switches (int commandline)
 	{
 	  printf ("Try '%s --help' for more information, or visit:\n",
 		  progname);
-	  printf (" http://www.win.tue.nl/~ccremers/scyther/index.html\n");
+	  printf (" http://people.inf.ethz.ch/cremersc/scyther/index.html\n");
 	  exit (0);
 	}
       else
