@@ -18,7 +18,7 @@ class AboutScyther(wx.Dialog):
 <body bgcolor="#ffffff">
     <center>
         <h1>Scyther</h1>
-        Version 1.0-beta 4
+        Version 1.0-beta 5
     </center>
 <hr>
 <p>
@@ -31,7 +31,7 @@ class AboutScyther(wx.Dialog):
 </p>
 <p>
     For news and updates visit the Scyther pages at 
-    http://www.win.tue.nl/~ccremers/scyther/index.html
+    http://people.inf.ethz.ch/cremersc/scyther/index.html
 </p>
 <p>
     Credits: Cas Cremers (Scyther theory, backend, and main GUI
