@@ -1292,6 +1292,30 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
+  if (detect (' ', "errors", 1))
+    {
+      if (!process)
+	{
+	  if (switches.expert)
+	    {
+	      helptext ("    --errors=<FILE>", "error file [stderr]");
+	    }
+	}
+      else
+	{
+	  // Set output file name
+	  /* try to open */
+	  if (!freopen (arg_pointer, "w", stderr))
+	    {
+	      printfstderr ("Could not create error file '%s'.\n",
+			    arg_pointer);
+	      exit (1);
+	    }
+	  arg_next ();
+	  return index;
+	}
+    }
+
   // If the option is not recognized, it means a file name.
   if (!process)
     {
