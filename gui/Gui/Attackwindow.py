@@ -125,12 +125,9 @@ class AttackWindow(wx.Frame):
         self.claim = cl
 
         # TODO maybe fitting defaults should come from Preferences.
-        # Now, it is default yes if it looks nice (i.e. we are using
-        # PIL)
-        if Preference.usePIL():
-            self.fit = True
-        else:
-            self.fit = False
+        # Now, it is default no even if we have PIL, for performance
+        # reasons.
+        self.fit = False
 
         self.CreateInteriorWindowComponents()
 
