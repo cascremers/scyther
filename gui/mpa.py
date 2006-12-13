@@ -129,7 +129,7 @@ if __name__ == '__main__':
     Simple test case with a few protocols
     """
 
-    list = ['me.spdl','ns3.spdl','nsl3.spdl']
+    list = ['nsl3-broken.spdl','ns3.spdl','nsl3.spdl']
     print "Performing multi-protocol analysis for the following protocols:", list
     print
     findAllMPA(list)

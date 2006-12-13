@@ -2,14 +2,14 @@
 
 				Scyther
 
-			       1.0-beta4
+			       1.0-beta5
 
-	  a automatic verification tool for security protocols
+	  an automatic verification tool for security protocols
 			     by Cas Cremers
 
 			Microsoft Windows binary
 				  and
-	   Linux binary compiled for Linux i686 environments
+	   Linux binary (compiled for Linux i686 environments)
 
 ------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ Note: This is a BETA release, and therefore the usual warnings apply.
 
 For more information, see:
 
-  http://www.win.tue.nl/~ccremers/scyther
+  http://people.inf.ethz.ch/cremersc/scyther/index.html
 
 
 2. Starting out
@@ -41,14 +41,11 @@ SPORE directory.
 3. Citing Scyther
 ===========================
 
-For now, there is no official journal paper to cite yet, but you can use
-the following information:
-
-@misc{wwwscyther,
-  Author = "C.J.F. Cremers",
-  Title  = "The Scyther Tool : Automated Verification of Security Protocols",
-  Note   = "\url{http://www.win.tue.nl/~ccremers/scyther}",
-  url    = "http://www.win.tue.nl/~ccremers/scyther"
+@phdthesis{cremers06,
+  Author    = "Cas Cremers",
+  Title     = "Scyther - Semantics and Verification of Security Protocols",
+  school    = "Eindhoven University of Technology",
+  publisher = "University Press Eindhoven",
+  year      = "2006",
 }
-
 
