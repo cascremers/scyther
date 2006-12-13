@@ -28,7 +28,10 @@ class AttackDisplay(wx.ScrolledWindow):
         # [CC][X] The below statement might be iffy on older versions.
         # (Python 2.3? What settings?)
         # Cf. bug report Vimal Subra
-        self.SetBackgroundColour(wx.Colour(255,255,255))
+        # So for now, we just don't set it. It's not that important, and
+        # if it helps avoiding breaking the tool, then we just throw it
+        # out for now. This *is* a beta, remember.
+        #self.SetBackgroundColour(wx.Colour(255,255,255))
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Image = wx.StaticBitmap(self, -1, wx.EmptyBitmap(1,1))
