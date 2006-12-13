@@ -29,42 +29,40 @@ if Preference.usePIL():
 #---------------------------------------------------------------------------
 
 class ScytherThread(threading.Thread):
-
-    """ The reason this is a thread is because we might to decide to
-    abort it. However, apparently Python has no good support for killing
-    threads yet :( """
+    """
+    Apply Scyther algorithm to input and retrieve results
+    """
 
     # Override Thread's __init__ method to accept the parameters needed:
-    def __init__ ( self, parent ):
+    def __init__ ( self, spdl, options="", callback=None ):
 
-        self.parent = parent
-        parent.verified = False
-        parent.claims = []
-
+        self.spdl = spdl
+        self.options = options
+        self.callback = callback
         threading.Thread.__init__ ( self )
 
     def run(self):
 
-        self.claimResults()
+        (scyther, claims, summary) = self.claimResults()
 
         # Results are done (claimstatus can be reported)
+        if self.callback:
+            wx.CallAfter(self.callback, scyther, claims, summary)
 
-        # Shoot down the verification window and let the RunScyther function handle the rest
-        self.parent.verified = True
-        self.parent.verifywin.Close()
 
     def claimResults(self):
         """ Convert spdl to result (using Scyther)
         """
 
-        self.parent.scyther = scyther = Scyther.Scyther()
-        scyther.options = self.parent.options
-        scyther.setInput(self.parent.spdl)
+        scyther = Scyther.Scyther()
+        scyther.options = self.options
+        scyther.setInput(self.spdl)
 
         # verification start
-        self.parent.claims = scyther.verify()
+        claims = scyther.verify()
+        summary = str(scyther)
 
-        self.parent.summary = str(scyther)
+        return (scyther, claims, summary)
 
 #---------------------------------------------------------------------------
 
@@ -97,6 +95,7 @@ class AttackThread(threading.Thread):
 
     def makeImages(self):
         """ create images """
+
         done = 0
         for cl in self.parent.claims:
             for attack in cl.attacks:
@@ -261,11 +260,6 @@ class ResultWindow(wx.Frame):
     """
     Displays the claims status and contains buttons to show the actual
     attack graphs
-
-    TODO: this really should have a statusbar that works.
-
-    TODO: on windows, it updates really slow, and the background is the
-    wrong colour. Basically, it inhales air. Hard.
     """
 
     def __init__(
@@ -429,68 +423,89 @@ class ScytherRun(object):
         self.mainwin = mainwin
         self.mode = mode
         self.spdl = mainwin.control.GetValue()
+        self.verified = False
+        self.options = mainwin.settings.ScytherArguments(mode)
+        self.main()
 
-        # Verification window
+    def verificationDone(self, scyther, claims, summary):
 
-        self.verifywin = verifywin = VerificationWindow(mainwin,"Running Scyther %s process" % mode)
-        verifywin.Center()
-        verifywin.Show(True)
+        self.scyther = scyther
+        self.claims = claims
+        self.summary = summary
+
+        self.verified = True
+        self.verifywin.Close()
+
+        # Process the claims
+        if self.scyther.errorcount == 0:
+            self.verificationOkay()
+        else:
+            self.verificationErrors()
+
+    def verificationOkay(self):
+        # Great, we verified stuff, progress to the claim report
+        title = "Scyther results : %s" % self.mode
+        self.resultwin = resultwin = ResultWindow(self,self.mainwin,title)
+
+        def attackDone(attack,total,done):
+            if resultwin:
+                txt = "Generating attack graphs (%i of %i done)." % (done,total)
+                resultwin.SetStatusText(txt)
+                #resultwin.Refresh()
+
+        def claimDone(claim):
+            if resultwin:
+                if claim.button and len(claim.attacks) > 0:
+                    claim.button.Enable()
+
+        def allDone():
+            if resultwin:
+                resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+                resultwin.SetStatusText("Done.")
+
+        resultwin.Center()
+        resultwin.Show(True)
+        resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROWWAIT))
+
+        wx.Yield()
+
+        t = AttackThread(self,resultwin,claimDone,attackDone,allDone)
+        t.start()
+
+        resultwin.thread = t
+
+    def verificationErrors(self):
+        """
+        Verification process generated errors. Show them.
+        """
+
+        title = "Scyther errors : %s" % self.mode
+        errorwin = ErrorWindow(self.mainwin,title,errors=self.scyther.errors)
+        errorwin.Center()
+        val = errorwin.ShowModal()
+
+    def main(self):
+        """
+        Start process
+        """
+
+        title = "Running Scyther %s process" % self.mode
+        self.verifywin = VerificationWindow(self.mainwin,title)
+        self.verifywin.Center()
+        self.verifywin.Show(True)
 
         # start the thread
         
-        self.options = mainwin.settings.ScytherArguments(mode)
-        self.verified = False
-        verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
+        self.verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
 
-        t = ScytherThread(self)
+        t = ScytherThread(self.spdl, self.options, self.verificationDone)
         t.start()
 
         # start the window and show until something happens
         # if it terminates, this is a cancel, and should also kill the thread. (what happens to a spawned Scyther in that case?)
         # if the thread terminames, it should close the window normally, and we end up here as well.
-        val = verifywin.ShowModal()
+        val = self.verifywin.ShowModal()
 
-        if self.verified:
-            # Scyther program is done (the alternative is that it was
-            # cancelled)
-            if self.scyther.errorcount == 0:
-                # Great, we verified stuff, progress to the claim report
-                title = "Scyther results : %s" % mode
-                self.resultwin = resultwin = ResultWindow(self,mainwin,title)
-
-                def attackDone(attack,total,done):
-                    if resultwin:
-                        txt = "Generating attack graphs (%i of %i done)." % (done,total)
-                        resultwin.SetStatusText(txt)
-                        #resultwin.Refresh()
-
-                def claimDone(claim):
-                    if resultwin:
-                        if claim.button and len(claim.attacks) > 0:
-                            claim.button.Enable()
-
-                def allDone():
-                    if resultwin:
-                        resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
-                        resultwin.SetStatusText("Done.")
-
-                resultwin.Center()
-                resultwin.Show(True)
-                resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROWWAIT))
-
-                wx.Yield()
-
-                t = AttackThread(self,resultwin,claimDone,attackDone,allDone)
-                t.start()
-
-                resultwin.thread = t
-
-            else:
-                # Darn, some errors. report.
-                title = "Scyther errors : %s" % mode
-                errorwin = ErrorWindow(mainwin,title,errors=self.scyther.errors)
-                errorwin.Center()
-                val = errorwin.ShowModal()
 
 
 

@@ -24,7 +24,11 @@ class AttackDisplay(wx.ScrolledWindow):
         self.attack = attack
 
         wx.ScrolledWindow.__init__(self,parent,id=-1)
-        self.SetBackgroundColour('White')
+
+        # [CC][X] The below statement might be iffy on older versions.
+        # (Python 2.3? What settings?)
+        # Cf. bug report Vimal Subra
+        self.SetBackgroundColour(wx.Colour(255,255,255))
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Image = wx.StaticBitmap(self, -1, wx.EmptyBitmap(1,1))
