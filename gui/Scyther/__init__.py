@@ -7,5 +7,5 @@
 import Scyther
 import os.path
 
-bindir = os.path.join(__path__[0],"..","Bin")
+bindir = os.path.join(__path__[0],"Bin")
 Scyther.setBinDir(bindir)

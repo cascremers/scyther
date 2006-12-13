@@ -4,6 +4,7 @@ Recent changes (since beta 4):
 - more explicit output for intruder-generated terms.
 - added switch '--errors=file' to redirect standard error output to a
   file.
+- Rewrote parts of the gui code for improved stability.
 
 
 
