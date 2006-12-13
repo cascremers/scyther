@@ -33,7 +33,9 @@ def generateTemp(extension='tmp'):
 def scyther_to_dotfile():
     """ Run Scyther, return dotfile name """
 
-    scythername = "scyther-linux"
+    mydir = os.path.dirname(__file__)
+    scythername = os.path.join(mydir, "../Scyther/Bin/scyther-linux")
+
     args = " ".join(sys.argv[1:])
     tmpdotfile = generateTemp('dot')
 
@@ -84,4 +86,9 @@ def main():
     else:
         print "No graphs generated."
 
-main()
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        main()
+    else:
+        print "Please provide the name of an input file."
+
