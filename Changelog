@@ -1,0 +1,17 @@
+---------------------
+- Scyther changelog -
+---------------------
+
+Scyther 1.0-beta5 
+
+	* Change of switch semantics.  '--max-attacks=N' now defines the
+	  maximum number of attacks per claim.  Previously this was a
+	  global maximum for all claims combined.
+	* Improved attack graph output.
+	* added switch '--errors=FILE' to redirect standard error output
+	  to a file.
+	* Rewrote parts of the gui code for improved stability.
+
+Scyther 1.0-beta4 
+
+	* (Changelog starts after the release of Scyther 1.0-beta4)
