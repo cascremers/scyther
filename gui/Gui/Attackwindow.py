@@ -18,6 +18,9 @@ if Preference.usePIL():
 #---------------------------------------------------------------------------
 
 class AttackDisplay(wx.ScrolledWindow):
+    """
+    Display an attack (inside a tab or not)
+    """
     def __init__(self, daddy, parent, attack):
 
         self.win = daddy
@@ -28,10 +31,7 @@ class AttackDisplay(wx.ScrolledWindow):
         # [CC][X] The below statement might be iffy on older versions.
         # (Python 2.3? What settings?)
         # Cf. bug report Vimal Subra
-        # So for now, we just don't set it. It's not that important, and
-        # if it helps avoiding breaking the tool, then we just throw it
-        # out for now. This *is* a beta, remember.
-        #self.SetBackgroundColour(wx.Colour(255,255,255))
+        self.SetBackgroundColour(wx.Colour(255,255,255))
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Image = wx.StaticBitmap(self, -1, wx.EmptyBitmap(1,1))
@@ -66,15 +66,17 @@ class AttackDisplay(wx.ScrolledWindow):
             if not self.win.fit:
                 return
 
+        # This is needed, don't ask me why.
         self.SetScrollbars(0,0,0,0,0,0)
-        (sw,sh) = self.GetClientSizeTuple()
-        (W,H) = (sw,sh)
 
-        def makefit(W,H):
+        (framewidth,frameheight) = self.GetClientSizeTuple()
+        (virtualwidth,virtualheight) = (framewidth,frameheight)
+
+        def makefit(width,height):
             if self.win.fit:
                 # determine scaling factors for fitting
-                wfactor = float(sw) / W
-                hfactor = float(sh) / H
+                wfactor = float(framewidth) / width
+                hfactor = float(frameheight) / height
 
                 # select smallest factor (so it will fit)
                 if hfactor < wfactor:
@@ -83,42 +85,49 @@ class AttackDisplay(wx.ScrolledWindow):
                     factor = wfactor
     
                 # apply scaling factor
-                W = W * factor
-                H = H * factor
-            return (int(W),int(H))
+                width = width * factor
+                height = height * factor
+            else:
+                factor = 1.0
+
+            return (factor, int(width), int(height))
 
         if self.attack.filetype == "png":
             bmp = self.original
             if not bmp.Ok():
                 bmp = wx.EmptyImage(1,1)
             else:
-                (W,H) = (bmp.GetWidth(), bmp.GetHeight())
+                (originalwidth,originalheight) = (bmp.GetWidth(), bmp.GetHeight())
                 if self.win.fit:
-                    (W,H) = makefit(W,H)
-                    bmp = self.original.Scale(W,H)
+                    (factor, virtualwidth, virtualheight) = makefit(originalwidth,originalheight)
+                    bmp = self.original.Scale(virtualwidth,virtualheight)
             self.Image.SetBitmap(wx.BitmapFromImage(bmp))
 
         elif self.attack.filetype == "ps":
             pil = self.original.copy()
-            (W,H) = pil.size
-            (W,H) = makefit(W,H)
+            (originalwidth,originalheight) = pil.size
+            (factor, virtualwidth, virtualheight) = makefit(originalwidth,originalheight)
             # we really only want antialias when it's smaller
-            pil.thumbnail((W,H),Image.ANTIALIAS)
+            if factor < 1.0:
+                pil.thumbnail((virtualwidth,virtualheight),Image.ANTIALIAS)
+            else:
+                pil.thumbnail((virtualwidth,virtualheight))
 
             image = wx.EmptyImage(pil.size[0],pil.size[1])
             image.SetData(pil.convert('RGB').tostring())
             self.Image.SetBitmap(image.ConvertToBitmap())
+
         else:
             print "Unknown file type %s." % (self.attack.filetype)
 
+        self.SetVirtualSize((virtualwidth,virtualheight))
 
         #self.box.SetItemMinSize(self.Image.GetContainingSizer())
         self.box.Layout()
 
-        # wx.StaticBitmap(self, -1, bmp, (0, 0), (bmp.GetWidth(), bmp.GetHeight()))
         step = 20
-        xn = int(W / step) + 1
-        yn = int(H / step) + 1
+        xn = int(virtualwidth / step) + 1
+        yn = int(virtualheight / step) + 1
         self.SetScrollbars(step,step,xn,yn,0,0)
 
         self.Refresh()
@@ -127,8 +136,9 @@ class AttackDisplay(wx.ScrolledWindow):
 
 class AttackWindow(wx.Frame):
     def __init__(self,cl):
-        super(AttackWindow, self).__init__(None, size=(400,700))
-        self.SetBackgroundColour('Default')
+        super(AttackWindow, self).__init__(None, size=(800,800))
+        # [CC][X] Same here; no background set for safety.
+        #self.SetBackgroundColour('Default')
         self.claim = cl
 
         # TODO maybe fitting defaults should come from Preferences.
