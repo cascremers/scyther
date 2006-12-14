@@ -35,6 +35,17 @@ class BinaryError(Error):
         return "Could not find Scyther executable at '%s'" % (self.file)
 
 
+class NoBinaryError(Error):
+    """Raised when the Scyther executable is not defined.
+
+    Attributes:
+        None.
+    """
+
+    def __str__(self):
+        return "Scyther class attribute 'program' was not defined."
+
+
 class UnknownPlatformError(Error):
     """Raised when the platform is not supported yet.
 
@@ -47,3 +58,6 @@ class UnknownPlatformError(Error):
 
     def __str__(self):
         return "The %s platform is currently unsupported." % self.platform
+
+
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:

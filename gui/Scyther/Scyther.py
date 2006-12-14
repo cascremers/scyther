@@ -109,6 +109,7 @@ def getScytherBackend():
     program = os.path.join(getBinDir(),scythername)
     return program
 
+
 #---------------------------------------------------------------------------
 
 class Scyther(object):
@@ -149,21 +150,30 @@ class Scyther(object):
             self.spdl += l
         fp.close()
 
-    def verify(self):
-        """ Should return a list of results """
+    def doScytherCommand(self, spdl, args):
+        """ 
+        Run Scyther backend on the input
+        
+        Arguments:
+            spdl -- string describing the spdl text
+            args -- arguments for the command-line
+        Returns:
+            (output,errors)
+            output -- string which is the real output
+            errors -- string which captures the errors
+        """
 
         if self.program == None:
-            return []
+            raise Error.NoBinaryError
 
         # Generate a temproary file for the error output
         errorfile = tempfile.NamedTemporaryFile()
 
         # Generate command line for the Scyther process
-        self.cmd = "\"%s\"" % self.program
-        if self.xml:
-            self.cmd += " --dot-output --xml-output --plain"
+        self.cmd = ""
+        self.cmd += "\"%s\"" % self.program
         self.cmd += " --append-errors=%s" % (errorfile.name)
-        self.cmd += " " + self.options
+        self.cmd += " %s %s" % (self.options, args)
 
         # Start the process, push input, get output
         (stdin,stdout) = os.popen2(self.cmd)
@@ -174,40 +184,55 @@ class Scyther(object):
         stdout.close()
 
         # get errors
-        # filter out any non-errors (say maybe only claim etc) and count
-        # them.
         self.errors = []
         errorfile.seek(0)
-        for l in errorfile.readlines():
-            if not l.startswith("claim\t"):
-                self.errors.append(l.strip())
-
-        self.errorcount = len(self.errors)
-        
-        # close
+        errors = errorfile.read()
         errorfile.close()
 
+        return (output,errors)
+
+    def verify(self):
+        """ Should return a list of results """
+    
+        # prepare arguments
+        args = ""
         if self.xml:
-            self.validxml = False
+            args += " --dot-output --xml-output --plain"
+        args += " %s" % self.options
+
+        # execute
+        (output,errors) = self.doScytherCommand(self.spdl, args)
+        self.run = True
+
+        # process errors
+        self.errors = []
+        for l in errors.splitlines():
+            # filter out any non-errors (say maybe only claim etc) and count
+            # them.
+            if not l.startswith("claim\t"):
+                self.errors.append(l.strip())
+        self.errorcount = len(self.errors)
+
+        # process output
+        self.output = output
+        self.validxml = False
+        self.claims = []
+        if self.xml:
             if len(output) > 0:
                 if output.startswith("<scyther>"):
+
+                    # whoohee, xml
                     self.validxml = True
 
-            if self.validxml:
-                xmlfile = StringIO.StringIO(output)
-                reader = XMLReader.XMLReader()
-                self.claims = reader.readXML(xmlfile)
-            else:
-                # no xml output... store whatever comes out
-                self.claims = []
-                self.output = output
-            result = self.claims
-        else:
-            self.output = output
-            result = self.output
+                    xmlfile = StringIO.StringIO(output)
+                    reader = XMLReader.XMLReader()
+                    self.claims = reader.readXML(xmlfile)
 
-        self.run = True
-        return result
+        # Determine what should be the result
+        if self.xml:
+            return self.claims
+        else:
+            return self.output
 
     def getClaim(self,claimid):
         if self.claims:
@@ -231,4 +256,4 @@ class Scyther(object):
         else:
             return "Scyther has not been run yet."
 
-
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:
