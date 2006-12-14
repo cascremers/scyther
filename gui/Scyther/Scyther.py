@@ -166,28 +166,42 @@ class Scyther(object):
         if self.program == None:
             raise Error.NoBinaryError
 
-        # Generate a temproary file for the error output
-        errorfile = tempfile.NamedTemporaryFile()
+        # Generate temporary files for the output
+        # Requires Python 2.3 though.
+        (fde,fne) = tempfile.mkstemp()  # errors
+        (fdo,fno) = tempfile.mkstemp()  # output
+        (fdi,fni) = tempfile.mkstemp()  # input
+
+        # Write (input) file
+        fhi = os.fdopen(fdi,'w+b')
+        if spdl:
+            fhi.write(spdl)
+        fhi.close()
 
         # Generate command line for the Scyther process
         self.cmd = ""
         self.cmd += "\"%s\"" % self.program
-        self.cmd += " --append-errors=%s" % (errorfile.name)
+        self.cmd += " --append-errors=%s" % fne
+        self.cmd += " --append-output=%s" % fno
         self.cmd += " %s %s" % (self.options, args)
+        if spdl:
+            self.cmd += " %s" % fni
 
-        # Start the process, push input, get output
-        (stdin,stdout) = os.popen2(self.cmd)
-        if self.spdl:
-            stdin.write(self.spdl)
-        stdin.close()
-        output = stdout.read()
-        stdout.close()
+        # Start the process
+        os.system(self.cmd)
 
-        # get errors
-        self.errors = []
-        errorfile.seek(0)
-        errors = errorfile.read()
-        errorfile.close()
+        # reseek
+        fhe = os.fdopen(fde)
+        fho = os.fdopen(fdo)
+        errors = fhe.read()
+        output = fho.read()
+
+        # clean up files
+        fhe.close()
+        fho.close()
+        os.remove(fne)
+        os.remove(fno)
+        os.remove(fni)
 
         return (output,errors)
 
