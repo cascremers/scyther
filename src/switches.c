@@ -751,6 +751,12 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
+	  /*
+	   * This is the maximum number of *output* attacks per claim, except
+	   * when it is 0 (unlimited).  Thus, for a choice N, the tool might
+	   * still report 'at least X attacks' with X>N, but it will only
+	   * output N attacks.
+	   */
 	  switches.maxAttacks = integer_argument ();
 	  return index;
 	}
@@ -764,9 +770,9 @@ switcher (const int process, int index, int commandline)
 	     helptext ("    --prune=<int>", "pruning method when an attack is found [2]");
 
 	     Semantics:
-	     0 - Show all attacks (up to the maximum)
-	     1 - Show first attack
-	     2 - Show 'best' attack (use heuristics)
+	     0 - Show all attacks (up to the maximum --max-attacks)
+	     1 - Show first attack (only one)
+	     2 - Show 'best' attack (use heuristics) (only one)
 
 	     Thus, a value of '0' means multiple attacks are output, otherwise just one.
 	   */
@@ -1298,14 +1304,14 @@ switcher (const int process, int index, int commandline)
 	{
 	  if (switches.expert)
 	    {
-	      helptext ("    --errors=<FILE>", "error file [stderr]");
+	      helptext ("    --errors=<FILE>", "append errors to file [stderr]");
 	    }
 	}
       else
 	{
 	  // Set output file name
 	  /* try to open */
-	  if (!freopen (arg_pointer, "w", stderr))
+	  if (!freopen (arg_pointer, "a", stderr))
 	    {
 	      printfstderr ("Could not create error file '%s'.\n",
 			    arg_pointer);
