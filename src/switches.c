@@ -1298,13 +1298,61 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
+  if (detect (' ', "append-output", 1))
+    {
+      if (!process)
+	{
+	  helptext ("    --append-output=<FILE>",
+		    "append output file [stdout]");
+	}
+      else
+	{
+	  // Set output file name
+	  /* try to open */
+	  if (!freopen (arg_pointer, "a", stdout))
+	    {
+	      printfstderr ("Could not create output file '%s'.\n",
+			    arg_pointer);
+	      exit (1);
+	    }
+	  arg_next ();
+	  return index;
+	}
+    }
+
   if (detect (' ', "errors", 1))
     {
       if (!process)
 	{
 	  if (switches.expert)
 	    {
-	      helptext ("    --errors=<FILE>", "append errors to file [stderr]");
+	      helptext ("    --errors=<FILE>",
+			"write errors to file [stderr]");
+	    }
+	}
+      else
+	{
+	  // Set output file name
+	  /* try to open */
+	  if (!freopen (arg_pointer, "w", stderr))
+	    {
+	      printfstderr ("Could not create error file '%s'.\n",
+			    arg_pointer);
+	      exit (1);
+	    }
+	  arg_next ();
+	  return index;
+	}
+    }
+
+  if (detect (' ', "append-errors", 1))
+    {
+      if (!process)
+	{
+	  if (switches.expert)
+	    {
+	      helptext ("    --append-errors=<FILE>",
+			"append errors to file [stderr]");
 	    }
 	}
       else
@@ -1313,7 +1361,7 @@ switcher (const int process, int index, int commandline)
 	  /* try to open */
 	  if (!freopen (arg_pointer, "a", stderr))
 	    {
-	      printfstderr ("Could not create error file '%s'.\n",
+	      printfstderr ("Could not create append error file '%s'.\n",
 			    arg_pointer);
 	      exit (1);
 	    }

@@ -162,7 +162,7 @@ class Scyther(object):
         self.cmd = "\"%s\"" % self.program
         if self.xml:
             self.cmd += " --dot-output --xml-output --plain"
-        self.cmd += " --errors=%s" % (errorfile.name)
+        self.cmd += " --append-errors=%s" % (errorfile.name)
         self.cmd += " " + self.options
 
         # Start the process, push input, get output
@@ -171,6 +171,7 @@ class Scyther(object):
             stdin.write(self.spdl)
         stdin.close()
         output = stdout.read()
+        stdout.close()
 
         # get errors
         # filter out any non-errors (say maybe only claim etc) and count
@@ -184,7 +185,6 @@ class Scyther(object):
         self.errorcount = len(self.errors)
         
         # close
-        stdout.close()
         errorfile.close()
 
         if self.xml:
