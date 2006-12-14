@@ -421,6 +421,7 @@ class ResultWindow(wx.Frame):
 
 
 class ScytherRun(object):
+
     def __init__(self,mainwin,mode):
 
         self.mainwin = mainwin
@@ -430,7 +431,41 @@ class ScytherRun(object):
         self.options = mainwin.settings.ScytherArguments(mode)
         self.main()
 
+    def main(self):
+        """
+        Start process
+        """
+
+        title = "Running Scyther %s process" % self.mode
+        # start the window and show until something happens
+        # if it terminates, this is a cancel, and should also kill the thread. (what happens to a spawned Scyther in that case?)
+        # if the thread terminames, it should close the window normally, and we end up here as well.
+        #val = self.verifywin.ShowModal()
+        self.verifywin = VerificationWindow(self.mainwin,title)
+        self.verifywin.Center()
+        self.verifywin.Show(True)
+
+        # Check sanity of Scyther thing here (as opposed to the thread)
+        # which makes error reporting somewhat easier
+        try:
+            Scyther.Scyther.Check()
+        except Scyther.Error.BinaryError, e:
+            # e.file is the supposed location of the binary
+            text = "Could not find Scyther binary at\n%s" % (e.file)
+            Error.ShowAndExit(text)
+        
+        # start the thread
+        
+        self.verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
+        t = ScytherThread(self.spdl, self.options, self.verificationDone)
+        t.start()
+
+        # after verification, we proceed to the callback below...
+
     def verificationDone(self, scyther, claims, summary):
+        """
+        This is where we end up after a callback from the thread, stating that verification succeeded.
+        """
 
         self.scyther = scyther
         self.claims = claims
@@ -446,6 +481,7 @@ class ScytherRun(object):
             self.verificationErrors()
 
     def verificationOkay(self):
+
         # Great, we verified stuff, progress to the claim report
         title = "Scyther results : %s" % self.mode
         self.resultwin = resultwin = ResultWindow(self,self.mainwin,title)
@@ -487,41 +523,5 @@ class ScytherRun(object):
         errorwin.Center()
         val = errorwin.ShowModal()
 
-    def main(self):
-        """
-        Start process
-        """
-
-        title = "Running Scyther %s process" % self.mode
-        self.verifywin = VerificationWindow(self.mainwin,title)
-        self.verifywin.Center()
-        self.verifywin.Show(True)
-
-        # Check sanity of Scyther thing here (as opposed to the thread)
-        # which makes error reporting somewhat easier
-        try:
-            Scyther.Scyther.Check()
-        except Scyther.Error.BinaryError, e:
-            # e.file is the supposed location of the binary
-            text = "Could not find Scyther binary at\n%s" % (e.file)
-            Error.ShowAndExit(text)
-        
-        # start the thread
-        
-        self.verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
-        t = ScytherThread(self.spdl, self.options, self.verificationDone)
-        t.start()
-
-        # start the window and show until something happens
-        # if it terminates, this is a cancel, and should also kill the thread. (what happens to a spawned Scyther in that case?)
-        # if the thread terminames, it should close the window normally, and we end up here as well.
-        val = self.verifywin.ShowModal()
-
-
-
-
 #---------------------------------------------------------------------------
-
-
-
-
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:

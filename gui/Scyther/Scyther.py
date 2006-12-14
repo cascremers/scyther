@@ -166,6 +166,11 @@ class Scyther(object):
         if self.program == None:
             raise Error.NoBinaryError
 
+        # Sanitize input somewhat
+        if not spdl or spdl == "":
+            # Scyther hickups on completely empty input
+            spdl = " "
+
         # Generate temporary files for the output
         # Requires Python 2.3 though.
         (fde,fne) = tempfile.mkstemp()  # errors
@@ -174,8 +179,7 @@ class Scyther(object):
 
         # Write (input) file
         fhi = os.fdopen(fdi,'w+b')
-        if spdl:
-            fhi.write(spdl)
+        fhi.write(spdl)
         fhi.close()
 
         # Generate command line for the Scyther process
