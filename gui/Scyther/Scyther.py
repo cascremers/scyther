@@ -16,7 +16,16 @@ import tempfile
 
 """ Import scyther components """
 import XMLReader
+import Error
 from Misc import *
+
+#---------------------------------------------------------------------------
+
+"""
+Globals
+"""
+
+FirstCheck = True
 
 #---------------------------------------------------------------------------
 
@@ -37,6 +46,39 @@ def getBinDir():
 
 #---------------------------------------------------------------------------
 
+def Check():
+    """
+    Various dynamic checks that can be performed before starting the
+    backend.
+    """
+
+    global FirstCheck
+
+    # First time
+    if FirstCheck:
+        """
+        Perform any checks that only need to be done the first time.
+        """
+        FirstCheck = False
+
+    # Every time
+    
+    # Check Scyther backend program availability
+    program = getScytherBackend()
+    CheckSanity(program)
+
+#---------------------------------------------------------------------------
+
+def CheckSanity(program):
+    """
+    This is where the existence is checked of the Scyther backend.
+    """
+
+    if not os.path.isfile(program):
+        raise Error.BinaryError, program
+
+#---------------------------------------------------------------------------
+
 def getScytherBackend():
     # Where is my executable?
     #
@@ -47,12 +89,12 @@ def getScytherBackend():
         """ linux """
         scythername = "scyther-linux"
 
-    elif "darwin" in sys.platform:
+    # elif "darwin" in sys.platform:
 
-        """ OS X """
-        # Preferably, we test for architecture (PPC/Intel) until we
-        # know how to build a universal binary
-        scythername = "scyther-osx"
+    #     """ OS X """
+    #     # Preferably, we test for architecture (PPC/Intel) until we
+    #     # know how to build a universal binary
+    #     scythername = "scyther-osx"
 
     elif sys.platform.startswith('win'):
 
@@ -62,14 +104,9 @@ def getScytherBackend():
     else:
 
         """ Unsupported"""
-        print "ERROR: I'm sorry, the %s platform is unsupported at the moment" % (sys.platform)
-        sys.exit()
+        raise Error.UnknownPlatformError, sys.platform
 
     program = os.path.join(getBinDir(),scythername)
-    if not os.path.isfile(program):
-        print "I can't find the Scyther executable at %s" % (program)
-        return None
-
     return program
 
 #---------------------------------------------------------------------------

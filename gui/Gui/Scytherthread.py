@@ -13,15 +13,15 @@ import StringIO
 #---------------------------------------------------------------------------
 
 """ Import scyther components """
-import Scyther.XMLReader as XMLReader
-import Scyther.Claim as Claim
-import Scyther.Scyther as Scyther
+import Scyther.Scyther
+import Scyther.Error
 
 """ Import scyther-gui components """
 import Tempfile
 import Preference
 import Attackwindow
 import Icon
+import Error
 
 #---------------------------------------------------------------------------
 if Preference.usePIL():
@@ -54,7 +54,8 @@ class ScytherThread(threading.Thread):
         """ Convert spdl to result (using Scyther)
         """
 
-        scyther = Scyther.Scyther()
+        scyther = Scyther.Scyther.Scyther()
+
         scyther.options = self.options
         scyther.setInput(self.spdl)
 
@@ -496,10 +497,18 @@ class ScytherRun(object):
         self.verifywin.Center()
         self.verifywin.Show(True)
 
+        # Check sanity of Scyther thing here (as opposed to the thread)
+        # which makes error reporting somewhat easier
+        try:
+            Scyther.Scyther.Check()
+        except Scyther.Error.BinaryError, e:
+            # e.file is the supposed location of the binary
+            text = "Could not find Scyther binary at\n%s" % (e.file)
+            Error.ShowAndExit(text)
+        
         # start the thread
         
         self.verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
-
         t = ScytherThread(self.spdl, self.options, self.verificationDone)
         t.start()
 
