@@ -22,11 +22,12 @@ class MyGrid(wx.GridBagSizer):
         self.parent = parent
 
     def stepAdd(self,ctrl,txt):
+        self.Add(txt,(self.ypos,0),flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
         self.Add(ctrl,(self.ypos,1),flag=wx.ALIGN_LEFT)
-        self.Add(txt,(self.ypos,0),flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         self.ypos += 1
 
     def lineAdd(self):
+        return
         line = wx.StaticLine(self.parent,-1)
         # Currently it is not expanded, and thus invisible.
         self.Add(line,pos=(self.ypos,0),span=(1,2),flag=wx.TOP|wx.BOTTOM)
@@ -39,7 +40,7 @@ class MyGrid(wx.GridBagSizer):
         txt = wx.StaticText(self.parent,-1,title)
         font = wx.Font(12,wx.DEFAULT,wx.NORMAL,wx.BOLD)
         txt.SetFont(font)
-        self.Add(txt,pos=(self.ypos,0),span=(1,2),flag=wx.ALIGN_CENTER)
+        self.Add(txt,pos=(self.ypos,0),span=(1,2),flag=wx.ALIGN_LEFT)
         self.ypos += 1
         self.lineAdd()
 
@@ -49,8 +50,9 @@ class SettingsWindow(wx.Panel):
 
     def __init__(self,parent,daddy):
         wx.Panel.__init__(self,parent,-1)
-
         self.win = daddy
+
+        # layout the stuff
         grid = MyGrid(self)
 
         ### Parameters
@@ -58,7 +60,7 @@ class SettingsWindow(wx.Panel):
 
         # Bound on the number of runs
         self.maxruns = int(Preference.get('maxruns','5'))
-        txt = wx.StaticText(self,-1,"Maximum number of runs (0 disables bound)")
+        txt = wx.StaticText(self,-1,"Maximum number of runs\n(0 disables bound)")
         ctrl = wx.SpinCtrl(self, -1, "",style=wx.RIGHT)
         ctrl.SetRange(0,100)
         ctrl.SetValue(self.maxruns)
@@ -79,10 +81,7 @@ class SettingsWindow(wx.Panel):
 
         # Bound on the number of patterns
         self.maxattacks = int(Preference.get('maxattacks','10'))
-        stname = Claim.stateDescription(True,2,False)
-        atname = Claim.stateDescription(False,2,False)
-        txt = "%s/%s" % (stname,atname)
-        r9 = wx.StaticText(self,-1,"Maximum number of %s for all\nclaims combined (0 disables maximum)" % txt)
+        r9 = wx.StaticText(self,-1,"Maximum number of patterns\nper claim")
         l9 = wx.SpinCtrl(self, -1, "",style=wx.RIGHT)
         l9.SetRange(0,100)
         l9.SetValue(self.maxattacks)
@@ -90,7 +89,7 @@ class SettingsWindow(wx.Panel):
         grid.stepAdd(l9,r9)
 
         self.misc = Preference.get('scytheroptions','')
-        r10 = wx.StaticText(self,-1,"Additional parameters for the Scyther tool")
+        r10 = wx.StaticText(self,-1,"Additional backend parameters")
         l10 = wx.TextCtrl(self,-1,self.misc,size=(200,-1))
         self.Bind(wx.EVT_TEXT,self.EvtMisc,l10)
         grid.stepAdd(l10,r10)
@@ -104,7 +103,7 @@ class SettingsWindow(wx.Panel):
         else:
             defsize = 11
         self.fontsize = int(Preference.get('fontsize',defsize))
-        txt = wx.StaticText(self,-1,"Attack graph font size (in points)")
+        txt = wx.StaticText(self,-1,"Attack graph font size\n(in points)")
         ctrl = wx.SpinCtrl(self, -1, "",style=wx.RIGHT)
         ctrl.SetRange(6,32)
         ctrl.SetValue(self.fontsize)
