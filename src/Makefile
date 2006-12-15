@@ -5,15 +5,20 @@
 # which there is a local copy present. So this is just delegating stuff.
 #
 #
+SCONS = ./scons.py
+
 all:
-	./scons.py all
+	${SCONS} all
 
 windows:
-	./scons.py windows
+	${SCONS} windows
 
 linux:
-	./scons.py linux
+	${SCONS} linux
 
 tags:
-	./scons.py tags
+	${SCONS} tags
+
+clean:
+	${SCONS} -c
 
