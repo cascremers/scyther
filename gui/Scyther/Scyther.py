@@ -176,7 +176,7 @@ class Scyther(object):
             # Scyther hickups on completely empty input
             spdl = None
 
-        # Generate temporary files for the output
+        # Generate temporary files for the output.
         # Requires Python 2.3 though.
         (fde,fne) = tempfile.mkstemp()  # errors
         (fdo,fno) = tempfile.mkstemp()  # output
@@ -197,7 +197,8 @@ class Scyther(object):
         if spdl:
             self.cmd += " %s" % fni
 
-        print self.cmd
+        # Only for debugging, really
+        ##print self.cmd
 
         # Start the process
         os.system(self.cmd)
@@ -215,6 +216,13 @@ class Scyther(object):
         os.remove(fno)
         if spdl:
             os.remove(fni)
+
+        # Now if there is no output and no errors, weird things might
+        # happen, and we report the command used.
+        if errors == "" and output == "":
+            errors = "Scyther backend did not yield any output, "
+            errors += "returning no errors and no output.\n"
+            errors += "Command: [%s]" % self.cmd
 
         return (output,errors)
 
