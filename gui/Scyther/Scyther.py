@@ -125,6 +125,7 @@ class Scyther(object):
         self.errorcount = 0
         self.run = False
         self.output = None
+        self.cmd = None
 
         # defaults
         self.xml = True     # this results in a claim end, otherwise we simply get the output
@@ -150,6 +151,10 @@ class Scyther(object):
             self.spdl += l
         fp.close()
 
+    def addArglist(self,arglist):
+        for arg in arglist:
+            self.options += " %s" % (arg)
+
     def doScytherCommand(self, spdl, args):
         """ 
         Run Scyther backend on the input
@@ -169,27 +174,30 @@ class Scyther(object):
         # Sanitize input somewhat
         if not spdl or spdl == "":
             # Scyther hickups on completely empty input
-            spdl = " "
+            spdl = None
 
         # Generate temporary files for the output
         # Requires Python 2.3 though.
         (fde,fne) = tempfile.mkstemp()  # errors
         (fdo,fno) = tempfile.mkstemp()  # output
-        (fdi,fni) = tempfile.mkstemp()  # input
+        if spdl:
+            (fdi,fni) = tempfile.mkstemp()  # input
 
-        # Write (input) file
-        fhi = os.fdopen(fdi,'w+b')
-        fhi.write(spdl)
-        fhi.close()
+            # Write (input) file
+            fhi = os.fdopen(fdi,'w+b')
+            fhi.write(spdl)
+            fhi.close()
 
         # Generate command line for the Scyther process
         self.cmd = ""
         self.cmd += "\"%s\"" % self.program
         self.cmd += " --append-errors=%s" % fne
         self.cmd += " --append-output=%s" % fno
-        self.cmd += " %s %s" % (self.options, args)
+        self.cmd += " %s" % args
         if spdl:
             self.cmd += " %s" % fni
+
+        print self.cmd
 
         # Start the process
         os.system(self.cmd)
@@ -205,7 +213,8 @@ class Scyther(object):
         fho.close()
         os.remove(fne)
         os.remove(fno)
-        os.remove(fni)
+        if spdl:
+            os.remove(fni)
 
         return (output,errors)
 

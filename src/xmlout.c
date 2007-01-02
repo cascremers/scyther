@@ -401,6 +401,34 @@ xmlVariable (const System sys, const Term variable, const int run)
  * and scan only for those variables that actually occur in the semitrace.
  */
 void
+xmlRunVariables (const System sys, const int run)
+{
+  int prev_mode;		// buffer for show mode
+  Termlist varlist;
+
+  prev_mode = show_substitution_path;
+  show_substitution_path = true;
+  xmlPrint ("<variables>");
+  xmlindent++;
+
+  varlist = sys->runs[run].sigma;
+  while (varlist != NULL)
+    {
+      xmlVariable (sys, varlist->term, run);
+      varlist = varlist->next;
+    }
+
+  xmlindent--;
+  xmlPrint ("</variables>");
+  show_substitution_path = prev_mode;
+}
+
+//! Show variable instantiations
+/**
+ * Show the instantiations of all variables. Maybe we need to restrict this,
+ * and scan only for those variables that actually occur in the semitrace.
+ */
+void
 xmlVariables (const System sys)
 {
   int prev_mode;		// buffer for show mode
@@ -813,6 +841,7 @@ xmlRunInfo (const System sys, const int run)
       xmlOutTerm ("agent", r->nameterm);
     }
   xmlAgentsOfRunPrint (sys, run);
+  xmlRunVariables (sys, run);
 }
 
 //! Display runs

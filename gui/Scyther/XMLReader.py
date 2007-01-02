@@ -179,6 +179,22 @@ class XMLReader(object):
             action = self.readEvent(eventxml)
             action.run = run
             run.eventList.append(action)
+        for variable in xml.find('variables'):
+            # Read the variables one by one
+            assert(variable.tag == 'variable')
+            var = self.readTerm(variable.find('name').find('term'))
+            var.types = self.readTypeList(variable.find('name'))
+            
+            substxml = variable.find('substitution')
+            # Read substitution if present
+            if substxml != None:
+                subst = self.readTerm(substxml.find('term'))
+                subst.types = self.readTypeList(substxml)
+                newvar = Term.TermVariable(var.name,subst)
+                newvar.types = var.types
+                var = newvar
+
+            run.variables.append(var)
         return run
             
     # Read protocol description for a certain role
