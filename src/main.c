@@ -53,6 +53,8 @@
 #include "color.h"
 #include "error.h"
 #include "claim.h"
+#include "arachne.h"
+#include "xmlout.h"
 
 //! The global system state pointer
 System sys;
@@ -75,7 +77,6 @@ int modelCheck (const System sys);
 int
 main (int argc, char **argv)
 {
-  int nerrors;
   int exitcode = EXIT_NOATTACK;
 
   /* initialize symbols */
@@ -217,7 +218,6 @@ main (int argc, char **argv)
   /* memory clean up? */
   strings_cleanup ();
 
-exit:
   return exitcode;
 }
 

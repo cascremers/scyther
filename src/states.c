@@ -1,4 +1,5 @@
 #include "states.h"
+#include "symbol.h"
 
 /* States counter operations
  *

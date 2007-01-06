@@ -11,6 +11,10 @@
 #include "termlist.h"
 #include "list.h"
 #include "switches.h"
+#include "timer.h"
+#include "arachne.h"
+#include "system.h"
+#include "cost.h"
 
 extern int attack_length;
 extern int attack_leastcost;
@@ -27,9 +31,6 @@ extern int max_encryption_level;
 int
 prune_bounds (const System sys)
 {
-  Termlist tl;
-  List bl;
-
   /* prune for time */
   if (passed_time_limit ())
     {

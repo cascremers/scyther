@@ -3,6 +3,7 @@
 #include "tac.h"
 #include "memory.h"
 #include "switches.h"
+#include "error.h"
 
 extern int yylineno;
 
@@ -183,6 +184,8 @@ tacTuple (Tac taclist)
 	  error ("Unknown tupling mode (--tupling=%i)", switches.tupling);
 	}
     }
+  // @TODO this should be considered an error
+  return NULL;
 }
 
 /*

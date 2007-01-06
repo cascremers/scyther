@@ -13,6 +13,10 @@
 #include "binding.h"
 #include "specialterm.h"
 #include "hidelevel.h"
+#include "depend.h"
+#include "arachne.h"
+#include "error.h"
+#include "type.h"
 
 extern Protocol INTRUDER;
 extern int proofDepth;
@@ -106,9 +110,8 @@ correctLocalOrder (const System sys)
 	      globalError--;
 	      error ("Abort");
 	    }
-	  return true;
-
 	}
+      return true;
     }
 
     return iterateLocalToOther (sys, r1, checkTerm);
@@ -162,7 +165,6 @@ initiatorAgentsType (const System sys)
 int
 prune_theorems (const System sys)
 {
-  Termlist tl;
   List bl;
   int run;
 

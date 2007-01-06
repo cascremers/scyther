@@ -16,6 +16,7 @@
 #include "hidelevel.h"
 #include "debug.h"
 #include "intruderknowledge.h"
+#include "error.h"
 
 /*
    Simple sys pointer as a global. Yields cleaner code although it's against programming standards.
@@ -438,7 +439,6 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 	     const Term claim, Term label, const Term msg)
 {
   Claimlist cl;
-  Term labeltuple;
 
   /* generate full unique label */
   /* is the label empty or used? */
@@ -556,6 +556,7 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 	  claimvars = claimvars->next;
 	}
     }
+  return cl;
 }
 
 //! Parse a communication event tc of type event, and add a role definition event for it.
@@ -1390,7 +1391,6 @@ compute_prec_sets (const System sys)
   int size;			// temp constant: rolecount * roleeventmax
   int rowsize;
   int r1, r2, ev1, ev2;		// some counters
-  int i, j;
   Claimlist cl;
 
   // Assist: compute index from role, lev
@@ -1583,7 +1583,6 @@ compute_prec_sets (const System sys)
   cl = sys->claimlist;
   while (cl != NULL)
     {
-      Term t;
       Roledef rd;
       Term label;
       int claim_index;

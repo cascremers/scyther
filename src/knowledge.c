@@ -10,6 +10,7 @@
 #include "knowledge.h"
 #include "system.h"
 #include "debug.h"
+#include "error.h"
 
 /*
  * Knowledge stuff

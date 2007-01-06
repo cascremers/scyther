@@ -10,6 +10,7 @@
 #include "knowledge.h"
 #include "system.h"
 #include "debug.h"
+#include "error.h"
 #include "role.h"
 #include "mgu.h"
 #include "switches.h"
@@ -148,7 +149,6 @@ systemRuns (const System sys)
 void
 systemDone (const System sys)
 {
-  int run;
   int s;
 
   /* clear globals, which were defined in systemStart */

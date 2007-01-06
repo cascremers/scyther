@@ -21,6 +21,7 @@
 #include "specialterm.h"
 #include "claim.h"
 #include "dotout.h"
+#include "type.h"
 
 #include "xmlout.h"
 
@@ -614,8 +615,6 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 
   // Display any incoming bindings
   {
-    int incomingArrows;
-
     int xmlBindingState (void *dt)
     {
       Binding b;

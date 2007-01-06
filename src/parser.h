@@ -38,28 +38,27 @@
 # define YYTOKENTYPE
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
-enum yytokentype
-{
-  ID = 258,
-  PROTOCOL = 259,
-  ROLE = 260,
-  READT = 261,
-  SENDT = 262,
-  CLAIMT = 263,
-  VAR = 264,
-  CONST = 265,
-  RUN = 266,
-  SECRET = 267,
-  COMPROMISED = 268,
-  INVERSEKEYS = 269,
-  UNTRUSTED = 270,
-  USERTYPE = 271,
-  SINGULAR = 272,
-  FUNCTION = 273,
-  HASHFUNCTION = 274,
-  KNOWS = 275,
-  TRUSTED = 276
-};
+   enum yytokentype {
+     ID = 258,
+     PROTOCOL = 259,
+     ROLE = 260,
+     READT = 261,
+     SENDT = 262,
+     CLAIMT = 263,
+     VAR = 264,
+     CONST = 265,
+     RUN = 266,
+     SECRET = 267,
+     COMPROMISED = 268,
+     INVERSEKEYS = 269,
+     UNTRUSTED = 270,
+     USERTYPE = 271,
+     SINGULAR = 272,
+     FUNCTION = 273,
+     HASHFUNCTION = 274,
+     KNOWS = 275,
+     TRUSTED = 276
+   };
 #endif
 /* Tokens.  */
 #define ID 258
@@ -87,19 +86,20 @@ enum yytokentype
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 13 "parser.y"
+#line 14 "parser.y"
 {
-  char *str;
-  struct tacnode *tac;
-  Symbol symb;
-  int value;
+	char*  		str;
+	struct tacnode*	tac;
+	Symbol		symb;
+	int		value;
 }
 /* Line 1529 of yacc.c.  */
 #line 98 "parser.h"
-YYSTYPE;
-# define yystype YYSTYPE	/* obsolescent; will be withdrawn */
+	YYSTYPE;
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
 
 extern YYSTYPE yylval;
+

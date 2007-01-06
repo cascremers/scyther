@@ -11,6 +11,7 @@
 #include "knowledge.h"
 #include "system.h"
 #include "debug.h"
+#include "error.h"
 #include "role.h"
 
 extern int protocolCount;	// from system.c

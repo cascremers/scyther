@@ -42,6 +42,8 @@
 #include "arachne.h"
 #include "hidelevel.h"
 #include "depend.h"
+#include "xmlout.h"
+#include "heuristic.h"
 
 extern int *graph;
 extern int nodes;
@@ -70,7 +72,6 @@ static FILE *attack_stream;
  */
 
 int iterate ();
-void printSemiState ();
 
 /*
  * Program code
@@ -81,7 +82,6 @@ void
 arachneInit (const System mysys)
 {
   Roledef rd;
-  Termlist tl, know0;
 
   void add_event (int event, Term message)
   {
@@ -666,7 +666,6 @@ create_decryptor (const Term term, const Term key)
   if (term != NULL && isTermEncrypt (term))
     {
       Roledef rd;
-      Term tempkey;
       int run;
 
 #ifdef DEBUG
@@ -692,15 +691,13 @@ create_decryptor (const Term term, const Term key)
 
       return run;
     }
-  else
-    {
-      globalError++;
-      eprintf ("Term for which a decryptor instance is requested: ");
-      termPrint (term);
-      eprintf ("\n");
-      error
-	("Trying to build a decryptor instance for a non-encrypted term.");
-    }
+
+  globalError++;
+  eprintf ("Term for which a decryptor instance is requested: ");
+  termPrint (term);
+  eprintf ("\n");
+  error ("Trying to build a decryptor instance for a non-encrypted term.");
+  return -1;
 }
 
 //! Get the priority level of a key that is needed for a term (typical pk/sk distinction)
@@ -1085,7 +1082,6 @@ printSemiState ()
 {
   int run;
   int open;
-  List bl;
 
   int binding_state_print (void *dt)
   {
@@ -2237,7 +2233,7 @@ iterate_buffer_attacks (void)
 }
 
 //! Arachne single claim test
-int
+void
 arachneClaimTest (Claimlist cl)
 {
   // others we simply test...
@@ -2377,10 +2373,7 @@ arachneClaim (Claimlist cl)
 	}
       return true;
     }
-  else
-    {
-      return false;
-    }
+  return false;
 }
 
 
@@ -2389,6 +2382,8 @@ arachneClaim (Claimlist cl)
  * For this test, we manually set up some stuff.
  *
  * But later, this will just iterate over all claims.
+ *
+ * @TODO what does it return? And is that -1 valid, if nothing is tested?
  */
 int
 arachne ()
@@ -2433,7 +2428,7 @@ arachne ()
   if (switches.runs == 0)
     {
       // No real checking.
-      return;
+      return -1;
     }
 
   if (sys->maxruns > 0)

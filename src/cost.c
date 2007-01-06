@@ -8,6 +8,8 @@
  */
 #include "switches.h"
 #include "system.h"
+#include "binding.h"
+#include "error.h"
 #include <limits.h>
 
 //************************************************************************
@@ -68,4 +70,5 @@ attackCost (const System sys)
       return cost;
     }
   error ("Unknown pruning method (cost function not found)");
+  return 0;
 }

@@ -7,6 +7,7 @@
 #include "depend.h"
 #include "type.h"
 #include "debug.h"
+#include "error.h"
 
 extern Protocol INTRUDER;	// Pointers, to be set by the Init of arachne.c
 extern Role I_M;		// Same here.
@@ -1645,7 +1646,6 @@ void
 dotSemiState (const System mysys)
 {
   static int attack_number = 0;
-  int run;
   Protocol p;
   int *ranks;
   int maxrank;

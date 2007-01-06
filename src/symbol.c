@@ -266,6 +266,7 @@ symbolNextFree (Symbol prefixsymbol)
     }
   error ("We ran out of numbers (%i) when trying to generate a fresh symbol.",
 	 n);
+  return NULL;
 }
 
 //! Fix all the unset keylevels

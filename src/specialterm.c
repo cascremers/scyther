@@ -3,6 +3,7 @@
 #include "term.h"
 #include "termlist.h"
 #include "compiler.h"
+#include "error.h"
 
 /*
  * Some macros

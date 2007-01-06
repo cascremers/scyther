@@ -282,7 +282,6 @@ switcher (const int process, int index, int commandline)
   char **argv;
 
   char *arg_pointer;
-  int arg_index;
 
   //! Check whether there are still n options left
   int enough_arguments_left (const int n, char shortopt, char *longopt)

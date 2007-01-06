@@ -16,6 +16,7 @@
 #include <string.h>
 #include "term.h"
 #include "debug.h"
+#include "error.h"
 #include "ctype.h"
 #include "specialterm.h"
 
@@ -866,9 +867,6 @@ termDistance (Term t1, Term t2)
 int
 termOrder (Term t1, Term t2)
 {
-  char *name1;
-  char *name2;
-
   t1 = deVar (t1);
   t2 = deVar (t2);
   if (isTermEqual (t1, t2))
@@ -938,6 +936,8 @@ termOrder (Term t1, Term t2)
       else
 	return compR;
     }
+  // @TODO Should be considered an error
+  return 0;
 }
 
 //! Generic term iteration
@@ -1177,7 +1177,6 @@ term_constrain_level (const Term term)
 {
   int vars;
   int structure;
-  int flag;
 
   void tcl_iterate (Term t)
   {

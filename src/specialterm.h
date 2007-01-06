@@ -3,6 +3,7 @@
 
 #include "term.h"
 #include "termlist.h"
+#include "system.h"
 
 /*
  * Some declarations in spercialterm.c
@@ -25,6 +26,7 @@ extern Term CLAIM_Reachable;
 
 extern Termlist CLAIMS_dep_prec;
 
+void specialTermInit (const System sys);
 int isTicketTerm (Term t);
 int hasTicketSubterm (Term t);
 

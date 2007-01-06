@@ -125,7 +125,7 @@ initialIntruderKnowledge (const System sys)
 	     * Hack. Enumerating is not always good (or even desirable).
 	     * If some I knows sk(I), sk should not be in the intruder knowledge.
 	     * But for hash(I), we typically would have h; but if it is never used differently, it would suffice.
-	     * To sommarize, the operational semantics definition is perfectly fine, but maybe a bit strict sometimes.
+	     * To summarize, the operational semantics definition is perfectly fine, but maybe a bit strict sometimes.
 	     *
 	     * The hack is that if function application:
 	    */

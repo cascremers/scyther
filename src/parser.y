@@ -2,6 +2,7 @@
 #include "pheading.h"
 /* #include "lex.yy.c" */
 #include "tac.h"
+#include "error.h"
 
 struct tacnode*	spdltac;
 
@@ -319,6 +320,7 @@ int yyerror(char *s)
 	extern char *yytext;	//!< defined and maintained in lex.c
   
 	error ("%s at symbol '%s' on line %i.\n", s, yytext, yylineno);
+	return 0;
 }
 
 

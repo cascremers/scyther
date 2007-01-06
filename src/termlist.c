@@ -3,6 +3,7 @@
 #include "termlist.h"
 #include "specialterm.h"
 #include "debug.h"
+#include "error.h"
 
 /*
  * Shared stuff
@@ -912,6 +913,8 @@ termlist_to_tuple (Termlist tl)
 	  return termDuplicate (tl->term);
 	}
     }
+  // @TODO Should be considered an error
+  return NULL;
 }
 
 //! Split a tuple term into termlist components.

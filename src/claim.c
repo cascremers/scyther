@@ -18,6 +18,8 @@
 #include "specialterm.h"
 #include "switches.h"
 #include "color.h"
+#include "cost.h"
+#include "timer.h"
 
 //! When none of the runs match
 #define MATCH_NONE 0
@@ -38,6 +40,10 @@ extern int attack_leastcost;
 
 // Debugging the NI-SYNCH checks
 //#define OKIDEBUG
+
+// Forward declaration
+int oki_nisynch (const System sys, const int trace_index,
+		 const Termmap role_to_run, const Termmap label_to_index);
 
 /*
  * Validity checks for claims
@@ -367,6 +373,7 @@ oki_nisynch (const System sys, const int trace_index,
    * Exception: no claim, no send, no read, what is it?
    */
   error ("Unrecognized event type in claim scanner at %i.", trace_index);
+  return 0;
 }
 
 /*

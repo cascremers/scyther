@@ -212,6 +212,7 @@ int selfResponder (const System sys, const int run);
 int selfResponders (const System sys);
 int selfInitiator (const System sys, const int run);
 int selfInitiators (const System sys);
+int enoughAttacks (const System sys);
 
 
 //! Equality for run structure naming

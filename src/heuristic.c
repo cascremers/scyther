@@ -7,12 +7,15 @@
  */
 
 #include <float.h>
+#include <stdlib.h>
 
 #include "binding.h"
 #include "system.h"
 #include "specialterm.h"
 #include "switches.h"
 #include "hidelevel.h"
+#include "arachne.h"
+#include "error.h"
 
 //! Check whether a binding (goal) is selectable
 int
@@ -211,8 +214,6 @@ float
 weighHidelevel (const System sys, const Term t, const float massknow,
 		const float massprot)
 {
-  unsigned int hl;
-
   switch (hidelevelFlag (sys, t))
     {
     case HLFLAG_NONE:
@@ -253,6 +254,7 @@ term_constcount (const System sys, Term t)
 	    n++;
 	  }
       }
+    return 1;
   }
 
   n = 0;

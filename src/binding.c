@@ -14,6 +14,7 @@
 #include "arachne.h"
 #include "switches.h"
 #include "depend.h"
+#include "error.h"
 #ifndef OSXHOST
 #include <malloc.h>
 #endif
@@ -178,6 +179,8 @@ goal_unbind (const Binding b)
 //! Bind a goal as a dummy (block)
 /**
  * Especially made for tuple expansion
+ *
+ * @TODO Weird that this returns a value (always true, otherwise error)
  */
 int
 binding_block (Binding b)
@@ -187,13 +190,14 @@ binding_block (Binding b)
       b->blocked = true;
       return true;
     }
-  else
-    {
-      error ("Trying to block a goal again.");
-    }
+  error ("Trying to block a goal again.");
+  return false;
 }
 
 //! Unblock a binding
+/*
+ * @TODO Weird that this returns a value (always true, otherwise error)
+ */
 int
 binding_unblock (Binding b)
 {
@@ -202,10 +206,8 @@ binding_unblock (Binding b)
       b->blocked = false;
       return true;
     }
-  else
-    {
-      error ("Trying to unblock a non-blocked goal.");
-    }
+  error ("Trying to unblock a non-blocked goal.");
+  return false;
 }
 
 
