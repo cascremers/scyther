@@ -1273,9 +1273,6 @@ term_set_keylevels (const Term term)
 void
 termPrintDiff (Term t1, Term t2)
 {
-  t1 = deVar (t1);
-  t2 = deVar (t2);
-
   void termFromTo (Term t1, Term t2)
   {
     t1 = deVar (t1);
@@ -1287,6 +1284,9 @@ termPrintDiff (Term t1, Term t2)
     termPrint (t2);
     eprintf ("] ");
   }
+
+  t1 = deVar (t1);
+  t2 = deVar (t2);
 
   if (isTermEqual (t1, t2))
     {

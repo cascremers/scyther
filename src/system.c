@@ -596,29 +596,6 @@ roleInstanceArachne (const System sys, const Protocol protocol,
   Termlist tolist = NULL;	// -> .locals
   Term extterm = NULL;		// construction thing (will go to artefacts)
 
-  /* claim runid, allocate space */
-  rid = sys->maxruns;
-  ensureValidRun (sys, rid);	// creates a new block
-  runs = sys->runs;		// simple structure pointer transfer (shortcut)
-
-  /* duplicate roledef in buffer rd */
-  /* Notice that it is not stored (yet) in the run structure,
-   * and that termDuplicate is used internally
-   */
-  rd = roledefDuplicate (role->roledef);
-
-  /* set parameters */
-  /* generic setup of inherited stuff */
-  runs[rid].protocol = protocol;
-  runs[rid].role = role;
-  runs[rid].step = 0;
-  runs[rid].firstReal = 0;
-
-  /* Now we need to create local terms corresponding to rho, sigma, and any local constants.
-   *
-   * We maintain our stuff in a from/to list.
-   */
-
   void createLocal (Term oldt, int isvariable, int isrole)
   {
     Term newt;
@@ -698,6 +675,29 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 	list = list->next;
       }
   }
+
+  /* claim runid, allocate space */
+  rid = sys->maxruns;
+  ensureValidRun (sys, rid);	// creates a new block
+  runs = sys->runs;		// simple structure pointer transfer (shortcut)
+
+  /* duplicate roledef in buffer rd */
+  /* Notice that it is not stored (yet) in the run structure,
+   * and that termDuplicate is used internally
+   */
+  rd = roledefDuplicate (role->roledef);
+
+  /* set parameters */
+  /* generic setup of inherited stuff */
+  runs[rid].protocol = protocol;
+  runs[rid].role = role;
+  runs[rid].step = 0;
+  runs[rid].firstReal = 0;
+
+  /* Now we need to create local terms corresponding to rho, sigma, and any local constants.
+   *
+   * We maintain our stuff in a from/to list.
+   */
 
   // Create rho, sigma, constants
   createLocals (protocol->rolenames, true, true);

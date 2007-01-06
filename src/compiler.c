@@ -1312,14 +1312,6 @@ order_label_roles (const Claimlist cl)
   distance = 0;
   while (roles_remaining != NULL)
     {
-      distance++;
-#ifdef DEBUG
-      if (DEBUGL (4))
-	{
-	  eprintf (" %i:", distance);
-	}
-#endif
-
       int scan_label (void *data)
       {
 	Labelinfo linfo;
@@ -1362,6 +1354,13 @@ order_label_roles (const Claimlist cl)
 	return 1;
       }
 
+      distance++;
+#ifdef DEBUG
+      if (DEBUGL (4))
+	{
+	  eprintf (" %i:", distance);
+	}
+#endif
       list_iterate (sys->labellist, scan_label);
     }
   cl->roles = roles_ordered;

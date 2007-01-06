@@ -123,14 +123,6 @@ termlistSubstReset (Termlist tl)
 int
 unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
 {
-  /* added for speed */
-  t1 = deVar (t1);
-  t2 = deVar (t2);
-  if (t1 == t2)
-    {
-      return callback (tl);
-    }
-
   int callsubst (Termlist tl, Term t, Term tsubst)
   {
     int proceed;
@@ -145,6 +137,14 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
     t->subst = NULL;
     return proceed;
   }
+
+  /* added for speed */
+  t1 = deVar (t1);
+  t2 = deVar (t2);
+  if (t1 == t2)
+    {
+      return callback (tl);
+    }
 
   if (!(hasTermVariable (t1) || hasTermVariable (t2)))
     {

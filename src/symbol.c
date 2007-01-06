@@ -237,6 +237,9 @@ symbolNextFree (Symbol prefixsymbol)
   n = 1;
   while (n <= 9999)
     {
+      /*
+       * The construction below (variable buffer length) is not allowed in ISO C90
+       */
       char buffer[len + 5];	// thus we must enforce a maximum of 9.999 (allowing for storage of \0 )
       Symbol symb;
       int slen;

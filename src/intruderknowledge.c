@@ -36,8 +36,6 @@ addEnumTerm (const System sys, Term t, Term actor, Termlist todo,
       if (termSubTerm (t, todo->term))
 	{
 	  // Occurs, we have to iterate
-	  fromlist = termlistPrepend (fromlist, todo->term);
-
 	  void iterateThis (Term to)
 	  {
 	    tolist = termlistPrepend (tolist, to);
@@ -47,6 +45,7 @@ addEnumTerm (const System sys, Term t, Term actor, Termlist todo,
 	    tolist = termlistDelTerm (tolist);
 	  }
 
+	  fromlist = termlistPrepend (fromlist, todo->term);
 	  if (isTermEqual (todo->term, actor))
 	    {
 	      // Untrusted agents only
@@ -95,19 +94,6 @@ anySubTerm (Term t, Termlist sublist)
 void
 initialIntruderKnowledge (const System sys)
 {
-  if (switches.check)
-    {
-      globalError++;
-      eprintf ("Computing initial intruder knowledge.\n\n");
-      eprintf ("Agent names      : ");
-      termlistPrint (sys->agentnames);
-      eprintf ("\n");
-      eprintf ("Untrusted agents : ");
-      termlistPrint (sys->untrusted);
-      eprintf ("\n");
-      globalError--;
-    }
-
   /*
    * display initial role knowledge
    */
@@ -190,10 +176,22 @@ initialIntruderKnowledge (const System sys)
 	eprintf ("\n");
 	globalError--;
       }
-
     addListKnowledge (r->knows, r->nameterm);
     return true;
   }
+
+  if (switches.check)
+    {
+      globalError++;
+      eprintf ("Computing initial intruder knowledge.\n\n");
+      eprintf ("Agent names      : ");
+      termlistPrint (sys->agentnames);
+      eprintf ("\n");
+      eprintf ("Untrusted agents : ");
+      termlistPrint (sys->untrusted);
+      eprintf ("\n");
+      globalError--;
+    }
 
   iterateRoles (sys, deriveFromRole);
 }

@@ -18,8 +18,6 @@ protocolHidelevel (const System sys, const Term t)
 {
   unsigned int minlevel;
 
-  minlevel = INT_MAX;
-
   int itsends (const Protocol p, const Role r)
   {
     int sends (Roledef rd)
@@ -45,6 +43,7 @@ protocolHidelevel (const System sys, const Term t)
     return true;
   }
 
+  minlevel = INT_MAX;
   iterateRoles (sys, itsends);
 
   return minlevel;
