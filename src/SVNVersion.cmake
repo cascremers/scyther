@@ -13,8 +13,10 @@ set_source_files_properties(version.h
 	PROPERTIES
 	GENERATED true)
 find_program (SVNVERSION_EXECUTABLE NAMES svnversion)
+mark_as_advanced (SVNVERSION_EXECUTABLE)
 if (SVNVERSION_EXECUTABLE)
 	# svnversion found; we should always build this
+	mark_as_advanced (SVN_Version)
 	message (STATUS "Generating version.h using svnversion command")
 	exec_program (${SVNVERSION_EXECUTABLE}
 		OUTPUT_VARIABLE SVN_Version

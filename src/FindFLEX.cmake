@@ -8,6 +8,7 @@
 
 
 FIND_PROGRAM(FLEX_EXECUTABLE NAMES flex)
+mark_as_advanced(FLEX_DIR Flex_DIR)
 
 #INCLUDE(MacroEnsureVersion)
 

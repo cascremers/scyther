@@ -8,6 +8,7 @@
 
 
 FIND_PROGRAM(BISON_EXECUTABLE NAMES bison)
+mark_as_advanced(BISON_DIR Bison_DIR)
 
 #INCLUDE(MacroEnsureVersion)
 
