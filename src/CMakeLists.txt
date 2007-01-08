@@ -30,38 +30,55 @@ include (SVNVersion.cmake)
 include (ScannerParser.cmake)
 
 # By default, we build what we get
-if (WIN32)
-	set (TARGETOS "WIN32")
-else (WIN32)
-	if (APPLE)
-		set (TARGETOS "APPLE")
-	else (APPLE)
-		if (UNIX)
-			set (TARGETOS "UNIX")
-		endif (UNIX)
-	endif (APPLE)
-endif (WIN32)
+mark_as_advanced (CLEAR TARGETOS)
+if (NOT TARGETOS)
+	if (WIN32)
+		set (TARGETOS "WIN32")
+	else (WIN32)
+		if (APPLE)
+			set (TARGETOS "APPLE")
+		else (APPLE)
+			if (UNIX)
+				set (TARGETOS "UNIX")
+			endif (UNIX)
+		endif (APPLE)
+	endif (WIN32)
+endif (NOT TARGETOS)
 
-# Determine name from type
+# Determine name and target from type
 if (${TARGETOS} STREQUAL "UNIX")
-	message (STATUS "Building Linux version")
-	set (scythername "scyther-linux")
+	# Should for now only be done on the unix platform
+	if (UNIX)
+		message (STATUS "Building Linux version")
+		set (scythername "scyther-linux")
+		add_executable (${scythername} ${Scyther_sources})
+	endif (UNIX)
 endif (${TARGETOS} STREQUAL "UNIX")
+
 if (${TARGETOS} STREQUAL "APPLE")
-	message (STATUS "Building Apple version")
-	set (scythername "scyther-mac")
+	if (APPLE)
+		# Should for now only be done on the apple platform
+		message (STATUS "Building Apple version")
+		set (scythername "scyther-mac")
+		add_executable (${scythername} ${Scyther_sources})
+	endif (APPLE)
 endif (${TARGETOS} STREQUAL "APPLE")
+
 if (${TARGETOS} STREQUAL "WIN32")
+	# This should work on win32 platform, but also when the compiler
+	# is available anyway under linux
+	set (CMAKE_C_COMPILER "i586-mingw32msvc-gcc")
+	set (CMAKE_CXX_COMPILER "i586-mingw32msvc-g++")
+	set (CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)	# to get rid of -rdynamic
 	message (STATUS "Building W32 version")
-	set (scythername "scyther-w32")
+	set (scythername "scyther-w32.exe")
+	add_executable (${scythername} ${Scyther_sources})
 endif (${TARGETOS} STREQUAL "WIN32")
 
 # Make the Scyther linux binary
-if (scythername)
-	add_executable (${scythername} ${Scyther_sources})
-else (scythername)
+if (NOT scythername)
 	message (FATAL_ERROR "Cannot determine target platform [${TARGETOS}]")
-endif (scythername)
+endif (NOT scythername)
 
 
 
