@@ -6,7 +6,7 @@
  */
 
 #include "list.h"
-#ifndef OSXHOST
+#if !defined(__APPLE__)
 #include <malloc.h>
 #endif
 #include <stdlib.h>

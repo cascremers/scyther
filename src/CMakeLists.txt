@@ -29,60 +29,6 @@ include (SVNVersion.cmake)
 # Make scanner and parser
 include (ScannerParser.cmake)
 
-# By default, we build what we get
-if (NOT TARGETOS)
-	if (WIN32)
-		set (TARGETOS "WIN32")
-	else (WIN32)
-		if (APPLE)
-			set (TARGETOS "APPLE")
-		else (APPLE)
-			if (UNIX)
-				set (TARGETOS "UNIX")
-			endif (UNIX)
-		endif (APPLE)
-	endif (WIN32)
-endif (NOT TARGETOS)
-message (STATUS "Target OS: ${TARGETOS}")
-
-# Determine name and target from type
-if ("${TARGETOS}" STREQUAL "UNIX")
-	# Should for now only be done on the unix platform
-	message (STATUS "sjonge met [${TARGETOS}]")
-	if (UNIX)
-		message (STATUS "Building Linux version")
-		set (scythername "scyther-linux")
-		add_executable (${scythername} ${Scyther_sources})
-	endif (UNIX)
-endif ("${TARGETOS}" STREQUAL "UNIX")
-
-
-
-if ("${TARGETOS}" STREQUAL "APPLE")
-	if (APPLE)
-		# Should for now only be done on the apple platform
-		message (STATUS "Building Apple version")
-		set (scythername "scyther-mac")
-		add_executable (${scythername} ${Scyther_sources})
-		set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fnested-functions")
-	endif (APPLE)
-endif ("${TARGETOS}" STREQUAL "APPLE")
-
-if ("${TARGETOS}" STREQUAL "WIN32")
-	message (STATUS "Building W32 version")
-	# This should work on win32 platform, but also when the compiler
-	# is available anyway under linux
-	set (CMAKE_C_COMPILER "i586-mingw32msvc-gcc")
-	set (CMAKE_CXX_COMPILER "i586-mingw32msvc-g++")
-	set (CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)	# to get rid of -rdynamic
-	set (scythername "scyther-w32.exe")
-	add_executable (${scythername} ${Scyther_sources})
-endif ("${TARGETOS}" STREQUAL "WIN32")
-
-# Make the Scyther linux binary
-if (NOT scythername)
-	message (FATAL_ERROR "Cannot determine target platform [${TARGETOS}]")
-endif (NOT scythername)
-
-
+# Set build target settings according to platform
+include (BuildPlatform.cmake)
 

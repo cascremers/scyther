@@ -14,7 +14,7 @@ if (FLEX_FOUND)
 		COMMAND	${FLEX_EXECUTABLE}
 		# TODO: I should look up from which version the -o
 		# switch works, might not be portable.
-		ARGS	-o scanner.c scanner.l
+		ARGS	-oscanner.c scanner.l
 		COMMENT	"Building scanner.c from scanner.l using flex"
 	)
 else (FLEX_FOUND)
@@ -31,7 +31,7 @@ if (BISON_FOUND)
 		COMMAND	${BISON_EXECUTABLE}
 		# TODO: I should look up from which version the -o
 		# switch works, might not be portable.
-		ARGS	-o parser.c parser.y
+		ARGS	-oparser.c parser.y
 		COMMENT	"Building parser.c from parser.y using bison"
 	)
 else (BISON_FOUND)
