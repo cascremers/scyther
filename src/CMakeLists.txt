@@ -7,7 +7,7 @@
 # Scyther project
 project (Scyther)
 # I need 2.4 for flex/etc although it does not run yet
-#CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 
 # List all the source files
 set (Scyther_sources
@@ -30,7 +30,6 @@ include (SVNVersion.cmake)
 include (ScannerParser.cmake)
 
 # By default, we build what we get
-mark_as_advanced (CLEAR TARGETOS)
 if (NOT TARGETOS)
 	if (WIN32)
 		set (TARGETOS "WIN32")
@@ -44,36 +43,41 @@ if (NOT TARGETOS)
 		endif (APPLE)
 	endif (WIN32)
 endif (NOT TARGETOS)
+message (STATUS "Target OS: ${TARGETOS}")
 
 # Determine name and target from type
-if (${TARGETOS} STREQUAL "UNIX")
+if ("${TARGETOS}" STREQUAL "UNIX")
 	# Should for now only be done on the unix platform
+	message (STATUS "sjonge met [${TARGETOS}]")
 	if (UNIX)
 		message (STATUS "Building Linux version")
 		set (scythername "scyther-linux")
 		add_executable (${scythername} ${Scyther_sources})
 	endif (UNIX)
-endif (${TARGETOS} STREQUAL "UNIX")
+endif ("${TARGETOS}" STREQUAL "UNIX")
 
-if (${TARGETOS} STREQUAL "APPLE")
+
+
+if ("${TARGETOS}" STREQUAL "APPLE")
 	if (APPLE)
 		# Should for now only be done on the apple platform
 		message (STATUS "Building Apple version")
 		set (scythername "scyther-mac")
 		add_executable (${scythername} ${Scyther_sources})
+		set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fnested-functions")
 	endif (APPLE)
-endif (${TARGETOS} STREQUAL "APPLE")
+endif ("${TARGETOS}" STREQUAL "APPLE")
 
-if (${TARGETOS} STREQUAL "WIN32")
+if ("${TARGETOS}" STREQUAL "WIN32")
+	message (STATUS "Building W32 version")
 	# This should work on win32 platform, but also when the compiler
 	# is available anyway under linux
 	set (CMAKE_C_COMPILER "i586-mingw32msvc-gcc")
 	set (CMAKE_CXX_COMPILER "i586-mingw32msvc-g++")
 	set (CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)	# to get rid of -rdynamic
-	message (STATUS "Building W32 version")
 	set (scythername "scyther-w32.exe")
 	add_executable (${scythername} ${Scyther_sources})
-endif (${TARGETOS} STREQUAL "WIN32")
+endif ("${TARGETOS}" STREQUAL "WIN32")
 
 # Make the Scyther linux binary
 if (NOT scythername)
