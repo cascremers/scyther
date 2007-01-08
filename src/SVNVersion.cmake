@@ -20,7 +20,7 @@ if (SVNVERSION_EXECUTABLE)
 		OUTPUT_VARIABLE SVN_Result
 	)
 	mark_as_advanced (SVN_Result)
-	if (NOT SVN_Result STREQUAL "exported")
+	if (NOT ${SVN_Result} STREQUAL "exported")
 		# svnversion gives useful stuff
 		# write to file
 		file (WRITE version.h "#define SVNVERSION \"${SVN_Result}\"\n")
@@ -30,7 +30,7 @@ if (SVNVERSION_EXECUTABLE)
 			# Makefile
 			set (SVNVERSION_DYNAMIC true)
 		endif (UNIX)
-	endif (NOT SVN_Result STREQUAL "exported")
+	endif (NOT ${SVN_Result} STREQUAL "exported")
 	mark_as_advanced (SVNDIR)
 endif (SVNVERSION_EXECUTABLE)
 
