@@ -29,6 +29,39 @@ include (SVNVersion.cmake)
 # Make scanner and parser
 include (ScannerParser.cmake)
 
+# By default, we build what we get
+if (WIN32)
+	set (TARGETOS "WIN32")
+else (WIN32)
+	if (APPLE)
+		set (TARGETOS "APPLE")
+	else (APPLE)
+		if (UNIX)
+			set (TARGETOS "UNIX")
+		endif (UNIX)
+	endif (APPLE)
+endif (WIN32)
+
+# Determine name from type
+if (${TARGETOS} STREQUAL "UNIX")
+	message (STATUS "Building Linux version")
+	set (scythername "scyther-linux")
+endif (${TARGETOS} STREQUAL "UNIX")
+if (${TARGETOS} STREQUAL "APPLE")
+	message (STATUS "Building Apple version")
+	set (scythername "scyther-mac")
+endif (${TARGETOS} STREQUAL "APPLE")
+if (${TARGETOS} STREQUAL "WIN32")
+	message (STATUS "Building W32 version")
+	set (scythername "scyther-w32")
+endif (${TARGETOS} STREQUAL "WIN32")
+
 # Make the Scyther linux binary
-add_executable (scyther-linux ${Scyther_sources})
+if (scythername)
+	add_executable (${scythername} ${Scyther_sources})
+else (scythername)
+	message (FATAL_ERROR "Cannot determine target platform [${TARGETOS}]")
+endif (scythername)
+
+
 
