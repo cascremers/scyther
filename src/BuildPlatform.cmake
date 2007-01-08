@@ -7,16 +7,20 @@
 # Retrieve Source_OS, Destination_OS (from -DTARGET)
 include (GetOS.cmake)
 
+message (STATUS "Test ${Source_OS} ${Destination_OS}")
 # From source_os and destination_os make a new name for the build script
 if (Source_OS STREQUAL Destination_OS)
 	set (BuildScriptName "Build${Source_OS}.cmake")
 else (Source_OS STREQUAL Destination_OS)
 	set (BuildScriptName "Build${Source_OS}-${Destination_OS}.cmake")
 endif (Source_OS STREQUAL Destination_OS)
+message (STATUS "Locating platform specific file ${BuildScriptName}")
+
+# Locate the file. If it exists, start it
 find_file (BuildScriptFile "${BuildScriptName}")
 if (BuildScriptFile)
 	# Execute the build script
-	include (${BuildScriptFile})
+	include (${BuildScriptName})
 else (BuildScriptFile)
 	# Could not find it!
 	message (STATUS "Could not find ${BuildScriptName}")
