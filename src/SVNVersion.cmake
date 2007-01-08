@@ -5,34 +5,37 @@
 # Author:	Cas Cremers
 ################################################################
 
-# TODO: Technically, this only needs to be redone each time a file
-# changes, so this might be a target with dependencies on all files.
+# Technically, this only needs to be redone each time a file
+# changes, so this is a target with dependencies on all files.
 
 # Checkout version info
-set_source_files_properties(version.h
-	PROPERTIES
-	GENERATED true)
 find_program (SVNVERSION_EXECUTABLE NAMES svnversion)
 mark_as_advanced (SVNVERSION_EXECUTABLE)
 mark_as_advanced (SVNVERSION_DYNAMIC)
 set (SVNVERSION_DYNAMIC false)
 if (SVNVERSION_EXECUTABLE)
-	# svnversion found
-	if (UNIX)
-		# Unix system
-		# test whether svnversion gives useful info
-		exec_program (${SVNVERSION_EXECUTABLE}
-			OUTPUT_VALUE SVN_Result
-		)
-		mark_as_advanced (SVN_Result)
-		if (SVN_Result STREQUAL "exported")
-			# svnversion gives useful stuff
+	# test whether svnversion gives useful info
+	execute_process (
+		COMMAND	${SVNVERSION_EXECUTABLE} --no-newline
+		OUTPUT_VARIABLE SVN_Result
+	)
+	mark_as_advanced (SVN_Result)
+	if (NOT SVN_Result STREQUAL "exported")
+		# svnversion gives useful stuff
+		# write to file
+		file (WRITE version.h "#define SVNVERSION \"${SVN_Result}\"\n")
+		if (UNIX)
+			# Unix system
+			# mark for dynamic generation in
+			# Makefile
 			set (SVNVERSION_DYNAMIC true)
-		endif (SVN_Result STREQUAL "exported")
-		mark_as_advanced (SVNDIR)
-	endif (UNIX)
+		endif (UNIX)
+	endif (NOT SVN_Result STREQUAL "exported")
+	mark_as_advanced (SVNDIR)
 endif (SVNVERSION_EXECUTABLE)
 
+# If dynamic generation is required, this means another target in the
+# makefile
 if (SVNVERSION_DYNAMIC)
 	# add a command to generate version.h
 	message (STATUS	"Generating version.h dynamically using svnversion command")
@@ -54,5 +57,8 @@ else (SVNVERSION_DYNAMIC)
 endif (SVNVERSION_DYNAMIC)
 
 # add the version number to the sources
+set_source_files_properties(version.h
+	PROPERTIES
+	GENERATED true)
 set (Scyther_sources ${Scyther_sources} version.h)
 
