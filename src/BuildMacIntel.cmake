@@ -1,6 +1,6 @@
 ################################################################
 # Name:		BuildMacIntel.cmake
-# Purpose:	Build MacIntel binary on self
+# Purpose:	Build MacIntel binary
 # Author:	Cas Cremers
 ################################################################
 

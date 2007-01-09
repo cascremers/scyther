@@ -4,10 +4,14 @@
 # Author:	Cas Cremers
 ################################################################
 
+# Add target for Universal Binary when needed
+if (APPLE)
+	include (UniversalBinary.cmake)
+endif (APPLE)
+
 # Retrieve Source_OS, Destination_OS (from -DTARGET)
 include (GetOS.cmake)
 
-message (STATUS "Test ${Source_OS} ${Destination_OS}")
 # From source_os and destination_os make a new name for the build script
 if (Source_OS STREQUAL Destination_OS)
 	set (BuildScriptName "Build${Source_OS}.cmake")

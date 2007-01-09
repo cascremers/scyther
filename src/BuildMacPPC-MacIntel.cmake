@@ -1,8 +1,8 @@
 ################################################################
-# Name:		BuildMacIntel-MacPPC.cmake
-# Purpose:	Build MacPPC binary on MacIntel 
+# Name:		BuildMacPPC-MacIntel.cmake
+# Purpose:	Build MacIntel binary on MacPPC
 # Author:	Cas Cremers
 ################################################################
 
-include (BuildMacPPC.cmake)
+include (BuildMacIntel.cmake)
 

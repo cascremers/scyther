@@ -31,7 +31,7 @@ else (WIN32)
 		endif (UNIX)
 	endif (APPLE)
 endif (WIN32)
-message (STATUS "Source platform: ${Source_OS}")
+#message (STATUS "Source platform: ${Source_OS}")
 
 # Destination? If target is unset, we just take the source
 if (TARGETOS)
@@ -39,5 +39,5 @@ if (TARGETOS)
 else (TARGETOS)
 	set (Destination_OS "${Source_OS}")
 endif (TARGETOS)
-message (STATUS "Destination platform: ${Destination_OS}")
+#message (STATUS "Destination platform: ${Destination_OS}")
 
