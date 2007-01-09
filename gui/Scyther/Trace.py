@@ -214,6 +214,7 @@ class Run(object):
         self.eventList = []
         self.intruder = False
         self.attack = None
+	self.variables = []
 
     def __iter__(self):
         return iter(self.eventList)
