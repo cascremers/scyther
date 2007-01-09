@@ -17,7 +17,7 @@ endif (Source_OS STREQUAL Destination_OS)
 message (STATUS "Locating platform specific file ${BuildScriptName}")
 
 # Locate the file. If it exists, start it
-find_file (BuildScriptFile "${BuildScriptName}")
+find_file (BuildScriptFile "${BuildScriptName}" .)
 if (BuildScriptFile)
 	# Execute the build script
 	include (${BuildScriptName})
