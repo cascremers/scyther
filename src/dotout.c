@@ -1673,11 +1673,12 @@ dotSemiState (const System mysys)
   maxrank = graph_ranks (ranks, nodes);	// determine ranks
 
 #ifdef DEBUG
-  // For debugging purposes, we also display an ASCII version of some stuff in the comments
-  printSemiState ();
-  // Even draw all dependencies for non-intruder runs
-  // Real nice debugging :(
+  if (DEBUGL(1))
   {
+    // For debugging purposes, we also display an ASCII version of some stuff in the comments
+    printSemiState ();
+    // Even draw all dependencies for non-intruder runs
+    // Real nice debugging :(
     int run;
 
     run = 0;
