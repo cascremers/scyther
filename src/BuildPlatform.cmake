@@ -21,10 +21,10 @@ endif (Source_OS STREQUAL Destination_OS)
 message (STATUS "Locating platform specific file ${BuildScriptName}")
 
 # Locate the file. If it exists, start it
-if (EXISTS "${BuildScriptName}")
+if (EXISTS ${BuildScriptName})
 	# Execute the build script
-	include (${BuildScriptFile})
-else (EXISTS "${BuildScriptName}")
+	include (${BuildScriptName})
+else (EXISTS ${BuildScriptName})
 	# Could not find it!
 	message (STATUS "Could not find ${BuildScriptName}")
 	if (Source_OS STREQUAL Destination_OS)
@@ -32,5 +32,5 @@ else (EXISTS "${BuildScriptName}")
 	else (Source_OS STREQUAL Destination_OS)
 		message (FATAL_ERROR "Don't know how to build for ${Destination_OS} on ${Source_OS}")
 	endif (Source_OS STREQUAL Destination_OS)
-endif (EXISTS "${BuildScriptName}")
+endif (EXISTS ${BuildScriptName})
 
