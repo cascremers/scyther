@@ -92,9 +92,7 @@ def getScytherBackend():
     elif "darwin" in sys.platform:
 
         """ OS X """
-        # Preferably, we test for architecture (PPC/Intel) until we
-        # know how to build a universal binary
-        scythername = "scyther-osx"
+        scythername = "scyther-mac"
 
     elif sys.platform.startswith('win'):
 
