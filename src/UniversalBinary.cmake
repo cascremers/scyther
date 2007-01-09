@@ -27,6 +27,8 @@ if (lipoexecutable)
 		add_custom_target (scyther-mac
 			COMMAND	lipo -create "${ppcfile}" "${intelfile}" -output scyther-mac
 			COMMENT	"Generating Mac universal binary"
+			DEPENDS	scyther-macintel
+			DEPENDS	scyther-macppc
 		)
 	else (UBrequiredfiles)
 		message (STATUS "No universal binary possible yet. Please do the following:")
