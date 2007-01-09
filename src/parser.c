@@ -27,7 +27,6 @@
 #line 1 "parser.y"
 
 #include "pheading.h"
-/* #include "lex.yy.c" */
 #include "tac.h"
 #include "error.h"
 
@@ -37,7 +36,7 @@ int yyerror(char *s);
 int yylex(void);
 
 
-#line 14 "parser.y"
+#line 13 "parser.y"
 typedef union{
 	char*  		str;
 	struct tacnode*	tac;
@@ -124,11 +123,11 @@ static const short yyrhs[] = {    32,
 
 #if YYDEBUG != 0
 static const short yyrline[] = { 0,
-    70,    74,    76,    80,    86,    93,   101,   107,   113,   115,
-   117,   121,   132,   134,   138,   140,   144,   146,   148,   150,
-   154,   161,   168,   177,   185,   192,   199,   206,   212,   218,
-   225,   229,   236,   241,   248,   253,   259,   263,   265,   270,
-   278,   280,   286,   290,   296,   298,   302,   304,   308
+    69,    73,    75,    79,    85,    92,   100,   106,   112,   114,
+   116,   120,   131,   133,   137,   139,   143,   145,   147,   149,
+   153,   160,   167,   176,   184,   191,   198,   205,   211,   217,
+   224,   228,   235,   240,   247,   252,   258,   262,   264,   269,
+   277,   279,   285,   289,   295,   297,   301,   303,   307
 };
 #endif
 
@@ -782,19 +781,19 @@ yyreduce:
   switch (yyn) {
 
 case 1:
-#line 71 "parser.y"
+#line 70 "parser.y"
 {	spdltac = yyvsp[0].tac; ;
     break;}
 case 2:
-#line 75 "parser.y"
+#line 74 "parser.y"
 {	yyval.tac = NULL; ;
     break;}
 case 3:
-#line 77 "parser.y"
+#line 76 "parser.y"
 {	yyval.tac = tacCat(yyvsp[-1].tac,yyvsp[0].tac); ;
     break;}
 case 4:
-#line 81 "parser.y"
+#line 80 "parser.y"
 {	
 		  	Tac t = tacCreate(TAC_UNTRUSTED);
 		  	t->t1.tac = yyvsp[-1].tac;
@@ -802,7 +801,7 @@ case 4:
 		  ;
     break;}
 case 5:
-#line 87 "parser.y"
+#line 86 "parser.y"
 {	
 		  	Tac t = tacCreate(TAC_RUN);
 		  	t->t1.tac = yyvsp[-4].tac;
@@ -811,7 +810,7 @@ case 5:
 		  ;
     break;}
 case 6:
-#line 94 "parser.y"
+#line 93 "parser.y"
 {
 		  	Tac t = tacCreate(TAC_PROTOCOL);
 			t->t1.sym = yyvsp[-7].symb;
@@ -821,7 +820,7 @@ case 6:
 		  ;
     break;}
 case 7:
-#line 102 "parser.y"
+#line 101 "parser.y"
 {
 			Tac t = tacCreate(TAC_USERTYPE);
 			t->t1.tac = yyvsp[-1].tac;
@@ -829,25 +828,25 @@ case 7:
 		  ;
     break;}
 case 8:
-#line 108 "parser.y"
+#line 107 "parser.y"
 {
 		  	yyval.tac = yyvsp[0].tac;
 		  ;
     break;}
 case 9:
-#line 114 "parser.y"
+#line 113 "parser.y"
 {	yyval.tac = NULL; ;
     break;}
 case 10:
-#line 116 "parser.y"
+#line 115 "parser.y"
 {	yyval.tac = tacCat(yyvsp[-1].tac,yyvsp[0].tac); ;
     break;}
 case 11:
-#line 118 "parser.y"
+#line 117 "parser.y"
 {	yyval.tac = tacCat(yyvsp[-1].tac,yyvsp[0].tac); ;
     break;}
 case 12:
-#line 122 "parser.y"
+#line 121 "parser.y"
 { 
 		  	// TODO process singular (0/1)
 		  	Tac t = tacCreate(TAC_ROLE);
@@ -858,39 +857,39 @@ case 12:
 		  ;
     break;}
 case 13:
-#line 133 "parser.y"
+#line 132 "parser.y"
 {	yyval.value = 0; ;
     break;}
 case 14:
-#line 135 "parser.y"
+#line 134 "parser.y"
 {	yyval.value = 1; ;
     break;}
 case 15:
-#line 139 "parser.y"
+#line 138 "parser.y"
 { ;
     break;}
 case 16:
-#line 141 "parser.y"
+#line 140 "parser.y"
 { ;
     break;}
 case 17:
-#line 145 "parser.y"
+#line 144 "parser.y"
 {	yyval.tac = NULL; ;
     break;}
 case 18:
-#line 147 "parser.y"
+#line 146 "parser.y"
 {	yyval.tac = tacCat(yyvsp[-1].tac,yyvsp[0].tac); ;
     break;}
 case 19:
-#line 149 "parser.y"
+#line 148 "parser.y"
 {	yyval.tac = tacCat(yyvsp[-1].tac,yyvsp[0].tac); ;
     break;}
 case 20:
-#line 151 "parser.y"
+#line 150 "parser.y"
 {	yyval.tac = tacCat(yyvsp[-1].tac,yyvsp[0].tac); ;
     break;}
 case 21:
-#line 155 "parser.y"
+#line 154 "parser.y"
 {	Tac t = tacCreate(TAC_READ);
 		  	t->t1.sym = yyvsp[-4].symb;
 			/* TODO test here: tac2 should have at least 3 elements */
@@ -899,7 +898,7 @@ case 21:
 		  ;
     break;}
 case 22:
-#line 162 "parser.y"
+#line 161 "parser.y"
 {	Tac t = tacCreate(TAC_SEND);
 		  	t->t1.sym = yyvsp[-4].symb;
 			/* TODO test here: tac2 should have at least 3 elements */
@@ -908,7 +907,7 @@ case 22:
 		  ;
     break;}
 case 23:
-#line 170 "parser.y"
+#line 169 "parser.y"
 {	Tac t = tacCreate(TAC_CLAIM);
 		  	t->t1.sym = yyvsp[-4].symb;
 			t->t2.tac = yyvsp[-2].tac;
@@ -916,7 +915,7 @@ case 23:
 		  ;
     break;}
 case 24:
-#line 178 "parser.y"
+#line 177 "parser.y"
 {	Tac t = tacCreate(TAC_ROLEREF);
 		  	t->t1.sym = yyvsp[-2].symb;
 			t->t2.sym = yyvsp[0].symb;
@@ -924,14 +923,14 @@ case 24:
 		  ;
     break;}
 case 25:
-#line 186 "parser.y"
+#line 185 "parser.y"
 {	Tac t = tacCreate(TAC_KNOWS);
 		  	t->t1.tac = yyvsp[-1].tac;
 			yyval.tac = t;
 		  ;
     break;}
 case 26:
-#line 193 "parser.y"
+#line 192 "parser.y"
 {	Tac t = tacCreate(TAC_CONST);
 		  	t->t1.tac = yyvsp[-2].tac;
 			t->t2.tac = yyvsp[-1].tac;
@@ -940,7 +939,7 @@ case 26:
 		  ;
     break;}
 case 27:
-#line 200 "parser.y"
+#line 199 "parser.y"
 {	Tac t = tacCreate(TAC_VAR);
 		  	t->t1.tac = yyvsp[-2].tac;
 			t->t2.tac = yyvsp[-1].tac;
@@ -949,7 +948,7 @@ case 27:
 		  ;
     break;}
 case 28:
-#line 207 "parser.y"
+#line 206 "parser.y"
 {	Tac t = tacCreate(TAC_SECRET);
 		  	t->t1.tac = yyvsp[-2].tac;
 			t->t2.tac = yyvsp[-1].tac;
@@ -957,7 +956,7 @@ case 28:
 		  ;
     break;}
 case 29:
-#line 213 "parser.y"
+#line 212 "parser.y"
 {	Tac t = tacCreate(TAC_INVERSEKEYS);
 			t->t1.tac = yyvsp[-4].tac;
 			t->t2.tac = yyvsp[-2].tac;
@@ -965,66 +964,66 @@ case 29:
 		  ;
     break;}
 case 30:
-#line 219 "parser.y"
+#line 218 "parser.y"
 {	Tac t = tacCreate(TAC_COMPROMISED);
 		  	t->t1.tac= yyvsp[-1].tac;
 			yyval.tac = t;
 		  ;
     break;}
 case 31:
-#line 226 "parser.y"
+#line 225 "parser.y"
 {	
 			yyval.tac = NULL;
 		  ;
     break;}
 case 32:
-#line 230 "parser.y"
+#line 229 "parser.y"
 {
 			Tac t = tacCreate(TAC_SECRET);
 			yyval.tac = t;
 		  ;
     break;}
 case 33:
-#line 237 "parser.y"
+#line 236 "parser.y"
 {
 		  	Tac t = tacCreate(TAC_UNDEF);
 			yyval.tac = t;
 		  ;
     break;}
 case 34:
-#line 242 "parser.y"
+#line 241 "parser.y"
 {	Tac t = tacCreate(TAC_STRING);
 		  	t->t1.sym = yyvsp[0].symb;
 			yyval.tac = t;
 		  ;
     break;}
 case 35:
-#line 249 "parser.y"
+#line 248 "parser.y"
 {
 		  	Tac t = tacCreate(TAC_UNDEF);
 			yyval.tac = t;
 		  ;
     break;}
 case 36:
-#line 254 "parser.y"
+#line 253 "parser.y"
 {	
 		  	yyval.tac = yyvsp[0].tac;
 		  ;
     break;}
 case 37:
-#line 260 "parser.y"
+#line 259 "parser.y"
 { yyval.symb = yyvsp[0].symb; ;
     break;}
 case 38:
-#line 264 "parser.y"
+#line 263 "parser.y"
 { yyval.symb = NULL; ;
     break;}
 case 39:
-#line 266 "parser.y"
+#line 265 "parser.y"
 { ;
     break;}
 case 40:
-#line 271 "parser.y"
+#line 270 "parser.y"
 {
 		  	Tac t = tacCreate(TAC_STRING);
 			t->t1.sym = yyvsp[0].symb;
@@ -1032,11 +1031,11 @@ case 40:
 		  ;
     break;}
 case 41:
-#line 279 "parser.y"
+#line 278 "parser.y"
 { ;
     break;}
 case 42:
-#line 281 "parser.y"
+#line 280 "parser.y"
 {
 		  	Tac t = tacCreate(TAC_STRING);
 			t->t1.sym = yyvsp[-3].symb;
@@ -1044,35 +1043,35 @@ case 42:
 		  ;
     break;}
 case 43:
-#line 287 "parser.y"
+#line 286 "parser.y"
 {
 		  	yyval.tac = tacJoin(TAC_ENCRYPT,tacTuple(yyvsp[-2].tac),yyvsp[0].tac,NULL);
 		  ;
     break;}
 case 44:
-#line 291 "parser.y"
+#line 290 "parser.y"
 { 
 		  	yyval.tac = tacTuple(yyvsp[-1].tac);
 		  ;
     break;}
 case 45:
-#line 297 "parser.y"
+#line 296 "parser.y"
 { ;
     break;}
 case 46:
-#line 299 "parser.y"
+#line 298 "parser.y"
 {	yyval.tac = tacCat(yyvsp[-2].tac,yyvsp[0].tac); ;
     break;}
 case 47:
-#line 303 "parser.y"
+#line 302 "parser.y"
 { ;
     break;}
 case 48:
-#line 305 "parser.y"
+#line 304 "parser.y"
 {	yyval.tac = tacCat(yyvsp[-2].tac,yyvsp[0].tac); ;
     break;}
 case 49:
-#line 309 "parser.y"
+#line 308 "parser.y"
 { ;
     break;}
 }
@@ -1297,7 +1296,7 @@ yyerrhandle:
     }
   return 1;
 }
-#line 314 "parser.y"
+#line 313 "parser.y"
 
 
 //! error handler routing
