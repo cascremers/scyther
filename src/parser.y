@@ -1,6 +1,5 @@
 %{
 #include "pheading.h"
-/* #include "lex.yy.c" */
 #include "tac.h"
 #include "error.h"
 

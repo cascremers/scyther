@@ -31,7 +31,7 @@ if (BISON_FOUND)
 		COMMAND	${BISON_EXECUTABLE}
 		# TODO: I should look up from which version the -o
 		# switch works, might not be portable.
-		ARGS	-oparser.c parser.y
+		ARGS	-d -oparser.c parser.y
 		COMMENT	"Building parser.c from parser.y using bison"
 	)
 else (BISON_FOUND)
