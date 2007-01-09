@@ -11,7 +11,7 @@
 #include <limits.h>
 #include <float.h>
 #include <string.h>
-#ifndef OSXHOST
+#if !defined(__APPLE__)
 #ifdef DEBUG
 #include <malloc.h>
 #endif
