@@ -214,7 +214,7 @@ class Run(object):
         self.eventList = []
         self.intruder = False
         self.attack = None
-	self.variables = []
+        self.variables = []
 
     def __iter__(self):
         return iter(self.eventList)
@@ -229,6 +229,13 @@ class Run(object):
 
     def getLastAction(self):
         return self.eventList[-1]
+
+    def collapseIntruder(self):
+        """ TODO still working on this. """
+        if self.intruder:
+            shouldcollapse = False
+            for ev in self:
+                return
 
 class Event(object):
     def __init__(self,index,label,follows):
@@ -308,3 +315,25 @@ class EventClaim(Event):
             
     def __str__(self):
         return "CLAIM_%s(%s, %s)" % (self.shortLabel(),self.type,self.argstr())
+
+class EventIntruder(Event):
+    """
+    Intruder event extensions (allows for collapsing attacks later)
+    """
+    def __init__(self,follows,message,key,result):
+        Event.__init__(self,0,None,follows)
+        self.follows = follows
+        self.message = message
+        self.key = key
+        self.result = result
+        self.intruder = True
+
+class EventDecr(EventIntruder):
+    def __str__(self):
+        return "DECR(%s, %s, %s)" % (self.message, self.key, self.result)
+
+class EventEncr(EventIntruder):
+    def __str__(self):
+        return "ENCR(%s, %s, %s)" % (self.message, self.key, self.result)
+
+
