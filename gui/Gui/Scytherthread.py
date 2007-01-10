@@ -143,19 +143,29 @@ class AttackThread(threading.Thread):
                 # [CC][x] This dpi setting messed up quite a bit
                 #graphLine("dpi=96")
                 graphLine("rankdir=TB")
-                graphLine("nodesep=0.1")
-                graphLine("ranksep=0.001")
-                graphLine("mindist=0.1")
+                #graphLine("nodesep=0.1")
+                #graphLine("ranksep=0.001")
+                #graphLine("mindist=0.1")
                 if sys.platform.startswith("lin"):
+                    # For Linux, choose Helvetica
+                    # TODO
+                    # This is really a Mac font so it might not be
+                    # available. Still, it works better on my Ubuntu
+                    # than Verdana, and finding a good sans default for 
+                    # linux seems problematic.
                     setAttr("fontname=\"Helvetica\"")
-                else:
-                    setAttr("fontname=\"Arial\"")
+                if sys.platform.startswith("mac"):
+                    # For Mac choose Helvetica
+                    setAttr("fontname=\"Helvetica\"")
+                if sys.platform.startswith("win"):
+                    # For Windows choose Verdana
+                    setAttr("fontname=\"Verdana\"")
                 if self.parent and self.parent.mainwin:
                     fontsize = self.parent.mainwin.settings.fontsize
                     setAttr("fontsize=%s" % fontsize)
-                setAttr("height=\"0.1\"",NODE)
-                setAttr("width=\"1.0\"",NODE)
-                setAttr("margin=\"0.3,0.03\"",NODE)
+                #setAttr("height=\"0.1\"",NODE)
+                #setAttr("width=\"1.0\"",NODE)
+                #setAttr("margin=\"0.3,0.03\"",NODE)
 
     def makeImage(self,attack):
         """ create image for this particular attack """
@@ -271,7 +281,7 @@ class ResultWindow(wx.Frame):
             ):
 
         wx.Frame.__init__(self,parentwindow,-1,title,pos,size,style)
-	self.SetBackgroundColour('Default')
+        self.SetBackgroundColour('Default')
         Icon.ScytherIcon(self)
 
         self.parent = parent
