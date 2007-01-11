@@ -1,0 +1,7 @@
+Where are the version numbers? (way too distributed)
+
+- Gui has a version number in about.py
+- Scyther has release.h
+- ChangeLog
+- Readme.txt
+
