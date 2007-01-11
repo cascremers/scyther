@@ -18,7 +18,7 @@ class AboutScyther(wx.Dialog):
 <body bgcolor="#ffffff">
     <center>
         <h1>Scyther</h1>
-        Version 1.0-beta 5
+        Version 1.0-beta 6
     </center>
 <hr>
 <p>
@@ -27,7 +27,7 @@ class AboutScyther(wx.Dialog):
 </p>
 <p>
     Scyther and Scyther GUI developed by
-    Cas Cremers 2004-2006.
+    Cas Cremers 2004-2007.
 </p>
 <p>
     For news and updates visit the Scyther pages at 

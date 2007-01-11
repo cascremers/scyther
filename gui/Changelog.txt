@@ -2,6 +2,11 @@
 - Scyther changelog -
 ---------------------
 
+Scyther 1.0-beta6 
+	
+	* Added Mac support (added universal binary)
+	* Fixed bug in scripting backend (e.g. with mpa.py)
+
 Scyther 1.0-beta5 
 
 	* Change of switch semantics.  '--max-attacks=N' now defines the
