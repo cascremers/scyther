@@ -20,12 +20,7 @@
 // Program name
 const char *progname = "scyther";
 
-// We only have the version thing under linux
-#ifdef linux
 #include "version.h"
-#else
-#define SVNVERSION "Non-linux"
-#endif
 const char *releasetag = SVNVERSION;
 
 // Structures
