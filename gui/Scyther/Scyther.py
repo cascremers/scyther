@@ -121,6 +121,7 @@ class Scyther(object):
         self.claims = None
         self.errors = None
         self.errorcount = 0
+        self.warnings = None
         self.run = False
         self.output = None
         self.cmd = None
@@ -239,11 +240,21 @@ class Scyther(object):
 
         # process errors
         self.errors = []
+        self.warnings = []
         for l in errors.splitlines():
+            line = l.strip()
             # filter out any non-errors (say maybe only claim etc) and count
             # them.
-            if not l.startswith("claim\t"):
-                self.errors.append(l.strip())
+            if line.startswith("claim\t"):
+                # Claims are lost, reconstructed from the XML output
+                continue
+            if line.startswith("warning"):
+                # Warnings are stored seperately
+                self.warnings.append(line)
+                continue
+            # otherwise it is an error
+            self.errors.append(line)
+
         self.errorcount = len(self.errors)
 
         # process output
