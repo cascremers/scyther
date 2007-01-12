@@ -23,6 +23,9 @@ set (Scyther_sources
 # If we are in a debug mode we want to be strict
 set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -DDEBUG")
 
+# Usual static
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
+
 # Determine version number
 include (SVNVersion.cmake)
 
