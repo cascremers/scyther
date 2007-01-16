@@ -246,18 +246,6 @@ prune_theorems (const System sys)
       return true;
     }
 
-  // Check if all agents of the main run are valid
-  if (!isRunTrusted (sys, 0))
-    {
-      if (switches.output == PROOF)
-	{
-	  indentPrint ();
-	  eprintf
-	    ("Pruned because all agents of the claim run must be trusted.\n");
-	}
-      return true;
-    }
-
   // Check if the actors of all other runs are not untrusted
   if (sys->untrusted != NULL)
     {

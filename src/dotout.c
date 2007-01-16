@@ -1673,61 +1673,61 @@ dotSemiState (const System mysys)
   maxrank = graph_ranks (ranks, nodes);	// determine ranks
 
 #ifdef DEBUG
-  if (DEBUGL(1))
-  {
-    // For debugging purposes, we also display an ASCII version of some stuff in the comments
-    printSemiState ();
-    // Even draw all dependencies for non-intruder runs
-    // Real nice debugging :(
-    int run;
+  if (DEBUGL (1))
+    {
+      // For debugging purposes, we also display an ASCII version of some stuff in the comments
+      printSemiState ();
+      // Even draw all dependencies for non-intruder runs
+      // Real nice debugging :(
+      int run;
 
-    run = 0;
-    while (run < sys->maxruns)
-      {
-	int ev;
+      run = 0;
+      while (run < sys->maxruns)
+	{
+	  int ev;
 
-	ev = 0;
-	while (ev < sys->runs[run].length)
-	  {
-	    int run2;
-	    int notfirstrun;
+	  ev = 0;
+	  while (ev < sys->runs[run].length)
+	    {
+	      int run2;
+	      int notfirstrun;
 
-	    eprintf ("// precedence: r%ii%i <- ", run, ev);
-	    run2 = 0;
-	    notfirstrun = 0;
-	    while (run2 < sys->maxruns)
-	      {
-		int notfirstev;
-		int ev2;
+	      eprintf ("// precedence: r%ii%i <- ", run, ev);
+	      run2 = 0;
+	      notfirstrun = 0;
+	      while (run2 < sys->maxruns)
+		{
+		  int notfirstev;
+		  int ev2;
 
-		notfirstev = 0;
-		ev2 = 0;
-		while (ev2 < sys->runs[run2].length)
-		  {
-		    if (isDependEvent (run2, ev2, run, ev))
-		      {
-			if (notfirstev)
-			  eprintf (",");
-			else
-			  {
-			    if (notfirstrun)
-			      eprintf (" ");
-			    eprintf ("r%i:", run2);
-			  }
-			eprintf ("%i", ev2);
-			notfirstrun = 1;
-			notfirstev = 1;
-		      }
-		    ev2++;
-		  }
-		run2++;
-	      }
-	    eprintf ("\n");
-	    ev++;
-	  }
-	run++;
-      }
-  }
+		  notfirstev = 0;
+		  ev2 = 0;
+		  while (ev2 < sys->runs[run2].length)
+		    {
+		      if (isDependEvent (run2, ev2, run, ev))
+			{
+			  if (notfirstev)
+			    eprintf (",");
+			  else
+			    {
+			      if (notfirstrun)
+				eprintf (" ");
+			      eprintf ("r%i:", run2);
+			    }
+			  eprintf ("%i", ev2);
+			  notfirstrun = 1;
+			  notfirstev = 1;
+			}
+		      ev2++;
+		    }
+		  run2++;
+		}
+	      eprintf ("\n");
+	      ev++;
+	    }
+	  run++;
+	}
+    }
 #endif
 
   // First, runs

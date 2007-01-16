@@ -998,22 +998,7 @@ runInstanceCreate (Tac tc)
   roleInstance (sys, p, r, instParams, NULL);	// technically, we don't need to do this for Arachne [fix later]
 
   /* after creation analysis */
-  /* AC1: untrusted agents */
-  /*      first: determine whether the run is untrusted,
-   *      by checking whether one of the untrusted agents occurs
-   *      in the run instance  */
-  if (!isAgentlistTrusted (sys, instParams))
-    {
-      /* nothing yet */
-      /* claims handle this themselves */
-
-      /* some reduction might be possible, by cutting of the last few actions
-       * of such an untrusted run */
-
-      /* but most of it might be handled dynamically */
-    }
-
-  /* AC2: originator assumption for CLP ? */
+  /* originator assumption for CLP ? */
   /* TODO */
 }
 

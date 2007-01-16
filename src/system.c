@@ -74,9 +74,11 @@ systemInit ()
   sys->knowledgedefined = false;	// currently, we have backwards compatibility for empty role knowledge defs (disabling well-formedness rules)
   sys->attackid = 0;		// First attack will have id 1, because the counter is increased before any attacks are displayed.
 
+  /* arachne assist */
   bindingInit (sys);
   sys->bindings = NULL;
   sys->current_claim = NULL;
+  sys->trustedRoles = NULL;
 
   /* reset global counters */
   systemReset (sys);

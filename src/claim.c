@@ -707,6 +707,29 @@ arachne_claim_nisynch (const System sys, const int claim_run,
   return arachne_claim_authentications (sys, claim_run, claim_index, 1);
 }
 
+//! Are all agents trusted of the claim run (as required by the property?)
+int
+pruneClaimRunTrusted (const System sys)
+{
+  if (sys->trustedRoles == NULL)
+    {
+      // all agents need to be trusted
+      if (!isRunTrusted (sys, 0))
+	{
+	  return true;
+	}
+    }
+  else
+    {
+      // a subset is trusted
+      if (!isAgentlistTrusted (sys, sys->trustedRoles))
+	{
+	  return true;
+	}
+    }
+  return false;
+}
+
 //! Prune determination for specific properties
 /**
  * Sometimes, a property holds in part of the tree. Thus, we don't need to explore that part further if we want to find an attack.
@@ -716,6 +739,19 @@ arachne_claim_nisynch (const System sys, const int claim_run,
 int
 prune_claim_specifics (const System sys)
 {
+  // generic status of (all) roles trusted or not
+  if (pruneClaimRunTrusted (sys))
+    {
+      if (switches.output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf
+	    ("Pruned because all agents of the claim run must be trusted.\n");
+	}
+      return true;
+    }
+
+  // specific claims
   if (sys->current_claim->type == CLAIM_Niagree)
     {
       if (arachne_claim_niagree (sys, 0, sys->current_claim->ev))
@@ -757,6 +793,10 @@ add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd,
   /*
    * different cases
    */
+
+  // per default, all agents are trusted
+  sys->trustedRoles = NULL;
+
   if (cl->type == CLAIM_Secret)
     {
       int newgoals;
@@ -791,6 +831,8 @@ add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd,
 
   if (cl->type == CLAIM_Reachable)
     {
+      int flag;
+
       if (switches.check)
 	{
 	  // For reachability claims in check mode, we restrict the number of runs to the number of roles of this protocol
@@ -801,7 +843,28 @@ add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd,
 	  rolecount = termlistLength (protocol->rolenames);
 	  switches.runs = rolecount;
 	}
-      return callback ();
+      if (rd->message != NULL)
+	{
+	  sys->trustedRoles = tuple_to_termlist (rd->message);
+
+#ifdef DEBUG
+	  if (DEBUGL (2))
+	    {
+	      eprintf ("Trusted roles : ");
+	      termlistPrint (sys->trustedRoles);
+	      eprintf ("\n");
+	    }
+#endif
+	}
+
+      flag = callback ();
+
+      if (rd->message != NULL)
+	{
+	  termlistDelete (sys->trustedRoles);
+	  sys->trustedRoles = NULL;
+	}
+      return flag;
     }
 
   return callback ();
