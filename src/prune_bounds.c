@@ -14,6 +14,7 @@
 #include "timer.h"
 #include "arachne.h"
 #include "system.h"
+#include "termmap.h"
 #include "cost.h"
 
 extern int attack_length;
@@ -21,6 +22,9 @@ extern int attack_leastcost;
 extern Protocol INTRUDER;
 extern int proofDepth;
 extern int max_encryption_level;
+
+//! Forward declarations
+int tooManyOfRole (const System sys);
 
 //! Prune determination for bounds
 /**
@@ -104,6 +108,7 @@ prune_bounds (const System sys)
 	}
     }
 
+  /* prune for runs */
   if (sys->num_regular_runs > switches.runs)
     {
       // Hardcoded limit on runs
@@ -112,6 +117,17 @@ prune_bounds (const System sys)
 	  indentPrint ();
 	  eprintf ("Pruned: too many regular runs (%i).\n",
 		   sys->num_regular_runs);
+	}
+      return 1;
+    }
+
+  /* prune for role instances max */
+  if (tooManyOfRole (sys))
+    {
+      if (switches.output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("Pruned: too many instances of a particular role.\n");
 	}
       return 1;
     }
@@ -206,4 +222,44 @@ prune_bounds (const System sys)
 
   // No pruning because of bounds
   return 0;
+}
+
+//! Detect when there are too many instances of a certain role
+int
+tooManyOfRole (const System sys)
+{
+  int toomany;
+
+  toomany = false;
+  if (switches.maxOfRole > 0)
+    {
+      Termmap f;
+      int run;
+
+      f = NULL;
+      for (run = 0; run < sys->maxruns; run++)
+	{
+	  if (sys->runs[run].protocol != INTRUDER)
+	    {
+	      // maybe this conflicts with equal protocols...? TODO
+	      Term role;
+	      int count;
+
+	      role = sys->runs[run].role->nameterm;
+	      count = termmapGet (f, role);
+	      if (count == -1)
+		count = 1;
+	      else
+		count++;
+	      f = termmapSet (f, role, count);
+	      if (count > switches.maxOfRole)
+		{
+		  toomany = true;
+		  break;
+		}
+	    }
+	}
+      termmapDelete (f);
+    }
+  return toomany;
 }

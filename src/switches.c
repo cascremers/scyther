@@ -53,6 +53,7 @@ switchesInit (int argc, char **argv)
   switches.filterProtocol = NULL;	// default check all claims
   switches.filterLabel = NULL;	// default check all claims
   switches.maxAttacks = 0;	// no maximum default
+  switches.maxOfRole = 0;	// no maximum default
 
   // Arachne
   switches.heuristic = 162;	// default goal selection method
@@ -1083,6 +1084,32 @@ switcher (const int process, int index, int commandline)
 	    }
 	}
     }
+
+  if (detect (' ', "max-of-role", 1))
+    {
+      if (!process)
+	{
+	  if (switches.expert)
+	    {
+	      helptext ("    --max-of-role=<int>",
+			"maximum number of instances of each role [inf]");
+	    }
+	}
+      else
+	{
+	  int arg = integer_argument ();
+	  if (arg == 0)
+	    {
+	      switches.maxOfRole = 0;
+	    }
+	  else
+	    {
+	      switches.maxOfRole = arg;
+	    }
+	  return index;
+	}
+    }
+
 
   /* ==================
    *  Misc switches

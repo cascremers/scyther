@@ -26,6 +26,7 @@ struct switchdata
   char *filterProtocol;		//!< Which claim should be checked?
   char *filterLabel;		//!< Which claim should be checked?
   int maxAttacks;		//!< When not 0, maximum number of attacks
+  int maxOfRole;		//!< When not 0, maximum number of instances of each unique (non intruder) role
 
   // Arachne
   int heuristic;		//!< Goal selection method for Arachne engine
