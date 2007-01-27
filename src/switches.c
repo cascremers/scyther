@@ -722,6 +722,21 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
+  if (detect (' ', "scan-claims", 0))
+    {
+      if (!process)
+	{
+	  /* simply reduce allowed trace length to 0, cuts off any iterations immediately.
+	   * useful to simply retrieve all claims.
+	   */
+	}
+      else
+	{
+	  switches.maxtracelength = 0;
+	  return index;
+	}
+    }
+
   if (detect ('A', "all-attacks", 0))
     {
       if (!process)
