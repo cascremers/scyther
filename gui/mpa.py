@@ -8,9 +8,11 @@ Scyther Python API (contained in the Scyther subdirectory)
 In this example, multi-protocol attack analysis is performed on a small
 test set.
 
+Author: Cas Cremers
+
 """
 
-import Scyther.Scyther as Scyther
+from Scyther import Scyther
 
 def MyScyther(protocollist,filter=None):
     """
@@ -19,12 +21,11 @@ def MyScyther(protocollist,filter=None):
     will be evaluated.
     """
     s = Scyther.Scyther()
+    # untyped matching
     s.options = "--match=2"
-    if filter:
-        s.options += " --filter=%s" % (filter)
     for protocol in protocollist:
         s.addFile(protocol)
-    s.verify()
+    s.verifyOne(filter)
     return s
     
 
@@ -42,11 +43,10 @@ def getCorrectIsolatedClaims(protocolset):
         # verify protocol in isolation
         s = MyScyther([protocol])
         # investigate the results
-        if not s.errors:
-            goodprotocols.append(protocol)
-            for claim in s.claims:
-                if claim.okay:
-                    correctclaims.append((protocol,claim.id))
+        goodprotocols.append(protocol)
+        for claim in s.claims:
+            if claim.okay:
+                correctclaims.append((protocol,claim.id))
     return (goodprotocols,correctclaims)
 
 def verifyMPAlist(mpalist,claimid):
@@ -124,7 +124,7 @@ def findAllMPA(protocolset,maxcount=3):
         findMPA(protocolset,protocol,claimid,maxcount=3)
 
 
-if __name__ == '__main__':
+def main():
     """
     Simple test case with a few protocols
     """
@@ -137,5 +137,8 @@ if __name__ == '__main__':
     print "Analysis complete."
 
 
+if __name__ == '__main__':
+    main()
 
 
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:

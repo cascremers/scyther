@@ -24,11 +24,8 @@ from optparse import OptionParser, SUPPRESS_HELP
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
-import Gui.About as About
-import Gui.Preference as Preference
-import Gui.Mainwindow as Mainwindow
-import Gui.Misc as Misc
-import Scyther.Scyther as Scyther
+from Gui import About,Preference,Mainwindow,Misc
+from Scyther import Scyther
 
 #---------------------------------------------------------------------------
 

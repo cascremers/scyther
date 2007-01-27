@@ -60,7 +60,12 @@ class ScytherThread(threading.Thread):
         scyther.setInput(self.spdl)
 
         # verification start
-        claims = scyther.verify()
+        try:
+            claims = scyther.verify()
+        except Scyther.Error.ScytherError, el:
+            claims = None
+            pass
+
         summary = str(scyther)
 
         return (scyther, claims, summary)

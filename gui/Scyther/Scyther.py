@@ -193,9 +193,9 @@ class Scyther(object):
             raise Error.NoBinaryError
 
         # Sanitize input somewhat
-        if not spdl or spdl == "":
+        if spdl == "":
             # Scyther hickups on completely empty input
-            spdl = None
+            spdl = "\n"
 
         # Generate temporary files for the output.
         # Requires Python 2.3 though.
@@ -275,19 +275,22 @@ class Scyther(object):
         self.warnings = []
         for l in errors.splitlines():
             line = l.strip()
-            # filter out any non-errors (say maybe only claim etc) and count
-            # them.
-            if line.startswith("claim\t"):
-                # Claims are lost, reconstructed from the XML output
-                continue
-            if line.startswith("warning"):
-                # Warnings are stored seperately
-                self.warnings.append(line)
-                continue
-            # otherwise it is an error
-            self.errors.append(line)
+            if len(line) > 0:
+                # filter out any non-errors (say maybe only claim etc) and count
+                # them.
+                if line.startswith("claim\t"):
+                    # Claims are lost, reconstructed from the XML output
+                    continue
+                if line.startswith("warning"):
+                    # Warnings are stored seperately
+                    self.warnings.append(line)
+                    continue
+                # otherwise it is an error
+                self.errors.append(line)
 
         self.errorcount = len(self.errors)
+        if self.errorcount > 0:
+            raise Error.ScytherError(self.errors)
 
         # process output
         self.output = output
@@ -310,14 +313,19 @@ class Scyther(object):
         else:
             return self.output
 
-    def verifyOne(self,cl):
+    def verifyOne(self,cl=None):
         """
         Verify just a single claim with an ID retrieved from the
         procedure below, 'scanClaims', or a full claim object
         """
-        if isinstance(cl,Claim.Claim):
-            cl = cl.id
-        return self.verify("--filter=%s" % cl)
+        if cl:
+            # We accept either a claim or a claim id
+            if isinstance(cl,Claim.Claim):
+                cl = cl.id
+            return self.verify("--filter=%s" % cl)
+        else:
+            # If no claim, then its just normal verification
+            return self.verify()
 
     def scanClaims(self):
         """
