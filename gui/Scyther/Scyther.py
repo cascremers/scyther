@@ -17,6 +17,7 @@ import tempfile
 """ Import scyther components """
 import XMLReader
 import Error
+import Claim
 from Misc import *
 
 #---------------------------------------------------------------------------
@@ -309,17 +310,19 @@ class Scyther(object):
         else:
             return self.output
 
-    def verifyOne(self,claimid):
+    def verifyOne(self,cl):
         """
         Verify just a single claim with an ID retrieved from the
-        procedure below, 'scanClaims'
+        procedure below, 'scanClaims', or a full claim object
         """
-        return self.verify("--filter=%s" % claimid)
+        if isinstance(cl,Claim.Claim):
+            cl = cl.id
+        return self.verify("--filter=%s" % cl)
 
     def scanClaims(self):
         """
-        Retrieve the list of claims in a format that can be passed to
-        --filter=X or 'verifyOne' later.
+        Retrieve the list of claims. Of each element (a claim), claim.id
+        can be passed to --filter=X or 'verifyOne' later.
         A result of 'None' means that some errors occurred.
         """
         self.verify("--scan-claims")
@@ -327,10 +330,7 @@ class Scyther(object):
             return None
         else:
             self.validxml = False   # Signal that we should not interpret the output as XML
-            l = []
-            for claim in self.claims:
-                l.append(claim.id)
-            return l
+            return self.claims
 
     def getClaim(self,claimid):
         if self.claims:

@@ -148,6 +148,11 @@ class Claim(object):
                 remark = "Exactly %i %s" % (n,atxt)
         return remark + "."
 
+    def triplet(self):
+        """
+        Return protocol,role,label triplet
+        """
+        return (self.protocol, self.role, self.shortlabel)
 
     def __str__(self):
         """
