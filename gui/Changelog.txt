@@ -4,13 +4,21 @@
 
 Scyther 1.0-beta6 
 	
-	* Added Mac support (added universal binary)
-	* Fixed bug in scripting backend (e.g. with mpa.py)
-	* Added claim parameter for Reachable claim; Reachable,R means
-	  that role R should be trusted (as well as the actor), but not
-	  any other claim. This can be useful for showing stronger
-	  authentication properties of protocols with more than two
-	  parties.
+	New features:
+
+	* [Gui] Added Mac support (added universal binary)
+	* [Language] Added claim parameter for Reachable claim;
+	Reachable,R means that role R should be trusted (as well as the
+	actor), but not any other claim. This can be useful for showing
+	stronger authentication properties of protocols with more than
+	two parties.
+	* [Backend] Added '--max-of-role=N' switch (to narrow scenarios)
+	* [Backend] Added '--scan-claims' switch (allows for retrieving a list of
+	  claims)
+
+	Bugfixes:
+
+	* [Scripting] Fixed bug in python interface backend (e.g. with mpa.py)
 
 Scyther 1.0-beta5 
 

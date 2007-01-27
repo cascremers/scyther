@@ -1,5 +1,10 @@
 - (!!) Are the Arachne rules for keys that are variables sane? E.g. what
-  is their inverse key? Check!
+  is their inverse key? Check! Intuition: one cannot know what the
+  inverse is of a non-instantiated key variable, given the current
+  semantics, if asymmetric keys are allowed.
+  Consequence: the current implementation is just fine, because
+  asymmetric key variables cannot be defined in the language. Thus, the
+  rules are fine. Investigate for the other case.
 - If no attack/state output is needed, maybe the attack heuristic should
   be simpler (which means just weighting the trace length etc.) in order
   to avoid uneccesary continuation of the search. Maybe even stop
@@ -8,21 +13,5 @@
   constants. This should works also with a modifier of sorts (e.g.
   'predictable') and such constants should be leaked to the intruder at
   the start of the run, possibly by prefixing a send.
-- The trace incremental search should start at something like 'distance of
-  first claim + SOMECONST * runs'. SOMECONST relates to the partial-order
-  induced trace prolonings.
-- Because the properties checked are related to the partial order reductions,
-  it makes sense to check 'all secrecy claims' or 'all synchronisation claims'
-  at once. This holds in a similar way for arachne.
-- Given originator assumptions and such, we might want to implement the
-  compiler, that for non-typed matching, it will ignore all type definitions
-  in the code (as in, putting them in stype, but still considering Function).
-  Then, for 'any agent' we can use stype silently. The modelchecker should
-  then always consider the types with -m0 and -m1.
-- In a paper concerning the CASRUL compiler, they mention associativity for
-  the equality relations.  Note that CASRUL restricts the intruder actions,
-  and sometimes uses approximations.
-- Several memory leak detectors are still in place, they can all be located by
-  searching for "lead" or "diff" and destroying the code.
 - knowledgeAddTerm might be improved by scanning through key list only with
   things that are newly added.

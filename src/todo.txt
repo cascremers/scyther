@@ -8,10 +8,6 @@
   cumbersome and might impact on performance. Alternatively, iterators
   can be implemented as macros, which is probably the fastest, but maybe
   less readable.
-- I've started on sanitizing the --max-attacks switch. It now prunes as a
-  bound, but it also needs to limit per-claim, I guess.
-- There is something weird when automatically generating claim labels
-  and trying to filter on them (try eg duplicates)
 - --check is slightly f***ed up because there is no good semantics for
   the --disable intruder check. As a result, it is now too strict can
   cause correct protocols to fail. Fix.
