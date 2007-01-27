@@ -63,20 +63,27 @@ def gettags():
     f.close()
     return tags
 
-def tagoccurs(tag):
+def tagoccurs(tag,filter=[]):
     """
     Check tag occurrences in .c and .h files and show interesting ones.
     """
 
-    cmd = "grep \"\\<%s\\>\" *.[ch]" % tag
+    cmd = "grep \"\\<%s\\>\" *.[chly]" % tag
     (reslist,count) = outToRes(commands.getoutput(cmd),[tag.filename])
     if (len(reslist) == 0) and (count < 2):
-        print "\"%s\" seems to occur only %i times in %s" % (tag,count,tag.filename)
+        if tag.filename not in filter:
+            print "Possibly used only %i times:\t%s\t%s" % (count,tag.filename,tag)
 
 
 def main():
+    # Generate tags
+    cmd = "ctags *.c *.h *.l *.y"
+    commands.getoutput(cmd)
+
+    # Analyze results
+    filter = ["scanner.c","parser.c"]
     tags = gettags()
     for t in tags:
-        tagoccurs(t)
+        tagoccurs(t,filter)
 
 main()

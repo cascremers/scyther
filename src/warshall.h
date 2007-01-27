@@ -38,9 +38,7 @@
 #define CALLOC(k,n)      (calloc((unsigned)(k),(unsigned)(n)))
 #define FREE(x)          (free((char*)(x)))
 #define MALLOC(n)        (malloc((unsigned)(n)))
-#define NEW(t)           ((t*)allocate(sizeof(t)))
-#define NEW2(n,t)        ((t*)allocate((unsigned)((n)*sizeof(t))))
-#define REALLOC(p,n)     (realloc((char*)(p),(unsigned)(n)))
+//#define REALLOC(p,n)     (realloc((char*)(p),(unsigned)(n)))
 
 /* actual functions */
 

@@ -32,10 +32,6 @@ extern int inTermlist ();	// suppresses a warning, but at what cost?
 
 void indent (void);
 
-/* useful macros */
-
-//! Undefined run identifier in a term
-#define RID_UNDEF MIN_INT
 /* main code */
 
 /* Two types of terms: general, and normalized. Normalized rewrites all

@@ -15,9 +15,6 @@
 enum outputs
 { EMPTY, ATTACK, STATESPACE, SCENARIOS, SUMMARY, PROOF };
 
-enum engines
-{ POR_ENGINE, ARACHNE_ENGINE };
-
 //! Protocol definition.
 struct protocol
 {
