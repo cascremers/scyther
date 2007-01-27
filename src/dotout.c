@@ -842,41 +842,6 @@ showRanks (const System sys, const int maxrank, const int *ranks,
     }
 }
 
-//! Iterate over events (in non-intruder runs) in which some value term occurs first.
-// Function should return true for iteration to continue.
-int
-iterate_first_regular_occurrences (const System sys,
-				   int (*func) (int run, int ev),
-				   const Term t)
-{
-  int run;
-
-  for (run = 0; run < sys->maxruns; run++)
-    {
-      if (sys->runs[run].protocol != INTRUDER)
-	{
-	  int ev;
-	  Roledef rd;
-
-	  rd = sys->runs[run].start;
-	  for (ev = 0; ev < sys->runs[run].step; ev++)
-	    {
-	      if (termSubTerm (rd->from, t) ||
-		  termSubTerm (rd->to, t) || termSubTerm (rd->message, t))
-		{
-		  // Allright, t occurs here in this run first
-		  if (!func (run, ev))
-		    {
-		      return false;
-		    }
-		  break;
-		}
-	    }
-	}
-    }
-  return true;
-}
-
 //! Does a term occur in a run?
 int
 termOccursInRun (Term t, int run)

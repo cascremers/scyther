@@ -57,30 +57,6 @@ isTypelistGeneric (const Termlist typelist)
     }
 }
 
-//! Check whether a single type constant matches a typelist
-/**
- * Understands semantics of NULL and TERM_Ticket
- */
-int
-matchSingleType (Termlist typelist, Term type)
-{
-  if (typelist == TERMLISTERROR)
-    {
-      return 0;
-    }
-  else
-    {
-      if (isTypelistGeneric (typelist))
-	{
-	  return 1;
-	}
-      else
-	{
-	  return inTermlist (typelist, type);
-	}
-    }
-}
-
 //! Check whether a single variable term is instantiated correctly.
 /**
  * Check whether a single variable term is instantiated correctly in this

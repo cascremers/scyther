@@ -13,7 +13,7 @@
 #define runPointerSet(sys,run,newp)	sys->runs[run].index = newp
 
 enum outputs
-{ EMPTY, ATTACK, STATESPACE, SCENARIOS, SUMMARY, PROOF };
+{ EMPTY, ATTACK, STATESPACE, SUMMARY, PROOF };
 
 //! Protocol definition.
 struct protocol
@@ -61,20 +61,6 @@ struct run
 //! Shorthand for run pointer.
 typedef struct run *Run;
 
-//! Buffer for variables substitution state.
-struct varbuf
-{
-  //! List of closed variables.
-  Termlist from;
-  //! List of terms to which the closed variables are bound.
-  Termlist to;
-  //! List of open variables.
-  Termlist empty;
-};
-
-//! Shorthand for varbuf pointer.
-typedef struct varbuf *Varbuf;
-
 //! Structure for information on special terms (cacheing)
 struct hiddenterm
 {
@@ -112,12 +98,10 @@ struct system
 
   /* counters */
   states_t states;		//!< States traversed
-  states_t statesScenario;	//!< States traversed that are within the scenario, not the prefix
   states_t interval;		//!< Used to update state printing at certain intervals
   states_t claims;		//!< Number of claims encountered.
   states_t failed;		//!< Number of claims failed.
   int attackid;			//!< Global counter of attacks (used for assigning identifiers) within this Scyther call.
-  int countScenario;		//!< Number of scenarios skipped.
   int num_regular_runs;		//!< Number of regular runs
   int num_intruder_runs;	//!< Number of intruder runs
 

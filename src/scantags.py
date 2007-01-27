@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import commands
+import sys
 
 class Tag(object):
     """
@@ -9,11 +10,11 @@ class Tag(object):
 
     def __init__(self,tagline):
         tl = tagline.strip().split('\t')
-        self.tag = tl[0]
+        self.id = tl[0]
         self.filename = tl[1]
 
     def __str__(self):
-        return self.tag
+        return self.id
 
 class GrepRes(object):
     """
@@ -63,27 +64,56 @@ def gettags():
     f.close()
     return tags
 
-def tagoccurs(tag,filter=[]):
+def tagoccurs(problems,tag,filter=[]):
     """
-    Check tag occurrences in .c and .h files and show interesting ones.
+    Check tag occurrences in certain files and show interesting ones.
     """
 
     cmd = "grep \"\\<%s\\>\" *.[chly]" % tag
     (reslist,count) = outToRes(commands.getoutput(cmd),[tag.filename])
     if (len(reslist) == 0) and (count < 2):
         if tag.filename not in filter:
-            print "Possibly used only %i times:\t%s\t%s" % (count,tag.filename,tag)
+            # this might be a problem, store it
+            if tag.filename not in problems.keys():
+                problems[tag.filename] = {}
+            problems[tag.filename][tag.id] = count
+
+    return problems
+
+
+def tagreport(problems):
+    for fn in problems.keys():
+        print "file: %s" % fn
+        for t in problems[fn].keys():
+            print "\t%i\t%s" % (problems[fn][t],t)
 
 
 def main():
     # Generate tags
+    print "Generating tags using 'ctags'"
     cmd = "ctags *.c *.h *.l *.y"
     commands.getoutput(cmd)
 
     # Analyze results
+    print "Analyzing results"
     filter = ["scanner.c","parser.c"]
     tags = gettags()
+    problems = {}
+    total = len(tags)
+    count = 0
+    steps = 20
+    print "_ " * (steps)
+
     for t in tags:
-        tagoccurs(t,filter)
+        problems = tagoccurs(problems,t,filter)
+        count = count + 1
+        if count % (total / steps) == 0:
+            print "^",
+            sys.stdout.flush()
+    print
+    print
+
+    tagreport (problems)
 
 main()
+

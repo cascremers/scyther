@@ -111,13 +111,6 @@ xmlOutStates (const char *tag, states_t value)
   eprintf ("</%s>\n", tag);
 }
 
-//! Print a string
-void
-xmlOutString (const char *tag, const char *s)
-{
-  xmlPrint ("<%s>%s</%s>", tag, s, tag);
-}
-
 //! Print a term in XML form (iteration inner)
 void
 xmlTermPrintInner (Term term)
@@ -253,18 +246,6 @@ xmlOutTerm (const char *tag, const Term term)
     }
 }
 
-//! Attribute term
-void
-xmlAttrTerm (const char *tag, const Term term)
-{
-  if (term != NULL)
-    {
-      eprintf (" %s=\"", tag);
-      xmlTermPrint (term);
-      eprintf ("\"");
-    }
-}
-
 //! Print a term, known to be a role name
 /**
  * Arachne turns all role names into variables for convenience. Here we
@@ -292,41 +273,6 @@ xmlRoleTermPrint (const Term t)
   eprintf ("<rolename>");
   roleTermPrint (t);
   eprintf ("</rolename>\n");
-}
-
-//! Show a single variable instantiation, depth one
-void
-xmlVariableDepthOne (const Term variable)
-{
-  /*
-   * To print a variable, we would wish to see only the first substitution.
-   * Therefore, we temporarily undo any further substitutions, and reset
-   * them at the end.
-   */
-  Term varsubst;		// substitution shortcut
-  Term nextsubst;		// temporary buffer
-
-  varsubst = variable->subst;
-  if (varsubst != NULL && realTermVariable (varsubst))
-    {
-      nextsubst = varsubst->subst;
-      varsubst->subst = NULL;
-    }
-  else
-    {
-      nextsubst = NULL;
-    }
-
-  // Print the actual term
-  xmlIndentPrint ();
-  xmlTermPrint (variable);
-  eprintf ("\n");
-
-  if (nextsubst != NULL)
-    {
-      varsubst->subst = nextsubst;
-    }
-
 }
 
 //! Show a term and its type, on single lines

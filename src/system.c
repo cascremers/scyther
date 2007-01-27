@@ -29,15 +29,6 @@ static int indentState = 0;
 //! Current indent depth.
 static int indentDepth = 0;
 
-//! Allocate memory the size of a run struct.
-Run
-makeRun ()
-{
-  return (Run) malloc (sizeof (struct run));
-}
-
-
-
 //! Initialise a system structure.
 /**
  *@return A system structure pointer with initial values.
@@ -429,28 +420,6 @@ run_prefix_read (const System sys, const int run, Roledef rd,
   sys->runs[run].index = rd;
 }
 
-
-//! Create a new local
-/**
- * Given a term, construct a new local term. Returns NULL if no such term was constructed.
- */
-Term
-create_new_local (const Term t, const int rid)
-{
-  if (t != NULL && realTermLeaf (t))
-    {
-      Term newt;
-
-      newt = makeTermType (t->type, TermSymb (t), rid);
-      newt->stype = t->stype;
-
-      return newt;
-    }
-  else
-    {
-      return NULL;
-    }
-}
 
 //! Localize run
 /**

@@ -142,29 +142,6 @@ int isTermEqualDebug (Term t1, Term t2);
 					) \
 				)
 
-#define isTermEqual3(t1,t2)	((substVar(t1) || substVar(t2)) \
-				?	isTermEqualFn(t1,t2) \
-				:	( \
-					(t1 == t2) \
-					?	1 \
-					:	( \
-						(t1 == NULL || t2 == NULL || t1->type != t2->type) \
-						?	0 \
-						:	( \
-							realTermLeaf(t1) \
-							?	isTermEqualFn(t1,t2) \
-							:	( \
-								realTermEncrypt(t2) \
-								?	(isTermEqual2(TermKey(t1), TermKey(t2)) && \
-									 isTermEqual2(TermOp(t1),  TermOp(t2))) \
-								:	(isTermEqual2(TermOp1(t1), TermOp1(t2)) && \
-									 isTermEqual2(TermOp2(t1), TermOp2(t2))) \
-								) \
-							) \
-						 )  \
-					) \
-				)
-
 #define isTermEqual(t1,t2) isTermEqual2(t1,t2)
 #endif
 

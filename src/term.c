@@ -1481,10 +1481,3 @@ iterateTermOther (const int myrun, Term t, int (*callback) (Term t))
   }
   return term_iterate_deVar (t, testOther, NULL, NULL, NULL);
 }
-
-//! Unused function (here for testing of unused function detectors)
-int
-unusedFunction (int test)
-{
-  return test + 1;
-}

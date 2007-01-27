@@ -21,7 +21,6 @@
 const char *progname = "scyther";
 
 #include "version.h"
-const char *releasetag = SVNVERSION;
 
 // Structures
 struct switchdata switches;
