@@ -59,5 +59,17 @@ class UnknownPlatformError(Error):
     def __str__(self):
         return "The %s platform is currently unsupported." % self.platform
 
+class StringListError(Error):
+    """Raised when the a string should be a list of strings or a string
+
+    Attributes:
+        obj -- object that did not fit
+    """
+
+    def __init__(self, obj):
+        self.obj = obj
+
+    def __str__(self):
+        return "Got %s instead of a (list of) string." % self.obj
 
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:

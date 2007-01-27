@@ -79,6 +79,27 @@ def CheckSanity(program):
 
 #---------------------------------------------------------------------------
 
+def EnsureString(x,sep=" "):
+    """
+    Takes a thing that is either a list or a string.
+    Turns it into a string. If it was a list, <sep> is inserted, and the
+    process iterats.
+    """
+    if type(x) is str:
+        return x
+
+    elif type(x) is list:
+        newlist = []
+        for el in x:
+            newlist.append(EnsureString(el,sep))
+        return sep.join(newlist)
+
+    else:
+        raise Error.StringListError, x
+
+
+#---------------------------------------------------------------------------
+
 def getScytherBackend():
     # Where is my executable?
     #
@@ -225,14 +246,24 @@ class Scyther(object):
 
         return (output,errors)
 
-    def verify(self):
+    def sanitize(self):
+        """ Sanitize some of the input """
+        self.options = EnsureString(self.options)
+
+    def verify(self,extraoptions=None):
         """ Should return a list of results """
+
+        # Cleanup first
+        self.sanitize()
     
         # prepare arguments
         args = ""
         if self.xml:
             args += " --dot-output --xml-output --plain"
         args += " %s" % self.options
+        if extraoptions:
+            # extraoptions might need sanitizing
+            args += " %s" % EnsureString(extraoptions)
 
         # execute
         (output,errors) = self.doScytherCommand(self.spdl, args)
@@ -277,6 +308,29 @@ class Scyther(object):
             return self.claims
         else:
             return self.output
+
+    def verifyOne(self,claimid):
+        """
+        Verify just a single claim with an ID retrieved from the
+        procedure below, 'scanClaims'
+        """
+        return self.verify("--filter=%s" % claimid)
+
+    def scanClaims(self):
+        """
+        Retrieve the list of claims in a format that can be passed to
+        --filter=X or 'verifyOne' later.
+        A result of 'None' means that some errors occurred.
+        """
+        self.verify("--scan-claims")
+        if self.errorcount > 0:
+            return None
+        else:
+            self.validxml = False   # Signal that we should not interpret the output as XML
+            l = []
+            for claim in self.claims:
+                l.append(claim.id)
+            return l
 
     def getClaim(self,claimid):
         if self.claims:
