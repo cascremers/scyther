@@ -127,7 +127,7 @@ class ScytherApp(wx.App):
         self.mainWindow.Show()
 
         if isSplashNeeded(opts):
-            dlg = About.AboutScyther(self.mainWindow)
+            dlg = About.AboutScyther(self.mainWindow,basedir)
             dlg.ShowModal()
             dlg.Destroy()
 
@@ -144,4 +144,4 @@ if __name__ == '__main__':
     scythergui = ScytherApp()
     scythergui.MainLoop()
 
-
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:
