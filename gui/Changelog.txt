@@ -13,8 +13,10 @@ Scyther 1.0-beta6
 	stronger authentication properties of protocols with more than
 	two parties.
 	* [Backend] Added '--max-of-role=N' switch (to narrow scenarios)
-	* [Backend] Added '--scan-claims' switch (allows for retrieving a list of
-	  claims)
+	* [Backend] Added '--scan-claims' switch (allows for retrieving
+	a list of claims)
+	* [Scripting] Added 'verifyOne' and 'scanClaims' methods to
+	Scyther object, to help with singular claim testing.
 
 	Bugfixes:
 
