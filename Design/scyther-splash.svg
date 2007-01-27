@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="740"
+   height="380"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.44"
+   sodipodi:docbase="/home/cas/svn/scyther/Design"
+   sodipodi:docname="scyther-splash.svg"
+   version="1.0"
+   inkscape:export-filename="/home/cas/svn/scyther/Design/scyther-splash.png"
+   inkscape:export-xdpi="77.837837"
+   inkscape:export-ydpi="77.837837">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient2867">
+      <stop
+         style="stop-color:#ff8900;stop-opacity:1;"
+         offset="0"
+         id="stop2869" />
+      <stop
+         style="stop-color:#71d942;stop-opacity:1;"
+         offset="1"
+         id="stop2871" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient6377">
+      <stop
+         id="stop6379"
+         offset="0"
+         style="stop-color:#ff8900;stop-opacity:1;" />
+      <stop
+         id="stop6381"
+         offset="1"
+         style="stop-color:#71d942;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient6367">
+      <stop
+         style="stop-color:white;stop-opacity:1;"
+         offset="0"
+         id="stop6369" />
+      <stop
+         style="stop-color:white;stop-opacity:0;"
+         offset="1"
+         id="stop6371" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2867"
+       id="linearGradient6375"
+       x1="398.6532"
+       y1="363.01874"
+       x2="591.00507"
+       y2="62.244343"
+       gradientUnits="userSpaceOnUse" />
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath10105">
+      <rect
+         style="opacity:1;fill:white;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.52513966"
+         id="rect10103"
+         width="730"
+         height="340"
+         x="10"
+         y="22.362183" />
+    </clipPath>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.6054054"
+     inkscape:cx="370"
+     inkscape:cy="190"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer4"
+     inkscape:window-width="1274"
+     inkscape:window-height="948"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     showgrid="true"
+     gridempspacing="4"
+     gridspacingx="10px"
+     gridspacingy="10px"
+     inkscape:grid-points="true"
+     width="740px" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="locked"
+     transform="translate(0,-2.362183)">
+    <image
+       y="-55.294373"
+       x="160"
+       id="image9213"
+       height="527.65656"
+       width="395.74243"
+       sodipodi:absref="/home/cas/svn/phd/thesis/art/bike-original.jpg"
+       xlink:href="/home/cas/svn/phd/thesis/art/bike-original.jpg"
+       clip-path="url(#clipPath10105)" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="black"
+     transform="translate(0,-2.362183)">
+    <path
+       style="fill:black;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:0.52513966"
+       d="M 0,2.3621826 L 740,2.3621826 L 740,52.362183 L 350,52.362183 L 150,352.36218 L 0,352.36218 L 0,2.3621826 z "
+       id="rect2817"
+       sodipodi:nodetypes="ccccccc" />
+    <path
+       style="fill:black;fill-opacity:0.53631287;fill-rule:evenodd;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:0.52513966"
+       d="M 0,352.36218 L 130,352.36218 L 320,52.362183 L 740,52.36218 L 740,72.36218 L 360,72.362183 L 160,372.36218 L 0,372.36218 L 0,352.36218 z "
+       id="rect5475"
+       sodipodi:nodetypes="ccccccccc" />
+    <path
+       style="fill:white;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:0.52513966"
+       d="M 740,382.36218 L 0,382.36218 L 0,352.36218 L 390,352.36218 L 590,52.362183 L 740,52.362183 L 740,382.36218 z "
+       id="path9216"
+       sodipodi:nodetypes="ccccccc" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer4"
+     inkscape:label="fade"
+     transform="translate(0,-2.362183)">
+    <path
+       style="fill:url(#linearGradient6375);fill-opacity:1.0;fill-rule:evenodd;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:0.52513966"
+       d="M 0,352.36218 L 390,352.36218 L 580,52.362183 L 740,52.362183 L 740,72.362183 L 600,72.362183 L 410,372.36218 L 0,372.36218 L 0,352.36218 z "
+       id="path5478"
+       sodipodi:nodetypes="ccccccccc" />
+  </g>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-2.362183)">
+    <text
+       xml:space="preserve"
+       style="font-size:72px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:white;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Calibri"
+       x="24.594707"
+       y="78.70118"
+       id="text2788"
+       sodipodi:linespacing="100%"><tspan
+         sodipodi:role="line"
+         x="24.594707"
+         y="78.70118"
+         style="font-size:72px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:white;fill-opacity:1;font-family:Calibri"
+         id="tspan2794">Scyther</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;fill:white;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Times New Roman"
+       x="28.628906"
+       y="138.78015"
+       id="text2796"
+       sodipodi:linespacing="100%"><tspan
+         sodipodi:role="line"
+         x="28.628906"
+         y="138.78015"
+         style="font-size:24px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:white;fill-opacity:1;font-family:Calibri"
+         id="tspan2800">Automatic Verification</tspan><tspan
+         sodipodi:role="line"
+         x="28.628906"
+         y="162.78015"
+         style="font-size:24px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:100%;writing-mode:lr-tb;text-anchor:start;fill:white;fill-opacity:1;font-family:Calibri"
+         id="tspan2802">of Security Protocols</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Times New Roman"
+       x="658.33594"
+       y="362.13953"
+       id="text1977"
+       sodipodi:linespacing="100%"><tspan
+         sodipodi:role="line"
+         id="tspan1979"
+         x="658.33594"
+         y="362.13953"
+         style="font-size:24px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Calibri">Cas Cremers</tspan></text>
+  </g>
+</svg>
