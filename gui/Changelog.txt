@@ -4,9 +4,17 @@
 
 Scyther 1.0-beta6 
 	
-	New features:
+	Big new features:
 
 	* [Gui] Added Mac support (added universal binary)
+	* [Gui] Switched to Scintilla editor component, providing undo
+	and line numbering.
+
+	Other new features:
+
+	* [Backend] Scyther now detects when a read event cannot match
+	with a send event. This significantly helps in reducing errors
+	in the protocol descriptions.
 	* [Language] Added claim parameter for Reachable claim;
 	Reachable,R means that role R should be trusted (as well as the
 	actor), but not any other claim. This can be useful for showing

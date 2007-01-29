@@ -6,6 +6,17 @@
 import wx
 import os.path
 
+# Use Scintilla editor?
+useStc = True       # It looks nicer!
+#useStc = False      # It is sometimes buggy!
+
+# Test Scintilla and if it fails, get rid of it
+if useStc:
+    try:
+        import wx.stc as stc
+    except:
+        useStc = False
+
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
@@ -75,6 +86,24 @@ class MainWindow(wx.Frame):
 
         self.firstCommand()
 
+    def GetText(self):
+        """
+        Interface for both types of editor
+        """
+        if useStc:
+            return self.control.GetText()
+        else:
+            return self.control.GetValue()
+
+    def SetText(self,txt):
+        """
+        Interface for both types of editor
+        """
+        if useStc:
+            self.control.SetText(txt)
+        else:
+            self.control.SetValue(txt)
+        
     def CreateInteriorWindowComponents(self):
         ''' Create "interior" window components. In this case it is just a
             simple multiline text control. '''
@@ -92,10 +121,19 @@ class MainWindow(wx.Frame):
 
         # Top: input
         self.top = wx.Notebook(self,-1)
-        self.control = wx.TextCtrl(self.top, style=wx.TE_MULTILINE)
+
+        if useStc:
+            # Scintilla layout with line numbers
+            self.control = stc.StyledTextCtrl(self.top)
+            self.control.SetMarginType(1, stc.STC_MARGIN_NUMBER)
+            self.control.SetMarginWidth(1, 30)
+        else:
+            # Simpler default
+            self.control = wx.TextCtrl(self.top, style=wx.TE_MULTILINE)
+
         if self.load:
             textfile = open(os.path.join(self.dirname, self.filename), 'r')
-            self.control.SetValue(textfile.read())
+            self.SetText(textfile.read())
             os.chdir(self.dirname)
             textfile.close()
         self.top.AddPage(self.control,"Protocol description")
@@ -189,14 +227,14 @@ class MainWindow(wx.Frame):
 
     def OnSave(self, event):
         textfile = open(os.path.join(self.dirname, self.filename), 'w')
-        textfile.write(self.control.GetValue())
+        textfile.write(self.GetText())
         textfile.close()
 
     def OnOpen(self, event):
         if self.askUserForFilename(style=wx.OPEN,
                                    **self.defaultFileDialogOptions()):
             textfile = open(os.path.join(self.dirname, self.filename), 'r')
-            self.control.SetValue(textfile.read())
+            self.SetText(textfile.read())
             textfile.close()
 
     def OnSaveAs(self, event):
@@ -206,7 +244,8 @@ class MainWindow(wx.Frame):
             os.chdir(self.dirname)
 
     def RunScyther(self, mode):
-        s = Scytherthread.ScytherRun(self,mode)
+        spdl = self.GetText()
+        s = Scytherthread.ScytherRun(self,mode,spdl)
 
     def OnVerify(self, event):
         self.RunScyther("verify")

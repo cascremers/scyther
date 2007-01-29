@@ -444,11 +444,11 @@ class ResultWindow(wx.Frame):
 
 class ScytherRun(object):
 
-    def __init__(self,mainwin,mode):
+    def __init__(self,mainwin,mode,spdl):
 
         self.mainwin = mainwin
         self.mode = mode
-        self.spdl = mainwin.control.GetValue()
+        self.spdl = spdl
         self.verified = False
         self.options = mainwin.settings.ScytherArguments(mode)
         self.main()
