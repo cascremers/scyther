@@ -315,6 +315,7 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
  *
  *@return Returns a list of variables, that were previously open, but are now closed
  * in such a way that the two terms unify. Returns \ref MGUFAIL if it is impossible.
+ * The termlist should be deleted.
  */
 Termlist
 termMguTerm (Term t1, Term t2)
@@ -578,4 +579,26 @@ termMguSubTerm (Term smallterm, Term bigterm,
 	}
     }
   return flag;
+}
+
+//! Check if terms might match in some way
+int
+checkRoletermMatch (const Term t1, const Term t2)
+{
+  Termlist tl;
+
+  // simple clause or combined
+  tl = termMguTerm (t1, t2);
+  if (tl == MGUFAIL)
+    {
+      return false;
+    }
+  else
+    {
+      // Reset variables
+      termlistSubstReset (tl);
+      // Remove list
+      termlistDelete (tl);
+      return true;
+    }
 }

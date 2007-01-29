@@ -17,6 +17,7 @@
 #include "debug.h"
 #include "intruderknowledge.h"
 #include "error.h"
+#include "mgu.h"
 
 /*
    Simple sys pointer as a global. Yields cleaner code although it's against programming standards.
@@ -1910,6 +1911,170 @@ checkWellFormed (const System sys)
   iterateRoles (sys, thisRole);
 }
 
+//! Check matching role defs
+int
+checkEventMatch (const Roledef rd1, const Roledef rd2)
+{
+  if (!isTermEqual (rd1->from, rd2->from))
+    {
+      return false;
+    }
+  if (!isTermEqual (rd1->to, rd2->to))
+    {
+      return false;
+    }
+  if (!checkRoletermMatch (rd1->message, rd2->message))
+    {
+      return false;
+    }
+  return true;
+}
+
+//! Check label matchup for protocol p,r, roledef rd (which is a read)
+/**
+ * Any send with the same label should match
+ */
+void
+checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
+		     const Roledef readevent)
+{
+  Role sendrole;
+  int found;
+
+  found = 0;
+  sendrole = p->roles;
+  while (sendrole != NULL)
+    {
+      Roledef event;
+
+      event = sendrole->roledef;
+      while (event != NULL)
+	{
+	  if (event->type == SEND)
+	    {
+	      if (isTermEqual (event->label, readevent->label))
+		{
+		  // Same labels, so they should match up!
+		  if (!checkEventMatch (event, readevent))
+		    {
+		      globalError++;
+		      eprintf ("error:");
+		      if (sys->protocols != NULL)
+			{
+			  if (sys->protocols->next != NULL)
+			    {
+			      eprintf (" Protocol ");
+			      termPrint (sys->protocols->nameterm);
+			    }
+			}
+		      eprintf (" events for label ");
+		      termPrint (event->label);
+		      eprintf (" do not match, in particular: \n");
+		      eprintf ("error: \t");
+		      roledefPrint (event);
+		      eprintf (" does not match\n");
+		      eprintf ("error: \t");
+		      roledefPrint (readevent);
+		      eprintf ("\n");
+		      globalError--;
+		      error_die ();
+		    }
+		  else
+		    {
+		      found++;
+#ifdef DEBUG
+		      if (DEBUGL (2))
+			{
+			  eprintf ("Matching up label ");
+			  termPrint (event->label);
+			  eprintf (" to match: ");
+			  roledefPrint (event);
+			  eprintf (" <> ");
+			  roledefPrint (readevent);
+			  eprintf ("\n");
+			}
+#endif
+		    }
+		}
+	    }
+	  event = event->next;
+	}
+      sendrole = sendrole->next;
+    }
+
+  /* How many did we find?
+   * 1 is normal, more is interesting (branching?)
+   * 0 is not good, nobody will send it
+   */
+  if (found == 0)
+    {
+      eprintf ("error: for the read event ");
+      roledefPrint (readevent);
+      eprintf (" of protocol ");
+      termPrint (p->nameterm);
+      eprintf
+	(" there is no corresponding send event (with the same label and matching content). Start the label name with '!' if this is intentional.\n");
+      error_die ();
+    }
+}
+
+//! Check label matchup for protocol p
+void
+checkLabelMatchProtocol (const System sys, const Protocol p)
+{
+  // For each read label the sends should match
+  Role r;
+
+  r = p->roles;
+  while (r != NULL)
+    {
+      Roledef rd;
+
+      rd = r->roledef;
+      while (rd != NULL)
+	{
+	  if (rd->type == READ)
+	    {
+	      // We don't check all, if they start with a bang we ignore them.
+	      Labelinfo li;
+
+	      li = label_find (sys->labellist, rd->label);
+	      if (li != NULL)
+		{
+		  if (!li->ignore)
+		    {
+		      checkLabelMatchThis (sys, p, r, rd);
+		    }
+		}
+	      else
+		{
+		  eprintf ("error: cannot determine label information for ");
+		  roledefPrint (rd);
+		  eprintf ("\n");
+		  error_die ();
+		}
+	    }
+	  rd = rd->next;
+	}
+      r = r->next;
+    }
+}
+
+//! Check label matchup
+void
+checkLabelMatching (const System sys)
+{
+  Protocol p;
+
+  // For each protocol
+  p = sys->protocols;
+  while (p != NULL)
+    {
+      checkLabelMatchProtocol (sys, p);
+      p = p->next;
+    }
+}
+
 //! Preprocess after system compilation
 void
 preprocess (const System sys)
@@ -1923,6 +2088,10 @@ preprocess (const System sys)
    * compute preceding label sets
    */
   compute_prec_sets (sys);
+  /*
+   * check whether labels match up
+   */
+  checkLabelMatching (sys);
   /*
    * check for ununsed variables
    */
