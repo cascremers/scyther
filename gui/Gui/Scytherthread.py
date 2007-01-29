@@ -254,7 +254,14 @@ class ErrorWindow(wx.Dialog):
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
 
-        label = wx.StaticText(self, -1, "\n".join(errors))
+        etxt = ""
+        prefix = "error: "
+        for er in errors:
+            if er.startswith(prefix):
+                er = er[len(prefix):]
+            etxt = etxt + "%s\n" % (er)
+
+        label = wx.StaticText(self, -1, etxt)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)

@@ -1976,8 +1976,8 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
 		      eprintf ("error: \t");
 		      roledefPrint (readevent);
 		      eprintf ("\n");
-		      globalError--;
 		      error_die ();
+		      globalError--;
 		    }
 		  else
 		    {
