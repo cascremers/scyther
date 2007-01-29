@@ -20,8 +20,8 @@ protocol yahalom^KeyCompromise(C)
         const Kir: SessionKey;
         var I,R,S: Agent;
 
-        read_C1(C,C,    I,R,S);
-        send_C2(C,C,    I,Ni,
+        read_!C1(C,C,    I,R,S);
+        send_!C2(C,C,    I,Ni,
                         R,{I,Ni,Nr}k(R,S),
                         {R,Kir,Ni,Nr}k(I,S),
                         {I,Kir}k(R,S),

@@ -40,7 +40,7 @@ protocol bkepkCE2(A,B,testnonce)
 	{
 		var n: Nonce;
 
-		read_4 (testnonce,testnonce, n);
+		read_!4 (testnonce,testnonce, n);
 	}
 }
 

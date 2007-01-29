@@ -2008,6 +2008,7 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
    */
   if (found == 0)
     {
+      globalError++;
       eprintf ("error: for the read event ");
       roledefPrint (readevent);
       eprintf (" of protocol ");
@@ -2015,6 +2016,7 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
       eprintf
 	(" there is no corresponding send event (with the same label and matching content). Start the label name with '!' if this is intentional.\n");
       error_die ();
+      globalError--;
     }
 }
 
@@ -2048,10 +2050,12 @@ checkLabelMatchProtocol (const System sys, const Protocol p)
 		}
 	      else
 		{
+		  globalError++;
 		  eprintf ("error: cannot determine label information for ");
 		  roledefPrint (rd);
 		  eprintf ("\n");
 		  error_die ();
+		  globalError--;
 		}
 	    }
 	  rd = rd->next;

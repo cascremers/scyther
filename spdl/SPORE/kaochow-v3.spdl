@@ -21,8 +21,8 @@ protocol kaochow-3^KeyCompromise(C)
         const T2: ExpiredTimeStamp;
         var I,R,S: Agent;
 
-        read_C1(C,C,    I,R,S);
-        send_C2(C,C,    (I,R,Ni),
+        read_!C1(C,C,    I,R,S);
+        send_!C2(C,C,    (I,R,Ni),
                         {I,R,Ni,Kir,Kt}k(I,S),
                         {I,R,Ni,Kir,Kt}k(R,S),
                         {Ni,Kir}Kt,

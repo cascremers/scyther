@@ -13,23 +13,23 @@ const pk: Function;
 secret sk: Function;
 inversekeys (pk,sk);
 
-protocol f4(I,R)
+protocol f5(I,R)
 {
 	role I
 	{
 		var nr: Nonce;
 
-		read_1(R,I, nr );
-		send_2(I,R, { nr }sk(I) );
-		read_3(R,I, {{{{{ nr }sk(R)}sk(R)}sk(R)}sk(R)}sk(R) );
+		read_!1(R,I, nr );
+		send_!2(I,R, { nr }sk(I) );
+		read_!3(R,I, {{{{{ nr }sk(R)}sk(R)}sk(R)}sk(R)}sk(R) );
 
-		claim_i1(I,Niagree);
+		claim_i1(I,Reachable);
 	}	
 
 	role R
 	{
 		const nr: Nonce;
-		send_1(R,I, nr );
+		send_!1(R,I, nr );
 	}
 	
 }
@@ -40,9 +40,3 @@ untrusted Eve;
 const ne: Nonce;
 compromised sk(Eve);
 
-run f4.I(Agent,Agent);
-run f4.I(Agent,Agent);
-run f4.I(Agent,Agent);
-run f4.I(Agent,Agent);
-run f4.I(Agent,Agent);
-run f4.I(Agent,Agent);

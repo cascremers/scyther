@@ -28,8 +28,8 @@ protocol @swapkey(X)
     {
         var I,R: Agent;
         var T:Ticket;
-        read_X1(X,X,I,R,{T}k(I,R));
-        send_X2(X,X,{T}k(R,I));
+        read_!X1(X,X,I,R,{T}k(I,R));
+        send_!X2(X,X,{T}k(R,I));
     }
 }
 
@@ -42,8 +42,8 @@ protocol andrew-Concrete^KeyCompromise(C)
         const kir: SessionKey;
         var I,R: Agent;
 
-        read_C1(C,C,    I,R);
-        send_C2(C,C,    (I,ni),
+        read_!C1(C,C,    I,R);
+        send_!C2(C,C,    (I,ni),
                         {ni,kir}k(I,R),
                         {ni}kir,
                         nr,

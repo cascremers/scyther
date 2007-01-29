@@ -27,8 +27,8 @@ protocol denningSacco-Lowe^KeyCompromise(C)
         const T: ExpiredTimeStamp;
         var I,R,S: Agent;
 
-        read_C1(C,C,    I,R,S);
-        send_C2(C,C,    (I,R),
+        read_!C1(C,C,    I,R,S);
+        send_!C2(C,C,    (I,R),
                         {R,Kir,T,{Kir,I,T}k(R,S)}k(I,S),
                         {Kir,I,T}k(R,S),
                         {Nr}Kir,

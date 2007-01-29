@@ -32,8 +32,8 @@ protocol andrew-LoweBan^KeyCompromise(C)
         const kir: SessionKey;
         var I,R: Agent;
 
-        read_C1(C,C,    I,R);
-        send_C2(C,C,    (I,ni),
+        read_!C1(C,C,    I,R);
+        send_!C2(C,C,    (I,ni),
                         {ni,kir,R}k(I,R),
                         {ni}kir,
                         nr,

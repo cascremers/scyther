@@ -33,8 +33,8 @@ protocol ksl-Lowe^KeyCompromise(C)
         const Tr: ExpiredTimeStamp;
         var I,R,S: Agent;
 
-        read_C1(C,C,    I,R,S);
-        send_C2(C,C,    (Ni,I),
+        read_!C1(C,C,    I,R,S);
+        send_!C2(C,C,    (Ni,I),
                         (Ni,I,Nr,R),
                         {I,Nr,Kir}k(R,S),{Ni,R,Kir}k(I,S),
                         {Tr,I,Kir}Kbb,Nc,{R,Ni}k(I,R),

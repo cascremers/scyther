@@ -10,11 +10,9 @@ protocol simplest(I)
 		var x: Nonce;
 		const n: Nonce;
 
-		read_1(I,I, x);
-		send_2(I,I, n, {n, x}k );
+		read_!1(I,I, x);
+		send_!2(I,I, n, {n, x}k );
 		claim_3(I, Secret, n);
 	}
 }
 
-run simplest.I(Alice);
-run simplest.I(Alice);

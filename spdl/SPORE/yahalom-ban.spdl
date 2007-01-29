@@ -19,8 +19,8 @@ protocol yahalom-BAN^KeyCompromise(C)
         const Kir: SessionKey;
         var I,R,S: Agent;
 
-        read_C1(C,C,    I,R,S);
-        send_C2(C,C,    I,Ni,
+        read_!C1(C,C,    I,R,S);
+        send_!C2(C,C,    I,Ni,
                         R,Nr,{I,Ni}k(R,S),
                         Nr,{R,Kir,Ni}k(I,S),
                         {I,Kir,Nr}k(R,S),

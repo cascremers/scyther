@@ -23,8 +23,8 @@ protocol tmn^KeyCompromise(C)
         const Kr,Ki: SessionKey;
         var I,R,S: Agent;
 
-        read_C1(C,C,    I,R,S);
-        send_C2(C,C,    R,{Ki}pk(S),
+        read_!C1(C,C,    I,R,S);
+        send_!C2(C,C,    R,{Ki}pk(S),
                         I, {Kr}pk(S),
                         {Kr}Ki,
                         Kr

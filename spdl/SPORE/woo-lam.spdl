@@ -20,8 +20,8 @@ protocol woolam^KeyCompromise(C)
         const Kir: SessionKey;
         var I,R,S: Agent;
 
-        read_C1(C,C,    I,R,S);
-        send_C2(C,C,    I,N1,
+        read_!C1(C,C,    I,R,S);
+        send_!C2(C,C,    I,N1,
                         R,N2,
                         {I,R,N1,N2}k(I,S),
                         {I,R,N1,N2}k(R,S),

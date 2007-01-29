@@ -16,14 +16,14 @@ protocol samascbroken(I,R)
 		const nr: Nonce;
 		var kir: Key;
 
-		read_1a (I,R, { kir,I }pk(R) );
-		send_1b (R,I, {nr,R}pk(I) );
+		read_!1a (I,R, { kir,I }pk(R) );
+		send_!1b (R,I, {nr,R}pk(I) );
 
 		/* Commenting out these two lines yields an attack: */
-		read_2a (I,R, { nr }kir );
-		send_2b (R,I, { I,R,nr }kir );
+		read_!2a (I,R, { nr }kir );
+		send_!2b (R,I, { I,R,nr }kir );
 
-		read_3 (I,R, { I,R }kir );
+		read_!3 (I,R, { I,R }kir );
 
 		claim_4 (R, Secret, kir );
 	}

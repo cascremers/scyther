@@ -32,8 +32,8 @@ protocol neustub-Hwang^KeyCompromise(C)
         const Tr: ExpiredTimeStamp;
         var I,R,S: Agent;
 
-        read_C1(C,C,    I,R,S);
-        send_C2(C,C,    I,Ni,
+        read_!C1(C,C,    I,R,S);
+        send_!C2(C,C,    I,Ni,
                         R,{I,Ni,Tr,Nr}k(R,S),
                         {R,Ni,Kir,Tr}k(I,S),
                         {I,Kir,Tr}k(R,S), Nr,

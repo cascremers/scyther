@@ -26,8 +26,8 @@ protocol wmf^KeyCompromise(C)
         const Ti,Ts: ExpiredTimeStamp;
         var I,R,S: Agent;
 
-        read_C1(C,C,    I,R,S);
-        send_C2(C,C,    I, {I,Ti,R,Kir}k(I,S),
+        read_!C1(C,C,    I,R,S);
+        send_!C2(C,C,    I, {I,Ti,R,Kir}k(I,S),
                         {S,Ts,I,Kir}k(R,S),
                         Kir
                );

@@ -23,8 +23,8 @@ protocol needhamschroedersk^KeyCompromise(C)
         const Kir: SessionKey;
         var I,R,S: Agent;
 
-        read_C1(C,C,    I,R,S);
-        send_C2(C,C,    (I,R,Ni),
+        read_!C1(C,C,    I,R,S);
+        send_!C2(C,C,    (I,R,Ni),
                         {Ni,R,Kir,{Kir,I}k(R,S)}k(I,S),
                         {Kir,I}k(R,S),
                         {Nr}Kir,

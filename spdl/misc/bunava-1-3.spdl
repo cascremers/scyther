@@ -20,8 +20,8 @@ protocol intruderhelp(Swap)
         var T: Ticket;
 	var R0,R1: Agent;
 
-	read_1(Swap,Swap, { T }k(R0,R1) );
-	send_2(Swap,Swap, { T }k(R1,R0) );
+	read_!1(Swap,Swap, { T }k(R0,R1) );
+	send_!2(Swap,Swap, { T }k(R1,R0) );
     }
 }
 
