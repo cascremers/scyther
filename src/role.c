@@ -191,6 +191,7 @@ roledefInit (int type, Term label, Term from, Term to, Term msg, Claimlist cl)
   else
     newEvent->bound = 1;	// other stuff does not need to be bound
   newEvent->next = NULL;
+  newEvent->lineno = 0;
   return newEvent;
 }
 
@@ -231,6 +232,7 @@ roleCreate (Term name)
   r->singular = false;		// by default, a role is not singular
   r->next = NULL;
   r->knows = NULL;
+  r->lineno = 0;
   return r;
 }
 

@@ -398,6 +398,29 @@ levelTacDeclaration (Tac tc, int isVar)
     }
 }
 
+//! Get last role def
+Roledef
+getLastRoledef (Roledef rd)
+{
+  if (rd != NULL)
+    {
+      while (rd->next != NULL)
+	{
+	  rd = rd->next;
+	}
+    }
+  return rd;
+}
+
+//! Mark last roledef lineno
+void
+markLastRoledef (Roledef rd, const int lineno)
+{
+  rd = getLastRoledef (rd);
+  rd->lineno = lineno;
+}
+
+
 //! Check whether a claim label already occurs
 int
 isClaimlabelUsed (const System sys, const Term label)
@@ -437,7 +460,7 @@ generateFreshClaimlabel (const System sys, const Protocol protocol,
 //! Create a claim and add it to the claims list, and add the role event.
 Claimlist
 claimCreate (const System sys, const Protocol protocol, const Role role,
-	     const Term claim, Term label, const Term msg)
+	     const Term claim, Term label, const Term msg, const int lineno)
 {
   Claimlist cl;
 
@@ -501,6 +524,7 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
   cl->roles = NULL;
   cl->alwaystrue = false;
   cl->warnings = false;
+  cl->lineno = lineno;
 
   /* add the claim to the end of the current list */
   cl->next = NULL;
@@ -523,6 +547,7 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
   /* add the role event */
   role->roledef = roledefAdd (role->roledef, CLAIM, label,
 			      role->nameterm, claim, msg, cl);
+  markLastRoledef (role->roledef, lineno);
 
   /* possible special handlers for each claim */
 
@@ -664,6 +689,8 @@ commEvent (int event, Tac tc)
       /* and make that read/send event */
       thisRole->roledef = roledefAdd (thisRole->roledef, event, label,
 				      fromrole, torole, msg, cl);
+      /* mark last one with line number */
+      markLastRoledef (thisRole->roledef, tc->lineno);
       break;
 
     case CLAIM:
@@ -690,7 +717,8 @@ commEvent (int event, Tac tc)
 	  if (!inTermlist (claim->stype, TERM_Claim))
 	    {
 	      globalError++;
-	      eprintf ("error: claim term is not of claim type ");
+	      eprintf ("error: [%i] claim term is not of claim type ",
+		       trip->next->lineno);
 	      termPrint (claim);
 	      errorTac (trip->next->lineno);
 	      globalError--;
@@ -768,7 +796,9 @@ commEvent (int event, Tac tc)
 
 	  /* create the event */
 
-	  cl = claimCreate (sys, thisProtocol, thisRole, claim, label, msg);
+	  cl =
+	    claimCreate (sys, thisProtocol, thisRole, claim, label, msg,
+			 tc->lineno);
 	}
       break;
     }
@@ -821,7 +851,7 @@ claimAddAll (const System sys, const Protocol protocol, const Role role)
 	if (realTermLeaf (t))
 	  {
 	    // Add a secrecy claim
-	    claimCreate (sys, protocol, role, CLAIM_Secret, NULL, t);
+	    claimCreate (sys, protocol, role, CLAIM_Secret, NULL, t, -1);
 	  }
 	tl = tl->next;
       }
@@ -831,8 +861,8 @@ claimAddAll (const System sys, const Protocol protocol, const Role role)
   addSecrecyList (role->declaredvars);
 
   /* full non-injective agreement and ni-synch */
-  claimCreate (sys, protocol, role, CLAIM_Niagree, NULL, NULL);
-  claimCreate (sys, protocol, role, CLAIM_Nisynch, NULL, NULL);
+  claimCreate (sys, protocol, role, CLAIM_Niagree, NULL, NULL, -1);
+  claimCreate (sys, protocol, role, CLAIM_Nisynch, NULL, NULL, -1);
 }
 
 //! Compile a role
@@ -854,7 +884,7 @@ roleCompile (Term nameterm, Tac tc)
   if (thisRole == NULL)
     {
       globalError++;
-      eprintf ("error: undeclared role name ");
+      eprintf ("error: [%i] undeclared role name ", tc->lineno);
       termPrint (nameterm);
       eprintf (" in line ");
       errorTac (tc->lineno);
@@ -900,7 +930,8 @@ roleCompile (Term nameterm, Tac tc)
 	    if (!normalDeclaration (tc))
 	      {
 		globalError++;
-		eprintf ("error: illegal command %i in role ", tc->op);
+		eprintf ("error: [%i] illegal command %i in role ",
+			 tc->lineno, tc->op);
 		termPrint (thisRole->nameterm);
 		eprintf (" ");
 		errorTac (tc->lineno);
@@ -915,7 +946,8 @@ roleCompile (Term nameterm, Tac tc)
 
   if (switches.addreachableclaim)
     {
-      claimCreate (sys, thisProtocol, thisRole, CLAIM_Reachable, NULL, NULL);
+      claimCreate (sys, thisProtocol, thisRole, CLAIM_Reachable, NULL, NULL,
+		   -1);
     }
   if (switches.addallclaims)
     {
@@ -961,7 +993,9 @@ runInstanceCreate (Tac tc)
   if (p == NULL)
     {
       globalError++;
-      eprintf ("error: Trying to create a run of a non-declared protocol ");
+      eprintf
+	("error: [%i] Trying to create a run of a non-declared protocol ",
+	 tc->lineno);
       symbolPrint (psym);
       eprintf (" ");
       errorTac (tc->lineno);
@@ -975,7 +1009,7 @@ runInstanceCreate (Tac tc)
   if (r == NULL)
     {
       globalError++;
-      eprintf ("error: Protocol ");
+      eprintf ("error: [%i] Protocol ", tc->lineno);
       symbolPrint (psym);
       eprintf (" has no role called ");
       symbolPrint (rsym);
@@ -989,7 +1023,8 @@ runInstanceCreate (Tac tc)
     {
       globalError++;
       eprintf
-	("error: Run instance has different number of parameters than protocol ");
+	("error: [%i] Run instance has different number of parameters than protocol ",
+	 tc->lineno);
       termPrint (p->nameterm);
       eprintf (" ");
       errorTac (tc->lineno);
@@ -1055,7 +1090,8 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
 	if (isTermEqual (pr->nameterm, prold->nameterm))
 	  {
 	    globalError++;
-	    eprintf ("error: Double declaration of protocol ");
+	    eprintf ("error: [%i] Double declaration of protocol ",
+		     tc->lineno);
 	    symbolPrint (prots);
 	    eprintf (" ");
 	    errorTac (tc->lineno);
@@ -1127,7 +1163,8 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles)
 	  if (!normalDeclaration (tc))
 	    {
 	      globalError++;
-	      eprintf ("error: illegal command %i in protocol ", tc->op);
+	      eprintf ("error: [%i] illegal command %i in protocol ",
+		       tc->lineno, tc->op);
 	      termPrint (thisProtocol->nameterm);
 	      errorTac (tc->lineno);
 	    }
@@ -1166,8 +1203,8 @@ tacProcess (Tac tc)
 	  if (!normalDeclaration (tc))
 	    {
 	      globalError++;
-	      eprintf ("error: illegal command %i at the global level.\n",
-		       tc->op);
+	      eprintf ("error: [%i] illegal command %i at the global level ",
+		       tc->lineno, tc->op);
 	      errorTac (tc->lineno);
 	    }
 	  break;
@@ -1191,7 +1228,7 @@ tacTerm (Tac tc)
 	if (t == NULL)
 	  {
 	    globalError++;
-	    eprintf ("error: Undeclared symbol ");
+	    eprintf ("error: [%i] undeclared symbol ", tc->lineno);
 	    symbolPrint (tc->t1.sym);
 	    errorTac (tc->lineno);
 	  }
@@ -1958,7 +1995,7 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
 		  if (!checkEventMatch (event, readevent))
 		    {
 		      globalError++;
-		      eprintf ("error:");
+		      eprintf ("error: [%i]", readevent->lineno);
 		      if (sys->protocols != NULL)
 			{
 			  if (sys->protocols->next != NULL)
@@ -1970,10 +2007,10 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
 		      eprintf (" events for label ");
 		      termPrint (event->label);
 		      eprintf (" do not match, in particular: \n");
-		      eprintf ("error: \t");
+		      eprintf ("error: [%i] ", event->lineno);
 		      roledefPrint (event);
 		      eprintf (" does not match\n");
-		      eprintf ("error: \t");
+		      eprintf ("error: [%i] ", readevent->lineno);
 		      roledefPrint (readevent);
 		      eprintf ("\n");
 		      error_die ();
@@ -2009,7 +2046,7 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
   if (found == 0)
     {
       globalError++;
-      eprintf ("error: for the read event ");
+      eprintf ("error: [%i] for the read event ", readevent->lineno);
       roledefPrint (readevent);
       eprintf (" of protocol ");
       termPrint (p->nameterm);
@@ -2051,7 +2088,9 @@ checkLabelMatchProtocol (const System sys, const Protocol p)
 	      else
 		{
 		  globalError++;
-		  eprintf ("error: cannot determine label information for ");
+		  eprintf
+		    ("error: [%i] cannot determine label information for ",
+		     rd->lineno);
 		  roledefPrint (rd);
 		  eprintf ("\n");
 		  error_die ();

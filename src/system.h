@@ -28,6 +28,7 @@ struct protocol
   Termlist locals;
   //! Pointer to next protocol.
   struct protocol *next;
+  int lineno;			//!< Line number of definition (for errors)?
 };
 
 //! Shorthand for protocol pointer.

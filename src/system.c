@@ -827,6 +827,7 @@ protocolCreate (Term name)
   p->rolenames = NULL;
   p->locals = NULL;
   p->next = NULL;
+  p->lineno = 0;
   return p;
 }
 

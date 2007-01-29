@@ -1,3 +1,6 @@
+- Error should have an additional line number parameter (that might be
+  -1 to ignore it) forcing people to use numbers :)
+  Format: "error: [%i] %s\n"
 - Nested functions should be avoided: their implementation requires an
   executable stack, which is bad for security purposes. However, many of
   the iterator functions need to pass a function and possibly some

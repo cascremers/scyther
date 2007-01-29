@@ -54,6 +54,8 @@ struct claimlist
   Termlist roles;
   //! Next node pointer or NULL for the last element of the function.
   struct claimlist *next;
+
+  int lineno;
 };
 
 //! Shorthand for claimlist pointers.
@@ -111,6 +113,7 @@ struct roledef
 
   /* evt runid for synchronisation, but that is implied in the
      base array */
+  int lineno;
 };
 
 //! Shorthand for roledef pointer.
@@ -142,6 +145,8 @@ struct role
   int singular;
   //! Pointer to next role definition.
   struct role *next;
+  //! Line number
+  int lineno;
 };
 
 //! Shorthand for role pointer.
