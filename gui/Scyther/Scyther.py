@@ -280,13 +280,13 @@ class Scyther(object):
                 # them.
                 if line.startswith("claim\t"):
                     # Claims are lost, reconstructed from the XML output
-                    continue
-                if line.startswith("warning"):
+                    pass
+                elif line.startswith("warning"):
                     # Warnings are stored seperately
                     self.warnings.append(line)
-                    continue
-                # otherwise it is an error
-                self.errors.append(line)
+                else:
+                    # otherwise it is an error
+                    self.errors.append(line)
 
         self.errorcount = len(self.errors)
         if self.errorcount > 0:
