@@ -21,6 +21,9 @@ basedir = ""
 
 class AboutScyther(wx.Dialog):
     def __init__(self,parent,mybasedir=None):
+
+        global basedir
+
         self.text = '''
 <html>
 <body bgcolor="#ffffff">
