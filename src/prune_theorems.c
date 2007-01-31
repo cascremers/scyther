@@ -71,7 +71,11 @@ correctLocalOrder (const System sys)
 		  else
 		    {
 		      globalError++;
-		      eprintf ("Error: term ");
+		      eprintf ("error: ");
+		      termPrint (sys->runs[r2].protocol->nameterm);
+		      eprintf (",");
+		      termPrint (sys->runs[r2].role->nameterm);
+		      eprintf (": term ");
 		      termSubstPrint (t);
 		      eprintf
 			(" from run %i should occur in run %i, but it doesn't.\n",
@@ -84,7 +88,7 @@ correctLocalOrder (const System sys)
 		{
 		  // not a read first? That's definitely impossible (can be caused by choices 
 		  globalError++;
-		  eprintf ("Error: term ");
+		  eprintf ("error: term ");
 		  termSubstPrint (t);
 		  eprintf
 		    (" from run %i should occur in run %i first in a READ event, but it occurs first in event %i.\n",
@@ -102,7 +106,7 @@ correctLocalOrder (const System sys)
 	  else
 	    {
 	      globalError++;
-	      eprintf ("Error: term ");
+	      eprintf ("error: term ");
 	      termSubstPrint (t);
 	      eprintf
 		(" from run %i should occur in run %i, but it doesn't.\n", r2,
@@ -282,7 +286,7 @@ prune_theorems (const System sys)
 		  Protocol p;
 
 		  globalError++;
-		  eprintf ("Run %i: ", run);
+		  eprintf ("error: Run %i: ", run);
 		  role_name_print (run);
 		  eprintf (" has an empty agents list.\n");
 		  eprintf ("protocol->rolenames: ");
