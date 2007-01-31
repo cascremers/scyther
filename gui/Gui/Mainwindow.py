@@ -208,8 +208,11 @@ class MainWindow(wx.Frame):
             os.chdir(self.dirname)
 
     def RunScyther(self, mode):
+        # Clear errors before verification
+        self.editor.SetErrors(None)
+        # Verify spdl
         spdl = self.editor.GetText()
-        s = Scytherthread.ScytherRun(self,mode,spdl)
+        s = Scytherthread.ScytherRun(self,mode,spdl,self.editor.SetErrors)
 
     def OnVerify(self, event):
         self.RunScyther("verify")

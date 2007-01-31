@@ -444,13 +444,14 @@ class ResultWindow(wx.Frame):
 
 class ScytherRun(object):
 
-    def __init__(self,mainwin,mode,spdl):
+    def __init__(self,mainwin,mode,spdl,errorcallback=None):
 
         self.mainwin = mainwin
         self.mode = mode
         self.spdl = spdl
         self.verified = False
         self.options = mainwin.settings.ScytherArguments(mode)
+        self.errorcallback=errorcallback
         self.main()
 
     def main(self):
@@ -540,6 +541,8 @@ class ScytherRun(object):
         Verification process generated errors. Show them.
         """
 
+        if self.errorcallback:
+            self.errorcallback(self.scyther.errors)
         title = "Scyther errors : %s" % self.mode
         errorwin = ErrorWindow(self.mainwin,title,errors=self.scyther.errors)
         errorwin.Center()

@@ -8,7 +8,7 @@ Scyther 1.0-beta6
 
 	* [Gui] Added Mac support (added universal binary)
 	* [Gui] Switched to Scintilla editor component, providing undo
-	and line numbering.
+	and line numbering, and highlighting of error lines.
 
 	Other new features:
 
