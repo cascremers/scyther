@@ -581,9 +581,12 @@ termMguSubTerm (Term smallterm, Term bigterm,
   return flag;
 }
 
-//! Check if terms might match in some way
+//! Check if role terms might match in some way
+/**
+ * Interesting case: role names are variables here, so they always match. We catch that case by inspecting the variable list.
+ */
 int
-checkRoletermMatch (const Term t1, const Term t2)
+checkRoletermMatch (const Term t1, const Term t2, const Termlist notmapped)
 {
   Termlist tl;
 
@@ -595,10 +598,27 @@ checkRoletermMatch (const Term t1, const Term t2)
     }
   else
     {
+      int result;
+      Termlist vl;
+
+      result = true;
       // Reset variables
       termlistSubstReset (tl);
+      // Check variable list etc: should not contain mapped role names
+      vl = tl;
+      while (vl != NULL)
+	{
+	  // This term should not be in the notmapped list
+	  if (inTermlist (notmapped, vl->term))
+	    {
+	      result = false;
+	      break;
+	    }
+	  vl = vl->next;
+
+	}
       // Remove list
       termlistDelete (tl);
-      return true;
+      return result;
     }
 }

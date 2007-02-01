@@ -1950,7 +1950,8 @@ checkWellFormed (const System sys)
 
 //! Check matching role defs
 int
-checkEventMatch (const Roledef rd1, const Roledef rd2)
+checkEventMatch (const Roledef rd1, const Roledef rd2,
+		 const Termlist rolenames)
 {
   if (!isTermEqual (rd1->from, rd2->from))
     {
@@ -1960,7 +1961,7 @@ checkEventMatch (const Roledef rd1, const Roledef rd2)
     {
       return false;
     }
-  if (!checkRoletermMatch (rd1->message, rd2->message))
+  if (!checkRoletermMatch (rd1->message, rd2->message, rolenames))
     {
       return false;
     }
@@ -1992,7 +1993,7 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
 	      if (isTermEqual (event->label, readevent->label))
 		{
 		  // Same labels, so they should match up!
-		  if (!checkEventMatch (event, readevent))
+		  if (!checkEventMatch (event, readevent, p->rolenames))
 		    {
 		      globalError++;
 		      eprintf ("error: [%i]", readevent->lineno);

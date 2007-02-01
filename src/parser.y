@@ -318,7 +318,7 @@ int yyerror(char *s)
 	extern int yylineno;	//!< defined and maintained in lex.c
 	extern char *yytext;	//!< defined and maintained in lex.c
   
-	error ("%s at symbol '%s' on line %i.\n", s, yytext, yylineno);
+	error ("[%i] %s at symbol '%s'.\n", yylineno, s, yytext);
 	return 0;
 }
 
