@@ -8,30 +8,6 @@
 secret k : Function;
 
 usertype SessionKey;
-const Fresh: Function;
-const Compromised: Function;
-
-protocol yahalom^KeyCompromise(C)
-{
-    // Read the names of 3 agents and disclose a session between them including
-    // corresponding session key to simulate key compromise
-    role C {
-        const Ni,Nr: Nonce;
-        const Kir: SessionKey;
-        var I,R,S: Agent;
-
-        read_!C1(C,C,    I,R,S);
-        send_!C2(C,C,    I,Ni,
-                        R,{I,Ni,Nr}k(R,S),
-                        {R,Kir,Ni,Nr}k(I,S),
-                        {I,Kir}k(R,S),
-                        {Nr}Kir,
-                        Kir
-               );
-        claim_C3(C,Empty, (Compromised,Kir));
-    }
-}
-
 
 protocol yahalom(I,R,S)
 {
@@ -47,8 +23,6 @@ protocol yahalom(I,R,S)
         send_4(I,R, T, {Nr}Kir );
 
         claim_I1(I, Secret,Kir);
-        claim_I2(I, Nisynch);
-        claim_I3(I, Empty, (Fresh,Kir));
     }
 
     role R
@@ -63,8 +37,6 @@ protocol yahalom(I,R,S)
         read_4(I,R, {I,Kir}k(R,S) , {Nr}Kir );
 
         claim_R1(R, Secret,Kir);
-        claim_R2(R, Nisynch);
-        claim_R3(R, Empty, (Fresh,Kir));
     }
 
     role S
@@ -74,8 +46,16 @@ protocol yahalom(I,R,S)
 
         read_2(R,S, R, {I,Ni,Nr}k(R,S) );
         send_3(S,I, {R,Kir,Ni,Nr}k(I,S), {I,Kir}k(R,S) );
+
+        claim(S, Secret, Ni);
+        claim(S, Secret, Nr);
     }
 }
 
 const Alice,Bob,Simon : Agent;
+
+const Eve: Agent;
+untrusted Eve;
+
+compromised k(Eve,Simon);
 

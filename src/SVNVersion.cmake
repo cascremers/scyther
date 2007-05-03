@@ -22,14 +22,9 @@ if (SVNVERSION_EXECUTABLE)
 	mark_as_advanced (SVN_Result)
 	if (NOT ${SVN_Result} STREQUAL "exported")
 		# svnversion gives useful stuff
-		# write to file
-		file (WRITE version.h "#define SVNVERSION \"${SVN_Result}\"\n")
-		if (UNIX)
-			# Unix system
-			# mark for dynamic generation in
-			# Makefile
-			set (SVNVERSION_DYNAMIC true)
-		endif (UNIX)
+		## write to file
+		#file (WRITE version.h "#define SVNVERSION \"${SVN_Result}\"\n")
+		set (SVNVERSION_DYNAMIC true)
 	endif (NOT ${SVN_Result} STREQUAL "exported")
 	mark_as_advanced (SVNDIR)
 endif (SVNVERSION_EXECUTABLE)
@@ -47,13 +42,12 @@ if (SVNVERSION_DYNAMIC)
 		# current directory)
 		DEPENDS	${Scyther_sources}
 		DEPENDS .svn
-		COMMAND	echo
-		ARGS	"\\#define SVNVERSION \\\"`${SVNVERSION_EXECUTABLE}`\\\"" >version.h
-		COMMENT	"Generating subversion version information in version.h using svnversion command"
+		COMMAND	./subbuild-version-information.sh
+		COMMENT	"Generating subversion and tag version information in version.h using svnversion command"
 	)
 else (SVNVERSION_DYNAMIC)
 	# Don't dynamically generate, simply empty every time
-	file (WRITE version.h "#define SVNVERSION \"Unknown\"\n")
+	file (WRITE version.h "#define SVNVERSION \"Unknown\"\n#define TAGVERSION \"Unknown\"")
 endif (SVNVERSION_DYNAMIC)
 
 # add the version number to the sources

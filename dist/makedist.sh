@@ -18,11 +18,6 @@
 #
 #	Parameters
 
-RELEASE="scyther-1.0-beta6"
-
-ARCHIVE="$RELEASE.tgz"
-ZIPPED="$RELEASE.zip"
-
 #	Creates a temporary subdirectory here.
 TMPDIR=/tmp/scytherdist
 WORKNAME=scyther
@@ -40,8 +35,6 @@ MANUAL=scyther-manual.pdf
 
 WORKDIR=$TMPDIR/$WORKNAME
 CURDIR=$PWD
-DEST=$PWD/$ARCHIVE
-ZIPDEST=$PWD/$ZIPPED
 DOCDEST=$WORKDIR/doc
 
 #------------------------------------------------------------------------------
@@ -68,6 +61,14 @@ svn cat $DOCROOT/$MANUAL >$WORKDIR/$MANUAL
 #------------------------------------------------------------------------------
 #
 #	Collected all needed data, finish up
+
+TAGVERSION=`awk 'BEGIN { FS="\""; } { print $2; }' ../gui/Gui/Version.py`
+RELEASE="scyther-$TAGVERSION"
+
+ARCHIVE="$RELEASE.tgz"
+ZIPPED="$RELEASE.zip"
+DEST=$PWD/$ARCHIVE
+ZIPDEST=$PWD/$ZIPPED
 
 #	Compress
 cd $TMPDIR
