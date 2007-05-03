@@ -9,6 +9,7 @@ cmake $CMFLAGS                   . && make
 
 echo
 echo
+echo "---------------------------------------------------------"
 echo "Built the Linux and Windows binaries"
 
 # Copy to the correct locations
@@ -18,5 +19,6 @@ cp scyther-w32.exe ../gui/Scyther/Bin
 # bonus...
 cp scyther-linux ~/bin
 
-echo Copied the files to their respective locations and ~/bin
+echo Copied the files to their respective locations and \~/bin
+echo "---------------------------------------------------------"
 
