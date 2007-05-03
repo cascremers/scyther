@@ -36,6 +36,9 @@ struct switchdata
   int initUnique;		//!< Default allows duplicate terms in rho (init) 
   int respUnique;		//!< Default allows duplicate terms in rho (resp)
   int intruder;			//!< Enable intruder actions (default)
+  int agentUnfold;		//!< Explicitly unfold for N honest agents and 1 compromised iff > 0
+  int abstractionMethod;	//!< 0 means none, others are specific modes
+  int useAttackBuffer;		//!< Use temporary file for attack storage
 
   // Misc
   int switchP;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
@@ -55,7 +58,6 @@ struct switchdata
   int human;			//!< human readable
   int reportMemory;		//!< Memory display switch.
   int reportTime;		//!< Time display switch.
-  int reportStates;		//!< Progress display switch. (traversed states)
   int countStates;		//!< Count states
   int extendNonReads;		//!< Show further events in arachne xml output.
   int extendTrivial;		//!< Show further events in arachne xml output, based on knowledge underapproximation. (Includes at least the events of the nonreads extension)

@@ -118,12 +118,9 @@ main (int argc, char **argv)
 
   /* compile */
 
-  // Compile no runs for Arachne
+  // Compile no runs for Arachne and preprocess
   compile (spdltac, 0);
   scanner_cleanup ();
-
-  /* preprocess */
-  preprocess (sys);
 
 #ifdef DEBUG
   if (DEBUGL (1))
@@ -253,13 +250,6 @@ modelCheck (const System sys)
 
   /* modelcheck the system */
   claimcount = arachne ();
-
-  /* clean up any states display */
-  if (switches.reportStates > 0)
-    {
-      //                States: 1.000e+06
-      printfstderr ("                  \r");
-    }
 
   if (claimcount == 0)
     {

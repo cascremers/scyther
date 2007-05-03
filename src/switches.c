@@ -62,6 +62,9 @@ switchesInit (int argc, char **argv)
   switches.initUnique = false;	// default allows initiator rho to contain duplicate terms
   switches.respUnique = false;	// default allows responder rho to contain duplicate terms
   switches.intruder = true;	// default allows an intruder
+  switches.agentUnfold = 0;	// default not to unfold agents
+  switches.abstractionMethod = 0;	// default no abstraction used
+  switches.useAttackBuffer = false;	// don't use by default as it does not work properly under windows vista yet
 
   // Misc
   switches.switchP = 0;		// multi-purpose parameter
@@ -81,7 +84,6 @@ switchesInit (int argc, char **argv)
   switches.human = false;	// not human friendly by default
   switches.reportMemory = 0;
   switches.reportTime = 0;
-  switches.reportStates = 0;
   switches.countStates = false;	// default off
   switches.extendNonReads = 0;	// default off
   switches.extendTrivial = 0;	// default off
@@ -450,7 +452,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-d, --dot-output", "show attack output in dot format");
+	  helptext ("-d, --dot-output", "show patterns in dot format");
 	}
       else
 	{
@@ -464,7 +466,7 @@ switcher (const int process, int index, int commandline)
     {
       if (!process)
 	{
-	  helptext ("-x, --xml-output", "show attack output in XML format");
+	  helptext ("-x, --xml-output", "show patterns in XML format");
 	}
       else
 	{
@@ -570,7 +572,7 @@ switcher (const int process, int index, int commandline)
 	  if (switches.expert)
 	    {
 	      helptext ("-C, --class",
-			"generate full class (show uninstantiated variables in state output)");
+			"show full class (allow uninstantiated variables in pattern output)");
 	    }
 	}
       else
@@ -587,7 +589,7 @@ switcher (const int process, int index, int commandline)
 	  if (switches.expert)
 	    {
 	      helptext ("-s, --state-space",
-			"ignore any existing claims and add 'reachable' claims. Generate full state space classes");
+			"ignore any existing claims and add 'reachable' claims. Gives complete characterization of a roles");
 	    }
 	}
       else
@@ -674,7 +676,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  helptext ("-r, --max-runs=<int>",
-		    "maximum number of runs in the system [5]");
+		    "maximum number of runs in patterns [5]");
 	}
       else
 	{
@@ -696,7 +698,7 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  helptext ("    --unbounded",
-		    "Do not bound the number of runs in the state space");
+		    "Do not bound the number of runs in patterns");
 	}
       else
 	{
@@ -857,6 +859,25 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
+  if (detect (' ', "abstraction-method", 1))
+    {
+      if (!process)
+	{
+	  if (switches.expert)
+	    {
+	      /* Not working yet
+	         helptext ("    --abstraction-method=<int>",
+	         "Abstraction method used. Default: 0 (disabled)");
+	       */
+	    }
+	}
+      else
+	{
+	  switches.abstractionMethod = integer_argument ();
+	  return index;
+	}
+    }
+
 
   /* ==================
    *  Modelchecker only
@@ -907,6 +928,20 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.heuristic = integer_argument ();
+	  return index;
+	}
+    }
+
+  if (detect (' ', "agent-unfold", 1))
+    {
+      if (!process)
+	{
+	  /* discourage: hide
+	   */
+	}
+      else
+	{
+	  switches.agentUnfold = integer_argument ();
 	  return index;
 	}
     }
@@ -1179,21 +1214,6 @@ switcher (const int process, int index, int commandline)
 	  fprintf (stdout, "command\t");
 	  commandlinePrint (stdout);
 	  fprintf (stdout, "\n");
-	  return index;
-	}
-    }
-
-  if (detect (' ', "progress-bar", 0))
-    {
-      if (!process)
-	{
-	  /* discourage: do not show in help text 
-	     helptext ("-b,--progress-bar", "show progress bar");
-	   */
-	}
-      else
-	{
-	  switches.reportStates = 50000;
 	  return index;
 	}
     }
