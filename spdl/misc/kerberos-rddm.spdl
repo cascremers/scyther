@@ -1,0 +1,78 @@
+/*
+ * Scyther description of Kerberos as in RDDM'07
+ *
+ */
+
+usertype Sessionkey;
+usertype Text;
+secret ktk: Function;
+secret kck: Function;
+secret kst: Function;
+
+protocol kerberos(C,K,T,S) {
+
+	role C {
+		const n1: Nonce;
+		const n2: Nonce;
+		var tgt: Ticket;
+		var st: Ticket;
+		var AKey: Sessionkey;
+		var SKey: Sessionkey;
+		const t: Text;
+
+		send_1(C,K, C,T,n1);
+		read_2(K,C, tgt, { AKey,n1,T }kck(C,K) );
+
+		// Stage boundary
+		
+		send_3(C,T, tgt, { C }AKey,C,S,n2 );
+		read_4(T,C, C, st, { SKey, n2, S }AKey );
+		
+		// Stage boundary
+		
+		send_5(C,S, st, { C,t }SKey );
+		read_6(S,C, { t }SKey );
+
+		// 
+	}
+	role K {
+		var n1: Nonce;
+		const AKey: Sessionkey;
+
+		read_1(C,K, C,T,n1);
+		send_2(K,C, { AKey, C }ktk(T,K), { AKey,n1,T }kck(C,K) );
+	}
+
+	role T {
+		var AKey: Sessionkey;
+		var n2: Nonce;
+		const SKey: Sessionkey;
+
+		read_3(C,T, { AKey, C }ktk(T,K), { C }AKey,C,S,n2 );
+		send_4(T,C, C,{ SKey, C }kst(S,T), { SKey, n2, S }AKey );
+	}
+	role S {
+		var t: Text;
+		var SKey: Sessionkey;
+
+		read_5(C,S, { SKey, C }kst(S,T), { C,t }SKey );
+		send_6(S,C, { t }SKey );
+	}
+}
+
+const Alice,Bob,Charlie,Eve: Agent;
+untrusted Eve;
+
+compromised ktk(Eve,Alice);
+compromised ktk(Alice,Eve);
+compromised kck(Eve,Alice);
+compromised kck(Alice,Eve);
+compromised kst(Eve,Alice);
+compromised kst(Alice,Eve);
+
+
+
+
+
+		
+
