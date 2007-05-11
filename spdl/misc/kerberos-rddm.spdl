@@ -94,13 +94,25 @@ protocol kerberos(C,K,T,S) {
 const Alice,Bob,Charlie,Eve: Agent;
 untrusted Eve;
 
-compromised ktk(Eve,Alice);
-//compromised ktk(Alice,Eve);
+// C untrusted
 compromised kck(Eve,Alice);
-//compromised kck(Alice,Eve);
-compromised kst(Eve,Alice);
-//compromised kst(Alice,Eve);
+compromised kck(Alice,Eve);
 
+// K untrusted
+compromised kck(Eve,Alice);
+compromised kck(Alice,Eve);
+compromised ktk(Eve,Alice);
+compromised ktk(Alice,Eve);
+
+// T untrusted
+compromised kst(Alice,Eve);
+compromised kst(Eve,Alice);
+compromised ktk(Eve,Alice);
+compromised ktk(Alice,Eve);
+
+// S untrusted
+compromised kst(Alice,Eve);
+compromised kst(Eve,Alice);
 
 
 
