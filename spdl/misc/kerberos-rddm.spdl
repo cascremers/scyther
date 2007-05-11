@@ -33,7 +33,18 @@ protocol kerberos(C,K,T,S) {
 		send_5(C,S, st, { C,t }SKey );
 		read_6(S,C, { t }SKey );
 
-		// 
+		// Theorem 5 (a)
+                // If C,K are honest
+                claim(C,Reachable);
+		// Theorem 6 (a)
+		// If C,K,T are all honest
+		claim(C,Secret,AKey);
+		// Theorem 7 (a)
+		// If C,K,S are all honest
+		claim(C, Reachable);
+		// Theorem 8
+		// If C,K,S are all honest
+                claim(C, Secret, SKey);
 	}
 	role K {
 		var n1: Nonce;
@@ -41,6 +52,9 @@ protocol kerberos(C,K,T,S) {
 
 		read_1(C,K, C,T,n1);
 		send_2(K,C, { AKey, C }ktk(T,K), { AKey,n1,T }kck(C,K) );
+		// Theorem 6 (a)
+		// If C,K,T are all honest
+		claim_K1(K,Secret,AKey);
 	}
 
 	role T {
@@ -50,6 +64,16 @@ protocol kerberos(C,K,T,S) {
 
 		read_3(C,T, { AKey, C }ktk(T,K), { C }AKey,C,S,n2 );
 		send_4(T,C, C,{ SKey, C }kst(S,T), { SKey, n2, S }AKey );
+
+		// Theorem 5 (a)
+                // If C,K are honest
+                claim(T,Reachable);
+		// Theorem 6 (a)
+		// If C,K,T are all honest
+		claim(T,Secret,AKey);
+
+		// My own
+		claim(T,Secret,SKey);
 	}
 	role S {
 		var t: Text;
@@ -57,6 +81,13 @@ protocol kerberos(C,K,T,S) {
 
 		read_5(C,S, { SKey, C }kst(S,T), { C,t }SKey );
 		send_6(S,C, { t }SKey );
+		// Theorem 7 (b)
+		// If C,K,S,T are honest
+		claim(S, Reachable);
+
+		// My own
+		claim(S, Secret, t);
+		claim(S, Secret, SKey);
 	}
 }
 
@@ -64,11 +95,11 @@ const Alice,Bob,Charlie,Eve: Agent;
 untrusted Eve;
 
 compromised ktk(Eve,Alice);
-compromised ktk(Alice,Eve);
+//compromised ktk(Alice,Eve);
 compromised kck(Eve,Alice);
-compromised kck(Alice,Eve);
+//compromised kck(Alice,Eve);
 compromised kst(Eve,Alice);
-compromised kst(Alice,Eve);
+//compromised kst(Alice,Eve);
 
 
 
