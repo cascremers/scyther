@@ -1,4 +1,4 @@
 Test file to see whether it works.
 Wow.
 New line.
-And a conflict should start here.
+And a better conflict should start here.
