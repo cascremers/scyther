@@ -9,6 +9,52 @@ secret ktk: Function;
 secret kck: Function;
 secret kst: Function;
 
+protocol @swapkey-ktk(I,R)
+{
+    # Protocol added to work around the symmetry problems where k(I,R) != k(R,I)
+    role I
+    {
+        var T:Ticket;
+
+
+        read_!X1(R,I,{T}ktk(I,R));
+        send_!X2(I,R,{T}ktk(R,I));
+    }
+    role R
+    {
+    }
+}
+protocol @swapkey-kck(I,R)
+{
+    # Protocol added to work around the symmetry problems where k(I,R) != k(R,I)
+    role I
+    {
+        var T:Ticket;
+
+
+        read_!X1(R,I,{T}kck(I,R));
+        send_!X2(I,R,{T}kck(R,I));
+    }
+    role R
+    {
+    }
+}
+protocol @swapkey-kst(I,R)
+{
+    # Protocol added to work around the symmetry problems where k(I,R) != k(R,I)
+    role I
+    {
+        var T:Ticket;
+
+
+        read_!X1(R,I,{T}kst(I,R));
+        send_!X2(I,R,{T}kst(R,I));
+    }
+    role R
+    {
+    }
+}
+
 protocol kerberos(C,K,T,S) {
 
 	role C {
