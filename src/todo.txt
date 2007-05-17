@@ -1,3 +1,5 @@
+- Version number should be retrieved from git now (as opposed to
+  subversion, so it should give the sha1 thing, and possibly a tag).
 - Error should have an additional line number parameter (that might be
   -1 to ignore it) forcing people to use numbers :)
   Format: "error: [%i] %s\n"
