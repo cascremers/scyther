@@ -2,6 +2,15 @@
 - Scyther changelog -
 ---------------------
 
+Scyther 1.0-beta7
+
+        Bugfixes:
+
+	* Windows Vista causes a number of problems. The biggest problem
+	is now fixed, which is the bad implementation of the tmpfile() C
+	function, causing no attack output, for which there is a
+	workaround now.
+
 Scyther 1.0-beta6 
 	
 	Big new features:
@@ -17,7 +26,7 @@ Scyther 1.0-beta6
 	in the protocol descriptions.
 	* [Language] Added claim parameter for Reachable claim;
 	Reachable,R means that role R should be trusted (as well as the
-	actor), but not any other claim. This can be useful for showing
+	actor), but not any other role. This can be useful for showing
 	stronger authentication properties of protocols with more than
 	two parties.
 	* [Backend] Added '--max-of-role=N' switch (to narrow scenarios)
