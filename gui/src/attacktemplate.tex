@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage{a4wide}
+\usepackage{msc}
+\usepackage{ifthen}
+
+%\setlength{\instwidth}{3.0cm}
+%\setlength{\instdist}{4cm}
+%\setlength{\actionwidth}{3.6cm}
+%\setlength{\conditionoverlap}{1.9cm}
+
+% Action macro from MSC documentation
+
+\newsavebox{\labelbox}
+\newlength{\oldwd}
+\newlength{\oldht}
+\newcommand{\Action}[2]{%
+  \setlength{\oldwd}{\actionwidth}%
+  \setlength{\oldht}{\actionheight}%
+  \savebox{\labelbox}{#1}%
+  \setlength{\actionwidth}{\wd\labelbox + 2\labeldist}%
+  \setlength{\actionheight}{\ht\labelbox + \dp\labelbox + 2\labeldist}%
+  \action{\usebox{\labelbox}}{#2}%
+  \setlength{\actionwidth}{\oldwd}%
+  \setlength{\actionheight}{\oldht}%
+}
+
+\newlength{\mscspacer}
+\setlength{\mscspacer}{1ex}
+
+\newcommand{\ActionBox}[2]{%
+  \Action{\parbox{\maxmscaction - 2\mscspacer}{\centering #1}}{#2}
+}
+
+\newlength{\maxtemp}
+
+\newcommand{\maxlength}[2]{
+  \settowidth{\maxtemp}{#2}
+  \ifthenelse{\lengthtest{#1 < \maxtemp}}{\setlength{#1}{\maxtemp}}{}
+  \ifthenelse{\lengthtest{\maxmscall < \maxtemp}}{\setlength{\maxmscall}{\maxtemp}}{}
+}
+
+
+
+\newlength{\maxmscall}
+\newlength{\maxmscinst}
+\newlength{\maxmscaction}
+\newlength{\maxmsccondition}
+
+\setlength{\maxmscall}{\mscspacer}
+\setlength{\maxmscinst}{\mscspacer}
+\setlength{\maxmscaction}{\mscspacer}
+\setlength{\maxmsccondition}{\mscspacer}
+
+% pagestyle without numbering
+\pagestyle{empty}
+
+\begin{document}
+
+\input{attack}
+
+\end{document}

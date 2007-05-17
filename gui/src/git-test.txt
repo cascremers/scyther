@@ -1,0 +1,4 @@
+Test file to see whether it works.
+Wow.
+New line.
+And a better conflict should start here.

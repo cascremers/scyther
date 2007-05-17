@@ -1,0 +1,47 @@
+Design Issues for the Model Checker
+-----------------------------------
+
+- For secrecy, we can trigger all sends at once. For synchronisation,
+  this is not the case.
+
+- Modules have to be split up sensibly.
+
+  - Although 'knowledge' and 'term matching' seem to different items,
+    their intertwined workings suggest that they should be implemented
+    in parallel.
+
+  - State generation (as in creating instances) might already allow for
+    a lot of static analysis.
+
+- We should make a list of required operations. Ingmar's work can serve
+  as a starting point.
+
+- For now, there will be no parser, and test cases will be input by
+  hand.
+
+- Synchronisation is more difficult to test, so we focus on secrecy
+  first. I've got some good ideas on Synchronisation testing though
+  (with narrowing sets of possible partners). Synchronisation is very
+  hard to prune, I presume. I have to prove that though ;)
+
+Sketch for secrecy:
+
+SimulateStep(F,M,constraints):
+	if Empty(F):
+		return
+	else:
+		for (s in PossibleSends):
+			add s.message to M
+			if (secrecy violated):
+				halt
+			remove s from F
+		ReadSets = supersetTransitions(F)
+		for (ReadSet in ReadSets):
+			for (s in ReadSet):
+				// dit is vaag
+				if NonMatch goto next ReadSet
+				constraint = F,M,match()
+			SimulateStep(F \ s,M,constraints)
+						
+				
+

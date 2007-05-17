@@ -1,0 +1,49 @@
+const pk: Function;
+secret sk: Function;
+inversekeys (pk,sk);
+
+protocol ns3speedtest(I,R)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+
+		send_1(I,R, {I,ni}pk(R) );
+		read_2(R,I, {ni,nr}pk(I) );
+		send_3(I,R, {nr}pk(R) );
+		claim_4(I,Secret,nr);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		const nr: Nonce;
+
+		read_1(I,R, {I,ni}pk(R) );
+		send_2(R,I, {ni,nr}pk(I) );
+		read_3(I,R, {nr}pk(R) );
+		claim_5(R,Secret,ni);
+	}
+}
+
+const Alice,Bob,Eve : Agent;
+
+/* something like this will later on all be implied by 'untrusted Eve' */
+
+untrusted Eve;
+const nc: Nonce;
+compromised sk(Eve);
+
+/* pre-defined 10 runs, limit using --max-runs parameters */
+
+run ns3speedtest.I(Alice,Bob);
+	run ns3speedtest.R(Alice,Bob);
+run ns3speedtest.I(Alice,Eve);
+	run ns3speedtest.R(Eve,Bob);
+run ns3speedtest.I(Bob,Alice);
+	run ns3speedtest.R(Bob,Alice);
+run ns3speedtest.I(Bob,Eve);
+	run ns3speedtest.R(Eve,Alice);
+run ns3speedtest.I(Alice,Alice);
+	run ns3speedtest.R(Bob,Bob);

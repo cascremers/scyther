@@ -1,0 +1,17 @@
+- (!!) Are the Arachne rules for keys that are variables sane? E.g. what
+  is their inverse key? Check! Intuition: one cannot know what the
+  inverse is of a non-instantiated key variable, given the current
+  semantics, if asymmetric keys are allowed.
+  Consequence: the current implementation is just fine, because
+  asymmetric key variables cannot be defined in the language. Thus, the
+  rules are fine. Investigate for the other case.
+- If no attack/state output is needed, maybe the attack heuristic should
+  be simpler (which means just weighting the trace length etc.) in order
+  to avoid uneccesary continuation of the search. Maybe even stop
+  altogether after finding *an* attack.
+- For the TimeStamps etc, we can implement an 'auto-leak' of such local
+  constants. This should works also with a modifier of sorts (e.g.
+  'predictable') and such constants should be leaked to the intruder at
+  the start of the run, possibly by prefixing a send.
+- knowledgeAddTerm might be improved by scanning through key list only with
+  things that are newly added.

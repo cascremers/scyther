@@ -1,0 +1,40 @@
+const pk: Function;
+secret sk: Function;
+inversekeys (pk,sk);
+const P2;
+
+protocol nsl3th2(I,R)
+{
+	role I
+	{
+		const ni: Nonce;
+		var nr: Nonce;
+
+		send_1(I,R, {P2,I,ni}pk(R) );
+		read_1b(R,I, {nr}pk(I) );
+		read_2(R,I, {P2,ni,nr,R}pk(I) );
+		send_3(I,R, {P2,nr}pk(R) );
+
+		claim_i(I,Nisynch);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		const nr: Nonce;
+
+		read_1(I,R, {P2,I,ni}pk(R) );
+		send_1b(R,I, {nr}pk(I) );
+		send_2(R,I, {P2,ni,nr,R}pk(I) );
+		read_3(I,R, {P2,nr}pk(R) );
+
+		claim_r(R,Nisynch);
+	}
+}
+
+const Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+
