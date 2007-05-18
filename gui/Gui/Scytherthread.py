@@ -153,13 +153,6 @@ class AttackThread(threading.Thread):
                     return
                 graphLine("%s [%s]" % (edge,atxt))
 
-        # Precompute font name
-        # Set a font with sans
-        # We only retrieve the name, so the size '9' here is
-        # irrelevant.
-        font = wx.Font(9,wx.SWISS,wx.NORMAL,wx.NORMAL)
-        self.fontname = font.GetFaceName()
-
         # write all graph lines but add layout modifiers
         for l in txt.splitlines():
             fp.write(l)
@@ -172,22 +165,23 @@ class AttackThread(threading.Thread):
                 #graphLine("nodesep=0.1")
                 #graphLine("ranksep=0.001")
                 #graphLine("mindist=0.1")
-    
-                # Set fontname
-                fontstring = "fontname=%s" % (self.fontname)
-                setAttr(fontstring,EDGE)
-
-                # Stupid Mac <> Graphviz bug fix
-                if (sys.platform.startswith("mac")) or (sys.platform.startswith("darwin")):
-                    # Note that dot on Mac cannot find the fonts by default,
-                    # and we have to set them accordingly.
-                    os.environ["DOTFONTPATH"]="~/Library/Fonts:/Library/Fonts:/System/Library/Fonts"
-
-                # Select font size
+                if sys.platform.startswith("lin"):
+                    # For Linux, choose Helvetica
+                    # TODO
+                    # This is really a Mac font so it might not be
+                    # available. Still, it works better on my Ubuntu
+                    # than Verdana, and finding a good sans default for 
+                    # linux seems problematic.
+                    setAttr("fontname=\"Helvetica\"")
+                if sys.platform.startswith("mac"):
+                    # For Mac choose Helvetica
+                    setAttr("fontname=\"Helvetica\"")
+                if sys.platform.startswith("win"):
+                    # For Windows choose Verdana
+                    setAttr("fontname=\"Verdana\"")
                 if self.parent and self.parent.mainwin:
                     fontsize = self.parent.mainwin.settings.fontsize
                     setAttr("fontsize=%s" % fontsize)
-
                 #setAttr("height=\"0.1\"",NODE)
                 #setAttr("width=\"1.0\"",NODE)
                 #setAttr("margin=\"0.3,0.03\"",NODE)
@@ -208,28 +202,24 @@ class AttackThread(threading.Thread):
         (fd2,fpname2) = Tempfile.tempcleaned(ext)
         f = os.fdopen(fd2,'w')
 
-        cmd = "dot -T%s >%s" % (type,fpname2)
+        cmd = "dot -T%s" % (type)
 
         # execute command
         cin,cout = os.popen2(cmd,'b')
     
         self.writeGraph(attack.scytherDot,cin)
-        cin.flush()
         cin.close()
-        cout.close()
 
+        for l in cout.read():
+            f.write(l)
+
+        cout.close()
         f.flush()
         f.close()
-
-        # Print
-        print fpname2
-        raw_input()
 
         # if this is done, store and report
         attack.filetype = type
         attack.file = fpname2  # this is where the file name is stored
-
-        # Maybe we should remove the temporary file... TODO
 
 #---------------------------------------------------------------------------
 
