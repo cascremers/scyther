@@ -86,6 +86,6 @@ class StringListError(Error):
         self.obj = obj
 
     def __str__(self):
-        return "Got %s instead of a (list of) string." % self.obj
+        return "Got '%s', which is type '%s' instead of a (list of) string." % (self.obj, type(self.obj))
 
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:

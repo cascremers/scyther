@@ -108,10 +108,6 @@ systemReset (const System sys)
 
   /* transfer switches */
   sys->maxtracelength = switches.maxtracelength;
-
-  /* propagate mgu_mode */
-
-  setMguMode (switches.match);
 }
 
 //! Initialize runtime system (according to cut traces, limited runs)
@@ -555,6 +551,7 @@ roleInstanceArachne (const System sys, const Protocol protocol,
       }
   }
 
+  //! The next function makes locals for all in the list. Flags denote whether it is a variable or role.
   void createLocals (Termlist list, int isvariable, int isrole)
   {
     while (list != NULL)

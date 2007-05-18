@@ -183,6 +183,7 @@ class AttackWindow(wx.Frame):
         # Add attacks (possible with tabs)
         self.displays=[]
         attacks = self.claim.attacks
+
         n = len(attacks)
         if n <= 1:
             # Just a single window

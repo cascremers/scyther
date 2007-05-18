@@ -71,9 +71,34 @@ class Editor(object):
     def __init__(self, parent):
         # Empty start
         self.SetText("")
+        self.SetChanged(False)
+
+    def SetText(self):
+        pass
 
     def SetErrors(self,errors):
         pass
+
+    def GetChanged(self):
+        """
+        Return true if file was changed
+        """
+        return self.savedtext != self.GetText()
+
+    def SetChanged(self,nowchanged=False):
+        """
+        Set changed status
+        """
+        if nowchanged:
+            self.savedtext = ""
+        else:
+            self.SetSaved()
+
+    def SetSaved(self):
+        self.savedtext = self.GetText()
+
+    def SetOpened(self):
+        self.SetSaved()
 
 #---------------------------------------------------------------------------
 

@@ -2,9 +2,7 @@
 #define TERMS
 
 #include "symbol.h"
-
-#define false 0
-#define true 1
+#include "bool.h"
 
 // type <= LEAF means it's a leaf, nkay?
 enum termtypes

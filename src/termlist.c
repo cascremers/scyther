@@ -4,6 +4,7 @@
 #include "specialterm.h"
 #include "debug.h"
 #include "error.h"
+#include "switches.h"
 
 /*
  * Shared stuff
@@ -746,20 +747,19 @@ termlistContained (const Termlist tlbig, Termlist tlsmall)
 /**
  * Determine whether a variable has been substituted with something with
  * the right type.
- *@param matchmode The system matching mode, typically system::match
  *@param term The closed variable term.
  *@return True iff the substitution is valid in the current mode.
  *\sa system::match
  */
 
 int
-validSubst (const int matchmode, const Term term)
+validSubst (const Term term)
 {
   if (!realTermVariable (term) || term->subst == NULL)
     return 1;
   else
     {
-      switch (matchmode)
+      switch (switches.match)
 	{
 	case 0:		/* real type match */
 	  return realTermLeaf (term->subst)

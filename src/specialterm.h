@@ -24,9 +24,16 @@ extern Term CLAIM_Niagree;
 extern Term CLAIM_Empty;
 extern Term CLAIM_Reachable;
 
+extern Term AGENT_Alice;
+extern Term AGENT_Bob;
+extern Term AGENT_Charlie;
+extern Term AGENT_Dave;
+extern Term AGENT_Eve;
+
 extern Termlist CLAIMS_dep_prec;
 
 void specialTermInit (const System sys);
+void specialTermInitAfter (const System sys);
 int isTicketTerm (Term t);
 int hasTicketSubterm (Term t);
 

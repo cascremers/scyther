@@ -52,7 +52,6 @@ Term termLocal (const Term t, Termlist fromlist, Termlist tolist);
 Termlist termlistLocal (Termlist tl, const Termlist fromlist,
 			const Termlist tolist);
 int termlistContained (const Termlist tlbig, Termlist tlsmall);
-int validSubst (const int matchmode, const Term term);
 Term termFunction (Termlist fromlist, Termlist tolist, Term tx);
 Termlist termlistForward (Termlist tl);
 int termlistOrder (Termlist tl1, Termlist tl2);

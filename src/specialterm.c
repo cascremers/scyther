@@ -9,7 +9,7 @@
  * Some macros
  */
 #define langhide(x,y) x = levelConst(symbolSysConst(" _" y "_ "))
-#define langtype(x,y) x->stype = termlistAdd(x->stype,y);
+#define langtype(x,y) x->stype = termlistAdd(x->stype,y)
 #define langcons(x,y,z) x = levelConst(symbolSysConst(y)); langtype(x,z)
 
 /* externally used:
@@ -29,6 +29,12 @@ Term CLAIM_Nisynch;
 Term CLAIM_Niagree;
 Term CLAIM_Empty;
 Term CLAIM_Reachable;
+
+Term AGENT_Alice;
+Term AGENT_Bob;
+Term AGENT_Charlie;
+Term AGENT_Dave;
+Term AGENT_Eve;
 
 Termlist CLAIMS_dep_prec;
 
@@ -62,6 +68,25 @@ specialTermInit (const System sys)
   CLAIMS_dep_prec = termlistAdd (NULL, CLAIM_Niagree);
   CLAIMS_dep_prec = termlistAdd (CLAIMS_dep_prec, CLAIM_Nisynch);
 
+}
+
+//! After compilation (so the user gets the first choice)
+void
+specialTermInitAfter (const System sys)
+{
+  langcons (AGENT_Alice, "Alice", TERM_Agent);
+  langcons (AGENT_Bob, "Bob", TERM_Agent);
+  langcons (AGENT_Charlie, "Charlie", TERM_Agent);
+  langcons (AGENT_Dave, "Dave", TERM_Agent);
+  langcons (AGENT_Eve, "Eve", TERM_Agent);
+
+  knowledgeAddTerm (sys->know, AGENT_Alice);
+  knowledgeAddTerm (sys->know, AGENT_Bob);
+  knowledgeAddTerm (sys->know, AGENT_Charlie);
+  knowledgeAddTerm (sys->know, AGENT_Dave);
+  knowledgeAddTerm (sys->know, AGENT_Eve);
+
+  sys->untrusted = termlistAddNew (sys->untrusted, AGENT_Eve);
 }
 
 //! Determine whether this is a leaf construct with a ticket in it

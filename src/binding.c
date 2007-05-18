@@ -15,9 +15,7 @@
 #include "switches.h"
 #include "depend.h"
 #include "error.h"
-#if !defined(__APPLE__)
-#include <malloc.h>
-#endif
+#include "mymalloc.h"
 
 static System sys;		//!< local storage of system pointer
 

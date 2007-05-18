@@ -20,7 +20,7 @@ import Editor
 """ Some constants """
 ID_VERIFY = 100
 ID_AUTOVERIFY = 101
-ID_STATESPACE = 102
+ID_CHARACTERIZE = 102
 ID_CHECK = 103
 
 #---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ class MainWindow(wx.Frame):
         if len(args) > 0:
             filename = args[0]
             if filename != '' and os.path.isfile(filename):
-                self.filename = filename
+                (self.dirname,self.filename) = os.path.split(filename)
                 self.load = True
 
         Icon.ScytherIcon(self)
@@ -60,7 +60,7 @@ class MainWindow(wx.Frame):
                                       (wx.ACCEL_NORMAL, wx.WXK_F1,
                                           ID_VERIFY),
                                       (wx.ACCEL_NORMAL, wx.WXK_F2,
-                                          ID_STATESPACE),
+                                          ID_CHARACTERIZE),
                                       (wx.ACCEL_NORMAL, wx.WXK_F5, 
                                           ID_CHECK),
                                       (wx.ACCEL_NORMAL, wx.WXK_F6,
@@ -85,9 +85,9 @@ class MainWindow(wx.Frame):
         #bt = wx.Button(self,ID_VERIFY)
         #buttons.Add(bt,0)
         #self.Bind(wx.EVT_BUTTON, self.OnVerify, bt)
-        #bt = wx.Button(self,ID_STATESPACE)
+        #bt = wx.Button(self,ID_CHARACTERIZE)
         #buttons.Add(bt,0)
-        #self.Bind(wx.EVT_BUTTON, self.OnStatespace, bt)
+        #self.Bind(wx.EVT_BUTTON, self.OnCharacterize, bt)
         #sizer.Add(buttons, 0, wx.ALIGN_LEFT)
 
         # Top: input
@@ -98,8 +98,11 @@ class MainWindow(wx.Frame):
         if self.load:
             textfile = open(os.path.join(self.dirname, self.filename), 'r')
             self.editor.SetText(textfile.read())
-            os.chdir(self.dirname)
+            if self.dirname != "":
+                os.chdir(self.dirname)
             textfile.close()
+            self.editor.SetOpened()
+
         self.top.AddPage(self.editor.control,"Protocol description")
         self.settings = Settingswindow.SettingsWindow(self.top,self)
         self.top.AddPage(self.settings,"Settings")
@@ -138,8 +141,8 @@ class MainWindow(wx.Frame):
         self.CreateMenu(menuBar, '&Verify',
              [(ID_VERIFY, '&Verify protocol\tF1','Verify the protocol in the buffer using Scyther',
                  self.OnVerify) ,
-             (ID_STATESPACE, 'Generate &statespace\tF2','TODO' ,
-                 self.OnStatespace) ,
+             (ID_CHARACTERIZE, '&Characterize roles\tF2','TODO' ,
+                 self.OnCharacterize) ,
              (None, None, None, None),
              ### Disabled for now (given that it is not reliable enough yet)
              #(ID_CHECK, '&Check protocol\tF5','TODO',
@@ -179,7 +182,49 @@ class MainWindow(wx.Frame):
         dialog.Destroy()
         return userProvidedFilename
 
-    # Event handlers:
+    # Are we dropping a changed file?
+    
+    def ConfirmLoss(self,text=None):
+        """
+        Try to drop the current file. If it was changed, try to save
+        (as)
+
+        Returns true after the user seems to be happy either way, false
+        if we need to cancel this.
+        """
+        if self.editor.GetChanged():
+            # File changed, we need to confirm this
+            title = "Unsaved changes"
+            if text:
+                title = "%s - " + title
+            txt = "The protocol file '%s' has been modified.\n\n" % (self.filename)
+            txt = txt + "Do you want to"
+            txt = txt + " save your changes (Yes)"
+            txt = txt + " or"
+            txt = txt + " discard them (No)"
+            txt = txt + "?"
+            dialog = wx.MessageDialog(self,txt,title,wx.YES_NO | wx.CANCEL | wx.ICON_EXCLAMATION)
+            result = dialog.ShowModal()            
+            dialog.Destroy()
+            if result == wx.ID_NO:
+                # Drop changes
+                return True
+            elif result == wx.ID_YES:
+                # First save(as)!
+                if self.OnSaveAs(None):
+                    # Succeeded, we can continue with the operation
+                    return True
+                else:
+                    # Save did not succeed
+                    return False
+            else:
+                # Assume cancel (wx.ID_CANCEL) otherwise
+                return False
+        else:
+            # File was not changed, so we can just proceed
+            return True
+
+    # Event handlers
 
     def OnAbout(self, event):
         dlg = About.AboutScyther(self)
@@ -187,25 +232,36 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
 
     def OnExit(self, event):
-        self.Close()  # Close the main window.
+        if self.ConfirmLoss("Exit"):
+            self.Close()  # Close the main window.
+            return True
+        return False
 
     def OnSave(self, event):
         textfile = open(os.path.join(self.dirname, self.filename), 'w')
         textfile.write(self.editor.GetText())
         textfile.close()
+        self.editor.SetSaved()
+        return True
 
     def OnOpen(self, event):
-        if self.askUserForFilename(style=wx.OPEN,
-                                   **self.defaultFileDialogOptions()):
-            textfile = open(os.path.join(self.dirname, self.filename), 'r')
-            self.editor.SetText(textfile.read())
-            textfile.close()
+        if self.ConfirmLoss("Open"):
+            if self.askUserForFilename(style=wx.OPEN,
+                                       **self.defaultFileDialogOptions()):
+                textfile = open(os.path.join(self.dirname, self.filename), 'r')
+                self.editor.SetText(textfile.read())
+                textfile.close()
+                self.editor.SetOpened()
+                return True
+        return False
 
     def OnSaveAs(self, event):
         if self.askUserForFilename(defaultFile=self.filename, style=wx.SAVE,
                                    **self.defaultFileDialogOptions()):
             self.OnSave(event)
             os.chdir(self.dirname)
+            return True
+        return False
 
     def RunScyther(self, mode):
         # Clear errors before verification
@@ -220,8 +276,8 @@ class MainWindow(wx.Frame):
     def OnAutoVerify(self, event):
         self.RunScyther("autoverify")
 
-    def OnStatespace(self, event):
-        self.RunScyther("statespace")
+    def OnCharacterize(self, event):
+        self.RunScyther("characterize")
 
     def OnCheck(self, event):
         self.RunScyther("check")

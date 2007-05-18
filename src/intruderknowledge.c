@@ -20,6 +20,8 @@ addSTerm (const System sys, Term t, Termlist fromlist, Termlist tolist)
       eprintf (" to the initial intruder knowledge]\n");
       globalError--;
     }
+
+  knowledgeAddTerm (sys->know, t2);
 }
 
 //! Unfold the term for all possible options

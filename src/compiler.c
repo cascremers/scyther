@@ -139,8 +139,8 @@ compile (Tac tc, int maxrunsset)
   /* process the tac */
   tacProcess (tac_root);
 
-  /* Clean up keylevels */
-  symbol_fix_keylevels ();
+  /* Preprocess the result */
+  preprocess (sys);
 
   /* cleanup */
   levelDone ();
@@ -562,25 +562,31 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
       readvars = compute_read_variables (thisRole);
       while (claimvars != NULL)
 	{
-	  if (!inTermlist (readvars, claimvars->term))
+	  if (!inTermlist(protocol->rolenames, claimvars->term))
 	    {
-	      /* this claimvar does not occur in the reads? */
-	      /* then we should ignore it later */
-	      cl->alwaystrue = true;
-	      cl->warnings = true;
+	      /* only if it is not a role */
+	      if (!inTermlist (readvars, claimvars->term))
+		{
+		  /* this claimvar does not occur in the reads? */
+		  /* then we should ignore it later */
+		  cl->alwaystrue = true;
+		  cl->warnings = true;
 
-	      /* show a warning for this */
-	      globalError++;
-	      eprintf ("warning: secrecy claim of role ");
-	      termPrint (cl->rolename);
-	      eprintf (" contains a variable ");
-	      termPrint (claimvars->term);
-	      eprintf
-		(" which is never read; therefore the claim will be true.\n");
-	      globalError--;
+		  /* show a warning for this */
+		  globalError++;
+		  eprintf ("warning: secrecy claim of role ");
+		  termPrint (cl->rolename);
+		  eprintf (" contains a variable ");
+		  termPrint (claimvars->term);
+		  eprintf
+		    (" which is never read; therefore the claim will be true.\n");
+		  globalError--;
+		}
 	    }
 	  claimvars = claimvars->next;
 	}
+      termlistDelete (claimvars);
+      termlistDelete (readvars);
     }
   return cl;
 }
@@ -2124,6 +2130,16 @@ void
 preprocess (const System sys)
 {
   /*
+   * Add default terms afterwards
+   */
+  specialTermInitAfter (sys);
+
+  /* 
+   * Clean up keylevels
+   * */
+  symbol_fix_keylevels ();
+
+  /*
    * init some counters
    */
   sys->rolecount = compute_rolecount (sys);
@@ -2144,16 +2160,18 @@ preprocess (const System sys)
       checkUnusedVariables (sys);
     }
   /*
-   * compute hidelevels
-   */
-  hidelevelCompute (sys);
-  /*
    * Initial knowledge
    */
   if (sys->knowledgedefined)
     {
       initialIntruderKnowledge (sys);
     }
+  /*
+   * compute hidelevels
+   *
+   * Needs to be done *after* the initial intruder knowledge derivation.
+   */
+  hidelevelCompute (sys);
   /*
    * Check well-formedness
    */

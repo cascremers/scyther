@@ -11,12 +11,8 @@
 #include <limits.h>
 #include <float.h>
 #include <string.h>
-#if !defined(__APPLE__)
-#ifdef DEBUG
-#include <malloc.h>
-#endif
-#endif
 
+#include "mymalloc.h"
 #include "term.h"
 #include "termlist.h"
 #include "role.h"
@@ -578,13 +574,6 @@ proof_suppose_binding (Binding b)
       role_name_print (b->run_from);
       eprintf ("\n");
     }
-}
-
-//! Create a new temporary file and return the pointer.
-FILE *
-scyther_tempfile (void)
-{
-  return tmpfile ();
 }
 
 //------------------------------------------------------------------------
@@ -1925,11 +1914,27 @@ makeTraceClass (const System sys, Termlist varlist)
   termlistDelete (varlist);
 }
 
+//! Determine whether to filter to a single attack
+int
+useAttackBuffer (void)
+{
+  if (switches.useAttackBuffer)
+    {
+      // it is possible
+      if (switches.prune != 0)
+	{
+	  // it is also desired
+	  return true;
+	}
+    }
+  return false;
+}
+
 //! Start attack output
 void
 attackOutputStart (void)
 {
-  if (switches.prune != 0)
+  if (useAttackBuffer ())
     {
       FILE *fd;
 
@@ -2153,20 +2158,101 @@ iterateOneBinding (void)
   return flag;
 }
 
+//! Unfold this particular name in this way
+void
+iterateAgentUnfoldThis (const Term rolevar, const Term agent)
+{
+  Term buffer;
+
+  buffer = rolevar->subst;
+  rolevar->subst = agent;
+  iterate ();
+  rolevar->subst = buffer;
+}
+
+//! Unfold this particular name
+void
+iterateAgentUnfolding (const System sys, const Term rolevar)
+{
+  Termlist kl;
+  int count;
+
+  iterateAgentUnfoldThis (rolevar, AGENT_Eve);
+  kl = knowledgeSet (sys->know);
+  count = 0;
+  while (kl != NULL && count < switches.agentUnfold)
+    {
+      Term t;
+
+      t = deVar (kl->term);
+      if (realTermLeaf (t) && inTermlist (t->stype, TERM_Agent))
+	{
+	  if (!inTermlist (sys->untrusted, t))
+	    {
+	      iterateAgentUnfoldThis (rolevar, t);
+	      count++;
+	    }
+	}
+      kl = kl->next;
+    }
+  termlistDelete (kl);
+}
+
+//! Unfold names 
+/**
+ * Returns true if nothing was unfolded and the iteration must be done.
+ * Returns false when the iteration should not be done.
+ */
+int
+doAgentUnfolding (const System sys)
+{
+  int run;
+
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      Termlist tl;
+
+      tl = sys->runs[run].rho;
+      while (tl != NULL)
+	{
+	  Term t;
+
+	  t = deVar (tl->term);
+	  if (realTermVariable (t))
+	    {
+	      // Hey, this role name is still a variable.
+	      // We don't want that and so we unfold it as expected.
+	      iterateAgentUnfolding (sys, t);
+	      return false;
+	    }
+	  tl = tl->next;
+	}
+    }
+  return true;
+}
+
 //! Main recursive procedure for Arachne
 int
 iterate ()
 {
   int flag;
 
-
   flag = 1;
+
+  // check unfolding agent names
+  if (switches.agentUnfold > 0)
+    {
+      if (!doAgentUnfolding (sys))
+	return flag;
+    }
+
   if (!prune_theorems (sys))
     {
       if (!prune_claim_specifics (sys))
 	{
 	  if (!prune_bounds (sys))
 	    {
+
 	      // Go and pick a binding for iteration
 	      flag = iterateOneBinding ();
 	    }
@@ -2194,11 +2280,7 @@ iterate ()
 int
 iterate_buffer_attacks (void)
 {
-  if (switches.prune == 0)
-    {
-      return iterate ();
-    }
-  else
+  if (useAttackBuffer ())
     {
       // We are pruning attacks, so they should go into a temporary file.
       /*
@@ -2229,6 +2311,11 @@ iterate_buffer_attacks (void)
       globalStream = buffer;
 
       return result;
+    }
+  else
+    {
+      // No attack buffering, just output all of them
+      return iterate ();
     }
 }
 
@@ -2291,15 +2378,22 @@ arachneClaimTest (Claimlist cl)
       int m0run;
 
       m0tl = knowledgeSet (sys->know);
-      m0t = termlist_to_tuple (m0tl);
-      // eprintf("Initial intruder knowledge node for ");
-      // termPrint(m0t);
-      // eprintf("\n");
-      I_M->roledef->message = m0t;
-      m0run = semiRunCreate (INTRUDER, I_M);
-      newruns++;
-      proof_suppose_run (m0run, 0, 1);
-      sys->runs[m0run].height = 1;
+      if (m0tl != NULL)
+	{
+	  m0t = termlist_to_tuple (m0tl);
+	  // eprintf("Initial intruder knowledge node for ");
+	  // termPrint(m0t);
+	  // eprintf("\n");
+	  I_M->roledef->message = m0t;
+	  m0run = semiRunCreate (INTRUDER, I_M);
+	  newruns++;
+	  proof_suppose_run (m0run, 0, 1);
+	  sys->runs[m0run].height = 1;
+	}
+      else
+	{
+	  m0run = -1;
+	}
 
       {
 		      /**
@@ -2311,11 +2405,14 @@ arachneClaimTest (Claimlist cl)
       }
 
 
-      // remove initial knowledge node
-      termDelete (m0t);
-      termlistDelete (m0tl);
-      semiRunDestroy ();
-      newruns--;
+      if (m0run != -1)
+	{
+	  // remove initial knowledge node
+	  termDelete (m0t);
+	  termlistDelete (m0tl);
+	  semiRunDestroy ();
+	  newruns--;
+	}
     }
     // remove claiming run goals 
     goal_remove_last (newgoals);

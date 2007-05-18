@@ -34,11 +34,12 @@ class ScytherThread(threading.Thread):
     """
 
     # Override Thread's __init__ method to accept the parameters needed:
-    def __init__ ( self, spdl, options="", callback=None ):
+    def __init__ ( self, spdl, options="", callback=None, mode=None ):
 
         self.spdl = spdl
         self.options = options
         self.callback = callback
+        self.mode = mode
         threading.Thread.__init__ ( self )
 
     def run(self):
@@ -49,6 +50,17 @@ class ScytherThread(threading.Thread):
         if self.callback:
             wx.CallAfter(self.callback, scyther, claims, summary)
 
+    def claimFixViewOne(self,claims):
+        if claims:
+            for cl in claims:
+                if len(cl.attacks) > 1:
+                    # Fix it such that by default, only the best attack is
+                    # shown, unless we are in characterize or check mode
+                    # TODO [X] [CC] make switch-dependant.
+                    if not self.mode in ["characterize","check"]:
+                        cl.attacks = [cl.attacks[-1]]
+
+        return claims
 
     def claimResults(self):
         """ Convert spdl to result (using Scyther)
@@ -67,6 +79,8 @@ class ScytherThread(threading.Thread):
             pass
 
         summary = str(scyther)
+
+        claims = self.claimFixViewOne(claims)
 
         return (scyther, claims, summary)
 
@@ -123,6 +137,7 @@ class AttackThread(threading.Thread):
 
         def graphLine(txt):
             fp.write("\t%s;\n" % (txt))
+            print txt   # DEBUG ONLY
 
         def setAttr(atxt,EdgeNodeDefAll=ALL):
             if EdgeNodeDefAll == ALL:
@@ -139,6 +154,13 @@ class AttackThread(threading.Thread):
                     return
                 graphLine("%s [%s]" % (edge,atxt))
 
+        # Precompute font name
+        # Set a font with sans
+        # We only retrieve the name, so the size '9' here is
+        # irrelevant.
+        font = wx.Font(9,wx.SWISS,wx.NORMAL,wx.NORMAL)
+        self.fontname = font.GetFaceName()
+
         # write all graph lines but add layout modifiers
         for l in txt.splitlines():
             fp.write(l)
@@ -151,23 +173,22 @@ class AttackThread(threading.Thread):
                 #graphLine("nodesep=0.1")
                 #graphLine("ranksep=0.001")
                 #graphLine("mindist=0.1")
-                if sys.platform.startswith("lin"):
-                    # For Linux, choose Helvetica
-                    # TODO
-                    # This is really a Mac font so it might not be
-                    # available. Still, it works better on my Ubuntu
-                    # than Verdana, and finding a good sans default for 
-                    # linux seems problematic.
-                    setAttr("fontname=\"Helvetica\"")
-                if sys.platform.startswith("mac"):
-                    # For Mac choose Helvetica
-                    setAttr("fontname=\"Helvetica\"")
-                if sys.platform.startswith("win"):
-                    # For Windows choose Verdana
-                    setAttr("fontname=\"Verdana\"")
+    
+                # Set fontname
+                fontstring = "fontname=%s" % (self.fontname)
+                setAttr(fontstring,EDGE)
+
+                # Stupid Mac <> Graphviz bug fix
+                if (sys.platform.startswith("mac")) or (sys.platform.startswith("darwin")):
+                    # Note that dot on Mac cannot find the fonts by default,
+                    # and we have to set them accordingly.
+                    os.environ["DOTFONTPATH"]="~/Library/Fonts:/Library/Fonts:/System/Library/Fonts"
+
+                # Select font size
                 if self.parent and self.parent.mainwin:
                     fontsize = self.parent.mainwin.settings.fontsize
                     setAttr("fontsize=%s" % fontsize)
+
                 #setAttr("height=\"0.1\"",NODE)
                 #setAttr("width=\"1.0\"",NODE)
                 #setAttr("margin=\"0.3,0.03\"",NODE)
@@ -188,24 +209,28 @@ class AttackThread(threading.Thread):
         (fd2,fpname2) = Tempfile.tempcleaned(ext)
         f = os.fdopen(fd2,'w')
 
-        cmd = "dot -T%s" % (type)
+        cmd = "dot -T%s >%s" % (type,fpname2)
 
         # execute command
         cin,cout = os.popen2(cmd,'b')
     
         self.writeGraph(attack.scytherDot,cin)
+        cin.flush()
         cin.close()
-
-        for l in cout.read():
-            f.write(l)
-
         cout.close()
+
         f.flush()
         f.close()
+
+        # Print
+        print fpname2
+        raw_input()
 
         # if this is done, store and report
         attack.filetype = type
         attack.file = fpname2  # this is where the file name is stored
+
+        # Maybe we should remove the temporary file... TODO
 
 #---------------------------------------------------------------------------
 
@@ -344,7 +369,7 @@ class ResultWindow(wx.Frame):
             views += self.BuildClaim(grid,claims[index],index+1)
 
         if views > 0:
-            titlebar(7,"Classes",1)
+            titlebar(7,"Patterns",1)
 
         self.SetSizer(grid)
         self.Fit()
@@ -480,7 +505,7 @@ class ScytherRun(object):
         # start the thread
         
         self.verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
-        t = ScytherThread(self.spdl, self.options, self.verificationDone)
+        t = ScytherThread(self.spdl, self.options, self.verificationDone, self.mode)
         t.start()
 
         # after verification, we proceed to the callback below...

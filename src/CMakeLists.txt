@@ -16,15 +16,13 @@ set (Scyther_sources
 	intruderknowledge.c knowledge.c label.c list.c main.c mgu.c
 	prune_bounds.c prune_theorems.c role.c 
 	specialterm.c states.c switches.c symbol.c system.c tac.c
+	tempfile.c
 	termlist.c termmap.c term.c timer.c type.c warshall.c xmlout.c
 	parser.c scanner.c
   )
 
 # If we are in a debug mode we want to be strict
 set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -DDEBUG")
-
-# Usual static
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
 
 # Determine version number
 include (SVNVersion.cmake)

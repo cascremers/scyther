@@ -66,10 +66,10 @@ isTypelistGeneric (const Termlist typelist)
  * Non-variables etc. imply true.
  */
 int
-checkTypeTerm (const int mgumode, const Term tvar)
+checkTypeTerm (const Term tvar)
 {
-  // Checks are only needed for mgumode < 2 etc.
-  if (mgumode < 2 && tvar != NULL && realTermVariable (tvar))
+  // Checks are only needed for match < 2 etc.
+  if (switches.match < 2 && tvar != NULL && realTermVariable (tvar))
     {
       // Non-instantiated terms are fine.
       if (tvar->subst != NULL)
@@ -90,7 +90,7 @@ checkTypeTerm (const int mgumode, const Term tvar)
 	      else
 		{
 		  // It is a leaf
-		  if (mgumode == 0)
+		  if (switches.match == 0)
 		    {
 		      /* Types must match exactly. Thus, one of the variable type should match a type of the constant.
 		       */
@@ -122,11 +122,11 @@ checkTypeTerm (const int mgumode, const Term tvar)
  * Empty list implies true.
  */
 int
-checkTypeTermlist (const int mgumode, Termlist tl)
+checkTypeTermlist (Termlist tl)
 {
   while (tl != NULL)
     {
-      if (!checkTypeTerm (mgumode, tl->term))
+      if (!checkTypeTerm (tl->term))
 	return false;
       tl = tl->next;
     }
@@ -144,7 +144,7 @@ checkTypeLocals (const System sys)
     {
       if (sys->runs[run].protocol != INTRUDER)
 	{
-	  if (!checkTypeTermlist (switches.match, sys->runs[run].locals))
+	  if (!checkTypeTermlist (sys->runs[run].locals))
 	    return false;
 	}
       run++;
@@ -178,14 +178,13 @@ agentCompatible (Termlist tl)
 /**
  * Depends on some input:
  *
- * mgumode	type of matching
  * agentcheck	true if agent type is always restrictive
  *
  * returns the new type list (needs to be deleted!) or TERMLISTERROR (should
  * not be deleted!)
  */
 Termlist
-typelistConjunct (Termlist typelist1, Termlist typelist2, const int mgumode,
+typelistConjunct (Termlist typelist1, Termlist typelist2,
 		  const int agentcheck)
 {
   if (typelist1 != TERMLISTERROR && typelist2 != TERMLISTERROR)
@@ -202,25 +201,25 @@ typelistConjunct (Termlist typelist1, Termlist typelist2, const int mgumode,
 	      /* Now, the result must surely accept agents. Thus, it must be
 	       * NULL or accept agents.
 	       */
-
-	      if (!
-		  (agentCompatible (typelist1)
-		   && agentCompatible (typelist2)))
+	      if (switches.match == 0)
 		{
-		  // Not good: one of them cannot
-		  return TERMLISTERROR;
+		  // only if we are doing matching, otherwise it is always agent-compatible
+		  if (!
+		      (agentCompatible (typelist1)
+		       && agentCompatible (typelist2)))
+		    {
+		      // Not good: one of them cannot
+		      return TERMLISTERROR;
+		    }
 		}
-	      else
-		{
-		  // Good: but because an agent is involved, the type reduces to the simple Agent type only.
-		  return termlistAdd (NULL, TERM_Agent);
-		}
+	      // Good: but because an agent is involved, the type reduces to the simple Agent type only.
+	      return termlistAdd (NULL, TERM_Agent);
 	    }
 	  else
 	    {
 	      /* Not the simple agent variable case. Now other things come in to play.
 	       */
-	      if (mgumode == 0)
+	      if (switches.match == 0)
 		{
 		  /*
 		   * Strict match: (-m0) conjunct of the types must be non-empty.
@@ -287,48 +286,51 @@ checkGroundVariable (const System sys, const Term groundvar)
   int allvalid;
 
   allvalid = 1;
-  if (realTermVariable (groundvar))
+  if (switches.match < 2)
     {
-      Termlist tl;
-      Termlist typelist;
-
-      // Check
-      typelist = termlistShallow (groundvar->stype);
-      tl = sys->variables;
-      while (allvalid == 1 && tl != NULL)
+      if (realTermVariable (groundvar))
 	{
-	  Term term;
+	  Termlist tl;
+	  Termlist typelist;
 
-	  term = tl->term;
-
-	  // Not actually the same, of course
-	  if (term != groundvar)
+	  // Check
+	  typelist = termlistShallow (groundvar->stype);
+	  tl = sys->variables;
+	  while (allvalid == 1 && tl != NULL)
 	    {
-	      // Does this term map to the same variable?
-	      if (isTermEqual (term, groundvar))
+	      Term term;
+
+	      term = tl->term;
+
+	      // Not actually the same, of course
+	      if (term != groundvar)
 		{
-		  Termlist tlprev;
-
-		  // Maps to same ground term
-		  // Take conjunct
-		  tlprev = typelist;
-		  typelist =
-		    typelistConjunct (tlprev, term->stype, switches.match,
-				      switches.agentTypecheck);
-		  termlistDelete (tlprev);
-
-		  if (typelist == TERMLISTERROR)
+		  // Does this term map to the same variable?
+		  if (isTermEqual (term, groundvar))
 		    {
-		      // And this is not valid...
-		      allvalid = 0;
+		      Termlist tlprev;
+
+		      // Maps to same ground term
+		      // Take conjunct
+		      tlprev = typelist;
+		      typelist =
+			typelistConjunct (tlprev, term->stype,
+					  switches.agentTypecheck);
+		      termlistDelete (tlprev);
+
+		      if (typelist == TERMLISTERROR)
+			{
+			  // And this is not valid...
+			  allvalid = 0;
+			}
 		    }
 		}
+	      tl = tl->next;
 	    }
-	  tl = tl->next;
-	}
-      if (typelist != TERMLISTERROR)
-	{
-	  termlistDelete (typelist);
+	  if (typelist != TERMLISTERROR)
+	    {
+	      termlistDelete (typelist);
+	    }
 	}
     }
   return allvalid;
@@ -408,8 +410,7 @@ checkAllSubstitutions (const System sys)
 		  else
 		    {
 		      // Consider match
-		      allvalid = allvalid
-			&& checkTypeTerm (switches.match, tvar);
+		      allvalid = allvalid && checkTypeTerm (tvar);
 		    }
 		}
 	    }

@@ -6,9 +6,9 @@ import Term
 
 def stateDescription(okay,n=1,caps=False):
     if okay:
-        s = "trace class"
+        s = "trace pattern"
         if n != 1:
-            s += "es"
+            s += "s"
     else:
         s = "attack"
         if n != 1:

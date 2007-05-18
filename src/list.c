@@ -5,11 +5,10 @@
  * A doubly linked list with void* as data type.
  */
 
-#include "list.h"
-#if !defined(__APPLE__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
+
+#include "list.h"
+#include "mymalloc.h"
 
 //! Make a node
 List

@@ -150,13 +150,13 @@ class SettingsWindow(wx.Panel):
             tstr += "--check "
         elif mode == "autoverify":
             tstr += "--auto-claims "
-        elif mode == "statespace":
+        elif mode == "characterize":
             tstr += "--state-space "
 
         # Anything else?
         if self.misc != "":
             tstr += " " + self.misc + " "
 
-        return tstr
+        return str(tstr)    # turn it into a str (might have been unicode weirdness)
 
 #---------------------------------------------------------------------------

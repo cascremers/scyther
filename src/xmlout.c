@@ -317,7 +317,9 @@ xmlVariable (const System sys, const Term variable, const int run)
     {
       xmlIndentPrint ();
       eprintf ("<variable typeflaw=\"");
-      if (!checkTypeTerm (0, variable))
+      /* TODO this is now wrong, because it does not switch the matching more
+       * anymore */
+      if (!checkTypeTerm (variable))
 	{
 	  eprintf ("true");
 	}

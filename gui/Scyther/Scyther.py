@@ -68,6 +68,7 @@ def Check():
     program = getScytherBackend()
     CheckSanity(program)
 
+
 #---------------------------------------------------------------------------
 
 def CheckSanity(program):
@@ -85,6 +86,9 @@ def EnsureString(x,sep=" "):
     Takes a thing that is either a list or a string.
     Turns it into a string. If it was a list, <sep> is inserted, and the
     process iterats.
+
+    TODO does not accept unicode yet, that is something that must be
+    handled to or we run into wxPython problems eventually.
     """
     if type(x) is str:
         return x
@@ -361,5 +365,30 @@ class Scyther(object):
                     return self.output
         else:
             return "Scyther has not been run yet."
+
+#---------------------------------------------------------------------------
+
+def GetInfo(html=False):
+    """
+    Retrieve a tuple (location,string) with information about the tool,
+    retrieved from the --expert --version data
+    """
+
+    program = getScytherBackend()
+    arg = "--expert --version"
+    sc = Scyther()
+    (output,errors) = sc.doScytherCommand(spdl=None, args=arg)
+    if not html:
+        return (program,output)
+    else:
+        sep = "<br>\n"
+        html = "Backend: %s%s" % (program,sep)
+        for l in output.splitlines():
+            l.strip()
+            html += "%s%s" % (l,sep)
+        return html
+
+
+#---------------------------------------------------------------------------
 
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:

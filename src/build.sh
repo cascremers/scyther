@@ -1,10 +1,4 @@
 #!/bin/sh
-#
-# The big unifying build script, which builds all binaries it can on a
-# given platform.
-#
-# Effectively, if this script is run both on Darwin and Linux systems,
-# all binaries can be constructed.
 
 PLATFORM=`uname`
 echo $PLATFORM

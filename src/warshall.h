@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "mymalloc.h"
+
 /*  machine-dependent definitions                              */
 /*  the following definitions are for the Tahoe                */
 /*  they might have to be changed for other machines           */

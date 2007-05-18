@@ -16,21 +16,12 @@
    New version yields a termlist with substituted variables, which can later be reset to NULL.
 */
 
-//! Internal constant. If true, typed checking
 /**
- * Analoguous to switches.match
+ * switches.match
  * 0	typed
  * 1	basic typeflaws
  * 2	all typeflaws
  */
-static int mgu_match = 0;
-
-//! Set mgu mode (basically switches.match)
-void
-setMguMode (const int match)
-{
-  mgu_match = match;
-}
 
 void
 showSubst (Term t)
@@ -90,7 +81,7 @@ goodsubst (Term tvar, Term tsubst)
   tbuf = tvar->subst;
   tvar->subst = tsubst;
 
-  res = checkTypeTerm (mgu_match, tvar);
+  res = checkTypeTerm (tvar);
 
   tvar->subst = tbuf;
   return res;
