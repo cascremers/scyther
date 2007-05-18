@@ -1,13 +1,7 @@
 --+++ Crititcal Bugs
 
-   * soph segfaults at no switch or -r4 (-r3 is okay??) using non-debug version.
-   * './scyther -a ../spdl/nsl3.spdl --increment-runs' segfaults. The main reason is that the Archne engine uses runs in a different way.
-     Maybe it is best to disable --increment rules for non-ModelChecker verification.
-
 ---+++ Bugs
 
-   * Problem with goal bindings: instantiation of variable with a tuple might
-  introduce a tuple goal, which is forbidden. We must find a way to deal with this. This typically occurs in type flaw searches.
    * Arachne seems to trip over claims with empty prec sets. Maybe we
   simply should not test these.
    * Splice/AS does not work well because priority key search stumbles over the
@@ -27,19 +21,9 @@
 
 ---++++ ArachneEngine
 
-   * There is no good test on the correct workings of
-     add_goals/destruction of these. We can test this if after
-     termination, we have 0 goals; for this we need to store the
-     initially added goals as well. Furthermore, we can generate an
-     error when <0 goals occur.
    * Consider where in Arachne dependency graph is used. If this is only for
      pruning states, we can construct it there only. However, the base 'role
      defs/bindings' graph might be re-used.
-   * Add switch for arachne to prune encryption levels when using -m2.
-   * To store attacks for arachne, maybe the following is needed:
-      * The roles for each run
-      * The variable bindings for all (local) variables
-      * The goal bindings
    * Agent terms must have keylevel 0; enforce this!
    * Select_goal should consider, for singular variables, whether their
      type can be found in M_0. If so, the goal can be ignored.
@@ -51,19 +35,11 @@
      Note that there can be multiple solutions; for now, simply try to take the
      shortest one.
 
----++++ ModelChecker
-
-   * For secrecy, one trusted agent and one untrusted agent suffices.
-     Implement this in the modelchecker.
-   * Implement delayed protocol compiler (on run demand only) for the modelchecker?
-
 ---++++ Misc
 
    * Make different error codes for compilation error/ other error. This can be
      useful for scripts. However, it might shift some constants for the Elegast
      scripts.
-   * Rewrite termMguTerm such that it iterates and adapt all functions
-     using it. This is to allow for associative tupling later.
    * Fix constants in intruder knowledge. Auto add single one of each type,
      when typed expl. Add single constant when untyped. Fix this also in
      semantics, and add proof to establish sufficiency.
@@ -101,19 +77,4 @@
      of things, and also allow for easier addition of stuff.
    * How is % notation handled in Casper?
    * Vernam encryption?
-
----++++ ConstraintLogic (and thus obsolete)
-
-   * CLP: variables in keys must be branched: maybe even in three situations
-     (have key and contents, have inverse key and content, nothing)
-   * How should claims behave (trusted/untrusted) wrt uninstantiated
-     agents? Branch again? That's what is causing the nsl3-var problem.
-   * Constraints might be a part of a knowledge thing, because with we
-     might now have a number of local knowledge sets, each with their own
-     constraint sets. That doesn't make it easier though :( and will cause
-     some performance loss I suppose. Each local set has to remain
-     solveable as well.
-   * Issue: how do untrusted claims work in the context of an intruder?
-     Claim must be checked if it can be solved such that at least one of
-     the agents is trusted.
 
