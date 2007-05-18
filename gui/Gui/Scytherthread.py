@@ -137,7 +137,6 @@ class AttackThread(threading.Thread):
 
         def graphLine(txt):
             fp.write("\t%s;\n" % (txt))
-            print txt   # DEBUG ONLY
 
         def setAttr(atxt,EdgeNodeDefAll=ALL):
             if EdgeNodeDefAll == ALL:
