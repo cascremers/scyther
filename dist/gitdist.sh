@@ -13,12 +13,16 @@ TAG="v1.0-beta7.1"
 
 DOCDIR=doc/manual
 MANUAL=scyther-manual.pdf
-ZIPNAME=scyther-$ARCH-$TAG.zip
 
 DNAM="scyther-$TAG"
 TMPDIR="/tmp"
 RESDIR="$TMPDIR/$DNAM"
 rm -rf $RESDIR
+
+ZIPDIR=$TMPDIR
+ZIPNAME=scyther-$ARCH-$TAG.zip
+
+rm -f $ZIPDIR/$ZIPNAME
 
 cd .. && git-archive --format=tar --prefix=$DNAM/ $TAG | (cd $TMPDIR && tar xf -)
 
@@ -44,7 +48,9 @@ CMFLAGS="-D CMAKE_BUILD_TYPE:STRING=Release"
 cmake $CMFLAGS -D TARGETOS=Win32 . && make
 #cmake $CMFLAGS                   . && make
 
-cp scyther-w32.exe $RESDIR/gui/Scyther/Bin
+BINDIR=$RESDIR/gui/Scyther/Bin
+mkdir $BINDIR
+cp scyther-w32.exe $BINDIR
 
 # Prepare tag for gui version
 echo "SCYTHER_GUI_VERSION = \"$TAG\"" >$DESTDIR/Gui/Version.py
@@ -54,7 +60,7 @@ WORKNAME="scyther-$TAG"
 cd $RESDIR
 mv gui $WORKNAME
 
-zip -r ../$ZIPNAME $WORKNAME
+zip -r $ZIPDIR/$ZIPNAME $WORKNAME
 rm -rf $RESDIR
 
 
