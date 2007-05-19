@@ -159,8 +159,9 @@ class AttackThread(threading.Thread):
         elif sys.platform.startswith("win"):
             self.fontname = "Courier"
         else:
-            font = wx.Font(9,wx.SWISS,wx.NORMAL,wx.NORMAL)
-            self.fontname = font.GetFaceName()
+            #font = wx.Font(9,wx.SWISS,wx.NORMAL,wx.NORMAL)
+            #self.fontname = font.GetFaceName()
+            self.fontname = "\"Helvetica\""
 
         # write all graph lines but add layout modifiers
         for l in txt.splitlines():
