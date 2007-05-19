@@ -12,6 +12,7 @@ import sys
 import StringIO
 import tempfile
 
+
 #---------------------------------------------------------------------------
 
 """ Import scyther components """
@@ -226,7 +227,7 @@ class Scyther(object):
         ##print self.cmd
 
         # Start the process
-        os.system(self.cmd)
+        safeCommand(self.cmd)
 
         # reseek
         fhe = os.fdopen(fde)

@@ -17,7 +17,7 @@ protocol ns3(I,R)
 		const ni: Nonce;
 		var nr: Nonce;
 
-		send_1(I,R, {I,ni}pk(R) );
+		send_1(I,R, {ni,I}pk(R) );
 		read_2(R,I, {ni,nr}pk(I) );
 		send_3(I,R, {nr}pk(R) );
 
@@ -32,7 +32,7 @@ protocol ns3(I,R)
 		var ni: Nonce;
 		const nr: Nonce;
 
-		read_1(I,R, {I,ni}pk(R) );
+		read_1(I,R, {ni,I}pk(R) );
 		send_2(R,I, {ni,nr}pk(I) );
 		read_3(I,R, {nr}pk(R) );
 

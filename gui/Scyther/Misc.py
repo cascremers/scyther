@@ -5,7 +5,14 @@
 #---------------------------------------------------------------------------
 
 """ Import externals """
+import sys
 import os.path
+try:
+    from subprocess import Popen
+    AvailablePopen = True
+except:
+    import os
+    AvailablePopen = False
 
 #---------------------------------------------------------------------------
 
@@ -42,4 +49,22 @@ def mypath(file):
     """
     basedir = os.path.dirname(__file__)
     return os.path.join(basedir,file)
+
+def safeCommand(cmd):
+    """ Execute a command with some arguments. Safe cross-platform
+    version, I hope. """
+
+    global AvailablePopen
+
+    if AvailablePopen:
+        if sys.platform.startswith("win"):
+            shell=False
+        else:
+            shell=True
+        p = Popen(cmd, shell=shell)
+        sts = p.wait()
+    else:
+        sts = os.system(cmd)
+
+    return sts
 

@@ -15,6 +15,7 @@ import StringIO
 """ Import scyther components """
 import Scyther.Scyther
 import Scyther.Error
+from Scyther.Misc import *
 
 """ Import scyther-gui components """
 import Tempfile
@@ -153,6 +154,15 @@ class AttackThread(threading.Thread):
                     return
                 graphLine("%s [%s]" % (edge,atxt))
 
+        if sys.platform.startswith("darwin"):
+            self.fontname = "Helvetica"
+        elif sys.platform.startswith("win"):
+            self.fontname = "Courier"
+        else:
+            #font = wx.Font(9,wx.SWISS,wx.NORMAL,wx.NORMAL)
+            #self.fontname = font.GetFaceName()
+            self.fontname = "\"Helvetica\""
+
         # write all graph lines but add layout modifiers
         for l in txt.splitlines():
             fp.write(l)
@@ -165,20 +175,19 @@ class AttackThread(threading.Thread):
                 #graphLine("nodesep=0.1")
                 #graphLine("ranksep=0.001")
                 #graphLine("mindist=0.1")
-                if sys.platform.startswith("lin"):
-                    # For Linux, choose Helvetica
-                    # TODO
-                    # This is really a Mac font so it might not be
-                    # available. Still, it works better on my Ubuntu
-                    # than Verdana, and finding a good sans default for 
-                    # linux seems problematic.
-                    setAttr("fontname=\"Helvetica\"")
-                if sys.platform.startswith("mac"):
-                    # For Mac choose Helvetica
-                    setAttr("fontname=\"Helvetica\"")
-                if sys.platform.startswith("win"):
-                    # For Windows choose Verdana
-                    setAttr("fontname=\"Verdana\"")
+    
+                # Set fontname
+                if self.fontname:
+                    fontstring = "fontname=%s" % (self.fontname)
+                    setAttr(fontstring)
+
+                # Stupid Mac <> Graphviz bug fix
+                if (sys.platform.startswith("mac")) or (sys.platform.startswith("darwin")):
+                    # Note that dot on Mac cannot find the fonts by default,
+                    # and we have to set them accordingly.
+                    os.environ["DOTFONTPATH"]="~/Library/Fonts:/Library/Fonts:/System/Library/Fonts"
+
+                # Select font size
                 if self.parent and self.parent.mainwin:
                     fontsize = self.parent.mainwin.settings.fontsize
                     setAttr("fontsize=%s" % fontsize)
@@ -188,6 +197,7 @@ class AttackThread(threading.Thread):
 
     def makeImage(self,attack):
         """ create image for this particular attack """
+
         if Preference.usePIL():
             # If we have the PIL library, we can do postscript! great
             # stuff.
@@ -201,21 +211,17 @@ class AttackThread(threading.Thread):
         # command to write to temporary file
         (fd2,fpname2) = Tempfile.tempcleaned(ext)
         f = os.fdopen(fd2,'w')
+        (fd3,fpname3) = Tempfile.tempcleaned(ext)
+        dotfile = os.fdopen(fd3,'w')
+        self.writeGraph(attack.scytherDot,dotfile)
+        dotfile.flush()
+        dotfile.seek(0)
 
-        cmd = "dot -T%s" % (type)
+        cmd = "dot -T%s -o%s %s" % (type,fpname2,fpname3)
 
         # execute command
-        cin,cout = os.popen2(cmd,'b')
-    
-        self.writeGraph(attack.scytherDot,cin)
-        cin.close()
-
-        for l in cout.read():
-            f.write(l)
-
-        cout.close()
-        f.flush()
-        f.close()
+        # Start the process
+        safeCommand(cmd)
 
         # if this is done, store and report
         attack.filetype = type

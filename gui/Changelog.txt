@@ -2,9 +2,15 @@
 - Scyther changelog -
 ---------------------
 
+Scyther 1.0-beta7.1
+
+	Bugfixes:
+
+	* Windows Vista fix broke Windows XP support.
+
 Scyther 1.0-beta7
 
-        Bugfixes:
+	Bugfixes:
 
 	* Windows Vista causes a number of problems. The biggest problem
 	is now fixed, which is the bad implementation of the tmpfile() C
