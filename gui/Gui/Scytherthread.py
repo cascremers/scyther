@@ -9,17 +9,13 @@ import sys
 import re
 import threading
 import StringIO
-try:
-    from subprocess import Popen
-    AvailablePopen = True
-except:
-    AvailablePopen = False
 
 #---------------------------------------------------------------------------
 
 """ Import scyther components """
 import Scyther.Scyther
 import Scyther.Error
+from Scyther.Misc import *
 
 """ Import scyther-gui components """
 import Tempfile
@@ -166,8 +162,6 @@ class AttackThread(threading.Thread):
             font = wx.Font(9,wx.SWISS,wx.NORMAL,wx.NORMAL)
             self.fontname = font.GetFaceName()
 
-
-
         # write all graph lines but add layout modifiers
         for l in txt.splitlines():
             fp.write(l)
@@ -204,8 +198,6 @@ class AttackThread(threading.Thread):
     def makeImage(self,attack):
         """ create image for this particular attack """
 
-        global AvailablePopen
-
         if Preference.usePIL():
             # If we have the PIL library, we can do postscript! great
             # stuff.
@@ -229,11 +221,7 @@ class AttackThread(threading.Thread):
 
         # execute command
         # Start the process
-        if AvailablePopen:
-            p = Popen(cmd, shell=False)
-            sts = p.wait()
-        else:
-            os.system(cmd)
+        safeCommand(cmd)
 
         # Print
         #print fpname2

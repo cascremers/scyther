@@ -11,11 +11,6 @@ import os.path
 import sys
 import StringIO
 import tempfile
-try:
-    from subprocess import Popen
-    AvailablePopen = True
-except:
-    AvailablePopen = False
 
 
 #---------------------------------------------------------------------------
@@ -198,7 +193,6 @@ class Scyther(object):
             output -- string which is the real output
             errors -- string which captures the errors
         """
-        global AvailablePopen
 
         if self.program == None:
             raise Error.NoBinaryError
@@ -233,11 +227,7 @@ class Scyther(object):
         ##print self.cmd
 
         # Start the process
-        if AvailablePopen:
-            p = Popen(self.cmd, shell=False)
-            sts = p.wait()
-        else:
-            os.system(self.cmd)
+        safeCommand(self.cmd)
 
         # reseek
         fhe = os.fdopen(fde)
