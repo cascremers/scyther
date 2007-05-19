@@ -2,6 +2,12 @@
 - Scyther changelog -
 ---------------------
 
+Scyther 1.0-beta7.1
+
+	Bugfixes:
+
+	* Windows Vista fix broke Windows XP support.
+
 Scyther 1.0-beta7
 
         Bugfixes:
