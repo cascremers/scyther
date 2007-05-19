@@ -4,10 +4,16 @@
 #
 # For now, just windows. Others will follow.
 #
-TAG="v1.0-beta7"
+# Usage will be:
+#
+#   gitdist ARCH TAG
+#
+ARCH=w32
+TAG="v1.0-beta7.1"
 
 DOCDIR=doc/manual
 MANUAL=scyther-manual.pdf
+ZIPNAME=scyther-$ARCH-$TAG.zip
 
 DNAM="scyther-$TAG"
 TMPDIR="/tmp"
@@ -47,5 +53,8 @@ echo "SCYTHER_GUI_VERSION = \"$TAG\"" >$DESTDIR/Gui/Version.py
 WORKNAME="scyther-$TAG"
 cd $RESDIR
 mv gui $WORKNAME
-zip -r scyther-w32-$TAG.zip $WORKNAME
+
+zip -r ../$ZIPNAME $WORKNAME
+rm -rf $RESDIR
+
 
