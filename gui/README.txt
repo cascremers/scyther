@@ -2,14 +2,8 @@
 
 				Scyther
 
-			       1.0-beta5
-
 	  an automatic verification tool for security protocols
 			     by Cas Cremers
-
-			Microsoft Windows binary
-				  and
-	   Linux binary (compiled for Linux i686 environments)
 
 ------------------------------------------------------------------------
 
@@ -35,7 +29,7 @@ Start the graphical user interface by starting
 
 Some protocol description files (with extension .spdl) can be found in
 the base directory.  Many other protocol input files can be found in the
-SPORE directory.
+'Protocols' directory.
 
 
 3. Citing Scyther
