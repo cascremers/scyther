@@ -15,6 +15,7 @@ import StringIO
 """ Import scyther components """
 import Scyther.Scyther
 import Scyther.Error
+from Scyther.Misc import *
 
 """ Import scyther-gui components """
 import Tempfile
@@ -153,12 +154,14 @@ class AttackThread(threading.Thread):
                     return
                 graphLine("%s [%s]" % (edge,atxt))
 
-        # Precompute font name
-        # Set a font with sans
-        # We only retrieve the name, so the size '9' here is
-        # irrelevant.
-        font = wx.Font(9,wx.SWISS,wx.NORMAL,wx.NORMAL)
-        self.fontname = font.GetFaceName()
+        if sys.platform.startswith("darwin"):
+            self.fontname = "Helvetica"
+        elif sys.platform.startswith("win"):
+            self.fontname = "Courier"
+        else:
+            #font = wx.Font(9,wx.SWISS,wx.NORMAL,wx.NORMAL)
+            #self.fontname = font.GetFaceName()
+            self.fontname = "\"Helvetica\""
 
         # write all graph lines but add layout modifiers
         for l in txt.splitlines():
@@ -174,8 +177,9 @@ class AttackThread(threading.Thread):
                 #graphLine("mindist=0.1")
     
                 # Set fontname
-                fontstring = "fontname=%s" % (self.fontname)
-                setAttr(fontstring,EDGE)
+                if self.fontname:
+                    fontstring = "fontname=%s" % (self.fontname)
+                    setAttr(fontstring)
 
                 # Stupid Mac <> Graphviz bug fix
                 if (sys.platform.startswith("mac")) or (sys.platform.startswith("darwin")):
@@ -194,6 +198,7 @@ class AttackThread(threading.Thread):
 
     def makeImage(self,attack):
         """ create image for this particular attack """
+
         if Preference.usePIL():
             # If we have the PIL library, we can do postscript! great
             # stuff.
@@ -207,23 +212,21 @@ class AttackThread(threading.Thread):
         # command to write to temporary file
         (fd2,fpname2) = Tempfile.tempcleaned(ext)
         f = os.fdopen(fd2,'w')
+        (fd3,fpname3) = Tempfile.tempcleaned(ext)
+        dotfile = os.fdopen(fd3,'w')
+        self.writeGraph(attack.scytherDot,dotfile)
+        dotfile.flush()
+        dotfile.seek(0)
 
-        cmd = "dot -T%s >%s" % (type,fpname2)
+        cmd = "dot -T%s -o%s %s" % (type,fpname2,fpname3)
 
         # execute command
-        cin,cout = os.popen2(cmd,'b')
-    
-        self.writeGraph(attack.scytherDot,cin)
-        cin.flush()
-        cin.close()
-        cout.close()
-
-        f.flush()
-        f.close()
+        # Start the process
+        safeCommand(cmd)
 
         # Print
-        print fpname2
-        raw_input()
+        #print fpname2
+        #raw_input()
 
         # if this is done, store and report
         attack.filetype = type
