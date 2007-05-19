@@ -158,12 +158,15 @@ class AttackThread(threading.Thread):
                     return
                 graphLine("%s [%s]" % (edge,atxt))
 
-        # Precompute font name
-        # Set a font with sans
-        # We only retrieve the name, so the size '9' here is
-        # irrelevant.
-        font = wx.Font(9,wx.SWISS,wx.NORMAL,wx.NORMAL)
-        self.fontname = font.GetFaceName()
+        if sys.platform.startswith("darwin"):
+            self.fontname = "Helvetica"
+        elif sys.platform.startswith("win"):
+            self.fontname = "Courier"
+        else:
+            font = wx.Font(9,wx.SWISS,wx.NORMAL,wx.NORMAL)
+            self.fontname = font.GetFaceName()
+
+
 
         # write all graph lines but add layout modifiers
         for l in txt.splitlines():
@@ -179,8 +182,9 @@ class AttackThread(threading.Thread):
                 #graphLine("mindist=0.1")
     
                 # Set fontname
-                fontstring = "fontname=%s" % (self.fontname)
-                setAttr(fontstring,EDGE)
+                if self.fontname:
+                    fontstring = "fontname=%s" % (self.fontname)
+                    setAttr(fontstring)
 
                 # Stupid Mac <> Graphviz bug fix
                 if (sys.platform.startswith("mac")) or (sys.platform.startswith("darwin")):
