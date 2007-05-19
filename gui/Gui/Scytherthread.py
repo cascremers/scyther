@@ -9,6 +9,11 @@ import sys
 import re
 import threading
 import StringIO
+try:
+    from subprocess import Popen
+    AvailablePopen = True
+except:
+    AvailablePopen = False
 
 #---------------------------------------------------------------------------
 
@@ -194,6 +199,9 @@ class AttackThread(threading.Thread):
 
     def makeImage(self,attack):
         """ create image for this particular attack """
+
+        global AvailablePopen
+
         if Preference.usePIL():
             # If we have the PIL library, we can do postscript! great
             # stuff.
@@ -207,23 +215,25 @@ class AttackThread(threading.Thread):
         # command to write to temporary file
         (fd2,fpname2) = Tempfile.tempcleaned(ext)
         f = os.fdopen(fd2,'w')
+        (fd3,fpname3) = Tempfile.tempcleaned(ext)
+        dotfile = os.fdopen(fd3,'w')
+        self.writeGraph(attack.scytherDot,dotfile)
+        dotfile.flush()
+        dotfile.seek(0)
 
-        cmd = "dot -T%s >%s" % (type,fpname2)
+        cmd = "dot -T%s -o%s %s" % (type,fpname2,fpname3)
 
         # execute command
-        cin,cout = os.popen2(cmd,'b')
-    
-        self.writeGraph(attack.scytherDot,cin)
-        cin.flush()
-        cin.close()
-        cout.close()
-
-        f.flush()
-        f.close()
+        # Start the process
+        if AvailablePopen:
+            p = Popen(cmd, shell=False)
+            sts = p.wait()
+        else:
+            os.system(cmd)
 
         # Print
-        print fpname2
-        raw_input()
+        #print fpname2
+        #raw_input()
 
         # if this is done, store and report
         attack.filetype = type
