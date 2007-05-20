@@ -24,38 +24,45 @@ echo $CURDIR
 ARCH="w32"
 TAG="test"
 
-DOCDIR=doc/manual
-MANUAL=scyther-manual.pdf
-
-DNAM="scyther-$TAG"
-TMPDIR="/tmp"
-RESDIR="$TMPDIR/$DNAM"
-rm -rf $RESDIR
-
-DESTDIR=$CURDIR
-
-# Where is it going to? Note without extension, this will added later
+# Note without extension, this will added later
 ARCHNAME=scyther-$ARCH-$TAG
+
+# Directory locations
+DESTDIR=$CURDIR
+TMPDIR="/tmp"
+SRCNAME=$ARCHNAME-src
+
+# Hard coded connections, do not change this (hardcoded in git-archive
+# usage and archive creation)
+SRCDIR=$TMPDIR/$SRCNAME		
+BUILDDIR=$TMPDIR/$ARCHNAME
+
+# Archive destination file without extension
 DESTFILE=$DESTDIR/$ARCHNAME
 
+# Internal locations
+DOCDIR=$SRCDIR/doc/manual
+MANUAL=scyther-manual.pdf
 
-cd .. && git-archive --format=tar --prefix=$DNAM/ $TAG | (cd $TMPDIR && tar xf -)
+rm -rf $SRCDIR
+rm -rf $BUILDDIR
 
-ls $RESDIR
+# Change into the lower directory (main archive dir)
+cd .. && git-archive --format=tar --prefix=$SRCNAME/ $TAG | (cd $TMPDIR && tar xf -)
 
-# Windows binary
-cd $RESDIR/src
-
-# Where is stuff going to
-DESTDIR=$RESDIR/gui
+# Base of the package is the gui directory
+mv $SRCDIR/gui $BUILDDIR
 
 # Prepare version.h with the correct flag (tag)
-echo "#define SVNVERSION \"Unknown\"" >$RESDIR/src/version.h
-echo "#define TAGVERSION \"$TAG\"" >>$RESDIR/src/version.h
-echo "" >>$RESDIR/src/version.h
+echo "#define SVNVERSION \"Unknown\"" >$SRCDIR/src/version.h
+echo "#define TAGVERSION \"$TAG\"" >>$SRCDIR/src/version.h
+echo "" >>$SRCDIR/src/version.h
 
 # Manual
-cp $RESDIR/$DOCDIR/$MANUAL $DESTDIR
+cp $DOCDIR/$MANUAL $BUILDDIR
+
+# Change into sources directory
+cd $SRCDIR/src
 
 # Default flags
 CMFLAGS="-D CMAKE_BUILD_TYPE:STRING=Release"
@@ -81,33 +88,29 @@ else
 	exit
 fi
 
-BINDIR=$RESDIR/gui/Scyther/Bin
+# Copy the resulting binary to the correct location
+BINDIR=$BUILDDIR/Scyther/Bin
 mkdir $BINDIR
 cp $BIN $BINDIR
 
 # Prepare tag for gui version
-echo "SCYTHER_GUI_VERSION = \"$TAG\"" >$DESTDIR/Gui/Version.py
+echo "SCYTHER_GUI_VERSION = \"$TAG\"" >$BUILDDIR/Gui/Version.py
 
-# Make archive out of the result
-WORKNAME="scyther-$TAG"
-cd $RESDIR
-mv gui $WORKNAME
-
-# Compress the result into an archive
+# Compress the whole thing into an archive
+cd $TMPDIR
 if [ $ARCH = "w32" ]
 then
 	DESTARCH=$DESTFILE.zip
 	rm -f $DESTARCH
-	zip -r $DESTARCH $WORKNAME
-
-elif [ $ARCH = "linux" || $ARCH = "mac" ]
-then
+	zip -r $DESTARCH $ARCHNAME
+else
 	DESTARCH=$DESTFILE.tgz
 	rm -f $DESTARCH
-	tar zcvf $DESTARCH $WORKNAME
+	tar zcvf $DESTARCH $ARCHNAME
 fi
 
 # Remove the temporary working directory
-rm -rf $RESDIR
+rm -rf $BUILDDIR
+rm -rf $SRCDIR
 
 
