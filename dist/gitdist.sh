@@ -8,8 +8,21 @@
 #
 #   gitdist ARCH TAG
 #
-ARCH=w32
-TAG="v1.0-beta7.1"
+#   ARCH is any of
+#
+#	linux
+#	w32
+#	mac
+#
+# The tag is checked out of the current repository (so it should exist)
+# and this is used to construct a archive with the binary of the
+# selected architecture.
+
+CURDIR=`pwd`
+echo $CURDIR
+
+ARCH="w32"
+TAG="test"
 
 DOCDIR=doc/manual
 MANUAL=scyther-manual.pdf
@@ -19,10 +32,12 @@ TMPDIR="/tmp"
 RESDIR="$TMPDIR/$DNAM"
 rm -rf $RESDIR
 
-ZIPDIR=$TMPDIR
-ZIPNAME=scyther-$ARCH-$TAG.zip
+DESTDIR=$CURDIR
 
-rm -f $ZIPDIR/$ZIPNAME
+# Where is it going to? Note without extension, this will added later
+ARCHNAME=scyther-$ARCH-$TAG
+DESTFILE=$DESTDIR/$ARCHNAME
+
 
 cd .. && git-archive --format=tar --prefix=$DNAM/ $TAG | (cd $TMPDIR && tar xf -)
 
@@ -44,13 +59,31 @@ cp $RESDIR/$DOCDIR/$MANUAL $DESTDIR
 
 # Default flags
 CMFLAGS="-D CMAKE_BUILD_TYPE:STRING=Release"
-# Make for windows and linux
-cmake $CMFLAGS -D TARGETOS=Win32 . && make
-#cmake $CMFLAGS                   . && make
+if [ $ARCH = "w32" ]
+then
+	BIN="scyther-w32.exe"
+	cmake $CMFLAGS -D TARGETOS=Win32 . && make
+
+elif [ $ARCH = "linux" ]
+then
+	BIN="scyther-linux"
+	cmake $CMFLAGS . && make
+
+elif [ $ARCH = "mac" ]
+then
+	# Make for ppc and intel, and combine into universal binary
+	BIN="scyther-mac"
+	cmake $CMFLAGS -D TARGETOS=MacPPC   . && make
+	cmake $CMFLAGS -D TARGETOS=MacIntel . && make
+	cmake $CMFLAGS                      . && make scyther-mac
+else
+	echo "Don't know this architecture $ARCH"
+	exit
+fi
 
 BINDIR=$RESDIR/gui/Scyther/Bin
 mkdir $BINDIR
-cp scyther-w32.exe $BINDIR
+cp $BIN $BINDIR
 
 # Prepare tag for gui version
 echo "SCYTHER_GUI_VERSION = \"$TAG\"" >$DESTDIR/Gui/Version.py
@@ -60,7 +93,21 @@ WORKNAME="scyther-$TAG"
 cd $RESDIR
 mv gui $WORKNAME
 
-zip -r $ZIPDIR/$ZIPNAME $WORKNAME
+# Compress the result into an archive
+if [ $ARCH = "w32" ]
+then
+	DESTARCH=$DESTFILE.zip
+	rm -f $DESTARCH
+	zip -r $DESTARCH $WORKNAME
+
+elif [ $ARCH = "linux" || $ARCH = "mac" ]
+then
+	DESTARCH=$DESTFILE.tgz
+	rm -f $DESTARCH
+	tar zcvf $DESTARCH $WORKNAME
+fi
+
+# Remove the temporary working directory
 rm -rf $RESDIR
 
 
