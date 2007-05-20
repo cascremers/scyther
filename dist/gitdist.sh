@@ -18,16 +18,43 @@
 # and this is used to construct a archive with the binary of the
 # selected architecture.
 
-CURDIR=`pwd`
-echo $CURDIR
+if [ "x$1" = "x" -o "x$2" = "x" ]
+then
+	echo
+	echo "Scyther binary distribution generator."
+	echo
+	echo "  Usage: $0 <arch> <tag>"
+	echo
+	echo "where <arch> is one of linux,w32,mac"
+	echo "and <tag> is any tag in the current git repository."
+	echo
+	exit
+fi
 
-ARCH="w32"
-TAG="test"
+ARCH=$1
+if [ "x$ARCH" = "xlinux" -o "x$ARCH" = "xw32" -o "x$ARCH" = "xmac" ]
+then
+	echo "Architecture $ARCH detected."
+else
+	echo "Don't know architecture $ARCH"
+	exit
+fi
+
+TAG=$2
+FOUND=`git-tag -l $TAG`
+if [ "x$TAG" = "x$FOUND" ]
+then
+	echo "Tag $TAG found."
+else
+	echo "Don't know tag $TAG"
+	exit
+fi
 
 # Note without extension, this will added later
 ARCHNAME=scyther-$ARCH-$TAG
 
 # Directory locations
+CURDIR=`pwd`
 DESTDIR=$CURDIR
 TMPDIR="/tmp"
 SRCNAME=$ARCHNAME-src
@@ -83,9 +110,6 @@ then
 	cmake $CMFLAGS -D TARGETOS=MacPPC   . && make
 	cmake $CMFLAGS -D TARGETOS=MacIntel . && make
 	cmake $CMFLAGS                      . && make scyther-mac
-else
-	echo "Don't know this architecture $ARCH"
-	exit
 fi
 
 # Copy the resulting binary to the correct location
