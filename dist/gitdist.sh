@@ -36,7 +36,8 @@ if [ "x$ARCH" = "xlinux" -o "x$ARCH" = "xw32" -o "x$ARCH" = "xmac" ]
 then
 	echo "Architecture $ARCH detected."
 else
-	echo "Don't know architecture $ARCH"
+	echo "Don't know architecture $ARCH."
+	echo "Please use one of linux,w32,mac"
 	exit
 fi
 
@@ -46,7 +47,8 @@ if [ "x$TAG" = "x$FOUND" ]
 then
 	echo "Tag $TAG found."
 else
-	echo "Don't know tag $TAG"
+	echo "Don't know tag $TAG, please select one from below:"
+	git-tag -l
 	exit
 fi
 
