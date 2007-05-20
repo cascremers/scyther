@@ -82,9 +82,11 @@ cd .. && git-archive --format=tar --prefix=$SRCNAME/ $TAG | (cd $TMPDIR && tar x
 # Base of the package is the gui directory
 mv $SRCDIR/gui $BUILDDIR
 
+# Prepare tag for gui version
+echo "SCYTHER_GUI_VERSION = \"$TAG\"" >$BUILDDIR/Gui/Version.py
+
 # Prepare version.h with the correct flag (tag)
-echo "#define SVNVERSION \"Unknown\"" >$SRCDIR/src/version.h
-echo "#define TAGVERSION \"$TAG\"" >>$SRCDIR/src/version.h
+echo "#define TAGVERSION \"$TAG\"" >$SRCDIR/src/version.h
 echo "" >>$SRCDIR/src/version.h
 
 # Manual
@@ -118,9 +120,6 @@ fi
 BINDIR=$BUILDDIR/Scyther/Bin
 mkdir $BINDIR
 cp $BIN $BINDIR
-
-# Prepare tag for gui version
-echo "SCYTHER_GUI_VERSION = \"$TAG\"" >$BUILDDIR/Gui/Version.py
 
 # Compress the whole thing into an archive
 cd $TMPDIR
