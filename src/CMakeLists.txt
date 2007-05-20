@@ -24,9 +24,6 @@ set (Scyther_sources
 # If we are in a debug mode we want to be strict
 set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -DDEBUG")
 
-# Determine version number
-include (SVNVersion.cmake)
-
 # Make scanner and parser
 include (ScannerParser.cmake)
 
