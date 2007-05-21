@@ -36,7 +36,8 @@ if [ "x$ARCH" = "xlinux" -o "x$ARCH" = "xw32" -o "x$ARCH" = "xmac" ]
 then
 	echo "Architecture $ARCH detected."
 else
-	echo "Don't know architecture $ARCH"
+	echo "Don't know architecture $ARCH."
+	echo "Please use one of linux,w32,mac"
 	exit
 fi
 
@@ -46,7 +47,8 @@ if [ "x$TAG" = "x$FOUND" ]
 then
 	echo "Tag $TAG found."
 else
-	echo "Don't know tag $TAG"
+	echo "Don't know tag $TAG, please select one from below:"
+	git-tag -l
 	exit
 fi
 
@@ -80,9 +82,11 @@ cd .. && git-archive --format=tar --prefix=$SRCNAME/ $TAG | (cd $TMPDIR && tar x
 # Base of the package is the gui directory
 mv $SRCDIR/gui $BUILDDIR
 
+# Prepare tag for gui version
+echo "SCYTHER_GUI_VERSION = \"$TAG\"" >$BUILDDIR/Gui/Version.py
+
 # Prepare version.h with the correct flag (tag)
-echo "#define SVNVERSION \"Unknown\"" >$SRCDIR/src/version.h
-echo "#define TAGVERSION \"$TAG\"" >>$SRCDIR/src/version.h
+echo "#define TAGVERSION \"$TAG\"" >$SRCDIR/src/version.h
 echo "" >>$SRCDIR/src/version.h
 
 # Manual
@@ -115,9 +119,6 @@ fi
 # Copy the resulting binary to the correct location
 BINDIR=$BUILDDIR/Scyther/
 cp $BIN $BINDIR
-
-# Prepare tag for gui version
-echo "SCYTHER_GUI_VERSION = \"$TAG\"" >$BUILDDIR/Gui/Version.py
 
 # Compress the whole thing into an archive
 cd $TMPDIR

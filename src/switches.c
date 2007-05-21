@@ -1247,10 +1247,7 @@ switcher (const int process, int index, int commandline)
 	  if (switches.expert)
 	    {
 #ifdef DEBUG
-	      printf ("Revision %s, compiled with debugging support.\n",
-		      SVNVERSION);
-#else
-	      printf ("Revision %s\n", SVNVERSION);
+	      printf ("Compiled with debugging support.\n");
 #endif
 	    }
 	  printf ("Code by Cas Cremers\n");
