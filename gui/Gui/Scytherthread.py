@@ -227,13 +227,6 @@ class AttackThread(threading.Thread):
         f.flush()
         f.close()
 
-
-        cmd = ["dot","-T %s" % type, "-o %s" % fpname2, fpname3 ]
-
-        # execute command
-        # Start the process
-        safeCommand(cmdlist)
-
         # if this is done, store and report
         attack.filetype = type
         attack.file = fpname2  # this is where the file name is stored
