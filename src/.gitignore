@@ -1,3 +1,11 @@
 *.o
 CMakeFiles
 CMakeCache.txt
+Makefile
+cmake_install.cmake
+parser.c
+parser.h
+scanner.c
+scyther-linux
+scyther-mac
+scyther-w32.exe
