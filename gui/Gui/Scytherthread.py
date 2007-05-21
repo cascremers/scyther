@@ -211,17 +211,28 @@ class AttackThread(threading.Thread):
         # command to write to temporary file
         (fd2,fpname2) = Tempfile.tempcleaned(ext)
         f = os.fdopen(fd2,'w')
-        (fd3,fpname3) = Tempfile.tempcleaned(ext)
-        dotfile = os.fdopen(fd3,'w')
-        self.writeGraph(attack.scytherDot,dotfile)
-        dotfile.flush()
-        dotfile.seek(0)
 
-        cmd = "dot -T%s -o%s %s" % (type,fpname2,fpname3)
+        cmd = "dot -T%s" % (type)
+
+         # execute command
+        cin,cout = os.popen2(cmd,'b')
+
+        self.writeGraph(attack.scytherDot,cin)
+        cin.close()
+
+        for l in cout.read():
+            f.write(l)
+
+        cout.close()
+        f.flush()
+        f.close()
+
+
+        cmd = ["dot","-T %s" % type, "-o %s" % fpname2, fpname3 ]
 
         # execute command
         # Start the process
-        safeCommand(cmd)
+        safeCommand(cmdlist)
 
         # if this is done, store and report
         attack.filetype = type
