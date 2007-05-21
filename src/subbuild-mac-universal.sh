@@ -14,7 +14,7 @@ echo "---------------------------------------------------------"
 echo "Built the Mac universal binary"
 
 # Copy to the correct locations
-cp scyther-mac ../gui/Scyther/Bin
+cp scyther-mac ../gui/Scyther/
 
 echo Copied the files to their respective locations
 echo "---------------------------------------------------------"

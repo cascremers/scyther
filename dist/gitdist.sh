@@ -113,8 +113,7 @@ then
 fi
 
 # Copy the resulting binary to the correct location
-BINDIR=$BUILDDIR/Scyther/Bin
-mkdir $BINDIR
+BINDIR=$BUILDDIR/Scyther/
 cp $BIN $BINDIR
 
 # Prepare tag for gui version

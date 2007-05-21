@@ -34,7 +34,7 @@ def scyther_to_dotfile():
     """ Run Scyther, return dotfile name """
 
     mydir = os.path.dirname(__file__)
-    scythername = os.path.join(mydir, "../Scyther/Bin/scyther-linux")
+    scythername = os.path.join(mydir, "../Scyther/scyther-linux")
 
     args = " ".join(sys.argv[1:])
     tmpdotfile = generateTemp('dot')

@@ -13,8 +13,8 @@ echo "---------------------------------------------------------"
 echo "Built the Linux and Windows binaries"
 
 # Copy to the correct locations
-cp scyther-linux ../gui/Scyther/Bin
-cp scyther-w32.exe ../gui/Scyther/Bin
+cp scyther-linux ../gui/Scyther/
+cp scyther-w32.exe ../gui/Scyther/
 
 # bonus...
 cp scyther-linux ~/bin
