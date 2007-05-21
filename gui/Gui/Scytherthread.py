@@ -191,7 +191,6 @@ class AttackThread(threading.Thread):
                 if self.parent and self.parent.mainwin:
                     fontsize = self.parent.mainwin.settings.fontsize
                     setAttr("fontsize=%s" % fontsize)
-
                 #setAttr("height=\"0.1\"",NODE)
                 #setAttr("width=\"1.0\"",NODE)
                 #setAttr("margin=\"0.3,0.03\"",NODE)
@@ -212,27 +211,25 @@ class AttackThread(threading.Thread):
         # command to write to temporary file
         (fd2,fpname2) = Tempfile.tempcleaned(ext)
         f = os.fdopen(fd2,'w')
-        (fd3,fpname3) = Tempfile.tempcleaned(ext)
-        dotfile = os.fdopen(fd3,'w')
-        self.writeGraph(attack.scytherDot,dotfile)
-        dotfile.flush()
-        dotfile.seek(0)
 
-        cmd = "dot -T%s -o%s %s" % (type,fpname2,fpname3)
+        cmd = "dot -T%s" % (type)
 
-        # execute command
-        # Start the process
-        safeCommand(cmd)
+         # execute command
+        cin,cout = os.popen2(cmd,'b')
 
-        # Print
-        #print fpname2
-        #raw_input()
+        self.writeGraph(attack.scytherDot,cin)
+        cin.close()
+
+        for l in cout.read():
+            f.write(l)
+
+        cout.close()
+        f.flush()
+        f.close()
 
         # if this is done, store and report
         attack.filetype = type
         attack.file = fpname2  # this is where the file name is stored
-
-        # Maybe we should remove the temporary file... TODO
 
 #---------------------------------------------------------------------------
 

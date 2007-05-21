@@ -1,7 +1,0 @@
-Where are the version numbers? (way too distributed)
-
-- Gui has a version number in Version.py. This is propagated into the
-  binary and into the archive name as well.
-- ChangeLog
-- Readme.txt
-

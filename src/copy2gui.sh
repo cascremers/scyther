@@ -1,8 +1,8 @@
 #!/bin/sh
 
-cp scyther-linux ../gui/Scyther/Bin
-cp scyther-w32.exe ../gui/Scyther/Bin
-cp scyther-mac ../gui/Scyther/Bin
+cp scyther-linux ../gui/Scyther/
+cp scyther-w32.exe ../gui/Scyther/
+cp scyther-mac ../gui/Scyther/
 
 # bonus...
 cp scyther-linux ~/bin
