@@ -376,6 +376,7 @@ class ResultWindow(wx.Frame):
     def BuildClaim(self,grid,cl,ypos):
         # a support function
         def addtxt(txt,column):
+            txt = txt.replace("-","_")  # Strange fix for wx.StaticText as it cuts off the display.
             grid.Add(wx.StaticText(self,-1,txt),(ypos,column),(1,1),wx.ALIGN_CENTER_VERTICAL|wx.ALL,10)
 
         n = len(cl.attacks)
