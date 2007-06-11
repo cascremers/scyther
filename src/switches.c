@@ -1262,14 +1262,56 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  printf ("'%s' model checker for security protocols.\n", progname);
-	  printf ("Version %s.\n", TAGVERSION);
+	  printf ("Scyther version %s.\n", TAGVERSION);
 	  if (switches.expert)
 	    {
 #ifdef DEBUG
 	      printf ("Compiled with debugging support.\n");
 #endif
 	    }
-	  printf ("Code by Cas Cremers\n");
+	  printf ("Copyright (C) 2007 Cas Cremers\n\n");
+	  printf ("Scyther comes with ABSOLUTELY NO WARRANTY.\n");
+	  printf ("This is free software, and you are welcome\n");
+	  printf ("to redistribute it under certain conditions.\n");
+	  printf ("Use the `--license' option for details.\n", progname);
+	  exit (0);
+	}
+    }
+
+  if (detect (' ', "license", 0))
+    {
+      if (!process)
+	{
+	  helptext ("    --license", "show license");
+	}
+      else
+	{
+	  printf
+	    ("Scyther : An automatic verifier for security protocols.\n");
+	  printf ("Copyright (C) 2007 Cas Cremers\n");
+	  printf ("\n");
+	  printf
+	    ("This program is free software; you can redistribute it and/or\n");
+	  printf
+	    ("modify it under the terms of the GNU General Public License\n");
+	  printf
+	    ("as published by the Free Software Foundation; either version 2\n");
+	  printf ("of the License, or (at your option) any later version.\n");
+	  printf ("\n");
+	  printf
+	    ("This program is distributed in the hope that it will be useful,\n");
+	  printf
+	    ("but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
+	  printf
+	    ("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n");
+	  printf ("GNU General Public License for more details.\n");
+	  printf ("\n");
+	  printf
+	    ("You should have received a copy of the GNU General Public License\n");
+	  printf
+	    ("along with this program; if not, write to the Free Software\n");
+	  printf
+	    ("Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.\n");
 	  exit (0);
 	}
     }
