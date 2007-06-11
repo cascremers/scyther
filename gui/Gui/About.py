@@ -56,30 +56,50 @@ class AboutScyther(wx.Dialog):
         self.text = '''
 <html>
 <body bgcolor="#ffffff">
-    <img src="$SPLASH">
-        <p align="right"><b>Scyther : $VERSION</b></p>
-        <small>
-<p>
-    <b>Scyther</b> is an automatic tool for the verification and
-    falsification of security protocols.
-</p>
-<p>
-    Scyther and Scyther GUI developed by
-    Cas Cremers 2004-2007.
-</p>
-<p>
-    For news and updates visit the Scyther pages at 
-    <a target="_blank" href="http://people.inf.ethz.ch/cremersc/scyther/index.html">
-    http://people.inf.ethz.ch/cremersc/scyther/index.html</a>
-</p>
-<p>
-    $DETAILS
-</p>
-<p>
-    Credits: Cas Cremers (Scyther theory, backend, and main GUI
-    code), Gijs Hollestelle (Python parser for Scyther XML output).
-</p>
-        </small>
+<img src="$SPLASH">
+<h5 align="right">Scyther : $VERSION</h5>
+<small>
+    <p>
+        <b>Scyther</b> is an automatic tool for the verification and
+        falsification of security protocols.
+    </p>
+    <p>
+        For news and updates visit the Scyther pages at 
+        <a target="_blank" href="http://people.inf.ethz.ch/cremersc/scyther/index.html">
+        http://people.inf.ethz.ch/cremersc/scyther/index.html</a>
+    </p>
+    <h5>License</h5>
+    <p>
+        Scyther : An automatic verifier for security protocols.<br>
+        Copyright (C) 2007 Cas Cremers
+    </p>
+    <p>
+        This program is free software; you can redistribute it and/or
+        modify it under the terms of the GNU General Public License
+        as published by the Free Software Foundation; either version 2
+        of the License, or (at your option) any later version.
+    </p>
+    <p>
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU General Public License for more details.
+    </p>
+    <p>
+        You should have received a copy of the GNU General Public License
+        along with this program; if not, write to the Free Software
+        Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+    </p>
+    <h5>Backend version</h5>
+    <p>
+        $DETAILS
+    </p>
+    <h5>Credits</h5>
+    <p>
+        Cas Cremers (Scyther theory, backend, and main GUI
+        code), Gijs Hollestelle (Python parser for Scyther XML output).
+    </p>
+</small>
         '''
 
         if mybasedir:
