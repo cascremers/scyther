@@ -6,13 +6,19 @@ Needed:
 	
   gcc
   	If you don't know what this is, please stop reading.
-  scons
-	A Python script set to replace the make etc. toolchain.
+  cmake
+	A Makefile generator, available on almost any platform.
 
 For cross-compilation (Windows):
 
   [mingw32][universe]
   	GCC variant to compile for windows + w32 binutils.
 
-	Use 'scons arch=windows' to generate the binary.
+
+The best is to simply execute:
+
+  ./build.sh
+
+This should compile everything for your platform and will copy the
+binaries into the correct location.
 
