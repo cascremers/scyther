@@ -14,9 +14,9 @@
   cumbersome and might impact on performance. Alternatively, iterators
   can be implemented as macros, which is probably the fastest, but maybe
   less readable.
-- --check is slightly f***ed up because there is no good semantics for
-  the --disable intruder check. As a result, it is now too strict can
-  cause correct protocols to fail. Fix.
+- The (currently not advised) switch --check is slightly off because
+  there is no good semantics for the --disable intruder check. As a
+  result, it is now too strict can cause correct protocols to fail. Fix.
 - When *not* asking for attack output, maybe we should default to
   --prune = 1. Then, if we ask for --xml output or --dot, we do:
   if --prune == 1 then --prune == 2 now :) unless otherwise specified.
@@ -52,3 +52,21 @@
 - SConstruct file should check whether ctags actually exists (avoiding
   errors)
 - Proof output should be XML, with an external converter to dot format.
+- Are the Arachne rules for keys that are variables sufficiently sane in
+  general? E.g. what is their inverse key? Intuition: one cannot know
+  what the inverse is of a non-instantiated key variable, given the
+  current semantics, if asymmetric keys are allowed.  Consequence: the
+  current implementation is just fine, because asymmetric key variables
+  cannot be defined in the language. Thus, the rules are fine.
+  Investigate for future extensions what the consequences of this are.
+- If no attack/state output is needed, maybe the attack heuristic should
+  be simpler (which means just weighting the trace length etc.) in order
+  to avoid uneccesary continuation of the search. Maybe even stop
+  altogether after finding *an* attack.
+- For the TimeStamps etc, we can implement an 'auto-leak' of such local
+  constants. This should works also with a modifier of sorts (e.g.
+  'predictable') and such constants should be leaked to the intruder at
+  the start of the run, possibly by prefixing a send.
+- knowledgeAddTerm might be improved by scanning through key list only with
+  things that are newly added.
+
