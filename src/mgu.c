@@ -26,6 +26,7 @@
 #include "debug.h"
 #include "specialterm.h"
 #include "switches.h"
+#include "arachne.h"
 
 /*
    Most General Unifier
@@ -567,6 +568,27 @@ termMguSubTerm (Term smallterm, Term bigterm,
 		  cryptlist = termlistDelTerm (cryptlist);
 		}
 	      termDelete (keyneeded);
+	    }
+	}
+      else
+	{
+	  // The big term is a leaf
+	  /**
+	   * In this case we really need to consider the problematic Athena case for untyped variables.
+	   */
+	  if (isTermVariable (bigterm))
+	    {
+	      // Check the type: can it contain tuples, encryptions?
+	      if (isOpenVariable (bigterm))
+		{
+		  // This one needs to be pursued by further constraint adding
+		    /**
+		     * Currently, this is not implemented yet. TODO.
+		     * This is actually the main Athena problem that we haven't solved yet.
+		     */
+		  // Mark that we don't have a full proof.
+		  markNoFullProof ();
+		}
 	    }
 	}
       // simple clause or combined

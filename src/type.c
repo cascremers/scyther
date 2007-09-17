@@ -76,6 +76,16 @@ isTypelistGeneric (const Termlist typelist)
     }
 }
 
+//! Say whether this variable can contain tuples and/or encryptions
+/**
+ * Precondition: tvar should be a variable
+ */
+int
+isOpenVariable (const Term tvar)
+{
+  return isTypelistGeneric (tvar->stype);
+}
+
 //! Check whether a single variable term is instantiated correctly.
 /**
  * Check whether a single variable term is instantiated correctly in this
