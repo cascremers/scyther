@@ -1963,7 +1963,7 @@ attackOutputStart (void)
 	  fclose (attack_stream);	// this automatically discards the old temporary file
 	}
       // Create new file
-      fd = scyther_tempfile ();
+      fd = (FILE *) scyther_tempfile ();
       attack_stream = fd;
       globalStream = (char *) attack_stream;
     }
@@ -2695,4 +2695,15 @@ isTriviallyKnownAfterArachne (const System sys, const Term t, const int run,
   result = inKnowledge (knowset, t);
   knowledgeDelete (knowset);
   return result;
+}
+
+//! Mark that we have no full proof
+/**
+ * Provides an interface for marking incomplete proofs.
+ * Currently used in mgusubterm in mgu.c
+ */
+void
+markNoFullProof ()
+{
+  sys->current_claim->complete = false;
 }
