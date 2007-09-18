@@ -78,7 +78,9 @@ isTypelistGeneric (const Termlist typelist)
 
 //! Say whether this variable can contain tuples and/or encryptions
 /**
- * Precondition: tvar should be a variable
+ * Precondition: tvar should be a variable.
+ *
+ * This function is specifically used for detecting the problematic Athena case.
  */
 int
 isOpenVariable (const Term tvar)

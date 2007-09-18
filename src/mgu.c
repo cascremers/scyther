@@ -269,6 +269,8 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
  *
  * The callback should return true for the iteration to proceed, or false to abort.
  * The final result is this flag.
+ *
+ * This is the actual procedure used by the Arachne algorithm in archne.c
  */
 int
 subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
@@ -315,6 +317,26 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
 	  keylist = termlistDelTerm (keylist);
 	}
     }
+
+  // Athena problem case: open variable about to be unified.
+	  /**
+	   * In this case we really need to consider the problematic Athena case for untyped variables.
+	   */
+  if (isTermVariable (tbig))
+    {
+      // Check the type: can it contain tuples, encryptions?
+      if (isOpenVariable (tbig))
+	{
+	  // This one needs to be pursued by further constraint adding
+		    /**
+		     * Currently, this is not implemented yet. TODO.
+		     * This is actually the main Athena problem that we haven't solved yet.
+		     */
+	  // Mark that we don't have a full proof.
+	  markNoFullProof ();
+	}
+    }
+
   return proceed;
 }
 
@@ -468,149 +490,6 @@ termMguTerm (Term t1, Term t2)
 	}
     }
   return MGUFAIL;
-}
-
-//! Most general interm unifiers of t1 interm t2
-/**
- * Try to determine the most general interm unifiers of two terms.
- *@returns Nothing. Iteration gets termlist of substitutions.
- */
-int
-termMguInTerm (Term t1, Term t2, int (*iterator) (Termlist))
-{
-  Termlist tl;
-  int flag;
-
-  flag = 1;
-  t2 = deVar (t2);
-  if (t2 != NULL)
-    {
-      if (realTermTuple (t2))
-	{
-	  // t2 is a tuple, consider interm options as well.
-	  flag = flag && termMguInTerm (t1, TermOp1 (t2), iterator);
-	  flag = flag && termMguInTerm (t1, TermOp2 (t2), iterator);
-	}
-      // simple clause or combined
-      tl = termMguTerm (t1, t2);
-      if (tl != MGUFAIL)
-	{
-	  // Iterate
-	  flag = flag && iterator (tl);
-	  // Reset variables
-	  termlistSubstReset (tl);
-	  // Remove list
-	  termlistDelete (tl);
-	}
-    }
-  else
-    {
-      if (deVar (t1) != NULL)
-	{
-	  flag = 0;
-	}
-    }
-  return flag;
-}
-
-//! Most general subterm unifiers of smallterm subterm bigterm
-/**
- * Try to determine the most general subterm unifiers of two terms.
- *@returns Nothing. Iteration gets termlist of subst, and list of keys needed
- *  to decrypt. This termlist does not need to be deleted, because it is handled
- *  by the mguSubTerm itself.
- */
-int
-termMguSubTerm (Term smallterm, Term bigterm,
-		int (*iterator) (Termlist, Termlist), Termlist inverses,
-		Termlist cryptlist)
-{
-  int flag;
-
-  flag = 1;
-  smallterm = deVar (smallterm);
-  bigterm = deVar (bigterm);
-  if (bigterm != NULL)
-    {
-      Termlist tl;
-
-      if (!realTermLeaf (bigterm))
-	{
-	  if (realTermTuple (bigterm))
-	    {
-	      // 'simple' tuple
-	      flag =
-		flag
-		&& termMguSubTerm (smallterm, TermOp1 (bigterm), iterator,
-				   inverses, cryptlist);
-	      flag = flag
-		&& termMguSubTerm (smallterm, TermOp2 (bigterm), iterator,
-				   inverses, cryptlist);
-	    }
-	  else
-	    {
-	      // Must be encryption
-	      Term keyneeded;
-
-	      keyneeded = inverseKey (inverses, TermKey (bigterm));
-	      // We can never produce the TERM_Hidden key, thus, this is not a valid iteration.
-	      if (!isTermEqual (keyneeded, TERM_Hidden))
-		{
-		  cryptlist = termlistAdd (cryptlist, bigterm);	// Append, so the last encrypted term in the list is the most 'inner' one, and the first is the outer one.
-
-		  // Recurse
-		  flag =
-		    flag
-		    && termMguSubTerm (smallterm, TermOp (bigterm), iterator,
-				       inverses, cryptlist);
-
-
-		  cryptlist = termlistDelTerm (cryptlist);
-		}
-	      termDelete (keyneeded);
-	    }
-	}
-      else
-	{
-	  // The big term is a leaf
-	  /**
-	   * In this case we really need to consider the problematic Athena case for untyped variables.
-	   */
-	  if (isTermVariable (bigterm))
-	    {
-	      // Check the type: can it contain tuples, encryptions?
-	      if (isOpenVariable (bigterm))
-		{
-		  // This one needs to be pursued by further constraint adding
-		    /**
-		     * Currently, this is not implemented yet. TODO.
-		     * This is actually the main Athena problem that we haven't solved yet.
-		     */
-		  // Mark that we don't have a full proof.
-		  markNoFullProof ();
-		}
-	    }
-	}
-      // simple clause or combined
-      tl = termMguTerm (smallterm, bigterm);
-      if (tl != MGUFAIL)
-	{
-	  // Iterate
-	  flag = flag && iterator (tl, cryptlist);
-	  // Reset variables
-	  termlistSubstReset (tl);
-	  // Remove list
-	  termlistDelete (tl);
-	}
-    }
-  else
-    {
-      if (smallterm != NULL)
-	{
-	  flag = 0;
-	}
-    }
-  return flag;
 }
 
 //! Check if role terms might match in some way

@@ -33,9 +33,6 @@
 #define MGUFAIL (Termlist) -1
 
 Termlist termMguTerm (Term t1, Term t2);
-int termMguInTerm (Term t1, Term t2, int (*iterator) (Termlist));
-int termMguSubTerm (Term t1, Term t2, int (*iterator) (Termlist, Termlist),
-		    Termlist inverses, Termlist keylist);
 void termlistSubstReset (Termlist tl);
 int checkRoletermMatch (const Term t1, const Term t2, const Termlist tl);
 
