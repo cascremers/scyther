@@ -328,12 +328,12 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
       if (isOpenVariable (tbig))
 	{
 	  // This one needs to be pursued by further constraint adding
-		    /**
-		     * Currently, this is not implemented yet. TODO.
-		     * This is actually the main Athena problem that we haven't solved yet.
-		     */
-	  // Mark that we don't have a full proof.
-	  markNoFullProof ();
+	  /**
+	   * Currently, this is not implemented yet. TODO.
+	   * This is actually the main Athena problem that we haven't solved yet.
+	   */
+	  // Mark that we don't have a full proof, and possibly remark in proof output.
+	  markNoFullProof (tbig, tsmall);
 	}
     }
 

@@ -2703,7 +2703,17 @@ isTriviallyKnownAfterArachne (const System sys, const Term t, const int run,
  * Currently used in mgusubterm in mgu.c
  */
 void
-markNoFullProof ()
+markNoFullProof (const Term tbig, const Term tsmall)
 {
+  // Comment in proof
+  if (switches.output == PROOF)
+    {
+      indentPrint ();
+      eprintf ("Note: the pattern set will be incomplete, because ");
+      termPrint (tbig);
+      eprintf (" allows for infinitely many ways to subtermUnify ");
+      termPrint (tsmall);
+      eprintf (".\n");
+    }
   sys->current_claim->complete = false;
 }

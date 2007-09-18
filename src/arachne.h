@@ -35,6 +35,6 @@ void arachneOutputAttack ();
 void printSemiState ();
 int countIntruderActions ();
 void role_name_print (const int run);
-void markNoFullProof ();
+void markNoFullProof (const Term tbig, const Term tsmall);
 
 #endif
