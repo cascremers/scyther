@@ -9,8 +9,7 @@ DESCR=`git describe --tags`
 TAG=$1
 if [ "x$TAG" != "x" ]
 then
-	FOUND=`git-tag -l $TAG`
-	if [ "x$TAG" = "x$FOUND" -o "x$TAG" = "x$DESCR" ]
+	if [ "$?" -eq 0 ]
 	then
 		echo "Tag $TAG found."
 	else
