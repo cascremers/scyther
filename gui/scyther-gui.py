@@ -63,6 +63,10 @@ def parseArgs():
     parser.add_option("-c","--check",dest="command",default=None,action="store_const",const="check",
             help="Immediately check protocol (requires input file)")
 
+    # License
+    parser.add_option("-l","--license",dest="license",default=False,action="store_const",const=True,
+            help="Show license")
+
     # no-splash
     parser.add_option("-N","--no-splash",dest="splashscreen",default=True,action="store_const",const=False,
             help="Do not show the splash screen")
@@ -122,6 +126,11 @@ class ScytherApp(wx.App):
         # Parse arguments
         basedir = os.path.abspath(os.path.dirname(sys.argv[0]))
         (opts,args) = parseArgs()
+
+        # License option may abort here
+        if opts.license:
+            print Scyther.GetLicense()
+            sys.exit(0)
 
         # Load preferences file
         Preference.init()

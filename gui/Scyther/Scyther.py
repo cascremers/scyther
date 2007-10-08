@@ -409,6 +409,18 @@ def GetInfo(html=False):
         return html
 
 
+def GetLicense():
+    """
+    Retrieve license information.
+    """
+
+    program = getScytherBackend()
+    arg = "--license"
+    sc = Scyther()
+    (output,errors) = sc.doScytherCommand(spdl=None, args=arg)
+    return output
+
+
 #---------------------------------------------------------------------------
 
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:
