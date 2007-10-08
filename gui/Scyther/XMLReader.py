@@ -28,19 +28,27 @@
 # Things will be a lot faster and consume less memory if you install the
 # cElementTree module
 #
+# In python 2.5 cElementTree is in the core, so you don't need to install
+# extra packages
+#
 
 import sys
 
 # Check for cElementTree presence. Otherwise use ElementTree.
 useiter = True
 try:
-    import cElementTree
-except ImportError:
-    useiter = False 
+    # python 2.5 has cElementTree in the core
+    import xml.etree.cElementTree as cElementTree
+except:
+    # try the old way
     try:
-        from elementtree import ElementTree
+        import cElementTree
     except ImportError:
-        print """
+        useiter = False 
+        try:
+            from elementtree import ElementTree
+        except ImportError:
+            print """
 ERROR:
 
 Could not locate either the [elementtree] or the [cElementTree] package.
@@ -49,7 +57,7 @@ The [cElementTree] packages can be found at http://effbot.org/zone/celementtree.
 
 Note that you can still use the Scyther binaries in the 'Bin' directory.
         """
-        sys.exit(1)
+            sys.exit(1)
 
 ## Simply pick cElementTree
 #import cElementTree
