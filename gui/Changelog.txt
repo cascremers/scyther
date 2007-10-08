@@ -2,6 +2,13 @@
 - Scyther changelog -
 ---------------------
 
+Next release:
+
+	Bugfixes:
+
+	* Python 2.5 has integrated (c)elementtree into the core.
+	Unfortunaly, this broke our previous import attempts.
+
 Scyther 1.0-beta7.1
 
 	Bugfixes:
