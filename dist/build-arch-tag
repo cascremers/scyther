@@ -18,6 +18,9 @@
 # and this is used to construct a archive with the binary of the
 # selected architecture.
 
+# Current
+DESCR=`git describe --tags`
+
 if [ "x$1" = "x" -o "x$2" = "x" ]
 then
 	echo
@@ -43,12 +46,13 @@ fi
 
 TAG=$2
 FOUND=`git-tag -l $TAG`
-if [ "x$TAG" = "x$FOUND" ]
+if [ "x$TAG" = "x$FOUND" -o "x$TAG" = "x$DESCR" ]
 then
 	echo "Tag $TAG found."
 else
 	echo "Don't know tag $TAG, please select one from below:"
 	git-tag -l
+	echo $DESCR
 	exit
 fi
 

@@ -2,12 +2,15 @@
 
 BUILDER=./build-arch-tag
 
+# Current
+DESCR=`git describe --tags`
+
 # Check whether the tag exists
 TAG=$1
 if [ "x$TAG" != "x" ]
 then
 	FOUND=`git-tag -l $TAG`
-	if [ "x$TAG" = "x$FOUND" ]
+	if [ "x$TAG" = "x$FOUND" -o "x$TAG" = "x$DESCR" ]
 	then
 		echo "Tag $TAG found."
 	else
@@ -24,6 +27,7 @@ then
 	echo
 	echo "Don't know tag $TAG, please select one from below:"
 	git-tag -l
+	echo $DESCR
 	exit
 fi
 
