@@ -13,7 +13,7 @@
 # Current
 DESCR=`git describe --tags`
 
-if [ "x$1" = "x" -o "x$2" = "x" ]
+if [ "x$1" = "x" ]
 then
 	echo
 	echo "Scyther source distribution generator."
@@ -38,7 +38,7 @@ else
 fi
 
 # Note without extension, this will added later
-ARCHNAME=scyther-src-$TAG
+ARCHNAME="scyther-src_$TAG"
 
 # Directory locations
 CURDIR=`pwd`
@@ -64,7 +64,7 @@ echo "" >>$BUILDDIR/src/version.h
 
 # Compress the whole thing into an archive
 cd $TMPDIR
-DESTARCH=$DESTFILE.tgz
+DESTARCH=$DESTDIR/$ARCHNAME.tgz
 rm -f $DESTARCH
 tar zcvf $DESTARCH $ARCHNAME
 
