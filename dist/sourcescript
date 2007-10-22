@@ -1,0 +1,74 @@
+#!/bin/sh
+#
+# Make a new source distribution archive. Command line specification of the tag
+#
+# Usage will be:
+#
+#   sourcescript TAG
+#
+# The tag is checked out of the current repository (so it should exist)
+# and this is used to construct a archive with the binary of the
+# selected architecture.
+
+# Current
+DESCR=`git describe --tags`
+
+if [ "x$1" = "x" -o "x$2" = "x" ]
+then
+	echo
+	echo "Scyther source distribution generator."
+	echo
+	echo "  Usage: $0 <arch>"
+	echo
+	echo "where <tag> is revision tag in the current git repository."
+	echo
+	exit
+fi
+
+TAG=$1
+FOUND=`git rev-parse $TAG`
+if [ "$?" -eq 0 ]
+then
+	echo "Tag $TAG found."
+else
+	echo "Don't know tag $TAG, please select a revision, e.g. from below:"
+	git-tag -l
+	echo $DESCR
+	exit
+fi
+
+# Note without extension, this will added later
+ARCHNAME=scyther-src-$TAG
+
+# Directory locations
+CURDIR=`pwd`
+DESTDIR=$CURDIR
+TMPDIR="/tmp"
+
+# Hard coded connections, do not change this (hardcoded in git-archive
+# usage and archive creation)
+BUILDDIR=$TMPDIR/$ARCHNAME
+
+# Internal locations
+rm -rf $BUILDDIR
+
+# Change into the lower directory (main archive dir)
+cd .. && git-archive --format=tar --prefix=$ARCHNAME/ $TAG | (cd $TMPDIR && tar xf -)
+
+# Prepare tag for gui version
+echo "SCYTHER_GUI_VERSION = \"$TAG\"" >$BUILDDIR/gui/Gui/Version.py
+
+# Prepare version.h with the correct flag (tag)
+echo "#define TAGVERSION \"$TAG\"" >$BUILDDIR/src/version.h
+echo "" >>$BUILDDIR/src/version.h
+
+# Compress the whole thing into an archive
+cd $TMPDIR
+DESTARCH=$DESTFILE.tgz
+rm -f $DESTARCH
+tar zcvf $DESTARCH $ARCHNAME
+
+# Remove the temporary working directory
+rm -rf $BUILDDIR
+
+
