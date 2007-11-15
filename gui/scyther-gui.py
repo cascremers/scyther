@@ -60,8 +60,8 @@ def parseArgs():
             help="Immediately generate the complete characterization of the protocol (requires input file)")
     parser.add_option("-a","--auto-claims",dest="command",default=None,action="store_const",const="autoverify",
             help="Immediately verified protocol using default claims (requires input file)")
-    parser.add_option("-c","--check",dest="command",default=None,action="store_const",const="check",
-            help="Immediately check protocol (requires input file)")
+    #parser.add_option("-c","--check",dest="command",default=None,action="store_const",const="check",
+    #        help="Immediately check protocol (requires input file)")
 
     # License
     parser.add_option("-l","--license",dest="license",default=False,action="store_const",const=True,
