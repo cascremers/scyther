@@ -550,12 +550,14 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('c', "check", 0))
+  if (detect ('C', "check", 0))
     {
       if (!process)
 	{
-	  helptext ("-c, --check",
-		    "disable intruder and run statespace check. For correct protocols, end of roles should be reachable");
+	  /* discourage: not working well currently.
+	     helptext ("-C, --check",
+	     "disable intruder and run statespace check. For correct protocols, end of roles should be reachable");
+	   */
 	}
       else
 	{
@@ -599,14 +601,17 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('s', "state-space", 0))
+  if (detect ('c', "characterize", 0) || detect ('s', "state-space", 0))
     {
+      /*
+       * TODO maybe this switch should also filter out the intruder.
+       */
       if (!process)
 	{
 	  if (switches.expert)
 	    {
-	      helptext ("-s, --state-space",
-			"ignore any existing claims and add 'reachable' claims. Gives complete characterization of a roles");
+	      helptext ("-c, --characterize",
+			"Ignore claims and give complete characterization of all roles");
 	    }
 	}
       else
