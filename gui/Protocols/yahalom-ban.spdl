@@ -10,29 +10,6 @@ usertype SessionKey;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol yahalom-BAN^KeyCompromise(C)
-{
-    // Read the names of 3 agents and disclose a session between them including
-    // corresponding session key to simulate key compromise
-    role C {
-        const Ni,Nr: Nonce;
-        const Kir: SessionKey;
-        var I,R,S: Agent;
-
-        read_!C1(C,C,    I,R,S);
-        send_!C2(C,C,    I,Ni,
-                        R,Nr,{I,Ni}k(R,S),
-                        Nr,{R,Kir,Ni}k(I,S),
-                        {I,Kir,Nr}k(R,S),
-                        {Nr}Kir,
-                        Kir
-               );
-        claim_C3(C,Empty, (Compromised,Kir));
-    }
-}
-
-
-
 protocol yahalom-BAN(I,R,S)
 {
     role I

@@ -22,31 +22,6 @@ const kee: SessionKey;
 untrusted e;
 compromised k(e,s);
 
-protocol neustub-Hwang^KeyCompromise(C)
-{
-    // Read the names of 3 agents and disclose a session between them including
-    // corresponding session key to simulate key compromise
-    role C {
-        const Ni,Nr,Mi,Mr: Nonce;
-        const Kir: SessionKey;
-        const Tr: ExpiredTimeStamp;
-        var I,R,S: Agent;
-
-        read_!C1(C,C,    I,R,S);
-        send_!C2(C,C,    I,Ni,
-                        R,{I,Ni,Tr,Nr}k(R,S),
-                        {R,Ni,Kir,Tr}k(I,S),
-                        {I,Kir,Tr}k(R,S), Nr,
-                        {Nr}Kir,
-                        Mi,{I,Kir,Tr}k(R,S),
-                        Mr,{Mi}Kir,
-                        {Mr}Kir,
-                        Kir
-               );
-        claim_C3(C,Empty, (Compromised,Kir));
-    }
-}
-
 protocol neustub-Hwang(I,R,S)
 {
     role I

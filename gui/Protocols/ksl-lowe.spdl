@@ -22,34 +22,6 @@ const kee: SessionKey;
 untrusted e;
 compromised k(e,s);
 
-protocol ksl-Lowe^KeyCompromise(C)
-{
-    // Read the names of 3 agents and disclose a session between them including
-    // corresponding session key to simulate key compromise
-    role C {
-        const Ni,Nr,Nc,Ma,Mb: Nonce;
-        const Kir: SessionKey;
-        const Kbb: TicketKey;
-        const Tr: ExpiredTimeStamp;
-        var I,R,S: Agent;
-
-        read_!C1(C,C,    I,R,S);
-        send_!C2(C,C,    (Ni,I),
-                        (Ni,I,Nr,R),
-                        {I,Nr,Kir}k(R,S),{Ni,R,Kir}k(I,S),
-                        {Tr,I,Kir}Kbb,Nc,{R,Ni}k(I,R),
-                        {Nc}Kir,
-                        Ma,
-                        Mb,{Ma,R}Kir,
-                        {I,Mb}Kir,
-                        Kir,
-                        Kbb
-               );
-        claim_C3(C,Empty, (Compromised,Kir));
-        claim_C4(C,Empty, (Compromised,Kbb));
-    }
-}
-
 protocol ksl-Lowe(I,R,S)
 {
     role I

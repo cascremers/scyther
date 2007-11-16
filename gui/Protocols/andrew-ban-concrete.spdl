@@ -33,27 +33,6 @@ protocol @swapkey(X)
     }
 }
 
-protocol andrew-Concrete^KeyCompromise(C)
-{
-    // Read the names of 3 agents and disclose a session between them including
-    // corresponding session key to simulate key compromise
-    role C {
-        const ni,nr: Nonce;
-        const kir: SessionKey;
-        var I,R: Agent;
-
-        read_!C1(C,C,    I,R);
-        send_!C2(C,C,    (I,ni),
-                        {ni,kir}k(I,R),
-                        {ni}kir,
-                        nr,
-                        kir
-               );
-        claim_C3(C,Empty, (Compromised,kir));
-    }
-}
-
-
 protocol andrew-Concrete(I,R)
 {
     

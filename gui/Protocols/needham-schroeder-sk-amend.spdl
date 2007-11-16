@@ -18,29 +18,6 @@ usertype SessionKey;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol needhamschroedersk-amend^KeyCompromise(C)
-{
-    // Read the names of 3 agents and disclose a session between them including
-    // corresponding session key to simulate key compromise
-    role C {
-        const Ni,Nr: Nonce;
-        const Kir: SessionKey;
-        var I,R,S: Agent;
-
-        read_!C1(C,C,    I,R,S);
-        send_!C2(C,C,    I,
-                        {I,Nr}k(R,S),
-                        I,R,Ni,{I,Nr}k(R,S),
-                        {Ni,R,Kir,{Kir,Nr,I}k(R,S)}k(I,S),
-                        {Kir,Nr,I}k(R,S),
-                        {Nr}Kir,
-                        {{Nr}dec}Kir,
-                        Kir
-               );
-        claim_C3(C,Empty, (Compromised,Kir));
-    }
-}
-
 protocol needhamschroedersk-amend(I,R,S)
 {
     role I

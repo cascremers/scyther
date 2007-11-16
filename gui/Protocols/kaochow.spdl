@@ -9,27 +9,6 @@ secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol kaochow^KeyCompromise(C)
-{
-    // Read the names of 3 agents and disclose a session between them including
-    // corresponding session key to simulate key compromise
-    role C {
-        const Ni,Nr: Nonce;
-        const Kir: SessionKey;
-        var I,R,S: Agent;
-
-        read_!C1(C,C,    I,R,S);
-        send_!C2(C,C,    (I,R,Ni),
-                        {I,R,Ni,Kir}k(I,S),
-                        {I,R,Ni,Kir}k(R,S),
-                        {Ni}Kir, Nr,
-                        {Nr}Kir,
-                        Kir
-               );
-        claim_C3(C,Empty, (Compromised,Kir));
-    }
-}
-
 protocol kaochow(I,R,S)
 {
     role I

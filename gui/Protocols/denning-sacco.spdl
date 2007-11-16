@@ -12,26 +12,6 @@ secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
-protocol denningSacco^KeyCompromise(C)
-{
-    // Read the names of 3 agents and disclose a session between them including
-    // corresponding session key to simulate key compromise
-    role C {
-        const Ni,Nr: Nonce;
-        const Kir: SessionKey;
-        const T: ExpiredTimeStamp;
-        var I,R,S: Agent;
-
-        read_!C1(C,C,    I,R,S);
-        send_!C2(C,C,    (I,R),
-                        {R,Kir,T,{Kir,I,T}k(R,S)}k(I,S),
-                        {Kir,I,T}k(R,S),
-                        Kir
-               );
-        claim_C3(C,Empty, (Compromised,Kir));
-    }
-}
-
 protocol denningSacco(I,R,S)
 {
     role I
