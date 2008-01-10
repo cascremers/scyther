@@ -15,7 +15,9 @@ secret unkeygen: Function;
 inversekeys(keygen, unkeygen);
 
 const pa,pb: Params;
+const Alice,Bob: Agent;
 const Terence: Agent;
+const Sally: Agent;
 const false,true: Bool;
 
 
