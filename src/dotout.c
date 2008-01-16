@@ -996,8 +996,6 @@ regularModifiedLabel (Binding b)
     }
 }
 
-//! 
-
 //! Draw a single binding
 void
 drawBinding (const System sys, Binding b)
@@ -1143,8 +1141,10 @@ int
 drawAllBindings (const System sys)
 {
   List bl;
+  List bldone;
   int fromintr;
 
+  bldone = NULL;
   fromintr = 0;
   for (bl = sys->bindings; bl != NULL; bl = bl->next)
     {
@@ -1157,15 +1157,35 @@ drawAllBindings (const System sys)
 	  // still show it somewhere.
 	  if (b->done)
 	    {
-	      // done, draw
-	      drawBinding (sys, b);
-	      // from intruder?
-	      if (sys->runs[b->run_from].protocol == INTRUDER)
+	      // Check whether we already drew it
+	      List bl2;
+	      int drawn;
+
+	      drawn = false;
+	      for (bl2 = bldone; bl2 != NULL; bl2 = bl2->next)
 		{
-		  if (sys->runs[b->run_from].role == I_M)
+		  if (same_binding (b, (Binding) bl2->data))
 		    {
-		      fromintr++;
+		      drawn = true;
+		      break;
 		    }
+		}
+
+	      if (!drawn)
+		{
+		  // done, draw
+		  drawBinding (sys, b);
+
+		  // from intruder?
+		  if (sys->runs[b->run_from].protocol == INTRUDER)
+		    {
+		      if (sys->runs[b->run_from].role == I_M)
+			{
+			  fromintr++;
+			}
+		    }
+		  // Add to drawn list
+		  bldone = list_add (bldone, b);
 		}
 	    }
 	  else
@@ -1174,6 +1194,7 @@ drawAllBindings (const System sys)
 	    }
 	}
     }
+  list_destroy (bldone);	// bindings list
   return fromintr;
 }
 

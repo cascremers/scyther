@@ -51,6 +51,7 @@ void bindingDone ();
 
 int binding_print (Binding b);
 int valid_binding (Binding b);
+int same_binding (const Binding b1, const Binding b2);
 
 int goal_add (Term term, const int run, const int ev, const int level);
 int goal_add_fixed (Term term, const int run, const int ev, const int fromrun,

@@ -415,7 +415,30 @@ iterate_bindings (int (*func) (Binding b))
   return true;
 }
 
-
+//! Determine whether two bindings have the same source and destination
+int
+same_binding (const Binding b1, const Binding b2)
+{
+  if (b1 == b2)
+    {
+      return true;
+    }
+  if ((b1 != NULL) && (b2 != NULL))
+    {
+      if ((b1->done) && (b2->done))
+	{
+	  if ((b1->run_to == b2->run_to) && (b1->ev_to == b2->ev_to))
+	    {
+	      if ((b1->run_from == b2->run_from)
+		  && (b1->ev_from == b2->ev_from))
+		{
+		  return true;
+		}
+	    }
+	}
+    }
+  return false;
+}
 
 //! Iterate over preceding bindings (this does not include stuff bound to the same destination)
 /**
