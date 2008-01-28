@@ -1278,6 +1278,9 @@ tacTermlist (Tac tc)
 }
 
 //! Compute variables for a roles (for Arachne)
+/**
+ * This also takes care of setting the hasUntypedVariable flag, if needed.
+ */
 void
 compute_role_variables (const System sys, Protocol p, Role r)
 {
@@ -1298,13 +1301,25 @@ compute_role_variables (const System sys, Protocol p, Role r)
       roledef_iterate_events (r->roledef, process_event);
       r->variables = tl;
 
+      /*
+       * Iterate over variables for type checks
+       */
+      for (tl = r->variables; tl != NULL; tl = tl->next)
+	{
+	  if (isOpenVariable (tl->term))
+	    {
+	      sys->hasUntypedVariable = true;
+	      break;
+	    }
+	}
+
 #ifdef DEBUG
       if (DEBUGL (5))
 	{
 	  eprintf ("All variables for role ");
 	  termPrint (r->nameterm);
 	  eprintf (" are ");
-	  termlistPrint (tl);
+	  termlistPrint (r->variables);
 	  eprintf ("\n");
 	}
 #endif
@@ -1845,6 +1860,10 @@ compute_prec_sets (const System sys)
 }
 
 //! Check unused variables
+/**
+ * Some of this code is duplicated in the code that computes the role variables, so
+ * that should be cleaned up some day. TODO.
+ */
 void
 checkRoleVariables (const System sys, const Protocol p, const Role r)
 {

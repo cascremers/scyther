@@ -17,6 +17,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+/**
+ * ===============================================
+ * NOTE:
+ * The claim object structure is defined in role.h
+ * ===============================================
+ */
+
 #ifndef CLAIMS
 #define CLAIMS
 

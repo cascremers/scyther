@@ -141,6 +141,7 @@ struct system
   Claimlist claimlist;		//!< List of claims in the system, with occurrence counts
   List labellist;		//!< List of labelinfo stuff
   int knowledgedefined;		//!< True if knowledge is defined for some role (which triggers well-formedness check etc.)
+  int hasUntypedVariable;	//!< True if there is a variable in the role specification that can contain constructors
 
   /* constructed trace pointers, static */
   Roledef *traceEvent;		//!< Trace roledefs: MaxRuns * maxRoledef

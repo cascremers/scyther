@@ -425,15 +425,15 @@ prune_theorems (const System sys)
 
       // To be on the safe side, we currently limit the encryption level. 
       /**
-       * This is not a problem for known attacks, but should be addressed more
-       * carefully at some point.  If there are variables that can contain
-       * encryptions, this is maybe not correct: make proof!
-       *
-       * @todo Fix untyped variables reasoning
+       * This is valid *only* if there are no ticket-type variables.
        */
       if (term_encryption_level (b->term) > max_encryption_level)
 	{
 	  // Prune: we do not need to construct such terms
+	  if (sys->hasUntypedVariable)
+	    {
+	      sys->current_claim->complete = false;
+	    }
 	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();

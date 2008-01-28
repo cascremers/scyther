@@ -89,6 +89,7 @@ systemInit ()
   sys->bindings = NULL;
   sys->current_claim = NULL;
   sys->trustedRoles = NULL;
+  sys->hasUntypedVariable = false;
 
   /* reset global counters */
   systemReset (sys);
