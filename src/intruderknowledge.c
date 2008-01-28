@@ -116,6 +116,13 @@ void
 initialIntruderKnowledge (const System sys)
 {
   /*
+  TODO this is buggy and leads to a segfault with Simon's example (bug report for wellformedness check)
+  Disabled for now.
+  ./scyther-linux simple-challenge-SEGFAULT.spdl
+  */
+  return;
+
+  /*
    * display initial role knowledge
    */
   int deriveFromRole (Protocol p, Role r)
