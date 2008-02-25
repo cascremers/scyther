@@ -34,6 +34,8 @@ protocol neustub(I,R,S)
         send_1(I,R, I, Ni);
         read_!3(S,I, { R,Ni,Kir,Tb}k(I,S), T, Nr);
         send_4(I,R,T,{Nr}Kir);
+
+	send_!chain(I,R, { R,Tb,Kir }k(I,S), T);
         
         claim_I1(I,Secret, Kir);
         claim_I2(I,Niagree);
@@ -48,12 +50,15 @@ protocol neustub(I,R,S)
         var Kir: SessionKey;
         const Tb: TimeStamp;
         var T: Ticket;
+
+	const g: Ticket;
         
         read_1(I,R, I, Ni);
-        send_!2(R,S, R, {I, Ni, Tb}k(R,S),Nr);
+        send_!2(R,S, R, {I, Ni, Tb, g}k(R,S),Nr);
         read_4(I,R,{I,Kir,Tb}k(R,S),{Nr}Kir);
     
         claim_R1(R,Secret, Kir);
+        claim_R5(R,Secret, g);
         claim_R2(R,Niagree);
         claim_R3(R,Nisynch);
         claim_R4(R,Empty,(Fresh,Kir));
@@ -65,7 +70,9 @@ protocol neustub(I,R,S)
         const Kir: SessionKey;
         var Tb: TimeStamp;
 
-        read_!2(R,S, R, {I,Ni,Tb}k(R,S), Nr);
+	var g: Ticket;
+
+        read_!2(R,S, R, {I,Ni,Tb, g}k(R,S), Nr);
         send_!3(S,I, { R, Ni, Kir, Tb}k(I,S), { I,Kir,Tb}k(R,S),Nr );
     }
 }
