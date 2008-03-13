@@ -1,0 +1,79 @@
+# Neumann Stubblebine
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/neumannStubblebine.html
+#
+# Note:
+# In SPORE this protocol is not described correctly, there are in fact 2
+# different protocols (the key establishment protocol and the repeated
+# authentication protocol)
+
+usertype Server, SessionKey, TimeStamp, TicketKey;
+usertype ExpiredTimeStamp;
+secret k: Function;
+
+const Alice, Bob, Simon, Eve: Agent;
+const Fresh: Function;
+const Compromised: Function;
+
+const ne: Nonce;
+const kee: SessionKey;
+untrusted Eve;
+compromised k(Eve,Simon);
+
+protocol neustub(I,R,S)
+{
+    role I
+    {
+        const Ni: Nonce;
+        var Nr: Nonce;
+        var T: Ticket;
+        var Tb: TimeStamp;
+        var Kir: SessionKey;
+        
+        send_1(I,R, I, Ni);
+        read_!3(S,I, { R,Ni,Kir,Tb}k(I,S), T, Nr);
+        send_4(I,R,T,{Nr}Kir);
+
+	send_!chain(I,R, { R,Tb,Kir }k(I,S), T);
+        
+        claim_I1(I,Secret, Kir);
+        claim_I2(I,Niagree);
+        claim_I3(I,Nisynch);
+        claim_I4(I,Empty,(Fresh,Kir));
+    }
+
+    role R
+    {
+        var Ni,Mi: Nonce;
+        const Nr,Mr: Nonce;
+        var Kir: SessionKey;
+        const Tb: TimeStamp;
+        var T: Ticket;
+
+	const g: Ticket;
+        
+        read_1(I,R, I, Ni);
+        send_!2(R,S, R, {I, Ni, Tb, g}k(R,S),Nr);
+        read_4(I,R,{I,Kir,Tb}k(R,S),{Nr}Kir);
+    
+        claim_R1(R,Secret, Kir);
+        claim_R5(R,Secret, g);
+        claim_R2(R,Niagree);
+        claim_R3(R,Nisynch);
+        claim_R4(R,Empty,(Fresh,Kir));
+    }
+
+    role S
+    {
+        var Ni, Nr: Nonce;
+        const Kir: SessionKey;
+        var Tb: TimeStamp;
+
+	var g: Ticket;
+
+        read_!2(R,S, R, {I,Ni,Tb, g}k(R,S), Nr);
+        send_!3(S,I, { R, Ni, Kir, Tb}k(I,S), { I,Kir,Tb}k(R,S),Nr );
+    }
+}
+
