@@ -2214,9 +2214,9 @@ preprocess (const System sys)
    * Check well-formedness
    */
   /* TODO Temporarily disabled wellformedness check (well-formedness) after Simon bug reporting.
-  if (sys->knowledgedefined)
-    {
-      checkWellFormed (sys);
-    }
-  */
+     if (sys->knowledgedefined)
+     {
+     checkWellFormed (sys);
+     }
+   */
 }
