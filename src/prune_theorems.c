@@ -37,6 +37,7 @@
 #include "error.h"
 #include "type.h"
 #include "compromise.h"
+#include "trusted.h"
 
 extern Protocol INTRUDER;
 extern int proofDepth;
@@ -243,6 +244,18 @@ prune_theorems (const System sys)
       return true;
     }
 
+  // Prune for trusted mode
+  if (pruneTrusted (sys))
+    {
+      if (switches.output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf
+	    ("Pruned because one of the runs does not conform to the trusted requirements.\n");
+	}
+      return true;
+    }
+
   // Prune if any initiator run talks to itself
   /**
    * This effectively disallows Alice from talking to Alice, for all
@@ -283,58 +296,6 @@ prune_theorems (const System sys)
 	    ("Pruned: an initiator role does not have the correct type for one of its agents.\n");
 	}
       return true;
-    }
-
-  // Check if the actors of all other runs are not untrusted
-  if (sys->untrusted != NULL)
-    {
-      int run;
-
-      run = 1;
-      while (run < sys->maxruns)
-	{
-	  if (sys->runs[run].protocol != INTRUDER)
-	    {
-	      if (sys->runs[run].rho != NULL)
-		{
-		  Term actor;
-
-		  actor = agentOfRun (sys, run);
-		  if (actor == NULL)
-		    {
-		      error ("Agent of run %i is NULL", run);
-		    }
-		  if (!isAgentTrusted (sys, actor))
-		    {
-		      if (switches.output == PROOF)
-			{
-			  indentPrint ();
-			  eprintf
-			    ("Pruned because the actor of run %i is untrusted.\n",
-			     run);
-			}
-		      return true;
-		    }
-		}
-	      else
-		{
-		  Protocol p;
-
-		  globalError++;
-		  eprintf ("error: Run %i: ", run);
-		  role_name_print (run);
-		  eprintf (" has an empty agents list.\n");
-		  eprintf ("protocol->rolenames: ");
-		  p = (Protocol) sys->runs[run].protocol;
-		  termlistPrint (p->rolenames);
-		  eprintf ("\n");
-		  error ("Aborting.");
-		  globalError--;
-		  return true;
-		}
-	    }
-	  run++;
-	}
     }
 
   // Check for c-minimality

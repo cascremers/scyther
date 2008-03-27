@@ -730,6 +730,10 @@ arachne_claim_nisynch (const System sys, const int claim_run,
 int
 pruneClaimRunTrusted (const System sys)
 {
+  // Only if we're not overriding it
+  if (switches.trustedMode != 1)
+    return false;
+
   if (sys->trustedRoles == NULL)
     {
       // all agents need to be trusted
@@ -765,7 +769,7 @@ prune_claim_specifics (const System sys)
 	{
 	  indentPrint ();
 	  eprintf
-	    ("Pruned because all agents of the claim run must be trusted.\n");
+	    ("Pruned because agents of the claim run must be trusted based on the property.\n");
 	}
       return true;
     }
