@@ -94,6 +94,14 @@ Protocol compromiseProtocol (Protocol sourceprot);
  * and it is also not so clear that there may be a 'split' in time between both
  * actions. Hence here we may require that the agent that is compromised is not
  * in the set of agents you think you're talking to.
+ *
+ * Observations:
+ *
+ * Further investigation and testing have revealed that the 'active' variant
+ * may be equally strong as the complete local compromise attack. This is
+ * because the intruder can learn any locals, which is about as good as
+ * inserting his own, and ultimately these attacks are a form of message replay
+ * attack it seems. Hence the form of the message is more or less the same.
  */
 void
 compromisePrepare (const System mysys)

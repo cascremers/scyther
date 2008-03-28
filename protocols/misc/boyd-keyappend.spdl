@@ -15,6 +15,9 @@ inversekeys (m, unm);
  *
  * Note that MAC_ks(x) has been interpreted as MAC(x,ks); this
  * assumption causes some possible false attacks.
+ *
+ * I've added a pattern of 'key usage' afterwards under the assumption
+ * that the m() term is going to be used as a session key.
  */
 
 protocol boyd(I,R,S)
@@ -24,12 +27,18 @@ protocol boyd(I,R,S)
 		const ni: Nonce;
 		var nr: Nonce;
 		var ks: Macseed;
+		var x: Nonce;
+		const y: Nonce;
 
 		send_1 (I,S, I,R, ni );
 		read_3 (R,I, { I,R, ks }k(I,S), m(ni, m(ks,ni,nr)), nr );
 		send_4 (I,R, m(nr, m(ks,ni,nr)) );
+		read_5 (R,I, { x }m(ks,ni,nr) );
+		send_6 (I,R, { I,y }m(ks,ni,nr) );
 
-		claim_6 (I, Secret, m(ks,ni,nr) );
+		claim_Im (I, Secret, m(ks,ni,nr) );
+		claim_Ix (I, Secret, x );
+		claim_Iy (I, Secret, y );
 	}	
 	
 	role R
@@ -37,12 +46,18 @@ protocol boyd(I,R,S)
 		var ni: Nonce;
 		const nr: Nonce;
 		var ks: Macseed;
+		const x: Nonce;
+		var y: Nonce;
 
 		read_2 (S,R, { I,R, ks }k(I,S), { I,R, ks }k(R,S), ni );
 		send_3 (R,I, { I,R, ks }k(I,S), m(ni, m(ks,ni,nr)), nr );
 		read_4 (I,R, m(nr, m(ks,ni,nr)) );
+		send_5 (R,I, { x }m(ks,ni,nr) );
+		read_6 (I,R, { I,y }m(ks,ni,nr) );
 
-		claim_10 (R, Secret, m(ks,ni,nr));
+		claim_Rm (R, Secret, m(ks,ni,nr));
+		claim_Rx (R, Secret, x );
+		claim_Ry (R, Secret, y );
 	}
 
 	role S
