@@ -1,0 +1,86 @@
+/* 
+ * MQV AKE (Authenticated Key Exchange) protocol
+ *
+ * From "An efficient protocol for authenticated key agreement"
+ * Law, Menezes, Qu, Solinas
+ *
+ * With --compromise=1 (state compromise) I get both attacks on
+ * --partner-definition=0 and --partner-definition=1. These both need to
+ * be investigated carefully.
+ */
+
+// PKI infrastructure
+
+const pk: Function;
+secret sk: Function;
+inversekeys (pk,sk);
+
+const h1,h2,g,s1,s2: Function;
+secret unh1,unh2,ung,uns1,uns2: Function;
+
+// The protocol description
+
+protocol equiv(X)
+{
+	role X
+	{
+		var rI,rR: Nonce;
+		var I,R: Agent;
+
+		read_!1(X,X, h1(s1(sk(rI),pk(rI),sk(I)),s2(pk(rR),pk(R))));
+		send_!2(X,X, h1(s1(sk(rR),pk(rR),sk(R)),s2(pk(rI),pk(I))));
+	}
+}
+
+protocol mqv(I,R)
+{
+	role I
+	{
+		const rI: Nonce;
+		const msgI: Nonce;
+		var msgR: Nonce;
+		var rR: Ticket;
+
+		send_1(I,R, pk(rI) );
+		read_2(R,I, pk(rR) );
+
+		/* Key usage part */
+		//send_mI(I,R, { msgI }h2( h1(eskI,sk(I)), XR, I, R ) );
+		//read_mR(R,I, { R,msgR }h2( h1(eskI,sk(I)), XR, I, R ) );
+
+		claim(I,Secret, h1(s1(sk(rI),pk(rI),sk(I)),s2(pk(rR),pk(R))));
+		//claim(I,Secret,msgI);
+		//claim(I,Secret,msgR);
+	}	
+	
+	role R
+	{
+		const rR: Nonce;
+		const msgR: Nonce;
+		var msgI: Nonce;
+		var rI: Nonce;
+
+		read_1(I,R, pk(rI) );
+		send_2(R,I, pk(rR) );
+
+		/* Key usage part */
+		//read_mI(I,R, { msgI }h2( XI, h1(eskR,sk(R)), I, R ) );
+		//send_mR(R,I, { R,msgR }h2( XI, h1(eskR,sk(R)), I, R ) );
+
+		claim(R,Secret, h1(s1(sk(rI),pk(rI),sk(I)),s2(pk(rR),pk(R))));
+		//claim(R,Secret,msgI);
+		//claim(R,Secret,msgR);
+	}
+}
+
+// The agents in the system
+
+const Alice,Bob: Agent;
+
+// An untrusted agent, with leaked information
+
+const Eve: Agent;
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+
