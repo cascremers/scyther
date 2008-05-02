@@ -55,7 +55,7 @@ from time import localtime,strftime
 """ Globals """
 # Do we have the Python Imaging library?
 havePIL = True
-havePIL = False     # For now, override (bounding box bug on Feisty?)
+#havePIL = False     # For now, override (bounding box bug on Feisty?)
 try:
     import Image
 except ImportError:
@@ -79,6 +79,14 @@ def usePIL():
             return True
 
     return False
+
+def doNotUsePIL():
+    """
+    Disable
+    """
+    global havePIL
+
+    havePIL = False
 
 #---------------------------------------------------------------------------
 

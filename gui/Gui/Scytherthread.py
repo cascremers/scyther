@@ -357,8 +357,12 @@ class ResultWindow(wx.Frame):
 
     def onViewButton(self,evt):
         btn = evt.GetEventObject()
-        w = Attackwindow.AttackWindow(btn.claim)
-        w.Show(True)
+        try:
+            w = Attackwindow.AttackWindow(btn.claim)
+            w.Show(True)
+        except Error.PILError:
+            Error.ShowAndReturn("Problem with PIL imaging library: disabled zooming. Please retry to verify the protocol again.")
+            self.onCloseWindow(None)
 
     def onCloseWindow(self,evt):
         """ TODO we should kill self.thread """

@@ -30,6 +30,7 @@ import time
 """ Import scyther-gui components """
 import Icon
 import Preference
+import Error
 
 #---------------------------------------------------------------------------
 if Preference.usePIL():
@@ -70,7 +71,11 @@ class AttackDisplay(wx.ScrolledWindow):
             self.original = wx.Image(filename,wx.BITMAP_TYPE_PNG)
         elif attack.filetype == "ps":
             # depends on PIL lib
-            self.original = Image.open(filename)
+            try:
+                self.original = Image.open(filename)
+            except:
+                Preference.doNotUsePIL()
+                raise Error.PILError
         else:
             print "Unknown file type %s." % (self.filetype)
 

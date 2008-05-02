@@ -31,10 +31,21 @@ import sys
 
 #---------------------------------------------------------------------------
 
-def ShowAndExit(text):
+class PILError (Exception):
+    pass
+
+class NoAttackError(Exception):
+    pass
+
+#---------------------------------------------------------------------------
+
+def ShowAndReturn(text):
     title = "Error"
     dlg = wx.MessageDialog(None, text, title, wx.ID_OK | wx.ICON_ERROR)
     result = dlg.ShowModal()
     dlg.Destroy()
+
+def ShowAndExit(text):
+    ShowAndReturn(text)
     sys.exit()
 
