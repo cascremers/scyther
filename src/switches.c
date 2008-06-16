@@ -108,6 +108,7 @@ switchesInit (int argc, char **argv)
   switches.monochrome = false;	// default colors for dot
   switches.lightness = 0;	// lightness correction
   switches.clusters = false;	// default is no clusters for now
+  switches.exitCodes = true;	// default is to flag exit codes
 
   // Process the environment variable SCYTHERFLAGS
   process_environment ();
@@ -896,6 +897,22 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.abstractionMethod = integer_argument ();
+	  return index;
+	}
+    }
+
+  if (detect (' ', "no-exitcodes", 0))
+    {
+      if (!process)
+	{
+	  if (switches.expert)
+	    {
+	      helptext ("    --no-exitcodes", "Disable verbose exitcodes.");
+	    }
+	}
+      else
+	{
+	  switches.exitCodes = false;
 	  return index;
 	}
     }

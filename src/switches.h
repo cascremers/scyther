@@ -83,7 +83,8 @@ struct switchdata
   int plain;			//!< Disable color output on terminal
   int monochrome;		//!< Disable colors in dot output
   int lightness;		//!< Lightness increment 0-100
-  int clusters;			//!> Enable clusters in output
+  int clusters;			//!< Enable clusters in output
+  int exitCodes;		//!< Enable verbose exit codes
 };
 
 extern struct switchdata switches;	//!< pointer to switchdata structure

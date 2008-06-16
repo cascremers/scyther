@@ -234,7 +234,14 @@ main (int argc, char **argv)
   /* memory clean up? */
   strings_cleanup ();
 
-  return exitcode;
+  if (switches.exitCodes)
+    {
+      return exitcode;
+    }
+  else
+    {
+      return 0;
+    }
 }
 
 //! Analyse the model
