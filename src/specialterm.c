@@ -51,6 +51,7 @@ Term CLAIM_Nisynch;
 Term CLAIM_Niagree;
 Term CLAIM_Empty;
 Term CLAIM_Reachable;
+Term CLAIM_SID;
 
 Term AGENT_Alice;
 Term AGENT_Bob;
@@ -88,6 +89,7 @@ specialTermInit (const System sys)
   langcons (CLAIM_Niagree, "Niagree", TERM_Claim);
   langcons (CLAIM_Empty, "Empty", TERM_Claim);
   langcons (CLAIM_Reachable, "Reachable", TERM_Claim);
+  langcons (CLAIM_SID, "SID", TERM_Claim);
 
   /* Construct a list of claims that depend on prec being not-empty */
   /* basically all authentication claims */

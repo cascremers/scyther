@@ -109,7 +109,7 @@ class SettingsWindow(wx.Panel):
         
         # Partner definition 
         self.partnerdefinition = int(Preference.get('partnerdefinition','1'))
-        claimoptions = ['Temporal','Matching conversations']
+        claimoptions = ['Temporal (Experimental)','Matching conversations','Session identifier (SID)']
         r4 = wx.StaticText(self,-1,"Partner definition")
         l4 = self.ch = wx.Choice(self,-1,choices=claimoptions)
         l4.SetSelection(self.partnerdefinition)

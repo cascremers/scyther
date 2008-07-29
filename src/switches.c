@@ -84,7 +84,7 @@ switchesInit (int argc, char **argv)
   switches.useAttackBuffer = false;	// don't use by default as it does not work properly under windows vista yet
   switches.compromiseType = 0;	// default no local compromise
   switches.trustedMode = 1;	// 0: only actors, 1: some (claim based) agents of claim run, 2: all agents of claim run, 3: all agents of all runs
-  switches.partnerDefinition = 0;	// 0: temporally close [default], 1: matching histories
+  switches.partnerDefinition = 0;	// 0: temporally close [default], 1: matching histories, 2: SID based
   switches.requireSynch = false;	// default no synch required for attacks, but maybe we do
   switches.checkMatchingLabels = true;	// default is to check matching labels
 
@@ -1199,6 +1199,7 @@ switcher (const int process, int index, int commandline)
 	   *
 	   * 0: partner is anything temporally necessarily close to the claim [default]
 	   * 1: partner is matching histories (non-injective message agreement)
+	   * 2: partner is based on SID definitions (requires CLAIM(R,SID,...) in each role)
 	   *
 	   * These models are actually incomparable. Hmm.
 	   */
@@ -1207,10 +1208,10 @@ switcher (const int process, int index, int commandline)
 	{
 	  switches.partnerDefinition = integer_argument ();
 	  if ((switches.partnerDefinition < 0)
-	      || (switches.partnerDefinition > 1))
+	      || (switches.partnerDefinition > 2))
 	    {
 	      printfstderr
-		("Partner definition mode must be between 0 and 1.\n");
+		("Partner definition mode must be between 0 and 2.\n");
 	      exit (1);
 	    }
 	  return index;

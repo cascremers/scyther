@@ -2372,8 +2372,10 @@ arachneClaimTest (Claimlist cl)
 int
 arachneClaim (Claimlist cl)
 {
-  // Skip the dummy claims
-  if (!isTermEqual (cl->type, CLAIM_Empty))
+  // Skip the dummy claims or SID markers
+  if (!
+      (isTermEqual (cl->type, CLAIM_Empty)
+       || isTermEqual (cl->type, CLAIM_SID)))
     {
       // Some claims are always true!
       if (!cl->alwaystrue)

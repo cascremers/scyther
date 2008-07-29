@@ -20,6 +20,7 @@ protocol yahalompaulson(I,R,S)
 
 		send_1(I,R, I,ni);
 		read_3(S,I, nr, {R,kir,ni}k(I,S), T );
+                claim(I, SID, ni,nr);
 		send_4(I,R, T, {nr}kir );
 
 		claim_8(I, Secret,kir);
@@ -34,6 +35,7 @@ protocol yahalompaulson(I,R,S)
 		var kir: SessionKey;
 
 		read_1(I,R, I,ni);
+                claim(R, SID, ni,nr);
 		send_2(R,S, R,nr,{I,ni}k(R,S) );
 		read_4(I,R, {I,R,kir,nr}k(R,S), {nr}kir );
 
@@ -48,6 +50,7 @@ protocol yahalompaulson(I,R,S)
 		var ni,nr: Nonce;
 
 		read_2(R,S, R,nr, {I,ni}k(R,S) );
+                claim(S, SID, ni,nr);
 		send_3(S,I, nr, { R,kir,ni }k(I,S), {I,R,kir,nr}k(R,S) );
 	}
 }

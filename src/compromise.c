@@ -103,6 +103,56 @@ Protocol compromiseProtocol (Protocol sourceprot);
  * inserting his own, and ultimately these attacks are a form of message replay
  * attack it seems. Hence the form of the message is more or less the same.
  */
+
+//! Check SID based partner definition requirements.
+void
+checkSIDrequirements (void)
+{
+  Protocol p;
+
+  for (p = sys->protocols; p != NULL; p = p->next)
+    {
+      Role r;
+
+      for (r = p->roles; r != NULL; r = r->next)
+	{
+	  Roledef rd;
+	  int SIDfound;
+
+	  SIDfound = false;
+	  for (rd = r->roledef; rd != NULL; rd = rd->next)
+	    {
+	      if (rd->type == CLAIM)
+		{
+		  if (rd->to == CLAIM_SID)
+		    {
+		      SIDfound = true;
+		      break;
+		    }
+		}
+	    }
+	  if (!SIDfound)
+	    {
+	      error
+		("For a partner definition based on session identifiers, all roles need to have explicit SID claims.");
+	    }
+	}
+    }
+}
+
+//! Check compromise requirements
+void
+checkCompromiseRequirements (void)
+{
+  if (switches.partnerDefinition == 2)
+    {
+      /**
+       * SID based partner definition requires that it is defined for all partners.
+       */
+      checkSIDrequirements ();
+    }
+}
+
 void
 compromisePrepare (const System mysys)
 {
@@ -110,6 +160,11 @@ compromisePrepare (const System mysys)
 
   if (switches.compromiseType > 0)
     {
+      /*
+       * Check for requirements
+       */
+      checkCompromiseRequirements ();
+
       // Duplication needed.
       Protocol newprots, oldprots, lastprot;
 
@@ -140,18 +195,18 @@ compromisePrepare (const System mysys)
 	}
       // DEBUG TODO
 #ifdef DEBUG
-  if (DEBUGL (1))
-        {
+      if (DEBUGL (1))
+	{
 	  Protocol prot;
 
-	  eprintf("Role list after duplication for compromise");
+	  eprintf ("Role list after duplication for compromise");
 	  for (prot = sys->protocols; prot != NULL; prot = prot->next)
 	    {
-	      eprintf("---------------------\n");
-	      eprintf("Protocol ");
-	      termPrint(prot->nameterm);
-	      eprintf("\n");
-	      rolesPrint(prot->roles);
+	      eprintf ("---------------------\n");
+	      eprintf ("Protocol ");
+	      termPrint (prot->nameterm);
+	      eprintf ("\n");
+	      rolesPrint (prot->roles);
 	    }
 	}
 #endif
@@ -263,7 +318,7 @@ learnFromMessage (Role r, Termlist tl, Term t)
       if (switches.compromiseType == 1)
 	{
 	  // Key compromise: scan for SessionKey type
-	  if (inTermlist(t->stype, TERM_SessionKey))
+	  if (inTermlist (t->stype, TERM_SessionKey))
 	    {
 	      tl = termlistAddNew (tl, t);
 	    }
@@ -323,12 +378,12 @@ createCompromiseSend (Role role, Term compromised)
 /**
  * Given the head, appends rdnew to the end. Returns the new head.
  */
-Roledef 
-roledefAppend(Roledef rdhead, Roledef rdnew)
+Roledef
+roledefAppend (Roledef rdhead, Roledef rdnew)
 {
   Roledef rdtail;
 
-  rdtail = roledefTail(rdhead);
+  rdtail = roledefTail (rdhead);
   if (rdtail == NULL)
     {
       return rdnew;
@@ -385,12 +440,40 @@ compromiseProtocol (Protocol sourceprot)
       rd = newrole->roledef;
       while (rd != NULL)
 	{
-	  /* Secrecy claims are explicitly included: they in fact store
-	   * 'intermediate' products like the generated keys.
-	   * TODO this is not really what we want. Rather we want an action like "internal compute" or
-	   * something like that.
-	   */
-	  if (rd->type != CLAIM || (rd->to == CLAIM_Secret))
+	  int includeevent;
+
+	  includeevent = false;
+
+	  if (rd->type != CLAIM)
+	    {
+	      includeevent = true;
+	    }
+	  else
+	    {
+	      // It is a claim
+	      if (rd->to == CLAIM_Secret)
+		{
+		  /* Secrecy claims are explicitly included: they in fact store
+		   * 'intermediate' products like the generated keys.
+		   * TODO this is not really what we want. Rather we want an action like "internal compute" or
+		   * something like that.
+		   */
+		  includeevent = true;
+		}
+	      else
+		{
+		  if (rd->to == CLAIM_SID)
+		    {
+		      /* We include the SID events for two reasons:
+		       * 1. They are part of the intermediate products.
+		       * 2. They need to be in compromised runs for the partner check.
+		       */
+		      includeevent = true;
+		    }
+		}
+
+	    }
+	  if (includeevent)
 	    {
 	      Roledef newrd;
 	      Labelinfo linfo;
@@ -439,20 +522,20 @@ compromiseProtocol (Protocol sourceprot)
 		  if (rd->type == READ)
 		    {
 		      // Read, append
-		      rdhead = roledefAppend(rdhead,newrd);
-		      rdhead = roledefAppend(rdhead,rdcompr);
+		      rdhead = roledefAppend (rdhead, newrd);
+		      rdhead = roledefAppend (rdhead, rdcompr);
 		    }
 		  else
 		    {
 		      // Non-read, prepend
-		      rdhead = roledefAppend(rdhead,rdcompr);
-		      rdhead = roledefAppend(rdhead,newrd);
+		      rdhead = roledefAppend (rdhead, rdcompr);
+		      rdhead = roledefAppend (rdhead, newrd);
 		    }
 		}
 	      else
 		{
 		  //
-		  rdhead = roledefAppend(rdhead,newrd);
+		  rdhead = roledefAppend (rdhead, newrd);
 		}
 	      compKnown = termlistConcat (compKnown, tlsend);
 	    }

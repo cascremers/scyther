@@ -386,6 +386,53 @@ debugPrintArray (int *greens)
   eprintf ("\n");
 }
 
+//! Return the SID of a run, or NULL if none found.
+Term
+getSID (int run)
+{
+  if ((run >= 0) && (run < sys->maxruns))
+    {
+      Roledef rd;
+
+      for (rd = sys->runs[run].start; rd != NULL; rd = rd->next)
+	{
+	  if (rd->type == CLAIM)
+	    {
+	      if (isTermEqual (rd->to, CLAIM_SID))
+		{
+		  return (rd->message);
+		}
+	    }
+	}
+    }
+  return NULL;
+}
+
+//! Fix partners on the basis of SIDs
+void
+matchingSIDs (int *partners)
+{
+  int run;
+  Term SID;
+
+  SID = getSID (0);
+  if (SID == NULL)
+    {
+      error
+	("Claim run needs to have a Session ID (SID) for this partner definition.");
+    }
+  for (run = 1; run < sys->maxruns; run++)
+    {
+      Term xsid;
+
+      xsid = getSID (run);
+      if (isTermEqual (SID, xsid))
+	{
+	  partners[run] = true;
+	}
+    }
+}
+
 //! get array of partners
 /**
  * Depending on the settings in switches, returns the partner array. This is a
@@ -414,6 +461,9 @@ getPartnerArray (void)
       break;
     case 1:
       matchingHistories (partners);
+      break;
+    case 2:
+      matchingSIDs (partners);
       break;
     }
 
