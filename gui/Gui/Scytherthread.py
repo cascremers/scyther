@@ -71,14 +71,23 @@ class ScytherThread(threading.Thread):
             wx.CallAfter(self.callback, scyther, claims, summary)
 
     def claimFixViewOne(self,claims):
-        if claims:
-            for cl in claims:
-                if len(cl.attacks) > 1:
-                    # Fix it such that by default, only the best attack is
-                    # shown, unless we are in characterize or check mode
-                    # TODO [X] [CC] make switch-dependant.
-                    if not self.mode in ["characterize","check"]:
-                        cl.attacks = [cl.attacks[-1]]
+        """
+        This is a stupid hack as long as switches.useAttackBuffer in
+        Scyther C code is false. It is currently false because Windows
+        VISTA screwed up the standard C function tmpfile() (It's in a
+        directory to which normal users cannot write...)
+        """
+        if int(Preference.get('allattacks','0')) == 0:
+            if claims:
+                for cl in claims:
+                    if len(cl.attacks) > 1:
+                        # Fix it such that by default, only the best attack is
+                        # shown, unless we are in characterize or check mode
+                        # TODO [X] [CC] make switch-dependant.
+                        if not self.mode in ["characterize","check"]:
+                            cl.attacks = [cl.attacks[-1]]
+                            """ Cutting invalidates exactness of attack/behaviour counts """
+                            cl.complete = False
 
         return claims
 
