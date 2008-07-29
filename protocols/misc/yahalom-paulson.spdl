@@ -3,15 +3,11 @@
  * As in Sjouke's list
  */
 
-usertype Sessionkey, Ticket;
-
 const Alice,Bob,Simon,Eve : Agent;
 secret k : Function;
 
 untrusted Eve;
 compromised k(Eve,Simon);
-const ne: Nonce;
-const kee: Sessionkey;
 
 protocol yahalompaulson(I,R,S)
 {
@@ -19,7 +15,7 @@ protocol yahalompaulson(I,R,S)
 	{
 		const ni: Nonce;
 		var nr: Nonce;
-		var kir: Sessionkey;
+		var kir: SessionKey;
 		var T: Ticket;
 
 		send_1(I,R, I,ni);
@@ -35,7 +31,7 @@ protocol yahalompaulson(I,R,S)
 	{
 		const nr: Nonce;
 		var ni: Nonce;
-		var kir: Sessionkey;
+		var kir: SessionKey;
 
 		read_1(I,R, I,ni);
 		send_2(R,S, R,nr,{I,ni}k(R,S) );
@@ -48,18 +44,11 @@ protocol yahalompaulson(I,R,S)
 
 	role S
 	{
-		const kir: Sessionkey;
+		const kir: SessionKey;
 		var ni,nr: Nonce;
 
 		read_2(R,S, R,nr, {I,ni}k(R,S) );
 		send_3(S,I, nr, { R,kir,ni }k(I,S), {I,R,kir,nr}k(R,S) );
 	}
 }
-
-run yahalompaulson.I(Agent,Agent,Simon);
-run yahalompaulson.R(Agent,Agent,Simon);
-run yahalompaulson.S(Agent,Agent,Simon);
-
-run yahalompaulson.I(Agent,Agent,Simon);
-run yahalompaulson.R(Agent,Agent,Simon);
 

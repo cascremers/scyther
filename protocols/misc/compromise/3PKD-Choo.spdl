@@ -1,0 +1,75 @@
+/* 
+ * 3PKD protocol
+ *
+ * Amended version with both nonces in the hashes.
+ *
+ * From thesis Raymond Choo
+ */
+
+usertype SessionKey;
+
+// PKI infrastructure
+
+secret k: Function;
+secret hk: Function;
+
+// Hash
+
+const hash: Function;
+secret unhash: Function;
+inversekeys (hash,unhash);
+
+// The protocol description
+
+protocol 3PKD(I,R,S)
+{
+	role I
+	{
+		const ri: Nonce;
+		var rr: Nonce;
+		var sesk: SessionKey;
+
+		send_1(I,R, ri );
+		read_3(S,I, { sesk }k(I,S), hash(hk(I,S),I,R,ri,rr,{ sesk }k(I,S)), rr );
+
+		claim_I(I,Secret,sesk);
+	}	
+	
+	role R
+	{
+		var ri: Nonce;
+		const rr: Nonce;
+		var sesk: SessionKey;
+
+		read_1(I,R, ri );
+		send_2(R,S, ri,rr );
+		read_4(S,R, { sesk }k(R,S), hash(hk(R,S),I,R,ri,rr,{ sesk }k(R,S)) );
+
+		claim_R(R,Secret,sesk);
+	}
+
+	role S
+	{
+		var ri: Nonce;
+		var rr: Nonce;
+		const sesk: SessionKey;
+
+		read_2(R,S, ri,rr );
+		send_3(S,I, { sesk }k(I,S), hash(hk(I,S),I,R,ri,rr,{ sesk }k(I,S)), rr );
+		send_4(S,R, { sesk }k(R,S), hash(hk(R,S),I,R,ri,rr,{ sesk }k(R,S)) );
+	}
+}
+
+// The agents in the system
+
+const Alice,Bob: Agent;
+
+// An untrusted agent, with leaked information
+
+const Eve: Agent;
+untrusted Eve;
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
+
