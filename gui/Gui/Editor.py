@@ -158,12 +158,26 @@ class EditorStc(Editor):
     def SetText(self, txt):
         self.control.SetText(txt)
 
+    def GetLineCount(self):
+        """ Currently rather stupid, can probably be done more
+        efficiently through some Scintilla function. """
+        txt = self.GetText().splitlines()
+        return len(txt)
+
     def SetErrorLine(self,line):
-        line = line - 1     # Start at 0 in stc, but on screen count is 1
-        pos = self.control.GetLineIndentPosition(line)
-        last = self.control.GetLineEndPosition(line)
-        self.control.StartStyling(pos,31)
-        self.control.SetStyling(last-pos,self.errorstyle)
+        """
+        Currently this is BROKEN for include commands, as no file names
+        are propagated. To minize the damage, we at least don't try to
+        highlight non-existing names. In the long run of course
+        propagation is the only way to handle this.
+        """
+        if line <= self.GetLineCount():
+            if line > 0:
+                line = line - 1     # Start at 0 in stc, but on screen count is 1
+                pos = self.control.GetLineIndentPosition(line)
+                last = self.control.GetLineEndPosition(line)
+                self.control.StartStyling(pos,31)
+                self.control.SetStyling(last-pos,self.errorstyle)
 
     def ClearErrors(self):
         self.control.ClearDocumentStyle()
