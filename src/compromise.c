@@ -153,6 +153,55 @@ checkCompromiseRequirements (void)
     }
 }
 
+//! Check whether a given event (roledef) is a compromise event
+int
+isCompromiseEvent(Roledef rd)
+{
+  if (rd != NULL)
+    {
+      if (rd->type == SEND)
+	{
+	  if (isTermEqual(rd->label,TERM_Compromise))
+	    {
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
+//! Check whether role has a compromise event
+int
+hasRoleCompromiseEvent(Role r)
+{
+  Roledef rd;
+
+  for (rd = r->roledef; rd != NULL; rd = rd->next)
+    {
+      if (isCompromiseEvent(rd))
+	{
+	  return true;
+	}
+    }
+  return false;
+}
+
+//! Check protocol for role compromise events
+int
+hasProtocolCompromiseEvent(Protocol p)
+{
+  Role r;
+
+  for (r = p->roles; r != NULL; r = r->next)
+    {
+      if (hasRoleCompromiseEvent(r))
+	{
+	  return true;
+	}
+    }
+  return false;
+}
+
 void
 compromisePrepare (const System mysys)
 {
@@ -193,23 +242,22 @@ compromisePrepare (const System mysys)
 	{
 	  lastprot->next = newprots;
 	}
-      // DEBUG TODO
-#ifdef DEBUG
-      if (DEBUGL (1))
-	{
-	  Protocol prot;
 
-	  eprintf ("Role list after duplication for compromise");
-	  for (prot = sys->protocols; prot != NULL; prot = prot->next)
-	    {
-	      eprintf ("---------------------\n");
-	      eprintf ("Protocol ");
-	      termPrint (prot->nameterm);
-	      eprintf ("\n");
-	      rolesPrint (prot->roles);
-	    }
+    }
+  // Report (if needed)
+  if (switches.reportCompromise)
+    {
+      Protocol prot;
+
+      for (prot = sys->protocols; prot != NULL; prot = prot->next)
+	{
+	  eprintf ("---------------------\n");
+	  eprintf ("Protocol ");
+	  termPrint (prot->nameterm);
+	  eprintf ("\n");
+	  rolesPrint (prot->roles);
 	}
-#endif
+      exit (0);
     }
 }
 

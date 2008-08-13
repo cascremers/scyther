@@ -114,6 +114,7 @@ switchesInit (int argc, char **argv)
   switches.lightness = 0;	// lightness correction
   switches.clusters = false;	// default is no clusters for now
   switches.exitCodes = true;	// default is to flag exit codes
+  switches.reportCompromise = false;	// default is no compromise report
 
   // Process the environment variable SCYTHERFLAGS
   process_environment ();
@@ -1214,6 +1215,23 @@ switcher (const int process, int index, int commandline)
 		("Partner definition mode must be between 0 and 2.\n");
 	      exit (1);
 	    }
+	  return index;
+	}
+    }
+
+  if (detect (' ', "report-compromise", 0))
+    {
+      if (!process)
+	{
+	  /* 
+	   * Show compromise additions (if any) and abort.
+	   *
+	   * Should be used in combination with any of the compromise switches.
+	   */
+	}
+      else
+	{
+	  switches.reportCompromise = true;
 	  return index;
 	}
     }
