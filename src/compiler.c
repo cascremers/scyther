@@ -619,6 +619,20 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
   return cl;
 }
 
+//! Check whether the symbol corresponds to a compromise label
+int
+isCompromiseSymbol (Symbol s)
+{
+  if (s != NULL)
+    {
+      if (isStringEqual (s->text, TermSymb (TERM_Compromise)->text))
+	{
+	  return true;
+	}
+    }
+  return false;
+}
+
 //! Parse a communication event tc of type event, and add a role definition event for it.
 void
 commEvent (int event, Tac tc)
@@ -632,35 +646,46 @@ commEvent (int event, Tac tc)
   Term claim = NULL;
   Term claimbig = NULL;
   int n = 0;
+  int isCompromiseEvent;
   Tac trip;
   Labelinfo linfo;
 
+  isCompromiseEvent = false;
+
   /* Construct label, if any */
-  if (tc->t1.sym == NULL)
+  isCompromiseEvent = isCompromiseSymbol (tc->t1.sym);
+  if (isCompromiseEvent)
     {
-      /* right, now this should not be NULL anyway, if so we construct a fresh one.
-       * This can be a weird choice if it is a read or send, because in that case
-       * we cannot chain them anymore and the send-read correspondence is lost.
-       */
-      label = freshTermPrefix (thisRole->nameterm);
+      label = TERM_Compromise;
     }
   else
     {
-      label = levelFind (tc->t1.sym, level - 1);
-      if (label == NULL)
+      if (tc->t1.sym == NULL)
 	{
-	  /* effectively, labels are bound to the protocol */
-	  level--;
-	  /* leaves a garbage tuple. dunnoh what to do with it */
-	  label = levelConst (tc->t1.sym);
-	  level++;
+	  /* right, now this should not be NULL anyway, if so we construct a fresh one.
+	   * This can be a weird choice if it is a read or send, because in that case
+	   * we cannot chain them anymore and the send-read correspondence is lost.
+	   */
+	  label = freshTermPrefix (thisRole->nameterm);
 	}
       else
 	{
-	  /* leaves a garbage tuple. dunnoh what to do with it */
+	  label = levelFind (tc->t1.sym, level - 1);
+	  if (label == NULL)
+	    {
+	      /* effectively, labels are bound to the protocol */
+	      level--;
+	      /* leaves a garbage tuple. dunnoh what to do with it */
+	      label = levelConst (tc->t1.sym);
+	      level++;
+	    }
+	  else
+	    {
+	      /* In the alternative case, maybe a warning is appropriate */
+	    }
 	}
+      label = makeTermTuple (thisProtocol->nameterm, label);
     }
-  label = makeTermTuple (thisProtocol->nameterm, label);
 
   /**
    * Parse the specific event type
@@ -678,7 +703,10 @@ commEvent (int event, Tac tc)
 	{
 	  /* Not found, make a new one */
 	  linfo = label_create (label, thisProtocol);
-	  sys->labellist = list_append (sys->labellist, linfo);
+	  if (!isCompromiseEvent)
+	    {
+	      sys->labellist = list_append (sys->labellist, linfo);
+	    }
 	}
 
       /* now parse triplet info */
@@ -698,8 +726,9 @@ commEvent (int event, Tac tc)
 	    error
 	      ("Send role does not correspond to execution role at line %i.",
 	       tc->lineno);
-	  if (linfo->sendrole != NULL)
-	    error ("Label defined twice for sendrole!");
+	  if ((!isCompromiseEvent) && (linfo->sendrole != NULL))
+	    error ("Label defined twice for sendrole at line %i.",
+		   tc->lineno);
 	  linfo->sendrole = fromrole;
 
 	  /* set keylevels based on send events */
@@ -715,8 +744,9 @@ commEvent (int event, Tac tc)
 	    error
 	      ("Read role does not correspond to execution role at line %i.",
 	       tc->lineno);
-	  if (linfo->readrole != NULL)
-	    error ("Label defined twice for readrole!");
+	  if ((!isCompromiseEvent) && (linfo->readrole != NULL))
+	    error ("Label defined twice for readrole at line %i.",
+		   tc->lineno);
 	  linfo->readrole = torole;
 	}
 

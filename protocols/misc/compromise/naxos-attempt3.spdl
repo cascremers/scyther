@@ -1,0 +1,161 @@
+/* 
+ * NAXOS AKE (Authenticated Key Exchange) protocol
+ *
+ * From "Stronger Security of Authenticated Key Exchange"
+ * LaMacchia Lauter Mityagin 2006
+ *
+ * It's not really NAXOS in the sense that we don't have the group
+ * exponentiations. These are emulated by the exponentiation protocol,
+ * which simulates the g^ab = g^ba relation inside of the generated key
+ * term. This is of course an underapproximation of the algebraic
+ * properties but because we are here only looking for attacks, it seems
+ * to be no problem.
+ *
+ * Attacks:
+ * 
+ * Initiator: not yet found (detected attack required 3 runs, but
+ * involved a compromise attack on the exponentiation protocol, which is
+ * of course not what should happen).
+ *
+ * Responder: Found a 5-run all-compromise attack using matching
+ * histories. The attack involves in fact only 2 real runs: two
+ * initiators with swapped agents. Then, the intruder can feed the
+ * message of the first into the second, and vice versa, and compromise
+ * one. The compromise involves the key *before* it is hashed by h2,
+ * such that the intruder can swap the agent names. The runs are not
+ * partners in any useful way, but the key will be revealed anyway.
+ * (Should be reproducable by the manual reveal events)
+ */
+
+// PKI infrastructure
+
+const pk: Function;
+secret sk: Function;
+
+// Hash functions
+const h1,h2,g1,g2: Function;
+secret unh1,unh2,ung1,ung2: Function;
+
+inversekeys (pk,sk);
+inversekeys (h1,unh1);
+inversekeys (h2,unh2);
+inversekeys (g1,ung1);
+inversekeys (g2,ung2);
+
+
+/*
+ * Hack to simulate g^ab = g^ba inside terms
+ */
+protocol exponentiation(RA,RB,RC)
+{
+	role RA
+	{
+		var X,Y, T1,T2: Ticket;
+
+		recv_!1(RA,RA, h2(
+		  g2(g1(X),Y),
+		  T1, T2, RA,RB
+		  ));
+		send_!2(RA,RA, h2(
+		  g2(g1(Y),X),
+		  T1, T2, RA,RB
+		  ));
+	}
+	role RB
+	{
+		var X,Y, T1,T2: Ticket;
+
+		recv_!3(RB,RB, h2(
+		  T1,
+		  g2(g1(X),Y),
+		  T2, RA,RB
+		  ));
+		send_!4(RB,RB, h2(
+		  T1,
+		  g2(g1(Y),X),
+		  T2, RA,RB
+		  ));
+	}
+	role RC
+	{
+		var X,Y, T1,T2: Ticket;
+
+		recv_!5(RC,RC, h2(
+		  T1, T2,
+		  g2(g1(X),Y),
+		  RA,RB
+		  ));
+		send_!6(RC,RC, h2(
+		  T1, T2,
+		  g2(g1(Y),X),
+		  RA,RB
+		  ));
+	}
+}
+
+// The protocol description
+
+protocol naxos(I,R)
+{
+	role I
+	{
+		const eskI: Nonce;
+		var Y: Ticket;
+
+		send_Compromise(I,I, eskI );
+		send_Compromise(I,I, h1(eskI,sk(I)) );
+
+		send_1(I,R, g1(h1(eskI,sk(I))) );
+
+		recv_2(R,I, Y );
+
+		send_Compromise(I,I, 
+			g2(Y,sk(I)),
+			g2(g1(sk(R)),h1(eskI,sk(I))), 
+			g2(Y,h1(eskI,sk(I)))
+			);
+
+		claim(I,Secret,h2( 
+			g2(Y,sk(I)),
+			g2(g1(sk(R)),h1(eskI,sk(I))), 
+			g2(Y,h1(eskI,sk(I))),
+			I,R));
+	}	
+	
+	role R
+	{
+		const eskR: Nonce;
+		var X: Ticket;
+
+		send_Compromise(R,R, eskR );
+		send_Compromise(R,R, h1(eskR,sk(R)) );
+
+		recv_1(I,R, X );
+
+		send_2(R,I, g1(h1(eskR,sk(R))) );
+
+		send_Compromise(R,R, 
+			g2(g1(sk(I)),h1(eskR,sk(R))), 
+			g2(X,sk(R)),
+			g2(X,h1(eskR,sk(R)))
+			);
+
+		claim(R,Secret,h2( 
+			g2(g1(sk(I)),h1(eskR,sk(R))), 
+			g2(X,sk(R)),
+			g2(X,h1(eskR,sk(R))),
+			I,R));
+	}
+}
+
+// The agents in the system
+
+const Alice,Bob: Agent;
+
+// An untrusted agent, with leaked information
+
+const Eve: Agent;
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+

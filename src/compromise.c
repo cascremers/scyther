@@ -64,6 +64,7 @@ Protocol compromiseProtocol (Protocol sourceprot);
  * 0: none
  * 1: key
  * 2: all
+ * 3: user-defined (using special SEND_Compromise events)
  *
  * The main idea is that local things may get compromised. Of course, if one
  * manages this during the session (say with your partner), all bets are off.
@@ -155,13 +156,13 @@ checkCompromiseRequirements (void)
 
 //! Check whether a given event (roledef) is a compromise event
 int
-isCompromiseEvent(Roledef rd)
+isCompromiseEvent (Roledef rd)
 {
   if (rd != NULL)
     {
       if (rd->type == SEND)
 	{
-	  if (isTermEqual(rd->label,TERM_Compromise))
+	  if (isTermEqual (rd->label, TERM_Compromise))
 	    {
 	      return true;
 	    }
@@ -172,13 +173,13 @@ isCompromiseEvent(Roledef rd)
 
 //! Check whether role has a compromise event
 int
-hasRoleCompromiseEvent(Role r)
+hasRoleCompromiseEvent (Role r)
 {
   Roledef rd;
 
   for (rd = r->roledef; rd != NULL; rd = rd->next)
     {
-      if (isCompromiseEvent(rd))
+      if (isCompromiseEvent (rd))
 	{
 	  return true;
 	}
@@ -188,13 +189,13 @@ hasRoleCompromiseEvent(Role r)
 
 //! Check protocol for role compromise events
 int
-hasProtocolCompromiseEvent(Protocol p)
+hasProtocolCompromiseEvent (Protocol p)
 {
   Role r;
 
   for (r = p->roles; r != NULL; r = r->next)
     {
-      if (hasRoleCompromiseEvent(r))
+      if (hasRoleCompromiseEvent (r))
 	{
 	  return true;
 	}
@@ -202,11 +203,75 @@ hasProtocolCompromiseEvent(Protocol p)
   return false;
 }
 
+//! Remove compromise events from a role
+void
+removeRoleCompromiseEvents (Role role)
+{
+  Roledef rd, prev;
+
+  // Scan for first non-compromise and store this new start
+  rd = role->roledef;
+  while ((rd != NULL) && (isCompromiseEvent (rd)))
+    {
+      rd = rd->next;
+    }
+  role->roledef = rd;
+
+  // Filter the remainder
+  prev = NULL;
+  while (rd != NULL)
+    {
+      if (isCompromiseEvent (rd))
+	{
+	  /* Note that the above condition is never true for the first event
+	   * (by the postcondition of the first loop) and therefore we can be
+	   * sure prev != NULL by the else case.
+	   */
+	  prev->next = rd->next;
+	}
+      else
+	{
+	  prev = rd;
+	}
+      rd = rd->next;
+    }
+}
+
+//! Remove compromise events from a protocol
+void
+removeProtocolCompromiseEvents (Protocol prot)
+{
+  Role role;
+
+  for (role = prot->roles; role != NULL; role = role->next)
+    {
+      removeRoleCompromiseEvents (role);
+    }
+}
+
+//! Remove all compromise events
+void
+removeCompromiseEvents (void)
+{
+  Protocol prot;
+
+  for (prot = sys->protocols; prot != NULL; prot = prot->next)
+    {
+      removeProtocolCompromiseEvents (prot);
+    }
+}
+
 void
 compromisePrepare (const System mysys)
 {
   sys = mysys;
 
+  if (switches.compromiseType != 3)
+    {
+      /* If we are not using any self-defined compromised events, remove them.
+       * */
+      removeCompromiseEvents ();
+    }
   if (switches.compromiseType > 0)
     {
       /*
@@ -230,6 +295,8 @@ compromisePrepare (const System mysys)
 	      newprot = compromiseProtocol (oldprots);
 	      newprot->next = newprots;
 	      newprots = newprot;
+	      // Remove any compromise events from the duplicated one
+	      removeProtocolCompromiseEvents (oldprots);
 	      // Count the new protocol
 	      protocolCount++;
 	    }
@@ -377,6 +444,10 @@ learnFromMessage (Role r, Termlist tl, Term t)
 	    {
 	      tl = termlistAddNew (tl, t);
 	    }
+	}
+      if (switches.compromiseType == 3)
+	{
+	  // Self-defined compromise: nothing really
 	}
     }
   else
@@ -529,6 +600,11 @@ compromiseProtocol (Protocol sourceprot)
 
 	      newrd = roledefDuplicate1 (rd);
 
+	      if (isCompromiseEvent (rd))
+		{
+		  // If it is a compromise event, it's interesting by definition.
+		  interesting = true;
+		}
 	      // Scan what is new here to be sent etc. later
 	      // The algorithm depends on the type of compromise
 	      compTerms =

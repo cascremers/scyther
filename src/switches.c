@@ -1177,15 +1177,16 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  /* 0: no local compromise (default), 1: key compromise, 2:local full compromise
+	   * 3: use existing compromise events
 	   * They're all active for now. */
 	}
       else
 	{
 	  switches.compromiseType = integer_argument ();
-	  if ((switches.compromiseType < 0) || (switches.compromiseType > 2))
+	  if ((switches.compromiseType < 0) || (switches.compromiseType > 3))
 	    {
 	      printfstderr
-		("Local compromise type must be between 0 and 2.\n");
+		("Local compromise type must be between 0 and 3.\n");
 	      exit (1);
 	    }
 	  return index;
