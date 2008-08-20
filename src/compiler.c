@@ -476,6 +476,13 @@ generateFreshClaimlabel (const System sys, const Protocol protocol,
   return label;
 }
 
+//! Boolean sanity wrapper around C low level madness
+int
+isStringEqual (const char *s1, const char *s2)
+{
+  return (strcmp (s1, s2) == 0);
+}
+
 //! Create a claim and add it to the claims list, and add the role event.
 Claimlist
 claimCreate (const System sys, const Protocol protocol, const Role role,
@@ -494,8 +501,8 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
   if (switches.filterProtocol != NULL)
     {
       // only this protocol
-      if (strcmp
-	  (switches.filterProtocol, TermSymb (protocol->nameterm)->text) != 0)
+      if (!isStringEqual
+	  (switches.filterProtocol, TermSymb (protocol->nameterm)->text))
 	{
 	  // not this protocol; return
 	  return NULL;
@@ -516,7 +523,7 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 		{
 		  t = TermOp2 (t);
 		}
-	      if (strcmp (switches.filterLabel, TermSymb (t)->text) != 0)
+	      if (!isStringEqual (switches.filterLabel, TermSymb (t)->text))
 		{
 		  // not this label; return
 		  return NULL;
