@@ -163,7 +163,7 @@ class XMLReader(object):
             followlist.append(follow)
             
         (etype,index) = (xml.get('type'),int(xml.get('index')))
-        if etype in ('send','read'):
+        if etype in ('send','read','recv'):
             fr = self.readTerm(xml.find('from'))
             to = self.readTerm(xml.find('to'))
             message = self.readTerm(xml.find('message'))

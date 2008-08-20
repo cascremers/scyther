@@ -158,6 +158,7 @@ include		BEGIN(incl);
 protocol	{ return PROTOCOL; }
 role		{ return ROLE; }
 read		{ return READT; }
+recv		{ return RECVT; }
 send		{ return SENDT; }
 var		{ return VAR; }
 const		{ return CONST; }
