@@ -283,7 +283,7 @@ roledefDraw (Roledef rd)
 
   if (rd->type == READ)
     {
-      eprintf ("read");
+      eprintf ("recv");
       optlabel ();
       eprintf (" from ");
       termPrintRemap (rd->from);

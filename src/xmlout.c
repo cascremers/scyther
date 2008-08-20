@@ -546,7 +546,7 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
        * Currently, choose events are not distinguished yet. TODO
        */
     case READ:
-      eprintf ("read");
+      eprintf ("recv");
       break;
     case SEND:
       eprintf ("send");

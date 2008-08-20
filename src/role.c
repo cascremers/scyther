@@ -63,7 +63,7 @@ roledefPrintGeneric (Roledef rd, int print_actor)
       return;
     }
   if (rd->type == READ)
-    eprintf ("READ");
+    eprintf ("RECV");
   if (rd->type == SEND)
     eprintf ("SEND");
   if (rd->type == CLAIM)
@@ -475,7 +475,7 @@ WellFormedEvent (Term role, Knowledge know, Roledef rd)
       // Read
       if (!isTermEqual (role, rd->to))
 	{
-	  wfeError (know, rd, "Reading role incorrect.", rd->to, role);
+	  wfeError (know, rd, "Receiving role incorrect.", rd->to, role);
 	  return NULL;
 	}
       if (!inKnowledge (know, rd->from))
@@ -503,7 +503,7 @@ WellFormedEvent (Term role, Knowledge know, Roledef rd)
 	}
       if (!inKnowledge (know, rd->to))
 	{
-	  wfeError (know, rd, "Unknown reading role.", rd->to, NULL);
+	  wfeError (know, rd, "Unknown receiving role.", rd->to, NULL);
 	  return NULL;
 
 	}
