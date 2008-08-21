@@ -41,9 +41,9 @@ the tests.
 """
 #---------------------------------------------------------------------------
 
-TEST0 = ""
-TEST1 = "--max-runs=1"
-TEST2 = "--max-runs=4"
+TEST0 = "--max-runs=5 --partner-definition=1"
+TEST1 = "--local-compromise=1"
+TEST2 = "--local-compromise=2"
 
 #---------------------------------------------------------------------------
 
@@ -63,7 +63,21 @@ def filterProtocol(protocol):
     This function allows that. Return True if it is okay (and should be
     included) or False otherwise.
     """
-    include = True
+    include = False
+    x = Scyther.Scyther()
+    x.options = "--local-compromise=1 --report-compromise %s" % (protocol)
+    x.xml = False
+    x.verify()
+
+    res = x.output
+    if res == None:
+        include = False
+    else:
+        for l in res.splitlines():
+            if l.find("_Compromise") != -1:
+                include = True
+                break
+
     return include
 
 def simpleRun(args):
