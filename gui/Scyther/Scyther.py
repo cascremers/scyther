@@ -262,13 +262,6 @@ class Scyther(object):
         if spdl:
             os.remove(fni)
 
-        # Now if there is no output and no errors, weird things might
-        # happen, and we report the command used.
-        if errors == "" and output == "":
-            errors = "Scyther backend did not yield any output, "
-            errors += "returning no errors and no output.\n"
-            errors += "Command: [%s]" % self.cmd
-
         return (output,errors)
 
     def sanitize(self):
