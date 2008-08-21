@@ -349,6 +349,9 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
  *@return Returns a list of variables, that were previously open, but are now closed
  * in such a way that the two terms unify. Returns \ref MGUFAIL if it is impossible.
  * The termlist should be deleted.
+ *
+ * @TODO this code should be removed, as it duplicates 'unify' code, and is
+ * ill-suited for adaption later on with multiple unifiers.
  */
 Termlist
 termMguTerm (Term t1, Term t2)
