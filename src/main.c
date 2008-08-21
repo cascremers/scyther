@@ -221,6 +221,7 @@ main (int argc, char **argv)
   knowledgeDestroy (sys->know);
   systemDone (sys);
   colorDone ();
+  switchesDone ();
   compilerDone ();
 
   /* done symbols */

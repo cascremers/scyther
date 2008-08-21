@@ -63,14 +63,10 @@ int inKnowledge (const Knowledge know, Term term);
 void knowledgePrint (Knowledge know);
 void knowledgePrintShort (const Knowledge know);
 void knowledgeInversesPrint (Knowledge know);
-int isKnowledgeEqual (Knowledge know1, Knowledge know2);
 Termlist knowledgeSet (const Knowledge know);
 Termlist knowledgeGetInverses (const Knowledge know);
-Termlist knowledgeGetBasics (const Knowledge know);
 int knowledgeSubstNeeded (const Knowledge know);
 Knowledge knowledgeSubstDo (const Knowledge know);
-void knowledgeSubstUndo (const Knowledge know);
-Termlist knowledgeNew (const Knowledge oldk, const Knowledge newk);
 
 //! Harnass macro for recursive procedures.
 #define mindwipe(k,recurse) \

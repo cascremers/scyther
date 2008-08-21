@@ -762,40 +762,6 @@ termlistContained (const Termlist tlbig, Termlist tlsmall)
   return 1;
 }
 
-//! Check substitution validity
-/**
- * Determine whether a variable has been substituted with something with
- * the right type.
- *@param term The closed variable term.
- *@return True iff the substitution is valid in the current mode.
- *\sa system::match
- */
-
-int
-validSubst (const Term term)
-{
-  if (!realTermVariable (term) || term->subst == NULL)
-    return 1;
-  else
-    {
-      switch (switches.match)
-	{
-	case 0:		/* real type match */
-	  return realTermLeaf (term->subst)
-	    && termlistContained (term->stype, term->subst->stype);
-	case 1:		/* basic type match */
-	  /* subst must be a leaf */
-	  /* TODO: what about functions? */
-	  return realTermLeaf (term->subst);
-	case 2:		/* no type match */
-	  /* anything goes */
-	  return 1;
-	default:
-	  return 0;
-	}
-    }
-}
-
 //! Yield the result of f(x)
 /**
  * This function interpretes two termlists as the domain and range of a function,

@@ -162,8 +162,6 @@ System systemInit ();
 void systemReset (const System sys);
 void systemRuns (const System sys);
 System systemDuplicate (const System fromsys);
-void statesPrint (const System sys);
-void statesPrintShort (const System sys);
 void systemDestroy (const System sys);
 void systemDone (const System sys);
 void ensureValidRun (const System sys, int run);
@@ -175,8 +173,6 @@ void roleInstance (const System sys, const Protocol protocol, const Role role,
 		   const Termlist paramlist, Termlist substlist);
 void roleInstanceDestroy (const System sys);
 void systemStart (const System sys);
-void indentActivate ();
-void indentSet (int i);
 void indent ();
 
 Protocol protocolCreate (Term nameterm);
@@ -184,15 +180,11 @@ void locVarPrint (Termlist tl);
 void protocolPrint (Protocol p);
 void protocolsPrint (Protocol p);
 int untrustedAgent (const System sys, Termlist agents);
-int getMaxTraceLength (const System sys);
-void agentsOfRunPrint (const System sys, const int run);
-void violatedClaimPrint (const System sys, int i);
 void commandlinePrint (FILE * stream);
 
 int compute_rolecount (const System sys);
 int compute_roleeventmax (const System sys);
 
-void scenarioPrint (const System sys);
 int isAgentTrusted (const System sys, Term agent);
 int isAgentlistTrusted (const System sys, Termlist agents);
 int isRunTrusted (const System sys, const int run);

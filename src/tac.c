@@ -72,15 +72,6 @@ tacCreate (int op)
 }
 
 Tac
-tacString (char *s)
-{
-  Tac t;
-  t = tacCreate (TAC_STRING);
-  t->t1.str = s;
-  return t;
-}
-
-Tac
 tacJoin (int op, Tac t1, Tac t2, Tac t3)
 {
   Tac t;

@@ -316,26 +316,6 @@ inKnowledge (const Knowledge know, Term term)
   return 0;			/* unrecognized term type, weird */
 }
 
-//! Compare two knowledge sets.
-/**
- * This does not check currently for equivalence of inverse sets, which it should.
- *@return True iff both knowledge sets are equal.
- */
-int
-isKnowledgeEqual (Knowledge know1, Knowledge know2)
-{
-  if (know1 == NULL || know2 == NULL)
-    {
-      if (know1 == NULL && know2 == NULL)
-	return 1;
-      else
-	return 0;
-    }
-  if (!isTermlistEqual (know1->encrypt, know2->encrypt))
-    return 0;
-  return isTermlistEqual (know1->basic, know2->basic);
-}
-
 //! Print a knowledge set.
 void
 knowledgePrint (Knowledge know)
@@ -449,21 +429,6 @@ knowledgeGetInverses (const Knowledge know)
     return know->inverses;
 }
 
-//! Get all basic elements in the knowledge
-/**
- * This function is used by match_basic, to determine all basic elements in the knowledge set.
- * Most of the time this doesn't even change, so it might become a parameter of knowledge.
- * For now, this will have to do.
- *
- *@todo Investigate whether the basics in the knowledge set should be a parameter of knowledge, as it doesn't change very often.
- */
-__inline__ Termlist
-knowledgeGetBasics (const Knowledge know)
-{
-  return termlistAddBasics (termlistAddBasics (NULL, know->basic),
-			    know->encrypt);
-}
-
 //! check whether any substitutions where made in a knowledge set.
 /**
  * Typically, when a substitution is made, a knowledge set has to be reconstructed.
@@ -517,53 +482,4 @@ knowledgeSubstDo (const Knowledge know)
 {
   /* otherwise a copy (for deletion) is returned. */
   return knowledgeReconstruction (know);
-}
-
-//! Undo substitutions that were not propagated yet.
-/**
- * Undo the substitutions just made. Note that this does not work anymore after knowledgeSubstDo()
- */
-void
-knowledgeSubstUndo (const Knowledge know)
-{
-  Termlist tl;
-
-  tl = know->vars;
-  while (tl != NULL)
-    {
-      tl->term->subst = NULL;
-      tl = tl->next;
-    }
-}
-
-//! Yield the minimal set of terms that are in some knowledge, but not in some other set.
-/**
- * Yield a termlist (or NULL) that represents the reduced items that are
- * in the new set, but not in the old one.
- *@param oldk The old knowledge.
- *@param newk The new knowledge, possibly with new terms.
- *@return A termlist of miminal terms in newk, but not in oldk.
- */
-
-Termlist
-knowledgeNew (const Knowledge oldk, const Knowledge newk)
-{
-  Termlist newtl;
-
-  void addNewStuff (Termlist tl)
-  {
-    while (tl != NULL)
-      {
-	if (!inKnowledge (oldk, tl->term))
-	  {
-	    newtl = termlistAdd (newtl, tl->term);
-	  }
-	tl = tl->next;
-      }
-  }
-
-  newtl = NULL;
-  addNewStuff (newk->basic);
-  addNewStuff (newk->encrypt);
-  return newtl;
 }

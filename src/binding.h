@@ -27,6 +27,9 @@
 //! Binding structure
 /*
  * Idea is the ev_from *has to* precede the ev_to
+ *
+ * @TODO: blocked is no longer used. For evaluations, it may be considered
+ * false (no binding is ever blocked).
  */
 struct binding
 {

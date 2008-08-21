@@ -217,24 +217,6 @@ iterate_interesting (const System sys, const Term goalterm, int (*func) ())
   return true;
 }
 
-//! Determine whether a goal might be interesting from the viewpoint of hide levels (the highest minimum is best)
-int
-hidelevelInteresting (const System sys, const Term goalterm)
-{
-  int uninteresting (unsigned int l, unsigned int lmin, unsigned int lprot,
-		     unsigned int lknow)
-  {
-    if (lmin > 0)
-      {
-	// anything higher than usual is interesting :)
-	return false;
-      }
-    return true;
-  }
-
-  return !iterate_interesting (sys, goalterm, uninteresting);
-}
-
 //! Determine whether a goal is impossible to satisfy because of the hidelevel lemma.
 int
 hidelevelImpossible (const System sys, const Term goalterm)

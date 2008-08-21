@@ -39,7 +39,6 @@
  */
 
 void hidelevelCompute (const System sys);
-int hidelevelInteresting (const System sys, const Term goalterm);
 int hidelevelImpossible (const System sys, const Term goalterm);
 unsigned int hidelevelFlag (const System sys, const Term goalterm);
 

@@ -193,41 +193,6 @@ goal_unbind (const Binding b)
     }
 }
 
-//! Bind a goal as a dummy (block)
-/**
- * Especially made for tuple expansion
- *
- * @TODO Weird that this returns a value (always true, otherwise error)
- */
-int
-binding_block (Binding b)
-{
-  if (!b->blocked)
-    {
-      b->blocked = true;
-      return true;
-    }
-  error ("Trying to block a goal again.");
-  return false;
-}
-
-//! Unblock a binding
-/*
- * @TODO Weird that this returns a value (always true, otherwise error)
- */
-int
-binding_unblock (Binding b)
-{
-  if (b->blocked)
-    {
-      b->blocked = false;
-      return true;
-    }
-  error ("Trying to unblock a non-blocked goal.");
-  return false;
-}
-
-
 //! Add a goal
 /**
  * The int parameter 'level' is just to store additional info. Here, it stores priorities for a goal.

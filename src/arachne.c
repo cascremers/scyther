@@ -1188,108 +1188,6 @@ bind_old_goal (const Binding b_new)
   return false;
 }
 
-//! Create a new intruder run to generate knowledge from m0
-int
-bind_goal_new_m0 (const Binding b)
-{
-  Termlist m0tl, tl;
-  int flag;
-  int found;
-
-
-  flag = 1;
-  found = 0;
-  m0tl = knowledgeSet (sys->know);
-  tl = m0tl;
-  while (flag && tl != NULL)
-    {
-      Term m0t;
-      Termlist subst;
-
-      m0t = tl->term;
-      subst = termMguTerm (b->term, m0t);	//! @todo This needs to be replace by the iterator one, but works for now
-      if (subst != MGUFAIL)
-	{
-	  int run;
-
-	  I_M->roledef->message = m0t;
-	  run = semiRunCreate (INTRUDER, I_M);
-	  proof_suppose_run (run, 0, 1);
-	  sys->runs[run].height = 1;
-	  {
-	    indentDepth++;
-	    if (goal_bind (b, run, 0))
-	      {
-		found++;
-		proof_suppose_binding (b);
-		if (switches.output == PROOF)
-		  {
-		    indentPrint ();
-		    eprintf ("* I.e. retrieving ");
-		    termPrint (b->term);
-		    eprintf (" from the initial knowledge.\n");
-		  }
-
-		{
-		  // Now we also want to add bindings to have this run before all other runs
-		  void wrapRunOrders (const int otherrun)
-		  {
-		    if (otherrun < 0)
-		      {
-			// No more runs to do
-			flag = flag && iterate ();
-		      }
-		    else
-		      {
-			if (otherrun != run)
-			  {
-			    if (dependPushEvent (run, 0, otherrun, 0))
-			      {
-				wrapRunOrders (otherrun - 1);
-				dependPopEvent ();
-			      }
-			  }
-			else
-			  {
-			    wrapRunOrders (otherrun - 1);
-			  }
-		      }
-		  }
-
-		  wrapRunOrders (sys->maxruns - 1);
-		}
-
-		goal_unbind (b);
-	      }
-	    else
-	      {
-		proof_cannot_bind (b, run, 0);
-	      }
-	    indentDepth--;
-	  }
-	  semiRunDestroy ();
-
-
-	  termlistSubstReset (subst);
-	  termlistDelete (subst);
-	}
-
-      tl = tl->next;
-    }
-
-  if (found == 0 && switches.output == PROOF)
-    {
-      indentPrint ();
-      eprintf ("Term ");
-      termPrint (b->term);
-      eprintf (" cannot be constructed from the initial knowledge.\n");
-    }
-  termlistDelete (m0tl);
-
-
-  return flag;
-}
-
 //! Bind an intruder goal by intruder composition construction
 /**
  * Handles the case where the intruder constructs a composed term himself.
@@ -1405,7 +1303,6 @@ bind_goal_new_intruder_run (const Binding b)
       eprintf (" from a new intruder run?\n");
     }
   indentDepth++;
-  //flag = bind_goal_new_m0 (b);
   //flag = flag && bind_goal_new_encrypt (b);
   flag = bind_goal_new_encrypt (b);
   indentDepth--;

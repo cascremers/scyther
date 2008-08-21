@@ -915,12 +915,6 @@ xmlOutRuns (const System sys)
  * Publicly available functions
  */
 
-//! Output for a concrete trace (from modelchecker)
-void
-xmlOutTrace (const System sys)
-{
-}
-
 //! Output for a semitrace (from arachne method)
 /**
  * Note: Uses get_trace_length(), which is defined for the arachne method

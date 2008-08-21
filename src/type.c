@@ -148,41 +148,6 @@ checkTypeTerm (const Term tvar)
   return true;
 }
 
-//! Check types of a list
-/**
- * Empty list implies true.
- */
-int
-checkTypeTermlist (Termlist tl)
-{
-  while (tl != NULL)
-    {
-      if (!checkTypeTerm (tl->term))
-	return false;
-      tl = tl->next;
-    }
-  return true;
-}
-
-//! Check whether all local variables are instantiated correctly.
-int
-checkTypeLocals (const System sys)
-{
-  int run;
-
-  run = 0;
-  while (run < sys->maxruns)
-    {
-      if (sys->runs[run].protocol != INTRUDER)
-	{
-	  if (!checkTypeTermlist (sys->runs[run].locals))
-	    return false;
-	}
-      run++;
-    }
-  return true;
-}
-
 //! Check whether a typelist is a strict agent type list
 int
 isAgentType (Termlist typelist)

@@ -185,21 +185,6 @@ systemDone (const System sys)
   systemDestroy (sys);
 }
 
-//! Print a short version of the number of states.
-void
-statesPrintShort (const System sys)
-{
-  statesFormat (sys->states);
-}
-
-//! Print the number of states.
-void
-statesPrint (const System sys)
-{
-  statesFormat (sys->states);
-  eprintf (" states traversed.\n");
-}
-
 //! Destroy a system memory block and system::runs
 /**
  * Ignores any other substructes.
@@ -803,21 +788,6 @@ systemStart (const System sys)
     }
 }
 
-//! Activate indenting.
-void
-indentActivate ()
-{
-  indentState = 1;
-}
-
-//! Set indent depth.
-void
-indentSet (int i)
-{
-  if (indentState)
-    indentDepth = i;
-}
-
 //! Print the prefix of a line suitable for the current indent level.
 void
 indent ()
@@ -957,64 +927,6 @@ isRunTrusted (const System sys, const int run)
   return 1;
 }
 
-//! Yield the maximum length of a trace by analysing the runs in the system.
-int
-getMaxTraceLength (const System sys)
-{
-  Roledef rd;
-  int maxlen;
-  int run;
-
-  maxlen = 0;
-  for (run = 0; run < sys->maxruns; run++)
-    {
-      rd = runPointerGet (sys, run);
-      while (rd != NULL)
-	{
-	  rd = rd->next;
-	  maxlen++;
-	}
-    }
-  return maxlen;
-}
-
-//! Nicely format the role and agents we think we're talking to.
-void
-agentsOfRunPrint (const System sys, const int run)
-{
-  Term role = sys->runs[run].role->nameterm;
-  Termlist roles = sys->runs[run].protocol->rolenames;
-  int notfirst;
-
-  termPrint (role);
-  eprintf (":");
-  termPrint (agentOfRunRole (sys, run, role));
-  eprintf (" (");
-  notfirst = 0;
-  while (roles != NULL)
-    {
-      if (!isTermEqual (role, roles->term))
-	{
-	  if (notfirst)
-	    eprintf (", ");
-	  termPrint (roles->term);
-	  eprintf (":");
-	  termPrint (agentOfRunRole (sys, run, roles->term));
-	  notfirst = 1;
-	}
-      roles = roles->next;
-    }
-  eprintf (")");
-}
-
-//! Explain a violated claim at point i in the trace.
-
-void
-violatedClaimPrint (const System sys, const int i)
-{
-  eprintf ("Claim stuk");
-}
-
 void
 commandlinePrint (FILE * stream)
 {
@@ -1075,30 +987,6 @@ compute_roleeventmax (const System sys)
       pr = pr->next;
     }
   return maxev;
-}
-
-//! Print the role, agents of a run
-void
-runInstancePrint (const System sys, const int run)
-{
-  termPrint (sys->runs[run].role->nameterm);
-  termlistPrint (sys->runs[run].rho);
-}
-
-//! Print an instantiated scenario (chooses and such)
-void
-scenarioPrint (const System sys)
-{
-  int run;
-
-  for (run = 0; run < sys->maxruns; run++)
-    {
-      runInstancePrint (sys, run);
-      if (run < sys->maxruns - 1)
-	{
-	  eprintf ("\t");
-	}
-    }
 }
 
 //! Determine whether we don't need any more attacks
