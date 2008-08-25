@@ -49,13 +49,14 @@ from time import localtime,strftime
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
+import Makeimage
 
 #---------------------------------------------------------------------------
 
 """ Globals """
 # Do we have the Python Imaging library?
 havePIL = True
-#havePIL = False     # For now, override (bounding box bug on Feisty?)
+testPILOkay = None
 try:
     import Image
 except ImportError:
@@ -71,14 +72,23 @@ def usePIL():
     """
     Determine whether or not we should use the PIL library
     """
-    global havePIL
+    global havePIL, testPILOkay
+
+    if not havePIL:
+        return False
 
     # Only if we have it, and it is windows.
-    if havePIL:
-        if sys.platform.startswith("lin"):
-            return True
+    if not sys.platform.startswith("lin"):
+        return False
 
-    return False
+    # Seems fine. But did we already test it?
+    if testPILOkay != None:
+        return testPILOkay
+
+    # Test the usage
+    testPILOkay = True
+    testPILOkay = testPIL()
+    return testPILOkay
 
 def doNotUsePIL():
     """
@@ -87,6 +97,27 @@ def doNotUsePIL():
     global havePIL
 
     havePIL = False
+
+
+def testPIL():
+    """
+    Test whether PIL works as we want it.
+
+    We generate a postscript file from a dot file, and see what happens.
+    """
+
+    # depends on PIL lib
+    okay = True
+    try:
+        Makeimage.testImage()
+        # PIL seems fine
+    except:
+        # PIL broke
+        doNotUsePIL()
+        okay = False
+
+    return okay
+
 
 #---------------------------------------------------------------------------
 

@@ -33,8 +33,11 @@ import Preference
 import Error
 
 #---------------------------------------------------------------------------
-if Preference.usePIL():
+try:
     import Image
+except ImportError:
+    pass
+
 #---------------------------------------------------------------------------
 
 class AttackDisplay(wx.ScrolledWindow):

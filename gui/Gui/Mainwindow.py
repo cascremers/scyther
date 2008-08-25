@@ -33,6 +33,7 @@ import Scytherthread
 import Icon
 import About
 import Editor
+import Preference
 
 #---------------------------------------------------------------------------
 
@@ -44,6 +45,9 @@ ID_CHECK = 103
 
 #---------------------------------------------------------------------------
 
+def MainInitOnce():
+    result = Preference.usePIL()    # Makes sure PIL is tested.
+
 class MainWindow(wx.Frame):
 
     def __init__(self, opts, args):
@@ -53,6 +57,8 @@ class MainWindow(wx.Frame):
         self.args = args
 
         self.dirname = os.path.abspath('.')
+
+        MainInitOnce()
 
         self.filename = 'noname.spdl'
         self.load = False

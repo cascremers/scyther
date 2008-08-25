@@ -42,9 +42,10 @@ import Preference
 import Attackwindow
 import Icon
 import Error
+import Makeimage
 
 #---------------------------------------------------------------------------
-if Preference.usePIL():
+if Preference.havePIL:
     import Image
 #---------------------------------------------------------------------------
 
@@ -148,7 +149,7 @@ class AttackThread(threading.Thread):
         done = 0
         for cl in self.parent.claims:
             for attack in cl.attacks:
-                self.makeImage(attack)
+                Makeimage.makeImage(attack,self)
                 done += 1
                 if self.callbackattack:
                     wx.CallAfter(self.callbackattack,attack,self.totalattacks,done)
@@ -157,107 +158,6 @@ class AttackThread(threading.Thread):
         if self.callbackdone:
             wx.CallAfter(self.callbackdone)
 
-    def writeGraph(self,txt,fp):
-    
-        EDGE = 0
-        NODE = 1
-        DEFAULT = 2
-        ALL = 3
-
-        def graphLine(txt):
-            fp.write("\t%s;\n" % (txt))
-
-        def setAttr(atxt,EdgeNodeDefAll=ALL):
-            if EdgeNodeDefAll == ALL:
-                setAttr(atxt,EDGE)
-                setAttr(atxt,NODE)
-                setAttr(atxt,DEFAULT)
-            else:
-                if EdgeNodeDefAll == EDGE:
-                    edge = "edge"
-                elif EdgeNodeDefAll == NODE:
-                    edge = "node"
-                else:
-                    graphLine("%s" % atxt)
-                    return
-                graphLine("%s [%s]" % (edge,atxt))
-
-        if sys.platform.startswith("darwin"):
-            self.fontname = "Helvetica"
-        elif sys.platform.startswith("win"):
-            self.fontname = "Courier"
-        else:
-            #font = wx.Font(9,wx.SWISS,wx.NORMAL,wx.NORMAL)
-            #self.fontname = font.GetFaceName()
-            self.fontname = "\"Helvetica\""
-
-        # write all graph lines but add layout modifiers
-        for l in txt.splitlines():
-            fp.write(l)
-            if l.startswith("digraph"):
-                # Write additional stuff for this graph
-                #
-                # [CC][x] This dpi setting messed up quite a bit
-                #graphLine("dpi=96")
-                graphLine("rankdir=TB")
-                #graphLine("nodesep=0.1")
-                #graphLine("ranksep=0.001")
-                #graphLine("mindist=0.1")
-    
-                # Set fontname
-                if self.fontname:
-                    fontstring = "fontname=%s" % (self.fontname)
-                    setAttr(fontstring)
-
-                # Stupid Mac <> Graphviz bug fix
-                if (sys.platform.startswith("mac")) or (sys.platform.startswith("darwin")):
-                    # Note that dot on Mac cannot find the fonts by default,
-                    # and we have to set them accordingly.
-                    os.environ["DOTFONTPATH"]="~/Library/Fonts:/Library/Fonts:/System/Library/Fonts"
-
-                # Select font size
-                if self.parent and self.parent.mainwin:
-                    fontsize = self.parent.mainwin.settings.fontsize
-                    setAttr("fontsize=%s" % fontsize)
-                #setAttr("height=\"0.1\"",NODE)
-                #setAttr("width=\"1.0\"",NODE)
-                #setAttr("margin=\"0.3,0.03\"",NODE)
-
-    def makeImage(self,attack):
-        """ create image for this particular attack """
-
-        if Preference.usePIL():
-            # If we have the PIL library, we can do postscript! great
-            # stuff.
-            type = "ps"
-            ext = ".ps"
-        else:
-            # Ye olde pnge file
-            type = "png"
-            ext = ".png"
-
-        # command to write to temporary file
-        (fd2,fpname2) = Tempfile.tempcleaned(ext)
-        f = os.fdopen(fd2,'w')
-
-        cmd = "dot -T%s" % (type)
-
-         # execute command
-        cin,cout = os.popen2(cmd,'b')
-
-        self.writeGraph(attack.scytherDot,cin)
-        cin.close()
-
-        for l in cout.read():
-            f.write(l)
-
-        cout.close()
-        f.flush()
-        f.close()
-
-        # if this is done, store and report
-        attack.filetype = type
-        attack.file = fpname2  # this is where the file name is stored
 
 #---------------------------------------------------------------------------
 
