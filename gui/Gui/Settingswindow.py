@@ -99,12 +99,12 @@ class SettingsWindow(wx.Panel):
         grid.titleAdd("Advanced parameters")
 
         # Continue after finding the first attack
-        self.allattacks = int(Preference.get('allattacks','0'))
-        claimoptions = ['Yes','No']
-        r8 = wx.StaticText(self,-1,"Stop after finding one attack")
+        self.prune = int(Preference.get('prune','2'))
+        claimoptions = ['Find all attacks','Find first attack','Find best attack']
+        r8 = wx.StaticText(self,-1,"Search pruning")
         l8 = self.ch = wx.Choice(self,-1,choices=claimoptions)
-        l8.SetSelection(self.allattacks)
-        self.Bind(wx.EVT_CHOICE,self.EvtAllAttacks,l8)
+        l8.SetSelection(self.prune)
+        self.Bind(wx.EVT_CHOICE,self.EvtPrune,l8)
         grid.stepAdd(l8,r8)
 
         # Bound on the number of patterns
@@ -152,9 +152,9 @@ class SettingsWindow(wx.Panel):
     def EvtFontsize(self,evt):
         self.fontsize = evt.GetInt()
 
-    def EvtAllAttacks(self,evt):
-        self.allattacks = evt.GetInt()
-        Preference.set('allattacks',self.allattacks)
+    def EvtPrune(self,evt):
+        self.prune = evt.GetInt()
+        Preference.set('prune',self.prune)
 
     def EvtMaxAttacks(self,evt):
         self.maxattacks = evt.GetInt()
@@ -173,9 +173,8 @@ class SettingsWindow(wx.Panel):
         tstr += "--max-runs=%s " % (str(self.maxruns))
         # Matching type
         tstr += "--match=%s " % (str(self.match))
-        # All attacks (has to go BEFORE max attacks)
-        if self.allattacks != 0:
-            tstr += "--all-attacks "
+        # Prune (has to go BEFORE max attacks)
+        tstr += "--prune=%s" % (str(self.prune))
         # Max attacks/classes
         if self.maxattacks != 0:
             tstr += "--max-attacks=%s " % (str(self.maxattacks))

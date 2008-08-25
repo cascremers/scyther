@@ -78,7 +78,9 @@ class ScytherThread(threading.Thread):
         VISTA screwed up the standard C function tmpfile() (It's in a
         directory to which normal users cannot write...)
         """
-        if int(Preference.get('allattacks','0')) == 0:
+        # TODO Notice the stupid default setting too ('2') which is
+        # needed here. This really needs cleanup.
+        if int(Preference.get('prune','2')) != 0:
             if claims:
                 for cl in claims:
                     if len(cl.attacks) > 1:
