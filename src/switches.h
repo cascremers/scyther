@@ -58,6 +58,9 @@ struct switchdata
   int agentUnfold;		//!< Explicitly unfold for N honest agents and 1 compromised iff > 0
   int abstractionMethod;	//!< 0 means none, others are specific modes
   int useAttackBuffer;		//!< Use temporary file for attack storage
+  int compromiseType;		//!< 0: no local compromise, 1: local key compromise, 2: local compromise (for now, always active compromise)
+  int trustedMode;		//!< 0: actors trusted, 1: actors+claim based run agents trusted, 2: actors+all claim agents, 3: all run agents trusted.
+  int partnerDefinition;	//!< 0: temporally close, 1: matching histories
   int requireSynch;		//!< 0: it's not an attack if you don't synchronize
   int checkMatchingLabels;	//!< default is to check matching labels
 

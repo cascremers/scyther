@@ -32,3 +32,13 @@ Channels
   the intruder did the projection. These side cases need thorough
   investigation and sane definitions in the semantics.
 
+Key compromise
+==============
+
+- The current idea of 'compromised runs must be able to end before the
+  claim run' is maybe a bit to weak. It yields an interesting attack on
+  NSL3, which requires a responder to start during the compromise, but
+  still be active later on. Maybe that's not really what the intent is
+  (with compromises 'taking time' somehow.)
+- Other agents should also be okay (not in the claim)
+

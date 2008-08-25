@@ -95,6 +95,27 @@ class SettingsWindow(wx.Panel):
         self.Bind(wx.EVT_CHOICE,self.EvtMatch,l2)
         grid.stepAdd(l2,r2)
 
+        ### Security model
+        grid.titleAdd("Security model")
+
+        # Local compromise intruder
+        self.localcompromise = int(Preference.get('localcompromise','0'))
+        claimoptions = ['None','Keys only','Full']
+        r3 = wx.StaticText(self,-1,"Local compromise type")
+        l3 = self.ch = wx.Choice(self,-1,choices=claimoptions)
+        l3.SetSelection(self.localcompromise)
+        self.Bind(wx.EVT_CHOICE,self.EvtLocalcompromise,l3)
+        grid.stepAdd(l3,r3)
+        
+        # Partner definition 
+        self.partnerdefinition = int(Preference.get('partnerdefinition','1'))
+        claimoptions = ['Temporal','Matching conversations']
+        r4 = wx.StaticText(self,-1,"Partner definition")
+        l4 = self.ch = wx.Choice(self,-1,choices=claimoptions)
+        l4.SetSelection(self.partnerdefinition)
+        self.Bind(wx.EVT_CHOICE,self.EvtPartnerdefinition,l4)
+        grid.stepAdd(l4,r4)
+        
         ### MISC expert stuff
         grid.titleAdd("Advanced parameters")
 
@@ -146,6 +167,12 @@ class SettingsWindow(wx.Panel):
     def EvtMatch(self,evt):
         self.match = evt.GetInt()
 
+    def EvtPartnerdefinition(self,evt):
+        self.partnerdefinition = evt.GetInt()
+
+    def EvtLocalcompromise(self,evt):
+        self.localcompromise = evt.GetInt()
+
     def EvtRuns(self,evt):
         self.maxruns = evt.GetInt()
 
@@ -173,6 +200,10 @@ class SettingsWindow(wx.Panel):
         tstr += "--max-runs=%s " % (str(self.maxruns))
         # Matching type
         tstr += "--match=%s " % (str(self.match))
+        # Compromise type
+        tstr += "--local-compromise=%s " % (str(self.localcompromise))
+        # Partner definition
+        tstr += "--partner-definition=%s " % (str(self.partnerdefinition))
         # Prune (has to go BEFORE max attacks)
         tstr += "--prune=%s" % (str(self.prune))
         # Max attacks/classes

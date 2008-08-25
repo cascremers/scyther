@@ -321,6 +321,48 @@ termInTerm (Term t, Term tsub)
     return false;
 }
 
+//! Substitute a term in another (if it occurs)
+/**
+ * Duplicates only stuff that is needed.
+ */
+Term
+termSubstitute (Term bigterm, Term searchterm, Term substterm)
+{
+  if (isTermEqual (bigterm, searchterm))
+    {
+      return substterm;
+    }
+  if (!termSubTerm (bigterm, searchterm))
+    {
+      return bigterm;
+    }
+  // Not equal, but occurs as subterm.
+  // Must therefore be compound.
+  bigterm = termDuplicate (deVar (bigterm));
+  if (realTermTuple (bigterm))
+    {
+      TermOp1 (bigterm) =
+	termSubstitute (TermOp1 (bigterm), searchterm, substterm);
+      TermOp2 (bigterm) =
+	termSubstitute (TermOp2 (bigterm), searchterm, substterm);
+    }
+  else
+    {
+      if (realTermEncrypt (bigterm))
+	{
+	  TermOp (bigterm) =
+	    termSubstitute (TermOp (bigterm), searchterm, substterm);
+	  TermKey (bigterm) =
+	    termSubstitute (TermKey (bigterm), searchterm, substterm);
+	}
+      else
+	{
+	  error ("Unknown term compound type.");
+	}
+    }
+  return bigterm;
+}
+
 //! Print a term to stdout.
 /**
  * The tuple printing only works correctly for normalized terms.

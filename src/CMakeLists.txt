@@ -16,6 +16,7 @@ set (Scyther_sources
 	intruderknowledge.c knowledge.c label.c list.c main.c mgu.c
 	prune_bounds.c prune_theorems.c role.c 
 	specialterm.c states.c switches.c symbol.c system.c tac.c
+	compromise.c trusted.c partner.c
 	tempfile.c
 	termlist.c termmap.c term.c timer.c type.c warshall.c xmlout.c
 	parser.c scanner.c

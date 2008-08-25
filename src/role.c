@@ -214,9 +214,31 @@ roledefInit (int type, Term label, Term from, Term to, Term msg, Claimlist cl)
   return newEvent;
 }
 
+//! Yield the tail node of a roledef list
+/**
+ * Returns NULL only if given NULL
+ */
+Roledef
+roledefTail (Roledef rd)
+{
+  if (rd == NULL)
+    {
+      return NULL;
+    }
+  else
+    {
+      while (rd->next != NULL)
+	{
+	  rd = rd->next;
+	}
+      return rd;
+    }
+}
+
 //! Add a role event to an existing list, with the given parameters.
 /**
  *\sa roledefInit()
+ * Returns the new head (if given NULL) or the rd it was given as input.
  */
 Roledef
 roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg,
@@ -227,9 +249,7 @@ roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg,
   if (rd == NULL)
     return roledefInit (type, label, from, to, msg, cl);
 
-  scan = rd;
-  while (scan->next != NULL)
-    scan = scan->next;
+  scan = roledefTail (rd);
   scan->next = roledefInit (type, label, from, to, msg, cl);
   return rd;
 }
@@ -253,6 +273,22 @@ roleCreate (Term name)
   r->knows = NULL;
   r->lineno = 0;
   return r;
+}
+
+//! Duplicate role
+Role
+roleDuplicate (Role source)
+{
+  Role dest;
+
+  if (source == NULL)
+    {
+      return NULL;
+    }
+
+  dest = (Role) malloc (sizeof (struct role));
+  memcpy (dest, source, sizeof (struct role));
+  return dest;
 }
 
 //! Print a role.

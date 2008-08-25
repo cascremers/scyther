@@ -181,7 +181,9 @@ Roledef roledefInit (int type, Term label, Term from, Term to, Term msg,
 		     Claimlist cl);
 Roledef roledefAdd (Roledef rd, int type, Term label, Term from, Term to,
 		    Term msg, Claimlist cl);
+Roledef roledefTail (Roledef rd);	//! Fast forward to tail of roledef list
 Role roleCreate (Term nameterm);
+Role roleDuplicate (Role source);
 void rolePrint (Role r);
 void rolesPrint (Role r);
 int roledef_iterate_events (Roledef rd, int (*func) ());

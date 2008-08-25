@@ -27,6 +27,7 @@
 #include "type.h"
 #include "debug.h"
 #include "error.h"
+#include "specialterm.h"
 
 extern Protocol INTRUDER;	// Pointers, to be set by the Init of arachne.c
 extern Role I_M;		// Same here.
@@ -292,12 +293,20 @@ roledefDraw (Roledef rd)
     }
   if (rd->type == SEND)
     {
-      eprintf ("send");
-      optlabel ();
-      eprintf (" to ");
-      termPrintRemap (rd->to);
-      eprintf ("\\n");
-      termPrintRemap (rd->message);
+      if (isTermEqual (rd->label, TERM_Compromise))
+	{
+	  eprintf ("compromise\\n");
+	  termPrintRemap (rd->message);
+	}
+      else
+	{
+	  eprintf ("send");
+	  optlabel ();
+	  eprintf (" to ");
+	  termPrintRemap (rd->to);
+	  eprintf ("\\n");
+	  termPrintRemap (rd->message);
+	}
     }
   if (rd->type == CLAIM)
     {
@@ -946,6 +955,24 @@ drawClass (const System sys, Binding b)
 	   CHOOSEWEIGHT);
 }
 
+//! Check for regular send/read events
+int
+sendReadEvent (Roledef rd)
+{
+  if (rd->type == READ)
+    {
+      return true;
+    }
+  if (rd->type == SEND)
+    {
+      if (!isTermEqual (rd->label, TERM_Compromise))
+	{
+	  return true;
+	}
+    }
+  return false;
+}
+
 //! Print label of a regular->regular transition node (when comm. is not exact)
 /**
  * Note that we ignore any label differences, these are left implicit
@@ -976,26 +1003,48 @@ regularModifiedLabel (Binding b)
     }
 
   // Second: agent things
-  if (!isTermEqual (rdfrom->from, rdto->from))
+  if (sendReadEvent (rdfrom) && sendReadEvent (rdto))
     {
-      unknown = false;
-      eprintf ("fake sender ");
-      termPrintRemap (rdto->from);
-      eprintf ("\\n");
-    }
-  if (!isTermEqual (rdfrom->to, rdto->to))
-    {
-      unknown = false;
-      eprintf ("redirect to ");
-      termPrintRemap (rdto->to);
-      eprintf ("\\n");
+      if (!isTermEqual (rdfrom->from, rdto->from))
+	{
+	  unknown = false;
+	  eprintf ("fake sender ");
+	  termPrintRemap (rdto->from);
+	  eprintf ("\\n");
+	}
+      else
+	{
+	  if (!isTermEqual (rdfrom->to, rdto->to))
+	    {
+	      unknown = false;
+	      eprintf ("redirect to ");
+	      termPrintRemap (rdto->to);
+	      eprintf ("\\n");
+	    }
+	  else
+	    {
+	      if (!isTermEqual (rdfrom->label, rdto->label))
+		{
+		  unknown = false;
+		  eprintf ("redirect");
+		  eprintf ("\\n");
+		}
+	    }
+	}
     }
 
   // Any leftovers for which I don't have a good name yet.
   if (unknown)
     {
-      // I'm not quite sure, we call it 'combine' for now. TODO
-      eprintf ("combine\\n");
+      // I'm not quite sure, just an arrow for now.
+      eprintf ("use");
+      if ((!isTermEqual (rdfrom->message, b->term))
+	  && (!isTermEqual (b->term, rdto->message)))
+	{
+	  eprintf (" ");
+	  termPrintRemap (b->term);
+	}
+      eprintf ("\\n");
     }
 }
 
@@ -1315,6 +1364,7 @@ printRunExplanation (const System sys, const int run,
   eprintf ("\\l");
 
   // Second line
+
   // Possible protocol (if more than one)
   {
     int showprotocol;
@@ -1375,6 +1425,21 @@ printRunExplanation (const System sys, const int run,
 	eprintf ("\\l");
       }
   }
+
+  // Partner or compromise? (if needed to show this)
+  if (switches.compromiseType != 0)
+    {
+      if (sys->runs[run].partner)
+	{
+	  eprintf ("(partner)");
+	  eprintf ("\\l");
+	}
+      if (sys->runs[run].protocol->compromiseProtocol)
+	{
+	  eprintf ("(compromised run)");
+	  eprintf ("\\l");
+	}
+    }
 
   eprintf (newline);
   hadcontent = false;

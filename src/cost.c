@@ -29,6 +29,7 @@
 #include "system.h"
 #include "binding.h"
 #include "error.h"
+#include "compromise.h"
 #include <limits.h>
 
 //************************************************************************
@@ -79,6 +80,7 @@ attackCost (const System sys)
 
       //cost += get_semitrace_length ();
 
+      cost += 100 * countCompromisedRuns ();
       cost += 10 * selfInitiators (sys);
       cost += 7 * selfResponders (sys);
       cost += 10 * sys->num_regular_runs;

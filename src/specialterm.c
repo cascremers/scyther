@@ -40,7 +40,10 @@ Term TERM_Hidden;
 Term TERM_Type;
 Term TERM_Nonce;
 Term TERM_Ticket;
+Term TERM_SessionKey;
+Term TERM_Marker;
 Term TERM_Data;
+Term TERM_Compromise;
 
 Term TERM_Claim;
 Term CLAIM_Secret;
@@ -69,12 +72,16 @@ specialTermInit (const System sys)
   langhide (TERM_Type, "Type");
   langhide (TERM_Hidden, "Hidden");
   langhide (TERM_Claim, "Claim");
+  langhide (TERM_Marker, "Marker");
 
   langcons (TERM_Agent, "Agent", TERM_Type);
   langcons (TERM_Function, "Function", TERM_Type);
   langcons (TERM_Nonce, "Nonce", TERM_Type);
   langcons (TERM_Ticket, "Ticket", TERM_Type);
+  langcons (TERM_SessionKey, "SessionKey", TERM_Type);
   langcons (TERM_Data, "Data", TERM_Type);
+
+  langcons (TERM_Compromise, "Compromise", TERM_Marker);
 
   langcons (CLAIM_Secret, "Secret", TERM_Claim);
   langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);

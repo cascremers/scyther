@@ -36,6 +36,7 @@
 #include "arachne.h"
 #include "error.h"
 #include "type.h"
+#include "compromise.h"
 
 extern Protocol INTRUDER;
 extern int proofDepth;
@@ -225,6 +226,21 @@ prune_theorems (const System sys)
 	    }
 	}
       run++;
+    }
+
+  // Prune for compromise model
+  /**
+   * This is not really due to any theorem but rather to the model/property. Maybe we need a separate file.
+   */
+  if (compromisePrune ())
+    {
+      if (switches.output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf
+	    ("Pruned because the compromise model does not allow for this state.\n");
+	}
+      return true;
     }
 
   // Prune if any initiator run talks to itself

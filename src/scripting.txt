@@ -1,0 +1,5 @@
+# Find the protocols including times, and full paths
+find $HOME -name '*.spdl' -printf '%f\t%A@\t%p\n' | grep -v FOSSP | sort -n -r >protocollist.txt
+
+# Reverse sort, filter on uniq
+cat protocollist.txt | awk '{ print $3,"\t",$1 }' | uniq -f1 | awk '{ print $1 }' >protocollist-uniq.txt

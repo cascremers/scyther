@@ -166,6 +166,7 @@ int hasTermVariable (Term term);
 int isTermEqualFn (Term term1, Term term2);
 int termSubTerm (Term t, Term tsub);
 int termInTerm (Term t, Term tsub);
+Term termSubstitute (Term bigterm, Term searchterm, Term substerm);
 void termPrintCustom (Term term, char *leftvar, char *rightvar, char *lefttup,
 		      char *righttup, char *leftenc, char *rightenc,
 		      void (*callback) (const Term t));

@@ -37,6 +37,8 @@
 #include "intruderknowledge.h"
 #include "error.h"
 #include "mgu.h"
+#include "compromise.h"
+#include "type.h"
 
 /*
    Simple sys pointer as a global. Yields cleaner code although it's against programming standards.
@@ -1697,8 +1699,6 @@ compute_prec_sets (const System sys)
       r2 = 0;
       while (r2 < sys->rolecount)
 	{
-	  Roledef rd2;
-
 	  ev2 = 0;
 	  rd = roledef_re (r2, ev2);
 	  while (rd != NULL)
@@ -2177,6 +2177,13 @@ checkLabelMatching (const System sys)
 void
 preprocess (const System sys)
 {
+  /*
+   * Possibly duplicate protocols for compromise attacks
+   * This must be the first preprocess actions, as changing the protocols may affect 
+   * further actions of the preprocessing.
+   */
+  compromisePrepare (sys);
+
   /*
    * Add default terms afterwards
    */

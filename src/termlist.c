@@ -955,3 +955,26 @@ termlistMinusTermlist (const Termlist tlbig, const Termlist tlsmall)
     }
   return tlnewstart;
 }
+
+//! Return a list items in tlpos, not in tlneg
+/**
+ * Functionality wise this overlaps with the termlistMinusTermlist, but mayb be
+ * more efficient/useful in many cases.
+ *
+ * Note however that the resulting list has unique terms only (representing a set).
+ */
+Termlist
+termlistNotIn (Termlist tlpos, Termlist tlneg)
+{
+  Termlist tl, tlnew;
+
+  tlnew = NULL;
+  for (tl = tlpos; tl != NULL; tl = tl->next)
+    {
+      if (!inTermlist (tlneg, tl->term))
+	{
+	  tlnew = termlistAddNew (tlnew, tl->term);
+	}
+    }
+  return tlnew;
+}

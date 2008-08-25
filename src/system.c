@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <string.h>
 #include "term.h"
 #include "termlist.h"
 #include "knowledge.h"
@@ -36,6 +37,7 @@
 #include "binding.h"
 #include "depend.h"
 #include "specialterm.h"
+#include "partner.h"
 
 //! Global count of protocols
 int protocolCount;
@@ -90,6 +92,9 @@ systemInit ()
   sys->current_claim = NULL;
   sys->trustedRoles = NULL;
   sys->hasUntypedVariable = false;
+
+  /* init others */
+  partnerInit (sys);
 
   /* reset global counters */
   systemReset (sys);
@@ -159,6 +164,9 @@ void
 systemDone (const System sys)
 {
   int s;
+
+  /* done others */
+  partnerDone ();
 
   /* clear globals, which were defined in systemStart */
 
@@ -241,6 +249,7 @@ ensureValidRun (const System sys, int run)
       sys->runs[i].artefacts = NULL;
       sys->runs[i].substitutions = NULL;
 
+      sys->runs[i].partner = false;
 
       sys->runs[i].prevSymmRun = -1;
       sys->runs[i].firstNonAgentRead = -1;
@@ -815,8 +824,31 @@ protocolCreate (Term name)
   p->locals = NULL;
   p->next = NULL;
   p->lineno = 0;
+  p->compromiseProtocol = false;
   return p;
 }
+
+//! Duplicate a protocol structure.
+/**
+ * Potentially dangerous, as no labels are modified!
+ */
+Protocol
+protocolDuplicate (Protocol sourceprot)
+{
+  Protocol destprot;
+
+  if (sourceprot != NULL)
+    {
+      destprot = (Protocol) malloc (sizeof (struct protocol));
+      memcpy (destprot, sourceprot, sizeof (struct protocol));
+      return destprot;
+    }
+  else
+    {
+      return NULL;
+    }
+}
+
 
 //! Print all local terms in a term list.
 //@todo What is this doing here? This should be in termlists.c!

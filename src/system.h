@@ -48,6 +48,7 @@ struct protocol
   //! Pointer to next protocol.
   struct protocol *next;
   int lineno;			//!< Line number of definition (for errors)?
+  int compromiseProtocol;	//!< boolean for compromised protocols (for key/all local compromise attacks)
 };
 
 //! Shorthand for protocol pointer.
@@ -72,6 +73,8 @@ struct run
   Termlist locals;		//!< Locals of the run (will be deprecated eventually)
   Termlist artefacts;		//!< Stuff created especially for this run, which can also include tuples (anything allocated)
   Termlist substitutions;	//!< The substitutions as they came from the roledef unifier
+
+  int partner;			//!< Partner to the claim run by some criterion
 
   int prevSymmRun;		//!< Used for symmetry reduction. Either -1, or the previous run with the same role def and at least a single parameter.
   int firstNonAgentRead;	//!< Used for symmetry reductions for equal agents runs; -1 if there is no candidate.
@@ -176,6 +179,7 @@ void systemStart (const System sys);
 void indent ();
 
 Protocol protocolCreate (Term nameterm);
+Protocol protocolDuplicate (Protocol sourceprot);
 void locVarPrint (Termlist tl);
 void protocolPrint (Protocol p);
 void protocolsPrint (Protocol p);

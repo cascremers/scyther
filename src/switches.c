@@ -82,6 +82,9 @@ switchesInit (int argc, char **argv)
   switches.agentUnfold = 0;	// default not to unfold agents
   switches.abstractionMethod = 0;	// default no abstraction used
   switches.useAttackBuffer = false;	// don't use by default as it does not work properly under windows vista yet
+  switches.compromiseType = 0;	// default no local compromise
+  switches.trustedMode = 1;	// 0: only actors, 1: some (claim based) agents of claim run, 2: all agents of claim run, 3: all agents of all runs
+  switches.partnerDefinition = 0;	// 0: temporally close [default], 1: matching histories
   switches.requireSynch = false;	// default no synch required for attacks, but maybe we do
   switches.checkMatchingLabels = true;	// default is to check matching labels
 
@@ -1168,6 +1171,74 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
+  if (detect (' ', "local-compromise", 1))
+    {
+      if (!process)
+	{
+	  /* 0: no local compromise (default), 1: key compromise, 2:local full compromise
+	   * They're all active for now. */
+	}
+      else
+	{
+	  switches.compromiseType = integer_argument ();
+	  if ((switches.compromiseType < 0) || (switches.compromiseType > 2))
+	    {
+	      printfstderr
+		("Local compromise type must be between 0 and 2.\n");
+	      exit (1);
+	    }
+	  return index;
+	}
+    }
+
+  if (detect (' ', "partner-definition", 1))
+    {
+      if (!process)
+	{
+	  /* Relevant for key compromise:
+	   *
+	   * 0: partner is anything temporally necessarily close to the claim [default]
+	   * 1: partner is matching histories (non-injective message agreement)
+	   *
+	   * These models are actually incomparable. Hmm.
+	   */
+	}
+      else
+	{
+	  switches.partnerDefinition = integer_argument ();
+	  if ((switches.partnerDefinition < 0)
+	      || (switches.partnerDefinition > 1))
+	    {
+	      printfstderr
+		("Partner definition mode must be between 0 and 1.\n");
+	      exit (1);
+	    }
+	  return index;
+	}
+    }
+
+  if (detect (' ', "trusted", 1))
+    {
+      if (!process)
+	{
+	  /* 0: actors trusted, 
+	   * 1: actors + some claim run agents trusted based on claim (default), 
+	   * 2: actors + all claim run agents trusted,
+	   * 3: run agents trusted
+	   */
+	}
+      else
+	{
+	  switches.trustedMode = integer_argument ();
+	  if ((switches.trustedMode < 0) || (switches.trustedMode > 3))
+	    {
+	      printfstderr ("Trusted level must be between 0 and 3.\n");
+	      exit (1);
+	    }
+	  return index;
+	}
+    }
+
   if (detect (' ', "require-synchronisation", 0))
     {
       if (!process)
@@ -1327,7 +1398,7 @@ switcher (const int process, int index, int commandline)
 	  printf ("Scyther comes with ABSOLUTELY NO WARRANTY.\n");
 	  printf ("This is free software, and you are welcome\n");
 	  printf ("to redistribute it under certain conditions.\n");
-	  printf ("Use the `--license' option for details.\n", progname);
+	  printf ("Use the `--license' option for details.\n");
 	  exit (0);
 	}
     }

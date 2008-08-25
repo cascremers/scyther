@@ -59,6 +59,7 @@
 #include "depend.h"
 #include "xmlout.h"
 #include "heuristic.h"
+#include "tempfile.h"
 
 extern int *graph;
 extern int nodes;
@@ -2266,7 +2267,8 @@ arachneClaimTest (Claimlist cl)
     }
   indentDepth++;
 
-  run = semiRunCreate (p, r);
+  run = semiRunCreate (p, r);	// create claim run, should be 0 (as assumed at other places)
+  sys->runs[run].partner = true;	// mark the first run as a partner (obviously)
   newruns++;
   {
     int newgoals;
