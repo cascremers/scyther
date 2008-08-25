@@ -1,0 +1,62 @@
+/* 
+ * NAXOS AKE (Authenticated Key Exchange) protocol
+ *
+ * From "Stronger Security of Authenticated Key Exchange"
+ * LaMacchia Lauter Mityagin 2006
+ *
+ * It's not really NAXOS in the sense that we don't have the fancy group
+ * exponentiations.
+ */
+
+// PKI infrastructure
+
+const pk: Function;
+secret sk: Function;
+inversekeys (pk,sk);
+
+const h1,h2,g: Function;
+secret unh1,unh2,ung: Function;
+
+// The protocol description
+
+protocol naxos(I,R)
+{
+	role I
+	{
+		const eskI: Nonce;
+		const msgI: Nonce;
+		var msgR: Nonce;
+		var XR: Ticket;
+
+		send_1(I,R, g(h1(eskI,sk(I))) );
+		send_1(I,R, g(h1(eskI,sk(I))) );
+		read_2(R,I, { XR }pk(I) );
+
+		claim(I,Secret,h2( {g(h1(eskI,sk(I)))}pk(I), XR, I,R));
+	}	
+	
+	role R
+	{
+		const eskR: Nonce;
+		const msgR: Nonce;
+		var msgI: Nonce;
+		var XI: Ticket;
+
+		read_1(I,R, { XI }pk(R) );
+		send_2(R,I, { g(h1(eskR,sk(R))) }pk(I) );
+
+		claim(R,Secret,h2( XI, g(h1(eskR,sk(R))), I,R));
+	}
+}
+
+// The agents in the system
+
+const Alice,Bob: Agent;
+
+// An untrusted agent, with leaked information
+
+const Eve: Agent;
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+
