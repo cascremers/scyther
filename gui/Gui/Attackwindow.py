@@ -157,7 +157,56 @@ class AttackDisplay(wx.ScrolledWindow):
         yn = int(virtualheight / step) + 1
         self.SetScrollbars(step,step,xn,yn,0,0)
 
+        """
+        Pop up menu
+        """
+        self.popupmenu = wx.Menu()
+        #item = self.popupmenu.Append(-1,"Export image")
+        #self.Bind(wx.EVT_MENU, self.OnExportImage, item)
+        item = self.popupmenu.Append(-1,"Export graphviz data (.dot)")
+        self.Bind(wx.EVT_MENU, self.OnExportDot, item)
+
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnShowPopup)
+
         self.Refresh()
+
+    def OnShowPopup(self, event):
+        pos = event.GetPosition()
+        pos = self.Image.ScreenToClient(pos)
+        self.PopupMenu(self.popupmenu, pos)
+
+    def OnPopupItemSelected(self, event):
+        item = self.popupmenu.FindItemById(event.GetId())
+        text = item.GetText()
+        wx.MessageBox("You selected item %s" % text)
+
+    def askUserForFilename(self, **dialogOptions):
+        dialog = wx.FileDialog(self, **dialogOptions)
+        if dialog.ShowModal() == wx.ID_OK:
+            res = "%s/%s" % (dialog.GetDirectory(), dialog.GetFilename())
+        else:
+            res = None
+        dialog.Destroy()
+        return res
+
+    def saveFileType(self, ext, data):
+        (p,r,l) = self.win.claim.triplet()
+        prefix = "pattern-%s_%s_%s-%s" % (p,r,l,self.attack.id)
+        suggested = "%s.%s" % (prefix,ext)
+        res = self.askUserForFilename(style=wx.SAVE, wildcard="*.%s" % (ext), defaultFile = "%s" % (suggested))
+        if res != None:
+            fp = open(res,'w')
+            fp.write(data)
+            fp.close()
+
+    def OnExportImage(self, event):
+        self.saveFileType("ps",self.attack.scytherDot)
+
+    def OnExportDot(self, event):
+        self.saveFileType("dot",self.attack.scytherDot)
+
+
+
 
 #---------------------------------------------------------------------------
 
