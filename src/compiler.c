@@ -921,12 +921,15 @@ claimAddAll (const System sys, const Protocol protocol, const Role role)
       }
   }
 
-  addSecrecyList (role->declaredconsts);
-  addSecrecyList (role->declaredvars);
+  if (!isHelperProtocol (protocol))
+    {
+      addSecrecyList (role->declaredconsts);
+      addSecrecyList (role->declaredvars);
 
-  /* full non-injective agreement and ni-synch */
-  claimCreate (sys, protocol, role, CLAIM_Niagree, NULL, NULL, -1);
-  claimCreate (sys, protocol, role, CLAIM_Nisynch, NULL, NULL, -1);
+      /* full non-injective agreement and ni-synch */
+      claimCreate (sys, protocol, role, CLAIM_Niagree, NULL, NULL, -1);
+      claimCreate (sys, protocol, role, CLAIM_Nisynch, NULL, NULL, -1);
+    }
 }
 
 //! Compile a role
@@ -1010,8 +1013,11 @@ roleCompile (Term nameterm, Tac tc)
 
   if (switches.addreachableclaim)
     {
-      claimCreate (sys, thisProtocol, thisRole, CLAIM_Reachable, NULL, NULL,
-		   -1);
+      if (!isHelperProtocol (thisProtocol))
+	{
+	  claimCreate (sys, thisProtocol, thisRole, CLAIM_Reachable, NULL,
+		       NULL, -1);
+	}
     }
   if (switches.addallclaims)
     {
@@ -2159,7 +2165,7 @@ checkLabelMatchProtocol (const System sys, const Protocol p)
 	{
 	  if (rd->type == READ)
 	    {
-	      // We don't check all, if they start with a bang we ignore them.
+	      // We don't check all, if they start with a bang "!" we ignore them.
 	      Labelinfo li;
 
 	      li = label_find (sys->labellist, rd->label);

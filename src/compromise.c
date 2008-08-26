@@ -113,29 +113,38 @@ checkSIDrequirements (void)
 
   for (p = sys->protocols; p != NULL; p = p->next)
     {
-      Role r;
-
-      for (r = p->roles; r != NULL; r = r->next)
+      if (!isHelperProtocol (p))
 	{
-	  Roledef rd;
-	  int SIDfound;
+	  Role r;
 
-	  SIDfound = false;
-	  for (rd = r->roledef; rd != NULL; rd = rd->next)
+	  for (r = p->roles; r != NULL; r = r->next)
 	    {
-	      if (rd->type == CLAIM)
+	      Roledef rd;
+	      int SIDfound;
+
+	      SIDfound = false;
+	      for (rd = r->roledef; rd != NULL; rd = rd->next)
 		{
-		  if (rd->to == CLAIM_SID)
+		  if (rd->type == CLAIM)
 		    {
-		      SIDfound = true;
-		      break;
+		      if (rd->to == CLAIM_SID)
+			{
+			  SIDfound = true;
+			  break;
+			}
 		    }
 		}
-	    }
-	  if (!SIDfound)
-	    {
-	      error
-		("For a partner definition based on session identifiers, all roles need to have explicit SID claims.");
+	      if (!SIDfound)
+		{
+		  globalError++;
+		  error_pre ();
+		  eprintf ("Role name:");
+		  termPrint (r->nameterm);
+		  eprintf ("\n");
+		  globalError--;
+		  error
+		    ("For a partner definition based on session identifiers, all roles need to have explicit SID claims.");
+		}
 	    }
 	}
     }
@@ -152,6 +161,21 @@ checkCompromiseRequirements (void)
        */
       checkSIDrequirements ();
     }
+}
+
+//! Check whether we should compromise this protocol
+/**
+ * We don't compromise special helper protocols. These start with an '@'
+ * conform the usage in Gijs Hollestelle's work.
+ */
+int
+shouldCompromiseProtocol (Protocol prot)
+{
+  if (isHelperProtocol (prot))
+    {
+      return false;
+    }
+  return true;
 }
 
 //! Check whether a given event (roledef) is a compromise event
@@ -291,14 +315,17 @@ compromisePrepare (const System mysys)
 
 	  if (oldprots->compromiseProtocol == false)
 	    {
-	      // Duplicate this non-compromise protocol
-	      newprot = compromiseProtocol (oldprots);
-	      newprot->next = newprots;
-	      newprots = newprot;
-	      // Remove any compromise events from the duplicated one
-	      removeProtocolCompromiseEvents (oldprots);
-	      // Count the new protocol
-	      protocolCount++;
+	      if (shouldCompromiseProtocol (oldprots))
+		{
+		  // Duplicate this non-compromise protocol
+		  newprot = compromiseProtocol (oldprots);
+		  newprot->next = newprots;
+		  newprots = newprot;
+		  // Remove any compromise events from the duplicated one
+		  removeProtocolCompromiseEvents (oldprots);
+		  // Count the new protocol
+		  protocolCount++;
+		}
 	    }
 	  // Store the last protocol and move on
 	  lastprot = oldprots;

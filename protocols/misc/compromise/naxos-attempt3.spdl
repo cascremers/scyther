@@ -44,9 +44,12 @@ inversekeys (g2,ung2);
 
 
 /*
- * Hack to simulate g^ab = g^ba inside terms
+ * Hack to simulate g^ab = g^ba inside terms.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
  */
-protocol exponentiation(RA,RB,RC)
+protocol @exponentiation(RA,RB,RC)
 {
 	role RA
 	{

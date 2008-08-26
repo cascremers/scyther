@@ -1389,3 +1389,24 @@ selfInitiators (const System sys)
     }
   return count;
 }
+
+//! Check a protocol for being a helper protocol.
+/**
+ * Special helper protocols start with an '@' conform the usage in Gijs
+ * Hollestelle's work.
+ */
+int
+isHelperProtocol (Protocol p)
+{
+  if (p != NULL)
+    {
+      if (p->nameterm != NULL)
+	{
+	  if (TermSymb (p->nameterm)->text[0] == '@')
+	    {
+	      return true;
+	    }
+	}
+    }
+  return false;
+}

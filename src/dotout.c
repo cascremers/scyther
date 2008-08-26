@@ -1065,6 +1065,34 @@ regularModifiedLabel (Binding b)
     }
 }
 
+//! Check whether an event is regular
+/**
+ * Here, regular means:
+ * - not intruder
+ * - not helper
+ * - not compromised
+ */
+int
+isRegularEvent (const int run, const int ev)
+{
+  Protocol prot;
+
+  prot = sys->runs[run].protocol;
+  if (sys->runs[run].protocol == INTRUDER)
+    {
+      return false;
+    }
+  if (isHelperProtocol (prot))
+    {
+      return false;
+    }
+  if (isCompromiseEvent (eventRoledef (sys, run, ev)))
+    {
+      return false;
+    }
+  return true;
+}
+
 //! Draw a single binding
 void
 drawBinding (const System sys, Binding b)
@@ -1087,8 +1115,8 @@ drawBinding (const System sys, Binding b)
 
   }
 
-  intr_from = (sys->runs[b->run_from].protocol == INTRUDER);
-  intr_to = (sys->runs[b->run_to].protocol == INTRUDER);
+  intr_from = (!isRegularEvent (b->run_from, b->ev_from));
+  intr_to = (!isRegularEvent (b->run_to, b->ev_to));
   m0_from = false;
 
   // Pruning: things going to M0 applications are pruned;
@@ -1645,8 +1673,18 @@ drawRegularRuns (const System sys)
 			      // Draw the first box (HEADER)
 			      // This used to be drawn only if done && send_before_read, now we always draw it.
 			      eprintf ("\t\ts%i [label=\"{ ", run);
-
-			      printRunExplanation (sys, run, "\\l", "|");
+			      if (!isHelperProtocol (sys->runs[run].protocol))
+				{
+				  printRunExplanation (sys, run, "\\l", "|");
+				}
+			      else
+				{
+				  termPrintRemap (sys->runs[run].protocol->
+						  nameterm);
+				  eprintf (", ");
+				  termPrintRemap (sys->runs[run].role->
+						  nameterm);
+				}
 			      // close up
 			      eprintf ("}\", shape=record");
 			      eprintf
