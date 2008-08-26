@@ -493,6 +493,22 @@ createCompromiseSend (Role role, Term compromised)
   return rd;
 }
 
+//! Create a sequence of roledefs of compromised sends from a list.
+Roledef
+createCompromiseSends (Role role, Termlist comprlist)
+{
+  Roledef rd;
+
+  rd = NULL;
+  while (comprlist != NULL)
+    {
+      rd = roledefAdd (rd, SEND, TERM_Compromise, role->nameterm,
+		       role->nameterm, comprlist->term, NULL);
+      comprlist = comprlist->next;
+    }
+  return rd;
+}
+
 //! RoleDef constuction
 /**
  * Given the head, appends rdnew to the end. Returns the new head.
@@ -639,8 +655,12 @@ compromiseProtocol (Protocol sourceprot)
 		  // Here we assume rdtail is not NULL by construction.
 		  interesting = true;
 
-		  rdcompr = createCompromiseSend (newrole,
-						  termlist_to_tuple (tlsend));
+		  // Unfold list elements to a list of compromise events.  This
+		  // makes for easier interpretation of the output, and is
+		  // equivalent in terms of complexity to having a single
+		  // (tuple) send.
+		  rdcompr = createCompromiseSends (newrole, tlsend);
+
 		  // If it is a recv, we add it at the end
 		  // but if it is a send, we insert it before
 		  if (rd->type == READ)

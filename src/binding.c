@@ -380,6 +380,38 @@ iterate_bindings (int (*func) (Binding b))
   return true;
 }
 
+//! Check whether an event (run,ev) has an outgoing binding.
+int
+hasOutgoingBinding (const int run, const int ev)
+{
+  int isOutgoing (Binding b)
+  {
+    if ((b->run_from == run) && (b->ev_from == ev))
+      {
+	return false;
+      }
+    return true;
+  }
+
+  return (!iterate_bindings (isOutgoing));
+}
+
+//! Check whether an event (run,ev) has an incoming binding.
+int
+hasIncomingBinding (const int run, const int ev)
+{
+  int isOutgoing (Binding b)
+  {
+    if ((b->run_to == run) && (b->ev_to == ev))
+      {
+	return false;
+      }
+    return true;
+  }
+
+  return (!iterate_bindings (isOutgoing));
+}
+
 //! Determine whether two bindings have the same source and destination
 int
 same_binding (const Binding b1, const Binding b2)

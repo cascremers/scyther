@@ -25,5 +25,6 @@
 void compromisePrepare (const System mysys);
 int compromisePrune (void);
 int countCompromisedRuns (void);
+int isCompromiseEvent (Roledef rd);
 
 #endif

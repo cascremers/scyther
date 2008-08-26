@@ -28,6 +28,8 @@
 #include "debug.h"
 #include "error.h"
 #include "specialterm.h"
+#include "compromise.h"
+#include "binding.h"
 
 extern Protocol INTRUDER;	// Pointers, to be set by the Init of arachne.c
 extern Role I_M;		// Same here.
@@ -240,7 +242,14 @@ node (const System sys, const int run, const int index)
     }
   else
     {
-      eprintf ("r%ii%i", run, index);
+      if (index == -1)
+	{
+	  eprintf ("s%i", run);
+	}
+      else
+	{
+	  eprintf ("r%ii%i", run, index);
+	}
     }
 }
 
@@ -634,6 +643,14 @@ isEventIgnored (const System sys, int run, int ev)
 	    {
 	      return true;
 	    }
+	}
+    }
+  if (isCompromiseEvent (rd))
+    {
+      // If it has no outgoing arrow, we are not interested in this type of event.
+      if (!hasOutgoingBinding (run, ev))
+	{
+	  return true;
 	}
     }
   return false;
@@ -1519,9 +1536,11 @@ drawRegularRuns (const System sys)
 	      Roledef rd;
 	      int index;
 	      int prevnode;
+	      int firstnode;
 
-	      prevnode = 0;
+	      prevnode = -1;
 	      index = 0;
+	      firstnode = true;
 	      rd = sys->runs[run].start;
 	      // Regular run
 
@@ -1560,7 +1579,17 @@ drawRegularRuns (const System sys)
 			{
 			  eprintf ("shape=box,style=filled,");
 			  // print color of this run
-			  eprintf ("fillcolor=\"%s\",", colorbuf);
+			  eprintf ("fillcolor=\"");
+			  if (isCompromiseEvent (rd))
+			    {
+			      printColor (INTRUDERCOLORH, INTRUDERCOLORL,
+					  INTRUDERCOLORS);
+			    }
+			  else
+			    {
+			      eprintf ("%s", colorbuf);
+			    }
+			  eprintf ("\",");
 			}
 		      eprintf ("label=\"");
 		      //roledefPrintShort (rd);
@@ -1569,7 +1598,7 @@ drawRegularRuns (const System sys)
 		      eprintf (";\n");
 
 		      // Print binding to previous node
-		      if (index > sys->runs[run].firstReal)
+		      if (!firstnode)
 			{
 			  // index > 0
 			  eprintf ("\t\t");
@@ -1583,61 +1612,56 @@ drawRegularRuns (const System sys)
 			}
 		      else
 			{
-			  // index <= firstReal
-			  if (index == sys->runs[run].firstReal)
+			  // index == firstReal
+			  Roledef rd;
+			  int send_before_read;
+			  int done;
+
+			  // Determine if it is an active role or note
+			  /**
+			   *@todo note that this will probably become a standard function call for role.h
+			   */
+			  rd =
+			    roledef_shift (sys->runs[run].start,
+					   sys->runs[run].firstReal);
+			  done = 0;
+			  send_before_read = 0;
+			  while (!done && rd != NULL)
 			    {
-			      // index == firstReal
-			      Roledef rd;
-			      int send_before_read;
-			      int done;
-
-			      // Determine if it is an active role or note
-			      /**
-			       *@todo note that this will probably become a standard function call for role.h
-			       */
-			      rd =
-				roledef_shift (sys->runs[run].start,
-					       sys->runs[run].firstReal);
-			      done = 0;
-			      send_before_read = 0;
-			      while (!done && rd != NULL)
+			      if (rd->type == READ)
 				{
-				  if (rd->type == READ)
-				    {
-				      done = 1;
-				    }
-				  if (rd->type == SEND)
-				    {
-				      done = 1;
-				      send_before_read = 1;
-				    }
-				  rd = rd->next;
+				  done = 1;
 				}
-
-			      if (!switches.clusters)
+			      if (rd->type == SEND)
 				{
-				  // Draw the first box (HEADER)
-				  // This used to be drawn only if done && send_before_read, now we always draw it.
-				  eprintf ("\t\ts%i [label=\"{ ", run);
-
-				  printRunExplanation (sys, run, "\\l", "|");
-				  // close up
-				  eprintf ("}\", shape=record");
-				  eprintf
-				    (",style=filled,fillcolor=\"%s\"",
-				     colorbuf + 8);
-				  eprintf ("];\n");
-				  eprintf ("\t\ts%i -> ", run);
-				  node (sys, run, index);
-				  eprintf
-				    (" [style=bold, weight=\"%s\"];\n",
-				     RUNWEIGHT);
-				  prevnode = index;
+				  done = 1;
+				  send_before_read = 1;
 				}
+			      rd = rd->next;
+			    }
 
+			  if (!switches.clusters)
+			    {
+			      // Draw the first box (HEADER)
+			      // This used to be drawn only if done && send_before_read, now we always draw it.
+			      eprintf ("\t\ts%i [label=\"{ ", run);
 
+			      printRunExplanation (sys, run, "\\l", "|");
+			      // close up
+			      eprintf ("}\", shape=record");
+			      eprintf
+				(",style=filled,fillcolor=\"%s\"",
+				 colorbuf + 8);
+			      eprintf ("];\n");
+			      eprintf ("\t\ts%i -> ", run);
+			      node (sys, run, index);
+			      eprintf
+				(" [style=bold, weight=\"%s\"];\n",
+				 RUNWEIGHT);
+			      prevnode = index;
 			    }
 			}
+		      firstnode = false;
 		    }
 		  index++;
 		  rd = rd->next;

@@ -65,6 +65,8 @@ void goal_unbind (const Binding b);
 int binding_block (Binding b);
 int binding_unblock (Binding b);
 int labels_ordered (Termmap runs, Termlist labels);
+int hasOutgoingBinding (const int run, const int ev);
+int hasIncomingBinding (const int run, const int ev);
 
 int iterate_bindings (int (*func) (Binding b));
 int iterate_preceding_bindings (const int run, const int ev,
