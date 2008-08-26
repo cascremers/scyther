@@ -691,9 +691,12 @@ isApplicationM0 (const System sys, const int run)
     {
       if (isApplication (sys, run))
 	{
-	  if (isEnabledM0 (sys, run, 1))
+	  if (isEnabledM0 (sys, run, 0))
 	    {
-	      return true;
+	      if (isEnabledM0 (sys, run, 1))
+		{
+		  return true;
+		}
 	    }
 	}
     }
