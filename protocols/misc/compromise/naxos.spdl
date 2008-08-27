@@ -13,18 +13,8 @@
  *
  * Attacks:
  * 
- * Initiator: not yet found (detected attack required 3 runs, but
- * involved a compromise attack on the exponentiation protocol, which is
- * of course not what should happen).
- *
- * Responder: Found a 5-run all-compromise attack using matching
- * histories. The attack involves in fact only 2 real runs: two
- * initiators with swapped agents. Then, the intruder can feed the
- * message of the first into the second, and vice versa, and compromise
- * one. The compromise involves the key *before* it is hashed by h2,
- * such that the intruder can swap the agent names. The runs are not
- * partners in any useful way, but the key will be revealed anyway.
- * (Should be reproducable by the manual reveal events)
+ * For full-compromise (generated) and matching partners, we find
+ * attacks for both the initiator and responder roles.
  */
 
 // PKI infrastructure
@@ -42,7 +32,17 @@ inversekeys (h2,unh2);
 inversekeys (g1,ung1);
 inversekeys (g2,ung2);
 
-
+/*
+ * Hack to simulate public knowledge of public keys.
+ */
+protocol @publickeys(PK)
+{
+	role PK
+	{
+		send_!1(PK,PK, g1(sk(PK)));
+	}
+}
+		
 /*
  * Hack to simulate g^ab = g^ba inside terms.
  * '@' prefix of protocol name denotes helper protocol, which is used by
@@ -106,17 +106,10 @@ protocol naxos(I,R)
 		var Y: Ticket;
 
 		send_Compromise(I,I, eskI );
-		send_Compromise(I,I, h1(eskI,sk(I)) );
 
 		send_1(I,R, g1(h1(eskI,sk(I))) );
 
 		recv_2(R,I, Y );
-
-		send_Compromise(I,I, 
-			g2(Y,sk(I)),
-			g2(g1(sk(R)),h1(eskI,sk(I))), 
-			g2(Y,h1(eskI,sk(I)))
-			);
 
 		claim(I,Secret,h2( 
 			g2(Y,sk(I)),
@@ -131,17 +124,10 @@ protocol naxos(I,R)
 		var X: Ticket;
 
 		send_Compromise(R,R, eskR );
-		send_Compromise(R,R, h1(eskR,sk(R)) );
 
 		recv_1(I,R, X );
 
 		send_2(R,I, g1(h1(eskR,sk(R))) );
-
-		send_Compromise(R,R, 
-			g2(g1(sk(I)),h1(eskR,sk(R))), 
-			g2(X,sk(R)),
-			g2(X,h1(eskR,sk(R)))
-			);
 
 		claim(R,Secret,h2( 
 			g2(g1(sk(I)),h1(eskR,sk(R))), 
@@ -159,6 +145,4 @@ const Alice,Bob: Agent;
 
 const Eve: Agent;
 untrusted Eve;
-const ne: Nonce;
 compromised sk(Eve);
-
