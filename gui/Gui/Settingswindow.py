@@ -100,7 +100,7 @@ class SettingsWindow(wx.Panel):
 
         # Local compromise intruder
         self.localcompromise = int(Preference.get('localcompromise','0'))
-        claimoptions = ['None','Keys only','Full','User-defined']
+        claimoptions = ['None','Used local keys','Full (inferred)','User-defined']
         r3 = wx.StaticText(self,-1,"Local compromise type")
         l3 = self.ch = wx.Choice(self,-1,choices=claimoptions)
         l3.SetSelection(self.localcompromise)
