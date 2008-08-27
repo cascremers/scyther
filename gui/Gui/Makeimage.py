@@ -25,9 +25,6 @@
 import wx
 import os
 import sys
-import re
-import threading
-import StringIO
 
 #---------------------------------------------------------------------------
 
@@ -171,3 +168,5 @@ def testImage():
     (filename,filetype) = makeImageDot(dotdata)
     testimage = Image.open(filename)
 
+#---------------------------------------------------------------------------
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:

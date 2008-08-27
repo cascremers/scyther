@@ -58,3 +58,7 @@ def tempcleanearly(tuple):
     tempremove(tuple)
 
 atexit.register(cleanupshop)
+
+
+#---------------------------------------------------------------------------
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:

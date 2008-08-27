@@ -23,7 +23,6 @@
 
 """ Import externals """
 import wx
-import time
 
 #---------------------------------------------------------------------------
 
@@ -308,5 +307,5 @@ class AttackWindow(wx.Frame):
         self.update(True)
         self.Refresh()
 
-
-
+#---------------------------------------------------------------------------
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:
