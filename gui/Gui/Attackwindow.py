@@ -23,6 +23,8 @@
 
 """ Import externals """
 import wx
+import os
+from Misc import *
 
 #---------------------------------------------------------------------------
 
@@ -163,8 +165,16 @@ class AttackDisplay(wx.ScrolledWindow):
         Pop up menu
         """
         self.popupmenu = wx.Menu()
-        #item = self.popupmenu.Append(-1,"Export image")
-        #self.Bind(wx.EVT_MENU, self.OnExportImage, item)
+        item = self.popupmenu.Append(-1,"Export image (.png)")
+        self.Bind(wx.EVT_MENU, self.OnExportPng, item)
+        item = self.popupmenu.Append(-1,"Export image (.ps)")
+        self.Bind(wx.EVT_MENU, self.OnExportPs, item)
+        item = self.popupmenu.Append(-1,"Export image (.pdf)")
+        self.Bind(wx.EVT_MENU, self.OnExportPdf, item)
+        item = self.popupmenu.Append(-1,"Export image (.svg)")
+        self.Bind(wx.EVT_MENU, self.OnExportSvg, item)
+        item = self.popupmenu.Append(-1,"Export image (.fig)")
+        self.Bind(wx.EVT_MENU, self.OnExportFig, item)
         item = self.popupmenu.Append(-1,"Export graphviz data (.dot)")
         self.Bind(wx.EVT_MENU, self.OnExportDot, item)
 
@@ -191,21 +201,43 @@ class AttackDisplay(wx.ScrolledWindow):
         dialog.Destroy()
         return res
 
-    def saveFileType(self, ext, data):
+    def saveFileName(self, ext):
         (p,r,l) = self.win.claim.triplet()
         prefix = "pattern-%s_%s_%s-%s" % (p,r,l,self.attack.id)
         suggested = "%s.%s" % (prefix,ext)
         res = self.askUserForFilename(style=wx.SAVE, wildcard="*.%s" % (ext), defaultFile = "%s" % (suggested))
-        if res != None:
-            fp = open(res,'w')
-            fp.write(data)
-            fp.close()
+        return res
 
-    def OnExportImage(self, event):
-        self.saveFileType("ps",self.attack.scytherDot)
+    def exportImage(self, type,ext=None):
+        if ext == None:
+            ext = type
+        res = self.saveFileName(ext)
+        if res != None:
+            cmd = "dot -T%s" % (type)
+            cmdpushwrite(cmd,self.attack.scytherDot,res)
+
+    def OnExportPng(self, event):
+        self.exportImage("png")
+
+    def OnExportPs(self, event):
+        self.exportImage("ps")
+
+    def OnExportPdf(self, event):
+        self.exportImage("pdf")
+
+    def OnExportSvg(self, event):
+        self.exportImage("svg")
+
+    def OnExportFig(self, event):
+        self.exportImage("fig")
 
     def OnExportDot(self, event):
-        self.saveFileType("dot",self.attack.scytherDot)
+        res = self.saveFileName("dot")
+        if res != None:
+            fp = open(res,'w')
+            fp.write(self.attack.scytherDot)
+            fp.close()
+
 
 
 

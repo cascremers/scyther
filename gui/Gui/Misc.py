@@ -62,3 +62,22 @@ def mypath(file):
     basedir = os.path.dirname(__file__)
     return os.path.join(basedir,file)
 
+# commands: push data in, get fp.write out
+def cmdpushwrite(cmd,data,fname):
+    """
+    Feed stdin data to cmd, write the output to a freshly created file
+    'fname'. The file is flushed and closed at the end.
+    """
+    fp = open(fname,'w')
+    # execute command
+    cin,cout = os.popen2(cmd,'b')
+    cin.write(data)
+    cin.close()
+    for l in cout.read():
+        fp.write(l)
+    cout.close()
+    fp.flush()
+    fp.close()
+
+#---------------------------------------------------------------------------
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:

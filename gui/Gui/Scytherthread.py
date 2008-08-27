@@ -23,11 +23,7 @@
 
 """ Import externals """
 import wx
-import os
-import sys
-import re
 import threading
-import StringIO
 
 #---------------------------------------------------------------------------
 
