@@ -57,6 +57,8 @@ extern Role I_RRSD;
 #define RUNCOLORDELTA 0.2	// maximum hue delta between roles (0.2): smaller means role colors of a protocol become more similar.
 #define RUNCOLORCONTRACT 0.8	// contract from protocol edges: smaller means more distinction between protocols.
 #define UNTRUSTEDCOLORS 0.4
+#define COMPROMISEDCOLORS 0.3
+#define HELPERCOLORS 0.0
 
 #define CHOOSEWEIGHT "2.0"
 #define RUNWEIGHT "10.0"
@@ -242,13 +244,22 @@ node (const System sys, const int run, const int index)
     }
   else
     {
-      if (index == -1)
+      if (isHelperProtocol (sys->runs[run].protocol))
 	{
-	  eprintf ("s%i", run);
+	  // Helper protocol is collaped
+	  eprintf ("r%i", run);
 	}
       else
 	{
-	  eprintf ("r%ii%i", run, index);
+	  // Regular protocol run
+	  if (index == -1)
+	    {
+	      eprintf ("s%i", run);
+	    }
+	  else
+	    {
+	      eprintf ("r%ii%i", run, index);
+	    }
 	}
     }
 }
@@ -580,6 +591,18 @@ setRunColorBuf (const System sys, int run, char *colorbuf)
   if (!isRunTrusted (sys, run))
     {
       s = UNTRUSTEDCOLORS;
+    }
+
+  // If the run is compromised, we lower the saturation significantly
+  if (sys->runs[run].protocol->compromiseProtocol)
+    {
+      s = COMPROMISEDCOLORS;
+    }
+
+  // If the protocol is a helper protocol, we revert to graytones
+  if (isHelperProtocol (sys->runs[run].protocol))
+    {
+      s = HELPERCOLORS;
     }
 
   // set to buffer
@@ -1561,155 +1584,191 @@ drawRegularRuns (const System sys)
 	{
 	  if (sys->runs[run].protocol != INTRUDER)
 	    {
-	      Roledef rd;
-	      int index;
-	      int prevnode;
-	      int firstnode;
-
-	      prevnode = -1;
-	      index = 0;
-	      firstnode = true;
-	      rd = sys->runs[run].start;
-	      // Regular run
-
-	      if (switches.clusters)
+	      if (isHelperProtocol (sys->runs[run].protocol))
 		{
-		  eprintf ("\tsubgraph cluster_run%i {\n", run);
-
-		  eprintf ("\t\tstyle=filled;\n");
-		  eprintf ("\t\tcolor=lightgrey;\n");
-
-		  eprintf ("\t\tlabel=\"");
-		  printRunExplanation (sys, run, " : ", "");
-		  eprintf ("\";\n\n");
+		  /**
+		   * Helper protocol run
+		   *
+		   * Collapse into single node
+		   */
+		  // Draw the first box (HEADER)
+		  // This used to be drawn only if done && send_before_read, now we always draw it.
+		  setRunColorBuf (sys, run, colorbuf);
+		  eprintf ("\t\tr%i [label=\"", run);
+		  termPrintRemap (sys->runs[run].protocol->nameterm);
+		  eprintf (", ");
+		  termPrintRemap (sys->runs[run].role->nameterm);
+		  // close up
+		  eprintf ("\",shape=box,style=filled,fillcolor=\"%s\"",
+			   colorbuf + 8);
+		  eprintf ("];\n");
 		}
-
-	      // set color
-	      setRunColorBuf (sys, run, colorbuf);
-
-	      // Display the respective events
-	      while (index < sys->runs[run].length)
+	      else
 		{
-		  if (!isEventIgnored (sys, run, index))
+		  /**
+		   * Regular protocol run
+		   */
+		  Roledef rd;
+		  int index;
+		  int prevnode;
+		  int firstnode;
+
+		  prevnode = -1;
+		  index = 0;
+		  firstnode = true;
+		  rd = sys->runs[run].start;
+		  // Regular run
+
+		  if (switches.clusters)
 		    {
-		      // Print node itself
-		      eprintf ("\t\t");
-		      node (sys, run, index);
-		      eprintf (" [");
-		      if (run == 0 && index == sys->current_claim->ev)
+		      eprintf ("\tsubgraph cluster_run%i {\n", run);
+
+		      eprintf ("\t\tstyle=filled;\n");
+		      eprintf ("\t\tcolor=lightgrey;\n");
+
+		      eprintf ("\t\tlabel=\"");
+		      printRunExplanation (sys, run, " : ", "");
+		      eprintf ("\";\n\n");
+		    }
+
+		  // set color
+		  setRunColorBuf (sys, run, colorbuf);
+
+		  // Display the respective events
+		  while (index < sys->runs[run].length)
+		    {
+		      if (!isEventIgnored (sys, run, index))
 			{
-			  // The claim under scrutiny
-			  eprintf
-			    ("style=filled,fontcolor=\"%s\",fillcolor=\"%s\",shape=box,",
-			     CLAIMTEXTCOLOR, CLAIMCOLOR);
-			}
-		      else
-			{
-			  eprintf ("shape=box,style=filled,");
-			  // print color of this run
-			  eprintf ("fillcolor=\"");
-			  if (isCompromiseEvent (rd))
+			  // Print node itself
+			  eprintf ("\t\t");
+			  node (sys, run, index);
+			  eprintf (" [");
+			  if (run == 0 && index == sys->current_claim->ev)
 			    {
-			      printColor (INTRUDERCOLORH, INTRUDERCOLORL,
-					  INTRUDERCOLORS);
+			      // The claim under scrutiny
+			      eprintf
+				("style=filled,fontcolor=\"%s\",fillcolor=\"%s\",shape=box,",
+				 CLAIMTEXTCOLOR, CLAIMCOLOR);
 			    }
 			  else
 			    {
-			      eprintf ("%s", colorbuf);
-			    }
-			  eprintf ("\",");
-			}
-		      eprintf ("label=\"");
-		      //roledefPrintShort (rd);
-		      roledefDraw (rd);
-		      eprintf ("\"]");
-		      eprintf (";\n");
-
-		      // Print binding to previous node
-		      if (!firstnode)
-			{
-			  // index > 0
-			  eprintf ("\t\t");
-			  node (sys, run, prevnode);
-			  eprintf (" -> ");
-			  node (sys, run, index);
-			  eprintf (" [style=\"bold\", weight=\"%s\"]",
-				   RUNWEIGHT);
-			  eprintf (";\n");
-			  prevnode = index;
-			}
-		      else
-			{
-			  // index == firstReal
-			  Roledef rd;
-			  int send_before_read;
-			  int done;
-
-			  // Determine if it is an active role or note
-			  /**
-			   *@todo note that this will probably become a standard function call for role.h
-			   */
-			  rd =
-			    roledef_shift (sys->runs[run].start,
-					   sys->runs[run].firstReal);
-			  done = 0;
-			  send_before_read = 0;
-			  while (!done && rd != NULL)
-			    {
-			      if (rd->type == READ)
+			      eprintf ("style=filled,");
+			      // print color and shape of this run
+			      eprintf ("fillcolor=\"");
+			      if (isCompromiseEvent (rd))
 				{
-				  done = 1;
-				}
-			      if (rd->type == SEND)
-				{
-				  done = 1;
-				  send_before_read = 1;
-				}
-			      rd = rd->next;
-			    }
-
-			  if (!switches.clusters)
-			    {
-			      // Draw the first box (HEADER)
-			      // This used to be drawn only if done && send_before_read, now we always draw it.
-			      eprintf ("\t\ts%i [label=\"{ ", run);
-			      if (!isHelperProtocol (sys->runs[run].protocol))
-				{
-				  printRunExplanation (sys, run, "\\l", "|");
+				  printColor (INTRUDERCOLORH, INTRUDERCOLORL,
+					      INTRUDERCOLORS);
+				  eprintf ("\", ");
 				}
 			      else
 				{
-				  termPrintRemap (sys->runs[run].protocol->
-						  nameterm);
-				  eprintf (", ");
-				  termPrintRemap (sys->runs[run].role->
-						  nameterm);
+				  eprintf ("%s", colorbuf);
+				  eprintf ("\", shape=box, ");
 				}
-			      // close up
-			      eprintf ("}\", shape=record");
-			      eprintf
-				(",style=filled,fillcolor=\"%s\"",
-				 colorbuf + 8);
-			      eprintf ("];\n");
-			      eprintf ("\t\ts%i -> ", run);
+			    }
+			  eprintf ("label=\"");
+			  if (isHelperProtocol (sys->runs[run].protocol) &&
+			      ((rd->type == READ) || (rd->type == SEND)))
+			    {
+			      termPrintRemap (sys->runs[run].protocol->
+					      nameterm);
+			      eprintf (", ");
+			      termPrintRemap (sys->runs[run].role->nameterm);
+			      eprintf (": ");
+			      if (rd->type == SEND)
+				{
+				  eprintf ("send ");
+				}
+			      else
+				{
+				  eprintf ("recv ");
+				}
+			      termPrintRemap (rd->message);
+
+			    }
+			  else
+			    {
+			      //roledefPrintShort (rd);
+			      roledefDraw (rd);
+			    }
+			  eprintf ("\"]");
+			  eprintf (";\n");
+
+			  // Print binding to previous node
+			  if (!firstnode)
+			    {
+			      // index > 0
+			      eprintf ("\t\t");
+			      node (sys, run, prevnode);
+			      eprintf (" -> ");
 			      node (sys, run, index);
-			      eprintf
-				(" [style=bold, weight=\"%s\"];\n",
-				 RUNWEIGHT);
+			      eprintf (" [style=\"bold\", weight=\"%s\"]",
+				       RUNWEIGHT);
+			      eprintf (";\n");
 			      prevnode = index;
 			    }
+			  else
+			    {
+			      // index == firstReal
+			      Roledef rd;
+			      int send_before_read;
+			      int done;
+
+			      // Determine if it is an active role or note
+			  /**
+			   *@todo note that this will probably become a standard function call for role.h
+			   */
+			      rd =
+				roledef_shift (sys->runs[run].start,
+					       sys->runs[run].firstReal);
+			      done = 0;
+			      send_before_read = 0;
+			      while (!done && rd != NULL)
+				{
+				  if (rd->type == READ)
+				    {
+				      done = 1;
+				    }
+				  if (rd->type == SEND)
+				    {
+				      done = 1;
+				      send_before_read = 1;
+				    }
+				  rd = rd->next;
+				}
+
+			      if (!switches.clusters)
+				{
+				  // Draw the first box (HEADER)
+				  // This used to be drawn only if done && send_before_read, now we always draw it.
+				  eprintf ("\t\ts%i [label=\"{ ", run);
+				  printRunExplanation (sys, run, "\\l", "|");
+				  // close up
+				  eprintf ("}\", shape=record");
+				  eprintf
+				    (",style=filled,fillcolor=\"%s\"",
+				     colorbuf + 8);
+				  eprintf ("];\n");
+				  eprintf ("\t\ts%i -> ", run);
+				  node (sys, run, index);
+				  eprintf
+				    (" [style=bold, weight=\"%s\"];\n",
+				     RUNWEIGHT);
+				  prevnode = index;
+				}
+			    }
+			  firstnode = false;
 			}
-		      firstnode = false;
+		      index++;
+		      rd = rd->next;
 		    }
-		  index++;
-		  rd = rd->next;
-		}
 
-	      if (switches.clusters)
-		{
-		  eprintf ("\t}\n");
+		  if (switches.clusters)
+		    {
+		      eprintf ("\t}\n");
+		    }
 		}
-
 	    }
 	}
     }
