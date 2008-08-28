@@ -129,6 +129,7 @@ systemReset (const System sys)
   termlistDestroy (sys->secrets);	// remove old secrets list
   sys->secrets = NULL;		// list of claimed secrets
   sys->num_intruder_runs = 0;	// number of intruder runs
+  sys->num_helper_runs = 0;	// number of helper runs
   sys->num_regular_runs = 0;	// number of regular runs
 
   /* transfer switches */
@@ -1270,7 +1271,10 @@ countInitiators (const System sys)
     {
       if (sys->runs[run].role->initiator)
 	{
-	  count++;
+	  if (!isHelperProtocol (sys->runs[run].protocol))
+	    {
+	      count++;
+	    }
 	}
     }
   return count;
@@ -1323,14 +1327,14 @@ selfSession (const System sys, const int run)
 int
 selfResponder (const System sys, const int run)
 {
-  if (sys->runs[run].role->initiator)
+  if (!sys->runs[run].role->initiator)
     {
-      return false;
+      if (!isHelperProtocol (sys->runs[run].protocol))
+	{
+	  return selfSession (sys, run);
+	}
     }
-  else
-    {
-      return selfSession (sys, run);
-    }
+  return false;
 }
 
 //! Count the number of any self-responders
@@ -1360,14 +1364,14 @@ selfResponders (const System sys)
 int
 selfInitiator (const System sys, const int run)
 {
-  if (sys->runs[run].role->initiator)
+  if (!isHelperProtocol (sys->runs[run].protocol))
     {
-      return selfSession (sys, run);
+      if (sys->runs[run].role->initiator)
+	{
+	  return selfSession (sys, run);
+	}
     }
-  else
-    {
-      return false;
-    }
+  return false;
 }
 
 //! Count the number of any self-initiators

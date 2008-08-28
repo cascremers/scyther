@@ -126,6 +126,7 @@ struct system
   states_t failed;		//!< Number of claims failed.
   int attackid;			//!< Global counter of attacks (used for assigning identifiers) within this Scyther call.
   int num_regular_runs;		//!< Number of regular runs
+  int num_helper_runs;		//!< Number of helper runs
   int num_intruder_runs;	//!< Number of intruder runs
 
   /* protocol definition */

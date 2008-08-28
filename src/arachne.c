@@ -149,6 +149,7 @@ arachneInit (const System mysys)
   I_RRSD = add_role ("I_D: Decrypt");
 
   sys->num_regular_runs = 0;
+  sys->num_helper_runs = 0;
   sys->num_intruder_runs = 0;
   max_encryption_level = 0;
 
@@ -327,7 +328,13 @@ semiRunCreate (const Protocol p, const Role r)
   if (p == INTRUDER)
     sys->num_intruder_runs++;
   else
-    sys->num_regular_runs++;
+    {
+      sys->num_regular_runs++;
+      if (isHelperProtocol (p))
+	{
+	  sys->num_helper_runs++;
+	}
+    }
 #ifdef DEBUG
   if (DEBUGL (5))
     {
@@ -359,7 +366,13 @@ semiRunDestroy ()
       if (p == INTRUDER)
 	sys->num_intruder_runs--;
       else
-	sys->num_regular_runs--;
+	{
+	  sys->num_regular_runs--;
+	  if (isHelperProtocol (p))
+	    {
+	      sys->num_helper_runs--;
+	    }
+	}
     }
 }
 
@@ -2454,6 +2467,7 @@ arachne ()
     }
 
   sys->num_regular_runs = 0;
+  sys->num_helper_runs = 0;
   sys->num_intruder_runs = 0;
 
   max_encryption_level = 0;
