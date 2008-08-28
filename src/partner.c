@@ -91,13 +91,13 @@ partnerDone (void)
  * Roledef based.
  *@returns MATCH_NONE or MATCH_CONTENT
  * 
- * This compromise version ignores the labels.
+ * This compromise version ignores the labels and the agents.
  */
 __inline__ int
 events_hist_match_rd (const Roledef rdi, const Roledef rdj)
 {
   if (isTermEqual (rdi->message, rdj->message) &&
-      isTermEqual (rdi->from, rdj->from) && isTermEqual (rdi->to, rdj->to) &&
+      // isTermEqual (rdi->from, rdj->from) && isTermEqual (rdi->to, rdj->to) &&
       // isTermEqual (rdi->label, rdj->label) &&
       !(rdi->internal || rdj->internal))
     {
