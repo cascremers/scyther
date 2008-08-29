@@ -960,54 +960,36 @@ roleCompile (Term nameterm, Tac tc)
   /* parse the content of the role */
   levelInit ();
 
-  {
-    int firstEvent;
-
-    /* initiator/responder flag not set */
-    firstEvent = 1;
-
-    while (tc != NULL)
-      {
-	switch (tc->op)
-	  {
-	  case TAC_READ:
-	    if (firstEvent)
-	      {
-		// First a read, thus responder
-		/*
-		 * Semantics: defaults (in role.c) to initiator _unless_ the first event is a read,
-		 * in which case we assume that the agent names are possibly received as variables
-		 */
-		thisRole->initiator = 0;
-		firstEvent = 0;
-	      }
-	    commEvent (READ, tc);
-	    break;
-	  case TAC_SEND:
-	    firstEvent = 0;
-	    commEvent (SEND, tc);
-	    break;
-	  case TAC_CLAIM:
-	    commEvent (CLAIM, tc);
-	    break;
-	  case TAC_KNOWS:
-	    roleKnows (tc);
-	    break;
-	  default:
-	    if (!normalDeclaration (tc))
-	      {
-		globalError++;
-		eprintf ("error: [%i] illegal command %i in role ",
-			 tc->lineno, tc->op);
-		termPrint (thisRole->nameterm);
-		eprintf (" ");
-		errorTac (tc->lineno);
-	      }
-	    break;
-	  }
-	tc = tc->next;
-      }
-  }
+  while (tc != NULL)
+    {
+      switch (tc->op)
+	{
+	case TAC_READ:
+	  commEvent (READ, tc);
+	  break;
+	case TAC_SEND:
+	  commEvent (SEND, tc);
+	  break;
+	case TAC_CLAIM:
+	  commEvent (CLAIM, tc);
+	  break;
+	case TAC_KNOWS:
+	  roleKnows (tc);
+	  break;
+	default:
+	  if (!normalDeclaration (tc))
+	    {
+	      globalError++;
+	      eprintf ("error: [%i] illegal command %i in role ",
+		       tc->lineno, tc->op);
+	      termPrint (thisRole->nameterm);
+	      eprintf (" ");
+	      errorTac (tc->lineno);
+	    }
+	  break;
+	}
+      tc = tc->next;
+    }
 
   /* add any claims according to the switches */
 
@@ -2209,6 +2191,46 @@ checkLabelMatching (const System sys)
     }
 }
 
+//! Initiator role?
+int
+isInitiatorRole (const Role r)
+{
+  Roledef rd;
+
+  for (rd = r->roledef; rd != NULL; rd = rd->next)
+    {
+      if (!isCompromiseEvent (rd))
+	{
+	  if (rd->type == READ)
+	    {
+	      return false;
+	    }
+	  if (rd->type == SEND)
+	    {
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
+//! Flag which rules are initiators
+void
+determineInitiators (const System sys)
+{
+  Protocol p;
+
+  for (p = sys->protocols; p != NULL; p = p->next)
+    {
+      Role r;
+
+      for (r = p->roles; r != NULL; r = r->next)
+	{
+	  r->initiator = isInitiatorRole (r);
+	}
+    }
+}
+
 //! Preprocess after system compilation
 void
 preprocess (const System sys)
@@ -2219,6 +2241,11 @@ preprocess (const System sys)
    * further actions of the preprocessing.
    */
   compromisePrepare (sys);
+
+  /*
+   * After role duplication, determine initiator roles.
+   */
+  determineInitiators (sys);
 
   /*
    * Add default terms afterwards
