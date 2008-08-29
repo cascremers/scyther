@@ -363,20 +363,45 @@ isRunCompromised (const int run)
 }
 
 // Count the number of compromised runs
+/** 
+ * If a run compromises the attacked agent, we even count it double.
+ */
 int
 countCompromisedRuns (void)
 {
   int run;
-  int count;
+  int count, countCompr, countAgent, countActor;
 
-  count = 0;
-  for (run = 0; run < sys->maxruns; run++)
+  countCompr = 0;
+  countAgent = 0;
+  countActor = 0;
+  // We start at run 1, because run 0 is the claim run which should not be
+  // compromised at all.
+  for (run = 1; run < sys->maxruns; run++)
     {
       if (isRunCompromised (run))
 	{
-	  count++;
+	  Term cagent;
+
+	  countCompr++;
+
+	  cagent = agentOfRun (sys, run);
+	  if (inTermlist (sys->runs[0].rho, cagent))
+	    {
+	      countAgent++;
+	    }
+	  if (isTermEqual (cagent, agentOfRun (sys, 0)))
+	    {
+	      countActor++;
+	    }
 	}
     }
+  /*
+   * The final computation translates into:
+   * - a compromise of an agent involved in the claim counts double
+   * - a compromise of the actor of the claim counts triple
+   */
+  count = countCompr + countAgent + countActor;
   return count;
 }
 

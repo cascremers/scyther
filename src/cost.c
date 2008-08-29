@@ -49,6 +49,29 @@
  * A lower value (closer to 0) is a more feasible attack.
  */
 int
+computeAttackCost (const System sys)
+{
+  // Use nice heuristic cf. work of Gijs Hollestelle. Hand-picked parameters.
+  int cost;
+
+  cost = 0;
+
+  //cost += get_semitrace_length ();
+
+  cost += 50 * countCompromisedRuns ();
+  cost += 10 * selfInitiators (sys);
+  cost += 7 * selfResponders (sys);
+  cost += 10 * (sys->num_regular_runs - sys->num_helper_runs);
+  cost += 3 * countInitiators (sys);
+  cost += 3 * countInitiatorsAfterResponders (sys);
+  cost += 2 * countBindingsDone ();
+  cost += 1 * sys->num_intruder_runs;
+
+  return cost;
+}
+
+//! Compute attack cost in different pruning contexts.
+int
 attackCost (const System sys)
 {
   if (switches.prune == 0)
@@ -73,22 +96,7 @@ attackCost (const System sys)
     }
   if (switches.prune == 2)
     {
-      // Use nice heuristic cf. work of Gijs Hollestelle. Hand-picked parameters.
-      int cost;
-
-      cost = 0;
-
-      //cost += get_semitrace_length ();
-
-      cost += 100 * countCompromisedRuns ();
-      cost += 10 * selfInitiators (sys);
-      cost += 7 * selfResponders (sys);
-      cost += 10 * (sys->num_regular_runs - sys->num_helper_runs);
-      cost += 3 * countInitiators (sys);
-      cost += 2 * countBindingsDone ();
-      cost += 1 * sys->num_intruder_runs;
-
-      return cost;
+      return computeAttackCost (sys);
     }
   error ("Unknown pruning method (cost function not found)");
   return 0;

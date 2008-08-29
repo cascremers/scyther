@@ -1280,6 +1280,44 @@ countInitiators (const System sys)
   return count;
 }
 
+//! count the number of initiators that start after responders start
+/**
+ * The intuition behind this function is that having initiators is bad enough
+ * for an attack, but it is even worse if we have to do other things before it.
+ * We would like any initiator requirements to go at the front of the attack.
+ */
+int
+countInitiatorsAfterResponders (const System sys)
+{
+  int run;
+  int count;
+
+  count = 0;
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      if (sys->runs[run].role->initiator)
+	{
+	  // run is an initiator
+	  int run2;
+
+	  for (run2 = 0; run2 < sys->maxruns; run2++)
+	    {
+	      if ((sys->runs[run2].protocol != INTRUDER)
+		  && (!sys->runs[run2].role->initiator))
+		{
+		  // run2 is a responder
+		  if (isDependEvent (run2, 0, run, sys->runs[run].step - 1))
+		    {
+		      count++;
+		      break;
+		    }
+		}
+	    }
+	}
+    }
+  return count;
+}
+
 //! determine whether a run talks to itself
 int
 selfSession (const System sys, const int run)
