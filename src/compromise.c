@@ -615,7 +615,7 @@ compromiseProtocol (Protocol sourceprot)
     {
       int interesting;
       Role newrole;
-      Roledef rd, rdhead, rdtail;
+      Roledef rd, rdhead;
       Termlist compTerms, compKnown;
 
       interesting = false;	// Only of interest when something is leaked.
@@ -704,7 +704,6 @@ compromiseProtocol (Protocol sourceprot)
 		{
 		  Roledef rdcompr;
 		  // Add another node for the compromise.
-		  // Here we assume rdtail is not NULL by construction.
 		  interesting = true;
 
 		  // Unfold list elements to a list of compromise events.  This

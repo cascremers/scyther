@@ -45,8 +45,6 @@ int protocolCount;
 //! External
 extern Protocol INTRUDER;
 
-//! Switch for indent or not.
-static int indentState = 0;
 //! Current indent depth.
 static int indentDepth = 0;
 
