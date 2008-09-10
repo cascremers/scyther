@@ -26,7 +26,7 @@ then
 	echo "  Usage: $0 <tag>"
 	echo
 	echo "Don't know tag $TAG, please select one from below:"
-	git-tag -l
+	git tag -l
 	echo $DESCR
 	exit
 fi

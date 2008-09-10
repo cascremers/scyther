@@ -32,7 +32,7 @@ then
 	echo "Tag $TAG found."
 else
 	echo "Don't know tag $TAG, please select a revision, e.g. from below:"
-	git-tag -l
+	git tag -l
 	echo $DESCR
 	exit
 fi
@@ -45,7 +45,7 @@ CURDIR=`pwd`
 DESTDIR=$CURDIR
 TMPDIR="/tmp"
 
-# Hard coded connections, do not change this (hardcoded in git-archive
+# Hard coded connections, do not change this (hardcoded in git archive
 # usage and archive creation)
 BUILDDIR=$TMPDIR/$ARCHNAME
 
@@ -53,7 +53,7 @@ BUILDDIR=$TMPDIR/$ARCHNAME
 rm -rf $BUILDDIR
 
 # Change into the lower directory (main archive dir)
-cd .. && git-archive --format=tar --prefix=$ARCHNAME/ $TAG | (cd $TMPDIR && tar xf -)
+cd .. && git archive --format=tar --prefix=$ARCHNAME/ $TAG | (cd $TMPDIR && tar xf -)
 
 # Prepare tag for gui version
 echo "SCYTHER_GUI_VERSION = \"$TAG\"" >$BUILDDIR/gui/Gui/Version.py

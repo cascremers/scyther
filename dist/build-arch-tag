@@ -51,7 +51,7 @@ then
 	echo "Tag $TAG found."
 else
 	echo "Don't know tag $TAG, please select a revision, e.g. from below:"
-	git-tag -l
+	git tag -l
 	echo $DESCR
 	exit
 fi
@@ -65,7 +65,7 @@ DESTDIR=$CURDIR
 TMPDIR="/tmp"
 SRCNAME=$ARCHNAME-src
 
-# Hard coded connections, do not change this (hardcoded in git-archive
+# Hard coded connections, do not change this (hardcoded in git archive
 # usage and archive creation)
 SRCDIR=$TMPDIR/$SRCNAME		
 BUILDDIR=$TMPDIR/$ARCHNAME
@@ -81,7 +81,7 @@ rm -rf $SRCDIR
 rm -rf $BUILDDIR
 
 # Change into the lower directory (main archive dir)
-cd .. && git-archive --format=tar --prefix=$SRCNAME/ $TAG | (cd $TMPDIR && tar xf -)
+cd .. && git archive --format=tar --prefix=$SRCNAME/ $TAG | (cd $TMPDIR && tar xf -)
 
 # Base of the package is the gui directory
 mv $SRCDIR/gui $BUILDDIR
