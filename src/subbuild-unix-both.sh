@@ -5,7 +5,7 @@ CMFLAGS="-D CMAKE_BUILD_TYPE:STRING=Release"
 
 # Make for windows and linux
 cmake $CMFLAGS -D TARGETOS=Win32 . && make
-cmake $CMFLAGS                   . && make
+cmake $CMFLAGS -D TARGETOS=Unix  . && make
 
 echo
 echo
