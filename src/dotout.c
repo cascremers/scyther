@@ -1860,7 +1860,7 @@ dotSemiState (const System mysys)
   eprintf (", claim type ");
   termPrintRemap (sys->current_claim->type);
   // For debugging:
-  //eprintf (", cost %i", computeAttackCost (sys));
+  eprintf (", cost %i", computeAttackCost (sys));
   eprintf ("\";\n");
 
   // Needed for the bindings later on: create graph
