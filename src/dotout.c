@@ -1745,6 +1745,14 @@ drawRegularRuns (const System sys)
 				  // This used to be drawn only if done && send_before_read, now we always draw it.
 				  eprintf ("\t\ts%i [label=\"{ ", run);
 				  printRunExplanation (sys, run, "\\l", "|");
+				  if (sys->runs[run].role->initiator)
+				    {
+				      eprintf ("Initiator");
+				    }
+				  else
+				    {
+				      eprintf ("Responder");
+				    }
 				  // close up
 				  eprintf ("}\", shape=record");
 				  eprintf
