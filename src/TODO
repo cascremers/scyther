@@ -1,0 +1,4 @@
+TODO
+
+Remove claims (for characterize) kills also markers (session ID). As a
+result, a characterization with 'use manual session ID' fails.
