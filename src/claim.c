@@ -911,6 +911,19 @@ property_check (const System sys)
   flag = 1;
 
   /**
+   * Are there any preconditions?
+   */
+  if (switches.requireSynch)
+    {
+      // Check for synch
+      if (!arachne_claim_nisynch (sys, 0, sys->current_claim->ev))
+	{
+	  // Precondition not met: no reporting, no attack.
+	  return 0;
+	}
+    }
+
+  /**
    * By the way the claim is handled, this automatically means a flaw.
    */
   count_false_claim (sys);

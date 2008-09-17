@@ -82,6 +82,7 @@ switchesInit (int argc, char **argv)
   switches.agentUnfold = 0;	// default not to unfold agents
   switches.abstractionMethod = 0;	// default no abstraction used
   switches.useAttackBuffer = false;	// don't use by default as it does not work properly under windows vista yet
+  switches.requireSynch = false;	// default no synch required for attacks, but maybe we do
 
   // Misc
   switches.switchP = 0;		// multi-purpose parameter
@@ -1147,6 +1148,21 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.agentTypecheck = 0;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "require-synchronisation", 0))
+    {
+      if (!process)
+	{
+	  /* 
+	   * Precondition for attacks is that they synchronise.
+	   */
+	}
+      else
+	{
+	  switches.requireSynch = true;
 	  return index;
 	}
     }

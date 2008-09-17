@@ -58,6 +58,7 @@ struct switchdata
   int agentUnfold;		//!< Explicitly unfold for N honest agents and 1 compromised iff > 0
   int abstractionMethod;	//!< 0 means none, others are specific modes
   int useAttackBuffer;		//!< Use temporary file for attack storage
+  int requireSynch;		//!< 0: it's not an attack if you don't synchronize
 
   // Misc
   int switchP;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
