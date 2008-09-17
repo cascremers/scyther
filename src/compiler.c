@@ -2043,46 +2043,49 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
 	    {
 	      if (isTermEqual (event->label, readevent->label))
 		{
-		  // Same labels, so they should match up!
-		  if (!checkEventMatch (event, readevent, p->rolenames))
+		  if (switches.checkMatchingLabels)
 		    {
-		      globalError++;
-		      eprintf ("error: [%i]", readevent->lineno);
-		      if (sys->protocols != NULL)
+		      // Same labels, so they should match up!
+		      if (!checkEventMatch (event, readevent, p->rolenames))
 			{
-			  if (sys->protocols->next != NULL)
+			  globalError++;
+			  eprintf ("error: [%i]", readevent->lineno);
+			  if (sys->protocols != NULL)
 			    {
-			      eprintf (" Protocol ");
-			      termPrint (sys->protocols->nameterm);
+			      if (sys->protocols->next != NULL)
+				{
+				  eprintf (" Protocol ");
+				  termPrint (sys->protocols->nameterm);
+				}
 			    }
-			}
-		      eprintf (" events for label ");
-		      termPrint (event->label);
-		      eprintf (" do not match, in particular: \n");
-		      eprintf ("error: [%i] ", event->lineno);
-		      roledefPrint (event);
-		      eprintf (" does not match\n");
-		      eprintf ("error: [%i] ", readevent->lineno);
-		      roledefPrint (readevent);
-		      eprintf ("\n");
-		      error_die ();
-		      globalError--;
-		    }
-		  else
-		    {
-		      found++;
-#ifdef DEBUG
-		      if (DEBUGL (2))
-			{
-			  eprintf ("Matching up label ");
+			  eprintf (" events for label ");
 			  termPrint (event->label);
-			  eprintf (" to match: ");
+			  eprintf (" do not match, in particular: \n");
+			  eprintf ("error: [%i] ", event->lineno);
 			  roledefPrint (event);
-			  eprintf (" <> ");
+			  eprintf (" does not match\n");
+			  eprintf ("error: [%i] ", readevent->lineno);
 			  roledefPrint (readevent);
 			  eprintf ("\n");
+			  error_die ();
+			  globalError--;
 			}
+		      else
+			{
+			  found++;
+#ifdef DEBUG
+			  if (DEBUGL (2))
+			    {
+			      eprintf ("Matching up label ");
+			      termPrint (event->label);
+			      eprintf (" to match: ");
+			      roledefPrint (event);
+			      eprintf (" <> ");
+			      roledefPrint (readevent);
+			      eprintf ("\n");
+			    }
 #endif
+			}
 		    }
 		}
 	    }

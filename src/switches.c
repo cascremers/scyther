@@ -83,6 +83,7 @@ switchesInit (int argc, char **argv)
   switches.abstractionMethod = 0;	// default no abstraction used
   switches.useAttackBuffer = false;	// don't use by default as it does not work properly under windows vista yet
   switches.requireSynch = false;	// default no synch required for attacks, but maybe we do
+  switches.checkMatchingLabels = true;	// default is to check matching labels
 
   // Misc
   switches.switchP = 0;		// multi-purpose parameter
@@ -914,6 +915,21 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.exitCodes = false;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "no-matching-label-check", 0))
+    {
+      if (!process)
+	{
+	  /*
+	   * Disable matching label check
+	   */
+	}
+      else
+	{
+	  switches.checkMatchingLabels = false;
 	  return index;
 	}
     }
