@@ -138,7 +138,9 @@ checkSIDrequirements (void)
 		{
 		  globalError++;
 		  error_pre ();
-		  eprintf ("Role name:");
+		  eprintf ("Protocol ");
+		  termPrint (p->nameterm);
+		  eprintf (", role ");
 		  termPrint (r->nameterm);
 		  eprintf ("\n");
 		  globalError--;
