@@ -36,6 +36,7 @@ extern Protocol INTRUDER;	// Pointers, to be set by the Init of arachne.c
 extern Role I_M;		// Same here.
 extern Role I_RRS;
 extern Role I_RRSD;
+extern Role I_RECEIVE;
 
 #define INVALID		-1
 #define isGoal(rd)	(rd->type == READ && !rd->internal)
@@ -1829,6 +1830,10 @@ drawIntruderRuns (const System sys)
 			{
 			  eprintf ("label=\"encrypt\"");
 			}
+		    }
+		  if (sys->runs[run].role == I_RECEIVE)
+		    {
+		      eprintf ("label=\"learn\"");
 		    }
 		  eprintf ("];\n");
 		}

@@ -74,6 +74,7 @@ Protocol INTRUDER;		//!< intruder protocol
 Role I_M;			//!< Initial knowledge role of the intruder
 Role I_RRS;			//!< Encrypt role of the intruder
 Role I_RRSD;			//!< Decrypt role of the intruder
+Role I_RECEIVE;			//!< Receive role of the intruder
 
 int proofDepth;			//!< Current depth of the proof
 int max_encryption_level;	//!< Maximum encryption level of any term
@@ -147,6 +148,9 @@ arachneInit (const System mysys)
   add_event (READ, NULL);
   add_event (SEND, NULL);
   I_RRSD = add_role ("I_D: Decrypt");
+
+  add_event (READ, NULL);
+  I_RECEIVE = add_role ("I_R: Receive");
 
   sys->num_regular_runs = 0;
   sys->num_helper_runs = 0;

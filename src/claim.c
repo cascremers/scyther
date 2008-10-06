@@ -57,6 +57,9 @@
 extern int globalError;
 extern int attack_leastcost;
 
+extern Protocol INTRUDER;
+extern Role I_RECEIVE;
+
 // Debugging the NI-SYNCH checks
 //#define OKIDEBUG
 
@@ -844,11 +847,16 @@ add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd,
        * be reached (without reaching the attack).
        */
       cl->count = statesIncrease (cl->count);
-      newgoals = goal_add (rd->message, 0, cl->ev, 0);	// Assumption that all claims are in run 0
+
+      irun = semiRunCreate (INTRUDER, I_RECEIVE);
+      sys->runs[irun].start->message = termDuplicateUV (rd->message);
+      newgoals = add_read_goals (irun, 0, 1);
 
       flag = callback ();
 
       goal_remove_last (newgoals);
+      semiRunDestroy ();
+
       return flag;
     }
 
