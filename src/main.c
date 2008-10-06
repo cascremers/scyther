@@ -121,11 +121,11 @@ main (int argc, char **argv)
   /* start system */
   sys = systemInit ();
 
-  /* init compiler for this system */
-  compilerInit (sys);
-
+  /* init knowledge. Needs to go before compiler init for special term init */
   sys->know = emptyKnowledge ();
 
+  /* init compiler for this system */
+  compilerInit (sys);
 
   /* parse input */
 

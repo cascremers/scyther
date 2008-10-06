@@ -35,6 +35,7 @@
 #include "depend.h"
 #include "error.h"
 #include "mymalloc.h"
+#include "specialterm.h"
 
 static System sys;		//!< local storage of system pointer
 
@@ -539,6 +540,29 @@ unique_origination ()
       bl = bl->next;
     }
   return true;
+}
+
+//! Determine whether a binding involves a long-term private key.
+/**
+ * Returns the agent name if true, returns NULL if not true.
+ */
+Term
+getPrivateKeyAgent (Binding b)
+{
+  Term t;
+
+  t = deVar (b->term);
+  if (t != NULL)
+    {
+      if (isTermEncrypt (t))
+	{
+	  if (isTermEqual (TERM_SK, TermKey (t)))
+	    {
+	      return TermOp (t);
+	    }
+	}
+    }
+  return NULL;
 }
 
 

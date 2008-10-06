@@ -88,6 +88,11 @@ switchesInit (int argc, char **argv)
   switches.requireSynch = false;	// default no synch required for attacks, but maybe we do
   switches.checkMatchingLabels = true;	// default is to check matching labels
 
+  // Adversary type
+  switches.LKRnotgroup = true;	//!< true: default is anybody outside the group
+  switches.LKRactor = false;	//!< false: default is no KCI
+  switches.LKRafter = false;	//!< false: default is no forward secrecy
+
   // Misc
   switches.switchP = 0;		// multi-purpose parameter
   switches.experimental = 0;	// experimental stuff defaults to 0, whatever that means.
@@ -640,6 +645,34 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.concrete = true;
+	  return index;
+	}
+    }
+
+  /* ==================
+   * Adversary choice
+   */
+  if (detect (' ', "LKRnotgroup", 1))
+    {
+      if (process)
+	{
+	  switches.LKRnotgroup = integer_argument ();
+	  return index;
+	}
+    }
+  if (detect (' ', "LKRactor", 1))
+    {
+      if (process)
+	{
+	  switches.LKRactor = integer_argument ();
+	  return index;
+	}
+    }
+  if (detect (' ', "LKRafter", 1))
+    {
+      if (process)
+	{
+	  switches.LKRafter = integer_argument ();
 	  return index;
 	}
     }

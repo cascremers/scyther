@@ -52,6 +52,8 @@ extern Term AGENT_Bob;
 extern Term AGENT_Charlie;
 extern Term AGENT_Dave;
 extern Term AGENT_Eve;
+extern Term TERM_PK;
+extern Term TERM_SK;
 
 extern Termlist CLAIMS_dep_prec;
 

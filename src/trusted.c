@@ -33,99 +33,103 @@
 #include "error.h"
 #include "specialterm.h"
 #include "arachne.h"
+#include "binding.h"
 
 extern Protocol INTRUDER;	// from arachne.c
 
-int
-untrustedActorRun (const System sys, const int run)
-{
-  if (!isAgentTrusted (sys, agentOfRun (sys, run)))
-    {
-      return true;
-    }
-  return false;
-}
-
-int
-untrustedAgentsRun (const System sys, const int run)
-{
-  if (!isAgentlistTrusted (sys, sys->runs[run].rho))
-    {
-      return true;
-    }
-  return false;
-}
-
-int
-pruneTrustedRun (const System sys, const int run)
-{
-  switch (switches.trustedMode)
-    {
-    case 0:
-      return untrustedActorRun (sys, run);
-    case 1:
-      if (run == 0)
-	{
-	  // Claim run status is evaluated by pruneClaimRunTrusted in claim.c
-	  return false;
-	}
-      else
-	{
-	  return untrustedActorRun (sys, run);
-	}
-    case 2:
-      if (run == 0)
-	{
-	  // Stronger (possibly) than claim
-	  return untrustedAgentsRun (sys, run);
-	}
-      else
-	{
-	  return untrustedActorRun (sys, run);
-	}
-    case 3:
-      return untrustedAgentsRun (sys, run);
-    }
-  return false;
-}
-
 //! prune a state if it does not conform to the trusted mode
+/**
+ * Currently, only the LKR mode.
+ *
+ * Returns true if pruned.
+ */
 int
 pruneTrusted (const System sys)
 {
-  // Check if the actors of all other runs are not untrusted
-  if (sys->untrusted != NULL)
+  List bl;
+
+  // Scan all bindings to find the private keys
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
     {
-      int run;
+      Binding b;
+      Term a;
 
-      for (run = 0; run < sys->maxruns; run++)
+      b = (Binding) bl->data;
+      a = getPrivateKeyAgent (b);
+      if (a != NULL)
 	{
-	  if (sys->runs[run].protocol != INTRUDER)
+	  /* The key in binding b is sk(a), a is the agent which has been long-term key
+	   * revealed. There are a number of cases in which this is allowed, as
+	   * defined in the paper.
+	   */
+	  if (switches.LKRnotgroup)
 	    {
-	      if (sys->runs[run].rho != NULL)
+	      // Is the agent outside the group of main actors?
+	      if (!inTermlist (sys->runs[0].rho, a))
 		{
-		  if (pruneTrustedRun (sys, run))
-		    {
-		      return true;
-		    }
-		}
-	      else
-		{
-		  Protocol p;
-
-		  globalError++;
-		  eprintf ("error: Run %i: ", run);
-		  role_name_print (run);
-		  eprintf (" has an empty agents list.\n");
-		  eprintf ("protocol->rolenames: ");
-		  p = (Protocol) sys->runs[run].protocol;
-		  termlistPrint (p->rolenames);
-		  eprintf ("\n");
-		  error ("Aborting.");
-		  globalError--;
-		  return true;
+		  continue;
 		}
 	    }
+	  if (switches.LKRactor)
+	    {
+	      // Is it the agent the actor of run 0,...
+	      if (isTermEqual (a, agentOfRun (sys, 0)))
+		{
+		  // ... but not of the other roles 
+		  Termlist agents;
+		  Term claimrole;
+		  int allgood;
+
+		  claimrole = sys->runs[0].role->nameterm;
+		  allgood = true;
+		  for (agents = sys->runs[0].rho; agents != NULL;
+		       agents = agents->next)
+		    {
+		      if (TermSymb (claimrole) != TermSymb (agents->term))
+			{
+			  if (isTermEqual (a, agents->term))
+			    {
+			      allgood = false;
+			      break;
+			    }
+			}
+		    }
+		  if (allgood)
+		    {
+		      // It was the actor, but not assigned to any of the other roles
+		      continue;
+		    }
+		}
+	    }
+	  if (switches.LKRafter)
+	    {
+	      // After the claim?
+	      //
+	      // Clearly only relevant for secrecy (as we would not even
+	      // construct events after the claim for authentication
+	      // properties).
+	      // 
+	      // Bindings always have a 'to' destination
+	      int r1, e1, r2, e2;
+
+	      r1 = b->run_to;
+	      e1 = b->ev_to;
+	      r2 = 0;
+	      e2 = sys->runs[0].step - 1;	// assumption that it contains at least an event.
+	      if (((r1 != r2) || (e1 != e2)))
+		{
+		  // If they were the same, not allowed (by this rule)
+		  if (!isDependEvent (r1, e1, r2, e2))
+		    {
+		      // Claim may be before the long-term key reveal. That's fine.
+		      continue;
+		    }
+		}
+	    }
+	  /*
+	   * There was no valid reason to allow LKR: hence we prune.
+	   */
+	  return true;
 	}
     }
   return false;

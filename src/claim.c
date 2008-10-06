@@ -729,33 +729,6 @@ arachne_claim_nisynch (const System sys, const int claim_run,
   return arachne_claim_authentications (sys, claim_run, claim_index, 1);
 }
 
-//! Are all agents trusted of the claim run (as required by the property?)
-int
-pruneClaimRunTrusted (const System sys)
-{
-  // Only if we're not overriding it
-  if (switches.trustedMode != 1)
-    return false;
-
-  if (sys->trustedRoles == NULL)
-    {
-      // all agents need to be trusted
-      if (!isRunTrusted (sys, 0))
-	{
-	  return true;
-	}
-    }
-  else
-    {
-      // a subset is trusted
-      if (!isAgentlistTrusted (sys, sys->trustedRoles))
-	{
-	  return true;
-	}
-    }
-  return false;
-}
-
 //! Prune determination for specific properties
 /**
  * Sometimes, a property holds in part of the tree. Thus, we don't need to explore that part further if we want to find an attack.
@@ -765,18 +738,6 @@ pruneClaimRunTrusted (const System sys)
 int
 prune_claim_specifics (const System sys)
 {
-  // generic status of (all) roles trusted or not
-  if (pruneClaimRunTrusted (sys))
-    {
-      if (switches.output == PROOF)
-	{
-	  indentPrint ();
-	  eprintf
-	    ("Pruned because agents of the claim run must be trusted based on the property.\n");
-	}
-      return true;
-    }
-
   // specific claims
   if (sys->current_claim->type == CLAIM_Niagree)
     {
@@ -825,8 +786,9 @@ add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd,
 
   if (cl->type == CLAIM_Secret)
     {
-      int newgoals;
       int flag;
+      int irun;
+      int newgoals;
 
       /**
        * Secrecy claim

@@ -910,17 +910,28 @@ protocolsPrint (Protocol p)
 //! Determine whether an agent term is trusted
 /**
  * 1 (True) means trusted, 0 is untrusted
+ *
+ * Probably we need an ordered variant later (is trusted after)
  */
 int
 isAgentTrusted (const System sys, Term agent)
 {
+  List bl;
+
   agent = deVar (agent);
-  if (!realTermVariable (agent) && inTermlist (sys->untrusted, agent))
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
     {
-      // Untrusted agent in the list
-      return 0;
+      Binding b;
+      Term a;
+
+      b = (Binding) bl->data;
+      a = getPrivateKeyAgent (b);
+      if (isTermEqual (agent, a))
+	{
+	  return false;
+	}
     }
-  return 1;
+  return true;
 }
 
 //! Determine whether there is an untrusted agent.

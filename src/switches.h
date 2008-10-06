@@ -64,6 +64,11 @@ struct switchdata
   int requireSynch;		//!< 0: it's not an attack if you don't synchronize
   int checkMatchingLabels;	//!< default is to check matching labels
 
+  // Adversary type
+  int LKRnotgroup;		//!< true: default is anybody outside the group
+  int LKRactor;			//!< false: default is no KCI
+  int LKRafter;			//!< false: default is no forward secrecy
+
   // Misc
   int switchP;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.
   int experimental;		//!< Experimental stuff goes here until it moves into main stuff.
