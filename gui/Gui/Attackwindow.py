@@ -279,13 +279,12 @@ class AttackWindow(wx.Frame):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Make zoom buttons
-        if Preference.usePIL():
-            buttons = wx.BoxSizer(wx.HORIZONTAL)
-            bt = wx.ToggleButton(self,-1,"Fit to window")
-            bt.SetValue(self.fit)
-            buttons.Add(bt,0)
-            self.Bind(wx.EVT_TOGGLEBUTTON, self.OnFit, bt)
-            sizer.Add(buttons, 0, wx.ALIGN_LEFT)
+        buttons = wx.BoxSizer(wx.HORIZONTAL)
+        bt = wx.ToggleButton(self,-1,"Fit to window")
+        bt.SetValue(self.fit)
+        buttons.Add(bt,0)
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.OnFit, bt)
+        sizer.Add(buttons, 0, wx.ALIGN_LEFT)
         
         # Add attacks (possible with tabs)
         self.displays=[]
