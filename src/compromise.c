@@ -63,7 +63,7 @@ Protocol compromiseProtocol (Protocol sourceprot);
  * For now, they're all active attacks.
  * 0: none
  * 1: key
- * 2: all
+ * 2: inferred
  * 3: user-defined (using special SEND_Compromise events)
  *
  * The main idea is that local things may get compromised. Of course, if one
@@ -291,6 +291,35 @@ void
 compromisePrepare (const System mysys)
 {
   sys = mysys;
+
+  /**
+   * Caveat emptor: SKR/SSR switches not fully supported yet.
+   *
+   * We currently translate SKR/SSR settings into the older ones, if needed.
+   * Effectively, we don't have state-only yet, and we don't have SSRltsafe.
+   * That's a bit annoying, but should do for now. TODO
+   *
+   * What works:
+   * SKR (manual)
+   * SSRothers (infer or manual)
+   */
+  if (switches.SKR)
+    {
+      switches.compromiseType = 1;
+      if (switches.SSRothers || switches.SSRltsafe)
+	{
+	  if (switches.SSRinfer)
+	    {
+	      // Infer = 2 (auto)
+	      switches.compromiseType = 2;
+	    }
+	  else
+	    {
+	      // Not infer = manual (3)
+	      switches.compromiseType = 3;
+	    }
+	}
+    }
 
   if (switches.compromiseType != 3)
     {

@@ -64,10 +64,15 @@ struct switchdata
   int checkMatchingLabels;	//!< default is to check matching labels
 
   // Adversary type
-  int LKRnotgroup;		//!< true: default is anybody outside the group
-  int LKRactor;			//!< false: default is no KCI
-  int LKRaftercorrect;		//!< false: default is no weak perfect forward secrecy
-  int LKRafter;			//!< false: default is no perfect forward secrecy
+  int LKRnotgroup;		//!< anybody outside the group
+  int LKRactor;			//!< KCI
+  int LKRaftercorrect;		//!< weak perfect forward secrecy
+  int LKRafter;			//!< perfect forward secrecy
+  int SKR;			//!< session-key reveal (for others)
+  int SSRothers;		//!< SSR others 
+  int SSRltsafe;		//!< SSR long-term safe 
+  int SSRfilter;		//!< SSR filtering on nonces
+  int SSRinfer;			//!< SSR manual / inferred
   int markFullSession;		//!< Not a real switch but a marker
 
   // Misc

@@ -83,15 +83,20 @@ switchesInit (int argc, char **argv)
   switches.abstractionMethod = 0;	// default no abstraction used
   switches.useAttackBuffer = false;	// don't use by default as it does not work properly under windows vista yet
   switches.compromiseType = 0;	// default no local compromise
-  switches.partnerDefinition = 0;	// 0: temporally close [default], 1: matching histories, 2: SID based
+  switches.partnerDefinition = 1;	// 0: temporally close, 1: matching histories [default], 2: SID based
   switches.requireSynch = false;	// default no synch required for attacks, but maybe we do
   switches.checkMatchingLabels = true;	// default is to check matching labels
 
   // Adversary type
-  switches.LKRnotgroup = true;	//!< true: default is anybody outside the group
-  switches.LKRactor = false;	//!< false: default is no KCI
-  switches.LKRaftercorrect = false;	//!< false: default is no weak perfect forward secrecy
-  switches.LKRafter = false;	//!< false: default is no perfect forward secrecy
+  switches.LKRnotgroup = true;	//!< default is anybody outside the group
+  switches.LKRactor = false;	//!< default is no KCI
+  switches.LKRaftercorrect = false;	//!< default is no weak perfect forward secrecy
+  switches.LKRafter = false;	//!< default is no perfect forward secrecy
+  switches.SKR = false;		//!< default is no session-key reveal
+  switches.SSRothers = false;	//!< default is no SSR others 
+  switches.SSRltsafe = false;	//!< default is no SSR long-term safe 
+  switches.SSRfilter = false;	//!< default is no SSR filtering on nonces
+  switches.SSRinfer = true;	//!< default is SSR inferred
   switches.markFullSession = false;	//!< Not a real switch but a marker
 
   // Misc
@@ -682,6 +687,46 @@ switcher (const int process, int index, int commandline)
       if (process)
 	{
 	  switches.LKRafter = integer_argument ();
+	  return index;
+	}
+    }
+  if (detect (' ', "SKR", 1))
+    {
+      if (process)
+	{
+	  switches.SKR = integer_argument ();
+	  return index;
+	}
+    }
+  if (detect (' ', "SSRothers", 1))
+    {
+      if (process)
+	{
+	  switches.SSRothers = integer_argument ();
+	  return index;
+	}
+    }
+  if (detect (' ', "SSRltsafe", 1))
+    {
+      if (process)
+	{
+	  switches.SSRltsafe = integer_argument ();
+	  return index;
+	}
+    }
+  if (detect (' ', "SSRfilter", 1))
+    {
+      if (process)
+	{
+	  switches.SSRfilter = integer_argument ();
+	  return index;
+	}
+    }
+  if (detect (' ', "SSRinfer", 1))
+    {
+      if (process)
+	{
+	  switches.SSRinfer = integer_argument ();
 	  return index;
 	}
     }
