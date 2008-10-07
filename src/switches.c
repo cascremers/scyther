@@ -83,7 +83,6 @@ switchesInit (int argc, char **argv)
   switches.abstractionMethod = 0;	// default no abstraction used
   switches.useAttackBuffer = false;	// don't use by default as it does not work properly under windows vista yet
   switches.compromiseType = 0;	// default no local compromise
-  switches.trustedMode = 1;	// 0: only actors, 1: some (claim based) agents of claim run, 2: all agents of claim run, 3: all agents of all runs
   switches.partnerDefinition = 0;	// 0: temporally close [default], 1: matching histories, 2: SID based
   switches.requireSynch = false;	// default no synch required for attacks, but maybe we do
   switches.checkMatchingLabels = true;	// default is to check matching labels
@@ -1276,28 +1275,6 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.reportCompromise = true;
-	  return index;
-	}
-    }
-
-  if (detect (' ', "trusted", 1))
-    {
-      if (!process)
-	{
-	  /* 0: actors trusted, 
-	   * 1: actors + some claim run agents trusted based on claim (default), 
-	   * 2: actors + all claim run agents trusted,
-	   * 3: run agents trusted
-	   */
-	}
-      else
-	{
-	  switches.trustedMode = integer_argument ();
-	  if ((switches.trustedMode < 0) || (switches.trustedMode > 3))
-	    {
-	      printfstderr ("Trusted level must be between 0 and 3.\n");
-	      exit (1);
-	    }
 	  return index;
 	}
     }
