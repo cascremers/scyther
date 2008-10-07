@@ -1183,11 +1183,26 @@ drawBinding (const System sys, Binding b)
       if (intr_to)
 	{
 	  // intr->intr
+	  Term agent;
+
 	  eprintf ("\t");
 	  myarrow (b);
-	  eprintf (" [label=\"");
-	  termPrintRemap (b->term);
-	  eprintf ("\"");
+	  agent = getPrivateKeyAgent (b);
+	  if (agent != NULL)
+	    {
+	      // It's a private key transfer, mark clearly
+	      eprintf (" [label=\"[ ");
+	      termPrintRemap (b->term);
+	      eprintf (" ]\"");
+	      eprintf (",fontcolor=\"red\"");
+	    }
+	  else
+	    {
+	      eprintf (" [label=\"");
+	      termPrintRemap (b->term);
+	      eprintf ("\"");
+	    }
+
 	  if (m0_from)
 	    {
 	      eprintf (",weight=\"10.0\"");
