@@ -34,6 +34,7 @@
 #include "specialterm.h"
 #include "arachne.h"
 #include "binding.h"
+#include "depend.h"
 
 extern Protocol INTRUDER;	// from arachne.c
 

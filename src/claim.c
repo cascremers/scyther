@@ -39,6 +39,7 @@
 #include "color.h"
 #include "cost.h"
 #include "timer.h"
+#include "arachne.h"
 
 //! When none of the runs match
 #define MATCH_NONE 0

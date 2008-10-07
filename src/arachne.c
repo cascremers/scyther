@@ -419,9 +419,9 @@ fixAgentKeylevels (void)
  *@returns The number of goals added (for destructions)
  */
 int
-add_read_goals (const int run, const int old, const int new)
+add_read_goals (const int run, const int oldheight, const int newheight)
 {
-  if (new <= sys->runs[run].height)
+  if (newheight <= sys->runs[run].height)
     {
       return 0;
     }
@@ -431,11 +431,11 @@ add_read_goals (const int run, const int old, const int new)
       int i;
       Roledef rd;
 
-      sys->runs[run].height = new;
-      i = old;
+      sys->runs[run].height = newheight;
+      i = oldheight;
       rd = eventRoledef (sys, run, i);
       count = 0;
-      while (i < new && rd != NULL)
+      while (i < newheight && rd != NULL)
 	{
 	  if (rd->type == READ)
 	    {
