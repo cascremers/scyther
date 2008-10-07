@@ -41,5 +41,6 @@ typedef struct labelinfo *Labelinfo;
 Labelinfo label_create (const Term label, const Protocol protocol);
 void label_destroy (Labelinfo linfo);
 Labelinfo label_find (List labellist, const Term label);
+int findLabelInRun (const System sys, int run, Term label);
 
 #endif

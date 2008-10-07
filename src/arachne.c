@@ -2208,6 +2208,41 @@ iterate ()
   return flag;
 }
 
+//! Wrap multiple iterations
+/**
+ * This happens inside any buffering etc.
+ */
+int
+iterate_multiple_preconditions (void)
+{
+  int result;
+
+  //###################################
+  result = iterate ();
+  //###################################
+  //
+  // Sometimes we need a second phase with e.g. a full session
+  if (switches.LKRaftercorrect)
+    {
+      int addedruns;
+      int i;
+
+      addedruns = addFullSession (sys);
+      switches.markFullSession = true;
+
+      //###################################
+      result = iterate ();
+      //###################################
+
+      for (i = 0; i < addedruns; i++)
+	{
+	  semiRunDestroy ();
+	}
+      switches.markFullSession = false;
+    }
+  return result;
+}
+
 //! Just before starting output of an attack.
 //
 //! A wrapper for the case in which we need to buffer attacks.
@@ -2230,8 +2265,8 @@ iterate_buffer_attacks (void)
       attack_stream = NULL;
       attackOutputStart ();
 
-      // Finally, proceed with iteration procedure
-      result = iterate ();
+      // Iterate inside
+      result = iterate_multiple_preconditions ();
 
       /* Now, if it has been set, we need to copy the output to the normal streams.
        */
@@ -2249,7 +2284,7 @@ iterate_buffer_attacks (void)
   else
     {
       // No attack buffering, just output all of them
-      return iterate ();
+      return iterate_multiple_preconditions ();
     }
 }
 

@@ -103,3 +103,33 @@ label_find (List labellist, const Term label)
     }
   return linfo;
 }
+
+//! Find a label in a run, yield index or -1
+int
+findLabelInRun (const System sys, int run, Term label)
+{
+  int e;
+  Roledef rd;
+
+  if (run < 0)
+    {
+      return -1;
+    }
+  e = 0;
+  for (rd = sys->runs[run].start; rd != NULL; rd = rd->next)
+    {
+      if (e < sys->runs[run].height)
+	{
+	  if (isTermEqual (rd->label, label))
+	    {
+	      return e;
+	    }
+	  e++;
+	}
+      else
+	{
+	  break;
+	}
+    }
+  return -1;
+}

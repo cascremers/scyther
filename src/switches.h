@@ -67,7 +67,9 @@ struct switchdata
   // Adversary type
   int LKRnotgroup;		//!< true: default is anybody outside the group
   int LKRactor;			//!< false: default is no KCI
-  int LKRafter;			//!< false: default is no forward secrecy
+  int LKRaftercorrect;		//!< false: default is no weak perfect forward secrecy
+  int LKRafter;			//!< false: default is no perfect forward secrecy
+  int markFullSession;		//!< Not a real switch but a marker
 
   // Misc
   int switchP;			//!< A multi-purpose integer parameter, passed to the partial order reduction method selected.

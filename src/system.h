@@ -178,6 +178,7 @@ void roleInstance (const System sys, const Protocol protocol, const Role role,
 void roleInstanceDestroy (const System sys);
 void systemStart (const System sys);
 void indent ();
+Roledef roledef_get (int run, int ev);
 
 Protocol protocolCreate (Term nameterm);
 Protocol protocolDuplicate (Protocol sourceprot);

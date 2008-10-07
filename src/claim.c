@@ -40,6 +40,7 @@
 #include "cost.h"
 #include "timer.h"
 #include "arachne.h"
+#include "mgu.h"
 
 //! When none of the runs match
 #define MATCH_NONE 0
@@ -728,6 +729,116 @@ arachne_claim_nisynch (const System sys, const int claim_run,
 		       const int claim_index)
 {
   return arachne_claim_authentications (sys, claim_run, claim_index, 1);
+}
+
+//! Determine good height for full session
+/**
+ * For a role, assume in context of claim role
+ */
+int
+goodHeight (Role role, Termlist labels)
+{
+  Roledef rd;
+  int goodheight;
+  int e;
+
+  goodheight = 0;
+  e = 0;
+  for (rd = role->roledef; rd != NULL; rd = rd->next)
+    {
+      if (rd->label != NULL)
+	{
+	  if (inTermlist (labels, rd->label))
+	    {
+	      goodheight = e + 1;
+	    }
+	}
+      e++;
+    }
+  return goodheight;
+}
+
+//! Add some runs
+/**
+ * Turn a single claim run into a full preceding matching session.
+ *
+ * Note that we add orders, and unify, but don't label the bindings.
+ *
+ * Returns the number of runs added.
+ */
+int
+addFullSession (const System sys)
+{
+  Protocol p;
+  int addedruns;
+  Role r;
+  Role claimrole;
+  Termmap f;
+  Termlist tl;
+
+  addedruns = 0;
+  p = sys->runs[0].protocol;
+  claimrole = sys->runs[0].role;
+  f = NULL;
+
+  // Add the other role instances
+  for (r = p->roles; r != NULL; r = r->next)
+    {
+      if (r == claimrole)
+	{
+	  f = termmapSet (f, r->nameterm, 0);
+	}
+      else
+	{
+	  int goodheight;
+
+	  goodheight = goodHeight (r, sys->current_claim->prec);
+	  if (goodheight > 0)
+	    {
+	      int run;
+
+	      run = semiRunCreate (p, r);
+	      sys->runs[run].height = goodheight;
+	      f = termmapSet (f, r->nameterm, run);
+	      addedruns++;
+	    }
+	}
+    }
+
+  // Sync the labels
+  for (tl = sys->current_claim->prec; tl != NULL; tl = tl->next)
+    {
+      int r1, e1, r2, e2;
+      Roledef rd1, rd2;
+      Labelinfo li;
+      Termlist ul;
+
+      li = label_find (sys->labellist, tl->term);
+      if (!li->ignore)
+	{
+	  r1 = termmapGet (f, li->sendrole);
+	  r2 = termmapGet (f, li->readrole);
+	  e1 = findLabelInRun (sys, r1, tl->term);
+	  e2 = findLabelInRun (sys, r2, tl->term);
+	  if ((e1 != -1) && (e2 != -1))
+	    {
+	      rd1 = roledef_get (r1, e1);
+	      rd2 = roledef_get (r2, e2);
+
+	      // For now we don't add the binding (to avoid having to delete it too)
+
+	      // TODO this will not work if we get multiple unifiers later, and we have to really iterate into this
+	      ul = termMguTerm (rd1->from, rd2->from);
+	      ul = termMguTerm (rd1->to, rd2->to);
+	      ul = termMguTerm (rd1->message, rd2->message);
+	    }
+	}
+    }
+
+  // Cleanup
+  termmapDelete (f);
+
+  return addedruns;
 }
 
 //! Prune determination for specific properties

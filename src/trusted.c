@@ -102,7 +102,7 @@ pruneTrusted (const System sys)
 		    }
 		}
 	    }
-	  if (switches.LKRafter)
+	  if (switches.LKRafter || switches.LKRaftercorrect)
 	    {
 	      // After the claim?
 	      //
@@ -123,7 +123,17 @@ pruneTrusted (const System sys)
 		  if (!isDependEvent (r1, e1, r2, e2))
 		    {
 		      // Claim may be before the long-term key reveal. That's fine.
-		      continue;
+		      if (switches.LKRafter)
+			{
+			  continue;
+			}
+		      if (switches.LKRaftercorrect)
+			{
+			  if (switches.markFullSession)
+			    {
+			      continue;
+			    }
+			}
 		    }
 		}
 	    }

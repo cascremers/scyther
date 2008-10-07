@@ -48,6 +48,9 @@ extern Protocol INTRUDER;
 //! Current indent depth.
 static int indentDepth = 0;
 
+//! System thing
+static System sys;
+
 //! Initialise a system structure.
 /**
  *@return A system structure pointer with initial values.
@@ -55,7 +58,7 @@ static int indentDepth = 0;
 System
 systemInit ()
 {
-  System sys = (System) malloc (sizeof (struct system));
+  sys = (System) malloc (sizeof (struct system));
 
   /* initially, no trace ofcourse */
   sys->step = 0;
@@ -808,6 +811,13 @@ indent ()
       i--;
       j++;
     }
+}
+
+//! Get roledef for run, event
+Roledef
+roledef_get (int run, int ev)
+{
+  return roledef_shift (sys->runs[run].start, ev);
 }
 
 //! Create an empty protocol structure with a name.
