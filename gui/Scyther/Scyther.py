@@ -381,6 +381,52 @@ class Scyther(object):
 
 #---------------------------------------------------------------------------
 
+def GetClaims(filelist):
+    """
+    Given a list of file names in filelist,
+    returns a dictionary of filenames to lists claim names.
+    Filenames which yielded no claims are filtered out.
+    """
+
+    dict = {}
+    for fname in filelist:
+        try:
+            sc = Scyther()
+            sc.setFile(fname)
+            l = sc.scanClaims()
+            if l != None:
+                cl = []
+                for claim in l:
+                    cl.append(claim.id)
+                dict[fname] = cl
+        except:
+            pass
+    return dict
+
+#---------------------------------------------------------------------------
+
+def FindProtocols(path="",filterProtocol=None):
+    """
+    Find a list of protocol names
+
+    Note: Unix only! Will not work under windows.
+    """
+
+    import commands
+
+    cmd = "find %s -iname '*.spdl'" % (path)
+    plist = commands.getoutput(cmd).splitlines()
+    nlist = []
+    for prot in plist:
+        if filterProtocol != None:
+            if filterProtocol(prot):
+                nlist.append(prot)
+        else:
+            nlist.append(prot)
+    return nlist
+
+#---------------------------------------------------------------------------
+
 def GetInfo(html=False):
     """
     Retrieve a tuple (location,string) with information about the tool,

@@ -53,7 +53,7 @@ import commands
 #---------------------------------------------------------------------------
 
 """ Import scyther components """
-from Scyther import Scyther
+from Scyther import *
 
 #---------------------------------------------------------------------------
 
@@ -136,27 +136,13 @@ def ScytherDiff(protocol):
         return res
 
 
-def findProtocols():
-    """
-    Find a list of protocol names
-    """
-
-    cmd = "find -iname '*.spdl'"
-    plist = commands.getoutput(cmd).splitlines()
-    nlist = []
-    for prot in plist:
-        if filterProtocol(prot):
-            nlist.append(prot)
-    return nlist
-
-
 def main():
     """
     Simple test case with a few protocols
     """
     global TEST0,TEST1,TEST2
 
-    list = findProtocols()
+    list = Scyther.FindProtocols()
     print "Performing delta analysis"
     print 
     print "String 0 (used for both): '%s'" % TEST0
