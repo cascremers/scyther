@@ -341,6 +341,43 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
 }
 
 
+//! Fold vs unfold
+Termlist
+fold (Termlist tuples)
+{
+  Termlist tl;
+
+  tl = NULL;
+  while (tuples != NULL)
+    {
+      Term t;
+
+      t = tuples->term;
+      tuples = tuples->next;
+      t->subst = tuples->term;
+      tuples = tuples->next;
+      tl = termlistAdd (tl, t);
+    }
+  return tl;
+}
+
+//! Fold vs unfold
+Termlist
+unfold (Termlist single)
+{
+  Termlist tl;
+
+  tl = NULL;
+  while (single != NULL)
+    {
+      tl = termlistAppend (tl, single->term);
+      tl = termlistAppend (tl, single->term->subst);
+
+      single = single->next;
+    }
+  return tl;
+}
+
 //! Most general unifier.
 /**
  * Try to determine the most general unifier of two terms.
@@ -350,149 +387,38 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
  * in such a way that the two terms unify. Returns \ref MGUFAIL if it is impossible.
  * The termlist should be deleted.
  *
- * @TODO this code should be removed, as it duplicates 'unify' code, and is
- * ill-suited for adaption later on with multiple unifiers.
+ * Note if there are multiple options, only the first one is given.
  */
 Termlist
 termMguTerm (Term t1, Term t2)
 {
-  /* added for speed */
-  t1 = deVar (t1);
-  t2 = deVar (t2);
-  if (t1 == t2)
-    return NULL;
+  Termlist results;
 
-  if (!(hasTermVariable (t1) || hasTermVariable (t2)))
+  results = NULL;
+
+  int found (Termlist tl)
+  {
+    termlistDelete (results);
+    results = unfold (tl);
+    return false;
+  }
+
+  if (!unify (t1, t2, NULL, found))
     {
-      if (isTermEqual (t1, t2))
-	{
-	  return NULL;
-	}
-      else
-	{
-	  return MGUFAIL;
-	}
+      Termlist tlnew;
+
+      //eprintf("Mgu list: ");
+      //termlistPrint(results);
+      //eprintf("\n");
+
+      tlnew = fold (results);
+      termlistDelete (results);
+      return tlnew;
     }
-
-  /*
-   * Distinguish a special case where both are unbound variables that will be
-   * connected, and I want to give one priority over the other for readability.
-   *
-   * Because t1 and t2 have been deVar'd means that if they are variables, they
-   * are also unbound.
-   */
-
-  if (realTermVariable (t1) && realTermVariable (t2) && goodsubst (t1, t2))
+  else
     {
-      /* Both are unbound variables. Decide.
-       *
-       * The plan: t1->subst will point to t2. But maybe we prefer the other
-       * way around?
-       */
-      if (preferSubstitutionOrder (t2, t1))
-	{
-	  Term t3;
-
-	  // Swappy.
-	  t3 = t1;
-	  t1 = t2;
-	  t2 = t3;
-	}
-      t1->subst = t2;
-#ifdef DEBUG
-      showSubst (t1);
-#endif
-      return termlistAdd (NULL, t1);
+      return MGUFAIL;
     }
-
-  /* symmetrical tests for single variable.
-   */
-
-  if (realTermVariable (t2))
-    {
-      if (termSubTerm (t1, t2) || !goodsubst (t2, t1))
-	return MGUFAIL;
-      else
-	{
-	  t2->subst = t1;
-#ifdef DEBUG
-	  showSubst (t2);
-#endif
-	  return termlistAdd (NULL, t2);
-	}
-    }
-  if (realTermVariable (t1))
-    {
-      if (termSubTerm (t2, t1) || !goodsubst (t1, t2))
-	return MGUFAIL;
-      else
-	{
-	  t1->subst = t2;
-#ifdef DEBUG
-	  showSubst (t1);
-#endif
-	  return termlistAdd (NULL, t1);
-	}
-    }
-
-  /* left & right are compounds with variables */
-  if (t1->type != t2->type)
-    return MGUFAIL;
-
-  /* identical compounds */
-  /* encryption first */
-  if (realTermEncrypt (t1))
-    {
-      Termlist tl1, tl2;
-
-      tl1 = termMguTerm (TermKey (t1), TermKey (t2));
-      if (tl1 == MGUFAIL)
-	{
-	  return MGUFAIL;
-	}
-      else
-	{
-	  tl2 = termMguTerm (TermOp (t1), TermOp (t2));
-	  if (tl2 == MGUFAIL)
-	    {
-	      termlistSubstReset (tl1);
-	      termlistDelete (tl1);
-	      return MGUFAIL;
-	    }
-	  else
-	    {
-	      return termlistConcat (tl1, tl2);
-	    }
-	}
-    }
-
-  /* tupling second
-     non-associative version ! TODO other version */
-  if (isTermTuple (t1))
-    {
-      Termlist tl1, tl2;
-
-      tl1 = termMguTerm (TermOp1 (t1), TermOp1 (t2));
-      if (tl1 == MGUFAIL)
-	{
-	  return MGUFAIL;
-	}
-      else
-	{
-	  tl2 = termMguTerm (TermOp2 (t1), TermOp2 (t2));
-	  if (tl2 == MGUFAIL)
-	    {
-	      termlistSubstReset (tl1);
-	      termlistDelete (tl1);
-	      return MGUFAIL;
-	    }
-	  else
-	    {
-	      return termlistConcat (tl1, tl2);
-	    }
-	}
-    }
-  return MGUFAIL;
 }
 
 //! Check if role terms might match in some way

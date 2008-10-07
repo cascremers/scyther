@@ -40,5 +40,6 @@ int unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist));
 int
 subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
 	      int (*callback) (Termlist, Termlist));
+Termlist termMguTerm (Term t1, Term t2);
 
 #endif
