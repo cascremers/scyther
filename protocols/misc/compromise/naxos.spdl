@@ -17,16 +17,10 @@
  * attacks for both the initiator and responder roles.
  */
 
-// PKI infrastructure
-
-const pk: Function;
-secret sk: Function;
-
 // Hash functions
 const h1,h2,g1,g2: Function;
 secret unh1,unh2,ung1,ung2: Function;
 
-inversekeys (pk,sk);
 inversekeys (h1,unh1);
 inversekeys (h2,unh2);
 inversekeys (g1,ung1);
@@ -137,12 +131,3 @@ protocol naxos(I,R)
 	}
 }
 
-// The agents in the system
-
-const Alice,Bob: Agent;
-
-// An untrusted agent, with leaked information
-
-const Eve: Agent;
-untrusted Eve;
-compromised sk(Eve);
