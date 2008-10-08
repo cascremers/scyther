@@ -34,8 +34,10 @@ import commands
 
 from Scyther import *
 
+SHOWPATH = False    # Switch to true to show paths in the graph
+
 BOREDOM = None
-DB = {}
+DB = {} # Model.dbkey -> (fname,claimid)*
 FCD = {}
 FCDN = 0
 FCDX = 0
@@ -109,7 +111,7 @@ class SecModel(object):
             if len(x) > 0:
                 sl.append(x)
         if sl == []:
-            return "None"
+            return "External"
         else:
             return sep.join(sl)
 
@@ -187,6 +189,14 @@ class SecModel(object):
 
     def getHighers(self):
         return self.getDir(1)
+
+    def getCorrect(self):
+        """
+        Get the protocol claims correct for this model
+        """
+        global DB
+
+        return DB[self.dbkey()]
 
 
 def FindClaims(filelist):
@@ -280,37 +290,61 @@ def GetHighers(model):
             highers.append((model2,model[i][2:-2]))
     return highers
 
-
-def GetList(model):
+def Abbreviate(text,sep):
     """
-    Get the list of things on this node
+    Abbreviate
     """
-    global DB
+    i = text.rfind(sep)
+    if i == -1:
+        return text
+    else:
+        return text[i+1:]
 
-    highers = model.getHighers()
+def ShortClaim(claim):
+    return Abbreviate(claim,",")
+
+def ShortName(protname):
+    return Abbreviate(protname,"/")
+
+def Compress(datalist):
+    """
+    Compress datalist in string
+    """
     mapping = {}
     # Extract claims to mapping
-    for data in DB[model.dbkey()]:
-        inall = True
-        for (model2,descr) in highers:
-            if data not in DB[model2.dbkey()]:
-                inall = False
-                break
-        if (not inall) or (highers == []):
-            (prot,claim) = data
-            if prot in mapping.keys():
-                mapping[prot] = mapping[prot] + [claim]
-            else:
-                mapping[prot] = [claim]
+    for data in datalist:
+        (prot,claim) = data
+        shortclaim = ShortClaim(claim)
+        if prot in mapping.keys():
+            mapping[prot] = mapping[prot] + [shortclaim]
+        else:
+            mapping[prot] = [shortclaim]
     # Summarize claims per protocol
     pl = []
     for prot in mapping.keys():
-        txt = "%s: %s" % (prot,"; ".join(mapping[prot]))
+        global SHOWPATH
+
+        if SHOWPATH:
+            misc = " (%s)" % (prot)
+        else:
+            misc = ""
+        shortprot = ShortName(prot)
+        txt = "%s: %s%s" % (shortprot,"; ".join(mapping[prot]),misc)
         pl.append(txt)
+
+    # After compression, we may have duplicate names.
+    pl2 = pl
+    pl = []
+    for n in pl2:
+        if n not in pl:
+            pl.append(n)
+
+    # Sort
+    pl.sort()
 
     return pl
 
-
+    
 def DotGraph():
     """
     DB is a dict:
@@ -335,18 +369,49 @@ def DotGraph():
     modelscount = 0
     while model != None:
 
+        """
+        For this model we first draw the node
+        """
+        
         modelscount += 1
-        pl = GetList(model)
-        if pl == []:
-            s = "[label=\"%s\",fontcolor=red]" % (str(model))
-        else:
-            label = "Correct in %s:\\n" % (str(model))
-            s = "[shape=box,label=\"%s%s\"]" % (label,"\\n".join(pl))
-            modelsdone += 1
-        fp.write("\t%s %s;\n" % (model.dotkey(),s));
-        lowers = model.getLowers()
-        for (lower,change) in lowers:
-            fp.write("\t%s -> %s [label=\"%s\"];\n" % (lower.dotkey(),model.dotkey(),change))
+        text = "%s [style=filled,color=lightgray,label=\"Adversary model:\\n%s\"]" % (model.dotkey(),str(model))
+        fp.write("\t%s;\n" % text)
+
+        """
+        We now get the list of follow-ups
+        """
+        stronger = model.getHighers()
+        for (model2,description) in stronger:
+            """
+            Each stronger model might involve drawing a counterexample
+            arrow: i.e. a claim correct in model, but not in model2
+            """
+            correct = model.getCorrect()
+            correct2 = model2.getCorrect()
+            cex = []
+            for x in correct:
+                if x not in correct2:
+                    cex.append(x)
+            if cex == []:
+                """
+                No counterexamples!
+                """
+                nfrom = model.dotkey()
+                nto = model2.dotkey()
+                misc = "[label=\"No counterexamples yet\\nfor %s\",fontcolor=red,color=gray]" % (description)
+                fp.write("\t%s -> %s %s;\n" % (nfrom,nto,misc))
+            else:
+                """
+                Counterexamples need a box
+                """
+                nfrom = model.dotkey()
+                nto = model2.dotkey()
+                nmid = "mid_%s_%s" % (nfrom,nto)
+                misc = "[shape=box,label=\"%s counterexamples:\\n%s\\l\"]" % (description,"\\l".join(Compress(cex)))
+                fp.write("\t%s %s;\n" % (nmid,misc))
+                fp.write("\t%s -> %s;\n" % (nfrom,nmid))
+                fp.write("\t%s -> %s;\n" % (nmid,nto))
+
         model = model.next()
 
     text = "Scanned %i/%i claims, %i skipped. Adversary models found: %i/%i." % (FCDX,FCDN,FCDS,modelsdone,modelscount)
@@ -355,6 +420,7 @@ def DotGraph():
 
     fp.flush()
     fp.close()
+    print "Graph written"
 
     commands.getoutput("dot -Tpdf %s.dot >%s.pdf" % (fname,fname))
 
