@@ -35,6 +35,12 @@ import commands
 from Scyther import *
 
 BOREDOM = None
+DB = {}
+FCD = {}
+FCDN = 0
+FCDX = 0
+FCDS = 0
+DRAWGRAPH = True
 
 def MyScyther(protocollist,filter=None):
     """
@@ -67,6 +73,15 @@ class SecModel(object):
             self.setMax()
         else:
             self.setMin()
+
+    def countTypes(self):
+        """
+        Give the number of possible adversary types
+        """
+        count = 1
+        for i in range(0,self.length):
+            count = count * len(self.axes[i])
+        return count
 
     def setMin(self):
         self.vector = []
@@ -185,8 +200,12 @@ def VerifyClaim(file,claimid,model):
     """
     Check claim in model
     """
+    global DRAWGRAPH
+
     claimres = isBoring(file,claimid,model)
     if claimres == None:
+        DotGraph()
+        DRAWGRAPH = False
         s = Scyther.Scyther()
         s.addFile(file)
         s.options = model.options()
@@ -262,17 +281,19 @@ def GetHighers(model):
     return highers
 
 
-def GetList(db,model):
+def GetList(model):
     """
     Get the list of things on this node
     """
+    global DB
+
     highers = model.getHighers()
     mapping = {}
     # Extract claims to mapping
-    for data in db[model.dbkey()]:
+    for data in DB[model.dbkey()]:
         inall = True
         for (model2,descr) in highers:
-            if data not in db[model2.dbkey()]:
+            if data not in DB[model2.dbkey()]:
                 inall = False
                 break
         if (not inall) or (highers == []):
@@ -290,13 +311,19 @@ def GetList(db,model):
     return pl
 
 
-def DotGraph(db):
+def DotGraph():
     """
-    db is a dict:
+    DB is a dict:
     model -> list of protocols
 
     a model is a list of parameters
     """
+    global FCDN,FCDX,FCDS
+    global DRAWGRAPH
+
+    if DRAWGRAPH == False:
+        return
+
     print "Writing graph"
     fname = "compromise-test"
     fp = open("%s.dot" % (fname), "w")
@@ -304,26 +331,32 @@ def DotGraph(db):
     fp.write("digraph Compromise {\n")
 
     model = SecModel()
+    modelsdone = 0
+    modelscount = 0
     while model != None:
 
-        pl = GetList(db,model)
+        modelscount += 1
+        pl = GetList(model)
         if pl == []:
-            s = "[shape=point,label=\"%s\"]" % (str(model))
+            s = "[label=\"%s\",fontcolor=red]" % (str(model))
         else:
             label = "Correct in %s:\\n" % (str(model))
             s = "[shape=box,label=\"%s%s\"]" % (label,"\\n".join(pl))
+            modelsdone += 1
         fp.write("\t%s %s;\n" % (model.dotkey(),s));
         lowers = model.getLowers()
         for (lower,change) in lowers:
             fp.write("\t%s -> %s [label=\"%s\"];\n" % (lower.dotkey(),model.dotkey(),change))
         model = model.next()
 
+    text = "Scanned %i/%i claims, %i skipped. Adversary models found: %i/%i." % (FCDX,FCDN,FCDS,modelsdone,modelscount)
+    fp.write("\tlabel=\"%s\";\n" % text)
     fp.write("}\n")
 
     fp.flush()
     fp.close()
 
-    commands.getoutput("dot -Tps %s.dot >%s.ps" % (fname,fname))
+    commands.getoutput("dot -Tpdf %s.dot >%s.pdf" % (fname,fname))
 
 def boreID(file,claimid,model):
     """
@@ -331,10 +364,9 @@ def boreID(file,claimid,model):
     """
     return "%s*%s*%s" % (file,claimid,model.dbkey())
 
-def isBoring(file,claimid,model):
+def initBoring():
     global BOREDOM
 
-    key = boreID(file,claimid,model)
     if BOREDOM == None:
         BOREDOM = {}
         try:
@@ -345,26 +377,44 @@ def isBoring(file,claimid,model):
             fp.close()
         except:
             pass
+    return BOREDOM
 
+def isBoring(file,claimid,model):
+    global BOREDOM
+
+    initBoring()
+    key = boreID(file,claimid,model)
     if key in BOREDOM.keys():
-        print "Retrieved from buffer:", key, BOREDOM[key]
         return BOREDOM[key]
     else:
         return None
 
 def addToBoring(file,claimid,model,result):
+    global BOREDOM
 
+    initBoring()
     key = boreID(file,claimid,model)
-    fp = open("boring.data","a")
-    fp.write("%s\t%s\n" % (boreID(file,claimid,model),result))
-    fp.flush()
-    fp.close()
+    if key not in BOREDOM.keys():
+        BOREDOM[key] = result
+        fp = open("boring.data","a")
+        fp.write("%s\t%s\n" % (key,result))
+        fp.flush()
+        fp.close()
+    else:
+        print "Something funny here. Investigate."
+
+def getBoringCount():
+    global BOREDOM
+
+    initBoring()
+    return len(BOREDOM.keys())
 
 
-def Investigate(db,file,claimid):
+def Investigate(file,claimid):
     """
     Investigate this one.
     """
+    global DB
 
     minres = TestClaim(file,claimid,SecModel())
     if minres == True:
@@ -378,39 +428,63 @@ def Investigate(db,file,claimid):
             data = (file,claimid)
 
             model = SecModel()
-            db[model.dbkey()] = db[model.dbkey()] + [data]
+            DB[model.dbkey()] = DB[model.dbkey()] + [data]
             model = model.next()
             while model != None:
                 res = TestClaim(file,claimid,model)
                 if res:
-                    db[model.dbkey()] = db[model.dbkey()] + [data]
+                    DB[model.dbkey()] = DB[model.dbkey()] + [data]
                 model = model.next()
-            return (True,db)
+            return True
 
     print "Not very interesting:",file,claimid
-    return (False,db)
+    return False
+
+def goodclaim(fname,cid):
+    filter = ["ksl,","ksl-Lowe,"]
+    for pref in filter:
+        if cid.startswith(pref):
+            return False
+    filefilter = ["../gui/Protocols/key-compromise/neumannstub-hwang.spdl", "../protocols/misc/compositionality-examples/"]
+    for pref in filefilter:
+        if fname.startswith(pref):
+            return False
+    return True
 
 def main():
     """
     Simple test case with a few protocols
     """
-
+    global DB
+    global FCD,FCDN,FCDX,FCDS
+    global DRAWGRAPH
+    
     list = Scyther.FindProtocols("..")
     print "Performing compromise analysis for the following protocols:", list
     print
-    fcd = FindClaims(list)
-    db = {}
+    FCD = FindClaims(list)
+    FCDN = 0
+    FCDX = 0
+    for fn in FCD.keys():
+        FCDN += len(FCD[fn])
+
+    DB = {}
     model = SecModel()
     while model != None:
-        db[model.dbkey()] = []
+        DB[model.dbkey()] = []
         model = model.next()
 
-    for fn in fcd.keys():
-        for cid in fcd[fn]:
-            (changed,db) = Investigate(db,fn,cid)
-            if changed:
-                DotGraph(db)
+    DotGraph()
+    DRAWGRAPH = True
+    for fn in FCD.keys():
+        for cid in FCD[fn]:
+            if goodclaim(fn,cid):
+                DRAWGRAPH = Investigate(fn,cid)
+                FCDX += 1
+            else:
+                FCDS += 1
         
+    DotGraph()
     print
     print "Analysis complete."
 
