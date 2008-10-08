@@ -181,15 +181,22 @@ def FindClaims(filelist):
     return Scyther.GetClaims(filelist)
 
 
-def TestClaim(file,claimid,model):
+def VerifyClaim(file,claimid,model):
     """
     Check claim in model
     """
-    s = Scyther.Scyther()
-    s.addFile(file)
-    s.options = model.options()
-    res = s.verifyOne(claimid)
-    claimres = res[0].getRank()
+    claimres = isBoring(file,claimid,model)
+    if claimres == None:
+        s = Scyther.Scyther()
+        s.addFile(file)
+        s.options = model.options()
+        res = s.verifyOne(claimid)
+        claimres = res[0].getRank()
+        addToBoring(file,claimid,model,claimres)
+    return claimres
+
+def TestClaim(file,claimid,model):
+    claimres = VerifyClaim(file,claimid,model)
     if claimres < 2:
         return False
     else:
@@ -318,30 +325,38 @@ def DotGraph(db):
 
     commands.getoutput("dot -Tps %s.dot >%s.ps" % (fname,fname))
 
+def boreID(file,claimid,model):
+    """
+    Should not contain tabs
+    """
+    return "%s*%s*%s" % (file,claimid,model.dbkey())
 
-def boreID(file,claimid):
-    return "%s*%s" % (file,claimid)
-
-def isBoring(file,claimid):
+def isBoring(file,claimid,model):
     global BOREDOM
 
+    key = boreID(file,claimid,model)
     if BOREDOM == None:
-        BOREDOM = []
+        BOREDOM = {}
         try:
-            fp = open("boring.txt","r")
+            fp = open("boring.data","r")
             for l in fp.readlines():
-                BOREDOM.append(l.rstrip("\n"))
+                da = (l.rstrip("\n")).split("\t")
+                BOREDOM[da[0]] = int(da[1])
             fp.close()
         except:
             pass
 
-    return (boreID(file,claimid) in BOREDOM)
+    if key in BOREDOM.keys():
+        print "Retrieved from buffer:", key, BOREDOM[key]
+        return BOREDOM[key]
+    else:
+        return None
 
+def addToBoring(file,claimid,model,result):
 
-def addToBoring(file,claimid):
-
-    fp = open("boring.txt","a")
-    fp.write("%s\n" % boreID(file,claimid))
+    key = boreID(file,claimid,model)
+    fp = open("boring.data","a")
+    fp.write("%s\t%s\n" % (boreID(file,claimid,model),result))
     fp.flush()
     fp.close()
 
@@ -351,35 +366,28 @@ def Investigate(db,file,claimid):
     Investigate this one.
     """
 
-    if not isBoring(file,claimid):
+    minres = TestClaim(file,claimid,SecModel())
+    if minres == True:
+        maxres = TestClaim(file,claimid,SecModel(True))
+        if minres != maxres:
+            print "*" * 70
+            print file,claimid
+            print minres, maxres
+            print "*" * 70
 
-        minres = TestClaim(file,claimid,SecModel())
-        if minres == True:
-            maxres = TestClaim(file,claimid,SecModel(True))
-            if minres != maxres:
-                print "*" * 70
-                print file,claimid
-                print minres, maxres
-                print "*" * 70
+            data = (file,claimid)
 
-                data = (file,claimid)
-
-                model = SecModel()
-                db[model.dbkey()] = db[model.dbkey()] + [data]
+            model = SecModel()
+            db[model.dbkey()] = db[model.dbkey()] + [data]
+            model = model.next()
+            while model != None:
+                res = TestClaim(file,claimid,model)
+                if res:
+                    db[model.dbkey()] = db[model.dbkey()] + [data]
                 model = model.next()
-                while model != None:
-                    res = TestClaim(file,claimid,model)
-                    if res:
-                        db[model.dbkey()] = db[model.dbkey()] + [data]
-                    model = model.next()
-                return (True,db)
+            return (True,db)
 
-        addToBoring(file,claimid)
-        ast = ""
-    else:
-        ast = " (buffered)"
-
-    print "Not very interesting%s:" % ast,file,claimid
+    print "Not very interesting:",file,claimid
     return (False,db)
 
 def main():
