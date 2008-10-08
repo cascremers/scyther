@@ -101,7 +101,7 @@ class SecModel(object):
             return s[2:-2]
         return ""
 
-    def __str__(self,sep=" "):
+    def __str__(self,sep=" ",empty="External"):
         """
         Yield string
         """
@@ -111,7 +111,7 @@ class SecModel(object):
             if len(x) > 0:
                 sl.append(x)
         if sl == []:
-            return "External"
+            return empty
         else:
             return sep.join(sl)
 
@@ -122,7 +122,7 @@ class SecModel(object):
         return " ".join(sl)
 
     def dotkey(self):
-        return self.__str__(sep="_")
+        return self.__str__(sep="_",empty="None")
 
     def dbkey(self):
         return self.dotkey()
@@ -413,6 +413,18 @@ def DotGraph():
                 fp.write("\t%s -> %s;\n" % (nmid,nto))
 
         model = model.next()
+
+    """
+    Finish up by showing the final stuff
+    """
+    model = SecModel(True)
+    correct = model.getCorrect()
+    if len(correct) == 0:
+        misc = "[shape=box,label=\"No protocols found that\\lare correct in all models.\\l\"]"
+    else:
+        misc = "[shape=box,label=\"%s Correct in all:\\n%s\\l\"]" % (description,"\\l".join(Compress(correct)))
+    fp.write("\t%s -> final;\n" % (model.dotkey()))
+    fp.write("\tfinal %s;\n" % (misc))
 
     text = "Scanned %i/%i claims, %i skipped. Adversary models found: %i/%i." % (FCDX,FCDN,FCDS,modelsdone,modelscount)
     fp.write("\tlabel=\"%s\";\n" % text)
