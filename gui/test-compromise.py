@@ -31,12 +31,14 @@ Author: Cas Cremers
 """
 
 import commands
+import sys
 
 from Scyther import *
 
 SHOWPATH = False    # Switch to true to show paths in the graph
 DEFAULTARGS = "--max-runs=7"
 ALLCORRECT = True   # Require all claims to be correct of the protocol in prev. node for counterexample
+BRIEF = False
 
 CACHE = None
 DB = {} # Model.dbkey -> (fname,claimid)*
@@ -190,6 +192,8 @@ class SecModel(object):
 def FindClaims(filelist):
     """
     Get the claim ids
+
+    returns a dict of filename to claimname*
     """
     return Scyther.GetClaims(filelist)
 
@@ -203,16 +207,18 @@ def VerifyClaim(file,claimid,model):
     global CACHE
 
     claimres = CACHE.get(file,claimid,model.dbkey())
-    if claimres == None:
-        DotGraph()
-        DRAWGRAPH = False
-        s = Scyther.Scyther()
-        s.addFile(file)
-        s.options = "%s %s" % (DEFAULTARGS,model.options())
-        res = s.verifyOne(claimid)
-        claimres = res[0].getRank()
+    if claimres != None:
+        return claimres
 
-        CACHE.append(file,claimid,model.dbkey(),claimres)
+    DotGraph()
+    DRAWGRAPH = False
+    s = Scyther.Scyther()
+    s.addFile(file)
+    s.options = "%s %s" % (DEFAULTARGS,model.options())
+    res = s.verifyOne(claimid)
+    claimres = res[0].getRank()
+
+    CACHE.append(file,claimid,model.dbkey(),claimres)
     return claimres
 
 def TestClaim(file,claimid,model):
@@ -222,64 +228,22 @@ def TestClaim(file,claimid,model):
     else:
         return True
 
-def GetIndex(list,el):
-    for i in range(0,len(list)):
-        if el == list[i]:
-            return i
-    return None
+def ProtCorrect(protocol,model):
+    """
+    Check whether all claims are correct in a model
+    """
+    global FCD
+    global DRAWGRAPH
 
-def GetDir(model,direction):
-    
-    models = GetModels()
-    lowers = []
-    for i in range(0,len(model)):
-
-        index = GetIndex(models[i],model[i])
-        index2 = index + direction
-        if (index2 >= 0) and (index2 < len(self.axes[i])):
-            model2 = self.copy()
-            for j in range(0,len(model)):
-                if j == i:
-                    model2.append(models[i][index-1])
-                else:
-                    model2.append(model[j])
-            lowers.append((model2,model.describe()))
-    return lowers
-
-def GetLowers(model):
-    
-    models = GetModels()
-    lowers = []
-    for i in range(0,len(model)):
-
-        index = GetIndex(models[i],model[i])
-        if index > 0:
-            model2 = []
-            for j in range(0,len(model)):
-                if j == i:
-                    model2.append(models[i][index-1])
-                else:
-                    model2.append(model[j])
-            lowers.append((model2,model.describe()))
-    return lowers
-
-
-def GetHighers(model):
-    
-    models = GetModels()
-    highers = []
-    for i in range(0,len(model)):
-
-        index = GetIndex(models[i],model[i])
-        if index < (len(models[i])-1):
-            model2 = []
-            for j in range(0,len(model)):
-                if j == i:
-                    model2.append(models[i][index+1])
-                else:
-                    model2.append(model[j])
-            highers.append((model2,model[i][2:-2]))
-    return highers
+    if protocol in FCD.keys():
+        for claimid in FCD[protocol]:
+            buf = DRAWGRAPH
+            DRAWGRAPH = False
+            res = TestClaim(protocol,claimid,model)
+            DRAWGRAPH = buf
+            if res == False:
+                return False
+    return True
 
 def Abbreviate(text,sep):
     """
@@ -335,7 +299,11 @@ def Compress(datalist):
 
     return pl
 
-    
+
+def addup(db,key,val):
+    if db[key] < val:
+        db[key] = val
+
 def DotGraph():
     """
     DB is a dict:
@@ -345,6 +313,8 @@ def DotGraph():
     """
     global FCDN,FCDX,FCDS
     global DRAWGRAPH
+    global ALLCORRECT
+    global BRIEF
 
     if DRAWGRAPH == False:
         return
@@ -355,53 +325,113 @@ def DotGraph():
 
     fp.write("digraph Compromise {\n")
 
-    model = SecModel()
     modelsdone = 0
     modelscount = 0
+
+    """
+    Init status thing
+    """
+    status = {}
+    model = SecModel()
+    while model != None:
+        status[model.dbkey()] = 0
+        model = model.next()
+
+    model = SecModel()
     while model != None:
 
-        """
-        For this model we first draw the node
-        """
-        
         modelscount += 1
-        text = "%s [style=filled,color=lightgray,label=\"Adversary model:\\n%s\"]" % (model.dotkey(),str(model))
-        fp.write("\t%s;\n" % text)
+        """
+        We get the list of follow-ups
+        """
+        nfrom = model.dotkey()
+        correct = model.getCorrect()
 
-        """
-        We now get the list of follow-ups
-        """
         stronger = model.getHighers()
         for (model2,description) in stronger:
             """
             Each stronger model might involve drawing a counterexample
             arrow: i.e. a claim correct in model, but not in model2
             """
-            correct = model.getCorrect()
+            nto = model2.dotkey()
             correct2 = model2.getCorrect()
+
             cex = []
+            skipped = []
             for x in correct:
                 if x not in correct2:
-                    cex.append(x)
-            if cex == []:
+                    if ALLCORRECT == True:
+                        (prot,claimid) = x
+                        shouldadd = ProtCorrect(prot,model)
+                    else:
+                        shouldadd = True
+
+                    if shouldadd:
+                        cex.append(x)
+                    else:
+                        skipped.append(x)
+
+            if (cex == [] and skipped == []):
                 """
                 No counterexamples!
                 """
-                nfrom = model.dotkey()
-                nto = model2.dotkey()
-                misc = "[label=\"No counterexamples yet\\nfor %s\",fontcolor=red,color=gray]" % (description)
+                if BRIEF == False:
+                    misc = "[label=\"No counterexamples yet\\nfor %s\",fontcolor=red,color=gray]" % (description)
+                else:
+                    misc = ""
                 fp.write("\t%s -> %s %s;\n" % (nfrom,nto,misc))
+                addup(status,model.dbkey(),1)
+                addup(status,model2.dbkey(),1)
+
             else:
                 """
                 Counterexamples need a box
                 """
-                nfrom = model.dotkey()
-                nto = model2.dotkey()
                 nmid = "mid_%s_%s" % (nfrom,nto)
-                misc = "[shape=box,label=\"%s counterexamples:\\n%s\\l\"]" % (description,"\\l".join(Compress(cex)))
+                if cex != []:
+                    misc = "[shape=box,label=\"%s counterexamples:\\n%s\\l\"]" % (description,"\\l".join(Compress(cex)))
+                else:
+                    if BRIEF == False:
+                        misc = "[shape=box,color=white,fontcolor=gray,label=\"bad %s counterexamples:\\n%s\\l\"]" % (description,"\\l".join(Compress(cex)))
+                    else:
+                        misc = "[label=\"bad counterexamples\\n exist\"]"
+
                 fp.write("\t%s %s;\n" % (nmid,misc))
                 fp.write("\t%s -> %s;\n" % (nfrom,nmid))
                 fp.write("\t%s -> %s;\n" % (nmid,nto))
+
+                addup(status,model.dbkey(),2)
+                #addup(status,model2.dbkey(),2)
+
+        model = model.next()
+
+    """
+    Draw the nodes at some level of detail
+    """
+    model = SecModel()
+    while model != None:
+
+        if status[model.dbkey()] == 2:
+    
+            if len(sys.argv[1:]) > 0:
+                # We were filtering stuff
+                correct = model.getCorrect()
+                acl = []
+                for (prot,desc) in correct:
+                    if ProtCorrect(prot,model):
+                        nn = ShortName(prot)
+                        if nn not in acl:
+                            acl.append(nn)
+
+                misc = "\\n%s" % ("\\l".join(acl))
+            else:
+                misc = ""
+
+            text = "%s [style=filled,color=lightgray,label=\"Adversary model:\\n%s%s\"]" % (model.dotkey(),str(model),misc)
+            fp.write("\t%s;\n" % text)
+        elif status[model.dbkey()] == 1:
+            text = "%s [shape=point,label=\"\"]" % (model.dotkey())
+            fp.write("\t%s;\n" % text)
 
         model = model.next()
 
@@ -411,7 +441,7 @@ def DotGraph():
     model = SecModel(True)
     correct = model.getCorrect()
     if len(correct) == 0:
-        misc = "[shape=box,label=\"No protocols found that\\lare correct in all models.\\l\"]"
+        misc = "[shape=box,label=\"No claims found that\\lare correct in all models.\\l\"]"
     else:
         misc = "[shape=box,label=\"%s Correct in all:\\n%s\\l\"]" % (description,"\\l".join(Compress(correct)))
     fp.write("\t%s -> final;\n" % (model.dotkey()))
@@ -426,12 +456,6 @@ def DotGraph():
     print "Graph written"
 
     commands.getoutput("dot -Tpdf %s.dot >%s.pdf" % (fname,fname))
-
-def boreID(file,claimid,model):
-    """
-    Should not contain tabs
-    """
-    return "%s*%s*%s" % (file,claimid,model.dbkey())
 
 class ProtCache(object):
     """
@@ -517,9 +541,9 @@ def Investigate(file,claimid):
 
     minres = TestClaim(file,claimid,SecModel())
     if minres == True:
-        print "*" * 70
-        print file,claimid
-        print "*" * 70
+        #print "*" * 70
+        #print file,claimid
+        #print "*" * 70
 
         data = (file,claimid)
 
@@ -533,10 +557,16 @@ def Investigate(file,claimid):
             model = model.next()
         return True
 
-    print "Always flawed:",file,claimid
+    #print "Always flawed:",file,claimid
     return False
 
 def goodclaim(fname,cid):
+    """
+    Filter out stuff
+    """
+    global BRIEF
+
+    # First, get rid of bad
     filter = ["ksl,","ksl-Lowe,"]
     for pref in filter:
         if cid.startswith(pref):
@@ -545,6 +575,17 @@ def goodclaim(fname,cid):
     for pref in filefilter:
         if fname.startswith(pref):
             return False
+
+    # If we have a filter, use it
+    protfilter = sys.argv[1:]
+    if len(protfilter) > 0:
+        BRIEF = True
+        for subs in protfilter:
+            if fname.find(subs) != -1:
+                return True
+        return False
+
+    # Not bad, no filter: accept
     return True
 
 def main():
@@ -559,8 +600,9 @@ def main():
     CACHE = ScytherCache()
     
     list = Scyther.FindProtocols("..")
-    print "Performing compromise analysis for the following protocols:", list
-    print
+    #print "Performing compromise analysis for the following protocols:", list
+    #print
+
     FCD = FindClaims(list)
     FCDN = 0
     FCDX = 0
