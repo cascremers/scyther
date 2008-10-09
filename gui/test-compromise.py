@@ -39,6 +39,7 @@ SHOWPATH = False    # Switch to true to show paths in the graph
 DEFAULTARGS = "--max-runs=7"
 ALLCORRECT = True   # Require all claims to be correct of the protocol in prev. node for counterexample
 BRIEF = False
+FAST = True    # True means Skip intermediate graph drawing
 
 CACHE = None
 DB = {} # Model.dbkey -> (fname,claimid)*
@@ -58,6 +59,9 @@ class SecModel(object):
         axis3 = ["","--LKRaftercorrect=1","--LKRafter=1"]
         axis4 = ["","--SKR=1"]
         axis5 = ["","--SSRothers=1"]
+
+        #axis1 = ["--LKRnotgroup=1"]
+
         self.axes = [axis1,axis2,axis3,axis4,axis5]
         self.length = len(self.axes)
 
@@ -180,13 +184,51 @@ class SecModel(object):
     def getHighers(self):
         return self.getDir(1)
 
-    def getCorrect(self):
+    def isProtocolCorrect(self,protocol):
+        """
+        Is this protocol correct in this model?
+        """
+        global DRAWGRAPH
+        global FCD
+
+        for claimid in FCD[protocol]:
+            buf = DRAWGRAPH
+            DRAWGRAPH = False
+            res = TestClaim(protocol,claimid,self)
+            DRAWGRAPH = buf
+            if res == False:
+                return False
+        return True
+
+
+    def getCorrectClaims(self):
         """
         Get the protocol claims correct for this model
         """
         global DB
 
         return DB[self.dbkey()]
+
+    def getCorrectProtocols(self):
+        """
+        Get the protocols of which all claims are correct in this model
+        """
+        global DB
+        global FCD
+
+        ccl = self.getCorrectClaims()
+        plseen = []
+        for (prot,claim) in ccl:
+            if prot not in plseen:
+                plseen.append(prot)
+
+        pl = []
+        for prot in plseen:
+            if self.isProtocolCorrect(prot):
+                pl.append(prot)
+
+        return pl
+
 
 
 def FindClaims(filelist):
@@ -228,22 +270,6 @@ def TestClaim(file,claimid,model):
     else:
         return True
 
-def ProtCorrect(protocol,model):
-    """
-    Check whether all claims are correct in a model
-    """
-    global FCD
-    global DRAWGRAPH
-
-    if protocol in FCD.keys():
-        for claimid in FCD[protocol]:
-            buf = DRAWGRAPH
-            DRAWGRAPH = False
-            res = TestClaim(protocol,claimid,model)
-            DRAWGRAPH = buf
-            if res == False:
-                return False
-    return True
 
 def Abbreviate(text,sep):
     """
@@ -304,7 +330,7 @@ def addup(db,key,val):
     if db[key] < val:
         db[key] = val
 
-def DotGraph():
+def DotGraph(force=False):
     """
     DB is a dict:
     model -> list of protocols
@@ -313,11 +339,16 @@ def DotGraph():
     """
     global FCDN,FCDX,FCDS
     global DRAWGRAPH
+    global FAST
     global ALLCORRECT
     global BRIEF
 
-    if DRAWGRAPH == False:
-        return
+    if force == False:
+        # Check for conditions not to draw
+        if FAST == True:
+            return
+        if DRAWGRAPH == False:
+            return
 
     print "Writing graph"
     fname = "compromise-test"
@@ -327,6 +358,8 @@ def DotGraph():
 
     modelsdone = 0
     modelscount = 0
+    minmodel = SecModel(False)
+    maxmodel = SecModel(True)
 
     """
     Init status thing
@@ -336,6 +369,8 @@ def DotGraph():
     while model != None:
         status[model.dbkey()] = 0
         model = model.next()
+    status[minmodel.dbkey()] = 2
+    status[maxmodel.dbkey()] = 2
 
     model = SecModel()
     while model != None:
@@ -345,16 +380,15 @@ def DotGraph():
         We get the list of follow-ups
         """
         nfrom = model.dotkey()
-        correct = model.getCorrect()
+        correct = model.getCorrectClaims()
 
-        stronger = model.getHighers()
-        for (model2,description) in stronger:
+        for (model2,description) in model.getHighers():
             """
             Each stronger model might involve drawing a counterexample
             arrow: i.e. a claim correct in model, but not in model2
             """
             nto = model2.dotkey()
-            correct2 = model2.getCorrect()
+            correct2 = model2.getCorrectClaims()
 
             cex = []
             skipped = []
@@ -362,7 +396,7 @@ def DotGraph():
                 if x not in correct2:
                     if ALLCORRECT == True:
                         (prot,claimid) = x
-                        shouldadd = ProtCorrect(prot,model)
+                        shouldadd = model.isProtocolCorrect(prot)
                     else:
                         shouldadd = True
 
@@ -376,7 +410,7 @@ def DotGraph():
                 No counterexamples!
                 """
                 if BRIEF == False:
-                    misc = "[label=\"No counterexamples yet\\nfor %s\",fontcolor=red,color=gray]" % (description)
+                    misc = "[label=\"%s: ???\",fontcolor=red,color=gray]" % (description)
                 else:
                     misc = ""
                 fp.write("\t%s -> %s %s;\n" % (nfrom,nto,misc))
@@ -392,7 +426,7 @@ def DotGraph():
                     misc = "[shape=box,label=\"%s counterexamples:\\n%s\\l\"]" % (description,"\\l".join(Compress(cex)))
                 else:
                     if BRIEF == False:
-                        misc = "[shape=box,color=white,fontcolor=gray,label=\"bad %s counterexamples:\\n%s\\l\"]" % (description,"\\l".join(Compress(cex)))
+                        misc = "[shape=box,color=white,fontcolor=gray,label=\"bad %s counterexamples:\\n%s\\l\"]" % (description,"\\l".join(Compress(skipped)))
                     else:
                         misc = "[label=\"bad counterexamples\\n exist\"]"
 
@@ -415,15 +449,20 @@ def DotGraph():
     
             if len(sys.argv[1:]) > 0:
                 # We were filtering stuff
-                correct = model.getCorrect()
                 acl = []
-                for (prot,desc) in correct:
-                    if ProtCorrect(prot,model):
-                        nn = ShortName(prot)
-                        if nn not in acl:
-                            acl.append(nn)
+                for prot in model.getCorrectProtocols():
+                    if model.isProtocolCorrect(prot):
+                        allafter = True
+                        for (model2,descr) in model.getHighers():
+                            if not model2.isProtocolCorrect(prot):
+                                allafter = False
+                                break
+                        if not allafter:
+                            nn = ShortName(prot)
+                            if nn not in acl:
+                                acl.append(nn)
 
-                misc = "\\n%s" % ("\\l".join(acl))
+                misc = "\\n%s\\n" % ("\\n".join(acl))
             else:
                 misc = ""
 
@@ -439,7 +478,7 @@ def DotGraph():
     Finish up by showing the final stuff
     """
     model = SecModel(True)
-    correct = model.getCorrect()
+    correct = model.getCorrectClaims()
     if len(correct) == 0:
         misc = "[shape=box,label=\"No claims found that\\lare correct in all models.\\l\"]"
     else:
@@ -615,7 +654,7 @@ def main():
         DB[model.dbkey()] = []
         model = model.next()
 
-    DotGraph()
+    DotGraph(True)
     DRAWGRAPH = True
     for fn in FCD.keys():
         for cid in FCD[fn]:
@@ -626,7 +665,7 @@ def main():
                 FCDS += 1
         
     DRAWGRAPH = True
-    DotGraph()
+    DotGraph(True)
     print
     print "Analysis complete."
 
