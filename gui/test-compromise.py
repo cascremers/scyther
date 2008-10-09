@@ -35,8 +35,10 @@ import commands
 from Scyther import *
 
 SHOWPATH = False    # Switch to true to show paths in the graph
+DEFAULTARGS = "--max-runs=7"
+ALLCORRECT = True   # Require all claims to be correct of the protocol in prev. node for counterexample
 
-BOREDOM = None
+CACHE = None
 DB = {} # Model.dbkey -> (fname,claimid)*
 FCD = {}
 FCDN = 0
@@ -44,20 +46,6 @@ FCDX = 0
 FCDS = 0
 DRAWGRAPH = True
 
-def MyScyther(protocollist,filter=None):
-    """
-    Evaluate the composition of the protocols in protocollist.
-    If there is a filter, i.e. "ns3,I1" then only this specific claim
-    will be evaluated.
-    """
-    s = Scyther.Scyther()
-    # untyped matching
-    s.options = "--match=2"
-    for protocol in protocollist:
-        s.addFile(protocol)
-    s.verifyOne(filter)
-    return s
-    
 
 class SecModel(object):
 
@@ -211,17 +199,20 @@ def VerifyClaim(file,claimid,model):
     Check claim in model
     """
     global DRAWGRAPH
+    global DEFAULTARGS
+    global CACHE
 
-    claimres = isBoring(file,claimid,model)
+    claimres = CACHE.get(file,claimid,model.dbkey())
     if claimres == None:
         DotGraph()
         DRAWGRAPH = False
         s = Scyther.Scyther()
         s.addFile(file)
-        s.options = model.options()
+        s.options = "%s %s" % (DEFAULTARGS,model.options())
         res = s.verifyOne(claimid)
         claimres = res[0].getRank()
-        addToBoring(file,claimid,model,claimres)
+
+        CACHE.append(file,claimid,model.dbkey(),claimres)
     return claimres
 
 def TestClaim(file,claimid,model):
@@ -442,50 +433,80 @@ def boreID(file,claimid,model):
     """
     return "%s*%s*%s" % (file,claimid,model.dbkey())
 
-def initBoring():
-    global BOREDOM
+class ProtCache(object):
+    """
+    Cache for a protocol
 
-    if BOREDOM == None:
-        BOREDOM = {}
+    contains claim x model -> res
+    """
+    def __init__(self,protocol):
+        self.data = {}
+        self.protocol = protocol
+
+    def getClaims(self):
+        claims = []
+        for (claim,model) in self.data.keys():
+            claims.append(claim)
+        return claims
+
+    def set(self,claim,model,res):
+        self.data[(claim,model)] = res
+
+    def get(self,claim,model):
+        if (claim,model) in self.data.keys():
+            return self.data[(claim,model)]
+        return None
+
+    def __str__(self):
+        tl = []
+        for (claim,model) in self.data.keys():
+            tl.append("claim: %s, model %s, res: %s" % (claim,model,self.get(claim,model)))
+        return "\n".join(tl)
+
+class ScytherCache(object):
+    """
+    Big buffer
+
+    self.data = (protocol [file]) -> ((claim,model) -> res)
+    """
+    def __init__(self):
+        self.data = {}
         try:
             fp = open("boring.data","r")
             for l in fp.readlines():
                 da = (l.rstrip("\n")).split("\t")
-                BOREDOM[da[0]] = int(da[1])
+                protocol = da[0]
+                claim = da[1]
+                model = da[2]
+                res = int(da[3])
+                self.set(protocol,claim,model,res)
             fp.close()
         except:
             pass
-    return BOREDOM
 
-def isBoring(file,claimid,model):
-    global BOREDOM
+    def set(self,protocol,claim,model,res):
+        if protocol not in self.data.keys():
+            self.data[protocol] = ProtCache(protocol)
+        self.data[protocol].set(claim,model,res)
 
-    initBoring()
-    key = boreID(file,claimid,model)
-    if key in BOREDOM.keys():
-        return BOREDOM[key]
-    else:
-        return None
+        #print "Stored %s : %s" % (protocol,self.data[protocol])
 
-def addToBoring(file,claimid,model,result):
-    global BOREDOM
+    def get(self,protocol,claim,model):
+        if protocol in self.data.keys():
+            return self.data[protocol].get(claim,model)
+        else:
+            return None
 
-    initBoring()
-    key = boreID(file,claimid,model)
-    if key not in BOREDOM.keys():
-        BOREDOM[key] = result
-        fp = open("boring.data","a")
-        fp.write("%s\t%s\n" % (key,result))
-        fp.flush()
-        fp.close()
-    else:
-        print "Something funny here. Investigate."
+    def append(self,protocol,claim,model,res):
+        if self.get(protocol,claim,model) != None:
+            self.set(protocol,claim,model,res)
+            fp = open("boring.data","a")
+            fp.write("%s\t%s\t%s\t%s\n" % (protocol,claim,model,res))
+            fp.flush()
+            fp.close()
 
-def getBoringCount():
-    global BOREDOM
-
-    initBoring()
-    return len(BOREDOM.keys())
+    def countProtocols(self):
+        return len(self.data.keys())
 
 
 def Investigate(file,claimid):
@@ -496,26 +517,23 @@ def Investigate(file,claimid):
 
     minres = TestClaim(file,claimid,SecModel())
     if minres == True:
-        maxres = TestClaim(file,claimid,SecModel(True))
-        if minres != maxres:
-            print "*" * 70
-            print file,claimid
-            print minres, maxres
-            print "*" * 70
+        print "*" * 70
+        print file,claimid
+        print "*" * 70
 
-            data = (file,claimid)
+        data = (file,claimid)
 
-            model = SecModel()
-            DB[model.dbkey()] = DB[model.dbkey()] + [data]
+        model = SecModel()
+        DB[model.dbkey()] = DB[model.dbkey()] + [data]
+        model = model.next()
+        while model != None:
+            res = TestClaim(file,claimid,model)
+            if res:
+                DB[model.dbkey()] = DB[model.dbkey()] + [data]
             model = model.next()
-            while model != None:
-                res = TestClaim(file,claimid,model)
-                if res:
-                    DB[model.dbkey()] = DB[model.dbkey()] + [data]
-                model = model.next()
-            return True
+        return True
 
-    print "Not very interesting:",file,claimid
+    print "Always flawed:",file,claimid
     return False
 
 def goodclaim(fname,cid):
@@ -523,7 +541,7 @@ def goodclaim(fname,cid):
     for pref in filter:
         if cid.startswith(pref):
             return False
-    filefilter = ["../gui/Protocols/key-compromise/neumannstub-hwang.spdl", "../protocols/misc/compositionality-examples/"]
+    filefilter = ["../gui/Protocols/key-compromise/neumannstub-hwang.spdl", "../protocols/misc/compositionality-examples/","../protocols/misc/naxos-attempt3-quick.spdl"]
     for pref in filefilter:
         if fname.startswith(pref):
             return False
@@ -536,6 +554,9 @@ def main():
     global DB
     global FCD,FCDN,FCDX,FCDS
     global DRAWGRAPH
+    global CACHE
+
+    CACHE = ScytherCache()
     
     list = Scyther.FindProtocols("..")
     print "Performing compromise analysis for the following protocols:", list
@@ -562,6 +583,7 @@ def main():
             else:
                 FCDS += 1
         
+    DRAWGRAPH = True
     DotGraph()
     print
     print "Analysis complete."
