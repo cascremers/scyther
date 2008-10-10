@@ -41,6 +41,10 @@ ALLCORRECT = True   # Require all claims to be correct of the protocol in prev. 
 BRIEF = False
 FAST = True    # True means Skip intermediate graph drawing
 
+SUMMARYDB = {}      # prot -> delta
+SUMMARYALL = False  # Delta's in all or in some contexts?
+ACLMAX = 10         # After 10 we give up for the nodes
+
 CACHE = None
 DB = {} # Model.dbkey -> (fname,claimid)*
 FCD = {}
@@ -49,6 +53,48 @@ FCDX = 0
 FCDS = 0
 DRAWGRAPH = True
 
+
+class SecDelta(object):
+
+    def __init__(self,model1,model2):
+
+        # Need real copies
+        self.model1 = model1.copy()
+        self.model2 = model2.copy()
+
+    def __str__(self):
+        rl = []
+        for i in range(0,self.model1.length):
+            t1 = self.model1.describe(i)
+            t2 = self.model2.describe(i)
+            if t1 != t2:
+                if t1 != "":
+                    t1 = "-%s" % (t1)
+                if t2 != "":
+                    t2 = "+%s" % (t2)
+                rl.append(t1 + t2)
+        return ":".join(rl)
+
+    def __cmp__(self,other):
+        if (str(self) == str(other)):
+            return 0
+        else:
+            return 1
+
+
+    def dbkey(self):
+        return str(self)
+
+    def getDelta(self):
+        res = []
+        for i in range(0,self.model1.length):
+            v1 = self.model1.vector[i]
+            v2 = self.model2.vector[i]
+            if v1 == v2:
+                res.append(0)
+            else:
+                res.append(v2)
+        return res
 
 class SecModel(object):
 
@@ -153,7 +199,7 @@ class SecModel(object):
 
     def getDir(self,direction):
         """
-        Return a list of tuples (model,descriptionstring)
+        Return a list of tuples (model,deltadescr)
         """
         
         others = []
@@ -164,18 +210,8 @@ class SecModel(object):
             if (index2 >=0 ) and (index2 < len(self.axes[i])):
                 model2 = self.copy()
                 model2.vector[i] = index2
-                txtold = self.describe(i)
-                txtnew = model2.describe(i)
-                if direction < 0:
-                    swp = txtold
-                    txtold = txtnew
-                    txtnew = swp
-                text = ""
-                if txtold != "":
-                    text += "-%s" % (txtold)
-                if txtnew != "":
-                    text += "+%s" % (txtnew)
-                others.append((model2,text))
+                others.append((model2,SecDelta(self,model2)))
+
         return others
 
     def getLowers(self):
@@ -229,6 +265,14 @@ class SecModel(object):
 
         return pl
 
+    def applyDelta(self,delta):
+        """
+        Apply delta to model
+        """
+        res = delta.getDelta()
+        for i in range(0,self.length):
+            if self.vector[i] < res[i]:
+                self.vector[i] = res[i]
 
 
 def FindClaims(filelist):
@@ -326,9 +370,54 @@ def Compress(datalist):
     return pl
 
 
+def getProtocolList():
+    global FCD
+
+    return FCD.keys()
+
+def reportContext():
+    """
+    Report which protocols are broken by what
+    """
+    global SUMMARYDB
+
+    print "Protocol nice breakage summary"
+    print
+    for prot in SUMMARYDB.keys():
+        print prot
+        for delta in SUMMARYDB[prot]:
+
+            """
+            Check if this delta *always* breaks the protocol
+            """
+            seen = []
+            model = SecModel()
+            always = True
+            while model != None:
+                model2 = model.copy()
+                model2.applyDelta(delta)
+                if model2 not in seen:
+                    seen.append(model2)
+                    if model2.isProtocolCorrect(prot):
+                        always = False
+                        break
+
+                model = model.next()
+
+            """
+            Report
+            """
+            text = "\t%s" % (delta)
+            if always == True:
+                text = "%s (from any model)" % (text)
+            print text
+
+
 def addup(db,key,val):
     if db[key] < val:
         db[key] = val
+
+
 
 def DotGraph(force=False):
     """
@@ -342,6 +431,8 @@ def DotGraph(force=False):
     global FAST
     global ALLCORRECT
     global BRIEF
+    global SUMMARYDB
+    global ACLMAX
 
     if force == False:
         # Check for conditions not to draw
@@ -440,7 +531,7 @@ def DotGraph(force=False):
         model = model.next()
 
     """
-    Draw the nodes at some level of detail
+    Draw the nodes 
     """
     model = SecModel()
     while model != None:
@@ -456,12 +547,22 @@ def DotGraph(force=False):
                         for (model2,descr) in model.getHighers():
                             if not model2.isProtocolCorrect(prot):
                                 allafter = False
-                                break
+                                # Store in summary DB
+                                if prot not in SUMMARYDB.keys():
+                                    SUMMARYDB[prot] = []
+                                if descr not in SUMMARYDB[prot]:
+                                    SUMMARYDB[prot].append(descr)
                         if not allafter:
+                            # Add to displayed list
                             nn = ShortName(prot)
                             if nn not in acl:
                                 acl.append(nn)
+                                if len(acl) == ACLMAX:
+                                    break
 
+                acl.sort()
+                if len(acl) == ACLMAX:
+                    acl.append("...")
                 misc = "\\n%s\\n" % ("\\n".join(acl))
             else:
                 misc = ""
@@ -561,7 +662,7 @@ class ScytherCache(object):
             return None
 
     def append(self,protocol,claim,model,res):
-        if self.get(protocol,claim,model) != None:
+        if self.get(protocol,claim,model) == None:
             self.set(protocol,claim,model,res)
             fp = open("boring.data","a")
             fp.write("%s\t%s\t%s\t%s\n" % (protocol,claim,model,res))
@@ -666,6 +767,7 @@ def main():
         
     DRAWGRAPH = True
     DotGraph(True)
+    reportContext()
     print
     print "Analysis complete."
 
