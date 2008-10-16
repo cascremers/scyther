@@ -1512,18 +1512,18 @@ printRunExplanation (const System sys, const int run,
   }
 
   // Partner or compromise? (if needed to show this)
-  if (switches.compromiseType != 0)
+  if (switches.LKRaftercorrect || switches.LKRrnsafe || switches.SSR || switches.SKR)
     {
       if (sys->runs[run].partner)
 	{
 	  eprintf ("(partner)");
 	  eprintf ("\\l");
 	}
-      if (sys->runs[run].protocol->compromiseProtocol)
-	{
-	  eprintf ("(compromised run)");
-	  eprintf ("\\l");
-	}
+    }
+  if (sys->runs[run].protocol->compromiseProtocol)
+    {
+      eprintf ("(compromise %i)", sys->runs[run].protocol->compromiseProtocol);
+      eprintf ("\\l");
     }
 
   eprintf (newline);

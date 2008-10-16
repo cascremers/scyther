@@ -102,7 +102,7 @@ pruneTrusted (const System sys)
 		    }
 		}
 	    }
-	  if (switches.LKRafter || switches.LKRaftercorrect)
+	  if (switches.LKRafter || switches.LKRaftercorrect || switches.LKRrnsafe)
 	    {
 	      // After the claim?
 	      //
@@ -127,11 +127,18 @@ pruneTrusted (const System sys)
 			{
 			  continue;
 			}
-		      if (switches.LKRaftercorrect)
+		      if (switches.markFullSession)
 			{
-			  if (switches.markFullSession)
+		      	  if (switches.LKRaftercorrect)
 			    {
 			      continue;
+			    }
+		      	  if (switches.LKRrnsafe)
+			    {
+			      if (!compromiseRNRbefore(r1,e1))
+				{
+			      	  continue;
+				}
 			    }
 			}
 		    }

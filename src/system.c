@@ -833,7 +833,7 @@ protocolCreate (Term name)
   p->locals = NULL;
   p->next = NULL;
   p->lineno = 0;
-  p->compromiseProtocol = false;
+  p->compromiseProtocol = 0;
   return p;
 }
 

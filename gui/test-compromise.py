@@ -102,13 +102,14 @@ class SecModel(object):
 
         axis1 = ["--LKRnotgroup=0","--LKRnotgroup=1"]
         axis2 = ["","--LKRactor=1"]
-        axis3 = ["","--LKRaftercorrect=1","--LKRafter=1"]
+        axis3 = ["","--LKRaftercorrect=1","--LKRafter=1","--LKRrnsafe=1"]
         axis4 = ["","--SKR=1"]
-        axis5 = ["","--SSRothers=1"]
+        axis5 = ["","--SSR=1"]
+        axis6 = ["","--RNR=1"]
 
         #axis1 = ["--LKRnotgroup=1"]
 
-        self.axes = [axis1,axis2,axis3,axis4,axis5]
+        self.axes = [axis1,axis2,axis3,axis4,axis5,axis6]
         self.length = len(self.axes)
 
         if minmax == "max" or minmax == True:

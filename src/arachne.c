@@ -2222,7 +2222,7 @@ iterate_multiple_preconditions (void)
   //###################################
   //
   // Sometimes we need a second phase with e.g. a full session
-  if (switches.LKRaftercorrect)
+  if (switches.LKRaftercorrect || switches.LKRrnsafe)
     {
       int addedruns;
       int i;

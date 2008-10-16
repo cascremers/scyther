@@ -56,54 +56,7 @@ extern int protocolCount;
 /*
  * Forward declarations
  */
-Protocol compromiseProtocol (Protocol sourceprot);
-
-//! For the compromise attacks, all protocols are cloned and special new protocols are added.
-/**
- * For now, they're all active attacks.
- * 0: none
- * 1: key
- * 2: inferred
- * 3: user-defined (using special SEND_Compromise events)
- *
- * The main idea is that local things may get compromised. Of course, if one
- * manages this during the session (say with your partner), all bets are off.
- * The idea is to find the strongest possible attack class that may be
- * countered.
- *
- * We distinguish between long-term secrets (sk(A), unhash) and short-term stuff.
- *
- * I can see two types of compromise attack: one is a 'network' attack which
- * performs e.g. cryptanalysis. This type may take some time. It only gets the
- * short term keys and everything it can decrypt from that. Hence from {h(na)}k
- * we get k,h(na) but not na.
- *
- * The second type is a local attack, which assumes somehow the memory of a
- * computer is hacked. This yields everything local and hence we get (in the
- * previous case) na and k.
- *
- * To prove: is the second type strictly stronger than the first one?
- *
- * For the first one it is clear that one can consider active versus passive:
- * was the intruder already manipulating messages before the key was
- * compromised? A realistic assumption seems to have a split between both
- * phases: before the split, compromise may occur, but after the split (when
- * the run starts with the claim) no more compromised stuff. No run overlaps
- * the split.
- *
- * For the second class it seems natural that the intruder is already active,
- * and it is also not so clear that there may be a 'split' in time between both
- * actions. Hence here we may require that the agent that is compromised is not
- * in the set of agents you think you're talking to.
- *
- * Observations:
- *
- * Further investigation and testing have revealed that the 'active' variant
- * may be equally strong as the complete local compromise attack. This is
- * because the intruder can learn any locals, which is about as good as
- * inserting his own, and ultimately these attacks are a form of message replay
- * attack it seems. Hence the form of the message is more or less the same.
- */
+Protocol compromiseProtocol (Protocol sourceprot, int type);
 
 //! Check SID based partner definition requirements.
 void
@@ -283,7 +236,10 @@ removeCompromiseEvents (void)
 
   for (prot = sys->protocols; prot != NULL; prot = prot->next)
     {
-      removeProtocolCompromiseEvents (prot);
+      if (!prot->compromiseProtocol)
+	{
+          removeProtocolCompromiseEvents (prot);
+	}
     }
 }
 
@@ -292,42 +248,13 @@ compromisePrepare (const System mysys)
 {
   sys = mysys;
 
-  /**
-   * Caveat emptor: SKR/SSR switches not fully supported yet.
-   *
-   * We currently translate SKR/SSR settings into the older ones, if needed.
-   * Effectively, we don't have state-only yet, and we don't have SSRltsafe.
-   * That's a bit annoying, but should do for now. TODO
-   *
-   * What works:
-   * SKR (manual)
-   * SSRothers (infer or manual)
-   */
-  if (switches.SKR)
-    {
-      switches.compromiseType = 1;
-      if (switches.SSRothers || switches.SSRltsafe)
-	{
-	  if (switches.SSRinfer)
-	    {
-	      // Infer = 2 (auto)
-	      switches.compromiseType = 2;
-	    }
-	  else
-	    {
-	      // Not infer = manual (3)
-	      switches.compromiseType = 3;
-	    }
-	}
-    }
-
-  if (switches.compromiseType != 3)
+  if (!switches.SSRinfer)
     {
       /* If we are not using any self-defined compromised events, remove them.
        * */
       removeCompromiseEvents ();
     }
-  if (switches.compromiseType > 0)
+  if (switches.SSR || switches.SKR || switches.RNR)
     {
       /*
        * Check for requirements
@@ -344,19 +271,52 @@ compromisePrepare (const System mysys)
 	{
 	  Protocol newprot;
 
-	  if (oldprots->compromiseProtocol == false)
+	  if (oldprots->compromiseProtocol == 0)
 	    {
 	      if (shouldCompromiseProtocol (oldprots))
 		{
-		  // Duplicate this non-compromise protocol
-		  newprot = compromiseProtocol (oldprots);
-		  newprot->next = newprots;
-		  newprots = newprot;
-		  // Remove any compromise events from the duplicated one
-		  removeProtocolCompromiseEvents (oldprots);
-		  // Count the new protocol
-		  protocolCount++;
+		  /**
+		   * Type cases: first the SSR/SKR type and then the RNR type.
+		   * We need both for the LKR conditions later.
+		   */
+		  int type;
+		  int created;
+
+		  created = false;
+		  for (type = 1; type <= 2; type++)
+		    {
+		      int create;
+
+		      create = false;
+		      if (type == 1)
+			{
+			  if (switches.SSR || switches.SKR)
+			    {
+			      create = true;
+			    }
+			}
+		      if (type == 2)
+			{
+			  if (switches.RNR)
+			    {
+			      create = true;
+			    }
+			}
+
+		      if (create)
+			{
+			  // Duplicate this non-compromise protocol
+			  newprot = compromiseProtocol (oldprots, type);
+			  created = true;
+			  newprot->next = newprots;
+			  newprots = newprot;
+			  // Count the new protocol
+			  protocolCount++;
+			}
+		    }
 		}
+	      // Remove any compromise events from the duplicated one
+	      removeProtocolCompromiseEvents (oldprots);
 	    }
 	  // Store the last protocol and move on
 	  lastprot = oldprots;
@@ -369,6 +329,10 @@ compromisePrepare (const System mysys)
 	}
 
     }
+
+  // Cleanup any remaining stuff
+  removeCompromiseEvents ();
+
   // Report (if needed)
   if (switches.reportCompromise)
     {
@@ -379,6 +343,10 @@ compromisePrepare (const System mysys)
 	  eprintf ("---------------------\n");
 	  eprintf ("Protocol ");
 	  termPrint (prot->nameterm);
+	  if (prot->compromiseProtocol)
+	    {
+	      eprintf(", compromise type %i", prot->compromiseProtocol);
+	    }
 	  eprintf ("\n");
 	  rolesPrint (prot->roles);
 	}
@@ -387,6 +355,12 @@ compromisePrepare (const System mysys)
 }
 
 //! Is the run compromised?
+/**
+ * Returns value:
+ * 0: nope
+ * 1: SSR and SKR
+ * 2: RNR
+ */
 int
 isRunCompromised (const int run)
 {
@@ -506,60 +480,87 @@ containsLocal (Role r, Term t)
 /**
  * Append to the existing list.
  * Depends on the compromise test.
+ *
+ * Type: 1: SSR/SKR
+ * 	 2: RNR
  */
 Termlist
-learnFromMessage (Role r, Termlist tl, Term t)
+learnFromMessage (Role r, Termlist tl, Term t, int type)
 {
+  int takelocal;
+
+  takelocal = false;
   t = deVar (t);
   if (realTermLeaf (t))
     {
-      if (switches.compromiseType == 1)
+      if (type == 1)
 	{
-	  // Key compromise: scan for SessionKey type
-	  if (inTermlist (t->stype, TERM_SessionKey))
+	  if (switches.SKR)
 	    {
-	      tl = termlistAddNew (tl, t);
+	      // Key compromise: scan for SessionKey type
+	      if (inTermlist (t->stype, TERM_SessionKey))
+		{
+		  tl = termlistAddNew (tl, t);
+		}
+	    }
+	  if (switches.SSR)
+	    {
+	      if (switches.SSRinfer)
+		{
+		  takelocal = true;
+		}
 	    }
 	}
-      if (switches.compromiseType == 2)
+      if (type == 2)
+	{
+	  if (switches.RNR)
+	    {
+	      takelocal = true;
+	    }
+	}
+      if (takelocal)
 	{
 	  if (inTermlist (r->locals, t))
 	    {
 	      tl = termlistAddNew (tl, t);
 	    }
 	}
-      if (switches.compromiseType == 3)
-	{
-	  // Self-defined compromise: nothing really
-	}
     }
   else
     {
       if (realTermTuple (t))
 	{
-	  tl = learnFromMessage (r, tl, TermOp1 (t));
-	  tl = learnFromMessage (r, tl, TermOp2 (t));
+	  tl = learnFromMessage (r, tl, TermOp1 (t), type);
+	  tl = learnFromMessage (r, tl, TermOp2 (t), type);
 	}
       else if (realTermEncrypt (t))
 	{
-	  // We learn the whole encryption if it contains a local
-	  if (switches.compromiseType == 2)
+	  if (type == 1)
 	    {
-	      if (containsLocal (r, t))
+	      // We learn the whole encryption if it contains a local
+	      if (switches.SSR)
 		{
-		  tl = termlistAddNew (tl, t);
+		  if (switches.SSRinfer)
+		    {
+		      if (containsLocal (r, t))
+			{
+			  tl = termlistAddNew (tl, t);
+			}
+		    }
+		}
+	      if (switches.SKR)
+		{
+		  // We learn the key if it contains a local
+		  if (containsLocal (r, TermKey (t)))
+		    {
+		      tl = termlistAddNew (tl, TermKey (t));
+		    }
 		}
 	    }
 
 	  // Iterate for more information
-	  tl = learnFromMessage (r, tl, TermOp (t));
-	  tl = learnFromMessage (r, tl, TermKey (t));
-
-	  // We learn the key if it contains a local
-	  if (containsLocal (r, TermKey (t)))
-	    {
-	      tl = termlistAddNew (tl, TermKey (t));
-	    }
+	  tl = learnFromMessage (r, tl, TermOp (t), type);
+	  tl = learnFromMessage (r, tl, TermKey (t), type);
 	}
     }
   return tl;
@@ -621,19 +622,26 @@ roledefAppend (Roledef rdhead, Roledef rdnew)
  * We will get rid of e.g. claims in the process, as they contain pointers to
  * the protocol again.
  *
+ * Type:
+ *
+ * 1: SSR & SKR variant
+ * 2: RNR
+ *
+ * We assume the caller decides whether we need SSR/SKR/RNR and do not double check.
+ *
  * @TODO In general this is a hairy situation, as we'd want to replace protocol
  * pointers and protocol nameterms throughout all children. A more complete
  * check is advisable.
  */
 Protocol
-compromiseProtocol (Protocol sourceprot)
+compromiseProtocol (Protocol sourceprot, int type)
 {
   Protocol destprot;
   Role oldrole, newroles;
   Term newname, oldname;
 
   destprot = protocolDuplicate (sourceprot);
-  destprot->compromiseProtocol = true;
+  destprot->compromiseProtocol = type;
 
   // Give it a new name
   oldname = destprot->nameterm;
@@ -707,7 +715,7 @@ compromiseProtocol (Protocol sourceprot)
 	      // Scan what is new here to be sent etc. later
 	      // The algorithm depends on the type of compromise
 	      compTerms =
-		learnFromMessage (newrole, compTerms, newrd->message);
+		learnFromMessage (newrole, compTerms, newrd->message, type);
 
 	      // If it is a send, we already do stuff.
 	      // Note that plain received/sent is already in the
@@ -806,7 +814,7 @@ actorInClaim (const System sys, const int run)
 int
 compromisePrune (void)
 {
-  if (switches.compromiseType > 0)
+  if (switches.SSR || switches.SKR)
     {
       /*
        * The idea is that compromised runs must be separated in time somehow
@@ -836,3 +844,38 @@ compromisePrune (void)
     }
   return false;
 }
+
+//! Check whether a compromise RNR occurs before r1,e1
+int compromiseRNRbefore(int r1, int e1)
+{
+  int r2;
+
+  for (r2 = 0; r2 < sys->maxruns; r2++)
+    {
+      // Check for RNR compromise type
+      if (sys->runs[r2].protocol->compromiseProtocol == 2)
+	{
+	  int e2;
+	  Roledef rd;
+
+	  rd = sys->runs[r2].start;
+	  e2 = 0;
+	  while ((rd != NULL) && isDependEvent(r2,e2,r1,e2))
+	    {
+	      if (isCompromiseEvent(rd))
+  		{
+		  // Note this event may or may not be 'used' in the actual attack.
+		  //
+		  // We could worry about binding it or not, but that can be fairly subtle, so a closer look is needed here
+		  // to make sure it corresponds one-to-one to the definition in the paper.
+		  return true;
+		}
+	      // next
+	      e2++;
+	      rd = rd->next;
+	    }
+	}
+    }
+  return false;
+}
+

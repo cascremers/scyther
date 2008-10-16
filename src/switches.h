@@ -58,7 +58,6 @@ struct switchdata
   int agentUnfold;		//!< Explicitly unfold for N honest agents and 1 compromised iff > 0
   int abstractionMethod;	//!< 0 means none, others are specific modes
   int useAttackBuffer;		//!< Use temporary file for attack storage
-  int compromiseType;		//!< 0: no local compromise, 1: local key compromise, 2: local compromise 3: use compromise markers (for now, always active compromise)
   int partnerDefinition;	//!< 0: temporally close, 1: matching histories, 2: SID definition
   int requireSynch;		//!< 0: it's not an attack if you don't synchronize
   int checkMatchingLabels;	//!< default is to check matching labels
@@ -66,11 +65,13 @@ struct switchdata
   // Adversary type
   int LKRnotgroup;		//!< anybody outside the group
   int LKRactor;			//!< KCI
-  int LKRaftercorrect;		//!< weak perfect forward secrecy
   int LKRafter;			//!< perfect forward secrecy
+  int LKRaftercorrect;		//!< weak perfect forward secrecy
+  int LKRrnsafe;		//!< weaker perfect forward secrecy
   int SKR;			//!< session-key reveal (for others)
-  int SSRothers;		//!< SSR others 
-  int SSRltsafe;		//!< SSR long-term safe 
+  int SSR;			//!< SSR others 
+  int RNR;			//!< RNR reveal
+  // Filters
   int SSRfilter;		//!< SSR filtering on nonces
   int SSRinfer;			//!< SSR manual / inferred
   int markFullSession;		//!< Not a real switch but a marker

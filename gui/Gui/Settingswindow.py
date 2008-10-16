@@ -171,7 +171,8 @@ class SettingsWindow(wx.Panel):
         self.partnerdefinition = evt.GetInt()
 
     def EvtLocalcompromise(self,evt):
-        self.localcompromise = evt.GetInt()
+        #self.localcompromise = evt.GetInt()
+        pass
 
     def EvtRuns(self,evt):
         self.maxruns = evt.GetInt()
@@ -201,7 +202,7 @@ class SettingsWindow(wx.Panel):
         # Matching type
         tstr += "--match=%s " % (str(self.match))
         # Compromise type
-        tstr += "--local-compromise=%s " % (str(self.localcompromise))
+        #tstr += "--local-compromise=%s " % (str(self.localcompromise))
         # Partner definition
         tstr += "--partner-definition=%s " % (str(self.partnerdefinition))
         # Prune (has to go BEFORE max attacks)

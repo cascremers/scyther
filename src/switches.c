@@ -82,7 +82,6 @@ switchesInit (int argc, char **argv)
   switches.agentUnfold = 0;	// default not to unfold agents
   switches.abstractionMethod = 0;	// default no abstraction used
   switches.useAttackBuffer = false;	// don't use by default as it does not work properly under windows vista yet
-  switches.compromiseType = 0;	// default no local compromise
   switches.partnerDefinition = 1;	// 0: temporally close, 1: matching histories [default], 2: SID based
   switches.requireSynch = false;	// default no synch required for attacks, but maybe we do
   switches.checkMatchingLabels = true;	// default is to check matching labels
@@ -90,11 +89,13 @@ switchesInit (int argc, char **argv)
   // Adversary type
   switches.LKRnotgroup = true;	//!< default is anybody outside the group
   switches.LKRactor = false;	//!< default is no KCI
-  switches.LKRaftercorrect = false;	//!< default is no weak perfect forward secrecy
   switches.LKRafter = false;	//!< default is no perfect forward secrecy
+  switches.LKRaftercorrect = false;	//!< default is no weak perfect forward secrecy
+  switches.LKRrnsafe = false;	//!< default is no weaker perfect forward 
   switches.SKR = false;		//!< default is no session-key reveal
-  switches.SSRothers = false;	//!< default is no SSR others 
-  switches.SSRltsafe = false;	//!< default is no SSR long-term safe 
+  switches.SSR = false;		//!< default is no SSR 
+  switches.RNR = false;		//!< default is no RNR
+  // Parameters
   switches.SSRfilter = false;	//!< default is no SSR filtering on nonces
   switches.SSRinfer = true;	//!< default is SSR inferred
   switches.markFullSession = false;	//!< Not a real switch but a marker
@@ -674,6 +675,14 @@ switcher (const int process, int index, int commandline)
 	  return index;
 	}
     }
+  if (detect (' ', "LKRafter", 1))
+    {
+      if (process)
+	{
+	  switches.LKRafter = integer_argument ();
+	  return index;
+	}
+    }
   if (detect (' ', "LKRaftercorrect", 1))
     {
       if (process)
@@ -682,11 +691,11 @@ switcher (const int process, int index, int commandline)
 	  return index;
 	}
     }
-  if (detect (' ', "LKRafter", 1))
+  if (detect (' ', "LKRrnsafe", 1))
     {
       if (process)
 	{
-	  switches.LKRafter = integer_argument ();
+	  switches.LKRrnsafe = integer_argument ();
 	  return index;
 	}
     }
@@ -698,19 +707,19 @@ switcher (const int process, int index, int commandline)
 	  return index;
 	}
     }
-  if (detect (' ', "SSRothers", 1))
+  if (detect (' ', "SSR", 1))
     {
       if (process)
 	{
-	  switches.SSRothers = integer_argument ();
+	  switches.SSR = integer_argument ();
 	  return index;
 	}
     }
-  if (detect (' ', "SSRltsafe", 1))
+  if (detect (' ', "RNR", 1))
     {
       if (process)
 	{
-	  switches.SSRltsafe = integer_argument ();
+	  switches.RNR = integer_argument ();
 	  return index;
 	}
     }
@@ -1255,27 +1264,6 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.agentTypecheck = 0;
-	  return index;
-	}
-    }
-
-  if (detect (' ', "local-compromise", 1))
-    {
-      if (!process)
-	{
-	  /* 0: no local compromise (default), 1: key compromise, 2:local full compromise
-	   * 3: use existing compromise events
-	   * They're all active for now. */
-	}
-      else
-	{
-	  switches.compromiseType = integer_argument ();
-	  if ((switches.compromiseType < 0) || (switches.compromiseType > 3))
-	    {
-	      printfstderr
-		("Local compromise type must be between 0 and 3.\n");
-	      exit (1);
-	    }
 	  return index;
 	}
     }
