@@ -100,16 +100,16 @@ class SecModel(object):
 
     def __init__(self,minmax=None):
 
-        axis1 = ["--LKRnotgroup=0","--LKRnotgroup=1"]
-        axis2 = ["","--LKRactor=1"]
-        axis3 = ["","--LKRaftercorrect=1","--LKRafter=1","--LKRrnsafe=1"]
-        axis4 = ["","--SKR=1"]
-        axis5 = ["","--SSR=1"]
-        axis6 = ["","--RNR=1"]
+        axis0 = ["--LKRnotgroup=0","--LKRnotgroup=1"]
+        axis1 = ["","--LKRactor=1"]
+        axis2 = ["","--LKRrnsafe=1","--LKRaftercorrect=1","--LKRafter=1"]
+        axis3 = ["","--SKR=1"]
+        axis4 = ["","--SSR=1"]
+        axis5 = ["","--RNR=1"]
 
         #axis1 = ["--LKRnotgroup=1"]
 
-        self.axes = [axis1,axis2,axis3,axis4,axis5,axis6]
+        self.axes = [axis0,axis1,axis2,axis3,axis4,axis5]
         self.length = len(self.axes)
 
         if minmax == "max" or minmax == True:
@@ -117,13 +117,20 @@ class SecModel(object):
         else:
             self.setMin()
 
+    def ax(self,ax):
+        """
+        Yield max+1 of the axis
+        """
+        return len(self.axes[ax])
+
+
     def countTypes(self):
         """
         Give the number of possible adversary types
         """
         count = 1
         for i in range(0,self.length):
-            count = count * len(self.axes[i])
+            count = count * self.ax(i)
         return count
 
     def setMin(self):
@@ -131,10 +138,40 @@ class SecModel(object):
         for i in range(0,self.length):
             self.vector.append(0)
 
+    def checkSane(self,correct=False):
+        """
+        Makes a thing sane if correct==True
+
+        We always assume 0 and max-1 are allowed for all vectors in all cases
+        (empty model, max model)
+
+        returns true if it was sane (and hence is surely unchanged)
+        """
+        sane = True
+        for i in range(0,self.length):
+            if self.vector[i] < 0:
+                if correct:
+                    self.vector[i] = 0
+                sane = False
+            elif self.vector[i] >= self.ax(i):
+                if correct:
+                    self.vector[i] = self.ax(i) - 1
+                sane = False
+            # Model particulars
+            if (i == 2) and (self.vector[i] == 1):
+                if self.vector[5] == 0:
+                    # Funny case: No RNR, but want to use rnsafe. Then
+                    # it's equal to aftercorrect.
+                    if correct:
+                        self.vector[i] = 2
+                    sane = False
+        return sane
+
     def setMax(self):
         self.vector = []
         for i in range(0,self.length):
-            self.vector.append(len(self.axes[i])-1)
+            self.vector.append(self.ax(i)-1)
+        self.checkSane(True)
 
     def describe(self,i):
         s = self.axes[i][self.vector[i]]
@@ -190,12 +227,19 @@ class SecModel(object):
         """
         for i in range(0,self.length):
             
-            index = self.vector[i]
-            if index == len(self.axes[i])-1:
-                self.vector[i] = 0
-            else:
-                self.vector[i] = self.vector[i]+1
-                return self
+            while True:
+                index = self.vector[i]
+                if index >= self.ax(i)-1:
+                    # overflow case coming up
+                    self.vector[i] = 0
+                    # Proceed to next digit anyway, this is sane
+                    break
+                else:
+                    # no overflow, do it
+                    self.vector[i] = self.vector[i]+1
+                    if self.checkSane(False):
+                        return self
+                    # not sane, continue to increase
         return None
 
     def getDir(self,direction):
@@ -206,12 +250,25 @@ class SecModel(object):
         others = []
         for i in range(0,self.length):
 
-            index = self.vector[i]
-            index2 = index + direction
-            if (index2 >=0 ) and (index2 < len(self.axes[i])):
-                model2 = self.copy()
-                model2.vector[i] = index2
-                others.append((model2,SecDelta(self,model2)))
+            ctd = True
+            ldir = direction
+            while ctd == True:
+                ctd = False
+                index = self.vector[i]
+                index2 = index + ldir
+                if (index2 >=0 ) and (index2 < self.ax(i)):
+                    model2 = self.copy()
+                    model2.vector[i] = index2
+                    if model2.checkSane(False):
+                        newd = (model2,SecDelta(self,model2))
+                        if newd not in others:
+                            others.append(newd)
+                    else:
+                        if ldir > 0:
+                            ldir += 1
+                        else:
+                            ldir -= 1
+                        ctd = True
 
         return others
 
@@ -755,6 +812,7 @@ def main():
     while model != None:
         DB[model.dbkey()] = []
         model = model.next()
+    print "Considering %i models" % (len(DB.keys()))
 
     DotGraph(True)
     DRAWGRAPH = True
