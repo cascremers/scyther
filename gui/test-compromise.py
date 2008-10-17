@@ -44,6 +44,7 @@ FAST = True    # True means Skip intermediate graph drawing
 SUMMARYDB = {}      # prot -> delta
 SUMMARYALL = False  # Delta's in all or in some contexts?
 ACLMAX = 10         # After 10 we give up for the nodes
+SCANERRORS = False  # Scan for arrows with no counterexamples
 
 CACHE = None
 DB = {} # Model.dbkey -> (fname,claimid)*
@@ -53,48 +54,84 @@ FCDX = 0
 FCDS = 0
 DRAWGRAPH = True
 
+RESTRICTEDMODELS = None # No restricted model set
 
-class SecDelta(object):
+def InitRestricted():
+    """
+    If we want restricted models, do so here.
+    """
+    global RESTRICTEDMODELS
 
-    def __init__(self,model1,model2):
+    RESTRICTEDMODELS = None #   default
 
-        # Need real copies
-        self.model1 = model1.copy()
-        self.model2 = model2.copy()
+    external = SecModel()
+    external.setName("External")
 
-    def __str__(self):
-        rl = []
-        for i in range(0,self.model1.length):
-            t1 = self.model1.describe(i)
-            t2 = self.model2.describe(i)
-            if t1 != t2:
-                if t1 != "":
-                    t1 = "-%s" % (t1)
-                if t2 != "":
-                    t2 = "+%s" % (t2)
-                rl.append(t1 + t2)
-        return ":".join(rl)
+    # internal: notgroup
+    internal = external.copy()
+    internal.vector[0] = 1     
+    internal.setName("Internal")
 
-    def __cmp__(self,other):
-        if (str(self) == str(other)):
-            return 0
-        else:
-            return 1
+    # kci: notgroup actor
+    kci = external.copy()
+    kci.vector[1] = 1
+    kci.setName("KCI")
 
+    # bpr2000: skr
+    bpr2000 = external.copy()
+    bpr2000.vector[3] = 1
+    bpr2000.setName("BPR2000")
+    
+    # br9395: notgroup skr
+    br9395 = bpr2000.copy()
+    br9395.vector[0] = 1
+    br9395.setName("BR93,BR95")
+    
+    # pfs: notgroup after
+    pfs = internal.copy()
+    pfs.vector[2] = 3
+    pfs.setName("PFS")
 
-    def dbkey(self):
-        return str(self)
+    # wpfs: notgroup aftercorrect
+    wpfs = pfs.copy()
+    wpfs.vector[2] = 2
+    wpfs.setName("wPFS")
 
-    def getDelta(self):
-        res = []
-        for i in range(0,self.model1.length):
-            v1 = self.model1.vector[i]
-            v2 = self.model2.vector[i]
-            if v1 == v2:
-                res.append(0)
-            else:
-                res.append(v2)
-        return res
+    # ck2001: notgroup after skr ssr
+    ck2001 = pfs.copy()
+    ck2001.vector[3] = 1
+    ck2001.vector[4] = 1
+    ck2001.setName("ck2001")
+
+    # ck2001hmqv: notgroup aftercorrect skr ssr
+    ck2001hmqv = ck2001.copy()
+    ck2001hmqv.vector[2] = 2
+    ck2001hmqv.setName("ck2001-hmqv")
+
+    # eck: notgroup actor rnsafe skr rnr
+    eck = kci.copy()
+    eck.union(internal)
+    eck.vector[2] = 1
+    eck.vector[3] = 1
+    eck.vector[5] = 1
+    eck.setName("eCK")
+
+    # eckplus: notgroup actor rnsafe skr rnr ssr
+    eckplus = eck.copy()
+    eckplus.vector[4] = 1
+    eckplus.setName("eCK+")
+
+    RESTRICTEDMODELS = [external, internal, kci, bpr2000, br9395, pfs, wpfs, ck2001, ck2001hmqv, eck, eckplus]
+
+    # append maximum
+    max = external.copy()
+    for m in RESTRICTEDMODELS:
+        max.union(m)
+    if max not in RESTRICTEDMODELS:
+        RESTRICTEDMODELS.append(max)
+
+    #RESTRICTEDMODELS = None #   default
+
 
 class SecModel(object):
 
@@ -117,6 +154,14 @@ class SecModel(object):
         else:
             self.setMin()
 
+        self.name=None
+
+
+    def setName(self,name):
+
+        self.name = name
+
+
     def ax(self,ax):
         """
         Yield max+1 of the axis
@@ -133,11 +178,6 @@ class SecModel(object):
             count = count * self.ax(i)
         return count
 
-    def setMin(self):
-        self.vector = []
-        for i in range(0,self.length):
-            self.vector.append(0)
-
     def checkSane(self,correct=False):
         """
         Makes a thing sane if correct==True
@@ -147,31 +187,55 @@ class SecModel(object):
 
         returns true if it was sane (and hence is surely unchanged)
         """
-        sane = True
-        for i in range(0,self.length):
-            if self.vector[i] < 0:
-                if correct:
-                    self.vector[i] = 0
-                sane = False
-            elif self.vector[i] >= self.ax(i):
-                if correct:
-                    self.vector[i] = self.ax(i) - 1
-                sane = False
-            # Model particulars
-            if (i == 2) and (self.vector[i] == 1):
-                if self.vector[5] == 0:
-                    # Funny case: No RNR, but want to use rnsafe. Then
-                    # it's equal to aftercorrect.
+        global RESTRICTEDMODELS
+
+        if RESTRICTEDMODELS == None:
+            sane = True
+            for i in range(0,self.length):
+                # Ensure within normal range
+                if self.vector[i] < 0:
                     if correct:
-                        self.vector[i] = 2
+                        self.vector[i] = 0
                     sane = False
-        return sane
+                elif self.vector[i] >= self.ax(i):
+                    if correct:
+                        self.vector[i] = self.ax(i) - 1
+                    sane = False
+                # Model particulars
+                if (i == 2) and (self.vector[i] == 1):
+                    if self.vector[5] == 0:
+                        # Funny case: No RNR, but want to use rnsafe. Then
+                        # it's equal to aftercorrect.
+                        if correct:
+                            self.vector[i] = 2
+                        sane = False
+            return sane
+        else:
+            assert(correct == False)
+
+            return (self in RESTRICTEDMODELS)
+
+    def setMin(self):
+        global RESTRICTEDMODELS
+
+        if RESTRICTEDMODELS == None:
+            self.vector = []
+            for i in range(0,self.length):
+                self.vector.append(0)
+        else:
+            RESTRICTEDMODELS[0].copy(tomodel=self)
+
 
     def setMax(self):
-        self.vector = []
-        for i in range(0,self.length):
-            self.vector.append(self.ax(i)-1)
-        self.checkSane(True)
+        global RESTRICTEDMODELS
+
+        if RESTRICTEDMODELS == None:
+            self.vector = []
+            for i in range(0,self.length):
+                self.vector.append(self.ax(i)-1)
+            self.checkSane(True)
+        else:
+            RESTRICTEDMODELS[-1].copy(tomodel=self)
 
     def describe(self,i):
         s = self.axes[i][self.vector[i]]
@@ -179,19 +243,35 @@ class SecModel(object):
             return s[2:-2]
         return ""
 
-    def __str__(self,sep=" ",empty="External"):
+    def __str__(self,sep=" ",empty="External",display=False):
         """
         Yield string
         """
+        global RESTRICTEDMODELS
+
+        pref = ""
+        if display == True:
+            if RESTRICTEDMODELS != None:
+                try:
+                    i = RESTRICTEDMODELS.index(self)
+                    xn = RESTRICTEDMODELS[i].name
+                    if xn != None:
+                        pref = "%s\\n" % (xn)
+                except:
+                    pass
+
         sl = []
         for i in range(0,self.length):
             x = self.describe(i)
             if len(x) > 0:
                 sl.append(x)
         if sl == []:
-            return empty
+            return pref + empty
         else:
-            return sep.join(sl)
+            return pref + sep.join(sl)
+
+    def display(self):
+        return self.__str__(display=True)
 
     def options(self):
         sl = []
@@ -211,64 +291,108 @@ class SecModel(object):
                 return 0
         return 1
 
-    def copy(self):
+    def weakerthan(self,other,direction=1):
+        if direction >= 0:
+            a = self
+            b = other
+        else:
+            a = other
+            b = self
+        for i in range(0,a.length):
+            if not (a.vector[i] <= b.vector[i]):
+                return False
+        return True
+
+    def copy(self,tomodel=None):
         """
         Make a copy
         """
-        other = SecModel()
-        other.vector = []
+        if tomodel == None:
+            tomodel = SecModel()
+        tomodel.vector = []
         for i in range(0,self.length):
-            other.vector.append(self.vector[i])
-        return other
+            tomodel.vector.append(self.vector[i])
+        return tomodel
 
     def next(self):
         """
         Increase a given model, or return None when done
         """
-        for i in range(0,self.length):
-            
-            while True:
-                index = self.vector[i]
-                if index >= self.ax(i)-1:
-                    # overflow case coming up
-                    self.vector[i] = 0
-                    # Proceed to next digit anyway, this is sane
-                    break
-                else:
-                    # no overflow, do it
-                    self.vector[i] = self.vector[i]+1
-                    if self.checkSane(False):
-                        return self
-                    # not sane, continue to increase
-        return None
+        global RESTRICTEDMODELS
+
+        if RESTRICTEDMODELS == None:
+            for i in range(0,self.length):
+                
+                while True:
+                    index = self.vector[i]
+                    if index >= self.ax(i)-1:
+                        # overflow case coming up
+                        self.vector[i] = 0
+                        # Proceed to next digit anyway, this is sane
+                        break
+                    else:
+                        # no overflow, do it
+                        self.vector[i] = self.vector[i]+1
+                        if self.checkSane(False):
+                            return self
+                        # not sane, continue to increase
+            return None
+        else:
+            i = RESTRICTEDMODELS.index(self)
+            if i == len(RESTRICTEDMODELS) - 1:
+                return None
+            else:
+                return RESTRICTEDMODELS[i+1]
 
     def getDir(self,direction):
         """
         Return a list of tuples (model,deltadescr)
         """
         
-        others = []
-        for i in range(0,self.length):
+        global RESTRICTEDMODELS
 
-            ctd = True
-            ldir = direction
-            while ctd == True:
-                ctd = False
-                index = self.vector[i]
-                index2 = index + ldir
-                if (index2 >=0 ) and (index2 < self.ax(i)):
-                    model2 = self.copy()
-                    model2.vector[i] = index2
-                    if model2.checkSane(False):
+        others = []
+        if RESTRICTEDMODELS == None:
+            # First we pick out all next ones
+            for i in range(0,self.length):
+
+                ctd = True
+                ldir = direction
+                while ctd == True:
+                    ctd = False
+                    index = self.vector[i]
+                    index2 = index + ldir
+                    if (index2 >=0 ) and (index2 < self.ax(i)):
+                        model2 = self.copy()
+                        model2.vector[i] = index2
+                        if model2.checkSane(False):
+                            newd = (model2,SecDelta(self,model2))
+                            if newd not in others:
+                                others.append(newd)
+                        else:
+                            if ldir > 0:
+                                ldir += 1
+                            else:
+                                ldir -= 1
+                            ctd = True
+
+        else:
+            mlist = []
+            for model2 in RESTRICTEDMODELS:
+                if not (model2 == self):
+                    if self.weakerthan(model2,direction):
                         newd = (model2,SecDelta(self,model2))
                         if newd not in others:
                             others.append(newd)
-                    else:
-                        if ldir > 0:
-                            ldir += 1
-                        else:
-                            ldir -= 1
-                        ctd = True
+                        if model2 not in mlist:
+                            mlist.append(model2)
+            # Then we pick out the minimal elements of these
+            minimals = getMaxModels(mlist,direction=-direction)
+            filtered = []
+            for (model,delta) in others:
+                if model in minimals:
+                    filtered.append((model,delta))
+            others = filtered
 
         return others
 
@@ -294,6 +418,13 @@ class SecModel(object):
                 return False
         return True
 
+    def union(self,other):
+        """
+        Unions self with other
+        """
+        for i in range(0,self.length):
+            if self.vector[i] < other.vector[i]:
+                self.vector[i] = other.vector[i]
 
     def getCorrectClaims(self):
         """
@@ -340,6 +471,50 @@ def FindClaims(filelist):
     returns a dict of filename to claimname*
     """
     return Scyther.GetClaims(filelist)
+
+
+
+class SecDelta(object):
+
+    def __init__(self,model1,model2):
+
+        # Need real copies
+        self.model1 = model1.copy()
+        self.model2 = model2.copy()
+
+    def __str__(self):
+        rl = []
+        for i in range(0,self.model1.length):
+            t1 = self.model1.describe(i)
+            t2 = self.model2.describe(i)
+            if t1 != t2:
+                if t1 != "":
+                    t1 = "-%s" % (t1)
+                if t2 != "":
+                    t2 = "+%s" % (t2)
+                rl.append(t1 + t2)
+        return ":".join(rl)
+
+    def __cmp__(self,other):
+        if (str(self) == str(other)):
+            return 0
+        else:
+            return 1
+
+
+    def dbkey(self):
+        return str(self)
+
+    def getDelta(self):
+        res = []
+        for i in range(0,self.model1.length):
+            v1 = self.model1.vector[i]
+            v2 = self.model2.vector[i]
+            if v1 == v2:
+                res.append(0)
+            else:
+                res.append(v2)
+        return res
 
 
 def VerifyClaim(file,claimid,model):
@@ -476,6 +651,32 @@ def addup(db,key,val):
         db[key] = val
 
 
+def getMaxModels(mylist=None,direction=1):
+    global RESTRICTEDMODELS
+
+    if mylist == None:
+        mylist = RESTRICTEDMODELS
+    if mylist == None:
+        return [SecModel(True)]
+    else:
+        mm = []
+        for model in mylist:
+            strongest = True
+            for model2 in mylist:
+                if model != model2:
+                    if direction >= 0:
+                        a = model
+                        b = model2
+                    else:
+                        a = model2
+                        b = model
+                    if a.weakerthan(b):
+                        strongest = False
+                        break
+            if strongest:
+                mm.append(model)
+        return mm
+
 
 def DotGraph(force=False):
     """
@@ -491,6 +692,7 @@ def DotGraph(force=False):
     global BRIEF
     global SUMMARYDB
     global ACLMAX
+    global SCANERRORS
 
     if force == False:
         # Check for conditions not to draw
@@ -563,28 +765,33 @@ def DotGraph(force=False):
                 else:
                     misc = ""
                 fp.write("\t%s -> %s %s;\n" % (nfrom,nto,misc))
-                addup(status,model.dbkey(),1)
-                addup(status,model2.dbkey(),1)
+                if SCANERRORS == True:
+                    addup(status,model.dbkey(),2)
+                    addup(status,model2.dbkey(),2)
+                else:
+                    addup(status,model.dbkey(),1)
+                    addup(status,model2.dbkey(),1)
 
             else:
                 """
                 Counterexamples need a box
                 """
-                nmid = "mid_%s_%s" % (nfrom,nto)
-                if cex != []:
-                    misc = "[shape=box,label=\"%s counterexamples:\\n%s\\l\"]" % (description,"\\l".join(Compress(cex)))
-                else:
-                    if BRIEF == False:
-                        misc = "[shape=box,color=white,fontcolor=gray,label=\"bad %s counterexamples:\\n%s\\l\"]" % (description,"\\l".join(Compress(skipped)))
+                if SCANERRORS == False:
+                    nmid = "mid_%s_%s" % (nfrom,nto)
+                    if cex != []:
+                        misc = "[shape=box,label=\"%s counterexamples:\\n%s\\l\"]" % (description,"\\l".join(Compress(cex)))
                     else:
-                        misc = "[label=\"bad counterexamples\\n exist\"]"
+                        if BRIEF == False:
+                            misc = "[shape=box,color=white,fontcolor=gray,label=\"bad %s counterexamples:\\n%s\\l\"]" % (description,"\\l".join(Compress(skipped)))
+                        else:
+                            misc = "[label=\"bad counterexamples\\n exist\"]"
 
-                fp.write("\t%s %s;\n" % (nmid,misc))
-                fp.write("\t%s -> %s;\n" % (nfrom,nmid))
-                fp.write("\t%s -> %s;\n" % (nmid,nto))
+                    fp.write("\t%s %s;\n" % (nmid,misc))
+                    fp.write("\t%s -> %s;\n" % (nfrom,nmid))
+                    fp.write("\t%s -> %s;\n" % (nmid,nto))
 
-                addup(status,model.dbkey(),2)
-                #addup(status,model2.dbkey(),2)
+                    addup(status,model.dbkey(),2)
+                    #addup(status,model2.dbkey(),2)
 
         model = model.next()
 
@@ -593,8 +800,15 @@ def DotGraph(force=False):
     """
     model = SecModel()
     while model != None:
+        
+        global RESTRICTEDMODELS
 
-        if status[model.dbkey()] == 2:
+        draw = status[model.dbkey()]
+        if RESTRICTEDMODELS != None:
+            if draw == 1:
+                draw = 2
+
+        if draw == 2:
     
             if len(sys.argv[1:]) > 0:
                 # We were filtering stuff
@@ -625,9 +839,9 @@ def DotGraph(force=False):
             else:
                 misc = ""
 
-            text = "%s [style=filled,color=lightgray,label=\"Adversary model:\\n%s%s\"]" % (model.dotkey(),str(model),misc)
+            text = "%s [style=filled,color=lightgray,label=\"Adversary model:\\n%s%s\"]" % (model.dotkey(),model.display(),misc)
             fp.write("\t%s;\n" % text)
-        elif status[model.dbkey()] == 1:
+        elif draw == 1:
             text = "%s [shape=point,label=\"\"]" % (model.dotkey())
             fp.write("\t%s;\n" % text)
 
@@ -636,14 +850,15 @@ def DotGraph(force=False):
     """
     Finish up by showing the final stuff
     """
-    model = SecModel(True)
-    correct = model.getCorrectClaims()
-    if len(correct) == 0:
-        misc = "[shape=box,label=\"No claims found that\\lare correct in all models.\\l\"]"
-    else:
-        misc = "[shape=box,label=\"%s Correct in all:\\n%s\\l\"]" % (description,"\\l".join(Compress(correct)))
-    fp.write("\t%s -> final;\n" % (model.dotkey()))
-    fp.write("\tfinal %s;\n" % (misc))
+    ml = getMaxModels()
+    for model in ml:
+        correct = model.getCorrectClaims()
+        if len(correct) == 0:
+            misc = "[shape=box,label=\"No claims found that\\lare correct in this model.\\l\"]"
+        else:
+            misc = "[shape=box,label=\"%s Correct in all:\\n%s\\l\"]" % (description,"\\l".join(Compress(correct)))
+        fp.write("\t%s -> final_%s;\n" % (model.dotkey(),model.dotkey()))
+        fp.write("\tfinal_%s %s;\n" % (model.dotkey(),misc))
 
     text = "Scanned %i/%i claims, %i skipped. Adversary models found: %i/%i." % (FCDX,FCDN,FCDS,modelsdone,modelscount)
     fp.write("\tlabel=\"%s\";\n" % text)
@@ -786,6 +1001,33 @@ def goodclaim(fname,cid):
     # Not bad, no filter: accept
     return True
 
+
+def WriteHierarchy():
+    """
+    If a restricted set, write
+    """
+    global RESTRICTEDMODELS
+
+    if RESTRICTEDMODELS == None:
+        return
+
+    fp = open("hierarchy.dot","w")
+    fp.write("digraph {\n");
+
+    ml = RESTRICTEDMODELS
+    for model in ml:
+        txt = "\t%s [label=\"%s\"];\n" % (model.dotkey(),model.display())
+        fp.write(txt)
+        ml2 = model.getLowers();
+        for (model2,desc) in ml2:
+            txt = "\t%s -> %s;\n" % (model2.dotkey(),model.dotkey())
+            fp.write(txt)
+
+    fp.write("}\n");
+    fp.close()
+    commands.getoutput("dot -Tpdf hierarchy.dot >hierarchy.pdf")
+
+
 def main():
     """
     Simple test case with a few protocols
@@ -795,8 +1037,12 @@ def main():
     global DRAWGRAPH
     global CACHE
 
+    InitRestricted()
+
     CACHE = ScytherCache()
     
+    WriteHierarchy()
+
     list = Scyther.FindProtocols("..")
     #print "Performing compromise analysis for the following protocols:", list
     #print
