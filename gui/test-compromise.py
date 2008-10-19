@@ -243,7 +243,7 @@ class SecModel(object):
             return s[2:-2]
         return ""
 
-    def __str__(self,sep=" ",empty="External",display=False):
+    def __str__(self,sep=" ",empty="External",display=False,sort=False):
         """
         Yield string
         """
@@ -265,6 +265,8 @@ class SecModel(object):
             x = self.describe(i)
             if len(x) > 0:
                 sl.append(x)
+        if sort == True:
+            sl.sort()
         if sl == []:
             return pref + empty
         else:
@@ -283,7 +285,7 @@ class SecModel(object):
         return self.__str__(sep="_",empty="None")
 
     def dbkey(self):
-        return self.dotkey()
+        return self.__str__(sep="_",empty="None",sort=True)
 
     def __cmp__(self,other):
         if other != None:
