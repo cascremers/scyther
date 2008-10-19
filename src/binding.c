@@ -36,6 +36,7 @@
 #include "error.h"
 #include "mymalloc.h"
 #include "specialterm.h"
+#include "trusted.h"
 
 static System sys;		//!< local storage of system pointer
 
@@ -542,29 +543,75 @@ unique_origination ()
   return true;
 }
 
-//! Determine whether a binding involves a long-term private key.
+//! Determine whether a binding involves long-term private keys.
 /**
- * Returns the agent name if true, returns NULL if not true.
+ * Returns the agent name list if true, returns NULL if not true.
  */
-Term
-getPrivateKeyAgent (Binding b)
+Termlist
+getPrivateKeyAgents (Binding b, Termlist tlold)
 {
   Term t;
+
+  if (!b->done)
+    {
+      return tlold;
+    }
+  if (sys->runs[b->run_from].protocol != INTRUDER)
+    {
+      return tlold;
+    }
 
   t = deVar (b->term);
   if (t != NULL)
     {
       if (isTermEncrypt (t))
 	{
+	  /*
+	   * List for SK terms
+	   */
 	  if (isTermEqual (TERM_SK, TermKey (t)))
 	    {
-	      return TermOp (t);
+	      return termlistAddNew (tlold, TermOp (t));
+	    }
+	  if (isTermEqual (TERM_K, TermKey (t)))
+	    {
+	      Termlist tlunfiltered;
+	      Termlist tl;
+
+	      tlunfiltered = tuple_to_termlist (TermOp (t));
+	      /* Filter the list: only strict agent types, and make unique.
+	       */
+	      for (tl = tlunfiltered; tl != NULL; tl = tl->next)
+		{
+		  tlold = termlistAddNew (tlold, tl->term);
+		}
+	      termlistDelete (tlunfiltered);
+	      return tlold;
 	    }
 	}
     }
-  return NULL;
+  return tlold;
 }
 
+//! Find all agents whose long-term keys have been revealed.
+/**
+ * Returns the agent name list if true, returns NULL if not true.
+ */
+Termlist
+getAllPrivateKeyAgents ()
+{
+  Termlist tl;
+
+  int scan (Binding b)
+  {
+    tl = getPrivateKeyAgents (b, tl);
+    return true;
+  }
+
+  tl = NULL;
+  list_iterate (sys->bindings, scan);
+  return tl;
+}
 
 //! Prune invalid state w.r.t. <=C minimal requirement
 /**

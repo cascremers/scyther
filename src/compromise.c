@@ -38,6 +38,7 @@
 #include "mgu.h"
 #include "compromise.h"
 #include "partner.h"
+#include "depend.h"
 
 /*
    Simple sys pointer as a global. Yields cleaner code although it's against programming standards.
@@ -238,7 +239,7 @@ removeCompromiseEvents (void)
     {
       if (!prot->compromiseProtocol)
 	{
-          removeProtocolCompromiseEvents (prot);
+	  removeProtocolCompromiseEvents (prot);
 	}
     }
 }
@@ -345,7 +346,7 @@ compromisePrepare (const System mysys)
 	  termPrint (prot->nameterm);
 	  if (prot->compromiseProtocol)
 	    {
-	      eprintf(", compromise type %i", prot->compromiseProtocol);
+	      eprintf (", compromise type %i", prot->compromiseProtocol);
 	    }
 	  eprintf ("\n");
 	  rolesPrint (prot->roles);
@@ -846,7 +847,8 @@ compromisePrune (void)
 }
 
 //! Check whether a compromise RNR occurs before r1,e1
-int compromiseRNRbefore(int r1, int e1)
+int
+compromiseRNRbefore (int r1, int e1)
 {
   int r2;
 
@@ -860,10 +862,10 @@ int compromiseRNRbefore(int r1, int e1)
 
 	  rd = sys->runs[r2].start;
 	  e2 = 0;
-	  while ((rd != NULL) && isDependEvent(r2,e2,r1,e2))
+	  while ((rd != NULL) && isDependEvent (r2, e2, r1, e2))
 	    {
-	      if (isCompromiseEvent(rd))
-  		{
+	      if (isCompromiseEvent (rd))
+		{
 		  // Note this event may or may not be 'used' in the actual attack.
 		  //
 		  // We could worry about binding it or not, but that can be fairly subtle, so a closer look is needed here
@@ -878,4 +880,3 @@ int compromiseRNRbefore(int r1, int e1)
     }
   return false;
 }
-

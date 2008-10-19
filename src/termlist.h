@@ -54,6 +54,7 @@ Termlist termlistAdd (Termlist tl, Term term);
 #define termlistPrepend(tl,t) termlistAdd(tl,t)
 Termlist termlistAppend (const Termlist tl, const Term term);
 Termlist termlistAddNew (const Termlist tl, const Term t);
+Termlist termlistUnique (Termlist tl);
 Termlist termlistConcat (Termlist tl1, Termlist tl2);
 Termlist termlistConcatStatic (Termlist tl1, Termlist tl2);
 Termlist termlistDelTerm (Termlist tl);

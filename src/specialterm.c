@@ -60,6 +60,7 @@ Term AGENT_Dave;
 Term AGENT_Eve;
 Term TERM_PK;
 Term TERM_SK;
+Term TERM_K;
 
 Termlist CLAIMS_dep_prec;
 
@@ -93,12 +94,14 @@ specialTermInit (const System sys)
   langcons (CLAIM_Reachable, "Reachable", TERM_Claim);
   langcons (CLAIM_SID, "SID", TERM_Claim);
 
-  /* Define default PKI using PK/SK */
+  /* Define default PKI using PK/SK/K */
   langcons (TERM_PK, "pk", TERM_Function);
   langcons (TERM_SK, "sk", TERM_Function);
+  langcons (TERM_K, "k", TERM_Function);
   knowledgeAddInverse (sys->know, TERM_PK, TERM_SK);
   knowledgeAddTerm (sys->know, TERM_PK);
   knowledgeAddTerm (sys->know, TERM_SK);
+  knowledgeAddTerm (sys->know, TERM_K);
 
   /* Construct a list of claims that depend on prec being not-empty */
   /* basically all authentication claims */

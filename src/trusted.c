@@ -35,6 +35,7 @@
 #include "arachne.h"
 #include "binding.h"
 #include "depend.h"
+#include "compromise.h"
 
 extern Protocol INTRUDER;	// from arachne.c
 
@@ -53,15 +54,20 @@ pruneTrusted (const System sys)
   for (bl = sys->bindings; bl != NULL; bl = bl->next)
     {
       Binding b;
-      Term a;
+      Termlist tl;
+      Termlist tlstore;
 
       b = (Binding) bl->data;
-      a = getPrivateKeyAgent (b);
-      if (a != NULL)
+      tlstore = getPrivateKeyAgents (b, NULL);
+      for (tl = tlstore; tl != NULL; tl = tl->next)
 	{
-	  /* The key in binding b is sk(a), a is the agent which has been long-term key
-	   * revealed. There are a number of cases in which this is allowed, as
-	   * defined in the paper.
+	  Term a;
+
+	  a = tl->term;
+
+	  /* The key in binding b is sk(a) or k (..,a,..), a is the agent which
+	   * has been long-term key revealed. There are a number of cases in
+	   * which this is allowed, as defined in the paper.
 	   */
 	  if (switches.LKRnotgroup)
 	    {
@@ -102,7 +108,8 @@ pruneTrusted (const System sys)
 		    }
 		}
 	    }
-	  if (switches.LKRafter || switches.LKRaftercorrect || switches.LKRrnsafe)
+	  if (switches.LKRafter || switches.LKRaftercorrect
+	      || switches.LKRrnsafe)
 	    {
 	      // After the claim?
 	      //
@@ -129,15 +136,15 @@ pruneTrusted (const System sys)
 			}
 		      if (switches.markFullSession)
 			{
-		      	  if (switches.LKRaftercorrect)
+			  if (switches.LKRaftercorrect)
 			    {
 			      continue;
 			    }
-		      	  if (switches.LKRrnsafe)
+			  if (switches.LKRrnsafe)
 			    {
-			      if (!compromiseRNRbefore(r1,e1))
+			      if (!compromiseRNRbefore (r1, e1))
 				{
-			      	  continue;
+				  continue;
 				}
 			    }
 			}
@@ -149,6 +156,7 @@ pruneTrusted (const System sys)
 	   */
 	  return true;
 	}
+      termlistDelete (tlstore);
     }
   return false;
 }

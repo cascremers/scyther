@@ -293,6 +293,24 @@ termlistAddNew (const Termlist tl, const Term t)
     return termlistAdd (tl, t);
 }
 
+//! Make a new termlist with unique elements
+/**
+ * Does *not* maintain the order
+ */
+Termlist
+termlistUnique (Termlist tl)
+{
+  Termlist tlnew;
+
+  tlnew = NULL;
+  while (tl != NULL)
+    {
+      tlnew = termlistAddNew (tlnew, tl->term);
+      tl = tl->next;
+    }
+  return tlnew;
+}
+
 //! Concatenates two termlists.
 /**
  * The last pointer of the first list is made to point to the second list.

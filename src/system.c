@@ -926,20 +926,13 @@ protocolsPrint (Protocol p)
 int
 isAgentTrusted (const System sys, Term agent)
 {
-  List bl;
+  Termlist al;
 
   agent = deVar (agent);
-  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+  al = getAllPrivateKeyAgents ();
+  if (inTermlist (al, agent))
     {
-      Binding b;
-      Term a;
-
-      b = (Binding) bl->data;
-      a = getPrivateKeyAgent (b);
-      if (isTermEqual (agent, a))
-	{
-	  return false;
-	}
+      return false;
     }
   return true;
 }

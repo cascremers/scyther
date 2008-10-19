@@ -1183,12 +1183,12 @@ drawBinding (const System sys, Binding b)
       if (intr_to)
 	{
 	  // intr->intr
-	  Term agent;
+	  Termlist agentlist;
 
 	  eprintf ("\t");
 	  myarrow (b);
-	  agent = getPrivateKeyAgent (b);
-	  if (agent != NULL)
+	  agentlist = getPrivateKeyAgents (b, NULL);
+	  if (agentlist != NULL)
 	    {
 	      // It's a private key transfer, mark clearly
 	      eprintf (" [label=\"[ ");
@@ -1512,7 +1512,8 @@ printRunExplanation (const System sys, const int run,
   }
 
   // Partner or compromise? (if needed to show this)
-  if (switches.LKRaftercorrect || switches.LKRrnsafe || switches.SSR || switches.SKR)
+  if (switches.LKRaftercorrect || switches.LKRrnsafe || switches.SSR
+      || switches.SKR)
     {
       if (sys->runs[run].partner)
 	{
@@ -1522,7 +1523,8 @@ printRunExplanation (const System sys, const int run,
     }
   if (sys->runs[run].protocol->compromiseProtocol)
     {
-      eprintf ("(compromise %i)", sys->runs[run].protocol->compromiseProtocol);
+      eprintf ("(compromise %i)",
+	       sys->runs[run].protocol->compromiseProtocol);
       eprintf ("\\l");
     }
 

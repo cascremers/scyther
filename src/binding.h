@@ -72,7 +72,8 @@ int iterate_bindings (int (*func) (Binding b));
 int iterate_preceding_bindings (const int run, const int ev,
 				int (*func) (Binding b));
 
-Term getPrivateKeyAgent (Binding b);
+Termlist getPrivateKeyAgents (Binding b, Termlist tl);
+Termlist getAllPrivateKeyAgents ();
 
 int bindings_c_minimal ();
 int countBindingsDone ();
