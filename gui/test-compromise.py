@@ -735,7 +735,14 @@ def DotGraph(force=False):
         nfrom = model.dotkey()
         correct = model.getCorrectClaims()
 
-        for (model2,description) in model.getHighers():
+        highers = model.getHighers()
+        if highers == []:
+            """
+            No highers. I guess we should draw the thing then.
+            """
+            addup(status,model.dbkey(),2)
+
+        for (model2,description) in highers:
             """
             Each stronger model might involve drawing a counterexample
             arrow: i.e. a claim correct in model, but not in model2
@@ -817,8 +824,9 @@ def DotGraph(force=False):
                 acl = []
                 for prot in model.getCorrectProtocols():
                     if model.isProtocolCorrect(prot):
+                        highers = model.getHighers()
                         allafter = True
-                        for (model2,descr) in model.getHighers():
+                        for (model2,descr) in highers:
                             if not model2.isProtocolCorrect(prot):
                                 allafter = False
                                 # Store in summary DB
@@ -826,7 +834,7 @@ def DotGraph(force=False):
                                     SUMMARYDB[prot] = []
                                 if descr not in SUMMARYDB[prot]:
                                     SUMMARYDB[prot].append(descr)
-                        if not allafter:
+                        if (highers == []) or (not allafter):
                             # Add to displayed list
                             nn = ShortName(prot)
                             if nn not in acl:
