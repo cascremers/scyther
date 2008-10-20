@@ -466,7 +466,7 @@ containsLocal (Role r, Term t)
       }
   }
 
-  res = term_iterate_leaves (t, checkT);
+  res = term_iterate_open_leaves (t, checkT);
   if (res == 0)
     {
       return true;
