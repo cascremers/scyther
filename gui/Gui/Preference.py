@@ -66,6 +66,16 @@ except ImportError:
 prefname = "scythergui-config"
 preflocs = []
 
+""" Default preferences """
+defaultprefs = {'--SKR=':'0', \
+        '--SSR=':'0', \
+        '--RNR=':'0', \
+        '--SSRinfer=':'1', \
+        '--LKRactor=':'0', \
+        '--LKRnotgroup=':'1', \
+        'LKRafter':'0', \
+        }
+
 #---------------------------------------------------------------------------
 
 def usePIL():
@@ -122,6 +132,13 @@ def testPIL():
 #---------------------------------------------------------------------------
 
 class Preferences(dict):
+
+    def setDict(self,d):
+        """
+        Copy dict into self.
+        """
+        for x in d.keys():
+            self[x] = d[x]
 
     def parse(self,line):
         line = line.strip()
@@ -186,7 +203,7 @@ def init():
     """
         Load the preferences from a file, if possible
     """
-    global prefs,preflocs
+    global prefs,preflocs,defaultprefs
 
     sp = wx.StandardPaths.Get()
     confdir = sp.GetConfigDir()
@@ -202,6 +219,7 @@ def init():
     preflocs = [confdir,userconfdir]
 
     prefs = Preferences()
+    prefs.setDict(defaultprefs)
     prefs.load("")
 
 
@@ -212,6 +230,11 @@ def get(key,alt=None):
         return prefs[key]
     else:
         return alt
+
+def getkeys():
+    global prefs
+
+    return prefs.keys()
 
 def set(key,value):
     global prefs

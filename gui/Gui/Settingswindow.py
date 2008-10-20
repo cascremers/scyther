@@ -96,26 +96,66 @@ class SettingsWindow(wx.Panel):
         grid.stepAdd(l2,r2)
 
         ### Security model
-        grid.titleAdd("Security model")
+        grid.titleAdd("Adversary compromise model")
 
-        # Local compromise intruder
-        self.localcompromise = int(Preference.get('localcompromise','0'))
-        claimoptions = ['None','Used local keys','Full (inferred)','User-defined']
-        r3 = wx.StaticText(self,-1,"Local compromise type")
-        l3 = self.ch = wx.Choice(self,-1,choices=claimoptions)
-        l3.SetSelection(self.localcompromise)
-        self.Bind(wx.EVT_CHOICE,self.EvtLocalcompromise,l3)
-        grid.stepAdd(l3,r3)
+        ## Partner definition 
+        #self.partnerdefinition = int(Preference.get('partnerdefinition','1'))
+        #claimoptions = ['Temporal (Experimental)','Matching conversations','Session identifier (SID)']
+        #r4 = wx.StaticText(self,-1,"Partner definition")
+        #l4 = self.ch = wx.Choice(self,-1,choices=claimoptions)
+        #l4.SetSelection(self.partnerdefinition)
+        #self.Bind(wx.EVT_CHOICE,self.EvtPartnerdefinition,l4)
+        #grid.stepAdd(l4,r4)
+
+        # Propagate choice for SSR
+        def SSRpropagate():
+            val = Preference.get("--SSR=")
+            if (val == True) or (int(val) == 1):
+                InferToggle.Enable()
+            else:
+                InferToggle.Enable(False)
+
+        # Toggle stuff
+        def mytoggle(btn,pref,event):
+            res = btn.GetValue()
+            if res == True:
+                val = 1
+            else:
+                val = 0
+            Preference.set(pref,val)
+            SSRpropagate()
+
+        # Checkboxes
+        def toggler(description,buttontxt,pref):
+            oldstate = Preference.get(pref,0)
+            desc = wx.StaticText(self,-1,description)
+            btn = wx.CheckBox(self,-1,buttontxt)
+            btn.SetValue(int(oldstate) == 1)
+            tf = lambda event: mytoggle(btn,pref,event)
+            self.Bind(wx.EVT_CHECKBOX, tf, btn)
+            grid.stepAdd(btn,desc)
+            return btn
+
+        toggler("Long-term Key Reveal","notgroup (DY)","--LKRnotgroup=")
+        toggler("","actor (KCI)","--LKRactor=")
         
-        # Partner definition 
-        self.partnerdefinition = int(Preference.get('partnerdefinition','1'))
-        claimoptions = ['Temporal (Experimental)','Matching conversations','Session identifier (SID)']
-        r4 = wx.StaticText(self,-1,"Partner definition")
-        l4 = self.ch = wx.Choice(self,-1,choices=claimoptions)
-        l4.SetSelection(self.partnerdefinition)
-        self.Bind(wx.EVT_CHOICE,self.EvtPartnerdefinition,l4)
-        grid.stepAdd(l4,r4)
+        # myradio
+        def myradio(rdb,pref,event):
+            Preference.set(pref,int(rdb.GetSelection()))
+
+        desc = wx.StaticText(self,-1,"   Long-term Key Reveal after claim")
+        options = ['(DY)','rnsafe','aftercorrect (wPFS)','after (PFS)']
+        rdb = wx.RadioBox(self,-1,"",(10,10),wx.DefaultSize,options,1)
+        rdb.SetSelection(int(Preference.get("LKRafter")))
+        self.Bind(wx.EVT_RADIOBOX, lambda event: myradio(rdb, "LKRafter", event), rdb)
+        grid.stepAdd(rdb,desc)
         
+        toggler("Session-Key Reveal","","--SKR=")
+        toggler("Random Number Reveal","","--RNR=")
+        toggler("Session-State Reveal","","--SSR=")
+        InferToggle = toggler("   Automatically infer local state","","--SSRinfer=")
+        SSRpropagate()
+
         ### MISC expert stuff
         grid.titleAdd("Advanced parameters")
 
@@ -201,15 +241,35 @@ class SettingsWindow(wx.Panel):
         tstr += "--max-runs=%s " % (str(self.maxruns))
         # Matching type
         tstr += "--match=%s " % (str(self.match))
+
         # Compromise type
         #tstr += "--local-compromise=%s " % (str(self.localcompromise))
         # Partner definition
-        tstr += "--partner-definition=%s " % (str(self.partnerdefinition))
+        #tstr += "--partner-definition=%s " % (str(self.partnerdefinition))
+
         # Prune (has to go BEFORE max attacks)
         tstr += "--prune=%s" % (str(self.prune))
         # Max attacks/classes
         if self.maxattacks != 0:
             tstr += "--max-attacks=%s " % (str(self.maxattacks))
+
+        # Take standard arguments
+        for pk in Preference.getkeys():
+            if pk.startswith("--"):
+                # Switch type preference
+                if pk.endswith("="):
+                    # Argument
+                    tstr += "%s%s " % (pk,Preference.get(pk))
+                else:
+                    # Just enabling if 1 or True
+                    val = Preference.get(pk)
+                    if val == True or (int(val) == 1):
+                        tstr += "%s " % pk
+
+        # Parse LKR after type
+        lkratype = int(Preference.get("LKRafter"))
+        lkratxt = ["","--LKRrnsafe=1 ","--LKRaftercorrect=1 ","--LKRafter=1 "]
+        tstr += lkratxt[lkratype]
 
         # Verification type
         if mode == "check":
