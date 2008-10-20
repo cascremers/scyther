@@ -249,7 +249,7 @@ compromisePrepare (const System mysys)
 {
   sys = mysys;
 
-  if (!switches.SSRinfer)
+  if (switches.SSRinfer)
     {
       /* If we are not using any self-defined compromised events, remove them.
        * */
