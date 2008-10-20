@@ -742,6 +742,15 @@ compromiseProtocol (Protocol sourceprot, int type)
 		  compTerms = learnSessionKey (compTerms, newrd);
 		}
 
+	      if (rd->type != READ)
+		{
+		  // We reverse the list for prettier printing
+		  Termlist tlrev;
+
+		  tlrev = termlistReverse (compTerms);
+		  termlistDelete (compTerms);
+		  compTerms = tlrev;
+		}
 	      // If it is a send, we already do stuff.
 	      // Note that plain received/sent is already in the
 	      // intruder knowledge for sure.

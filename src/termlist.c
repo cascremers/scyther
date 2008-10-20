@@ -996,3 +996,21 @@ termlistNotIn (Termlist tlpos, Termlist tlneg)
     }
   return tlnew;
 }
+
+//! Reverse a termlist into a new one.
+/**
+ * The old list will *not* be deleted.
+ */
+Termlist
+termlistReverse (Termlist tl)
+{
+  Termlist tlrev;
+
+  tlrev = NULL;
+  while (tl != NULL)
+    {
+      tlrev = termlistPrepend (tlrev, tl->term);
+      tl = tl->next;
+    }
+  return tlrev;
+}
