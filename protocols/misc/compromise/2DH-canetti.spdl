@@ -13,16 +13,10 @@
  * two runs are partners.
  */
 
-// PKI infrastructure
-
-const pk: Function;
-secret sk: Function;
-
 // Hash functions
 const h1,h2,g1,g2: Function;
 secret unh1,unh2,ung1,ung2: Function;
 
-inversekeys (pk,sk);
 inversekeys (h1,unh1);
 inversekeys (h2,unh2);
 inversekeys (g1,ung1);
@@ -47,7 +41,7 @@ protocol @exponentiation(RA)
 
 // The protocol description
 
-protocol twoDH(I,R)
+protocol twoDH-canetti(I,R)
 {
 	role I
 	{
@@ -59,7 +53,7 @@ protocol twoDH(I,R)
 
 		send_1(I,R, R,s,g1(x) );
 		recv_2(R,I, I,s,beta, { I,s,beta,g1(x),R }sk(R) );
-		send_3(I,R, I,s, { I,s,g1(x),beta,R }sk(I) );
+		send_3(I,R, I,s,      { I,s,g1(x),beta,R }sk(I) );
 
 		claim(I,SID, s);
 		claim(I,Secret, g2(beta,x) );
@@ -75,20 +69,10 @@ protocol twoDH(I,R)
 
 		recv_1(I,R, R,s,alpha );
 		send_2(R,I, I,s,g1(y), { I,s,g1(y),alpha,R }sk(R) );
-		recv_3(I,R, I,s, { I,s,alpha,g1(y), R }sk(I) );
+		recv_3(I,R, I,s,       { I,s,alpha,g1(y), R }sk(I) );
 
 		claim(R,SID, s);
 		claim(R,Secret, g2(alpha,y) );
 	}
 }
 
-// The agents in the system
-
-const Alice,Bob: Agent;
-
-// An untrusted agent, with leaked information
-
-const Eve: Agent;
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
