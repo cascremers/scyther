@@ -81,7 +81,7 @@ checkSIDrequirements (void)
 		{
 		  if (rd->type == CLAIM)
 		    {
-		      if (rd->to == CLAIM_SID)
+		      if (isTermEqual (rd->to, CLAIM_SID))
 			{
 			  SIDfound = true;
 			  break;
@@ -615,6 +615,23 @@ roledefAppend (Roledef rdhead, Roledef rdnew)
     }
 }
 
+//! Infer session key if needed, from explicit marker
+Termlist
+learnSessionKey (Termlist compterms, Roledef rd)
+{
+  if (switches.SKR)
+    {
+      if (rd->type == CLAIM)
+	{
+	  if (isTermEqual (rd->to, CLAIM_SKR))
+	    {
+	      return termlistAppend (compterms, rd->message);
+	    }
+	}
+    }
+  return compterms;
+}
+
 //! Duplicate an old protocol into a new (compromise) protocol
 /**
  * We need to duplicate any subparts we modify. This includes all roles and
@@ -678,7 +695,7 @@ compromiseProtocol (Protocol sourceprot, int type)
 	  else
 	    {
 	      // It is a claim
-	      if (rd->to == CLAIM_Secret)
+	      if (isTermEqual (rd->to, CLAIM_Secret))
 		{
 		  /* Secrecy claims are explicitly included: they in fact store
 		   * 'intermediate' products like the generated keys.
@@ -689,11 +706,13 @@ compromiseProtocol (Protocol sourceprot, int type)
 		}
 	      else
 		{
-		  if (rd->to == CLAIM_SID)
+		  if (isTermEqual (rd->to, CLAIM_SID)
+		      || isTermEqual (rd->to, CLAIM_SKR))
 		    {
-		      /* We include the SID events for two reasons:
+		      /* We include the SID and SKR events for the following reasons:
 		       * 1. They are part of the intermediate products.
-		       * 2. They need to be in compromised runs for the partner check.
+		       * 2. SID claims need to be in compromised runs for the partner check.
+		       * 3. SKR claims need to be in the compromised runs for SKR reveal
 		       */
 		      includeevent = true;
 		    }
@@ -717,6 +736,11 @@ compromiseProtocol (Protocol sourceprot, int type)
 	      // The algorithm depends on the type of compromise
 	      compTerms =
 		learnFromMessage (newrole, compTerms, newrd->message, type);
+	      if (type == 1)
+		{
+		  // Special (additional) case for type 1: explicit session key marker
+		  compTerms = learnSessionKey (compTerms, newrd);
+		}
 
 	      // If it is a send, we already do stuff.
 	      // Note that plain received/sent is already in the

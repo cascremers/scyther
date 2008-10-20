@@ -2427,7 +2427,8 @@ arachneClaim (Claimlist cl)
   // Skip the dummy claims or SID markers
   if (!
       (isTermEqual (cl->type, CLAIM_Empty)
-       || isTermEqual (cl->type, CLAIM_SID)))
+       || isTermEqual (cl->type, CLAIM_SID)
+       || isTermEqual (cl->type, CLAIM_SKR)))
     {
       // Some claims are always true!
       if (!cl->alwaystrue)

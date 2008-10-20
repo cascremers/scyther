@@ -52,6 +52,7 @@ Term CLAIM_Niagree;
 Term CLAIM_Empty;
 Term CLAIM_Reachable;
 Term CLAIM_SID;
+Term CLAIM_SKR;
 
 Term AGENT_Alice;
 Term AGENT_Bob;
@@ -85,14 +86,16 @@ specialTermInit (const System sys)
   langcons (TERM_SessionKey, "SessionKey", TERM_Type);
   langcons (TERM_Data, "Data", TERM_Type);
 
-  langcons (TERM_Compromise, "Compromise", TERM_Marker);
+  langcons (TERM_Compromise, "Compromise", TERM_Marker);	// send label for compromise send
 
   langcons (CLAIM_Secret, "Secret", TERM_Claim);
   langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);
   langcons (CLAIM_Niagree, "Niagree", TERM_Claim);
   langcons (CLAIM_Empty, "Empty", TERM_Claim);
   langcons (CLAIM_Reachable, "Reachable", TERM_Claim);
-  langcons (CLAIM_SID, "SID", TERM_Claim);
+
+  langcons (CLAIM_SID, "SID", TERM_Claim);	// claim specifying session ID
+  langcons (CLAIM_SKR, "SKR", TERM_Claim);	// claim specifying session key
 
   /* Define default PKI using PK/SK/K */
   langcons (TERM_PK, "pk", TERM_Function);
