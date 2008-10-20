@@ -762,14 +762,24 @@ compromiseProtocol (Protocol sourceprot, int type)
 		    }
 		  else
 		    {
-		      // Non-read, prepend
-		      rdhead = roledefAppend (rdhead, rdcompr);
+		      /**
+		       * For a non-recv, we also append. This has the effect of
+		       * making the action atomic, i.e. we assume that
+		       * computing the local state for a non-blocking event
+		       * also executes the event. This interacts in a more
+		       * sensible way with the matching histories definition,
+		       * but requires some insight.
+		       */
 		      rdhead = roledefAppend (rdhead, newrd);
+		      rdhead = roledefAppend (rdhead, rdcompr);
+		      // Non-read, prepend
+		      //rdhead = roledefAppend (rdhead, rdcompr);
+		      //rdhead = roledefAppend (rdhead, newrd);
 		    }
 		}
 	      else
 		{
-		  //
+		  // No additional events to be added
 		  rdhead = roledefAppend (rdhead, newrd);
 		}
 	      compKnown = termlistConcat (compKnown, tlsend);
