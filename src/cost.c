@@ -58,8 +58,8 @@ computeAttackCost (const System sys)
 
   //cost += get_semitrace_length ();
 
-  cost += 50 * countCompromisedRuns ();
-  cost += 10 * selfInitiators (sys);
+  cost += 10 * weighCompromisedRuns ();
+  cost += 25 * selfInitiators (sys);
   cost += 7 * selfResponders (sys);
   cost += 10 * (sys->num_regular_runs - sys->num_helper_runs);
   cost += 3 * countInitiators (sys);
