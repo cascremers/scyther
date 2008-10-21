@@ -1,0 +1,172 @@
+/* 
+ * HMQV three pass key confirmation version
+ *
+ */
+
+// Hash functions
+const h1,h2,g1,g2,exp,KDF,LSB,MAC: Function;
+secret unh1,unh2,ung1,ung2,unexp,unKDF,unLSB,unMAC: Function;
+
+inversekeys (h1,unh1);
+inversekeys (h2,unh2);
+inversekeys (g1,ung1);
+inversekeys (g2,ung2);
+inversekeys (exp,unexp);
+inversekeys (KDF,unKDF);
+inversekeys (LSB,unLSB);
+inversekeys (MAC,unMAC);
+
+// Addition, multiplication
+// For now, simply hashes
+const mult,add: Function;
+secret unmult,unadd: Function;
+
+inversekeys(mult,unmult);
+inversekeys(add,unadd);
+
+// Constants
+usertype Bit;
+const ZERO,ONE: Bit;
+
+/*
+ * Hack to simulate public knowledge of public keys.
+ */
+protocol @publickeys(PK)
+{
+	role PK
+	{
+		send_!1(PK,PK, g1(sk(PK)));
+	}
+}
+		
+/*
+ * Hack to simulate g^ab = g^ba inside terms.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exponentiation(RA,RB,RC)
+{
+	role RA
+	{
+		var X,Y, T1,T2: Ticket;
+
+		recv_!1(RA,RA, h2(
+		  g2(g1(X),Y),
+		  T1, T2, RA,RB
+		  ));
+		send_!2(RA,RA, h2(
+		  g2(g1(Y),X),
+		  T1, T2, RA,RB
+		  ));
+	}
+	role RB
+	{
+		var X,Y, T1,T2: Ticket;
+
+		recv_!3(RB,RB, h2(
+		  T1,
+		  g2(g1(X),Y),
+		  T2, RA,RB
+		  ));
+		send_!4(RB,RB, h2(
+		  T1,
+		  g2(g1(Y),X),
+		  T2, RA,RB
+		  ));
+	}
+	role RC
+	{
+		var X,Y, T1,T2: Ticket;
+
+		recv_!5(RC,RC, h2(
+		  T1, T2,
+		  g2(g1(X),Y),
+		  RA,RB
+		  ));
+		send_!6(RC,RC, h2(
+		  T1, T2,
+		  g2(g1(Y),X),
+		  RA,RB
+		  ));
+	}
+}
+
+protocol @addmult(I,R)
+{
+	role I
+	{
+		var X,Y: Ticket;
+
+		recv_!1(I,I, add(X,Y) );
+		send_!2(I,I, add(Y,X) );
+	}
+	role R
+	{
+		var X,Y: Ticket;
+
+		recv_!3(R,R, mult(X,Y) );
+		send_!4(R,R, mult(Y,X) );
+	}
+}
+
+protocol @keyswap(I,R)
+{
+	role I
+	{
+		var x,y: Nonce;
+		recv_!1(I,I, KDF(exp(mult(g1(y),exp(g1(sk(R)),LSB(g1(y),I))),add(x,mult(LSB(g1(x),R),sk(I))))) );
+		send_!2(I,I, KDF(exp(mult(g1(x),exp(g1(sk(I)),LSB(g1(x),R))),add(y,mult(LSB(g1(y),I),sk(R))))) );
+	}
+}
+
+protocol @macwap(I,R)
+{
+	role I
+	{
+		var x,y: Nonce;
+		var b: Bit;
+		recv_!1(I,I, MAC(KDF(exp(mult(g1(y),exp(g1(sk(R)),LSB(g1(y),I))),add(x,mult(LSB(g1(x),R),sk(I))))),b) );
+		send_!2(I,I, MAC(KDF(exp(mult(g1(x),exp(g1(sk(I)),LSB(g1(x),R))),add(y,mult(LSB(g1(y),I),sk(R))))),b) );
+	}
+}
+
+// The protocol description
+
+protocol HMQV-C(I,R)
+{
+	role I
+	{
+		const x: Nonce;
+		var Y: Ticket;
+
+		send_1(I,R, g1(x) );
+		recv_!2(R,I, Y,
+		  MAC(KDF(exp(mult(Y,exp(g1(sk(R)),LSB(Y,I))),add(x,mult(LSB(g1(x),R),sk(I))))),ZERO)
+		);
+		send_!3(I,R,
+		  MAC(KDF(exp(mult(Y,exp(g1(sk(R)),LSB(Y,I))),add(x,mult(LSB(g1(x),R),sk(I))))),ONE)
+		);
+
+		claim(I,SKR,    KDF(exp(mult(Y,exp(g1(sk(R)),LSB(Y,I))),add(x,mult(LSB(g1(x),R),sk(I))))) );
+		claim(I,Secret, KDF(exp(mult(Y,exp(g1(sk(R)),LSB(Y,I))),add(x,mult(LSB(g1(x),R),sk(I))))) );
+	}	
+	
+	role R
+	{
+		const y: Nonce;
+		var X: Ticket;
+
+		recv_1(I,R, X );
+		send_!2(R,I, g1(y),
+		  MAC(KDF(exp(mult(X,exp(g1(sk(I)),LSB(X,R))),add(y,mult(LSB(g1(y),I),sk(R))))),ZERO)
+		);
+		recv_!3(I,R, 
+		  MAC(KDF(exp(mult(X,exp(g1(sk(I)),LSB(X,R))),add(y,mult(LSB(g1(y),I),sk(R))))),ONE)
+		);
+
+		claim(R,SKR,    KDF(exp(mult(X,exp(g1(sk(I)),LSB(X,R))),add(y,mult(LSB(g1(y),I),sk(R))))) );
+		claim(R,Secret, KDF(exp(mult(X,exp(g1(sk(I)),LSB(X,R))),add(y,mult(LSB(g1(y),I),sk(R))))) );
+	}
+}
+
