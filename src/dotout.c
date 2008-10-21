@@ -1512,12 +1512,19 @@ printRunExplanation (const System sys, const int run,
   }
 
   // Partner or compromise? (if needed to show this)
-  if (switches.LKRaftercorrect || switches.LKRrnsafe || switches.SSR
-      || switches.SKR)
+  if (switches.LKRaftercorrect || switches.LKRafter || switches.LKRrnsafe
+      || switches.SSR || switches.SKR || switches.RNR)
     {
       if (sys->runs[run].partner)
 	{
-	  eprintf ("(partner)");
+	  if (run == 0)
+	    {
+	      eprintf ("(claim)");
+	    }
+	  else
+	    {
+	      eprintf ("(partner)");
+	    }
 	  eprintf ("\\l");
 	}
     }
