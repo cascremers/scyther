@@ -36,6 +36,7 @@ import sys
 from Scyther import *
 
 SHOWPATH = False    # Switch to true to show paths in the graph
+#DEFAULTARGS = "--max-runs=7 --extravert"
 DEFAULTARGS = "--max-runs=7"
 ALLCORRECT = True   # Require all claims to be correct of the protocol in prev. node for counterexample
 BRIEF = False
@@ -695,6 +696,7 @@ def DotGraph(force=False):
     global SUMMARYDB
     global ACLMAX
     global SCANERRORS
+    global RESTRICTEDMODELS
 
     if force == False:
         # Check for conditions not to draw
@@ -765,7 +767,17 @@ def DotGraph(force=False):
                     else:
                         skipped.append(x)
 
+            # Decide wether to draw counterexamples
             if (cex == [] and skipped == []):
+                drawcex = False
+            else:
+                drawcex = True
+
+            # Override: sublist means no counterexamples
+            if RESTRICTEDMODELS != None:
+                drawcex = False
+
+            if drawcex == False:
                 """
                 No counterexamples!
                 """
@@ -810,8 +822,6 @@ def DotGraph(force=False):
     model = SecModel()
     while model != None:
         
-        global RESTRICTEDMODELS
-
         draw = status[model.dbkey()]
         if RESTRICTEDMODELS != None:
             if draw == 1:
@@ -834,17 +844,19 @@ def DotGraph(force=False):
                                     SUMMARYDB[prot] = []
                                 if descr not in SUMMARYDB[prot]:
                                     SUMMARYDB[prot].append(descr)
-                        if (highers == []) or (not allafter):
+                        if (highers == []) or (not allafter) or (RESTRICTEDMODELS != None):
                             # Add to displayed list
                             nn = ShortName(prot)
                             if nn not in acl:
                                 acl.append(nn)
-                                if len(acl) == ACLMAX:
-                                    break
+                                if RESTRICTEDMODELS == None:
+                                    if len(acl) == ACLMAX:
+                                        break
 
                 acl.sort()
-                if len(acl) == ACLMAX:
-                    acl.append("...")
+                if RESTRICTEDMODELS == None:
+                    if len(acl) == ACLMAX:
+                        acl.append("...")
                 misc = "\\n%s\\n" % ("\\n".join(acl))
             else:
                 misc = ""
