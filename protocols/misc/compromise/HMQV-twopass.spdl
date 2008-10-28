@@ -125,15 +125,18 @@ protocol HMQV-twopass(I,R)
 		var Y: Ticket;
 
 		send_1(I,R, g1(x) );
+
+		send_Compromise(I,I, x ) ;
+
 		recv_2(R,I, Y );
 
-		send_Compromise(I,I, LSB(g1(x),R) ) ;
-		send_Compromise(I,I, mult(LSB(g1(x),R),sk(I)) ) ;
-		send_Compromise(I,I, add(x,mult(LSB(g1(x),R),sk(I))) ) ;
-		send_Compromise(I,I, LSB(Y,I) ) ;
-		send_Compromise(I,I, exp(g1(sk(R)),LSB(Y,I)) ) ;
-		send_Compromise(I,I, mult(Y,exp(g1(sk(R)),LSB(Y,I))) ) ;
-		send_Compromise(I,I, exp(mult(Y,exp(g1(sk(R)),LSB(Y,I))),add(x,mult(LSB(g1(x),R),sk(I)))) ) ;
+		//send_Compromise(I,I, LSB(g1(x),R) ) ;
+		//send_Compromise(I,I, mult(LSB(g1(x),R),sk(I)) ) ;
+		//send_Compromise(I,I, add(x,mult(LSB(g1(x),R),sk(I))) ) ;
+		//send_Compromise(I,I, LSB(Y,I) ) ;
+		//send_Compromise(I,I, exp(g1(sk(R)),LSB(Y,I)) ) ;
+		//send_Compromise(I,I, mult(Y,exp(g1(sk(R)),LSB(Y,I))) ) ;
+		//send_Compromise(I,I, exp(mult(Y,exp(g1(sk(R)),LSB(Y,I))),add(x,mult(LSB(g1(x),R),sk(I)))) ) ;
 
 		claim(I,SKR,    KDF(exp(mult(Y,exp(g1(sk(R)),LSB(Y,I))),add(x,mult(LSB(g1(x),R),sk(I))))) );
 		claim(I,Secret, KDF(exp(mult(Y,exp(g1(sk(R)),LSB(Y,I))),add(x,mult(LSB(g1(x),R),sk(I))))) );
@@ -145,15 +148,18 @@ protocol HMQV-twopass(I,R)
 		var X: Ticket;
 
 		recv_1(I,R, X );
+
+		send_Compromise(R,R, y );
+
 		send_2(R,I, g1(y) );
 
-		send_Compromise(R,R, LSB(g1(y),I) );
-		send_Compromise(R,R, mult(LSB(g1(y),I),sk(R)) );
-		send_Compromise(R,R, add(y,mult(LSB(g1(y),I),sk(R))) );
-		send_Compromise(R,R, LSB(X,R) );
-		send_Compromise(R,R, exp(g1(sk(I)),LSB(X,R)) );
-		send_Compromise(R,R, mult(X,exp(g1(sk(I)),LSB(X,R))) );
-		send_Compromise(R,R, exp(mult(X,exp(g1(sk(I)),LSB(X,R))),add(y,mult(LSB(g1(y),I),sk(R)))) );
+		//send_Compromise(R,R, LSB(g1(y),I) );
+		//send_Compromise(R,R, mult(LSB(g1(y),I),sk(R)) );
+		//send_Compromise(R,R, add(y,mult(LSB(g1(y),I),sk(R))) );
+		//send_Compromise(R,R, LSB(X,R) );
+		//send_Compromise(R,R, exp(g1(sk(I)),LSB(X,R)) );
+		//send_Compromise(R,R, mult(X,exp(g1(sk(I)),LSB(X,R))) );
+		//send_Compromise(R,R, exp(mult(X,exp(g1(sk(I)),LSB(X,R))),add(y,mult(LSB(g1(y),I),sk(R)))) );
 
 		claim(R,SKR,    KDF(exp(mult(X,exp(g1(sk(I)),LSB(X,R))),add(y,mult(LSB(g1(y),I),sk(R))))) );
 		claim(R,Secret, KDF(exp(mult(X,exp(g1(sk(I)),LSB(X,R))),add(y,mult(LSB(g1(y),I),sk(R))))) );
