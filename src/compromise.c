@@ -17,6 +17,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+/*
+ * The RNR query is still not fully implemented: the test / claim thread still cannot be compromised.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
