@@ -878,9 +878,9 @@ compromisePrune (void)
 	{
 	  if (partners[run])
 	    {
-	      if (isRunCompromised (run))
+	      if (isRunCompromised (run) == 1)
 		{
-		  // One of the partners is compromised, prune
+		  // One of the partners is compromised with type SKR/SSR, prune
 		  result = true;
 		  break;
 		}
