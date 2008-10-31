@@ -237,7 +237,7 @@ removeCompromiseEvents (void)
 
   for (prot = sys->protocols; prot != NULL; prot = prot->next)
     {
-      if (!prot->compromiseProtocol)
+      if (prot->compromiseProtocol == 0)
 	{
 	  removeProtocolCompromiseEvents (prot);
 	}
@@ -344,9 +344,24 @@ compromisePrepare (const System mysys)
 	  eprintf ("---------------------\n");
 	  eprintf ("Protocol ");
 	  termPrint (prot->nameterm);
-	  if (prot->compromiseProtocol)
+	  if (prot->compromiseProtocol == 1)
 	    {
-	      eprintf (", compromise type %i", prot->compromiseProtocol);
+	      eprintf (", compromise SSR/SKR");
+	    }
+	  else
+	    {
+	      if (prot->compromiseProtocol == 2)
+		{
+		  eprintf (", compromise RNR");
+		}
+	      else
+		{
+		  if (prot->compromiseProtocol != 0)
+		    {
+		      eprintf (", compromise type %i",
+			       prot->compromiseProtocol);
+		    }
+		}
 	    }
 	  eprintf ("\n");
 	  rolesPrint (prot->roles);
@@ -864,9 +879,8 @@ compromisePrune (void)
   if (switches.SSR || switches.SKR)
     {
       /*
-       * The idea is that compromised runs must be separated in time somehow
-       * from the claim run, with no overlapping runs forcing them to be
-       * 'close' somehow.
+       * These effectively encode the preconditions for SSR/SKR:
+       * should not be part of the state.
        */
       int run;
       int *partners;

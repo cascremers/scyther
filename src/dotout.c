@@ -1421,8 +1421,8 @@ printRunConstants (const System sys, const int run)
   if (sys->runs[run].constants != NULL)
     {
       eprintf ("Const ");
-      showLocals (run, sys->runs[run].role->
-		  declaredconsts, sys->runs[run].constants, NULL, "", ", ");
+      showLocals (run, sys->runs[run].role->declaredconsts,
+		  sys->runs[run].constants, NULL, "", ", ");
       eprintf ("\\l");
       return true;
     }
@@ -1561,9 +1561,9 @@ printRunExplanation (const System sys, const int run,
 	    {
 	      ignoreterm = NULL;
 	    }
-	  hadcontent = showLocals (run, sys->runs[run].protocol->
-				   rolenames, sys->runs[run].rho,
-				   ignoreterm, "", "\\l");
+	  hadcontent =
+	    showLocals (run, sys->runs[run].protocol->rolenames,
+			sys->runs[run].rho, ignoreterm, "", "\\l");
 	}
       }
   }
@@ -1583,9 +1583,9 @@ printRunExplanation (const System sys, const int run,
 	  eprintf (newline);
 	  hadcontent = false;
 	}
-      if (showLocals (run, sys->runs[run].role->
-		      declaredvars, sys->runs[run].sigma, NULL, "Var ",
-		      "\\l"))
+      if (showLocals
+	  (run, sys->runs[run].role->declaredvars, sys->runs[run].sigma, NULL,
+	   "Var ", "\\l"))
 	{
 	  eprintf ("\\l");
 	}

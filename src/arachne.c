@@ -2370,8 +2370,8 @@ arachneClaimTest (Claimlist cl)
 		       * Add specific goal info and iterate algorithm
 		       */
 	add_claim_specifics (sys, cl,
-			     roledef_shift (sys->runs[run].
-					    start, cl->ev), realStart);
+			     roledef_shift (sys->runs[run].start, cl->ev),
+			     realStart);
       }
 
 
