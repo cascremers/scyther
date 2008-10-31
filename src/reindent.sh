@@ -1,5 +1,5 @@
 #!/bin/sh
 # 
-# Indent any changed files, ending in .c or .h
+# Indent any files ending in .c or .h
 #
-svn st | grep "^[MA].*\.[ch]$"| awk '{print $2}' | xargs indent
+indent *.c *.h

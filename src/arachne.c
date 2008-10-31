@@ -2218,6 +2218,9 @@ iterate_multiple_preconditions (void)
   int result;
 
   //###################################
+  /**
+   * Standard iteration step setup.
+   */
   result = iterate ();
   //###################################
   //
@@ -2290,16 +2293,17 @@ iterate_buffer_attacks (void)
 
 //! Arachne single claim test
 void
-arachneClaimTest (Claimlist cl)
+arachneClaimTest ()
 {
   // others we simply test...
   int run;
   int newruns;
   Protocol p;
   Role r;
+  Claimlist cl;
 
   newruns = 0;
-  sys->current_claim = cl;
+  cl = sys->current_claim;
   attack_length = INT_MAX;
   attack_leastcost = INT_MAX;
   cl->complete = 1;
@@ -2422,19 +2426,21 @@ arachneClaimTest (Claimlist cl)
 
 //! Arachne single claim inspection
 int
-arachneClaim (Claimlist cl)
+arachneClaim ()
 {
+  Claimlist cl;
+
   // Skip the dummy claims or SID markers
+  cl = sys->current_claim;
   if (!
       (isTermEqual (cl->type, CLAIM_Empty)
-       || isTermEqual (cl->type, CLAIM_SID)
-       || isTermEqual (cl->type, CLAIM_SKR)))
+       || isTermEqual (cl->type, CLAIM_SID)))
     {
       // Some claims are always true!
       if (!cl->alwaystrue)
 	{
 	  // others we simply test...
-	  arachneClaimTest (cl);
+	  arachneClaimTest ();
 	}
       claimStatusReport (sys, cl);
       if (switches.xml)
@@ -2530,7 +2536,8 @@ arachne ()
       /**
        * Check each claim
        */
-      if (arachneClaim (cl))
+      sys->current_claim = cl;
+      if (arachneClaim ())
 	{
 	  count++;
 	}

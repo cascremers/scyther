@@ -579,7 +579,7 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 
   /* possible special handlers for each claim */
 
-  if (claim == CLAIM_Secret)
+  if ((claim == CLAIM_Secret) || (claim == CLAIM_SKR))
     {
       Termlist claimvars;
       Termlist readvars;
@@ -826,7 +826,7 @@ commEvent (int event, Tac tc)
 
 	  /* handles claim types with different syntactic claims */
 
-	  if (claim == CLAIM_Secret)
+	  if ((claim == CLAIM_Secret) || (claim == CLAIM_SKR))
 	    {
 	      if (n == 0)
 		{
@@ -837,7 +837,7 @@ commEvent (int event, Tac tc)
 	      if (n > 1)
 		{
 		  error
-		    ("Secrecy claim on line %i should not contain tuples (for Arachne) until it is officially supported.",
+		    ("Secrecy claim on line %i should not contain tuples until it is officially supported. Please use multiple claims.",
 		     trip->next->lineno);
 		}
 	    }

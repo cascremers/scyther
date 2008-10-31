@@ -896,7 +896,7 @@ add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd,
   // per default, all agents are trusted
   sys->trustedRoles = NULL;
 
-  if (cl->type == CLAIM_Secret)
+  if ((cl->type == CLAIM_Secret) || (cl->type == CLAIM_SKR))
     {
       int flag;
       int irun;

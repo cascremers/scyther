@@ -717,7 +717,8 @@ compromiseProtocol (Protocol sourceprot, int type)
 	  else
 	    {
 	      // It is a claim
-	      if (isTermEqual (rd->to, CLAIM_Secret))
+	      if (isTermEqual (rd->to, CLAIM_Secret)
+		  || isTermEqual (rd->to, CLAIM_SKR))
 		{
 		  /* Secrecy claims are explicitly included: they in fact store
 		   * 'intermediate' products like the generated keys.

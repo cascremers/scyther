@@ -95,7 +95,7 @@ specialTermInit (const System sys)
   langcons (CLAIM_Reachable, "Reachable", TERM_Claim);
 
   langcons (CLAIM_SID, "SID", TERM_Claim);	// claim specifying session ID
-  langcons (CLAIM_SKR, "SKR", TERM_Claim);	// claim specifying session key
+  langcons (CLAIM_SKR, "SKR", TERM_Claim);	// claim specifying session key : doubles as secrecy claim
 
   /* Define default PKI using PK/SK/K */
   langcons (TERM_PK, "pk", TERM_Function);
