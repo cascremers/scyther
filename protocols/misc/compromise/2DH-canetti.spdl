@@ -56,7 +56,8 @@ protocol twoDH-canetti(I,R)
 		send_3(I,R, I,s,      { I,s,g1(x),beta,R }sk(I) );
 
 		claim(I,SID, s);
-		claim(I,Secret, g2(beta,x) );
+		claim(I,SKR, g2(beta,x) );
+		claim(I,Nisynch);
 	}	
 	
 	role R
@@ -72,7 +73,8 @@ protocol twoDH-canetti(I,R)
 		recv_3(I,R, I,s,       { I,s,alpha,g1(y), R }sk(I) );
 
 		claim(R,SID, s);
-		claim(R,Secret, g2(alpha,y) );
+		claim(R,SKR, g2(alpha,y) );
+		claim(R,Nisynch);
 	}
 }
 

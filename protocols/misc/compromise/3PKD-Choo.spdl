@@ -10,7 +10,6 @@ usertype SessionKey;
 
 // PKI infrastructure
 
-secret k: Function;
 secret hk: Function;
 
 // Hash
@@ -33,7 +32,8 @@ protocol 3PKD(I,R,S)
 		read_3(S,I, { sesk }k(I,S), hash(hk(I,S),I,R,ri,rr,{ sesk }k(I,S)), rr );
 		claim(I,SID,ri,rr);
 
-		claim_I(I,Secret,sesk);
+		claim_I(I,SKR,sesk);
+		claim_I2(I,Nisynch);
 	}	
 	
 	role R
@@ -47,7 +47,8 @@ protocol 3PKD(I,R,S)
 		send_2(R,S, ri,rr );
 		read_4(S,R, { sesk }k(R,S), hash(hk(R,S),I,R,ri,rr,{ sesk }k(R,S)) );
 
-		claim_R(R,Secret,sesk);
+		claim_R(R,SKR,sesk);
+		claim_R2(R,Nisynch);
 	}
 
 	role S
@@ -62,17 +63,4 @@ protocol 3PKD(I,R,S)
 		send_4(S,R, { sesk }k(R,S), hash(hk(R,S),I,R,ri,rr,{ sesk }k(R,S)) );
 	}
 }
-
-// The agents in the system
-
-const Alice,Bob: Agent;
-
-// An untrusted agent, with leaked information
-
-const Eve: Agent;
-untrusted Eve;
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
 

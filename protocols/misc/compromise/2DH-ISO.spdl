@@ -43,7 +43,8 @@ protocol twoDHiso(I,R)
 		send_1(I,R,  g1(x),R,         { g1(x),R }sk(I)        );
 		recv_2(R,I,  g1(x),beta,i,I,  { g1(x),beta,i,I }sk(R) );
 
-		claim(I,Secret, g2(beta,x) );
+		claim(I,SKR, g2(beta,x) );
+		claim(I,Nisynch);
 	}	
 	
 	role R
@@ -57,7 +58,8 @@ protocol twoDHiso(I,R)
 		recv_1(I,R,  alpha,R,          { alpha,R }sk(I)         );
 		send_2(R,I,  alpha,g1(y),i,I,  { alpha,g1(y),i,I }sk(R) );
 
-		claim(R,Secret, g2(alpha,y) );
+		claim(R,SKR, g2(alpha,y) );
+		claim(R,Nisynch);
 	}
 }
 

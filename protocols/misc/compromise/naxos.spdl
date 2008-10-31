@@ -105,7 +105,7 @@ protocol naxos(I,R)
 
 		recv_2(R,I, Y );
 
-		claim(I,Secret,h2( 
+		claim(I,SKR,h2( 
 			g2(Y,sk(I)),
 			g2(g1(sk(R)),h1(eskI,sk(I))), 
 			g2(Y,h1(eskI,sk(I))),
@@ -123,7 +123,7 @@ protocol naxos(I,R)
 
 		send_2(R,I, g1(h1(eskR,sk(R))) );
 
-		claim(R,Secret,h2( 
+		claim(R,SKR,h2( 
 			g2(g1(sk(I)),h1(eskR,sk(R))), 
 			g2(X,sk(R)),
 			g2(X,h1(eskR,sk(R))),

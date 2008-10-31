@@ -129,7 +129,6 @@ protocol CMQV-twopass(I,R)
 		recv_2(R,I, Y );
 
 		claim(I,SKR,    KDF(exp(mult(Y,exp(g1(sk(R)),LSB(Y,I,R))),add(h1(x,sk(I)),mult(LSB(g1(h1(x,sk(I))),I,R),sk(I)))),g1(h1(x,sk(I))),Y,I,R) );
-		claim(I,Secret, KDF(exp(mult(Y,exp(g1(sk(R)),LSB(Y,I,R))),add(h1(x,sk(I)),mult(LSB(g1(h1(x,sk(I))),I,R),sk(I)))),g1(h1(x,sk(I))),Y,I,R) );
 	}	
 	
 	role R
@@ -141,7 +140,6 @@ protocol CMQV-twopass(I,R)
 		send_2(R,I, g1(h1(y,sk(R))) );
 
 		claim(R,SKR,    KDF(exp(mult(X,exp(g1(sk(I)),LSB(X,I,R))),add(h1(y,sk(R)),mult(LSB(g1(h1(y,sk(R))),I,R),sk(R)))),X,g1(h1(y,sk(R))),I,R) );
-		claim(R,Secret, KDF(exp(mult(X,exp(g1(sk(I)),LSB(X,I,R))),add(h1(y,sk(R)),mult(LSB(g1(h1(y,sk(R))),I,R),sk(R)))),X,g1(h1(y,sk(R))),I,R) );
 	}
 }
 

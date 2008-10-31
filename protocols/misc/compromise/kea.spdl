@@ -5,11 +5,6 @@
  * Lauter, Mityagin, 2006.
  */
 
-// PKI infrastructure
-
-const pk: Function;
-secret sk: Function;
-
 // Hash functions
 const h1,h2,g1,g2: Function;
 secret unh1,unh2,ung1,ung2: Function;
@@ -77,10 +72,11 @@ protocol KEA(I,R)
 		send_1(I,R, g1(x) );
 		recv_2(R,I, beta );
 
-		claim(I,Secret, h1(
+		claim(I,SKR, h1(
 		  g2(beta,sk(I)),
 		  g2(pk(R),x)
 		));
+		claim(I,Nisynch);
 	}	
 	
 	role R
@@ -92,19 +88,11 @@ protocol KEA(I,R)
 		send_Compromise(R,R, y);
 		send_2(R,I, g1(y) );
 
-		claim(R,Secret, h1(
+		claim(R,SKR, h1(
 		  g2(pk(I),y),
 		  g2(alpha,sk(R))
 		));
+		claim(R,Nisynch);
 	}
 }
 
-// The agents in the system
-
-const Alice,Bob: Agent;
-
-// An untrusted agent, with leaked information
-
-const Eve: Agent;
-untrusted Eve;
-compromised sk(Eve);
