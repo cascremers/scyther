@@ -149,7 +149,6 @@ protocol HMQV-C(I,R)
 		);
 
 		claim(I,SKR,    KDF(exp(mult(Y,exp(g1(sk(R)),LSB(Y,I))),add(x,mult(LSB(g1(x),R),sk(I))))) );
-		claim(I,Nisynch);
 	}	
 	
 	role R
@@ -166,7 +165,6 @@ protocol HMQV-C(I,R)
 		);
 
 		claim(R,SKR,    KDF(exp(mult(X,exp(g1(sk(I)),LSB(X,R))),add(y,mult(LSB(g1(y),I),sk(R))))) );
-		claim(R,Nisynch);
 	}
 }
 

@@ -30,7 +30,6 @@ protocol 3PKD(I,R,S)
 		read_3(S,I, { sesk }k(I,S), hash(hk(I,S),I,R,ri,{ sesk }k(I,S)) );
 
 		claim_I(I,SKR,sesk);
-		claim_I1(I,Nisynch);
 	}	
 	
 	role R
@@ -44,8 +43,6 @@ protocol 3PKD(I,R,S)
 		read_4(S,R, { sesk }k(R,S), hash(hk(R,S),I,R,rr,{ sesk }k(R,S)) );
 
 		claim_R(R,SKR,sesk);
-		claim_R1(I,Nisynch);
-		claim_R2(R, Reachable);
 	}
 
 	role S

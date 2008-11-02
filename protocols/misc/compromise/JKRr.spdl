@@ -114,7 +114,6 @@ protocol JKFr(I,R)
 		);
 
 		claim(I,SKR, h1(g2(g1(di),xr),Ni,Nr,keytypev) );
-		//claim(I,Nisynch);
 	}	
 	
 	role R
@@ -150,7 +149,6 @@ protocol JKFr(I,R)
 		);
 
 		claim(R,SKR, h1(g2(g1(dr),xi),Ni,Nr,keytypev) );
-		//claim(R,Nisynch);
 	}
 }
 

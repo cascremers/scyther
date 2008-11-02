@@ -76,7 +76,6 @@ protocol KEA(I,R)
 		  g2(beta,sk(I)),
 		  g2(pk(R),x)
 		));
-		claim(I,Nisynch);
 	}	
 	
 	role R
@@ -92,7 +91,6 @@ protocol KEA(I,R)
 		  g2(pk(I),y),
 		  g2(alpha,sk(R))
 		));
-		claim(R,Nisynch);
 	}
 }
 

@@ -54,7 +54,6 @@ protocol twoDHiso-prf(I,R)
 		send_!3(I,R,  h1( g2(beta,x ) ) );
 
 		claim(I,SKR, g2(beta,x) );
-		claim(I,Nisynch);
 	}	
 	
 	role R
@@ -70,7 +69,6 @@ protocol twoDHiso-prf(I,R)
 		recv_!3(I,R,  h1( g2(alpha,y ) ) );
 
 		claim(R,SKR, g2(alpha,y) );
-		claim(R,Nisynch);
 	}
 }
 

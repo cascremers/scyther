@@ -47,7 +47,6 @@ protocol twoDHiso-C(I,R)
 		send_3(I,R,  g1(x),beta,i,R,  { g1(x),beta,i,R }sk(I) );
 
 		claim(I,SKR, g2(beta,x) );
-		claim(I,Nisynch);
 	}	
 	
 	role R
@@ -63,7 +62,6 @@ protocol twoDHiso-C(I,R)
 		recv_3(I,R,  alpha,g1(y),i,R,  { alpha,g1(y),i,R }sk(I) );
 
 		claim(R,SKR, g2(alpha,y) );
-		claim(R,Nisynch);
 	}
 }
 

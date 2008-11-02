@@ -88,7 +88,6 @@ protocol KEAplusC(I,R)
 		  g2(pk(R),x),
 		  I,R
 		));
-		claim(I,Nisynch);
 	}	
 	
 	role R
@@ -114,7 +113,6 @@ protocol KEAplusC(I,R)
 		  g2(alpha,sk(R)),
 		  I,R
 		));
-		claim(R,Nisynch);
 	}
 }
 
