@@ -54,6 +54,7 @@ FCDN = 0
 FCDX = 0
 FCDS = 0
 DRAWGRAPH = True
+DOTABBREVS = {}
 
 RESTRICTEDMODELS = None # No restricted model set
 
@@ -473,8 +474,12 @@ def FindClaims(filelist):
 
     returns a dict of filename to claimname*
     """
-    return Scyther.GetClaims(filelist)
-
+    ll = Scyther.GetClaims(filelist)
+    llnew = {}
+    for fn in ll.keys():
+        if goodprotocol(fn):
+            llnew[fn] = ll[fn]
+    return llnew
 
 
 class SecDelta(object):
@@ -995,17 +1000,12 @@ def Investigate(file,claimid):
     #print "Always flawed:",file,claimid
     return False
 
-def goodclaim(fname,cid):
+def goodprotocol(fname):
     """
     Filter out stuff
     """
     global BRIEF
 
-    # First, get rid of bad
-    filter = ["ksl,","ksl-Lowe,"]
-    for pref in filter:
-        if cid.startswith(pref):
-            return False
     filefilter = ["../gui/Protocols/key-compromise/neumannstub-hwang.spdl", "../protocols/misc/compositionality-examples/","../protocols/misc/naxos-attempt3-quick.spdl"]
     for pref in filefilter:
         if fname.startswith(pref):
@@ -1022,6 +1022,120 @@ def goodclaim(fname,cid):
 
     # Not bad, no filter: accept
     return True
+
+def goodclaim(fname,cid):
+    """
+    Filter out stuff
+    """
+    global BRIEF
+
+    if goodprotocol(fname) == False:
+        return False
+
+    # Get rid of bad
+    filter = ["ksl,","ksl-Lowe,"]
+    for pref in filter:
+        if cid.startswith(pref):
+            return False
+
+    # Not bad, no filter: accept
+    return True
+
+
+def subset(s1,s2):
+    for x in s1:
+        if x not in s2:
+            return False
+    return True
+
+def strictsubset(s1,s2):
+    if subset(s1,s2) and not subset(s2,s1):
+        return True
+    return False
+
+def allTrueModels(fn):
+    """
+    Return all models in which all claims of fn are true
+    """
+    global FCD
+
+    model = SecModel()
+    allcorrect = []
+    while model != None:
+
+        yeahright = True
+        for cid in FCD[fn]:
+            if goodclaim(fn,cid):
+                res = TestClaim(fn,cid,model)
+                if res == False:
+                    yeahright = False
+                    break
+        if yeahright == True:
+            allcorrect.append(model)
+
+        model = model.next()
+    return allcorrect
+
+
+def reportWeaker(fn):
+    """
+    Report all weaker protocols
+    """
+    global FCD
+
+    at = allTrueModels(fn)
+    weakers = []
+    for fn2 in FCD.keys():
+        if fn != fn2:
+            at2 = allTrueModels(fn2)
+            if strictsubset(at2,at):
+                weakers.append(fn2)
+    return weakers
+
+
+def dotabbrev(fn):
+    """
+    Shorten a filename for dot usage
+    """
+    global DOTABBREVS
+
+    if fn in DOTABBREVS.keys():
+        return DOTABBREVS[fn]
+
+    # shorten
+    repl = fn.replace("-","_")
+    fullfile = repl.split("/")[-1]
+    short = "P_%s" % fullfile.split(".")[0]
+    while short in DOTABBREVS.values():
+        short = short + "'"
+
+    DOTABBREVS[fn] = short
+    return short
+
+
+def reportProtocolHierarchy():
+    """
+    Report the hierarchy of protocols.
+    """
+    global FCD
+
+    if len(sys.argv[1:]) == 0:
+        return
+
+    print "Writing protocol hierarchy."
+    fp = open("protocol-H.dot","w")
+    fp.write("digraph protocolhierarchy {\n")
+
+    for fn in FCD.keys():
+        ll = reportWeaker(fn)
+        for pn in ll:
+            fp.write("%s -> %s;\n" % (dotabbrev(pn),dotabbrev(fn)))
+
+    fp.write("};\n")
+    fp.close()
+    commands.getoutput("dot -Tpdf protocol-H.dot >protocol-H.pdf")
+    print "Done."
+
 
 
 def WriteHierarchy():
@@ -1094,7 +1208,11 @@ def main():
         
     DRAWGRAPH = True
     DotGraph(True)
-    reportContext()
+
+    ### Report summary
+    #reportContext()
+
+    reportProtocolHierarchy()
     print
     print "Analysis complete."
 
