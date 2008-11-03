@@ -90,6 +90,56 @@ protocol @exponentiation(RA,RB,RC)
 	}
 }
 
+protocol @keysymmetry(R1,R2,R3)
+{
+	role R1
+	{
+		var Y,X: Ticket;
+		var Z1,Z2: Ticket;
+
+		recv_!1(R1,R1, h2( 
+			g2(g1(Y),X),
+			Z1,Z2,
+			R1,R2));
+		send_!2(R1,R1, h2( 
+			g2(g1(X),Y), 
+			Z1,Z2,
+			R1,R2));
+	}
+	role R2
+	{
+		var Y,X: Ticket;
+		var Z1,Z2: Ticket;
+
+		recv_!4(R2,R2, h2( 
+			Z1,
+			g2(g1(Y),X),
+			Z2,
+			R2,R3));
+		send_!5(R2,R2, h2( 
+			Z1,
+			g2(g1(X),Y), 
+			Z2,
+			R2,R3));
+	}
+	role R3
+	{
+		var Y,X: Ticket;
+		var Z1,Z2: Ticket;
+
+		recv_!5(R3,R3, h2( 
+			g2(g1(Y),X),
+			Z1,
+			Z2,
+			R3,R1));
+		send_!6(R3,R3, h2( 
+			g2(g1(X),Y), 
+			Z1,
+			Z2,
+			R3,R1));
+	}
+}
+
 // The protocol description
 
 protocol naxos(I,R)

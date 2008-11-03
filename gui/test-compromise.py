@@ -245,6 +245,23 @@ class SecModel(object):
             return s[2:-2]
         return ""
 
+    def shortname(self,unknown="???"):
+        """
+        Yield abbreviation
+        """
+        global RESTRICTEDMODELS
+
+        pref = ""
+        if RESTRICTEDMODELS != None:
+            try:
+                i = RESTRICTEDMODELS.index(self)
+                xn = RESTRICTEDMODELS[i].name
+                if xn != None:
+                    return xn
+            except:
+                pass
+        return unknown
+
     def __str__(self,sep=" ",empty="External",display=False,sort=False):
         """
         Yield string
@@ -253,14 +270,9 @@ class SecModel(object):
 
         pref = ""
         if display == True:
-            if RESTRICTEDMODELS != None:
-                try:
-                    i = RESTRICTEDMODELS.index(self)
-                    xn = RESTRICTEDMODELS[i].name
-                    if xn != None:
-                        pref = "%s\\n" % (xn)
-                except:
-                    pass
+            pref = self.shortname(unknown="")
+            if pref != "":
+                pref += "\\n"
 
         sl = []
         for i in range(0,self.length):
@@ -1085,12 +1097,30 @@ def reportWeaker(fn):
 
     at = allTrueModels(fn)
     weakers = []
+    equals = []
     for fn2 in FCD.keys():
         if fn != fn2:
             at2 = allTrueModels(fn2)
-            if strictsubset(at2,at):
-                weakers.append(fn2)
-    return weakers
+            if subset(at2,at):
+                if subset(at,at2):
+                    equals.append(fn2)
+                else:
+                    weakers.append(fn2)
+        else:
+            equals.append(fn2)
+    return (weakers,equals)
+
+
+def pickfirst(dic,fn):
+    """
+    Pick a representative
+    """
+    for x in dic.keys():
+        if x == fn:
+            return x
+        if fn in dic[x]:
+            return x
+    return fn
 
 
 def dotabbrev(fn):
@@ -1126,10 +1156,52 @@ def reportProtocolHierarchy():
     fp = open("protocol-H.dot","w")
     fp.write("digraph protocolhierarchy {\n")
 
+    # Infer dependencies
+    wkrs = {}
+    equals = {}
     for fn in FCD.keys():
-        ll = reportWeaker(fn)
+        (ll,eq) = reportWeaker(fn)
+        wkrs[fn] = []
+        equals[fn] = []
         for pn in ll:
-            fp.write("%s -> %s;\n" % (dotabbrev(pn),dotabbrev(fn)))
+            wkrs[fn].append(pn)
+        for pn in eq:
+            equals[fn].append(pn)
+
+    # Report only minimal paths
+    for fn in FCD.keys():
+        for pn in wkrs[fn]:
+            # Report this link iff there is no node in between
+            nope = True
+            for xn in wkrs[fn]:
+                if pn in wkrs[xn]:
+                    nope = False
+                    break
+            if nope == True:
+                fp.write("\t%s -> %s;\n" % (dotabbrev(pickfirst(equals,pn)),dotabbrev(pickfirst(equals,fn))))
+
+    # Name the nodes
+    shown = []
+    for fn in FCD.keys():
+        repr = pickfirst(equals,fn)
+        if not repr in shown:
+            shown.append(repr)
+            nl = []
+            for x in equals[repr]:
+                da = dotabbrev(pickfirst(equals,fn))
+                if da not in nl:
+                    nl.append(da)
+
+            nl.sort()
+            txt = ",".join(nl)
+            txt += "\\n"
+            models = allTrueModels(fn)
+            nm = []
+            for m in models:
+                nm.append(m.shortname())
+            nm.sort()
+            txt += " ; ".join(nm)
+            fp.write("\t%s [label=\"%s\"];\n" % (dotabbrev(repr),txt))
 
     fp.write("};\n")
     fp.close()
