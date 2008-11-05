@@ -881,7 +881,7 @@ actorInClaim (const System sys, const int run)
 int
 compromisePrune (void)
 {
-  if (switches.SSR || switches.SKR)
+  if (switches.SSR || switches.SKR || switches.RNR)
     {
       /*
        * These effectively encode the preconditions for SSR/SKR:
@@ -899,9 +899,24 @@ compromisePrune (void)
 	    {
 	      if (isRunCompromised (run) == 1)
 		{
-		  // One of the partners is compromised with type SKR/SSR, prune
-		  result = true;
-		  break;
+		  if (switches.RNR)
+		    {
+		      /*
+		       * For RNR we do allow compromise of the partners, but
+		       * then there should not be a long term compromise then.
+		       */
+		      if (!isAgentTrusted (sys, agentOfRun (sys, run)))
+			{
+			  result = true;
+			  break;
+			}
+		    }
+		  else
+		    {
+		      // One of the partners is compromised with type SKR/SSR, prune
+		      result = true;
+		      break;
+		    }
 		}
 	    }
 	}
