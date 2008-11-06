@@ -1188,7 +1188,7 @@ def reportProtocolHierarchy():
             shown.append(repr)
             nl = []
             for x in equals[repr]:
-                da = dotabbrev(pickfirst(equals,fn))
+                da = dotabbrev(x)
                 if da not in nl:
                     nl.append(da)
 
