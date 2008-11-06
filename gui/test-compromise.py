@@ -426,12 +426,13 @@ class SecModel(object):
         global FCD
 
         for claimid in FCD[protocol]:
-            buf = DRAWGRAPH
-            DRAWGRAPH = False
-            res = TestClaim(protocol,claimid,self)
-            DRAWGRAPH = buf
-            if res == False:
-                return False
+            if goodclaim(protocol,claimid):
+                buf = DRAWGRAPH
+                DRAWGRAPH = False
+                res = TestClaim(protocol,claimid,self)
+                DRAWGRAPH = buf
+                if res == False:
+                    return False
         return True
 
     def union(self,other):
@@ -1209,6 +1210,61 @@ def reportProtocolHierarchy():
     print "Done."
 
 
+def reportProtocolTable():
+    """
+    Report the table of protocols.
+    """
+    global FCD
+    global RESTRICTEDMODELS
+
+    # Must have small number of models
+    if RESTRICTEDMODELS == None:
+        return
+
+    # Must have small number of protocols
+    if len(sys.argv[1:]) == 0:
+        return
+    
+    maxprotwidth = 1
+    for fn in FCD.keys():
+        da = len(dotabbrev(fn))
+        if da > maxprotwidth:
+            maxprotwidth = da
+
+    # attack string
+    attackstr = "attack"
+
+    maxmodwidth = len(attackstr)
+    model = SecModel()
+    while model != None:
+        mw = len(model.shortname())
+        if mw > maxmodwidth:
+            maxmodwidth = mw
+        model = model.next()
+
+    # Protocols on Y axis, models on X
+    header = " ".ljust(maxprotwidth)
+    model = SecModel()
+    while model != None:
+        header += "|%s" % model.shortname().ljust(maxmodwidth)
+        model = model.next()
+
+    print header
+    print "-" * len(header)
+
+    for fn in FCD.keys():
+        line = dotabbrev(fn).ljust(maxprotwidth)
+        model = SecModel()
+        while model != None:
+            res = " "
+            if model.isProtocolCorrect(fn) == False:
+                res = attackstr
+            line += "|%s" % res.ljust(maxmodwidth)
+            model = model.next()
+        print line
+
+    print "-" * len(header)
+
 
 def WriteHierarchy():
     """
@@ -1285,6 +1341,7 @@ def main():
     #reportContext()
 
     reportProtocolHierarchy()
+    reportProtocolTable()
     print
     print "Analysis complete."
 
