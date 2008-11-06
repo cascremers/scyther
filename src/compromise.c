@@ -899,7 +899,7 @@ compromisePrune (void)
 	    {
 	      if (isRunCompromised (run) == 1)
 		{
-		  if (switches.RNR)
+		  if (sys->runs[run].protocol->compromiseProtocol == 2)
 		    {
 		      /*
 		       * For RNR we do allow compromise of the partners, but
