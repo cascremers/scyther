@@ -6,13 +6,13 @@
  */
 
 // Hash functions
-const h1,h2,g1,g2: Function;
+const h1,h2,gexp,gmult: Function;
 secret unh1,unh2,ung1,ung2: Function;
 
 inversekeys (h1,unh1);
 inversekeys (h2,unh2);
-inversekeys (g1,ung1);
-inversekeys (g2,ung2);
+inversekeys (gexp,ung1);
+inversekeys (gmult,ung2);
 
 usertype String;
 const C0,C1: String;
@@ -24,23 +24,23 @@ protocol @publickeys(RA,RB,RC)
 {
 	role RA
 	{
-		send_!1(RA,RA, g1(sk(RA)) );
+		send_!1(RA,RA, gexp(sk(RA)) );
 	}
 	role RB
 	{
-		// Special one to go into DH g2
+		// Special one to go into DH gmult
 		var T: Ticket;
 
-		recv_!2(RB,RB, g2(g1(T),sk(RB)) );
-		send_!3(RB,RB, g2(pk(RB),T) );
+		recv_!2(RB,RB, gmult(gexp(T),sk(RB)) );
+		send_!3(RB,RB, gmult(pk(RB),T) );
 	}
 	role RC
 	{
-		// Special one to go into DH g2
+		// Special one to go into DH gmult
 		var T: Ticket;
 
-		recv_!4(RC,RC, g2(pk(RC),T) );
-		send_!5(RC,RC, g2(g1(T),sk(RC)) );
+		recv_!4(RC,RC, gmult(pk(RC),T) );
+		send_!5(RC,RC, gmult(gexp(T),sk(RC)) );
 	}
 }
 
@@ -56,8 +56,8 @@ protocol @exponentiation(RA)
 	{
 		var alpha,beta, T1,T2: Ticket;
 
-		recv_!1(RA,RA, g2(g1(T1),T2) );
-		send_!2(RA,RA, g2(g1(T2),T1) );
+		recv_!1(RA,RA, gmult(gexp(T1),T2) );
+		send_!2(RA,RA, gmult(gexp(T2),T1) );
 	}
 }
 
@@ -71,21 +71,21 @@ protocol KEAplusC(I,R)
 		var beta: Ticket;
 
 		send_Compromise(I,I, x);
-		send_1(I,R, g1(x) );
+		send_1(I,R, gexp(x) );
 		recv_!2(R,I, beta,h2(C0,C0,
-		  g2(beta,sk(I)),
-		  g2(pk(R),x),
+		  gmult(beta,sk(I)),
+		  gmult(gexp(sk(R)),x),
 		  I,R
 		));
 		send_!3(I,R, h2(C1,C0,
-		  g2(beta,sk(I)),
-		  g2(pk(R),x),
+		  gmult(beta,sk(I)),
+		  gmult(pk(R),x),
 		  I,R
 		));
 
 		claim(I,SKR, h1(C1,
-		  g2(beta,sk(I)),
-		  g2(pk(R),x),
+		  gmult(beta,sk(I)),
+		  gmult(gexp(sk(R)),x),
 		  I,R
 		));
 	}	
@@ -97,20 +97,20 @@ protocol KEAplusC(I,R)
 
 		recv_1(I,R, alpha );
 		send_Compromise(R,R, y);
-		send_!2(R,I, g1(y), h2(C0,C0,
-		  g2(pk(I),y),
-		  g2(alpha,sk(R)),
+		send_!2(R,I, gexp(y), h2(C0,C0,
+		  gmult(pk(I),y),
+		  gmult(alpha,sk(R)),
 		  I,R
 		));
 		recv_!3(I,R, h2(C1,C0,
-		  g2(pk(I),y),
-		  g2(alpha,sk(R)),
+		  gmult(gexp(sk(I)),y),
+		  gmult(alpha,sk(R)),
 		  I,R
 		));
 
 		claim(R,SKR, h1(C1,
-		  g2(pk(I),y),
-		  g2(alpha,sk(R)),
+		  gmult(gexp(sk(I)),y),
+		  gmult(alpha,sk(R)),
 		  I,R
 		));
 	}
