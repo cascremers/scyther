@@ -897,23 +897,25 @@ compromisePrune (void)
 	{
 	  if (partners[run])
 	    {
-	      if (isRunCompromised (run) == 1)
+	      int type;
+
+	      type = isRunCompromised (run);
+	      if (type == 1)
 		{
-		  if (sys->runs[run].protocol->compromiseProtocol == 2)
+		  // One of the partners is compromised with type SKR/SSR, prune
+		  result = true;
+		  break;
+		}
+	      if (type == 2)
+		{
+		  /*
+		   * For RNR we do allow compromise of the partners, but
+		   * then there should not be a long term compromise then.
+		   */
+		  if (!isAgentTrusted (sys, agentOfRun (sys, run)))
 		    {
-		      /*
-		       * For RNR we do allow compromise of the partners, but
-		       * then there should not be a long term compromise then.
-		       */
-		      if (!isAgentTrusted (sys, agentOfRun (sys, run)))
-			{
-			  result = true;
-			  break;
-			}
-		    }
-		  else
-		    {
-		      // One of the partners is compromised with type SKR/SSR, prune
+		      // There was a long-term compromise at some point.
+		      // Hence we prune. Otherwise it's allowed.
 		      result = true;
 		      break;
 		    }
