@@ -86,32 +86,9 @@ partnerDone (void)
  * Main code
  */
 
-//! Check complete message match
+//! Label compare (should be considered equal for two different protocols so as to cater for different protocols.)
 /**
- * Roledef based.
- *@returns MATCH_NONE or MATCH_CONTENT
- * 
- * This compromise version ignores the labels and the agents.
- */
-__inline__ int
-events_hist_match_rd (const Roledef rdi, const Roledef rdj)
-{
-  if (isTermEqual (rdi->message, rdj->message) &&
-      // isTermEqual (rdi->from, rdj->from) && isTermEqual (rdi->to, rdj->to) &&
-      // isTermEqual (rdi->label, rdj->label) &&
-      !(rdi->internal || rdj->internal))
-    {
-      return MATCH_CONTENT;
-    }
-  else
-    {
-      return MATCH_NONE;
-    }
-}
-
-//! Label compare (should be considered equal for two different protocols so as to cater for different protocols.
-/**
- * TODO this must be made more precise, because
+ * TODO this must be made more precise.
  */
 int
 isLabelComprEqual (Term l1, Term l2)
@@ -138,6 +115,30 @@ isLabelComprEqual (Term l1, Term l2)
       return result;
     }
   return false;
+}
+
+//! Check complete message match
+/**
+ * Roledef based.
+ *@returns MATCH_NONE or MATCH_CONTENT
+ * 
+ * This compromise version ignores the agents. However, we need the labels for
+ * the ordering on matching histories.
+ */
+__inline__ int
+events_hist_match_rd (const Roledef rdi, const Roledef rdj)
+{
+  if (isTermEqual (rdi->message, rdj->message) &&
+      // isTermEqual (rdi->from, rdj->from) && isTermEqual (rdi->to, rdj->to) &&
+      isLabelComprEqual (rdi->label, rdj->label) &&
+      !(rdi->internal || rdj->internal))
+    {
+      return MATCH_CONTENT;
+    }
+  else
+    {
+      return MATCH_NONE;
+    }
 }
 
 //! Check generic agree claim for a given set of runs, arachne style
