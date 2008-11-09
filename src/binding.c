@@ -543,56 +543,64 @@ bindings_c_minimal ()
 	    for (run = 0; run < sys->maxruns; run++)
 	      {
 		int ev;
+		Roledef rd;
+
+		rd = sys->runs[run].start;
 
 		//!@todo hardcoded reference to step, should be length
 		for (ev = 0; ev < sys->runs[run].step; ev++)
 		  {
-		    if (isDependEvent (run, ev, b->run_from, b->ev_from))
+		    if (rd->type == SEND || rd->type == READ)
 		      {
-			// this node is *before* the from node
-			Roledef rd;
-			int occursthere;
-
-			rd = roledef_shift (sys->runs[run].start, ev);
-			if (switches.intruder)
+			if (isDependEvent (run, ev, b->run_from, b->ev_from))
 			  {
-			    // intruder: interm bindings should cater for the first occurrence
-			    occursthere = termInTerm (rd->message, b->term);
+			    // this node is *before* the from node
+
+			    int occursthere;
+
+			    if (switches.intruder)
+			      {
+				// intruder: interm bindings should cater for the first occurrence
+				occursthere =
+				  termInTerm (rd->message, b->term);
+			      }
+			    else
+			      {
+				// no intruder, then simple test
+				occursthere =
+				  isTermEqual (rd->message, b->term);
+			      }
+			    if (occursthere)
+			      {
+				// This term already occurs in a previous node!
+#ifdef DEBUG
+				if (DEBUGL (4))
+				  {
+				    // Report this
+				    indentPrint ();
+				    eprintf ("Binding for ");
+				    termPrint (b->term);
+				    eprintf
+				      (" at r%i i%i is not c-minimal because it occurred before at r%i i%i in ",
+				       b->run_from, b->ev_from, run, ev);
+				    termPrint (rd->message);
+				    eprintf ("\n");
+				  }
+#endif
+				return false;
+			      }
 			  }
 			else
 			  {
-			    // no intruder, then simple test
-			    occursthere = isTermEqual (rd->message, b->term);
+			    // If this event is not before the target, then the
+			    // next in the run certainly is not either (because
+			    // that would imply that this one is before it)
+			    // Thus, we effectively exit the loop.
+			    break;
 			  }
-			if (occursthere)
-			  {
-			    // This term already occurs in a previous node!
-#ifdef DEBUG
-			    if (DEBUGL (4))
-			      {
-				// Report this
-				indentPrint ();
-				eprintf ("Binding for ");
-				termPrint (b->term);
-				eprintf
-				  (" at r%i i%i is not c-minimal because it occurred before at r%i i%i in ",
-				   b->run_from, b->ev_from, run, ev);
-				termPrint (rd->message);
-				eprintf ("\n");
-			      }
-#endif
-			    return false;
-			  }
-		      }
-		    else
-		      {
-			// If this event is not before the target, then the
-			// next in the run certainly is not either (because
-			// that would imply that this one is before it)
-			// Thus, we effectively exit the loop.
-			break;
 		      }
 		  }
+		rd = rd->next;
 	      }
 	  }
 	bl = bl->next;
