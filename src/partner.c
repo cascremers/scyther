@@ -147,7 +147,6 @@ arachne_runs_hist_match (const System sys, const Claimlist cl,
 			 const Termmap runs)
 {
   Termlist labels;
-  int flag;
 
 #ifdef DEBUG
   if (DEBUGL (5))
@@ -158,92 +157,80 @@ arachne_runs_hist_match (const System sys, const Claimlist cl,
     }
 #endif
 
-  flag = 1;
-  labels = cl->prec;
-  while (flag && labels != NULL)
+  for (labels = cl->prec; labels != NULL; labels = labels->next)
     {
       // For each label, check whether it matches. Maybe a bit too strict (what about variables?)
       // Locate roledefs for read & send, and check whether they are before step
-      Roledef rd_send, rd_read;
       Labelinfo linfo;
 
       Roledef get_label_event (const Term role, const Term label)
       {
-	Roledef rd, rd_res;
-	int i;
 	int run;
+	Roledef rd;
+	int i;
 
 	run = termmapGet (runs, role);
-	if (run != -1)
-	  {
-#ifdef DEBUG
-	    if (run < 0 || run >= sys->maxruns)
-	      {
-		globalError++;
-		eprintf ("Run mapping %i out of bounds for role ", run);
-		termPrint (role);
-		eprintf (" and label ");
-		termPrint (label);
-		eprintf ("\n");
-		eprintf ("This label has sendrole ");
-		termPrint (linfo->sendrole);
-		eprintf (" and readrole ");
-		termPrint (linfo->readrole);
-		eprintf ("\n");
-		globalError--;
-		error ("Run mapping is out of bounds.");
-	      }
-#endif
-	    rd = sys->runs[run].start;
-	    rd_res = NULL;
-	    i = 0;
-	    while (i < sys->runs[run].step && rd != NULL)
-	      {
-		if (isLabelComprEqual (rd->label, label))
-		  {
-		    rd_res = rd;
-		    rd = NULL;
-		  }
-		else
-		  {
-		    rd = rd->next;
-		  }
-		i++;
-	      }
-	    return rd_res;
-	  }
-	else
+	if (run == -1)
 	  {
 	    return NULL;
 	  }
+#ifdef DEBUG
+	if (run < 0 || run >= sys->maxruns)
+	  {
+	    globalError++;
+	    eprintf ("Run mapping %i out of bounds for role ", run);
+	    termPrint (role);
+	    eprintf (" and label ");
+	    termPrint (label);
+	    eprintf ("\n");
+	    eprintf ("This label has sendrole ");
+	    termPrint (linfo->sendrole);
+	    eprintf (" and readrole ");
+	    termPrint (linfo->readrole);
+	    eprintf ("\n");
+	    globalError--;
+	    error ("Run mapping is out of bounds.");
+	  }
+#endif
+	rd = sys->runs[run].start;
+	for (i = 0; i < sys->runs[run].step; i++)
+	  {
+	    if (isLabelComprEqual (rd->label, label))
+	      {
+		return rd;
+	      }
+	    rd = rd->next;
+	  }
+	return NULL;
       }
 
       // Main
       linfo = label_find (sys->labellist, labels->term);
       if (!linfo->ignore)
 	{
-	  rd_send = get_label_event (linfo->sendrole, labels->term);
-	  rd_read = get_label_event (linfo->readrole, labels->term);
+	  Roledef rd_send, rd_read;
 
-	  if (rd_send == NULL || rd_read == NULL)
+	  rd_read = get_label_event (linfo->readrole, labels->term);
+	  if (rd_read == NULL)
 	    {
 	      // False!
-	      flag = 0;
+	      return 0;
 	    }
-	  else
+	  rd_send = get_label_event (linfo->sendrole, labels->term);
+	  if (rd_send == NULL)
 	    {
-	      // Compare
-	      if (events_hist_match_rd (rd_send, rd_read) != MATCH_CONTENT)
-		{
-		  // False!
-		  flag = 0;
-		}
+	      // False!
+	      return 0;
+	    }
+	  // Compare
+	  if (events_hist_match_rd (rd_send, rd_read) != MATCH_CONTENT)
+	    {
+	      // False!
+	      return 0;
 	    }
 	}
-
-      labels = labels->next;
     }
-  return flag;
+  return 1;
 }
 
 //! Iterate over all termmap for runs_involved
