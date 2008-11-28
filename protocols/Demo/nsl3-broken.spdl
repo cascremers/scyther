@@ -3,12 +3,6 @@
  * broken version (wrong role name in first message)
  */
 
-// PKI infrastructure
-
-const pk: Function;
-secret sk: Function;
-inversekeys (pk,sk);
-
 // The protocol description
 
 protocol nsl3-broken(I,R)
@@ -43,10 +37,4 @@ protocol nsl3-broken(I,R)
 		claim_r4(R,Nisynch);
 	}
 }
-
-// An untrusted agent, with leaked information
-
-const Eve: Agent;
-untrusted Eve;
-compromised sk(Eve);
 
