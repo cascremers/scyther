@@ -37,7 +37,7 @@ from Scyther import *
 
 SHOWPATH = False    # Switch to true to show paths in the graph
 #DEFAULTARGS = "--max-runs=7 --extravert"
-DEFAULTARGS = "--max-runs=7"
+DEFAULTARGS = "--max-runs=4"
 ALLCORRECT = True   # Require all claims to be correct of the protocol in prev. node for counterexample
 BRIEF = False
 FAST = True    # True means Skip intermediate graph drawing
