@@ -65,6 +65,7 @@ struct switchdata
   // Adversary type
   int LKRnotgroup;		//!< anybody outside the group
   int LKRactor;			//!< KCI
+  int LKRactorrnsafe;		//!< KCI with rn safe
   int LKRafter;			//!< perfect forward secrecy
   int LKRaftercorrect;		//!< weak perfect forward secrecy
   int LKRrnsafe;		//!< weaker perfect forward secrecy

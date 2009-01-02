@@ -77,7 +77,7 @@ pruneTrusted (const System sys)
 		  continue;
 		}
 	    }
-	  if (switches.LKRactor)
+	  if (switches.LKRactor || switches.LKRactorrnsafe)
 	    {
 	      // Is it the agent the actor of run 0,...
 	      if (isTermEqual (a, agentOfRun (sys, 0)))
@@ -104,7 +104,17 @@ pruneTrusted (const System sys)
 		  if (allgood)
 		    {
 		      // It was the actor, but not assigned to any of the other roles
-		      continue;
+		      if (switches.LKRactor)
+			{
+			  continue;
+			}
+		      if (switches.LKRactorrnsafe)
+			{
+			  if (!compromiseRNRbefore (b->run_to, b->ev_to))
+			    {
+			      continue;
+			    }
+			}
 		    }
 		}
 	    }
