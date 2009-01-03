@@ -2246,82 +2246,37 @@ iterate_multiple_preconditions (void)
   return result;
 }
 
-//! Just before starting output of an attack.
-//
-//! A wrapper for the case in which we need to buffer attacks.
+//! Find index of a claim
 int
-iterate_buffer_attacks (void)
+getClaimIndex (int run, Claimlist cl)
 {
-  if (useAttackBuffer ())
+  int idx;
+  Roledef rd;
+
+  idx = 0;
+  for (rd = sys->runs[run].start; rd != NULL; rd = rd->next)
     {
-      // We are pruning attacks, so they should go into a temporary file.
-      /*
-       * Set up the temporary file pointer
-       */
-      char *buffer;
-      int result;
-
-      // Push the old situation onto the stack
-      buffer = globalStream;
-
-      // Start stuff
-      attack_stream = NULL;
-      attackOutputStart ();
-
-      // Iterate inside
-      result = iterate_multiple_preconditions ();
-
-      /* Now, if it has been set, we need to copy the output to the normal streams.
-       */
-      fcopy (attack_stream, (FILE *) buffer);
-
-      // Close
-      fclose (attack_stream);
-      attack_stream = NULL;
-
-      // Restore
-      globalStream = buffer;
-
-      return result;
+      if (rd->type == CLAIM)
+	{
+	  if (rd->claiminfo == cl)
+	    {
+	      return idx;
+	    }
+	}
+      idx++;
     }
-  else
-    {
-      // No attack buffering, just output all of them
-      return iterate_multiple_preconditions ();
-    }
+  error ("Internal weirdness: could not find supposed claim in claim run.");
+  return -1;
 }
 
-//! Arachne single claim test
+//! Create a run run for the claim
 void
-arachneClaimTest ()
+iterate_create_claimrun (Claimlist cl, Protocol p, Role r)
 {
-  // others we simply test...
   int run;
   int newruns;
-  Protocol p;
-  Role r;
-  Claimlist cl;
 
   newruns = 0;
-  cl = sys->current_claim;
-  attack_length = INT_MAX;
-  attack_leastcost = INT_MAX;
-  cl->complete = 1;
-  p = (Protocol) cl->protocol;
-  r = (Role) cl->role;
-
-  if (switches.output == PROOF)
-    {
-      indentPrint ();
-      eprintf ("Testing Claim ");
-      termPrint (cl->type);
-      eprintf (" from ");
-      termPrint (p->nameterm);
-      eprintf (", ");
-      termPrint (r->nameterm);
-      eprintf (" at index %i.\n", cl->ev);
-    }
-  indentDepth++;
 
   run = semiRunCreate (p, r);	// create claim run, should be 0 (as assumed at other places)
   sys->runs[run].partner = true;	// mark the first run as a partner (obviously)
@@ -2337,8 +2292,11 @@ arachneClaimTest ()
 	  printSemiState ();
 	}
 #endif
-      return iterate_buffer_attacks ();
+      return iterate_multiple_preconditions ();
     }
+
+    // Because of compromised runs, claim event index may shift.
+    cl->ev = getClaimIndex (run, cl);
 
     proof_suppose_run (run, 0, cl->ev + 1);
     newgoals = add_read_goals (run, 0, cl->ev + 1);
@@ -2393,6 +2351,7 @@ arachneClaimTest ()
     semiRunDestroy ();
     newruns--;
   }
+
   //! Destroy
   while (sys->maxruns > 0 && newruns > 0)
     {
@@ -2413,6 +2372,146 @@ arachneClaimTest ()
       error ("Lost %i runs after claim test.", newruns);
     }
 #endif
+}
+
+
+//! For for compromised claim runs (i.e. RNR)
+/**
+ * With no RNR, we just create the protocol, and that's it. With RNR we also
+ * need to consider a compromised RNR run.
+ */
+void
+iterate_create_claimruns_compromised (Claimlist cl, Protocol p, Role r)
+{
+  // Iterate for normal protocol first
+  iterate_create_claimrun (cl, p, r);
+
+  // Iterate for compromised claim run if needed
+  if (switches.RNR)
+    {
+      Protocol pcomp;
+
+      for (pcomp = sys->protocols; pcomp != NULL; pcomp = pcomp->next)
+	{
+	  /* Try to find a type 2 (RNR) protocol
+	   */
+	  if (pcomp->compromiseProtocol == 2)
+	    {
+	      if (pcomp->parentProtocol == p)
+		{
+		  /* This RNR protocol has the claim protocol as parent
+		   */
+		  break;
+		}
+	    }
+	}
+      if (pcomp == NULL)
+	{
+	  warning
+	    ("Internal weirdness: Could not find compromise protocol for this claim.");
+	}
+      else
+	{
+	  /* pcomp is the RNR variant of p.
+	   * Role names should be identical.
+	   */
+	  Role rcomp;
+
+	  for (rcomp = pcomp->roles; rcomp != NULL; rcomp = rcomp->next)
+	    {
+	      if (isTermEqual (rcomp->nameterm, r->nameterm))
+		{
+		  break;
+		}
+	    }
+	  if (rcomp == NULL)
+	    {
+	      warning
+		("Internal weirdness: Found RNR compromise protocol, but not the corresponding role.");
+	    }
+	  else
+	    {
+	      /* pcomp, rcomp now set as required.
+	       */
+	      iterate_create_claimrun (cl, pcomp, rcomp);
+	    }
+	}
+    }
+}
+
+//! Just before starting output of an attack.
+//
+//! A wrapper for the case in which we need to buffer attacks.
+void
+iterate_buffer_attacks (Claimlist cl, Protocol p, Role r)
+{
+  if (useAttackBuffer ())
+    {
+      // We are pruning attacks, so they should go into a temporary file.
+      /*
+       * Set up the temporary file pointer
+       */
+      char *buffer;
+
+      // Push the old situation onto the stack
+      buffer = globalStream;
+
+      // Start stuff
+      attack_stream = NULL;
+      attackOutputStart ();
+
+      // Iterate inside
+      iterate_create_claimruns_compromised (cl, p, r);
+
+      /* Now, if it has been set, we need to copy the output to the normal streams.
+       */
+      fcopy (attack_stream, (FILE *) buffer);
+
+      // Close
+      fclose (attack_stream);
+      attack_stream = NULL;
+
+      // Restore
+      globalStream = buffer;
+    }
+  else
+    {
+      // No attack buffering, just output all of them
+      iterate_create_claimruns_compromised (cl, p, r);
+    }
+}
+
+
+//! Arachne single claim test
+void
+arachneClaimTest ()
+{
+  // others we simply test...
+  Protocol p;
+  Role r;
+  Claimlist cl;
+
+  cl = sys->current_claim;
+  attack_length = INT_MAX;
+  attack_leastcost = INT_MAX;
+  cl->complete = 1;
+  p = (Protocol) cl->protocol;
+  r = (Role) cl->role;
+
+  if (switches.output == PROOF)
+    {
+      indentPrint ();
+      eprintf ("Testing Claim ");
+      termPrint (cl->type);
+      eprintf (" from ");
+      termPrint (p->nameterm);
+      eprintf (", ");
+      termPrint (r->nameterm);
+      eprintf (" at index %i.\n", cl->ev);
+    }
+  indentDepth++;
+
+  iterate_buffer_attacks (cl, p, r);
 
   //! Indent back
   indentDepth--;

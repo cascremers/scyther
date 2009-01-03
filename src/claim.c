@@ -765,6 +765,9 @@ goodHeight (Role role, Termlist labels)
  * Note that we add orders, and unify, but don't label the bindings.
  *
  * Returns the number of runs added.
+ *
+ * @TODO: We're still not doing the unfolding of all options: it may be the
+ * case that matching session partners are contaminated.
  */
 int
 addFullSession (const System sys)
@@ -777,7 +780,9 @@ addFullSession (const System sys)
   Termlist tl;
 
   addedruns = 0;
-  p = sys->runs[0].protocol;
+
+  // Retrieve parent protocol (reflexive relation)
+  p = sys->runs[0].protocol->parentProtocol;
   claimrole = sys->runs[0].role;
   f = NULL;
 

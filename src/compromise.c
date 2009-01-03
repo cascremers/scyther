@@ -17,10 +17,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-/*
- * The RNR query is still not fully implemented: the test / claim thread still cannot be compromised.
- */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
@@ -682,6 +678,7 @@ compromiseProtocol (Protocol sourceprot, int type)
 
   destprot = protocolDuplicate (sourceprot);
   destprot->compromiseProtocol = type;
+  destprot->parentProtocol = sourceprot;
 
   // Give it a new name
   oldname = destprot->nameterm;
@@ -706,118 +703,80 @@ compromiseProtocol (Protocol sourceprot, int type)
       rd = newrole->roledef;
       while (rd != NULL)
 	{
-	  int includeevent;
+	  Roledef newrd;
+	  Labelinfo linfo;
+	  Termlist tlsend;
 
-	  includeevent = false;
+	  newrd = roledefDuplicate1 (rd);
 
-	  if (rd->type != CLAIM)
+	  if (isCompromiseEvent (rd))
 	    {
-	      includeevent = true;
+	      // If it is a compromise event, it's interesting by definition.
+	      interesting = true;
 	    }
-	  else
+	  // Scan what is new here to be sent etc. later
+	  // The algorithm depends on the type of compromise
+	  compTerms =
+	    learnFromMessage (newrole, compTerms, newrd->message, type);
+	  if (type == 1)
 	    {
-	      // It is a claim
-	      if (isTermEqual (rd->to, CLAIM_Secret)
-		  || isTermEqual (rd->to, CLAIM_SKR))
+	      // Special (additional) case for type 1: explicit session key marker
+	      compTerms = learnSessionKey (compTerms, newrd);
+	    }
+
+	  if (rd->type != READ)
+	    {
+	      // We reverse the list for prettier printing
+	      Termlist tlrev;
+
+	      tlrev = termlistReverse (compTerms);
+	      termlistDelete (compTerms);
+	      compTerms = tlrev;
+	    }
+	  // If it is a send, we already do stuff.
+	  // Note that plain received/sent is already in the
+	  // intruder knowledge for sure.
+	  if ((rd->type == SEND) || (rd->type == READ))
+	    {
+	      compKnown = termlistAppend (compKnown, rd->message);
+	    }
+
+	  // Each role event must be scanned and tags modified.
+	  newrd->label = termSubstitute (newrd->label, oldname, newname);
+	  linfo = label_find (sys->labellist, newrd->label);
+	  if (linfo == NULL)
+	    {
+	      linfo = label_create (newrd->label, destprot);
+	      linfo->ignore = true;
+	      sys->labellist = list_append (sys->labellist, linfo);
+	    }
+
+	  // Compute termlist of things to send now.
+	  // Note tlsend is not delete, but concatenated to compKnown
+	  // further on.
+	  tlsend = termlistNotIn (compTerms, compKnown);
+	  if (tlsend != NULL)
+	    {
+	      Roledef rdcompr;
+	      // Add another node for the compromise.
+	      interesting = true;
+
+	      // Unfold list elements to a list of compromise events.  This
+	      // makes for easier interpretation of the output, and is
+	      // equivalent in terms of complexity to having a single
+	      // (tuple) send.
+	      rdcompr = createCompromiseSends (newrole, tlsend);
+
+	      // If it is a recv, we add it at the end
+	      // but if it is a send, we insert it before
+	      if (rd->type == READ)
 		{
-		  /* Secrecy claims are explicitly included: they in fact store
-		   * 'intermediate' products like the generated keys.
-		   * TODO this is not really what we want. Rather we want an action like "internal compute" or
-		   * something like that.
-		   */
-		  includeevent = true;
+		  // Read, append
+		  rdhead = roledefAppend (rdhead, newrd);
+		  rdhead = roledefAppend (rdhead, rdcompr);
 		}
 	      else
 		{
-		  if (isTermEqual (rd->to, CLAIM_SID)
-		      || isTermEqual (rd->to, CLAIM_SKR))
-		    {
-		      /* We include the SID and SKR events for the following reasons:
-		       * 1. They are part of the intermediate products.
-		       * 2. SID claims need to be in compromised runs for the partner check.
-		       * 3. SKR claims need to be in the compromised runs for SKR reveal
-		       */
-		      includeevent = true;
-		    }
-		}
-
-	    }
-	  if (includeevent)
-	    {
-	      Roledef newrd;
-	      Labelinfo linfo;
-	      Termlist tlsend;
-
-	      newrd = roledefDuplicate1 (rd);
-
-	      if (isCompromiseEvent (rd))
-		{
-		  // If it is a compromise event, it's interesting by definition.
-		  interesting = true;
-		}
-	      // Scan what is new here to be sent etc. later
-	      // The algorithm depends on the type of compromise
-	      compTerms =
-		learnFromMessage (newrole, compTerms, newrd->message, type);
-	      if (type == 1)
-		{
-		  // Special (additional) case for type 1: explicit session key marker
-		  compTerms = learnSessionKey (compTerms, newrd);
-		}
-
-	      if (rd->type != READ)
-		{
-		  // We reverse the list for prettier printing
-		  Termlist tlrev;
-
-		  tlrev = termlistReverse (compTerms);
-		  termlistDelete (compTerms);
-		  compTerms = tlrev;
-		}
-	      // If it is a send, we already do stuff.
-	      // Note that plain received/sent is already in the
-	      // intruder knowledge for sure.
-	      if ((rd->type == SEND) || (rd->type == READ))
-		{
-		  compKnown = termlistAppend (compKnown, rd->message);
-		}
-
-	      // Each role event must be scanned and tags modified.
-	      newrd->label = termSubstitute (newrd->label, oldname, newname);
-	      linfo = label_find (sys->labellist, newrd->label);
-	      if (linfo == NULL)
-		{
-		  linfo = label_create (newrd->label, destprot);
-		  linfo->ignore = true;
-		  sys->labellist = list_append (sys->labellist, linfo);
-		}
-
-	      // Compute termlist of things to send now.
-	      // Note tlsend is not delete, but concatenated to compKnown
-	      // further on.
-	      tlsend = termlistNotIn (compTerms, compKnown);
-	      if (tlsend != NULL)
-		{
-		  Roledef rdcompr;
-		  // Add another node for the compromise.
-		  interesting = true;
-
-		  // Unfold list elements to a list of compromise events.  This
-		  // makes for easier interpretation of the output, and is
-		  // equivalent in terms of complexity to having a single
-		  // (tuple) send.
-		  rdcompr = createCompromiseSends (newrole, tlsend);
-
-		  // If it is a recv, we add it at the end
-		  // but if it is a send, we insert it before
-		  if (rd->type == READ)
-		    {
-		      // Read, append
-		      rdhead = roledefAppend (rdhead, newrd);
-		      rdhead = roledefAppend (rdhead, rdcompr);
-		    }
-		  else
-		    {
 		      /**
 		       * For a non-recv, we also append. This has the effect of
 		       * making the action atomic, i.e. we assume that
@@ -826,20 +785,20 @@ compromiseProtocol (Protocol sourceprot, int type)
 		       * sensible way with the matching histories definition,
 		       * but requires some insight.
 		       */
-		      rdhead = roledefAppend (rdhead, newrd);
-		      rdhead = roledefAppend (rdhead, rdcompr);
-		      // Non-read, prepend
-		      //rdhead = roledefAppend (rdhead, rdcompr);
-		      //rdhead = roledefAppend (rdhead, newrd);
-		    }
-		}
-	      else
-		{
-		  // No additional events to be added
 		  rdhead = roledefAppend (rdhead, newrd);
+		  rdhead = roledefAppend (rdhead, rdcompr);
+		  // Non-read, prepend
+		  //rdhead = roledefAppend (rdhead, rdcompr);
+		  //rdhead = roledefAppend (rdhead, newrd);
 		}
-	      compKnown = termlistConcat (compKnown, tlsend);
 	    }
+	  else
+	    {
+	      // No additional events to be added
+	      rdhead = roledefAppend (rdhead, newrd);
+	    }
+	  compKnown = termlistConcat (compKnown, tlsend);
+
 	  rd = rd->next;
 	}
 

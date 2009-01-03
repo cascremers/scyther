@@ -834,6 +834,7 @@ protocolCreate (Term name)
   p->next = NULL;
   p->lineno = 0;
   p->compromiseProtocol = 0;
+  p->parentProtocol = p;
   return p;
 }
 
