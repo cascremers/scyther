@@ -47,6 +47,8 @@ SUMMARYALL = False  # Delta's in all or in some contexts?
 ACLMAX = 10         # After 10 we give up for the nodes
 SCANERRORS = False  # Scan for arrows with no counterexamples
 
+CALLSCYTHER = True  # After exit, make sure we don't call Scyther anymore.
+
 CACHE = None
 DB = {} # Model.dbkey -> (fname,claimid)*
 FCD = {}
@@ -581,6 +583,7 @@ def VerifyClaim(file,claimid,model):
     global DRAWGRAPH
     global DEFAULTARGS
     global CACHE
+    global CALLSCYTHER
 
     claimres = CACHE.get(file,claimid,model.dbkey())
     if claimres != None:
@@ -588,14 +591,25 @@ def VerifyClaim(file,claimid,model):
 
     DotGraph()
     DRAWGRAPH = False
-    s = Scyther.Scyther()
-    s.addFile(file)
-    s.options = "%s %s" % (DEFAULTARGS,model.options())
-    res = s.verifyOne(claimid)
-    claimres = res[0].getRank()
 
-    CACHE.append(file,claimid,model.dbkey(),claimres)
-    return claimres
+    if CALLSCYTHER:
+        """
+        Normal proceedings: call Scyther to verify claim.
+        """
+        s = Scyther.Scyther()
+        s.addFile(file)
+        s.options = "%s %s" % (DEFAULTARGS,model.options())
+        res = s.verifyOne(claimid)
+        claimres = res[0].getRank()
+
+        CACHE.append(file,claimid,model.dbkey(),claimres)
+        return claimres
+    else:
+        """
+        At exit code, we just assume it's sort of okay (2)
+        """
+        return 2
+
 
 def TestClaim(file,claimid,model):
     claimres = VerifyClaim(file,claimid,model)
@@ -1399,6 +1413,20 @@ def WriteHierarchy():
     commands.getoutput("dot -Tpdf hierarchy.dot >hierarchy.pdf")
 
 def exiter():
+    global CALLSCYTHER
+    global DRAWGRAPH
+
+    CALLSCYTHER = False
+
+    DRAWGRAPH = True
+    DotGraph(True)
+
+    ### Report summary
+    #reportContext()
+
+    reportProtocolHierarchy()
+    reportProtocolTable()
+
     print "Sorting buffer at exit."
     sortBuffer()
     print "Exiting."
@@ -1451,14 +1479,6 @@ def main():
             else:
                 FCDS += 1
         
-    DRAWGRAPH = True
-    DotGraph(True)
-
-    ### Report summary
-    #reportContext()
-
-    reportProtocolHierarchy()
-    reportProtocolTable()
     print
     print "Analysis complete."
 
