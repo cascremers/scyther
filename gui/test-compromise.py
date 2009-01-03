@@ -248,10 +248,34 @@ class SecModel(object):
             RESTRICTEDMODELS[-1].copy(tomodel=self)
 
     def describe(self,i):
+        """
+        Turn vector i into a parameter name.
+        """
         s = self.axes[i][self.vector[i]]
         if s.endswith("=1"):
             return s[2:-2]
         return ""
+
+    def enscribe(self,dbkey):
+        """
+        Reverts describe, i.e. sets the model to the descriptive name
+        used e.g. in the cache.
+
+        That is, given a dbkey, it sets the vector.
+        """
+        elements = dbkey.split("_")
+        for i in range(0,self.length):
+            # Cover vector[i]
+            self.vector[i] = 0
+            for y in range(0,len(self.axes[i])):
+                # is it equal to the y thing?
+                vecstr = self.axes[i][y]
+                if vecstr.startswith("--") and vecstr.endswith("=1"):
+                    # It's a triggered option, for sure
+                    if vecstr[2:-2] in elements:
+                        # Override previous
+                        self.vector[i] = y
+        return
 
     def shortname(self,unknown="???"):
         """
@@ -368,15 +392,19 @@ class SecModel(object):
             else:
                 return RESTRICTEDMODELS[i+1]
 
-    def getDir(self,direction):
+    def getDir(self,direction,all=False):
         """
         Return a list of tuples (model,deltadescr)
+
+        For RESTRICTEDMODELS == None or all==True, we have that each
+        returned model is a new SecModel object that differs only in a
+        single axis.
         """
         
         global RESTRICTEDMODELS
 
         others = []
-        if RESTRICTEDMODELS == None:
+        if (RESTRICTEDMODELS == None) or (all == True):
             # First we pick out all next ones
             for i in range(0,self.length):
 
@@ -420,11 +448,11 @@ class SecModel(object):
 
         return others
 
-    def getLowers(self):
-        return self.getDir(-1)
+    def getLowers(self,all=False):
+        return self.getDir(-1,all=all)
 
-    def getHighers(self):
-        return self.getDir(1)
+    def getHighers(self,all=False):
+        return self.getDir(1,all=all)
 
     def isProtocolCorrect(self,protocol):
         """
@@ -937,9 +965,61 @@ class ProtCache(object):
     def set(self,claim,model,res):
         self.data[(claim,model)] = res
 
-    def get(self,claim,model):
-        if (claim,model) in self.data.keys():
-            return self.data[(claim,model)]
+    def get(self,claim,dbkey,gethigher=True,getlower=True):
+        """
+        Here we exploit the hierarchy.
+        """
+
+        # First scan actual claim
+        if (claim,dbkey) in self.data.keys():
+            return self.data[(claim,dbkey)]
+
+        # Generate model from dbkey for later use.
+        model = SecModel()
+        model.enscribe(dbkey)
+        # The claim may be correct (at best)
+        maxpos = 3
+        maxexample = None
+        # The claim may be wrong (at worst)
+        minpos = 0
+        minexample = None
+
+        # Scan if any higher dbkey (i.e. stronger) already had a correct
+        # (3 == verified) verdict: in that case the current model cannot
+        # Scan stronger models. They can only introduce additional
+        # attacks, but not more correctness. Hence they influence
+        # minpos: if they don't contain an attack, there is none.
+        if gethigher:
+            cmodels = model.getHighers(all=True)
+            for (model2,delta) in cmodels:
+                res = self.get(claim,model2.dbkey(),getlower=False)
+                if res != None:
+                    if res > minpos:
+                        minpos = res
+                        minexample = model2
+
+        # Scan if any lower dbkey (i.e. weaker) already had a false (0
+        # == attack) verdict
+        if getlower:
+            cmodels = model.getLowers(all=True)
+            for (model2,delta) in cmodels:
+                res = self.get(claim,model2.dbkey(),gethigher=False)
+                if res != None:
+                    if res < maxpos:
+                        maxpos = res
+                        maxexample = model2
+
+        # Now we squeeze
+        if minpos == maxpos:
+            return minpos
+
+        # Sanity check
+        if minpos > maxpos:
+            print "Strange hierarchy inconsistency for claim %s" % claim
+            print minexample
+            print maxexample
+            sys.exit()
+
         return None
 
     def __str__(self):
