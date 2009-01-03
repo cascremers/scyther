@@ -118,6 +118,11 @@ def InitRestricted():
     eck.vector[5] = 1
     eck.setName("eCK")
 
+    # eckalt: notgroup actor after skr rnr ssr
+    eckalt = eck.copy()
+    eckalt.vector[2] = 2
+    eckalt.setName("eCKalt")
+
     # eckplus: notgroup actor rnsafe skr rnr ssr
     eckplus = eck.copy()
     eckplus.vector[4] = 1
