@@ -945,6 +945,25 @@ class ProtCache(object):
             tl.append("claim: %s, model %s, res: %s" % (claim,model,self.get(claim,model)))
         return "\n".join(tl)
 
+
+def sortBuffer():
+    """
+    Sort the Cache file
+    """
+    ll = []
+    fp = open("boring.data","r")
+    for l in fp.readlines():
+        ll.append(l)
+    fp.close()
+
+    ll.sort()
+
+    fp = open("boring.data","w")
+    for l in ll:
+        fp.write(l)
+    fp.close()
+    
+
 class ScytherCache(object):
     """
     Big buffer
@@ -1296,6 +1315,10 @@ def WriteHierarchy():
     fp.close()
     commands.getoutput("dot -Tpdf hierarchy.dot >hierarchy.pdf")
 
+def exiter():
+    print "Sorting buffer at exit."
+    sortBuffer()
+    print "Exiting."
 
 def main():
     """
@@ -1305,6 +1328,12 @@ def main():
     global FCD,FCDN,FCDX,FCDS
     global DRAWGRAPH
     global CACHE
+
+    sortBuffer()
+
+    import atexit
+
+    atexit.register(exiter)
 
     InitRestricted()
 
