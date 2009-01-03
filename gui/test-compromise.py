@@ -1046,9 +1046,9 @@ def goodprotocol(fname):
     """
     global BRIEF
 
-    filefilter = ["../gui/Protocols/key-compromise/neumannstub-hwang.spdl", "../protocols/misc/compositionality-examples/","../protocols/misc/naxos-attempt3-quick.spdl"]
-    for pref in filefilter:
-        if fname.startswith(pref):
+    filefilter = ["../gui/Protocols/key-compromise/neumannstub-hwang.spdl", "../protocols/misc/compositionality-examples/","../protocols/misc/naxos-attempt3-quick.spdl","../protocols/misc/compromise/JFKr.spdl","email-","neumannstub"]
+    for segment in filefilter:
+        if fname.find(segment) != -1:
             return False
 
     # If we have a filter, use it
