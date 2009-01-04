@@ -1346,8 +1346,8 @@ def reportProtocolTable():
         return
 
     # Must have small number of protocols
-    if len(sys.argv[1:]) == 0:
-        return
+    #if len(sys.argv[1:]) == 0:
+    #    return
     
     maxprotwidth = 1
     for fn in FCD.keys():
