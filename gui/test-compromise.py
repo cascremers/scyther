@@ -38,7 +38,7 @@ from Scyther import *
 SHOWPATH = False    # Switch to true to show paths in the graph
 #DEFAULTARGS = "--max-runs=7 --extravert"
 DEFAULTARGS = "--max-runs=4"
-DEFAULTARGS += " -T 60"         # Timeout after 60 seconds
+DEFAULTARGS += " -T 300"         # Timeout after 5 minutes 
 DEFAULTARGS += " --prune=1"     # Stop at first attack
 ALLCORRECT = True   # Require all claims to be correct of the protocol in prev. node for counterexample
 BRIEF = False
