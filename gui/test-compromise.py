@@ -111,7 +111,8 @@ def InitRestricted():
 
     # ck2001hmqv: notgroup aftercorrect skr ssr
     ck2001hmqv = ck2001.copy()
-    ck2001hmqv.vector[2] = 2
+    ck2001hmqv.vector[1] = 1    # KCI
+    ck2001hmqv.vector[2] = 2    # aftercorrect
     ck2001hmqv.setName("ck2001-hmqv")
 
     # eck: notgroup actor rnsafe skr rnr
