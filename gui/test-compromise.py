@@ -133,8 +133,8 @@ def InitRestricted():
     eckplus.vector[4] = 1
     eckplus.setName("eCK+")
 
-    #RESTRICTEDMODELS = [external, internal, kci, bpr2000, br9395, pfs, wpfs, ck2001, ck2001hmqv, eck, eckplus]
-    RESTRICTEDMODELS = [ck2001, ck2001hmqv, eck, eckalt, eckplus]
+    #RESTRICTEDMODELS = [eck, eckalt,ck2001,ck2001hmqv]
+    RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck]   # As in paper
 
     # append maximum
     max = external.copy()
@@ -142,8 +142,6 @@ def InitRestricted():
         max.union(m)
     if max not in RESTRICTEDMODELS:
         RESTRICTEDMODELS.append(max)
-
-    RESTRICTEDMODELS = [eck, eckalt]
 
     #RESTRICTEDMODELS = None #   default
 
