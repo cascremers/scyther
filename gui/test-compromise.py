@@ -1376,7 +1376,24 @@ def reportProtocolTable():
     print header
     print "-" * len(header)
 
+    def fsort(f,a,b):
+        if f(a) > f(b):
+            return 1
+        elif f(a) < f(b):
+            return -1
+        else:
+            return 0
+
+    def dasort(a,b):
+        # Sort on dot abbreviation
+        return fsort(dotabbrev,a,b)
+
+    kal = []
     for fn in FCD.keys():
+        kal.append(fn)
+    kal.sort(dasort)
+
+    for fn in kal:
         line = dotabbrev(fn).ljust(maxprotwidth)
         model = SecModel()
         while model != None:
