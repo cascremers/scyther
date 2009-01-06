@@ -955,7 +955,7 @@ def DotGraph(force=False):
         if len(correct) == 0:
             misc = "[shape=box,label=\"No claims found that\\lare correct in this model.\\l\"]"
         else:
-            misc = "[shape=box,label=\"%s Correct in all:\\n%s\\l\"]" % (description,"\\l".join(Compress(correct)))
+            misc = "[shape=box,label=\"Correct in all:\\n%s\\l\"]" % ("\\l".join(Compress(correct)))
         fp.write("\t%s -> final_%s;\n" % (model.dotkey(),model.dotkey()))
         fp.write("\tfinal_%s %s;\n" % (model.dotkey(),misc))
 
