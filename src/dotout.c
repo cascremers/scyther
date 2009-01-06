@@ -1697,8 +1697,8 @@ drawRegularRuns (const System sys)
 			  if (isHelperProtocol (sys->runs[run].protocol) &&
 			      ((rd->type == READ) || (rd->type == SEND)))
 			    {
-			      termPrintRemap (sys->runs[run].protocol->
-					      nameterm);
+			      termPrintRemap (sys->runs[run].
+					      protocol->nameterm);
 			      eprintf (", ");
 			      termPrintRemap (sys->runs[run].role->nameterm);
 			      eprintf (": ");

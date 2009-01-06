@@ -556,14 +556,17 @@ learnFromMessage (Role r, Termlist tl, Term t, int type)
 	{
 	  if (type == 1)
 	    {
-	      // We learn the whole encryption if it contains a local
-	      if (switches.SSR)
+	      if (!switches.SSRfilter)
 		{
-		  if (switches.SSRinfer)
+		  // We learn the whole encryption if it contains a local
+		  if (switches.SSR)
 		    {
-		      if (containsLocal (r, t))
+		      if (switches.SSRinfer)
 			{
-			  tl = termlistAddNew (tl, t);
+			  if (containsLocal (r, t))
+			    {
+			      tl = termlistAddNew (tl, t);
+			    }
 			}
 		    }
 		}

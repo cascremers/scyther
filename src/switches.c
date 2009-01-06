@@ -736,7 +736,11 @@ switcher (const int process, int index, int commandline)
     {
       if (process)
 	{
+	  /*
+	   * Note: this switch also implies SSR
+	   */
 	  switches.SSRfilter = integer_argument ();
+	  switches.SSR = true;
 	  return index;
 	}
     }

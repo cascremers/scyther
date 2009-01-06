@@ -106,7 +106,7 @@ def InitRestricted():
     # ck2001: notgroup after skr ssr
     ck2001 = pfs.copy()
     ck2001.vector[3] = 1
-    ck2001.vector[4] = 1
+    ck2001.vector[4] = 2
     ck2001.setName("ck2001")
 
     # ck2001hmqv: notgroup aftercorrect skr ssr
@@ -130,11 +130,19 @@ def InitRestricted():
 
     # eckplus: notgroup actor rnsafe skr rnr ssr
     eckplus = eck.copy()
-    eckplus.vector[4] = 1
+    eckplus.vector[4] = 2
     eckplus.setName("eCK+")
 
-    #RESTRICTEDMODELS = [eck, eckalt,ck2001,ck2001hmqv]
+    # RNR variants of SSR filters
+    ck2001rnr = ck2001.copy()
+    ck2001rnr.vector[4] = 1
+    ck2001rnr.setName("ck2001rnr")
+    ck2001hmqvrnr = ck2001hmqv.copy()
+    ck2001hmqvrnr.vector[4] = 1
+    ck2001hmqvrnr.setName("ck2001hmqvrnr")
+
     RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck]   # As in paper
+    RESTRICTEDMODELS = [eck, eckalt,ck2001rnr,ck2001hmqvrnr]    # To compare equal choice for RNR/SSR
 
     # append maximum
     max = external.copy()
@@ -154,7 +162,7 @@ class SecModel(object):
         axis1 = ["","--LKRactor=1"]
         axis2 = ["","--LKRrnsafe=1","--LKRaftercorrect=1","--LKRafter=1"]
         axis3 = ["","--SKR=1"]
-        axis4 = ["","--SSR=1"]
+        axis4 = ["","--SSRfilter=1","--SSR=1"]
         axis5 = ["","--RNR=1"]
 
         #axis1 = ["--LKRnotgroup=1"]
