@@ -137,9 +137,15 @@ def InitRestricted():
     ck2001rnr = ck2001.copy()
     ck2001rnr.vector[4] = 1
     ck2001rnr.setName("ck2001rnr")
+
     ck2001hmqvrnr = ck2001hmqv.copy()
     ck2001hmqvrnr.vector[4] = 1
     ck2001hmqvrnr.setName("ck2001hmqvrnr")
+
+    # eckssr: SSR variant of eCK
+    eckssr = kci.copy()
+    eckssr.vector[5] = 2
+    eckssr.setName("eCKssr")
 
     RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck]   # As in paper
     RESTRICTEDMODELS = [eck, eckalt,ck2001rnr,ck2001hmqvrnr]    # To compare equal choice for RNR/SSR
@@ -150,6 +156,8 @@ def InitRestricted():
         max.union(m)
     if max not in RESTRICTEDMODELS:
         RESTRICTEDMODELS.append(max)
+
+    RESTRICTEDMODELS = [eckssr, ck2001,ck2001hmqv]    # To compare equal choice for RNR/SSR
 
     #RESTRICTEDMODELS = None #   default
 
@@ -163,7 +171,7 @@ class SecModel(object):
         axis2 = ["","--LKRrnsafe=1","--LKRaftercorrect=1","--LKRafter=1"]
         axis3 = ["","--SKR=1"]
         axis4 = ["","--SSRfilter=1","--SSR=1"]
-        axis5 = ["","--RNR=1"]
+        axis5 = ["","--RNR=1","--RNRinfer=1"]
 
         #axis1 = ["--LKRnotgroup=1"]
 

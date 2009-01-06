@@ -554,22 +554,44 @@ learnFromMessage (Role r, Termlist tl, Term t, int type)
 	}
       else if (realTermEncrypt (t))
 	{
-	  if (type == 1)
+	  if (switches.SSRinfer && (!switches.SSRfilter))
 	    {
-	      if (!switches.SSRfilter)
+	      /* If SSRinfer is true, and not filtered, we may consider the
+	       * full state (and not just from infer commands)
+	       */
+	      int takeall;
+
+	      takeall = false;
+
+	      // Case 1: SSR (if not restricted to filtering)
+	      if (type == 1)
 		{
-		  // We learn the whole encryption if it contains a local
 		  if (switches.SSR)
 		    {
-		      if (switches.SSRinfer)
-			{
-			  if (containsLocal (r, t))
-			    {
-			      tl = termlistAddNew (tl, t);
-			    }
-			}
+		      takeall = true;
 		    }
 		}
+	      if (type == 2)
+		{
+		  if (switches.RNR && switches.RNRinfer)
+		    {
+		      takeall = true;
+		    }
+		}
+	      if (takeall)
+		{
+		  // We learn the whole encryption if it contains a local
+		  if (containsLocal (r, t))
+		    {
+		      tl = termlistAddNew (tl, t);
+		    }
+		}
+	    }
+	  /* Otherwise we may learn any key terms anyway (automatically
+	   * inferred, needs documentation for user!)
+	   */
+	  if (type == 1)
+	    {
 	      if (switches.SKR)
 		{
 		  // We learn the key if it contains a local

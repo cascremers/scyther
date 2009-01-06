@@ -73,7 +73,8 @@ struct switchdata
   int SSR;			//!< SSR others 
   int RNR;			//!< RNR reveal
   // Filters
-  int SSRfilter;		//!< SSR filtering on nonces
+  int SSRfilter;		//!< SSR filtering on nonces (implies SSR)
+  int RNRinfer;			//!< Do full state for RNR contents: takes whatever SSR would do.
   int SSRinfer;			//!< SSR manual / inferred
   int markFullSession;		//!< Not a real switch but a marker
 

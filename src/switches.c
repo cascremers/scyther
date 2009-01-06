@@ -98,6 +98,7 @@ switchesInit (int argc, char **argv)
   switches.RNR = false;		//!< default is no RNR
   // Parameters
   switches.SSRfilter = false;	//!< default is no SSR filtering on nonces
+  switches.RNRinfer = false;	//!< default is no RNR extension to state
   switches.SSRinfer = true;	//!< default is SSR inferred
   switches.markFullSession = false;	//!< Not a real switch but a marker
 
@@ -737,10 +738,28 @@ switcher (const int process, int index, int commandline)
       if (process)
 	{
 	  /*
-	   * Note: this switch also implies SSR
+	   * Note: enabling this switch implies SSR
 	   */
 	  switches.SSRfilter = integer_argument ();
-	  switches.SSR = true;
+	  if (switches.SSRfilter)
+	    {
+	      switches.SSR = true;
+	    }
+	  return index;
+	}
+    }
+  if (detect (' ', "RNRinfer", 1))
+    {
+      if (process)
+	{
+	  /*
+	   * Note: enabling this switch implies RNR
+	   */
+	  switches.RNRinfer = integer_argument ();
+	  if (switches.RNRinfer)
+	    {
+	      switches.RNR = true;
+	    }
 	  return index;
 	}
     }
