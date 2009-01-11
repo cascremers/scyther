@@ -46,7 +46,7 @@ extern Protocol INTRUDER;	// from arachne.c
  * Returns true if pruned.
  */
 int
-pruneTrusted (const System sys)
+pruneTrusted (const System sys, int *partners)
 {
   List bl;
 
@@ -110,7 +110,7 @@ pruneTrusted (const System sys)
 			}
 		      if (switches.LKRactorrnsafe)
 			{
-			  if (!compromiseRNRbefore (b->run_to, b->ev_to))
+			  if (!compromiseRNRpartner (partners,a))
 			    {
 			      continue;
 			    }
@@ -152,7 +152,7 @@ pruneTrusted (const System sys)
 			    }
 			  if (switches.LKRrnsafe)
 			    {
-			      if (!compromiseRNRbefore (r1, e1))
+			      if (!compromiseRNRpartner (partners,a))
 				{
 				  continue;
 				}

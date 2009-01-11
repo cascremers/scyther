@@ -28,6 +28,6 @@
 
 #include "system.h"
 
-int pruneTrusted (const System sys);
+int pruneTrusted (const System sys, int *partners);
 
 #endif

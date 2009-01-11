@@ -147,7 +147,6 @@ def InitRestricted():
     eckssr.vector[5] = 2
     eckssr.setName("eCKssr")
 
-    RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck]   # As in paper
     RESTRICTEDMODELS = [eck, eckalt,ck2001rnr,ck2001hmqvrnr]    # To compare equal choice for RNR/SSR
 
     # append maximum
@@ -158,6 +157,8 @@ def InitRestricted():
         RESTRICTEDMODELS.append(max)
 
     RESTRICTEDMODELS = [eckssr, ck2001,ck2001hmqv]    # To compare equal choice for RNR/SSR
+    RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck]   # As in paper
+    RESTRICTEDMODELS = [eck, ck2001hmqvrnr,ck2001rnr]  # Triangle
 
     #RESTRICTEDMODELS = None #   default
 
@@ -1505,7 +1506,10 @@ def main():
 
     DotGraph(True)
     DRAWGRAPH = True
+    counter = 0
     for fn in FCD.keys():
+        counter += 1
+        print "Processing %i out of %i keys: %s" % (counter,len(FCD.keys()), fn)
         for cid in FCD[fn]:
             if goodclaim(fn,cid):
                 DRAWGRAPH = Investigate(fn,cid)

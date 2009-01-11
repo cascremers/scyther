@@ -863,7 +863,7 @@ actorInClaim (const System sys, const int run)
 
 //! Check for invalid states
 int
-compromisePrune (void)
+compromisePrune (int *partners)
 {
   if (switches.SSR || switches.SKR || switches.RNR)
     {
@@ -872,10 +872,8 @@ compromisePrune (void)
        * should not be part of the state.
        */
       int run;
-      int *partners;
       int result;
 
-      partners = getPartnerArray ();
       result = false;
       for (run = 0; run < sys->maxruns; run++)
 	{
@@ -912,35 +910,23 @@ compromisePrune (void)
   return false;
 }
 
-//! Check whether a compromise RNR occurs before r1,e1
+//! Check whether a compromise RNR occurs in a partner run.
 int
-compromiseRNRbefore (int r1, int e1)
+compromiseRNRpartner (int *partners, Term a)
 {
+  // Check for RNR compromise type
   int r2;
 
   for (r2 = 0; r2 < sys->maxruns; r2++)
     {
-      // Check for RNR compromise type
-      if (sys->runs[r2].protocol->compromiseProtocol == 2)
+      if (partners[r2])
 	{
-	  int e2;
-	  Roledef rd;
-
-	  rd = sys->runs[r2].start;
-	  e2 = 0;
-	  while ((rd != NULL) && isDependEvent (r2, e2, r1, e2))
+	  if (isTermEqual(agentOfRun(sys,r2), a))
 	    {
-	      if (isCompromiseEvent (rd))
+	      if (sys->runs[r2].protocol->compromiseProtocol == 2)
 		{
-		  // Note this event may or may not be 'used' in the actual attack.
-		  //
-		  // We could worry about binding it or not, but that can be fairly subtle, so a closer look is needed here
-		  // to make sure it corresponds one-to-one to the definition in the paper.
 		  return true;
 		}
-	      // next
-	      e2++;
-	      rd = rd->next;
 	    }
 	}
     }

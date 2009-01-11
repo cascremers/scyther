@@ -23,9 +23,9 @@
 #include "system.h"
 
 void compromisePrepare (const System mysys);
-int compromisePrune (void);
+int compromisePrune (int *partners);
 int weighCompromisedRuns (void);
 int isCompromiseEvent (Roledef rd);
-int compromiseRNRbefore (int r1, int e1);
+int compromiseRNRpartner (int *partners, Term a);
 
 #endif

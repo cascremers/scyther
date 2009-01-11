@@ -1,0 +1,69 @@
+/* 
+ * Needham-Schroeder protocol, eCK'ed variant.
+ *
+ * Cas Cremers
+ */
+
+// PKI infrastructure
+
+const hash: Function;
+secret unhash: Function;
+inversekeys (hash,unhash);
+
+// The protocol description
+
+protocol ns3-eCK(I,R)
+{
+	role I
+	{
+		const ni: Nonce;
+		var Tnr: Ticket;
+
+		send_1(I,R, {I,hash(sk(I),ni)}pk(R) );
+		read_2(R,I, {hash(sk(I),ni),Tnr}pk(I) );
+		send_3(I,R, {Tnr}pk(R) );
+		claim_i1(I,Secret,hash(sk(I),ni));
+		claim_i2(I,Secret,Tnr);
+		claim_i3(I,Niagree);
+		claim_i4(I,Nisynch);
+	}	
+	
+	role R
+	{
+		var Tni: Ticket;
+		const nr: Nonce;
+
+		read_1(I,R, {I,Tni}pk(R) );
+		send_2(R,I, {Tni,hash(sk(R),nr)}pk(I) );
+		read_3(I,R, {hash(sk(R),nr)}pk(R) );
+		claim_r1(R,Secret,Tni);
+		claim_r2(R,Secret,hash(sk(R),nr));
+		claim_r3(R,Niagree);
+		claim_r4(R,Nisynch);
+	}
+}
+
+// The agents in the system
+
+const Alice,Bob: Agent;
+
+// An untrusted agent, with leaked information
+
+const Eve: Agent;
+untrusted Eve;
+const ne: Nonce;
+compromised sk(Eve);
+
+// The runs (only needed for the modelchecker algorithm)
+
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
+run ns3.I(Agent,Agent);
+run ns3.R(Agent,Agent);
+

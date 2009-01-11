@@ -192,6 +192,7 @@ prune_theorems (const System sys)
 {
   List bl;
   int run;
+  int *partners;
 
   // Check all types of the local agents according to the matching type
   if (!checkAllSubstitutions (sys))
@@ -233,7 +234,17 @@ prune_theorems (const System sys)
   /**
    * This is not really due to any theorem but rather to the model/property. Maybe we need a separate file.
    */
-  if (compromisePrune ())
+  /* Compute partner array iff we need it later
+   */
+  if (switches.SSR || switches.SKR || switches.RNR)
+    {
+      partners = getPartnerArray ();
+    }
+  else
+    {
+      partners = NULL;
+    }
+  if (compromisePrune (partners))
     {
       if (switches.output == PROOF)
 	{
@@ -245,7 +256,7 @@ prune_theorems (const System sys)
     }
 
   // Prune for trusted mode
-  if (pruneTrusted (sys))
+  if (pruneTrusted (sys,partners))
     {
       if (switches.output == PROOF)
 	{
