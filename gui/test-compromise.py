@@ -156,9 +156,10 @@ def InitRestricted():
     if max not in RESTRICTEDMODELS:
         RESTRICTEDMODELS.append(max)
 
-    RESTRICTEDMODELS = [eckssr, ck2001,ck2001hmqv]    # To compare equal choice for RNR/SSR
+    RESTRICTEDMODELS = [eckssr, ck2001,ck2001hmqv]      # To compare equal choice for RNR/SSR
     RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck]   # As in paper
-    RESTRICTEDMODELS = [eck, ck2001hmqvrnr,ck2001rnr]  # Triangle
+    RESTRICTEDMODELS = [eck, ck2001hmqvrnr,ck2001rnr]   # Triangle restriction
+    RESTRICTEDMODELS = [eck, ck2001hmqv,ck2001,ck2001hmqvrnr,ck2001rnr]         # Triangle restriction but allow state-reveal too
 
     #RESTRICTEDMODELS = None #   default
 
@@ -1371,7 +1372,8 @@ def reportProtocolTable():
             maxprotwidth = da
 
     # attack string
-    attackstr = "attack"
+    attackstr =   "attack"
+    noattackstr = "none"
 
     maxmodwidth = len(attackstr)
     model = SecModel()
@@ -1411,12 +1413,21 @@ def reportProtocolTable():
     for fn in kal:
         line = dotabbrev(fn).ljust(maxprotwidth)
         model = SecModel()
+        cntgood = 0
+        cntbad = 0
         while model != None:
-            res = " "
             if model.isProtocolCorrect(fn) == False:
                 res = attackstr
+                cntbad += 1
+            else:
+                res = noattackstr
+                cntgood += 1
             line += "|%s" % res.ljust(maxmodwidth)
             model = model.next()
+        if (cntgood == 0) or (cntbad == 0):
+            line += "\t[boring]"
+        else:
+            line += "\t[interesting]"
         print line
 
     print "-" * len(header)
