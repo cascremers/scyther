@@ -921,7 +921,7 @@ compromiseRNRpartner (int *partners, Term a)
     {
       if (partners[r2])
 	{
-	  if (isTermEqual(agentOfRun(sys,r2), a))
+	  if (isTermEqual (agentOfRun (sys, r2), a))
 	    {
 	      if (sys->runs[r2].protocol->compromiseProtocol == 2)
 		{

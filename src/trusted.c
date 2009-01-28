@@ -110,7 +110,7 @@ pruneTrusted (const System sys, int *partners)
 			}
 		      if (switches.LKRactorrnsafe)
 			{
-			  if (!compromiseRNRpartner (partners,a))
+			  if (!compromiseRNRpartner (partners, a))
 			    {
 			      continue;
 			    }
@@ -152,7 +152,7 @@ pruneTrusted (const System sys, int *partners)
 			    }
 			  if (switches.LKRrnsafe)
 			    {
-			      if (!compromiseRNRpartner (partners,a))
+			      if (!compromiseRNRpartner (partners, a))
 				{
 				  continue;
 				}

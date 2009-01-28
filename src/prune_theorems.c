@@ -256,7 +256,7 @@ prune_theorems (const System sys)
     }
 
   // Prune for trusted mode
-  if (pruneTrusted (sys,partners))
+  if (pruneTrusted (sys, partners))
     {
       if (switches.output == PROOF)
 	{
