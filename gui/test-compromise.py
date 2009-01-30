@@ -71,49 +71,50 @@ def InitRestricted():
     RESTRICTEDMODELS = None #   default
 
     external = SecModel()
-    external.setName("External")
+    external.setName("EXT")
 
     # internal: notgroup
     internal = external.copy()
     internal.vector[0] = 1     
-    internal.setName("Internal")
+    internal.setName("INT")
 
     # kci: notgroup actor
     kci = external.copy()
     kci.vector[1] = 1
-    kci.setName("KCI")
+    kci.setName("CA")
 
     # bpr2000: skr
     bpr2000 = external.copy()
     bpr2000.vector[3] = 1
-    bpr2000.setName("BPR2000")
+    bpr2000.setName("M-BPR")
     
     # br9395: notgroup skr
     br9395 = bpr2000.copy()
     br9395.vector[0] = 1
-    br9395.setName("BR93,BR95")
+    br9395.setName("M-BR")
     
     # pfs: notgroup after
-    pfs = internal.copy()
+    pfs = external.copy()
     pfs.vector[2] = 3
-    pfs.setName("PFS")
+    pfs.setName("AF")
 
     # wpfs: notgroup aftercorrect
     wpfs = pfs.copy()
     wpfs.vector[2] = 2
-    wpfs.setName("wPFS")
+    wpfs.setName("AFC")
 
     # ck2001: notgroup after skr ssr
     ck2001 = pfs.copy()
+    ck2001.union(internal)
     ck2001.vector[3] = 1
     ck2001.vector[4] = 2
-    ck2001.setName("ck2001")
+    ck2001.setName("M-CK")
 
     # ck2001hmqv: notgroup aftercorrect skr ssr
     ck2001hmqv = ck2001.copy()
     ck2001hmqv.vector[1] = 1    # KCI
     ck2001hmqv.vector[2] = 2    # aftercorrect
-    ck2001hmqv.setName("ck2001-hmqv")
+    ck2001hmqv.setName("M-CKw")
 
     # eck: notgroup actor rnsafe skr rnr
     eck = kci.copy()
@@ -121,31 +122,31 @@ def InitRestricted():
     eck.vector[2] = 1
     eck.vector[3] = 1
     eck.vector[5] = 1
-    eck.setName("eCK")
+    eck.setName("M-eCK")
 
     # eckalt: notgroup actor after skr rnr ssr
     eckalt = eck.copy()
     eckalt.vector[2] = 2
-    eckalt.setName("eCKalt")
+    eckalt.setName("M-eCK-alt")
 
     # eckplus: notgroup actor rnsafe skr rnr ssr
     eckplus = eck.copy()
     eckplus.vector[4] = 2
-    eckplus.setName("eCK+")
+    eckplus.setName("M-eCK+")
 
     # RNR variants of SSR filters
     ck2001rnr = ck2001.copy()
     ck2001rnr.vector[4] = 1
-    ck2001rnr.setName("ck2001rnr")
+    ck2001rnr.setName("M-CK-rnr")
 
     ck2001hmqvrnr = ck2001hmqv.copy()
     ck2001hmqvrnr.vector[4] = 1
-    ck2001hmqvrnr.setName("ck2001hmqvrnr")
+    ck2001hmqvrnr.setName("M-CKw-nr")
 
     # eckssr: SSR variant of eCK
     eckssr = kci.copy()
     eckssr.vector[5] = 2
-    eckssr.setName("eCKssr")
+    eckssr.setName("M-eCK-ssr")
 
     RESTRICTEDMODELS = [eck, eckalt,ck2001rnr,ck2001hmqvrnr]    # To compare equal choice for RNR/SSR
 
@@ -157,11 +158,38 @@ def InitRestricted():
         RESTRICTEDMODELS.append(max)
 
     RESTRICTEDMODELS = [eckssr, ck2001,ck2001hmqv]      # To compare equal choice for RNR/SSR
-    RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck]   # As in paper
     RESTRICTEDMODELS = [eck, ck2001hmqvrnr,ck2001rnr]   # Triangle restriction
     RESTRICTEDMODELS = [eck, ck2001hmqv,ck2001,ck2001hmqvrnr,ck2001rnr]         # Triangle restriction but allow state-reveal too
+    RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck]   # As in paper
 
     #RESTRICTEDMODELS = None #   default
+
+    # Report
+    reportModels(RESTRICTEDMODELS)
+
+
+def reportModels(models):
+    """
+    Show a table analog to the one in the paper
+    """
+    if len(models) == 0:
+        return
+    # Header
+    st = ""
+    for x in range(0,models[0].length):
+        st += "%i\t" % (x)
+    print st
+    print "-" * (8 * models[0].length)
+
+    # Each model now
+    for model in models:
+        st = ""
+        for x in range(0,model.length):
+            st += "%i\t" % (model.vector[x])
+        st += "%s\t(%s)" % (model.shortname(),model.dotkey())
+        print st
+
+    print "-" * (8 * models[0].length)
 
 
 class SecModel(object):
