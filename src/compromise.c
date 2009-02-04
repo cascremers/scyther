@@ -893,6 +893,9 @@ compromisePrune (int *partners)
 		  /*
 		   * For RNR we do allow compromise of the partners, but
 		   * then there should not be a long term compromise then.
+		   *
+		   * @TODO: Possible problem with LKR of symmetric keys, in
+		   * which case this may disallow too much. Check out later.
 		   */
 		  if (!isAgentTrusted (sys, agentOfRun (sys, run)))
 		    {

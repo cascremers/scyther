@@ -546,6 +546,7 @@ unique_origination ()
 //! Determine whether a binding involves long-term private keys.
 /**
  * Returns the agent name list if true, returns NULL if not true.
+ * A term in the last may be a tuple too (k(A,B) would yield (A,B) in the list).
  */
 Termlist
 getPrivateKeyAgents (Binding b, Termlist tlold)
@@ -569,24 +570,10 @@ getPrivateKeyAgents (Binding b, Termlist tlold)
 	  /*
 	   * List for SK terms
 	   */
-	  if (isTermEqual (TERM_SK, TermKey (t)))
+	  if (isTermEqual (TERM_SK, TermKey (t)) ||
+	      isTermEqual (TERM_K, TermKey (t)))
 	    {
 	      return termlistAddNew (tlold, TermOp (t));
-	    }
-	  if (isTermEqual (TERM_K, TermKey (t)))
-	    {
-	      Termlist tlunfiltered;
-	      Termlist tl;
-
-	      tlunfiltered = tuple_to_termlist (TermOp (t));
-	      /* Filter the list: only strict agent types, and make unique.
-	       */
-	      for (tl = tlunfiltered; tl != NULL; tl = tl->next)
-		{
-		  tlold = termlistAddNew (tlold, tl->term);
-		}
-	      termlistDelete (tlunfiltered);
-	      return tlold;
 	    }
 	}
     }

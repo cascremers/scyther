@@ -49,6 +49,7 @@ void termlistDestroy (Termlist tl);
 void termlistPrint (Termlist tl);
 __inline__ int inTermlist (Termlist tl, const Term term);
 __inline__ Termlist termlistFind (Termlist tl, const Term term);
+int inSubtermTermlist (Termlist tl, const Term term);
 int isTermlistEqual (Termlist tl1, Termlist tl2);
 Termlist termlistAdd (Termlist tl, Term term);
 #define termlistPrepend(tl,t) termlistAdd(tl,t)

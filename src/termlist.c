@@ -198,6 +198,32 @@ termlistFind (Termlist tl, const Term term)
 }
 
 
+//! Determine whether a term is a subterm of an element of a termlist.
+/**
+ * The NULL term is not a subterm of an element of any list. (Not even of the NULL list)
+ *
+ *@return True iff the term is a subterm of an element of the termlist.
+ */
+int
+inSubtermTermlist (Termlist tl, const Term term)
+{
+  if (term == NULL)
+    {
+      return false;
+    }
+  while (tl != NULL)
+    {
+      if (termSubTerm (tl->term, term))
+	{
+	  return true;
+	}
+      tl = tl->next;
+    }
+  return false;
+}
+
+
+
 //! Equality of two term lists.
 /**
  * Are all elements of list 1 in list 2, and vice versa? 

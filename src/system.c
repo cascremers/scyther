@@ -931,7 +931,7 @@ isAgentTrusted (const System sys, Term agent)
 
   agent = deVar (agent);
   al = getAllPrivateKeyAgents ();
-  if (inTermlist (al, agent))
+  if (inSubtermTermlist (al, agent))
     {
       return false;
     }
