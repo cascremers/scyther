@@ -38,6 +38,7 @@
 #include "type.h"
 #include "compromise.h"
 #include "trusted.h"
+#include "partner.h"
 
 extern Protocol INTRUDER;
 extern int proofDepth;
