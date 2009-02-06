@@ -39,7 +39,7 @@ struct binding
   int ev_to;			//!< step in destination run
 
   Term term;			//!< Binding term
-  int level;			//!< ???
+  int level;			//!< For keys, the priority level (needed for the heuristic)
 };
 
 typedef struct binding *Binding;	//!< pointer to binding structure
