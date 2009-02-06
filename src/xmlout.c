@@ -617,8 +617,6 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 		xmlRunIndex ("after", b->run_from, b->ev_from);
 	      else
 		xmlPrint ("<unbound />");
-	      if (b->blocked)
-		eprintf ("<blocked />");
 	      xmlIndentPrint ();
 	      xmlTermPrint (b->term);
 	      eprintf ("\n");

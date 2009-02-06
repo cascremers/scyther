@@ -1483,10 +1483,6 @@ bind_goal_old_intruder_run (Binding b)
 int
 bind_goal_all_options (const Binding b)
 {
-  if (b->blocked)
-    {
-      error ("Trying to bind a blocked goal!");
-    }
   if (!b->done)
     {
       int flag;
@@ -1973,7 +1969,7 @@ select_tuple_goal ()
 
       b = (Binding) bl->data;
       // Ignore done stuff
-      if (!b->blocked && !b->done)
+      if (!b->done)
 	{
 	  if (isTermTuple (b->term))
 	    {

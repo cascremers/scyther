@@ -27,14 +27,10 @@
 //! Binding structure
 /*
  * Idea is the ev_from *has to* precede the ev_to
- *
- * @TODO: blocked is no longer used. For evaluations, it may be considered
- * false (no binding is ever blocked).
  */
 struct binding
 {
   int done;			//!< Iff true, it is bound
-  int blocked;			//!< Iff true, ignore it
 
   int run_from;			//!< origination run
   int ev_from;			//!< step in origination run
@@ -53,7 +49,7 @@ void bindingInit (const System mysys);
 void bindingDone ();
 
 int binding_print (Binding b);
-int valid_binding (Binding b);
+__inline__ int valid_binding (Binding b);
 int same_binding (const Binding b1, const Binding b2);
 
 int goal_add (Term term, const int run, const int ev, const int level);

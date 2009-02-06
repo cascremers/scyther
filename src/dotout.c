@@ -715,18 +715,15 @@ isEnabledM0 (const System sys, const int run, const int ev)
       Binding b;
 
       b = (Binding) bl->data;
-      if (!b->blocked)
+      // if the binding is not done (class choice) we might
+      // still show it somewhere.
+      if (b->done)
 	{
-	  // if the binding is not done (class choice) we might
-	  // still show it somewhere.
-	  if (b->done)
+	  if (b->run_to == run && b->ev_to == ev)
 	    {
-	      if (b->run_to == run && b->ev_to == ev)
+	      if (sys->runs[b->run_from].role != I_M)
 		{
-		  if (sys->runs[b->run_from].role != I_M)
-		    {
-		      return false;
-		    }
+		  return false;
 		}
 	    }
 	}
@@ -1288,47 +1285,44 @@ drawAllBindings (const System sys)
       Binding b;
 
       b = (Binding) bl->data;
-      if (!b->blocked)
+      // if the binding is not done (class choice) we might
+      // still show it somewhere.
+      if (b->done)
 	{
-	  // if the binding is not done (class choice) we might
-	  // still show it somewhere.
-	  if (b->done)
+	  // Check whether we already drew it
+	  List bl2;
+	  int drawn;
+
+	  drawn = false;
+	  for (bl2 = bldone; bl2 != NULL; bl2 = bl2->next)
 	    {
-	      // Check whether we already drew it
-	      List bl2;
-	      int drawn;
-
-	      drawn = false;
-	      for (bl2 = bldone; bl2 != NULL; bl2 = bl2->next)
+	      if (same_binding (b, (Binding) bl2->data))
 		{
-		  if (same_binding (b, (Binding) bl2->data))
-		    {
-		      drawn = true;
-		      break;
-		    }
-		}
-
-	      if (!drawn)
-		{
-		  // done, draw
-		  drawBinding (sys, b);
-
-		  // from intruder?
-		  if (sys->runs[b->run_from].protocol == INTRUDER)
-		    {
-		      if (sys->runs[b->run_from].role == I_M)
-			{
-			  fromintr++;
-			}
-		    }
-		  // Add to drawn list
-		  bldone = list_add (bldone, b);
+		  drawn = true;
+		  break;
 		}
 	    }
-	  else
+
+	  if (!drawn)
 	    {
-	      drawClass (sys, b);
+	      // done, draw
+	      drawBinding (sys, b);
+
+	      // from intruder?
+	      if (sys->runs[b->run_from].protocol == INTRUDER)
+		{
+		  if (sys->runs[b->run_from].role == I_M)
+		    {
+		      fromintr++;
+		    }
+		}
+	      // Add to drawn list
+	      bldone = list_add (bldone, b);
 	    }
+	}
+      else
+	{
+	  drawClass (sys, b);
 	}
     }
   list_destroy (bldone);	// bindings list
@@ -1697,8 +1691,8 @@ drawRegularRuns (const System sys)
 			  if (isHelperProtocol (sys->runs[run].protocol) &&
 			      ((rd->type == READ) || (rd->type == SEND)))
 			    {
-			      termPrintRemap (sys->runs[run].protocol->
-					      nameterm);
+			      termPrintRemap (sys->runs[run].
+					      protocol->nameterm);
 			      eprintf (", ");
 			      termPrintRemap (sys->runs[run].role->nameterm);
 			      eprintf (": ");
@@ -1984,20 +1978,17 @@ dotSemiState (const System mysys)
       {
 	Binding b;
 
-	b = (Binding) bl->data;
-	if (!b->blocked)
-	  {
-	    int addsubterms (Term t)
+	int addsubterms (Term t)
+	{
+	  if (isIntruderChoice (t))
 	    {
-	      if (isIntruderChoice (t))
-		{
-		  found = termlistAddNew (found, t);
-		}
-	      return true;
+	      found = termlistAddNew (found, t);
 	    }
+	  return true;
+	}
 
-	    term_iterate_open_leaves (b->term, addsubterms);
-	  }
+	b = (Binding) bl->data;
+	term_iterate_open_leaves (b->term, addsubterms);
       }
 
     // now maybe we draw the node

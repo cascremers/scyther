@@ -57,7 +57,6 @@ binding_create (Term term, int run_to, int ev_to)
 
   b = malloc (sizeof (struct binding));
   b->done = false;
-  b->blocked = false;
   b->run_from = -1;
   b->ev_from = -1;
   b->run_to = run_to;
@@ -127,8 +126,6 @@ binding_print (const Binding b)
     eprintf ("Unbound --( ");
   termPrint (b->term);
   eprintf (" )->> (%i,%i)", b->run_to, b->ev_to);
-  if (b->blocked)
-    eprintf ("[blocked]");
   return true;
 }
 
@@ -136,10 +133,6 @@ binding_print (const Binding b)
 int
 goal_bind (const Binding b, const int run, const int ev)
 {
-  if (b->blocked)
-    {
-      error ("Trying to bind a blocked goal.");
-    }
   if (!b->done)
     {
 #ifdef DEBUG
@@ -351,10 +344,10 @@ labels_ordered (Termmap runs, Termlist labels)
 }
 
 //! Check whether the binding denotes a sensible thing such that we can use run_from and ev_from
-int
+__inline__ int
 valid_binding (Binding b)
 {
-  if (b->done && (!b->blocked))
+  if (b->done)
     return true;
   else
     return false;
@@ -707,7 +700,7 @@ countBindingsDone ()
 
   int countDone (Binding b)
   {
-    if ((!b->blocked) && b->done)
+    if (b->done)
       {
 	count++;
       }

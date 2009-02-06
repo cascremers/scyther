@@ -42,7 +42,7 @@ is_goal_selectable (const Binding b)
 {
   if (b != NULL)
     {
-      if ((!b->blocked) && (!b->done))
+      if (!b->done)
 	{
 	  return true;
 	}
@@ -319,7 +319,7 @@ select_goal_masked (const System sys)
 
       b = (Binding) bl->data;
 
-      // Only if not done and not blocked
+      // Only if not done
       if (is_goal_selectable (b))
 	{
 	  if (!isTermVariable (b->term))
