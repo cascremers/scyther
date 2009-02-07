@@ -1112,12 +1112,14 @@ def sortBuffer():
     global CACHEFILE
 
     ll = []
-    fp = open(CACHEFILE,"r")
-    for l in fp.readlines():
-        ll.append(l)
-    fp.close()
-
-    ll.sort()
+    try:
+        fp = open(CACHEFILE,"r")
+        for l in fp.readlines():
+            ll.append(l)
+        fp.close()
+        ll.sort()
+    except:
+        print "Initializing cache file."
 
     fp = open(CACHEFILE,"w")
     for l in ll:
@@ -1538,8 +1540,8 @@ def exiter():
      `--==################################==--`
 
 The verification cache file has been updated, and a next run with the same
-parameters will be fast. If you want to redo the analysis, clear the
-verification file (%s), i.e., make it the empty file.
+parameters will be fast. If you want to redo the analysis, just delete the
+cache file (%s) and rerun the script.
 
 In the current directory you should now find three new PDF files generated
 from the protocol analysis results:
