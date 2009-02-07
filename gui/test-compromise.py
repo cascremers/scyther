@@ -180,6 +180,10 @@ def reportModels(models):
     """
     Show a table analog to the one in the paper
     """
+
+    ### DISABLED FOR NOW
+    return
+
     if len(models) == 0:
         return
     # Header
@@ -1353,6 +1357,7 @@ def reportProtocolHierarchy():
             equals[fn].append(pn)
 
     # Report only minimal paths
+    edges = []
     for fn in FCD.keys():
         for pn in wkrs[fn]:
             # Report this link iff there is no node in between
@@ -1362,7 +1367,11 @@ def reportProtocolHierarchy():
                     nope = False
                     break
             if nope == True:
-                fp.write("\t%s -> %s;\n" % (dotabbrev(pickfirst(equals,pn)),dotabbrev(pickfirst(equals,fn))))
+                edge = "\t%s -> %s;\n" % (dotabbrev(pickfirst(equals,pn)),dotabbrev(pickfirst(equals,fn)))
+                if edge not in edges:
+                    edges.append(edge)
+    for edge in edges:
+        fp.write(edge)
 
     # Name the nodes
     shown = []
@@ -1468,9 +1477,9 @@ def reportProtocolTable():
             line += "|%s" % res.ljust(maxmodwidth)
             model = model.next()
         if (cntgood == 0) or (cntbad == 0):
-            line += "\t[boring]"
+            line += "\t[same for all models]"
         else:
-            line += "\t[interesting]"
+            line += "\t[model matters]"
         print line
 
     print "-" * len(header)
@@ -1506,6 +1515,8 @@ def WriteHierarchy():
 def exiter():
     global CALLSCYTHER
     global DRAWGRAPH
+    global CACHEFILE
+    global GRAPHPSH, GRAPHAMH, GRAPHCH
 
     CALLSCYTHER = False
 
@@ -1520,7 +1531,41 @@ def exiter():
 
     print "Sorting buffer at exit."
     sortBuffer()
-    print "Exiting."
+    print """
+
+     .--==################################==--.
+    |      Verification process completed      |
+     `--==################################==--`
+
+The verification cache file has been updated, and a next run with the same
+parameters will be fast. If you want to redo the analysis, clear the
+verification file (%s), i.e., make it the empty file.
+
+In the current directory you should now find three new PDF files generated
+from the protocol analysis results:
+
+1. '%s.pdf'
+
+  The adversary-model hierarchy. This graph is reproduced as Figure 3 in the
+  paper.
+
+2. '%s.pdf'
+
+  The protocol-security hierarchy. This graph is reproduced as Figure 4 in the
+  paper.
+
+3. '%s.pdf'
+
+  A more detailed graph with specific claims. This is not so interesting for
+  the setup in the paper,but is useful if you'd hack one of the scripts and
+  make sure RESTRICTEDMODELS is always None, enforcing varification in all 112
+  models.  Get a large coffee. Watch a movie.
+
+
+Feel free to dig through the scripts, though be warned that they have been
+written to just work, and not as high-maintenance code shared by several
+individuals.
+    """ % (CACHEFILE, GRAPHAMH, GRAPHPSH, GRAPHCH)
 
 def main():
     """
@@ -1543,7 +1588,7 @@ def main():
     
     WriteHierarchy()
 
-    list = Scyther.FindProtocols("..")
+    list = Scyther.FindProtocols("Protocols/AdversaryModels")
     #print "Performing compromise analysis for the following protocols:", list
     #print
 

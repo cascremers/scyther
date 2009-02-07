@@ -35,7 +35,7 @@ import commands
 import os
 
 def getlist():
-    cmd = "ls -1 ../../protocols/misc/compromise/*.spdl"
+    cmd = "ls -1 Protocols/AdversaryModels/*.spdl"
     ll = commands.getoutput(cmd)
     nl = []
     for fn in ll.splitlines():
@@ -44,29 +44,8 @@ def getlist():
         pref = res.split(".")[0]
         nl.append(pref)
 
-    nl.append("ns3.spdl")
-    nl.append("nsl3.spdl")
-
-    nl2 = []
-    for fn in nl:
-        if fn.find("TLS") != -1:
-            continue
-        if fn.find("BKE") != -1:
-            continue
-        nl2.append(fn)
-
-    ### Override
-    nl2 = ['2DH-ISO-C', 'BKE', '2DH-ISO', 
-            'DHKE-1', 'HMQV-C',
-            'HMQV-twopass', 'kea-plus', 
-            'MQV-twopass', 'naxos', 
-            'yahalom-ban-paulson-modified.spdl', 'yahalom-ban-paulson.spdl',
-            'ns3.spdl', 'nsl3.spdl']
-            #'2DH-ISO-specialK', 
-
-    print nl2
-
-    return nl2
+    print nl
+    return nl
 
 cmd = "./test-compromise.py %s" % (" ".join(getlist()))
 os.system(cmd)

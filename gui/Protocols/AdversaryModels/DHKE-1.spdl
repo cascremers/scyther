@@ -1,0 +1,74 @@
+/* 
+ * Adaption of two-move Diffie-Hellman ISO-9798-3 according to Shmatikov, Gupta
+ *
+ * Version with no signatures, but pseudo-random functions
+ */
+
+// Hash functions
+const h1,h2,g1,g2: Function;
+secret unh1,unh2,ung1,ung2: Function;
+
+inversekeys (h1,unh1);
+inversekeys (h2,unh2);
+inversekeys (g1,ung1);
+inversekeys (g2,ung2);
+
+/*
+ * Hack to simulate g^ab = g^ba.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exponentiation(RA,RS)
+{
+	role RA
+	{
+		var alpha,beta, T1,T2: Ticket;
+
+		recv_!1(RA,RA, g2(g1(T1),T2) );
+		send_!2(RA,RA, g2(g1(T2),T1) );
+	}
+	role RS
+	{
+		var alpha,beta, T1,T2: Ticket;
+
+		recv_!3(RS,RS, h1( g2(g1(T1),T2) ) );
+		send_!4(RS,RS, h1( g2(g1(T2),T1) ) );
+	}
+}
+
+// The protocol description
+
+protocol twoDHiso-prf(I,R)
+{
+	role I
+	{
+		const x: Nonce;
+		var i: Nonce;
+		var beta: Ticket;
+
+		send_Compromise(I,I, x );
+
+		send_1(I,R,  g1(x),R,         { g1(x),R }sk(I)        );
+		recv_2(R,I,  g1(x),beta,i,I,  { g1(x),beta,i,I }sk(R) );
+		send_!3(I,R,  h1( g2(beta,x ) ) );
+
+		claim(I,SKR, g2(beta,x) );
+	}	
+	
+	role R
+	{
+		const y: Nonce;
+		const i: Nonce;
+		var alpha: Ticket;
+
+		send_Compromise(R,R, y,i );
+
+		recv_1(I,R,  alpha,R,          { alpha,R }sk(I)         );
+		send_2(R,I,  alpha,g1(y),i,I,  { alpha,g1(y),i,I }sk(R) );
+		recv_!3(I,R,  h1( g2(alpha,y ) ) );
+
+		claim(R,SKR, g2(alpha,y) );
+	}
+}
+
