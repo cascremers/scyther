@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007 Cas Cremers
+	Copyright (C) 2007-2009 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@
 Example script to show how to perform large-scale tests using the
 Scyther Python API (contained in the Scyther subdirectory)
 
-In this example, compromise attacks.
+In this example, adversary model analysis.
 
 Author: Cas Cremers
 
@@ -37,7 +37,7 @@ from Scyther import *
 
 CACHEFILE = "verification-result-cache.tmp"   # Filename of cache
 SHOWPATH = False    # Switch to true to show paths in the graph
-#DEFAULTARGS = "--max-runs=7 --extravert"
+#DEFAULTARGS = "--max-runs=7 --extravert"       ### If you're picky and have time. The results are the same, by the way.
 DEFAULTARGS = "--max-runs=4"
 DEFAULTARGS += " -T 300"         # Timeout after 5 minutes 
 DEFAULTARGS += " --prune=1"     # Stop at first attack
@@ -62,6 +62,7 @@ DRAWGRAPH = True
 DOTABBREVS = {}
 
 RESTRICTEDMODELS = None # No restricted model set
+FILTER = None
 
 """
 Names of PDF output files
@@ -825,6 +826,7 @@ def DotGraph(force=False):
     global SCANERRORS
     global RESTRICTEDMODELS
     global GRAPHCH
+    global FILTER
 
     if force == False:
         # Check for conditions not to draw
@@ -957,7 +959,7 @@ def DotGraph(force=False):
 
         if draw == 2:
     
-            if len(sys.argv[1:]) > 0:
+            if FILTER != None:
                 # We were filtering stuff
                 acl = []
                 for prot in model.getCorrectProtocols():
@@ -1203,17 +1205,12 @@ def goodprotocol(fname):
     Filter out stuff
     """
     global BRIEF
-
-    filefilter = ["../gui/Protocols/key-compromise/neumannstub-hwang.spdl", "../protocols/misc/compositionality-examples/","../protocols/misc/naxos-attempt3-quick.spdl","../protocols/misc/compromise/JFKr.spdl","email-","neumannstub"]
-    for segment in filefilter:
-        if fname.find(segment) != -1:
-            return False
+    global FILTER
 
     # If we have a filter, use it
-    protfilter = sys.argv[1:]
-    if len(protfilter) > 0:
+    if FILTER != None:
         BRIEF = True
-        for subs in protfilter:
+        for subs in FILTER:
             if fname.find(subs) != -1:
                 return True
         return False
@@ -1335,8 +1332,10 @@ def reportProtocolHierarchy():
     """
     global FCD
     global GRAPHPSH
+    global FILTER
 
-    if len(sys.argv[1:]) == 0:
+    if FILTER == None:
+        # We don't do this hierarchy if there is no filter
         return
 
     print "Writing protocol hierarchy."
@@ -1408,13 +1407,14 @@ def reportProtocolTable():
     """
     global FCD
     global RESTRICTEDMODELS
+    global FILTER
 
     # Must have small number of models
     if RESTRICTEDMODELS == None:
         return
 
     # Must have small number of protocols
-    #if len(sys.argv[1:]) == 0:
+    #if FILTER == None:
     #    return
     
     maxprotwidth = 1
@@ -1557,9 +1557,9 @@ from the protocol analysis results:
 3. '%s.pdf'
 
   A more detailed graph with specific claims. This is not so interesting for
-  the setup in the paper,but is useful if you'd hack one of the scripts and
-  make sure RESTRICTEDMODELS is always None, enforcing varification in all 112
-  models.  Get a large coffee. Watch a movie.
+  the setup in the paper,but is useful if you'd hack this script and make sure
+  RESTRICTEDMODELS is always None, enforcing varification in all 112 models.
+  Get a large coffee. Watch a movie.
 
 
 Feel free to dig through the scripts, though be warned that they have been
@@ -1567,15 +1567,17 @@ written to just work, and not as high-maintenance code shared by several
 individuals.
     """ % (CACHEFILE, GRAPHAMH, GRAPHPSH, GRAPHCH)
 
-def main():
+def main(mylist = None):
     """
-    Simple test case with a few protocols
+    Simple test case with a few protocols, or so it started out at least.
     """
     global DB
     global FCD,FCDN,FCDX,FCDS
     global DRAWGRAPH
     global CACHE
+    global FILTER
 
+    FILTER = mylist
     sortBuffer()
 
     import atexit
@@ -1623,7 +1625,17 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # Compute list of adversary models for test
+    cmd = "ls -1 Protocols/AdversaryModels/*.spdl"
+    ll = commands.getoutput(cmd)
+    nl = []
+    for fn in ll.splitlines():
+        xd = fn.split("/")
+        res = xd[-1].rstrip()
+        pref = res.split(".")[0]
+        nl.append(pref)
+    # Call main with None to do all
+    main(nl)
 
 
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:
