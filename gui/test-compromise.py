@@ -35,7 +35,7 @@ import sys
 
 from Scyther import *
 
-CACHEFILE = "boring.data"   # Filename of cache
+CACHEFILE = "verification-result-cache.tmp"   # Filename of cache
 SHOWPATH = False    # Switch to true to show paths in the graph
 #DEFAULTARGS = "--max-runs=7 --extravert"
 DEFAULTARGS = "--max-runs=4"
