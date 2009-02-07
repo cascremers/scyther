@@ -63,6 +63,13 @@ DOTABBREVS = {}
 
 RESTRICTEDMODELS = None # No restricted model set
 
+"""
+Names of PDF output files
+"""
+GRAPHPSH = "protocol-security-hierarchy"
+GRAPHAMH = "adversary-model-hierarchy"
+GRAPHCH = "combined-hierarchy-claimdetails"
+
 def InitRestricted():
     """
     If we want restricted models, do so here.
@@ -813,6 +820,7 @@ def DotGraph(force=False):
     global ACLMAX
     global SCANERRORS
     global RESTRICTEDMODELS
+    global GRAPHCH
 
     if force == False:
         # Check for conditions not to draw
@@ -821,11 +829,10 @@ def DotGraph(force=False):
         if DRAWGRAPH == False:
             return
 
-    print "Writing graph"
-    fname = "combined-hierarchy-claimdetails"
-    fp = open("%s.dot" % (fname), "w")
+    print "Writing combined hierarchy with full claim details."
+    fp = open("%s.dot" % (GRAPHCH), "w")
 
-    fp.write("digraph Compromise {\n")
+    fp.write("digraph combinedHierarchyWithClaimDetails {\n")
     fp.write("\trankdir=BT;\n")
 
     modelsdone = 0
@@ -1007,7 +1014,7 @@ def DotGraph(force=False):
     fp.close()
     print "Graph written"
 
-    commands.getoutput("dot -Tpdf %s.dot >%s.pdf" % (fname,fname))
+    commands.getoutput("dot -Tpdf %s.dot >%s.pdf" % (GRAPHCH, GRAPHCH))
 
 class ProtCache(object):
     """
@@ -1323,12 +1330,13 @@ def reportProtocolHierarchy():
     Report the protocol-security hierarchy
     """
     global FCD
+    global GRAPHPSH
 
     if len(sys.argv[1:]) == 0:
         return
 
     print "Writing protocol hierarchy."
-    fp = open("protocol-security-hierarchy.dot","w")
+    fp = open("%s.dot" % (GRAPHPSH),"w")
     fp.write("digraph protocolSecurityHierarchy {\n")
     fp.write("\trankdir=BT;\n")
 
@@ -1381,7 +1389,7 @@ def reportProtocolHierarchy():
 
     fp.write("};\n")
     fp.close()
-    commands.getoutput("dot -Tpdf protocol-security-hierarchy.dot >protocol-security-hierarchy.pdf")
+    commands.getoutput("dot -Tpdf %s.dot >%s.pdf" % (GRAPHPSH, GRAPHPSH))
     print "Done."
 
 
@@ -1473,11 +1481,12 @@ def WriteHierarchy():
     If a restricted set, write
     """
     global RESTRICTEDMODELS
+    global GRAPHAMH
 
     if RESTRICTEDMODELS == None:
         return
 
-    fp = open("adversary-model-hierarchy.dot","w")
+    fp = open("%s.dot" % (GRAPHAMH),"w")
     fp.write("digraph {\n");
     fp.write("\trankdir=BT;\n")
 
@@ -1492,7 +1501,7 @@ def WriteHierarchy():
 
     fp.write("}\n");
     fp.close()
-    commands.getoutput("dot -Tpdf adversary-model-hierarchy.dot >adversary-model-hierarchy.pdf")
+    commands.getoutput("dot -Tpdf %s.dot >%s.pdf" % (GRAPHAMH, GRAPHAMH))
 
 def exiter():
     global CALLSCYTHER
