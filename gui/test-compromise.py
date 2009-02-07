@@ -35,6 +35,7 @@ import sys
 
 from Scyther import *
 
+CACHEFILE = "boring.data"   # Filename of cache
 SHOWPATH = False    # Switch to true to show paths in the graph
 #DEFAULTARGS = "--max-runs=7 --extravert"
 DEFAULTARGS = "--max-runs=4"
@@ -1094,15 +1095,17 @@ def sortBuffer():
     """
     Sort the Cache file
     """
+    global CACHEFILE
+
     ll = []
-    fp = open("boring.data","r")
+    fp = open(CACHEFILE,"r")
     for l in fp.readlines():
         ll.append(l)
     fp.close()
 
     ll.sort()
 
-    fp = open("boring.data","w")
+    fp = open(CACHEFILE,"w")
     for l in ll:
         fp.write(l)
     fp.close()
@@ -1114,10 +1117,12 @@ class ScytherCache(object):
 
     self.data = (protocol [file]) -> ((claim,model) -> res)
     """
+    global CACHEFILE
+
     def __init__(self):
         self.data = {}
         try:
-            fp = open("boring.data","r")
+            fp = open(CACHEFILE,"r")
             for l in fp.readlines():
                 da = (l.rstrip("\n")).split("\t")
                 protocol = da[0]
@@ -1145,7 +1150,7 @@ class ScytherCache(object):
     def append(self,protocol,claim,model,res):
         if self.get(protocol,claim,model) == None:
             self.set(protocol,claim,model,res)
-            fp = open("boring.data","a")
+            fp = open(CACHEFILE,"a")
             fp.write("%s\t%s\t%s\t%s\n" % (protocol,claim,model,res))
             fp.flush()
             fp.close()
