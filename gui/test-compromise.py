@@ -826,6 +826,7 @@ def DotGraph(force=False):
     fp = open("%s.dot" % (fname), "w")
 
     fp.write("digraph Compromise {\n")
+    fp.write("\trankdir=BT;\n")
 
     modelsdone = 0
     modelscount = 0
@@ -1329,6 +1330,7 @@ def reportProtocolHierarchy():
     print "Writing protocol hierarchy."
     fp = open("protocol-security-hierarchy.dot","w")
     fp.write("digraph protocolSecurityHierarchy {\n")
+    fp.write("\trankdir=BT;\n")
 
     # Infer dependencies
     wkrs = {}
@@ -1477,6 +1479,7 @@ def WriteHierarchy():
 
     fp = open("adversary-model-hierarchy.dot","w")
     fp.write("digraph {\n");
+    fp.write("\trankdir=BT;\n")
 
     ml = RESTRICTEDMODELS
     for model in ml:
