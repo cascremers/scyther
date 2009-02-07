@@ -1,6 +1,6 @@
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007 Cas Cremers
+	Copyright (C) 2007-2009 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -28,4 +28,7 @@ import os.path
 
 bindir = __path__[0]
 Scyther.setBinDir(bindir)
+
+#   Provide scope
+__all__ = ["Scyther"]
 
