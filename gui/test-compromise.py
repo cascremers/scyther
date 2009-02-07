@@ -87,12 +87,12 @@ def InitRestricted():
     # bpr2000: skr
     bpr2000 = external.copy()
     bpr2000.vector[3] = 1
-    bpr2000.setName("M-BPR")
+    bpr2000.setName("BPR")
     
     # br9395: notgroup skr
     br9395 = bpr2000.copy()
     br9395.vector[0] = 1
-    br9395.setName("M-BR")
+    br9395.setName("BR")
     
     # pfs: notgroup after
     pfs = external.copy()
@@ -109,13 +109,13 @@ def InitRestricted():
     ck2001.union(internal)
     ck2001.vector[3] = 1
     ck2001.vector[4] = 2
-    ck2001.setName("M-CK")
+    ck2001.setName("CK")
 
     # ck2001hmqv: notgroup aftercorrect skr ssr
     ck2001hmqv = ck2001.copy()
     ck2001hmqv.vector[1] = 1    # KCI
     ck2001hmqv.vector[2] = 2    # aftercorrect
-    ck2001hmqv.setName("M-CKw")
+    ck2001hmqv.setName("CKw")
 
     # eck: notgroup actor rnsafe skr rnr
     eck = kci.copy()
@@ -123,31 +123,31 @@ def InitRestricted():
     eck.vector[2] = 1
     eck.vector[3] = 1
     eck.vector[5] = 1
-    eck.setName("M-eCK")
+    eck.setName("eCK")
 
     # eckalt: notgroup actor after skr rnr ssr
     eckalt = eck.copy()
     eckalt.vector[2] = 2
-    eckalt.setName("M-eCK-alt")
+    eckalt.setName("eCK-alt")
 
     # eckplus: notgroup actor rnsafe skr rnr ssr
     eckplus = eck.copy()
     eckplus.vector[4] = 2
-    eckplus.setName("M-eCK+")
+    eckplus.setName("eCK+")
 
     # RNR variants of SSR filters
     ck2001rnr = ck2001.copy()
     ck2001rnr.vector[4] = 1
-    ck2001rnr.setName("M-CK-rnr")
+    ck2001rnr.setName("CK-rnr")
 
     ck2001hmqvrnr = ck2001hmqv.copy()
     ck2001hmqvrnr.vector[4] = 1
-    ck2001hmqvrnr.setName("M-CKw-nr")
+    ck2001hmqvrnr.setName("CKw-nr")
 
     # eckssr: SSR variant of eCK
     eckssr = kci.copy()
     eckssr.vector[5] = 2
-    eckssr.setName("M-eCK-ssr")
+    eckssr.setName("eCK-ssr")
 
     RESTRICTEDMODELS = [eck, eckalt,ck2001rnr,ck2001hmqvrnr]    # To compare equal choice for RNR/SSR
 
@@ -822,7 +822,7 @@ def DotGraph(force=False):
             return
 
     print "Writing graph"
-    fname = "compromise-test"
+    fname = "combined-hierarchy-claimdetails"
     fp = open("%s.dot" % (fname), "w")
 
     fp.write("digraph Compromise {\n")
@@ -1319,7 +1319,7 @@ def dotabbrev(fn):
 
 def reportProtocolHierarchy():
     """
-    Report the hierarchy of protocols.
+    Report the protocol-security hierarchy
     """
     global FCD
 
@@ -1327,8 +1327,8 @@ def reportProtocolHierarchy():
         return
 
     print "Writing protocol hierarchy."
-    fp = open("protocol-H.dot","w")
-    fp.write("digraph protocolhierarchy {\n")
+    fp = open("protocol-security-hierarchy.dot","w")
+    fp.write("digraph protocolSecurityHierarchy {\n")
 
     # Infer dependencies
     wkrs = {}
@@ -1379,7 +1379,7 @@ def reportProtocolHierarchy():
 
     fp.write("};\n")
     fp.close()
-    commands.getoutput("dot -Tpdf protocol-H.dot >protocol-H.pdf")
+    commands.getoutput("dot -Tpdf protocol-security-hierarchy.dot >protocol-security-hierarchy.pdf")
     print "Done."
 
 
@@ -1405,8 +1405,8 @@ def reportProtocolTable():
             maxprotwidth = da
 
     # attack string
-    attackstr =   "attack"
-    noattackstr = "none"
+    attackstr =   "X"
+    noattackstr = "."
 
     maxmodwidth = len(attackstr)
     model = SecModel()
@@ -1475,7 +1475,7 @@ def WriteHierarchy():
     if RESTRICTEDMODELS == None:
         return
 
-    fp = open("hierarchy.dot","w")
+    fp = open("adversary-model-hierarchy.dot","w")
     fp.write("digraph {\n");
 
     ml = RESTRICTEDMODELS
@@ -1489,7 +1489,7 @@ def WriteHierarchy():
 
     fp.write("}\n");
     fp.close()
-    commands.getoutput("dot -Tpdf hierarchy.dot >hierarchy.pdf")
+    commands.getoutput("dot -Tpdf adversary-model-hierarchy.dot >adversary-model-hierarchy.pdf")
 
 def exiter():
     global CALLSCYTHER
