@@ -1560,7 +1560,7 @@ from the protocol analysis results:
 
   A more detailed graph with specific claims. This is not so interesting for
   the setup in the paper,but is useful if you'd hack this script and make sure
-  RESTRICTEDMODELS is always None, enforcing varification in all 112 models.
+  RESTRICTEDMODELS is always None, enforcing verification in all 112 models.
   Get a large coffee. Watch a movie.
 
 
