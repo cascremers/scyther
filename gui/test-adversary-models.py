@@ -1296,6 +1296,22 @@ def reportWeaker(fn):
     return (weakers,equals)
 
 
+def filterImpliedModels(models):
+    """
+    Remove any implied models from the list.
+    """
+    nl = []
+    for model in models:
+        remove = False
+        for model2 in models:
+            if model2 != model:
+                if model.weakerthan(model2):
+                    remove = True
+        if not remove:
+            nl.append(model)
+    return nl
+
+
 def pickfirst(dic,fn):
     """
     Pick a representative
@@ -1389,7 +1405,7 @@ def reportProtocolHierarchy():
             nl.sort()
             txt = ",".join(nl)
             txt += "\\n"
-            models = allTrueModels(fn)
+            models = filterImpliedModels(allTrueModels(fn))
             nm = []
             for m in models:
                 nm.append(m.shortname())
