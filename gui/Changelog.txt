@@ -4,6 +4,12 @@
 
 Next release:
 
+	Big new features:
+
+	* [Backend][Gui] Scyther now support adversary-compromise models.
+	* [Scripting] Scripts are available for generating protocol
+	security hierarchies.
+
 	Bugfixes:
 
 	* Python 2.5 has integrated (c)elementtree into the core.
