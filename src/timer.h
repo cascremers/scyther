@@ -20,8 +20,13 @@
 #ifndef TIMER
 #define TIMER
 
-void set_time_limit (int seconds);
+#include "system.h"
+
+void timeInit (void);
+void timeDone (void);
+void set_time_limit (double seconds);
 int get_time_limit ();
 int passed_time_limit ();
+int passed_time_limit_store (const System sys);
 
 #endif

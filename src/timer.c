@@ -27,33 +27,44 @@
 
 #ifdef linux
 #include <time.h>
-#include <sys/times.h>
-static clock_t endwait = 0;
+static clock_t clockstart;
 #endif
+static double time_max_seconds;
 
-static int time_max_seconds = 0;
+void
+timeInit (void)
+{
+  time_max_seconds = 0;
+#ifdef linux
+  clockstart = clock ();
+#endif
+}
+
+void
+timeDone (void)
+{
+  return;
+}
 
 //! Set initial time limit.
 /**
  * <= 0 means none.
  */
 void
-set_time_limit (int seconds)
+set_time_limit (double seconds)
 {
+#ifdef linux
   if (seconds > 0)
     {
       time_max_seconds = seconds;
-#ifdef linux
-      endwait = seconds * CLOCKS_PER_SEC;
-#endif
     }
   else
     {
       time_max_seconds = 0;
-#ifdef linux
-      endwait = 0;
-#endif
     }
+#else
+  warning ("This build of Scyther does not support the --timer (-T) switch.");
+#endif
 }
 
 //! Retrieve time limit
@@ -68,21 +79,34 @@ int
 passed_time_limit ()
 {
 #ifdef linux
-  if (endwait <= 0)
+  if (time_max_seconds == 0)
     {
-      return 0;
+      return false;
     }
   else
     {
-      struct tms t;
+      time_t clockend;
+      double duration;
 
-      times (&t);
-      if (t.tms_utime > endwait)
-	return 1;
-      else
-	return 0;
+      clockend = clock ();
+      duration = ((double) (clockend - clockstart)) / CLOCKS_PER_SEC;
+      if (duration > time_max_seconds)
+	{
+	  return true;
+	}
     }
-#else
-  return 0;
 #endif
+  return false;
+}
+
+//! Check time limit and store cause if so
+int
+passed_time_limit_store (const System sys)
+{
+  if (passed_time_limit ())
+    {
+      sys->current_claim->timebound = 1;
+      return true;
+    }
+  return false;
 }

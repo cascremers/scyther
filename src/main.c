@@ -98,6 +98,9 @@ main (int argc, char **argv)
 {
   int exitcode = EXIT_NOATTACK;
 
+  /* init time */
+  timeInit ();
+
   /* initialize symbols */
   termsInit ();
   termmapsInit ();
@@ -234,6 +237,9 @@ main (int argc, char **argv)
 
   /* memory clean up? */
   strings_cleanup ();
+
+  /* time done */
+  timeDone ();
 
   if (switches.exitCodes)
     {
