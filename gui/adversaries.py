@@ -64,6 +64,9 @@ DOTABBREVS = {}
 RESTRICTEDMODELS = None # No restricted model set
 FILTER = None
 
+SECMODELMIN = None
+SECMODELMAX = None
+
 """
 Names of PDF output files
 """
@@ -76,6 +79,10 @@ def InitRestricted(models=None):
     If we want restricted models, do so here.
     """
     global RESTRICTEDMODELS
+    global SECMODELMIN, SECMODELMAX
+
+    SECMODELMIN = SecModel()
+    SECMODELMAX = SecModel("max")
 
     RESTRICTEDMODELS = None #   default
 
@@ -363,7 +370,6 @@ class SecModel(object):
         """
         Yield string
         """
-        global RESTRICTEDMODELS
 
         pref = ""
         if display == True:
@@ -427,6 +433,44 @@ class SecModel(object):
             tomodel.vector.append(self.vector[i])
         return tomodel
 
+    def nextLinear(self):
+        for i in range(0,self.length):
+            
+            while True:
+                index = self.vector[i]
+                if index >= self.ax(i)-1:
+                    # overflow case coming up
+                    self.vector[i] = 0
+                    # Proceed to next digit anyway, this is sane
+                    break
+                else:
+                    # no overflow, do it
+                    self.vector[i] = self.vector[i]+1
+                    if self.checkSane(False):
+                        return self
+                    # not sane, continue to increase
+        return None
+
+    def nextSmart(self):
+        """
+        This is smart in the sense that it does [ MIN,MAX, ...everthing else ].
+        That's good sometimes. No, really. Because it allows for killing "all correct" or "all incorrect" examples early.
+        """
+        global SECMODELMIN, SECMODELMAX
+
+        if self == SECMODELMIN:
+            self.setMax(unrestricted=True)
+            return self
+        if self == SECMODELMAX:
+            self.setMin(unrestricted=True)
+            self.nextLinear()
+            return self
+        self.nextLinear()
+        if self == SECMODELMAX:
+            return None
+        else:
+            return self
+
     def next(self,unrestricted=False):
         """
         Increase a given model, or return None when done
@@ -434,22 +478,7 @@ class SecModel(object):
         global RESTRICTEDMODELS
 
         if (RESTRICTEDMODELS == None) or (unrestricted == True):
-            for i in range(0,self.length):
-                
-                while True:
-                    index = self.vector[i]
-                    if index >= self.ax(i)-1:
-                        # overflow case coming up
-                        self.vector[i] = 0
-                        # Proceed to next digit anyway, this is sane
-                        break
-                    else:
-                        # no overflow, do it
-                        self.vector[i] = self.vector[i]+1
-                        if self.checkSane(False):
-                            return self
-                        # not sane, continue to increase
-            return None
+            return self.nextLinear()
         else:
             i = RESTRICTEDMODELS.index(self)
             if i == len(RESTRICTEDMODELS) - 1:
@@ -684,7 +713,7 @@ def VerifyClaim(file,claimid,model,onlycache=False):
                     return claimres
 
         # We want to consider the full cache!
-        model2 = model2.next(unrestricted=True)
+        model2 = model2.nextSmart()
 
     """
     Below we actually verify it
