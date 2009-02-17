@@ -18,22 +18,45 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
+import sys
 import commands
+from optparse import OptionParser
 
 from adversaries import main
 
+
+def initParser():
+    """
+    Init the main parser.
+    """
+
+    parser = OptionParser()
+
+    #parser.add_option("-f", "--file", dest="filename",
+    #                  help="write report to FILE", metavar="FILE")
+    #parser.add_option("-q", "--quiet",
+    #                  action="store_false", dest="verbose", default=True,
+    #                  help="don't print status messages to stdout")
+
+    parser.add_option("-m","--models", action="store", dest="models", help="Consider adversary models by name.", metavar="ID", default="CSF09")
+    parser.add_option("-d","--dir", action="store", dest="dir", help="Set base directory to scan for protocols.", metavar="PATH", default = "Protocols/AdversaryModels")
+    (options, args) = parser.parse_args()
+
+    return (options, args)
+
+
 if __name__ == '__main__':
-    # Compute list of adversary models for test
-    cmd = "ls -1 Protocols/AdversaryModels/*.spdl"
-    ll = commands.getoutput(cmd)
-    nl = []
-    for fn in ll.splitlines():
-        xd = fn.split("/")
-        res = xd[-1].rstrip()
-        pref = res.split(".")[0]
-        nl.append(pref)
-    # Call main with None to do all
-    main(protocollist=nl)
+    # Options
+    (options, args) = initParser()
+
+    # Base dir
+    if options.dir != None:
+        protocolpath = options.dir
+        while protocolpath.endswith("/"):
+            protocolpath = protocolpath[:-1]
+
+    # Call main 
+    main(models=options.models, protocolpath=protocolpath)
 
 
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:
