@@ -210,7 +210,7 @@ def reportModels(models):
 
 class SecModel(object):
 
-    def __init__(self,minmax=None):
+    def __init__(self,minmax=None,unrestricted=False):
 
         axis0 = ["--LKRnotgroup=0","--LKRnotgroup=1"]
         axis1 = ["","--LKRactor=1"]
@@ -225,9 +225,9 @@ class SecModel(object):
         self.length = len(self.axes)
 
         if minmax == "max" or minmax == True:
-            self.setMax()
+            self.setMax(unrestricted=unrestricted)
         else:
-            self.setMin()
+            self.setMin(unrestricted=unrestricted)
 
         self.name=None
 
@@ -290,10 +290,10 @@ class SecModel(object):
 
             return (self in RESTRICTEDMODELS)
 
-    def setMin(self):
+    def setMin(self,unrestricted=False):
         global RESTRICTEDMODELS
 
-        if RESTRICTEDMODELS == None:
+        if (RESTRICTEDMODELS == None) or (unrestricted == True):
             self.vector = []
             for i in range(0,self.length):
                 self.vector.append(0)
@@ -301,10 +301,10 @@ class SecModel(object):
             RESTRICTEDMODELS[0].copy(tomodel=self)
 
 
-    def setMax(self):
+    def setMax(self,unrestricted=False):
         global RESTRICTEDMODELS
 
-        if RESTRICTEDMODELS == None:
+        if (RESTRICTEDMODELS == None) or (unrestricted == True):
             self.vector = []
             for i in range(0,self.length):
                 self.vector.append(self.ax(i)-1)
@@ -427,13 +427,13 @@ class SecModel(object):
             tomodel.vector.append(self.vector[i])
         return tomodel
 
-    def next(self):
+    def next(self,unrestricted=False):
         """
         Increase a given model, or return None when done
         """
         global RESTRICTEDMODELS
 
-        if RESTRICTEDMODELS == None:
+        if (RESTRICTEDMODELS == None) or (unrestricted == True):
             for i in range(0,self.length):
                 
                 while True:
@@ -639,7 +639,7 @@ class SecDelta(object):
         return res
 
 
-def VerifyClaim(file,claimid,model):
+def VerifyClaim(file,claimid,model,onlycache=False):
     """
     Check claim in model
     """
@@ -651,6 +651,46 @@ def VerifyClaim(file,claimid,model):
     claimres = CACHE.get(file,claimid,model.dbkey())
     if claimres != None:
         return claimres
+
+    """
+    Scan cache for hierarchy implications.
+    If found, store.
+    """
+    model2 = SecModel()
+    while model2 != None:
+        if model != model2:
+            stronger = None
+            if model2.weakerthan(model):
+                stronger = True
+            if model.weakerthan(model2):
+                stronger = False
+            if stronger != None:
+                """
+                Allright, relation exists, pull from cache.
+                """
+                claimres = CACHE.get(file,claimid,model2.dbkey())
+                storeme = False
+                if (stronger == True) and (claimres == 0):
+                    # model is stronger than model2
+                    # model2: 0 means false (attack found)
+                    storeme = True
+                if (stronger == False) and (claimres == 3):
+                    # model is weaker than model2
+                    # model2: 3 means true (verified)
+                    storeme = True
+                if storeme:
+                    # Store implied result in cache, proceed
+                    CACHE.append(file,claimid,model.dbkey(),claimres)
+                    return claimres
+
+        # We want to consider the full cache!
+        model2 = model2.next(unrestricted=True)
+
+    """
+    Below we actually verify it
+    """
+    if onlycache:
+        return None
 
     DotGraph()
     DRAWGRAPH = False
