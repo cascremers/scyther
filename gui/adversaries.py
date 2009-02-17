@@ -1628,7 +1628,7 @@ written to just work, and not as high-maintenance code shared by several
 individuals.
     """ % (CACHEFILE, GRAPHAMH, GRAPHPSH, GRAPHCH)
 
-def main(protocollist = None, models = "CSF09", protocolpath="Protocols/AdversaryModels"):
+def main(protocollist = None, models = "CSF09", protocolpath="Protocols/AdversaryModels",filefilter=None):
     """
     Simple test case with a few protocols, or so it started out at least.
     """
@@ -1652,6 +1652,13 @@ def main(protocollist = None, models = "CSF09", protocolpath="Protocols/Adversar
     WriteHierarchy()
 
     list = Scyther.FindProtocols(protocolpath)
+    if filefilter != None:
+        nlist = []
+        for protfile in list:
+            if filefilter(protfile):
+                nlist.append(protfile)
+        list = nlist
+
     #print "Performing compromise analysis for the following protocols:", list
     #print
 

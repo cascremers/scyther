@@ -24,6 +24,21 @@ from optparse import OptionParser
 
 from adversaries import main
 
+def isEmpty(cmd):
+    """
+    Check what comes back.
+    """
+    out = commands.getoutput(cmd)
+    if len(out.splitlines()) == 0:
+        return True
+    else:
+        return False
+
+def filterSymmetric(protfile):
+    return isEmpty("grep -l \"\<sk\>\|\<pk\>\" %s" % (protfile))
+
+def filterAsymmetric(protfile):
+    return isEmpty("grep -L \"\<sk\>\|\<pk\>\" %s" % (protfile))
 
 def initParser():
     """
@@ -40,8 +55,10 @@ def initParser():
 
     parser.add_option("-m","--models", action="store", dest="models", help="Consider adversary models by name.", metavar="ID", default="CSF09")
     parser.add_option("-d","--dir", action="store", dest="dir", help="Set base directory to scan for protocols.", metavar="PATH", default = "Protocols/AdversaryModels")
-    (options, args) = parser.parse_args()
+    parser.add_option("-a","--asymmetric", action="store_true", dest="asymmetric", help="Filter to assymetric crypto only.", default=False)
+    parser.add_option("-s","--symmetric", action="store_true", dest="symmetric", help="Filter to ssymetric crypto only.", default=False)
 
+    (options, args) = parser.parse_args()
     return (options, args)
 
 
@@ -49,14 +66,28 @@ if __name__ == '__main__':
     # Options
     (options, args) = initParser()
 
+    # Symmetric/asymmetric filters
+    filefilter = None
+    if options.symmetric:
+        if options.asymmetric:
+            print "Error: cannot use filter for symmetric and asymmetric at once."
+            sys.exit()
+    if options.symmetric:
+        filefilter = filterSymmetric
+    if options.asymmetric:
+        filefilter = filterAsymmetric
+
     # Base dir
     if options.dir != None:
         protocolpath = options.dir
         while protocolpath.endswith("/"):
             protocolpath = protocolpath[:-1]
 
+    # Name list
+
+
     # Call main 
-    main(models=options.models, protocolpath=protocolpath)
+    main(models=options.models, protocolpath=protocolpath, filefilter=filefilter)
 
 
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:
