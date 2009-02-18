@@ -57,6 +57,10 @@ def initParser():
     parser.add_option("-d","--dir", action="store", dest="dir", help="Set base directory to scan for protocols.", metavar="PATH", default = "Protocols/AdversaryModels")
     parser.add_option("-a","--asymmetric", action="store_true", dest="asymmetric", help="Filter to assymetric crypto only.", default=False)
     parser.add_option("-s","--symmetric", action="store_true", dest="symmetric", help="Filter to ssymetric crypto only.", default=False)
+    parser.add_option("","--PSH", action="append_const", const="psh", dest="graphs", help="Generate protocol-security hierarchy.")
+    parser.add_option("","--MH",  action="append_const", const="mh",  dest="graphs", help="Generate adversary-model hierarchy.")
+    parser.add_option("","--CH",  action="append_const", const="ch",  dest="graphs", help="Generate detailed combined hierarchy.")
+    parser.add_option("-g","--graphs", action="store_const", const=["psh","mh","ch"],  dest="graphs", help="Generate all graphs.")
 
     (options, args) = parser.parse_args()
     return (options, args)
@@ -87,7 +91,7 @@ if __name__ == '__main__':
 
 
     # Call main 
-    main(models=options.models, protocolpath=protocolpath, filefilter=filefilter)
+    main(models=options.models, protocolpath=protocolpath, filefilter=filefilter, graphs=options.graphs)
 
 
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:

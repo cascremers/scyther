@@ -721,7 +721,6 @@ def VerifyClaim(file,claimid,model,onlycache=False):
     if onlycache:
         return None
 
-    DotGraph()
     DRAWGRAPH = False
 
     if CALLSCYTHER:
@@ -880,8 +879,24 @@ def getMaxModels(mylist=None,direction=1):
                 mm.append(model)
         return mm
 
+def drawbox(title="", prefix="",spacer=1):
+    """
+    Draw an ascii box
+    """
+    ttl = title.splitlines()
+    max = 1
+    for l in ttl:
+        if len(l) > max:
+            max = len(l)
+    max = max + 2*spacer
+    print prefix + "o" + "-" * (max) + "o"
+    for l in ttl:
+        inner = l.center(max)
+        print prefix + "|%s|" % (inner)
+    print prefix + "o" + "-" * (max) + "o"
 
-def DotGraph(force=False):
+
+def GraphCombinedHierarchy(force=False):
     """
     DB is a dict:
     model -> list of protocols
@@ -907,7 +922,11 @@ def DotGraph(force=False):
         if DRAWGRAPH == False:
             return
 
-    print "Writing combined hierarchy with full claim details."
+    if RESTRICTEDMODELS == None:
+        print "x Not drawing combined hierarchy for all models (would be unreadable)."
+        return
+
+    print "- Writing combined hierarchy with full claim details."
     fp = open("%s.dot" % (GRAPHCH), "w")
 
     fp.write("digraph combinedHierarchyWithClaimDetails {\n")
@@ -1090,9 +1109,12 @@ def DotGraph(force=False):
 
     fp.flush()
     fp.close()
-    print "Graph written"
-
     commands.getoutput("dot -Tpdf %s.dot >%s.pdf" % (GRAPHCH, GRAPHCH))
+
+    print "* Generated combined hierarchy graph."
+    drawbox("%s.pdf" % (GRAPHCH), prefix="  ")
+    print
+
 
 class ProtCache(object):
     """
@@ -1416,7 +1438,7 @@ def dotabbrev(fn):
     return short
 
 
-def reportProtocolHierarchy():
+def GraphProtocolSecurityHierarchy():
     """
     Report the protocol-security hierarchy
     """
@@ -1424,11 +1446,7 @@ def reportProtocolHierarchy():
     global GRAPHPSH
     global FILTER
 
-    if FILTER == None:
-        # We don't do this hierarchy if there is no filter
-        return
-
-    print "Writing protocol hierarchy."
+    print "- Generating protocol-security hierarchy."
     fp = open("%s.dot" % (GRAPHPSH),"w")
     fp.write("digraph protocolSecurityHierarchy {\n")
     fp.write("\trankdir=BT;\n")
@@ -1488,7 +1506,9 @@ def reportProtocolHierarchy():
     fp.write("};\n")
     fp.close()
     commands.getoutput("dot -Tpdf %s.dot >%s.pdf" % (GRAPHPSH, GRAPHPSH))
-    print "Done."
+    print "* Generated protocol-security hierarchy."
+    drawbox("%s.pdf" % (GRAPHPSH), prefix="  ")
+    print
 
 
 def reportProtocolTable():
@@ -1575,7 +1595,7 @@ def reportProtocolTable():
     print "-" * len(header)
 
 
-def WriteHierarchy():
+def GraphModelHierarchy():
     """
     If a restricted set, write
     """
@@ -1583,8 +1603,10 @@ def WriteHierarchy():
     global GRAPHAMH
 
     if RESTRICTEDMODELS == None:
+        print "x No model hierarchy generated because all models are considered."
         return
 
+    print "- Generating model hierarchy"
     fp = open("%s.dot" % (GRAPHAMH),"w")
     fp.write("digraph {\n");
     fp.write("\trankdir=BT;\n")
@@ -1601,8 +1623,12 @@ def WriteHierarchy():
     fp.write("}\n");
     fp.close()
     commands.getoutput("dot -Tpdf %s.dot >%s.pdf" % (GRAPHAMH, GRAPHAMH))
+    print "* Generated adversary model hierarchy."
+    drawbox("%s.pdf" % (GRAPHAMH), prefix="  ")
+    print
 
-def exiter():
+
+def exiter(graphs=[]):
     global CALLSCYTHER
     global DRAWGRAPH
     global CACHEFILE
@@ -1610,54 +1636,52 @@ def exiter():
 
     CALLSCYTHER = False
 
-    DRAWGRAPH = True
-    DotGraph(True)
-
-    ### Report summary
-    #reportContext()
-
-    reportProtocolHierarchy()
     reportProtocolTable()
 
-    print "Sorting buffer at exit."
-    sortBuffer()
     print """
 
      .--==################################==--.
     |      Verification process completed      |
      `--==################################==--`
+"""
 
+    print "- Sorting buffer at exit."
+    sortBuffer()
+
+    """
+    Graphs
+    """
+    DRAWGRAPH = True
+    if graphs == None:
+        graphs = []
+    if "mh" in graphs:
+        GraphModelHierarchy()
+    else:
+        print "- No model hierarchy requested (--MH)"
+    if "ch" in graphs:
+        GraphCombinedHierarchy(True)
+    else:
+        print "- No combined hierarchy requested (--CH)"
+    if "psh" in graphs:
+        GraphProtocolSecurityHierarchy()
+    else:
+        print "- No protocol-security hierarchy requested (--PSH)"
+
+    ### Report summary
+    #reportContext()
+
+    print """
 The verification cache file has been updated, and a next run with the same
 parameters will be fast. If you want to redo the analysis, just delete the
 cache file (%s) and rerun the script.
 
-In the current directory you should now find three new PDF files generated
-from the protocol analysis results:
-
-1. '%s.pdf'
-
-  The adversary-model hierarchy. This graph is reproduced as Figure 3 in the
-  paper.
-
-2. '%s.pdf'
-
-  The protocol-security hierarchy. This graph is reproduced as Figure 4 in the
-  paper.
-
-3. '%s.pdf'
-
-  A more detailed graph with specific claims. This is not so interesting for
-  the setup in the paper,but is useful if you'd hack this script and make sure
-  RESTRICTEDMODELS is always None, enforcing verification in all 112 models.
-  Get a large coffee. Watch a movie.
-
-
 Feel free to dig through the scripts, though be warned that they have been
 written to just work, and not as high-maintenance code shared by several
 individuals.
-    """ % (CACHEFILE, GRAPHAMH, GRAPHPSH, GRAPHCH)
+    """ % (CACHEFILE)
 
-def main(protocollist = None, models = "CSF09", protocolpath="Protocols/AdversaryModels",filefilter=None):
+
+def main(protocollist = None, models = "CSF09", protocolpath="Protocols/AdversaryModels",filefilter=None,graphs=[]):
     """
     Simple test case with a few protocols, or so it started out at least.
     """
@@ -1672,14 +1696,12 @@ def main(protocollist = None, models = "CSF09", protocolpath="Protocols/Adversar
 
     import atexit
 
-    atexit.register(exiter)
+    atexit.register(exiter,graphs=graphs)
 
     InitRestricted(models)
 
     CACHE = ScytherCache()
     
-    WriteHierarchy()
-
     list = Scyther.FindProtocols(protocolpath)
     if filefilter != None:
         nlist = []
@@ -1704,7 +1726,6 @@ def main(protocollist = None, models = "CSF09", protocolpath="Protocols/Adversar
         model = model.next()
     print "Considering %i models" % (len(DB.keys()))
 
-    DotGraph(True)
     DRAWGRAPH = True
     counter = 0
     for fn in FCD.keys():
