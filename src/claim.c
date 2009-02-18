@@ -743,14 +743,14 @@ goodHeight (Role role, Termlist labels)
   int e;
 
   goodheight = 0;
-  e = 0;
+  e = 1;
   for (rd = role->roledef; rd != NULL; rd = rd->next)
     {
       if (rd->label != NULL)
 	{
 	  if (inTermlist (labels, rd->label))
 	    {
-	      goodheight = e + 1;
+	      goodheight = e;
 	    }
 	}
       e++;
@@ -762,12 +762,15 @@ goodHeight (Role role, Termlist labels)
 /**
  * Turn a single claim run into a full preceding matching session.
  *
- * Note that we add orders, and unify, but don't label the bindings.
+ * Note that we add orders, and unify, but don't label the bindings, as the
+ * first origination may not be clear.
  *
  * Returns the number of runs added.
  *
  * @TODO: We're still not doing the unfolding of all options: it may be the
  * case that matching session partners are contaminated.
+ *
+ * @TODO: We're not storing the undoing of the instantiated variables.
  */
 int
 addFullSession (const System sys)
@@ -778,6 +781,7 @@ addFullSession (const System sys)
   Role claimrole;
   Termmap f;
   Termlist tl;
+  Termlist ul;
 
   addedruns = 0;
 
@@ -791,6 +795,7 @@ addFullSession (const System sys)
     {
       if (r == claimrole)
 	{
+	  // My role maps to 0 (claim run)
 	  f = termmapSet (f, r->nameterm, 0);
 	}
       else
@@ -811,12 +816,12 @@ addFullSession (const System sys)
     }
 
   // Sync the labels
+  ul = NULL;
   for (tl = sys->current_claim->prec; tl != NULL; tl = tl->next)
     {
       int r1, e1, r2, e2;
       Roledef rd1, rd2;
       Labelinfo li;
-      Termlist ul;
 
       li = label_find (sys->labellist, tl->term);
       if (!li->ignore)
@@ -833,9 +838,23 @@ addFullSession (const System sys)
 	      // For now we don't add the binding (to avoid having to delete it too)
 
 	      // TODO this will not work if we get multiple unifiers later, and we have to really iterate into this
-	      ul = termMguTerm (rd1->from, rd2->from);
-	      ul = termMguTerm (rd1->to, rd2->to);
-	      ul = termMguTerm (rd1->message, rd2->message);
+	      if (ul != MGUFAIL)
+		{
+		  ul =
+		    termlistConcat (ul, termMguTerm (rd1->from, rd2->from));
+		}
+	      if (ul != MGUFAIL)
+		{
+		  ul = termlistConcat (ul, termMguTerm (rd1->to, rd2->to));
+		}
+	      if (ul != MGUFAIL)
+		{
+		  ul =
+		    termlistConcat (ul,
+				    termMguTerm (rd1->message, rd2->message));
+		}
+	      // Push order into graph
+	      dependPushEvent (r1, e1, r2, e2);
 	    }
 	}
     }
