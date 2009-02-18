@@ -823,7 +823,7 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  set_time_limit (integer_argument ());
+	  set_time_limit ((double) integer_argument ());
 	  return index;
 	}
     }

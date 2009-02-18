@@ -55,7 +55,7 @@ int
 prune_bounds (const System sys)
 {
   /* prune for time */
-  if (passed_time_limit ())
+  if (passed_time_limit_store (sys))
     {
       // Oh no, we ran out of time!
       if (switches.output == PROOF)
@@ -65,7 +65,6 @@ prune_bounds (const System sys)
 		   get_time_limit ());
 	}
       // Pruned because of time bound!
-      sys->current_claim->timebound = 1;
       return 1;
     }
 

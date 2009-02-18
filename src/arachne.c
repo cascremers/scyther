@@ -21,9 +21,14 @@
  *
  *@file arachne.c
  *
- * Introduces a method for proofs akin to the Athena modelchecker
- * http://www.ece.cmu.edu/~dawnsong/athena/
+ * Main iteration chain:
  *
+ * 1. arachneClaimTest 				Check a single claim.
+ * 2. wrap_iteration_attackbuffer 		When buffering the outputs, this wrapper actually outputs the final attack.
+ * 3. fork_iteration_compromisedruns 		When RNR, create claimruns but fork for compromised runs.
+ * 4. wrap_iteration_createclaimrun 		Create claim run.
+ * 5. fork_iteration_matchingsessions 		Fork for matching sessions or not (aftercorrect).
+ * 6. iterate 					Actual iteration process.
  */
 
 #include <stdlib.h>
@@ -781,6 +786,11 @@ void
 createDecryptionChain (const Binding b, const int run, const int index,
 		       Termlist keylist, int (*callback) (void))
 {
+  if (passed_time_limit_store (sys))
+    {
+      // Abort this creation if needed
+      return;
+    }
   if (keylist == NULL)
     {
       // Immediate binding, no key needed.
@@ -1504,7 +1514,10 @@ bind_goal_all_options (const Binding b)
 		       b->run_from, b->ev_from);
 	    }
 
-	  flag = flag && iterate ();
+	  if (!passed_time_limit_store (sys))
+	    {
+	      flag = flag && iterate ();
+	    }
 
 	  // Unbind again
 	  goal_unbind (b);
@@ -2162,12 +2175,17 @@ doAgentUnfolding (const System sys)
 }
 
 //! Main recursive procedure for Arachne
+/**
+ * The returned flag is usually true: it turns false if the iteration procedure
+ * should be aborted now, for example because the time limit was passed, or an
+ * attack was found and we're done.
+ */
 int
 iterate ()
 {
   int flag;
 
-  flag = 1;
+  flag = true;
 
   // check unfolding agent names
   if (switches.agentUnfold > 0)
@@ -2176,11 +2194,11 @@ iterate ()
 	return flag;
     }
 
-  if (!prune_theorems (sys))
+  if (!prune_bounds (sys))
     {
-      if (!prune_claim_specifics (sys))
+      if (!prune_theorems (sys))
 	{
-	  if (!prune_bounds (sys))
+	  if (!prune_claim_specifics (sys))
 	    {
 
 	      // Go and pick a binding for iteration
@@ -2209,7 +2227,7 @@ iterate ()
  * This happens inside any buffering etc.
  */
 int
-iterate_multiple_preconditions (void)
+fork_iteration_matchingsessions (void)
 {
   int result;
 
@@ -2267,7 +2285,7 @@ getClaimIndex (int run, Claimlist cl)
 
 //! Create a run run for the claim
 void
-iterate_create_claimrun (Claimlist cl, Protocol p, Role r)
+wrap_iteration_createclaimrun (Claimlist cl, Protocol p, Role r)
 {
   int run;
   int newruns;
@@ -2288,7 +2306,7 @@ iterate_create_claimrun (Claimlist cl, Protocol p, Role r)
 	  printSemiState ();
 	}
 #endif
-      return iterate_multiple_preconditions ();
+      return fork_iteration_matchingsessions ();
     }
 
     // Because of compromised runs, claim event index may shift.
@@ -2377,10 +2395,10 @@ iterate_create_claimrun (Claimlist cl, Protocol p, Role r)
  * need to consider a compromised RNR run.
  */
 void
-iterate_create_claimruns_compromised (Claimlist cl, Protocol p, Role r)
+fork_iteration_compromisedruns (Claimlist cl, Protocol p, Role r)
 {
   // Iterate for normal protocol first
-  iterate_create_claimrun (cl, p, r);
+  wrap_iteration_createclaimrun (cl, p, r);
 
   // Iterate for compromised claim run if needed
   if (switches.RNR)
@@ -2429,7 +2447,7 @@ iterate_create_claimruns_compromised (Claimlist cl, Protocol p, Role r)
 	    {
 	      /* pcomp, rcomp now set as required.
 	       */
-	      iterate_create_claimrun (cl, pcomp, rcomp);
+	      wrap_iteration_createclaimrun (cl, pcomp, rcomp);
 	    }
 	}
     }
@@ -2439,7 +2457,7 @@ iterate_create_claimruns_compromised (Claimlist cl, Protocol p, Role r)
 //
 //! A wrapper for the case in which we need to buffer attacks.
 void
-iterate_buffer_attacks (Claimlist cl, Protocol p, Role r)
+wrap_iteration_attackbuffer (Claimlist cl, Protocol p, Role r)
 {
   if (useAttackBuffer ())
     {
@@ -2457,7 +2475,7 @@ iterate_buffer_attacks (Claimlist cl, Protocol p, Role r)
       attackOutputStart ();
 
       // Iterate inside
-      iterate_create_claimruns_compromised (cl, p, r);
+      fork_iteration_compromisedruns (cl, p, r);
 
       /* Now, if it has been set, we need to copy the output to the normal streams.
        */
@@ -2473,7 +2491,7 @@ iterate_buffer_attacks (Claimlist cl, Protocol p, Role r)
   else
     {
       // No attack buffering, just output all of them
-      iterate_create_claimruns_compromised (cl, p, r);
+      fork_iteration_compromisedruns (cl, p, r);
     }
 }
 
@@ -2507,7 +2525,7 @@ arachneClaimTest ()
     }
   indentDepth++;
 
-  iterate_buffer_attacks (cl, p, r);
+  wrap_iteration_attackbuffer (cl, p, r);
 
   //! Indent back
   indentDepth--;
