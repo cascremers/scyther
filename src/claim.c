@@ -854,7 +854,7 @@ addFullSession (const System sys)
 				    termMguTerm (rd1->message, rd2->message));
 		}
 	      // Push order into graph
-	      dependPushEvent (r1, e1, r2, e2);
+	      //dependPushEvent (r1, e1, r2, e2);
 	    }
 	}
     }
