@@ -438,6 +438,17 @@ class SecModel(object):
     def dbkey(self):
         return self.__str__(sep="_",empty="None",sort=True)
 
+    def shortornot(self):
+        """
+        Short if possible
+        """
+        USTR = "???"
+        xn = self.shortname(unknown=USTR)
+        if xn == USTR:
+            return (False,str(self))
+        else:
+            return (True,xn)
+
     def __cmp__(self,other):
         if other != None:
             if self.vector == other.vector:
@@ -1378,14 +1389,14 @@ def strictsubset(s1,s2):
         return True
     return False
 
-def allTrueModels(fn):
+def allTrueModels(fn,fix=False):
     """
-    Return all models in which all claims of fn are true
+    Return a set all models in which all claims of fn are true
     """
     global FCD
 
+    allcorrect = set()
     model = SecModel()
-    allcorrect = []
     while model != None:
 
         yeahright = True
@@ -1395,48 +1406,31 @@ def allTrueModels(fn):
                 if res == False:
                     yeahright = False
                     break
+
         if yeahright == True:
-            allcorrect.append(model)
+            if fix:
+                allcorrect.add(str(model))
+            else:
+                allcorrect.add(model.copy())
 
         model = model.next()
     return allcorrect
-
-
-def reportWeaker(fn):
-    """
-    Report all weaker protocols
-    """
-    global FCD
-
-    at = allTrueModels(fn)
-    weakers = []
-    equals = []
-    for fn2 in FCD.keys():
-        if fn != fn2:
-            at2 = allTrueModels(fn2)
-            if subset(at2,at):
-                if subset(at,at2):
-                    equals.append(fn2)
-                else:
-                    weakers.append(fn2)
-        else:
-            equals.append(fn2)
-    return (weakers,equals)
 
 
 def filterImpliedModels(models):
     """
     Remove any implied models from the list.
     """
-    nl = []
+    nl = set()
     for model in models:
         remove = False
         for model2 in models:
             if model2 != model:
                 if model.weakerthan(model2):
                     remove = True
+                    break
         if not remove:
-            nl.append(model)
+            nl.add(model)
     return nl
 
 
@@ -1445,8 +1439,6 @@ def pickfirst(dic,fn):
     Pick a representative
     """
     for x in dic.keys():
-        if x == fn:
-            return x
         if fn in dic[x]:
             return x
     return fn
@@ -1472,6 +1464,34 @@ def dotabbrev(fn):
     return short
 
 
+def GetWeakersEquals(prots):
+    """
+    For all protocols infer weakers.
+
+    Returns (wkrs,equals,AT), tuple of dicts. Each maps protocols to sets of protocols.
+    """
+    alltrue = {}
+    AT = {}
+    for fn in prots:
+        # Store (caching for later)
+        AT[fn] = allTrueModels(fn)
+        # Fix contents to make set comparisons work
+        alltrue[fn] = allTrueModels(fn,fix=True)
+
+    wkrs = {}
+    equals = {}
+    for fn in prots:
+        wkrs[fn] = set()
+        equals[fn] = set()
+        for fn2 in prots:
+            if alltrue[fn] == alltrue[fn2]:
+                equals[fn].add(fn2)
+            else:
+                if alltrue[fn].issuperset(alltrue[fn2]):
+                    wkrs[fn].add(fn2)
+    return (wkrs,equals,AT)
+        
+
 def GraphProtocolSecurityHierarchy():
     """
     Report the protocol-security hierarchy
@@ -1479,6 +1499,7 @@ def GraphProtocolSecurityHierarchy():
     global FCD
     global GRAPHPSH
     global FILTER
+    global RESTRICTEDMODELS
 
     print "- Generating protocol-security hierarchy."
     fp = open("%s.dot" % (GRAPHPSH),"w")
@@ -1486,7 +1507,7 @@ def GraphProtocolSecurityHierarchy():
     fp.write("\trankdir=BT;\n")
 
     # Progress bar
-    maxcount = len(FCD.keys()) * 3
+    maxcount = len(FCD.keys()) * 2
     widgets = ['  Generating: ', Percentage(), ' ',
                Bar(marker='#',left='[',right=']')
                ]
@@ -1495,21 +1516,10 @@ def GraphProtocolSecurityHierarchy():
     count = 0
 
     # Infer dependencies
-    wkrs = {}
-    equals = {}
-    for fn in FCD.keys():
-        (ll,eq) = reportWeaker(fn)
-        wkrs[fn] = []
-        equals[fn] = []
-        for pn in ll:
-            wkrs[fn].append(pn)
-        for pn in eq:
-            equals[fn].append(pn)
-        count += 1
-        pbar.update(count)
+    (wkrs,equals,AT) = GetWeakersEquals(FCD.keys())
 
     # Report only minimal paths
-    edges = []
+    edges = set()
     for fn in FCD.keys():
         for pn in wkrs[fn]:
             # Report this link iff there is no node in between
@@ -1521,17 +1531,21 @@ def GraphProtocolSecurityHierarchy():
             if nope == True:
                 edge = "\t%s -> %s;\n" % (dotabbrev(pickfirst(equals,pn)),dotabbrev(pickfirst(equals,fn)))
                 if edge not in edges:
-                    edges.append(edge)
+                    edges.add(edge)
                     fp.write(edge)
         count += 1
         pbar.update(count)
 
     # Name the nodes
-    shown = []
+    shown = set()
     for fn in FCD.keys():
+        # This is the node which lists fn
         repr = pickfirst(equals,fn)
         if not repr in shown:
-            shown.append(repr)
+            # Only draw equivalence class for fn once
+            shown.add(repr)
+
+            # Make the node name (line 2)
             nl = []
             for x in equals[repr]:
                 da = dotabbrev(x)
@@ -1541,12 +1555,38 @@ def GraphProtocolSecurityHierarchy():
             nl.sort()
             txt = ",".join(nl)
             txt += "\\n"
-            models = filterImpliedModels(allTrueModels(fn))
+
+            # Make the node models list
+            # We want alltruemodels, except for:
+            # - Anything implied among them
+            # - Anything satisfied by weakers
+            # Computed satisfied by weakers
+            weakerssat = set()
+            for fnw in wkrs[repr]:
+                for mw in AT[fnw]:
+                    weakerssat.add(str(mw))
+            # Turn whatever is not satisfied into newmodels
+            newmodels = set()
+            for m in filterImpliedModels(AT[repr]):
+                if str(m) not in weakerssat:
+                    newmodels.add(m)
+            # Combine names
             nm = []
-            for m in models:
-                nm.append(m.shortname())
+            allshort = True
+            for m in newmodels:
+                 (short,xn) = m.shortornot()
+                 if not short:
+                     allshort = False
+                 nm.append(xn)
             nm.sort()
-            txt += " ; ".join(nm)
+            # Decide on how to layout
+            if not allshort:
+                sep = "\\n"
+            else:
+                sep = " ; "
+            txt += sep.join(nm)
+
+            # Output the dot code
             fp.write("\t%s [label=\"%s\"];\n" % (dotabbrev(repr),txt))
 
         count += 1
