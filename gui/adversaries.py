@@ -1206,10 +1206,7 @@ class ProtCache(object):
         """
 
         # First scan actual claim
-        if (claim,dbkey) in self.data.keys():
-            return self.data[(claim,dbkey)]
-
-        return None
+        return self.data.get((claim,dbkey),None)
 
     def __str__(self):
         tl = []
@@ -1264,8 +1261,7 @@ class ScytherCache(object):
             pass
 
     def set(self,protocol,claim,model,res):
-        if protocol not in self.data.keys():
-            self.data[protocol] = ProtCache(protocol)
+        self.data.setdefault(protocol,ProtCache(protocol))
         self.data[protocol].set(claim,model,res)
 
         #print "Stored %s : %s" % (protocol,self.data[protocol])
