@@ -54,7 +54,7 @@ def initParser():
     #                  help="don't print status messages to stdout")
 
     parser.add_option("-m","--models", action="store", dest="models", help="Consider adversary models by name.", metavar="ID", default="CSF09")
-    parser.add_option("-d","--dir", action="store", dest="dir", help="Set base directory to scan for protocols.", metavar="PATH", default = "Protocols/AdversaryModels")
+    parser.add_option("-d","--dir", action="append", dest="dirs", help="Set directories to scan for protocols.", metavar="PATH")
     parser.add_option("-a","--asymmetric", action="store_true", dest="asymmetric", help="Filter to assymetric crypto only.", default=False)
     parser.add_option("-s","--symmetric", action="store_true", dest="symmetric", help="Filter to ssymetric crypto only.", default=False)
     parser.add_option("","--PSH", action="append_const", const="psh", dest="graphs", help="Generate protocol-security hierarchy.")
@@ -82,16 +82,20 @@ if __name__ == '__main__':
         filefilter = filterAsymmetric
 
     # Base dir
-    if options.dir != None:
-        protocolpath = options.dir
-        while protocolpath.endswith("/"):
-            protocolpath = protocolpath[:-1]
+    protocolpaths = ["Protocols/AdversaryModels"]
+    if options.dirs != None:
+        if len(options.dirs) > 0:
+            protocolpaths = []
+            for dir in options.dirs:
+                while dir.endswith("/"):
+                    dir = dir[:-1]
+                protocolpaths.append(dir)
 
     # Name list
 
 
     # Call main 
-    main(models=options.models, protocolpath=protocolpath, filefilter=filefilter, graphs=options.graphs)
+    main(models=options.models, protocolpaths=protocolpaths, filefilter=filefilter, graphs=options.graphs)
 
 
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:

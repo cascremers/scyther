@@ -1725,7 +1725,7 @@ individuals.
     """ % (CACHEFILE)
 
 
-def main(protocollist = None, models = "CSF09", protocolpath="Protocols/AdversaryModels",filefilter=None,graphs=[]):
+def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/AdversaryModels"],filefilter=None,graphs=[]):
     """
     Simple test case with a few protocols, or so it started out at least.
     """
@@ -1746,7 +1746,14 @@ def main(protocollist = None, models = "CSF09", protocolpath="Protocols/Adversar
 
     CACHE = ScytherCache()
     
-    list = Scyther.FindProtocols(protocolpath)
+    list = []
+    for path in protocolpaths:
+        print path
+        prots = Scyther.FindProtocols(path)
+        for p in prots:
+            if p not in list:
+                list.append(p)
+
     if filefilter != None:
         nlist = []
         for protfile in list:
