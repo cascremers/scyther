@@ -66,6 +66,8 @@ SCANERRORS = False  # Scan for arrows with no counterexamples
 
 CALLSCYTHER = True  # After exit, make sure we don't call Scyther anymore.
 
+DEBUG = False
+
 CACHE = None
 DB = {} # Model.dbkey -> (fname,claimid)*
 FCD = {}
@@ -89,6 +91,11 @@ Names of PDF output files
 GRAPHPSH = "protocol-security-hierarchy"
 GRAPHAMH = "adversary-model-hierarchy"
 GRAPHCH = "combined-hierarchy-claimdetails"
+
+def debugging():
+    global DEBUG
+
+    return DEBUG
 
 def InitRestricted(models=None):
     """
@@ -592,7 +599,8 @@ class SecModel(object):
 
     def union(self,other):
         """
-        Unions self with other
+        Unions adversary rule set with that of other, yielding a
+        possibly stronger adversary model.
         """
         for i in range(0,self.length):
             if self.vector[i] < other.vector[i]:
@@ -1545,6 +1553,15 @@ def GraphProtocolSecurityHierarchy():
             # Only draw equivalence class for fn once
             shown.add(repr)
 
+            if debugging():
+                print
+                print "Equiv. class, picked",
+                print str(repr),
+                print " from ",
+                for x in equals[repr]:
+                    print "<<%s>> " % (str(x)),
+                print
+
             # Make the node name (line 2)
             nl = []
             for x in equals[repr]:
@@ -1765,7 +1782,7 @@ individuals.
     """ % (CACHEFILE)
 
 
-def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/AdversaryModels"],filefilter=None,graphs=[]):
+def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/AdversaryModels"],filefilter=None,graphs=[], debug=False):
     """
     Simple test case with a few protocols, or so it started out at least.
     """
@@ -1774,6 +1791,9 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
     global DRAWGRAPH
     global CACHE
     global FILTER
+    global DEBUG
+
+    DEBUG = debug
 
     FILTER = protocollist
     sortBuffer()
@@ -1827,22 +1847,25 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
         Counts: claims * models
         """
         maxclmods = len(FCD[fn]) * len(DB.keys())
-        incount = 0
-        widgets = [comment, Percentage(), ' ',
-                   Bar(marker='#',left='[',right=']')
-                   ]
-        pbar = ProgressBar(widgets=widgets, maxval=maxclmods)
-        pbar.start()
+        if maxclmods > 0:
+            incount = 0
+            widgets = [comment, Percentage(), ' ',
+                       Bar(marker='#',left='[',right=']')
+                       ]
+            pbar = ProgressBar(widgets=widgets, maxval=maxclmods)
+            pbar.start()
 
-        for cid in FCD[fn]:
-            if goodclaim(fn,cid):
-                DRAWGRAPH = Investigate(fn,cid,callback=(lambda x: pbar.update(incount + x)))
-                FCDX += 1
-            else:
-                FCDS += 1
-            incount += len(DB.keys())
+            for cid in FCD[fn]:
+                if goodclaim(fn,cid):
+                    DRAWGRAPH = Investigate(fn,cid,callback=(lambda x: pbar.update(incount + x)))
+                    FCDX += 1
+                else:
+                    FCDS += 1
+                incount += len(DB.keys())
 
-        pbar.finish()
+            pbar.finish()
+        else:
+            print comment + "Nothing to do."
         
     print
     print "Analysis complete."

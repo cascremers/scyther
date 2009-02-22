@@ -61,6 +61,7 @@ def initParser():
     parser.add_option("","--MH",  action="append_const", const="mh",  dest="graphs", help="Generate adversary-model hierarchy.")
     parser.add_option("","--CH",  action="append_const", const="ch",  dest="graphs", help="Generate detailed combined hierarchy.")
     parser.add_option("-g","--graphs", action="store_const", const=["psh","mh","ch"],  dest="graphs", help="Generate all graphs.")
+    parser.add_option("-D","--debug", action="store_const", const=True,  dest="debug", default=False, help="Display debugging information.")
 
     (options, args) = parser.parse_args()
     return (options, args)
@@ -95,7 +96,7 @@ if __name__ == '__main__':
 
 
     # Call main 
-    main(models=options.models, protocolpaths=protocolpaths, filefilter=filefilter, graphs=options.graphs)
+    main(models=options.models, protocolpaths=protocolpaths, filefilter=filefilter, graphs=options.graphs, debug=options.debug)
 
 
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:
