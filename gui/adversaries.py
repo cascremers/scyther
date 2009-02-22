@@ -81,6 +81,8 @@ FILTER = None
 SECMODELMIN = None
 SECMODELMAX = None
 
+SECMODELTRAVERSE = None     # Special list for optimal traversal
+
 """
 Names of PDF output files
 """
@@ -229,6 +231,18 @@ def reportModels(models):
     print "-" * (8 * models[0].length)
 
 
+def fsort(f,a,b):
+    """
+    Silly helper function to help with sorting on a function base.
+    """
+    if f(a) > f(b):
+        return 1
+    elif f(a) < f(b):
+        return -1
+    else:
+        return 0
+
+
 class SecModel(object):
 
     def __init__(self,minmax=None,unrestricted=False):
@@ -265,14 +279,20 @@ class SecModel(object):
         return len(self.axes[ax])
 
 
-    def countTypes(self):
+    def countTypes(self,all=False):
         """
         Give the number of possible adversary types
         """
-        count = 1
-        for i in range(0,self.length):
-            count = count * self.ax(i)
-        return count
+        global RESTRICTEDMODELS
+
+        if (all == True) or (RESTRICTEDMODELS == None):
+            count = 1
+            for i in range(0,self.length):
+                count = count * self.ax(i)
+            return count
+        else:
+            return len(RESTRICTEDMODELS)
+
 
     def checkSane(self,correct=False):
         """
@@ -465,26 +485,6 @@ class SecModel(object):
                     # not sane, continue to increase
         return None
 
-    def nextSmart(self):
-        """
-        This is smart in the sense that it does [ MIN,MAX, ...everthing else ].
-        That's good sometimes. No, really. Because it allows for killing "all correct" or "all incorrect" examples early.
-        """
-        global SECMODELMIN, SECMODELMAX
-
-        if self == SECMODELMIN:
-            self.setMax(unrestricted=True)
-            return self
-        if self == SECMODELMAX:
-            self.setMin(unrestricted=True)
-            self.nextLinear()
-            return self
-        self.nextLinear()
-        if self == SECMODELMAX:
-            return None
-        else:
-            return self
-
     def next(self,unrestricted=False):
         """
         Increase a given model, or return None when done
@@ -639,6 +639,74 @@ def FindClaims(filelist):
     return llnew
 
 
+class Traverse(object):
+
+    def __init__(self):
+        global SECMODELTRAVERSE
+
+        if SECMODELTRAVERSE == None:
+            """
+            Init the list first.
+            """
+            SECMODELTRAVERSE = self.constructList()
+
+        self.step = 0
+        self.size = len(SECMODELTRAVERSE)
+
+    def current(self):
+        return SECMODELTRAVERSE[self.step]
+
+    def next(self):
+        self.step = self.step + 1
+        if self.step == self.size:
+            return None
+        return self.current()
+
+    def constructList(self):
+        """
+        Construct an optimal traversal list.
+
+        It's essentially something like a binary search on a partially ordered
+        structure, aiming to get rid of as many alternatives as possible early.
+
+        Two phases:
+        1. Construct a list of (model,min) pairs to indicate the ordering.
+        2. Return the reverse sorted model list according to min.
+        """
+        # Phase 1
+        model = SecModel()
+        mlist = []
+        maxer = model.countTypes()
+        while model != None:
+            lower = len(model.getLowers())
+            higher = len(model.getHighers())
+            if lower < higher:
+                min = lower
+                max = higher
+            else:
+                min = higher
+                max = lower
+            val = (maxer * min) + max
+            mlist.append((model.copy(),val))
+
+            model = model.next()
+
+        # Phase 2
+        def msort( (s1,m1), (s2,m2) ):
+            return m2-m1
+
+        mlist.sort(cmp=msort)
+        nlist = []
+        #print
+        #print "-" * 60
+        for (s,m) in mlist:
+            #print m,s
+            nlist.append(s)
+        #print "-" * 60
+        #print
+        return nlist
+
+
 class SecDelta(object):
 
     def __init__(self,model1,model2):
@@ -693,41 +761,8 @@ def VerifyClaim(file,claimid,model,onlycache=False):
 
     claimres = CACHE.get(file,claimid,model.dbkey())
     if claimres != None:
+        # Already in cache, return.
         return claimres
-
-    """
-    Scan cache for hierarchy implications.
-    If found, store.
-    """
-    model2 = SecModel()
-    while model2 != None:
-        if model != model2:
-            stronger = None
-            if model2.weakerthan(model):
-                stronger = True
-            if model.weakerthan(model2):
-                stronger = False
-            if stronger != None:
-                """
-                Allright, relation exists, pull from cache.
-                """
-                claimres = CACHE.get(file,claimid,model2.dbkey())
-                storeme = False
-                if (stronger == True) and (claimres == 0):
-                    # model is stronger than model2
-                    # model2: 0 means false (attack found)
-                    storeme = True
-                if (stronger == False) and (claimres == 3):
-                    # model is weaker than model2
-                    # model2: 3 means true (verified)
-                    storeme = True
-                if storeme:
-                    # Store implied result in cache, proceed
-                    CACHE.append(file,claimid,model.dbkey(),claimres)
-                    return claimres
-
-        # We want to consider the full cache!
-        model2 = model2.nextSmart()
 
     """
     Below we actually verify it
@@ -748,6 +783,7 @@ def VerifyClaim(file,claimid,model,onlycache=False):
         claimres = res[0].getRank()
 
         CACHE.append(file,claimid,model.dbkey(),claimres)
+
         return claimres
     else:
         """
@@ -1151,58 +1187,12 @@ class ProtCache(object):
 
     def get(self,claim,dbkey,gethigher=True,getlower=True):
         """
-        Here we exploit the hierarchy.
+        Here we don't exploit the hierarchy.
         """
 
         # First scan actual claim
         if (claim,dbkey) in self.data.keys():
             return self.data[(claim,dbkey)]
-
-        # Generate model from dbkey for later use.
-        model = SecModel()
-        model.enscribe(dbkey)
-        # The claim may be correct (at best)
-        maxpos = 3
-        maxexample = None
-        # The claim may be wrong (at worst)
-        minpos = 0
-        minexample = None
-
-        # Scan if any higher dbkey (i.e. stronger) already had a correct
-        # (3 == verified) verdict: in that case the current model cannot
-        # Scan stronger models. They can only introduce additional
-        # attacks, but not more correctness. Hence they influence
-        # minpos: if they don't contain an attack, there is none.
-        if gethigher:
-            cmodels = model.getHighers(all=True)
-            for (model2,delta) in cmodels:
-                res = self.get(claim,model2.dbkey(),getlower=False)
-                if res != None:
-                    if res > minpos:
-                        minpos = res
-                        minexample = model2
-
-        # Scan if any lower dbkey (i.e. weaker) already had a false (0
-        # == attack) verdict
-        if getlower:
-            cmodels = model.getLowers(all=True)
-            for (model2,delta) in cmodels:
-                res = self.get(claim,model2.dbkey(),gethigher=False)
-                if res != None:
-                    if res < maxpos:
-                        maxpos = res
-                        maxexample = model2
-
-        # Now we squeeze
-        if minpos == maxpos:
-            return minpos
-
-        # Sanity check
-        if minpos > maxpos:
-            print "Strange hierarchy inconsistency for claim %s" % claim
-            print minexample
-            print maxexample
-            sys.exit()
 
         return None
 
@@ -1265,6 +1255,37 @@ class ScytherCache(object):
 
         #print "Stored %s : %s" % (protocol,self.data[protocol])
 
+    def setTransitive(self,file,claim,dbkey,res):
+        """
+        Similar arguments as set but better names, as the model
+        really here is the dbkey.
+        """
+        # convert dbkey back to model
+        model = SecModel()
+        model.enscribe(dbkey)
+
+        model2 = SecModel()
+        while model2 != None:
+            oldres = self.get(file,claim,model2.dbkey())
+            if oldres == None:
+                # Not set yet, so something to store here
+                storehere = False
+                if model == model2:
+                    storehere = True
+                else:
+                    if res < 2:
+                        # False in model, so also false in all stronger
+                        if model.weakerthan(model2):
+                            storehere = True
+                    else:
+                        # (semi)correct in model, so also correct in all weaker
+                        if model2.weakerthan(model):
+                            storehere = True
+                if storehere:
+                    self.set(file,claim,model2.dbkey(),res)
+
+            model2 = model2.next(unrestricted=True)
+
     def get(self,protocol,claim,model):
         if protocol in self.data.keys():
             return self.data[protocol].get(claim,model)
@@ -1273,7 +1294,7 @@ class ScytherCache(object):
 
     def append(self,protocol,claim,model,res):
         if self.get(protocol,claim,model) == None:
-            self.set(protocol,claim,model,res)
+            self.setTransitive(protocol,claim,model,res)
             fp = open(CACHEFILE,"a")
             fp.write("%s\t%s\t%s\t%s\n" % (protocol,claim,model,res))
             fp.flush()
@@ -1285,32 +1306,29 @@ class ScytherCache(object):
 
 def Investigate(file,claimid,callback=None):
     """
-    Investigate this one.
+    Investigate this claim for all models.
+
+    Currently always returns True. It used to return False if the claim was
+    incorrect in all models.
     """
     global DB
 
-    minres = TestClaim(file,claimid,SecModel())
-    if minres == True:
-        data = (file,claimid)
+    data = (file,claimid)
 
-        model = SecModel()
-        DB[model.dbkey()] = DB[model.dbkey()] + [data]
-        model = model.next()
+    count = 0
+    trav = Traverse()
+    model = trav.current()
 
-        count = 0
-        while model != None:
-            res = TestClaim(file,claimid,model)
-            if res:
-                DB[model.dbkey()] = DB[model.dbkey()] + [data]
-            model = model.next()
-            count += 1
-            if callback != None:
-                callback(count)
-    
-        return True
+    while model != None:
+        res = TestClaim(file,claimid,model)
+        if res:
+            DB[model.dbkey()] = DB[model.dbkey()] + [data]
+        count += 1
+        if callback != None:
+            callback(count)
+        model = trav.next()
 
-    #print "Always flawed:",file,claimid
-    return False
+    return True
 
 def goodprotocol(fname):
     """
@@ -1588,14 +1606,6 @@ def reportProtocolTable():
 
     print header
     print "-" * len(header)
-
-    def fsort(f,a,b):
-        if f(a) > f(b):
-            return 1
-        elif f(a) < f(b):
-            return -1
-        else:
-            return 0
 
     def dasort(a,b):
         # Sort on dot abbreviation
