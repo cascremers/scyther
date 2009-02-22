@@ -84,6 +84,7 @@ SECMODELMIN = None
 SECMODELMAX = None
 
 SECMODELTRAVERSE = None     # Special list for optimal traversal
+SECMODELFULL = None         # Special list for unrestricted traversal
 
 """
 Names of PDF output files
@@ -660,30 +661,36 @@ def FindClaims(filelist):
 
 class Traverse(object):
 
-    def __init__(self):
-        global SECMODELTRAVERSE
+    def __init__(self,unrestricted=False):
 
-        if SECMODELTRAVERSE == None:
-            """
-            Init the list first.
-            """
-            SECMODELTRAVERSE = self.constructList()
+        self.step = -1
+        if unrestricted:
+            global SECMODELFULL
 
-        self.step = 0
-        self.size = len(SECMODELTRAVERSE)
+            if SECMODELFULL == None:
+                SECMODELFULL = self.constructList(unrestricted=True)
+            self.list = SECMODELFULL
+        else:
+            global SECMODELTRAVERSE
 
-    def current(self):
-        return SECMODELTRAVERSE[self.step]
+            if SECMODELTRAVERSE == None:
+                SECMODELTRAVERSE = self.constructList()
+            self.list = SECMODELTRAVERSE
+
+        self.size = len(self.list)
+
+    def __iter__(self):
+        return self
 
     def next(self):
         self.step = self.step + 1
-        if self.step == self.size:
-            return None
-        return self.current()
+        if self.step >= self.size:
+            raise StopIteration
+        return self.list[self.step]
 
-    def constructList(self):
+    def constructList(self,unrestricted=False):
         """
-        Construct an optimal traversal list.
+        Construct an optimal traversal list or a full list.
 
         It's essentially something like a binary search on a partially ordered
         structure, aiming to get rid of as many alternatives as possible early.
@@ -693,8 +700,8 @@ class Traverse(object):
         2. Return the reverse sorted model list according to min.
         """
         # Phase 1
-        model = SecModel()
         mlist = []
+        model = SecModel()
         maxer = model.countTypes()
         while model != None:
             lower = len(model.getLowers())
@@ -708,7 +715,7 @@ class Traverse(object):
             val = (maxer * min) + max
             mlist.append((model.copy(),val))
 
-            model = model.next()
+            model = model.next(unrestricted=unrestricted)
 
         # Phase 2
         def msort( (s1,m1), (s2,m2) ):
@@ -895,9 +902,8 @@ def reportContext():
             Check if this delta *always* breaks the protocol
             """
             seen = []
-            model = SecModel()
             always = True
-            while model != None:
+            for model in Traverse():
                 model2 = model.copy()
                 model2.applyDelta(delta)
                 if model2 not in seen:
@@ -905,8 +911,6 @@ def reportContext():
                     if model2.isProtocolCorrect(prot):
                         always = False
                         break
-
-                model = model.next()
 
             """
             Report
@@ -1010,15 +1014,12 @@ def GraphCombinedHierarchy(force=False):
     Init status thing
     """
     status = {}
-    model = SecModel()
-    while model != None:
+    for model in Traverse():
         status[model.dbkey()] = 0
-        model = model.next()
     status[minmodel.dbkey()] = 2
     status[maxmodel.dbkey()] = 2
 
-    model = SecModel()
-    while model != None:
+    for model in Traverse():
 
         modelscount += 1
         """
@@ -1104,13 +1105,10 @@ def GraphCombinedHierarchy(force=False):
                     addup(status,model.dbkey(),2)
                     #addup(status,model2.dbkey(),2)
 
-        model = model.next()
-
     """
     Draw the nodes 
     """
-    model = SecModel()
-    while model != None:
+    for model in Traverse():
         
         draw = status[model.dbkey()]
         if RESTRICTEDMODELS != None:
@@ -1156,8 +1154,6 @@ def GraphCombinedHierarchy(force=False):
         elif draw == 1:
             text = "%s [shape=point,label=\"\"]" % (model.dotkey())
             fp.write("\t%s;\n" % text)
-
-        model = model.next()
 
     """
     Finish up by showing the final stuff
@@ -1283,8 +1279,10 @@ class ScytherCache(object):
         model = SecModel()
         model.enscribe(dbkey)
 
-        model2 = SecModel()
-        while model2 != None:
+        # For transitive closure we consider all models,
+        # so we actually store the implications for use in
+        # later (bigger) scans.
+        for model2 in Traverse(unrestricted = True):
             oldres = self.get(file,claim,model2.dbkey())
             if oldres == None:
                 # Not set yet, so something to store here
@@ -1302,8 +1300,6 @@ class ScytherCache(object):
                             storehere = True
                 if storehere:
                     self.set(file,claim,model2.dbkey(),res)
-
-            model2 = model2.next(unrestricted=True)
 
     def get(self,protocol,claim,model):
         if protocol in self.data.keys():
@@ -1335,17 +1331,16 @@ def Investigate(file,claimid,callback=None):
     data = (file,claimid)
 
     count = 0
-    trav = Traverse()
-    model = trav.current()
 
-    while model != None:
+    # Here we actually want an optimal scan (and not some linear thing)
+    # so Traverse() details matter here.
+    for model in Traverse():
         res = TestClaim(file,claimid,model)
         if res:
             DB[model.dbkey()] = DB[model.dbkey()] + [data]
         count += 1
         if callback != None:
             callback(count)
-        model = trav.next()
 
     return True
 
@@ -1404,8 +1399,7 @@ def allTrueModels(fn,fix=False):
     global FCD
 
     allcorrect = set()
-    model = SecModel()
-    while model != None:
+    for model in Traverse():
 
         yeahright = True
         for cid in FCD[fn]:
@@ -1421,7 +1415,6 @@ def allTrueModels(fn,fix=False):
             else:
                 allcorrect.add(model.copy())
 
-        model = model.next()
     return allcorrect
 
 
@@ -1647,19 +1640,15 @@ def reportProtocolTable():
     noattackstr = "."
 
     maxmodwidth = len(attackstr)
-    model = SecModel()
-    while model != None:
+    for model in Traverse():
         mw = len(model.shortname())
         if mw > maxmodwidth:
             maxmodwidth = mw
-        model = model.next()
 
     # Protocols on Y axis, models on X
     header = " ".ljust(maxprotwidth)
-    model = SecModel()
-    while model != None:
+    for model in Traverse():
         header += "|%s" % model.shortname().ljust(maxmodwidth)
-        model = model.next()
 
     print header
     print "-" * len(header)
@@ -1675,10 +1664,9 @@ def reportProtocolTable():
 
     for fn in kal:
         line = dotabbrev(fn).ljust(maxprotwidth)
-        model = SecModel()
         cntgood = 0
         cntbad = 0
-        while model != None:
+        for model in Traverse():
             if model.isProtocolCorrect(fn) == False:
                 res = attackstr
                 cntbad += 1
@@ -1686,7 +1674,7 @@ def reportProtocolTable():
                 res = noattackstr
                 cntgood += 1
             line += "|%s" % res.ljust(maxmodwidth)
-            model = model.next()
+
         if (cntgood == 0) or (cntbad == 0):
             line += "\t[same for all models]"
         else:
@@ -1831,10 +1819,9 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
         FCDN += len(FCD[fn])
 
     DB = {}
-    model = SecModel()
-    while model != None:
+    for model in Traverse():
         DB[model.dbkey()] = []
-        model = model.next()
+
     print "Considering %i models" % (len(DB.keys()))
 
     DRAWGRAPH = True
