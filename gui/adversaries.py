@@ -1367,12 +1367,6 @@ def goodclaim(fname,cid):
     if goodprotocol(fname) == False:
         return False
 
-    # Get rid of bad
-    filter = ["ksl,","ksl-Lowe,"]
-    for pref in filter:
-        if cid.startswith(pref):
-            return False
-
     # Not bad, no filter: accept
     return True
 
