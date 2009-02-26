@@ -1528,14 +1528,14 @@ def GraphProtocolSecurityHierarchy():
         pbar.update(count)
 
     # Name the nodes
+    shownmodels = set()
     shown = set()
     for fn in FCD.keys():
-        # This is the node which lists fn
-        repr = pickfirst(equals,fn)
-        if not repr in shown:
+        if not fn in shown:
             # Only draw equivalence class for fn once
-            shown.add(repr)
+            shown = shown.union(equals[fn])
 
+            repr = pickfirst(equals,fn)
             if debugging():
                 print
                 print "Equiv. class, picked",
@@ -1556,6 +1556,8 @@ def GraphProtocolSecurityHierarchy():
             txt = ",".join(nl)
             txt += "\\n"
 
+            # Store whatever is already implied
+            shownmodels = shownmodels.union(AT[repr])
             # Make the node models list
             # We want alltruemodels, except for:
             # - Anything implied among them
@@ -1591,6 +1593,44 @@ def GraphProtocolSecurityHierarchy():
 
         count += 1
         pbar.update(count)
+
+    # Draw the adversary models which have no satisfying protocols.
+    notimplied = set()
+    for model in Traverse():
+        if model not in shownmodels:
+            thisimplied = False
+            for model2 in shownmodels:
+                if model.weakerthan(model2):
+                    thisimplied = True
+                    break
+            if not thisimplied:
+                notimplied.add(model)
+
+    # Filter out any stronger ones (the weakest ones suffice)
+    needed = set()
+    for model in notimplied:
+        reallyneeded = True
+        for model2 in notimplied:
+            if model != model2:
+                if model2.weakerthan(model):
+                    reallyneeded = False
+                    break
+        if reallyneeded:
+            needed.add(model)
+
+    # Display
+    if len(needed) > 0:
+        # Display
+        txt = "The following models (and any stronger\\nmodels) have no satisfying protocol:\\n"
+        tl = []
+        for m in needed:
+            tl.append(m.display())
+        tl.sort()
+        txt += "\\n".join(tl)
+    else:
+        txt = "All models have a satisfying protocol."
+    fp.write("\tNOPROTOCOLS [label=\"%s\",shape=\"box\"];\n" % (txt))
+
 
     fp.write("};\n")
     fp.close()
