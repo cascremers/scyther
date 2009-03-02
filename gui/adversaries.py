@@ -33,9 +33,6 @@ Author: Cas Cremers
 import commands
 import sys
 
-# Really from Python 2.6 onwards, or locally install from source.
-from multiprocessing import Process,cpu_count,Lock
-
 from Scyther import *
 try:
 	from progressbar import *
@@ -1856,7 +1853,7 @@ def GraphModelHierarchy():
     print
 
 
-def exiter(graphs=[]):
+def exiter(graphs=[],modulo=None):
     global CALLSCYTHER
     global DRAWGRAPH
     global CACHEFILE
@@ -1873,8 +1870,9 @@ def exiter(graphs=[]):
      `--==################################==--`
 """
 
-    print "- Sorting buffer at exit."
-    sortBuffer()
+    if modulo == None:
+        print "- Sorting buffer at exit."
+        sortBuffer()
 
     """
     Graphs
@@ -1909,7 +1907,7 @@ individuals.
     """ % (CACHEFILE)
 
 
-def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/AdversaryModels"],filefilter=None,graphs=[], debug=False, closecache=False):
+def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/AdversaryModels"],filefilter=None,graphs=[], debug=False, closecache=False, modulo=None):
     """
     Simple test case with a few protocols, or so it started out at least.
     """
@@ -1923,11 +1921,12 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
     DEBUG = debug
 
     FILTER = protocollist
-    sortBuffer()
+    if modulo == None:
+        sortBuffer()
 
     import atexit
 
-    atexit.register(exiter,graphs=graphs)
+    atexit.register(exiter,graphs=graphs,modulo=modulo)
 
     InitRestricted(models)
 
@@ -1976,6 +1975,14 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
         Counts: claims * models
         """
         maxclmods = len(FCD[fn]) * len(DB.keys())
+
+        # If needed, consider only modulo
+        if modulo != None:
+            modcount = 0
+            (modulus,i) = eval(modulo)
+        else:
+            checkit = True
+
         if maxclmods > 0:
             incount = 0
             widgets = [comment, Percentage(), ' ',
@@ -1986,7 +1993,13 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
 
             for cid in FCD[fn]:
                 if goodclaim(fn,cid):
-                    DRAWGRAPH = Investigate(fn,cid,callback=(lambda x: pbar.update(incount + x)))
+
+                    if modulo != None:
+                        checkit = (modcount == i)
+                        modcount = (modcount + 1) % modulus
+
+                    if checkit:
+                        DRAWGRAPH = Investigate(fn,cid,callback=(lambda x: pbar.update(incount + x)))
                     FCDX += 1
                 else:
                     FCDS += 1
