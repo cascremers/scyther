@@ -660,6 +660,13 @@ def FindClaims(filelist):
 
 
 class Traverse(object):
+    """
+    Iterator for adversary models.
+
+    Designed to be optimal for filling the data, so it's a bit like a
+    generalized binary search, but we do the min/max models at the start. Yeah,
+    weird.
+    """
 
     def __init__(self,unrestricted=False):
 
@@ -709,6 +716,11 @@ class Traverse(object):
         mlist = []
         model = SecModel()
         maxer = model.countTypes()
+
+        priority = []
+        priority.append(SecModel())
+        maxmodel = SecModel("max")
+
         while model != None:
             lower = len(model.getLowers())
             higher = len(model.getHighers())
@@ -721,10 +733,21 @@ class Traverse(object):
             val = (maxer * min) + max
             mlist.append((model.copy(),val))
 
+            if model == maxmodel:
+                priority.append(maxmodel)
+
             model = model.next(unrestricted=unrestricted)
 
         # Phase 2
         def msort( (s1,m1), (s2,m2) ):
+            if s1 in priority:
+                if s2 in priority:
+                    # Compare positions
+                    # If s1's index is lower, then negative, so s1 goes first
+                    return priority.index(s1) - priority.index(s2)
+                else:
+                    # s1 is priority, other is not, so s1 goes first
+                    return -1
             return m2-m1
 
         mlist.sort(cmp=msort)
@@ -1372,12 +1395,36 @@ class ScytherCache(object):
         return len(self.data.keys())
 
 
+def countOpen(file,claimid):
+    """
+    Count in how many models the claim is still undecided.
+    """
+    global CACHE
+
+    open = 0
+    for model in Traverse():
+        if CACHE.get(file,claimid,model.dbkey()) == None:
+            open += 1
+    return open
+
+
 def Investigate(file,claimid,callback=None):
     """
     Investigate this claim for all models.
 
     Currently always returns True. It used to return False if the claim was
     incorrect in all models.
+
+    For multi-processing we may return the correct models in the queue, e.g.
+    results.
+      file
+      claimid
+      correctmodels
+
+    Then the processing thread can append (file,claimid) to DB[model.dbkey()].
+    Further (shared) storage is done by TestClaim
+
+
     """
     global DB
 
