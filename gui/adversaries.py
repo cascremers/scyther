@@ -667,26 +667,32 @@ class Traverse(object):
         if unrestricted:
             global SECMODELFULL
 
+            self.full = True
             if SECMODELFULL == None:
                 SECMODELFULL = self.constructList(unrestricted=True)
-            self.list = SECMODELFULL
+            self.size = len(SECMODELFULL)
         else:
             global SECMODELTRAVERSE
 
+            self.full = False
             if SECMODELTRAVERSE == None:
                 SECMODELTRAVERSE = self.constructList()
-            self.list = SECMODELTRAVERSE
-
-        self.size = len(self.list)
+            self.size = len(SECMODELTRAVERSE)
 
     def __iter__(self):
         return self
 
     def next(self):
+        global SECMODELFULL
+        global SECMODELTRAVERSE
+
         self.step = self.step + 1
         if self.step >= self.size:
             raise StopIteration
-        return self.list[self.step]
+        if self.full:
+            return SECMODELFULL[self.step]
+        else:
+            return SECMODELTRAVERSE[self.step]
 
     def constructList(self,unrestricted=False):
         """
@@ -808,7 +814,7 @@ def VerifyClaim(file,claimid,model,onlycache=False):
         res = s.verifyOne(claimid)
         claimres = res[0].getRank()
 
-        CACHE.append(file,claimid,model.dbkey(),claimres)
+        CACHE.setTransitive(file,claimid,model.dbkey(),claimres)
 
         return claimres
     else:
@@ -851,9 +857,9 @@ def Compress(datalist):
     for data in datalist:
         (prot,claim) = data
         shortclaim = ShortClaim(claim)
-        if prot in mapping.keys():
+        try:
             mapping[prot] = mapping[prot] + [shortclaim]
-        else:
+        except KeyError:
             mapping[prot] = [shortclaim]
     # Summarize claims per protocol
     pl = []
@@ -1128,10 +1134,10 @@ def GraphCombinedHierarchy(force=False):
                             if not model2.isProtocolCorrect(prot):
                                 allafter = False
                                 # Store in summary DB
-                                if prot not in SUMMARYDB.keys():
-                                    SUMMARYDB[prot] = []
-                                if descr not in SUMMARYDB[prot]:
+                                try:
                                     SUMMARYDB[prot].append(descr)
+                                except KeyError:
+                                    SUMMARYDB[prot] = []
                         if (highers == []) or (not allafter) or (RESTRICTEDMODELS != None):
                             # Add to displayed list
                             nn = ShortName(prot)
@@ -1192,10 +1198,16 @@ class ProtCache(object):
         self.protocol = protocol
 
     def getClaims(self):
-        claims = []
+        claims = set()
         for (claim,model) in self.data.keys():
-            claims.append(claim)
+            claims.add(claim)
         return claims
+
+    def getModels(self):
+        models = set()
+        for (claim,model) in self.data.keys():
+            models.add(model)
+        return models
 
     def set(self,claim,model,res):
         self.data[(claim,model)] = res
@@ -1224,7 +1236,7 @@ def sortBuffer():
     ll = []
     try:
         fp = open(CACHEFILE,"r")
-        for l in fp.readlines():
+        for l in fp.xreadlines():
             ll.append(l)
         fp.close()
         ll.sort()
@@ -1249,22 +1261,75 @@ class ScytherCache(object):
         self.data = {}
         try:
             fp = open(CACHEFILE,"r")
-            for l in fp.readlines():
+            print "Reloading cache file."
+            for l in fp.xreadlines():
                 da = (l.rstrip("\n")).split("\t")
                 protocol = da[0]
                 claim = da[1]
-                model = da[2]
+                dbkey = da[2]
                 res = int(da[3])
-                self.set(protocol,claim,model,res)
+                self.setForce(protocol,claim,dbkey,res)
             fp.close()
+
         except:
             pass
 
-    def set(self,protocol,claim,model,res):
-        self.data.setdefault(protocol,ProtCache(protocol))
-        self.data[protocol].set(claim,model,res)
 
-        #print "Stored %s : %s" % (protocol,self.data[protocol])
+    def closeTransitive(self):
+        """
+        Compute the closure of the cache.
+        """
+        print "Computing transitive closure of verification cache."
+        togo = 0
+        for protocol in self.data.keys():
+            togo += len(self.data[protocol].getClaims())
+
+        if togo > 0:
+            widgets = ['  Generating: ', Percentage(), ' ',
+                       Bar(marker='#',left='[',right=']')
+                       ]
+            pbar = ProgressBar(widgets=widgets, maxval=togo)
+            pbar.start()
+            count = 0
+            for protocol in self.data.keys():
+                for claim in self.data[protocol].getClaims():
+                    for dbkey in self.data[protocol].getModels():
+                        # dbkey represents model
+                        res = self.get(protocol,claim,dbkey)
+                        if res != None:
+                            self.setTransitive(protocol,claim,dbkey,res)
+                    count += 1
+                    pbar.update(count)
+            pbar.finish()
+
+        print "Closure computation completed."
+
+
+    def setForce(self,protocol,claim,dbkey,res):
+        """
+        Store this item in the DB from cache
+        """
+        self.data.setdefault(protocol,ProtCache(protocol))
+        self.data[protocol].set(claim,dbkey,res)
+
+    def set(self,protocol,claim,dbkey,res):
+        """
+        Store this item in the DB.
+
+        If it was not there yet, then also set it in the cache file.
+        """
+        if self.get(protocol,claim,dbkey) == None:
+            """
+            We don't overwrite old contents.
+            """
+            # Store in cache object
+            self.setForce(protocol,claim,dbkey,res)
+
+            # Write to cache
+            fp = open(CACHEFILE,"a")
+            fp.write("%s\t%s\t%s\t%s\n" % (protocol,claim,dbkey,res))
+            fp.flush()
+            fp.close()
 
     def setTransitive(self,file,claim,dbkey,res):
         """
@@ -1297,19 +1362,11 @@ class ScytherCache(object):
                 if storehere:
                     self.set(file,claim,model2.dbkey(),res)
 
-    def get(self,protocol,claim,model):
-        if protocol in self.data.keys():
-            return self.data[protocol].get(claim,model)
-        else:
+    def get(self,protocol,claim,dbkey):
+        try:
+            return self.data[protocol].get(claim,dbkey)
+        except KeyError:
             return None
-
-    def append(self,protocol,claim,model,res):
-        if self.get(protocol,claim,model) == None:
-            self.setTransitive(protocol,claim,model,res)
-            fp = open(CACHEFILE,"a")
-            fp.write("%s\t%s\t%s\t%s\n" % (protocol,claim,model,res))
-            fp.flush()
-            fp.close()
 
     def countProtocols(self):
         return len(self.data.keys())
@@ -1441,8 +1498,10 @@ def dotabbrev(fn):
     """
     global DOTABBREVS
 
-    if fn in DOTABBREVS.keys():
+    try:
         return DOTABBREVS[fn]
+    except KeyError:
+        pass
 
     # shorten
     repl = fn.replace("-","_")
@@ -1800,7 +1859,7 @@ individuals.
     """ % (CACHEFILE)
 
 
-def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/AdversaryModels"],filefilter=None,graphs=[], debug=False):
+def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/AdversaryModels"],filefilter=None,graphs=[], debug=False, closecache=False):
     """
     Simple test case with a few protocols, or so it started out at least.
     """
@@ -1823,6 +1882,9 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
     InitRestricted(models)
 
     CACHE = ScytherCache()
+
+    if closecache:
+        CACHE.closeTransitive()
     
     list = []
     for path in protocolpaths:
