@@ -33,6 +33,9 @@ Author: Cas Cremers
 import commands
 import sys
 
+# Really from Python 2.6 onwards, or locally install from source.
+from multiprocessing import Process,cpu_count,Lock
+
 from Scyther import *
 try:
 	from progressbar import *
