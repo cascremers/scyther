@@ -30,8 +30,7 @@ protocol andrew-Ban(I,R)
         read_4(R,I, {kir,nr2,ni}k(I,R) );
         claim_I1(I,Nisynch);
         claim_I2(I,Niagree);
-        claim_I3(I,Secret, kir);
-        claim_I4(I,Secret, k(I,R));
+        claim_I3(I,SKR, kir);
         claim_I5(I,Empty, (Fresh,kir));
     }    
     
@@ -47,8 +46,7 @@ protocol andrew-Ban(I,R)
         send_4(R,I, {kir,nr2,ni}k(I,R) );
         claim_R1(R,Nisynch);
         claim_R2(R,Niagree);
-        claim_R3(R,Secret, kir);
-        claim_R4(R,Secret, k(I,R));
+        claim_R3(R,SKR, kir);
         claim_R5(R,Empty, (Fresh,kir));
     }
 }
