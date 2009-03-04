@@ -105,8 +105,11 @@ label_find (List labellist, const Term label)
 }
 
 //! Find a label in a run, yield index or -1
+/**
+ * If force is true, we ignore the height and even extend it if needed to include the label.
+ */
 int
-findLabelInRun (const System sys, int run, Term label)
+findLabelInRun (const System sys, int run, Term label, int force)
 {
   int e;
   Roledef rd;
@@ -118,10 +121,17 @@ findLabelInRun (const System sys, int run, Term label)
   e = 0;
   for (rd = sys->runs[run].start; rd != NULL; rd = rd->next)
     {
-      if (e < sys->runs[run].height)
+      if (force || (e < sys->runs[run].height))
 	{
 	  if (isTermEqual (rd->label, label))
 	    {
+	      if (force)
+		{
+		  if (sys->runs[run].height < e)
+		    {
+		      sys->runs[run].height = e;
+		    }
+		}
 	      return e;
 	    }
 	  e++;

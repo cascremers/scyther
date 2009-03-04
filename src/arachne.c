@@ -2231,32 +2231,22 @@ fork_iteration_matchingsessions (void)
 {
   int result;
 
-  //###################################
+  // Sometimes we need another phase with e.g. a full session
+  if (switches.LKRaftercorrect || switches.LKRrnsafe)
+    {
+      switches.markFullSession = true;
+      //###################################
+      result = addFullSession (sys,iterate);
+      //###################################
+      switches.markFullSession = false;
+    }
+
   /**
    * Standard iteration step setup.
    */
+  //###################################
   result = iterate ();
   //###################################
-  //
-  // Sometimes we need a second phase with e.g. a full session
-  if (switches.LKRaftercorrect || switches.LKRrnsafe)
-    {
-      int addedruns;
-      int i;
-
-      addedruns = addFullSession (sys);
-      switches.markFullSession = true;
-
-      //###################################
-      result = iterate ();
-      //###################################
-
-      for (i = 0; i < addedruns; i++)
-	{
-	  semiRunDestroy ();
-	}
-      switches.markFullSession = false;
-    }
   return result;
 }
 

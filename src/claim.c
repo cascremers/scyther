@@ -773,17 +773,20 @@ goodHeight (Role role, Termlist labels)
  * @TODO: We're not storing the undoing of the instantiated variables.
  */
 int
-addFullSession (const System sys)
+addFullSession (const System sys, int (*iter) (void))
 {
   Protocol p;
   int addedruns;
+  int addeddepends;
+  int result;
   Role r;
   Role claimrole;
   Termmap f;
   Termlist tl;
-  Termlist ul;
+  Termlist substlist;
 
   addedruns = 0;
+  addeddepends = 0;
 
   // Retrieve parent protocol (reflexive relation)
   p = sys->runs[0].protocol->parentProtocol;
@@ -816,7 +819,7 @@ addFullSession (const System sys)
     }
 
   // Sync the labels
-  ul = NULL;
+  substlist = NULL;
   for (tl = sys->current_claim->prec; tl != NULL; tl = tl->next)
     {
       int r1, e1, r2, e2;
@@ -828,8 +831,8 @@ addFullSession (const System sys)
 	{
 	  r1 = termmapGet (f, li->sendrole);
 	  r2 = termmapGet (f, li->readrole);
-	  e1 = findLabelInRun (sys, r1, tl->term);
-	  e2 = findLabelInRun (sys, r2, tl->term);
+	  e1 = findLabelInRun (sys, r1, tl->term, true);
+	  e2 = findLabelInRun (sys, r2, tl->term, true);
 	  if ((e1 != -1) && (e2 != -1))
 	    {
 	      rd1 = roledef_get (r1, e1);
@@ -838,23 +841,24 @@ addFullSession (const System sys)
 	      // For now we don't add the binding (to avoid having to delete it too)
 
 	      // TODO this will not work if we get multiple unifiers later, and we have to really iterate into this
-	      if (ul != MGUFAIL)
+	      if (substlist != MGUFAIL)
 		{
-		  ul =
-		    termlistConcat (ul, termMguTerm (rd1->from, rd2->from));
+		  substlist =
+		    termlistConcat (substlist, termMguTerm (rd1->from, rd2->from));
 		}
-	      if (ul != MGUFAIL)
+	      if (substlist != MGUFAIL)
 		{
-		  ul = termlistConcat (ul, termMguTerm (rd1->to, rd2->to));
+		  substlist = termlistConcat (substlist, termMguTerm (rd1->to, rd2->to));
 		}
-	      if (ul != MGUFAIL)
+	      if (substlist != MGUFAIL)
 		{
-		  ul =
-		    termlistConcat (ul,
+		  substlist =
+		    termlistConcat (substlist,
 				    termMguTerm (rd1->message, rd2->message));
 		}
 	      // Push order into graph
-	      //dependPushEvent (r1, e1, r2, e2);
+	      dependPushEvent (r1, e1, r2, e2);
+	      addeddepends++;
 	    }
 	}
     }
@@ -862,7 +866,26 @@ addFullSession (const System sys)
   // Cleanup
   termmapDelete (f);
 
-  return addedruns;
+  // Iterate
+  result = iter();
+
+  // Undo substitutions
+  termlistSubstReset(substlist);
+
+  // Undo orders
+  while (addeddepends > 0)
+    {
+      dependPopEvent();
+      addeddepends--;
+    }
+  // Remove runs
+  while (addedruns > 0)
+    {
+      semiRunDestroy();
+      addedruns--;
+    }
+
+  return result;
 }
 
 //! Prune determination for specific properties
