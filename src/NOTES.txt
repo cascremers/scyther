@@ -42,3 +42,7 @@ Key compromise
   (with compromises 'taking time' somehow.)
 - Other agents should also be okay (not in the claim)
 
+- For considering the patterns with an existing session, it may be wise
+  to already close all the bindings by binding unlabeled to the source
+  sends. We know the orderings must be respected, but it is not clear
+  these are the first/unique origination points yet.
