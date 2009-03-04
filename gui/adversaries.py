@@ -34,6 +34,20 @@ import commands
 import sys
 
 from Scyther import *
+try:
+	from progressbar import *
+	PROGRESSBAR = True
+except ImportError:
+	PROGRESSBAR = False
+	print """
+Missing the progressbar library.
+
+It can be downloaded from:
+
+http://code.google.com/p/python-progressbar/
+
+"""
+	sys.exit()
 
 CACHEFILE = "verification-result-cache.tmp"   # Filename of cache
 SHOWPATH = False    # Switch to true to show paths in the graph
@@ -1269,7 +1283,7 @@ class ScytherCache(object):
         return len(self.data.keys())
 
 
-def Investigate(file,claimid):
+def Investigate(file,claimid,callback=None):
     """
     Investigate this one.
     """
@@ -1277,20 +1291,22 @@ def Investigate(file,claimid):
 
     minres = TestClaim(file,claimid,SecModel())
     if minres == True:
-        #print "*" * 70
-        #print file,claimid
-        #print "*" * 70
-
         data = (file,claimid)
 
         model = SecModel()
         DB[model.dbkey()] = DB[model.dbkey()] + [data]
         model = model.next()
+
+        count = 0
         while model != None:
             res = TestClaim(file,claimid,model)
             if res:
                 DB[model.dbkey()] = DB[model.dbkey()] + [data]
             model = model.next()
+            count += 1
+            if callback != None:
+                callback(count)
+    
         return True
 
     #print "Always flawed:",file,claimid
@@ -1451,6 +1467,15 @@ def GraphProtocolSecurityHierarchy():
     fp.write("digraph protocolSecurityHierarchy {\n")
     fp.write("\trankdir=BT;\n")
 
+    # Progress bar
+    maxcount = len(FCD.keys()) * 3
+    widgets = ['  Generating: ', Percentage(), ' ',
+               Bar(marker='#',left='[',right=']')
+               ]
+    pbar = ProgressBar(widgets=widgets, maxval=maxcount)
+    pbar.start()
+    count = 0
+
     # Infer dependencies
     wkrs = {}
     equals = {}
@@ -1462,6 +1487,8 @@ def GraphProtocolSecurityHierarchy():
             wkrs[fn].append(pn)
         for pn in eq:
             equals[fn].append(pn)
+        count += 1
+        pbar.update(count)
 
     # Report only minimal paths
     edges = []
@@ -1477,8 +1504,9 @@ def GraphProtocolSecurityHierarchy():
                 edge = "\t%s -> %s;\n" % (dotabbrev(pickfirst(equals,pn)),dotabbrev(pickfirst(equals,fn)))
                 if edge not in edges:
                     edges.append(edge)
-    for edge in edges:
-        fp.write(edge)
+                    fp.write(edge)
+        count += 1
+        pbar.update(count)
 
     # Name the nodes
     shown = []
@@ -1503,8 +1531,14 @@ def GraphProtocolSecurityHierarchy():
             txt += " ; ".join(nm)
             fp.write("\t%s [label=\"%s\"];\n" % (dotabbrev(repr),txt))
 
+        count += 1
+        pbar.update(count)
+
     fp.write("};\n")
     fp.close()
+
+    pbar.finish()
+
     commands.getoutput("dot -Tpdf %s.dot >%s.pdf" % (GRAPHPSH, GRAPHPSH))
     print "* Generated protocol-security hierarchy."
     drawbox("%s.pdf" % (GRAPHPSH), prefix="  ")
@@ -1730,13 +1764,28 @@ def main(protocollist = None, models = "CSF09", protocolpath="Protocols/Adversar
     counter = 0
     for fn in FCD.keys():
         counter += 1
-        print "Processing %i out of %i keys: %s" % (counter,len(FCD.keys()), fn)
+        comment = "%i/%i: [%s] " % (counter,len(FCD.keys()), fn)
+        """
+        We make a progress bar for these.
+        Counts: claims * models
+        """
+        maxclmods = len(FCD[fn]) * len(DB.keys())
+        incount = 0
+        widgets = [comment, Percentage(), ' ',
+                   Bar(marker='#',left='[',right=']')
+                   ]
+        pbar = ProgressBar(widgets=widgets, maxval=maxclmods)
+        pbar.start()
+
         for cid in FCD[fn]:
             if goodclaim(fn,cid):
-                DRAWGRAPH = Investigate(fn,cid)
+                DRAWGRAPH = Investigate(fn,cid,callback=(lambda x: pbar.update(incount + x)))
                 FCDX += 1
             else:
                 FCDS += 1
+            incount += len(DB.keys())
+
+        pbar.finish()
         
     print
     print "Analysis complete."
