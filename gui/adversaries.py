@@ -762,6 +762,72 @@ class Traverse(object):
         return nlist
 
 
+class NextOptimalOpen(object):
+    """
+    Iterator over protocol models for which no results are in the cache.
+
+    Tries to be as good as possible in the worst case.
+    """
+    def __init__(self,fileid,claimid):
+	self.fileid = fileid
+	self.claimid = claimid
+	self.toverify = None
+	self.last = None
+
+    def __iter__(self):
+        return self
+
+    def isOpen(self,model):
+	global CACHE
+
+	res = CACHE.get(self.fileid, self.claimid, model.dbkey())
+	return (res == None)
+
+    def next(self):
+	"""
+	We scan all open goals and choose the optimal one.
+
+	We use a lexicographical ordering on the worst,best cases.
+	"""
+
+	max = SecModel().countTypes()
+	bestgain = -1
+	bestmodel = None
+	remaining = 0
+	for model in Traverse():
+	    if self.isOpen(model):
+		# Possible candidate
+		remaining += 1
+		lowers = 1
+		highers = 1
+		for model2 in Traverse():
+		    if self.isOpen(model2):
+			if model2.weakerthan(model):
+			    lowers += 1
+			if model.weakerthan(model2):
+			    highers += 1
+		if lowers > highers:
+		    bestcase = lowers
+		    worstcase = highers
+		else:
+		    bestcase = highers
+		    worstcase = lowers
+		gain = (max * worstcase) + bestcase
+		if gain > bestgain:
+		    bestgain = gain
+		    bestmodel = model
+	if bestmodel == None:
+	    raise StopIteration
+	else:
+	    if bestmodel == self.last:
+		global CACHE
+
+		print CACHE.get(self.fileid, self.claimid, self.last.dbkey())
+		raise "Trying to visit a model twice in a row, may lead to infinite loop. Aborting preemptively."
+	    self.last = bestmodel
+	    return (bestmodel,max - remaining)
+
+
 class SecDelta(object):
 
     def __init__(self,model1,model2):
@@ -1363,6 +1429,9 @@ class ScytherCache(object):
         model = SecModel()
         model.enscribe(dbkey)
 
+	# Store self
+        self.set(file,claim,dbkey,res)
+
         # For transitive closure we consider all models,
         # so we actually store the implications for use in
         # later (bigger) scans.
@@ -1370,10 +1439,8 @@ class ScytherCache(object):
             oldres = self.get(file,claim,model2.dbkey())
             if oldres == None:
                 # Not set yet, so something to store here
-                storehere = False
-                if model == model2:
-                    storehere = True
-                else:
+                if model != model2:
+		    storehere = False
                     if res < 2:
                         # False in model, so also false in all stronger
                         if model.weakerthan(model2):
@@ -1382,8 +1449,8 @@ class ScytherCache(object):
                         # (semi)correct in model, so also correct in all weaker
                         if model2.weakerthan(model):
                             storehere = True
-                if storehere:
-                    self.set(file,claim,model2.dbkey(),res)
+		    if storehere:
+			self.set(file,claim,model2.dbkey(),res)
 
     def get(self,protocol,claim,dbkey):
         try:
@@ -1429,18 +1496,14 @@ def Investigate(file,claimid,callback=None):
     global DB
 
     data = (file,claimid)
-
-    count = 0
-
     # Here we actually want an optimal scan (and not some linear thing)
-    # so Traverse() details matter here.
-    for model in Traverse():
+    # so Traverse() is not so good here.
+    for (model,done) in NextOptimalOpen(file,claimid):
         res = TestClaim(file,claimid,model)
         if res:
             DB[model.dbkey()] = DB[model.dbkey()] + [data]
-        count += 1
         if callback != None:
-            callback(count)
+            callback(done)
 
     return True
 
