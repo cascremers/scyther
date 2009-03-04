@@ -1969,7 +1969,8 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
     counter = 0
     for fn in FCD.keys():
         counter += 1
-        comment = "%i/%i: [%s] " % (counter,len(FCD.keys()), fn)
+        shortfn = ".".join(fn.split("/")[-1].split(".")[:-1])
+        comment = "%i/%i: [%s] " % (counter,len(FCD.keys()), shortfn)
         """
         We make a progress bar for these.
         Counts: claims * models
