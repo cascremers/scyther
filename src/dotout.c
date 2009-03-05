@@ -596,7 +596,7 @@ setRunColorBuf (const System sys, int run, char *colorbuf)
     }
 
   // If the run is compromised, we lower the saturation significantly
-  if (sys->runs[run].protocol->compromiseProtocol)
+  if (isRunCompromised (run) != 0)
     {
       s = COMPROMISEDCOLORS;
     }
@@ -1433,6 +1433,7 @@ printRunExplanation (const System sys, const int run,
 		     char *runrolesep, char *newline)
 {
   int hadcontent;
+  int compromisetype;
 
   eprintf ("Run ");
   printVisualRunID (run);
@@ -1522,11 +1523,17 @@ printRunExplanation (const System sys, const int run,
 	  eprintf ("\\l");
 	}
     }
-  if (sys->runs[run].protocol->compromiseProtocol)
+  compromisetype = isRunCompromised (run);
+  if (compromisetype != 0)
     {
-      eprintf ("(compromise %i)",
-	       sys->runs[run].protocol->compromiseProtocol);
-      eprintf ("\\l");
+      eprintf ("Compromise");
+      if (compromisetype & COMPR_SSR)
+	eprintf (" SSR");
+      if (compromisetype & COMPR_SKR)
+	eprintf (" SKR");
+      if (compromisetype & COMPR_RNR)
+	eprintf (" RNR");
+      eprintf (")\\l");
     }
 
   eprintf (newline);
@@ -1691,8 +1698,8 @@ drawRegularRuns (const System sys)
 			  if (isHelperProtocol (sys->runs[run].protocol) &&
 			      ((rd->type == READ) || (rd->type == SEND)))
 			    {
-			      termPrintRemap (sys->runs[run].
-					      protocol->nameterm);
+			      termPrintRemap (sys->runs[run].protocol->
+					      nameterm);
 			      eprintf (", ");
 			      termPrintRemap (sys->runs[run].role->nameterm);
 			      eprintf (": ");

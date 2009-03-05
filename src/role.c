@@ -49,6 +49,9 @@ makeRoledef ()
 void
 roledefPrintGeneric (Roledef rd, int print_actor)
 {
+  int printlabel;
+
+  printlabel = true;
   if (rd == NULL)
     {
       eprintf ("[Empty roledef]");
@@ -65,10 +68,32 @@ roledefPrintGeneric (Roledef rd, int print_actor)
   if (rd->type == READ)
     eprintf ("RECV");
   if (rd->type == SEND)
-    eprintf ("SEND");
+    {
+      if (rd->compromisetype != COMPR_NONE)
+	{
+	  eprintf ("COMPR_");
+	  printlabel = false;
+	  switch (rd->compromisetype)
+	    {
+	    case COMPR_SSR:
+	      eprintf ("SSR");
+	      break;
+	    case COMPR_SKR:
+	      eprintf ("SKR");
+	      break;
+	    case COMPR_RNR:
+	      eprintf ("RNR");
+	      break;
+	    }
+	}
+      else
+	{
+	  eprintf ("SEND");
+	}
+    }
   if (rd->type == CLAIM)
     eprintf ("CLAIM");
-  if (rd->label != NULL)
+  if (printlabel && (rd->label != NULL))
     {
       //! Print label
       Term label;
@@ -263,21 +288,21 @@ roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg,
  * Returns new head
  */
 Roledef
-roledefInsert (Roledef head, Roledef rd, int type, Term label, Term from, Term to, Term msg,
-	    Claimlist cl)
+roledefInsert (Roledef head, Roledef rd, int type, Term label, Term from,
+	       Term to, Term msg, Claimlist cl)
 {
   Roledef oldnext;
   Roledef newhead;
 
   if (rd == NULL)
     {
-      return roledefAdd(head, type, label, from, to, msg, cl);
+      return roledefAdd (head, type, label, from, to, msg, cl);
     }
   oldnext = rd->next;
   rd->next = NULL;
 
-  newhead = roledefAdd(head, type, label, from, to, msg, cl);
-  rd = roledefTail(newhead);
+  newhead = roledefAdd (head, type, label, from, to, msg, cl);
+  rd = roledefTail (newhead);
   rd->next = oldnext;
   return newhead;
 }

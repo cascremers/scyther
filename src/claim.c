@@ -788,8 +788,7 @@ addFullSession (const System sys, int (*iter) (void))
   addedruns = 0;
   addeddepends = 0;
 
-  // Retrieve parent protocol (reflexive relation)
-  p = sys->runs[0].protocol->parentProtocol;
+  p = sys->runs[0].protocol;
   claimrole = sys->runs[0].role;
   f = NULL;
 

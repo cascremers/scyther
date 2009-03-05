@@ -39,13 +39,14 @@
 #include "compromise.h"
 #include "partner.h"
 #include "depend.h"
+#include "binding.h"
 
 /*
-   Simple sys pointer as a global. Yields cleaner code although it's against programming standards.
-   It is declared as static to hide it from the outside world, and to indicate its status.
-   Other modules will just see a nicely implemented sys parameter of compile, so we can always change
-   it later if somebody complains. Which they won't.
-*/
+	 Simple sys pointer as a global. Yields cleaner code although it's against programming standards.
+	 It is declared as static to hide it from the outside world, and to indicate its status.
+	 Other modules will just see a nicely implemented sys parameter of compile, so we can always change
+	 it later if somebody complains. Which they won't.
+	 */
 
 static System sys;
 
@@ -112,9 +113,9 @@ checkCompromiseRequirements (void)
 {
   if (switches.partnerDefinition == 2)
     {
-      /**
-       * SID based partner definition requires that it is defined for all partners.
-       */
+	/**
+	 * SID based partner definition requires that it is defined for all partners.
+	 */
       checkSIDrequirements ();
     }
 }
@@ -237,150 +238,39 @@ removeCompromiseEvents (void)
 
   for (prot = sys->protocols; prot != NULL; prot = prot->next)
     {
-      if (prot->compromiseProtocol == 0)
-	{
-	  removeProtocolCompromiseEvents (prot);
-	}
-    }
-}
-
-void
-compromisePrepare (const System mysys)
-{
-  sys = mysys;
-
-  if (switches.SSRinfer)
-    {
-      /* If we are not using any self-defined compromised events, remove them.
-       * */
-      removeCompromiseEvents ();
-    }
-  if (switches.SSR || switches.SKR || switches.RNR)
-    {
-      /*
-       * Check for requirements
-       */
-      checkCompromiseRequirements ();
-
-      // Duplication needed.
-      Protocol newprots, oldprots, lastprot;
-
-      oldprots = sys->protocols;
-      newprots = NULL;
-      lastprot = NULL;
-      while (oldprots != NULL)
-	{
-	  Protocol newprot;
-
-	  if (oldprots->compromiseProtocol == 0)
-	    {
-	      if (shouldCompromiseProtocol (oldprots))
-		{
-		  /**
-		   * Type cases: first the SSR/SKR type and then the RNR type.
-		   * We need both for the LKR conditions later.
-		   */
-		  int type;
-		  int created;
-
-		  created = false;
-		  for (type = 1; type <= 2; type++)
-		    {
-		      int create;
-
-		      create = false;
-		      if (type == 1)
-			{
-			  if (switches.SSR || switches.SKR)
-			    {
-			      create = true;
-			    }
-			}
-		      if (type == 2)
-			{
-			  if (switches.RNR)
-			    {
-			      create = true;
-			    }
-			}
-
-		      if (create)
-			{
-			  // Duplicate this non-compromise protocol
-			  newprot = compromiseProtocol (oldprots, type);
-			  created = true;
-			  newprot->next = newprots;
-			  newprots = newprot;
-			  // Count the new protocol
-			  protocolCount++;
-			}
-		    }
-		}
-	      // Remove any compromise events from the duplicated one
-	      removeProtocolCompromiseEvents (oldprots);
-	    }
-	  // Store the last protocol and move on
-	  lastprot = oldprots;
-	  oldprots = oldprots->next;
-	}
-      // We've duplicated all, so we can append them
-      if (lastprot != NULL)
-	{
-	  lastprot->next = newprots;
-	}
-
-    }
-
-  // Cleanup any remaining stuff
-  removeCompromiseEvents ();
-
-  // Report (if needed)
-  if (switches.reportCompromise)
-    {
-      Protocol prot;
-
-      for (prot = sys->protocols; prot != NULL; prot = prot->next)
-	{
-	  eprintf ("---------------------\n");
-	  eprintf ("Protocol ");
-	  termPrint (prot->nameterm);
-	  if (prot->compromiseProtocol == 1)
-	    {
-	      eprintf (", compromise SSR/SKR");
-	    }
-	  else
-	    {
-	      if (prot->compromiseProtocol == 2)
-		{
-		  eprintf (", compromise RNR");
-		}
-	      else
-		{
-		  if (prot->compromiseProtocol != 0)
-		    {
-		      eprintf (", compromise type %i",
-			       prot->compromiseProtocol);
-		    }
-		}
-	    }
-	  eprintf ("\n");
-	  rolesPrint (prot->roles);
-	}
-      exit (0);
+      removeProtocolCompromiseEvents (prot);
     }
 }
 
 //! Is the run compromised?
 /**
- * Returns value:
- * 0: nope
- * 1: SSR and SKR
- * 2: RNR
+ * Returns value with OR'ed value of things.
  */
 int
 isRunCompromised (const int run)
 {
-  return (sys->runs[run].protocol->compromiseProtocol);
+  List bl;
+  int stacked;
+
+  stacked = 0;
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (b->done)
+	{
+	  if (b->run_from == run)
+	    {
+	      // This comes from this run
+	      Roledef rd;
+
+	      rd = eventRoledef (sys, run, b->ev_from);
+	      stacked = stacked | rd->compromisetype;
+	    }
+	}
+    }
+  return stacked;
 }
 
 // Weigh the number of compromised runs
@@ -400,7 +290,7 @@ weighCompromisedRuns (void)
   // compromised at all.
   for (run = 1; run < sys->maxruns; run++)
     {
-      if (isRunCompromised (run))
+      if (isRunCompromised (run) != 0)
 	{
 	  Term cagent;
 
@@ -516,7 +406,8 @@ learnFromMessage (Role r, Termlist tl, Term t, int type)
 	}
       else
 	{
-	  if ((type == COMPR_RNR) || (type == COMPR_SSR))
+	  if (((type == COMPR_RNR) && (!isTermVariable (t)))
+	      || (type == COMPR_SSR))
 	    {
 	      if (inTermlist (r->locals, t))
 		{
@@ -532,7 +423,7 @@ learnFromMessage (Role r, Termlist tl, Term t, int type)
 	  tl = learnFromMessage (r, tl, TermOp1 (t), type);
 	  tl = learnFromMessage (r, tl, TermOp2 (t), type);
 	}
-      else 
+      else
 	{
 	  if (realTermEncrypt (t))
 	    {
@@ -630,175 +521,6 @@ learnSessionKey (Termlist compterms, Roledef rd)
   return compterms;
 }
 
-//! Duplicate an old protocol into a new (compromise) protocol
-/**
- * We need to duplicate any subparts we modify. This includes all roles and
- * events, as we will be relabeling them.
- *
- * We will get rid of e.g. claims in the process, as they contain pointers to
- * the protocol again.
- *
- * Type:
- *
- * 1: SSR & SKR variant
- * 2: RNR
- *
- * We assume the caller decides whether we need SSR/SKR/RNR and do not double check.
- *
- * @TODO In general this is a hairy situation, as we'd want to replace protocol
- * pointers and protocol nameterms throughout all children. A more complete
- * check is advisable.
- */
-Protocol
-compromiseProtocol (Protocol sourceprot, int type)
-{
-  Protocol destprot;
-  Role oldrole, newroles;
-  Term newname, oldname;
-
-  destprot = protocolDuplicate (sourceprot);
-  destprot->compromiseProtocol = type;
-  destprot->parentProtocol = sourceprot;
-
-  // Give it a new name
-  oldname = destprot->nameterm;
-  newname = makeNewName (oldname);
-  destprot->nameterm = newname;
-
-  // Propagate the name through to the roles
-  newroles = NULL;
-  for (oldrole = destprot->roles; oldrole != NULL; oldrole = oldrole->next)
-    {
-      int interesting;
-      Role newrole;
-      Roledef rd, rdhead;
-      Termlist compTerms, compKnown;
-
-      interesting = false;	// Only of interest when something is leaked.
-      compTerms = NULL;		// What should be sent out at some point
-      compKnown = NULL;		// What we have sent out already
-      newrole = roleDuplicate (oldrole);
-
-      rdhead = NULL;
-      rd = newrole->roledef;
-      while (rd != NULL)
-	{
-	  Roledef newrd;
-	  Labelinfo linfo;
-	  Termlist tlsend;
-
-	  newrd = roledefDuplicate1 (rd);
-
-	  if (isCompromiseEvent (rd))
-	    {
-	      // If it is a compromise event, it's interesting by definition.
-	      interesting = true;
-	    }
-	  // Scan what is new here to be sent etc. later
-	  // The algorithm depends on the type of compromise
-	  compTerms =
-	    learnFromMessage (newrole, compTerms, newrd->message, type);
-	  if (type == 1)
-	    {
-	      // Special (additional) case for type 1: explicit session key marker
-	      compTerms = learnSessionKey (compTerms, newrd);
-	    }
-
-	  if (rd->type != READ)
-	    {
-	      // We reverse the list for prettier printing
-	      Termlist tlrev;
-
-	      tlrev = termlistReverse (compTerms);
-	      termlistDelete (compTerms);
-	      compTerms = tlrev;
-	    }
-	  // If it is a send, we already do stuff.
-	  // Note that plain received/sent is already in the
-	  // intruder knowledge for sure.
-	  if ((rd->type == SEND) || (rd->type == READ))
-	    {
-	      compKnown = termlistAppend (compKnown, rd->message);
-	    }
-
-	  // Each role event must be scanned and tags modified.
-	  newrd->label = termSubstitute (newrd->label, oldname, newname);
-	  linfo = label_find (sys->labellist, newrd->label);
-	  if (linfo == NULL)
-	    {
-	      linfo = label_create (newrd->label, destprot);
-	      linfo->ignore = true;
-	      sys->labellist = list_append (sys->labellist, linfo);
-	    }
-
-	  // Compute termlist of things to send now.
-	  // Note tlsend is not delete, but concatenated to compKnown
-	  // further on.
-	  tlsend = termlistNotIn (compTerms, compKnown);
-	  if (tlsend != NULL)
-	    {
-	      Roledef rdcompr;
-	      // Add another node for the compromise.
-	      interesting = true;
-
-	      // Unfold list elements to a list of compromise events.  This
-	      // makes for easier interpretation of the output, and is
-	      // equivalent in terms of complexity to having a single
-	      // (tuple) send.
-	      rdcompr = createCompromiseSends (newrole, tlsend);
-
-	      // If it is a recv, we add it at the end
-	      // but if it is a send, we insert it before
-	      if (rd->type == READ)
-		{
-		  // Read, append
-		  rdhead = roledefAppend (rdhead, newrd);
-		  rdhead = roledefAppend (rdhead, rdcompr);
-		}
-	      else
-		{
-		      /**
-		       * For a non-recv, we also append. This has the effect of
-		       * making the action atomic, i.e. we assume that
-		       * computing the local state for a non-blocking event
-		       * also executes the event. This interacts in a more
-		       * sensible way with the matching histories definition,
-		       * but requires some insight.
-		       */
-		  rdhead = roledefAppend (rdhead, newrd);
-		  rdhead = roledefAppend (rdhead, rdcompr);
-		  // Non-read, prepend
-		  //rdhead = roledefAppend (rdhead, rdcompr);
-		  //rdhead = roledefAppend (rdhead, newrd);
-		}
-	    }
-	  else
-	    {
-	      // No additional events to be added
-	      rdhead = roledefAppend (rdhead, newrd);
-	    }
-	  compKnown = termlistConcat (compKnown, tlsend);
-
-	  rd = rd->next;
-	}
-
-      // Cleanup
-      termlistDelete (compTerms);
-      termlistDelete (compKnown);
-
-      newrole->roledef = rdhead;
-      if (interesting)
-	{
-	  // Append, move on
-	  newrole->next = newroles;
-	  newroles = newrole;
-	}
-    }
-  destprot->roles = newroles;
-
-  return destprot;
-}
-
 //! Check whether actor of a run is one of the claim agents.
 /**
  * Hardcoded: claim run is 0
@@ -837,13 +559,13 @@ compromisePrune (int *partners)
 	      int type;
 
 	      type = isRunCompromised (run);
-	      if (type == 1)
+	      if ((type & (COMPR_SKR | COMPR_SSR)) != 0)
 		{
 		  // One of the partners is compromised with type SKR/SSR, prune
 		  result = true;
 		  break;
 		}
-	      if (type == 2)
+	      if ((type & COMPR_RNR) != 0)
 		{
 		  /*
 		   * For RNR we do allow compromise of the partners, but
@@ -881,7 +603,7 @@ compromiseRNRpartner (int *partners, Term a)
 	{
 	  if (isTermEqual (agentOfRun (sys, r2), a))
 	    {
-	      if (sys->runs[r2].protocol->compromiseProtocol == 2)
+	      if (isRunCompromised (r2) & COMPR_RNR)
 		{
 		  return true;
 		}
@@ -892,31 +614,41 @@ compromiseRNRpartner (int *partners, Term a)
 }
 
 //! Insert compromise send for message list
+/**
+ * The head pointer of r->roledef is automatically updated.
+ * Return pointer to inserted message or tail (if rdlast when none)
+ */
 Roledef
-addComprSend(Role r, Roledef rdlast, Termlist tl, int type)
+addComprSend (Role r, Roledef rdlast, Termlist tl, int type)
 {
-  Term tlm;
+  if (tl != NULL)
+    {
+      Term tlm;
 
-  if (tl == NULL)
-    {
-      return;
-    }
-  tlm = termlist_to_tuple(tl);
-  r->roledef = roledefInsert(r->roledef, rdlast, TERM_Compromise, r->nameterm, r->nameterm, tlm, NULL);
-  if (rdlast == NULL)
-    {
-      r->roledef.compromisetype = type;
+      tlm = termlist_to_tuple (tl);
+      r->roledef =
+	roledefInsert (r->roledef, rdlast, SEND, TERM_Compromise, r->nameterm,
+		       r->nameterm, tlm, NULL);
+      if (rdlast == NULL)
+	{
+	  r->roledef->compromisetype = type;
+	  return r->roledef;
+	}
+      else
+	{
+	  rdlast->next->compromisetype = type;
+	  return rdlast->next;
+	}
     }
   else
     {
-      rdlast->next.compromisetype = type;
+      return rdlast;
     }
-  return roledefTail(r->roledef);
 }
 
 //! Insert Compromise events into role
 void
-adaptRoleCompromised(Protocol p, Role r)
+adaptRoleCompromised (Protocol p, Role r)
 {
   Roledef rd;
   Termlist SKRseen;
@@ -926,8 +658,17 @@ adaptRoleCompromised(Protocol p, Role r)
   SKRseen = NULL;
   SSRseen = NULL;
   RNRseen = NULL;
+
   for (rd = r->roledef; rd != NULL; rd = rd->next)
     {
+      //********************************************************
+      // Add seen stuff
+      if (rd->type == SEND || rd->type == READ)
+	{
+	  SKRseen = termlistConcat (SKRseen, tuple_to_termlist (rd->message));
+	  SSRseen = termlistConcat (SSRseen, tuple_to_termlist (rd->message));
+	  RNRseen = termlistConcat (RNRseen, tuple_to_termlist (rd->message));
+	}
       if (isCompromiseEvent (rd))
 	{
 	  // Already mentioned for state reveal
@@ -935,8 +676,8 @@ adaptRoleCompromised(Protocol p, Role r)
 	}
       else
 	{
-          Roledef rdlast;
-	  
+	  Roledef rdlast;
+
 	  rdlast = rd;
 
 	  //********************************************************
@@ -958,14 +699,15 @@ adaptRoleCompromised(Protocol p, Role r)
 		{
 		  // Here we actually do inference of keys. This may be later
 		  // converted to optional behaviour with a SKRinfer switch.
-		  SKRnew = learnFromMessage(r, SKRnew, t, COMPR_SKR);
+		  SKRnew =
+		    learnFromMessage (r, SKRnew, rd->message, COMPR_SKR);
 		}
 	      // Add stuff
-	      SKRsend = termlistNotIn (SKRseen, SKRnew);
-	      rdlast = addComprSend(r,rdlast,SKRsend, COMPR_SKR);
+	      SKRsend = termlistNotIn (SKRnew, SKRseen);
+	      rdlast = addComprSend (r, rdlast, SKRsend, COMPR_SKR);
 	      // Continue
-	      termlistDelete(SKRnew);
-	      SKRseen = termlistConcat(SKRseen, SKRsend);
+	      termlistDelete (SKRnew);
+	      SKRseen = termlistConcat (SKRseen, SKRsend);
 	    }
 	  //********************************************************
 	  // Scan for SSR
@@ -974,13 +716,13 @@ adaptRoleCompromised(Protocol p, Role r)
 	      Termlist SSRnew;
 	      Termlist SSRsend;
 
-	      SSRnew = learnFromMessage(r, NULL, t, COMPR_SSR);
+	      SSRnew = learnFromMessage (r, NULL, rd->message, COMPR_SSR);
 	      // Add stuff
-	      SSRsend = termlistNotIn (SSRseen, SSRnew);
-	      rdlast = addComprSend(r,rdlast,SSRsend, COMPR_SSR);
+	      SSRsend = termlistNotIn (SSRnew, SSRseen);
+	      rdlast = addComprSend (r, rdlast, SSRsend, COMPR_SSR);
 	      // Continue
-	      termlistDelete(SSRnew);
-	      SSRseen = termlistConcat(SSRseen, SSRsend);
+	      termlistDelete (SSRnew);
+	      SSRseen = termlistConcat (SSRseen, SSRsend);
 	    }
 	  //********************************************************
 	  // Scan for RNR
@@ -989,42 +731,83 @@ adaptRoleCompromised(Protocol p, Role r)
 	      Termlist RNRnew;
 	      Termlist RNRsend;
 
-	      RNRnew = learnFromMessage(r, NULL, t, COMPR_RNR);
+	      RNRnew = learnFromMessage (r, NULL, rd->message, COMPR_RNR);
 	      // Add stuff
-	      RNRsend = termlistNotIn (RNRseen, RNRnew);
-	      rdlast = addComprSend(r,rdlast,RNRsend, COMPR_RNR);
+	      RNRsend = termlistNotIn (RNRnew, RNRseen);
+	      rdlast = addComprSend (r, rdlast, RNRsend, COMPR_RNR);
 	      // Continue
-	      termlistDelete(RNRnew);
-	      RNRseen = termlistConcat(RNRseen, RNRsend);
+	      termlistDelete (RNRnew);
+	      RNRseen = termlistConcat (RNRseen, RNRsend);
 	    }
 	  //********************************************************
 	  // Jump
 	  rd = rdlast;
 	}
     }
-  termlistDelete(SKRseen);
-  termlistDelete(SSRseen);
-  termlistDelete(RNRseen);
+  termlistDelete (SKRseen);
+  termlistDelete (SSRseen);
+  termlistDelete (RNRseen);
 }
 
 //! Insert Compromise events into all protocols
 void
-adaptProtocolsCompromised(void)
+adaptProtocolsCompromised (void)
 {
   Protocol p;
 
-  if (!(switches.SSR || switches.SKR || switches.RNR))
+  if (switches.SSRinfer || switches.SKR || switches.RNR)
     {
-      return;
-    }
-  for (p = sys->protocols; p != NULL; p = p->next)
-    {
-      Role r;
-
-      for (r = p->roles; r != NULL; r = r->next)
+      for (p = sys->protocols; p != NULL; p = p->next)
 	{
-	  adaptRoleCompromised(Protocol p, Role r);
+	  if (!isHelperProtocol (p))
+	    {
+	      Role r;
+
+	      for (r = p->roles; r != NULL; r = r->next)
+		{
+		  adaptRoleCompromised (p, r);
+		}
+	    }
 	}
     }
 }
 
+//! Prepare the system with respect to compromises.
+void
+compromisePrepare (const System mysys)
+{
+  sys = mysys;
+
+  if (switches.SSRinfer)
+    {
+      /* If we are not using any self-defined compromised events, remove them.
+       * */
+      removeCompromiseEvents ();
+    }
+  if (switches.SSR || switches.SKR || switches.RNR)
+    {
+      /*
+       * Check for requirements
+       */
+      checkCompromiseRequirements ();
+      /* Fix protocol
+       */
+      adaptProtocolsCompromised ();
+    }
+
+  // Report (if needed)
+  if (switches.reportCompromise)
+    {
+      Protocol prot;
+
+      for (prot = sys->protocols; prot != NULL; prot = prot->next)
+	{
+	  eprintf ("---------------------\n");
+	  eprintf ("Protocol ");
+	  termPrint (prot->nameterm);
+	  eprintf ("\n");
+	  rolesPrint (prot->roles);
+	}
+      exit (0);
+    }
+}

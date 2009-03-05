@@ -48,8 +48,6 @@ struct protocol
   //! Pointer to next protocol.
   struct protocol *next;
   int lineno;			//!< Line number of definition (for errors)?
-  int compromiseProtocol;	//!< int for compromised protocols: 0: not, 1: SKR and SSR, 2: RNR
-  struct protocol *parentProtocol;	//!< for compromise protocols, points to parent.
 };
 
 //! Shorthand for protocol pointer.

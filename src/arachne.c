@@ -2379,70 +2379,6 @@ wrap_iteration_createclaimrun (Claimlist cl, Protocol p, Role r)
 }
 
 
-//! For for compromised claim runs (i.e. RNR)
-/**
- * With no RNR, we just create the protocol, and that's it. With RNR we also
- * need to consider a compromised RNR run.
- */
-void
-fork_iteration_compromisedruns (Claimlist cl, Protocol p, Role r)
-{
-  // Iterate for normal protocol first
-  wrap_iteration_createclaimrun (cl, p, r);
-
-  // Iterate for compromised claim run if needed
-  if (switches.RNR)
-    {
-      Protocol pcomp;
-
-      for (pcomp = sys->protocols; pcomp != NULL; pcomp = pcomp->next)
-	{
-	  /* Try to find a type 2 (RNR) protocol
-	   */
-	  if (pcomp->compromiseProtocol == 2)
-	    {
-	      if (pcomp->parentProtocol == p)
-		{
-		  /* This RNR protocol has the claim protocol as parent
-		   */
-		  break;
-		}
-	    }
-	}
-      if (pcomp == NULL)
-	{
-	  warning
-	    ("Internal weirdness: Could not find compromise protocol for this claim.");
-	}
-      else
-	{
-	  /* pcomp is the RNR variant of p.
-	   * Role names should be identical.
-	   */
-	  Role rcomp;
-
-	  for (rcomp = pcomp->roles; rcomp != NULL; rcomp = rcomp->next)
-	    {
-	      if (isTermEqual (rcomp->nameterm, r->nameterm))
-		{
-		  break;
-		}
-	    }
-	  if (rcomp == NULL)
-	    {
-	      warning
-		("Internal weirdness: Found RNR compromise protocol, but not the corresponding role.");
-	    }
-	  else
-	    {
-	      /* pcomp, rcomp now set as required.
-	       */
-	      wrap_iteration_createclaimrun (cl, pcomp, rcomp);
-	    }
-	}
-    }
-}
-
 //! Just before starting output of an attack.
 //
 //! A wrapper for the case in which we need to buffer attacks.
@@ -2465,7 +2401,7 @@ wrap_iteration_attackbuffer (Claimlist cl, Protocol p, Role r)
       attackOutputStart ();
 
       // Iterate inside
-      fork_iteration_compromisedruns (cl, p, r);
+      wrap_iteration_createclaimrun (cl, p, r);
 
       /* Now, if it has been set, we need to copy the output to the normal streams.
        */
@@ -2481,7 +2417,7 @@ wrap_iteration_attackbuffer (Claimlist cl, Protocol p, Role r)
   else
     {
       // No attack buffering, just output all of them
-      fork_iteration_compromisedruns (cl, p, r);
+      wrap_iteration_createclaimrun (cl, p, r);
     }
 }
 
