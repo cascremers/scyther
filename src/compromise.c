@@ -499,49 +499,29 @@ containsLocal (Role r, Term t)
 /**
  * Append to the existing list.
  * Depends on the compromise test.
- *
- * Type: 1: SSR/SKR
- * 	 2: RNR
  */
 Termlist
 learnFromMessage (Role r, Termlist tl, Term t, int type)
 {
-  int takelocal;
-
-  takelocal = false;
   t = deVar (t);
   if (realTermLeaf (t))
     {
-      if (type == 1)
+      if (type == COMPR_SKR)
 	{
-	  if (switches.SKR)
+	  // Key compromise: scan for SessionKey type
+	  if (inTermlist (t->stype, TERM_SessionKey))
 	    {
-	      // Key compromise: scan for SessionKey type
-	      if (inTermlist (t->stype, TERM_SessionKey))
+	      tl = termlistAddNew (tl, t);
+	    }
+	}
+      else
+	{
+	  if ((type == COMPR_RNR) || (type == COMPR_SSR))
+	    {
+	      if (inTermlist (r->locals, t))
 		{
 		  tl = termlistAddNew (tl, t);
 		}
-	    }
-	  if (switches.SSR)
-	    {
-	      if (switches.SSRinfer)
-		{
-		  takelocal = true;
-		}
-	    }
-	}
-      if (type == 2)
-	{
-	  if (switches.RNR)
-	    {
-	      takelocal = true;
-	    }
-	}
-      if (takelocal)
-	{
-	  if (inTermlist (r->locals, t))
-	    {
-	      tl = termlistAddNew (tl, t);
 	    }
 	}
     }
@@ -552,33 +532,11 @@ learnFromMessage (Role r, Termlist tl, Term t, int type)
 	  tl = learnFromMessage (r, tl, TermOp1 (t), type);
 	  tl = learnFromMessage (r, tl, TermOp2 (t), type);
 	}
-      else if (realTermEncrypt (t))
+      else 
 	{
-	  if (switches.SSRinfer && (!switches.SSRfilter))
+	  if (realTermEncrypt (t))
 	    {
-	      /* If SSRinfer is true, and not filtered, we may consider the
-	       * full state (and not just from infer commands)
-	       */
-	      int takeall;
-
-	      takeall = false;
-
-	      // Case 1: SSR (if not restricted to filtering)
-	      if (type == 1)
-		{
-		  if (switches.SSR)
-		    {
-		      takeall = true;
-		    }
-		}
-	      if (type == 2)
-		{
-		  if (switches.RNR && switches.RNRinfer)
-		    {
-		      takeall = true;
-		    }
-		}
-	      if (takeall)
+	      if ((type == COMPR_SSR) && (!switches.SSRfilter))
 		{
 		  // We learn the whole encryption if it contains a local
 		  if (containsLocal (r, t))
@@ -586,13 +544,10 @@ learnFromMessage (Role r, Termlist tl, Term t, int type)
 		      tl = termlistAddNew (tl, t);
 		    }
 		}
-	    }
-	  /* Otherwise we may learn any key terms anyway (automatically
-	   * inferred, needs documentation for user!)
-	   */
-	  if (type == 1)
-	    {
-	      if (switches.SKR)
+	      /* Otherwise we may learn any key terms anyway (automatically
+	       * inferred, needs documentation for user!)
+	       */
+	      if (type == COMPR_SKR)
 		{
 		  // We learn the key if it contains a local
 		  if (containsLocal (r, TermKey (t)))
@@ -600,11 +555,11 @@ learnFromMessage (Role r, Termlist tl, Term t, int type)
 		      tl = termlistAddNew (tl, TermKey (t));
 		    }
 		}
-	    }
 
-	  // Iterate for more information
-	  tl = learnFromMessage (r, tl, TermOp (t), type);
-	  tl = learnFromMessage (r, tl, TermKey (t), type);
+	      // Iterate for more information
+	      tl = learnFromMessage (r, tl, TermOp (t), type);
+	      tl = learnFromMessage (r, tl, TermKey (t), type);
+	    }
 	}
     }
   return tl;
@@ -935,3 +890,141 @@ compromiseRNRpartner (int *partners, Term a)
     }
   return false;
 }
+
+//! Insert compromise send for message list
+Roledef
+addComprSend(Role r, Roledef rdlast, Termlist tl, int type)
+{
+  Term tlm;
+
+  if (tl == NULL)
+    {
+      return;
+    }
+  tlm = termlist_to_tuple(tl);
+  r->roledef = roledefInsert(r->roledef, rdlast, TERM_Compromise, r->nameterm, r->nameterm, tlm, NULL);
+  if (rdlast == NULL)
+    {
+      r->roledef.compromisetype = type;
+    }
+  else
+    {
+      rdlast->next.compromisetype = type;
+    }
+  return roledefTail(r->roledef);
+}
+
+//! Insert Compromise events into role
+void
+adaptRoleCompromised(Protocol p, Role r)
+{
+  Roledef rd;
+  Termlist SKRseen;
+  Termlist SSRseen;
+  Termlist RNRseen;
+
+  SKRseen = NULL;
+  SSRseen = NULL;
+  RNRseen = NULL;
+  for (rd = r->roledef; rd != NULL; rd = rd->next)
+    {
+      if (isCompromiseEvent (rd))
+	{
+	  // Already mentioned for state reveal
+	  rd->compromisetype = COMPR_SSR;
+	}
+      else
+	{
+          Roledef rdlast;
+	  
+	  rdlast = rd;
+
+	  //********************************************************
+	  // Scan for SKR
+	  if (switches.SKR)
+	    {
+	      Termlist SKRnew;
+	      Termlist SKRsend;
+
+	      SKRnew = NULL;
+	      if (rd->type == CLAIM)
+		{
+		  if (isTermEqual (rd->to, CLAIM_SKR))
+		    {
+		      SKRnew = termlistAppend (SKRnew, rd->message);
+		    }
+		}
+	      if (rd->type == SEND || rd->type == READ)
+		{
+		  // Here we actually do inference of keys. This may be later
+		  // converted to optional behaviour with a SKRinfer switch.
+		  SKRnew = learnFromMessage(r, SKRnew, t, COMPR_SKR);
+		}
+	      // Add stuff
+	      SKRsend = termlistNotIn (SKRseen, SKRnew);
+	      rdlast = addComprSend(r,rdlast,SKRsend, COMPR_SKR);
+	      // Continue
+	      termlistDelete(SKRnew);
+	      SKRseen = termlistConcat(SKRseen, SKRsend);
+	    }
+	  //********************************************************
+	  // Scan for SSR
+	  if (switches.SSR && switches.SSRinfer)
+	    {
+	      Termlist SSRnew;
+	      Termlist SSRsend;
+
+	      SSRnew = learnFromMessage(r, NULL, t, COMPR_SSR);
+	      // Add stuff
+	      SSRsend = termlistNotIn (SSRseen, SSRnew);
+	      rdlast = addComprSend(r,rdlast,SSRsend, COMPR_SSR);
+	      // Continue
+	      termlistDelete(SSRnew);
+	      SSRseen = termlistConcat(SSRseen, SSRsend);
+	    }
+	  //********************************************************
+	  // Scan for RNR
+	  if (switches.RNR)
+	    {
+	      Termlist RNRnew;
+	      Termlist RNRsend;
+
+	      RNRnew = learnFromMessage(r, NULL, t, COMPR_RNR);
+	      // Add stuff
+	      RNRsend = termlistNotIn (RNRseen, RNRnew);
+	      rdlast = addComprSend(r,rdlast,RNRsend, COMPR_RNR);
+	      // Continue
+	      termlistDelete(RNRnew);
+	      RNRseen = termlistConcat(RNRseen, RNRsend);
+	    }
+	  //********************************************************
+	  // Jump
+	  rd = rdlast;
+	}
+    }
+  termlistDelete(SKRseen);
+  termlistDelete(SSRseen);
+  termlistDelete(RNRseen);
+}
+
+//! Insert Compromise events into all protocols
+void
+adaptProtocolsCompromised(void)
+{
+  Protocol p;
+
+  if (!(switches.SSR || switches.SKR || switches.RNR))
+    {
+      return;
+    }
+  for (p = sys->protocols; p != NULL; p = p->next)
+    {
+      Role r;
+
+      for (r = p->roles; r != NULL; r = r->next)
+	{
+	  adaptRoleCompromised(Protocol p, Role r);
+	}
+    }
+}
+

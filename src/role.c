@@ -202,9 +202,10 @@ roledefInit (int type, Term label, Term from, Term to, Term msg, Claimlist cl)
   newEvent->from = from;
   newEvent->to = to;
   newEvent->message = msg;
-  newEvent->forbidden = NULL;	// no forbidden stuff
-  newEvent->knowPhase = -1;	// we haven't explored any knowledge yet
+  newEvent->forbidden = NULL;	// no forbidden stuff, only for reads
+  newEvent->knowPhase = -1;	// we haven't explored any knowledge yet, only for reads
   newEvent->claiminfo = cl;	// only for claims
+  newEvent->compromisetype = COMPR_NONE;	// compromisetype
   if (type == READ)
     newEvent->bound = 0;	// bound goal (Used for arachne only). Technically involves choose events as well.
   else
@@ -252,6 +253,33 @@ roledefAdd (Roledef rd, int type, Term label, Term from, Term to, Term msg,
   scan = roledefTail (rd);
   scan->next = roledefInit (type, label, from, to, msg, cl);
   return rd;
+}
+
+//! Add a role event to a list, at a particular point.
+/**
+ * Head = head of list. 
+ * Insert after rd.
+ *
+ * Returns new head
+ */
+Roledef
+roledefInsert (Roledef head, Roledef rd, int type, Term label, Term from, Term to, Term msg,
+	    Claimlist cl)
+{
+  Roledef oldnext;
+  Roledef newhead;
+
+  if (rd == NULL)
+    {
+      return roledefAdd(head, type, label, from, to, msg, cl);
+    }
+  oldnext = rd->next;
+  rd->next = NULL;
+
+  newhead = roledefAdd(head, type, label, from, to, msg, cl);
+  rd = roledefTail(newhead);
+  rd->next = oldnext;
+  return newhead;
 }
 
 //! Create an empty role structure with a name.

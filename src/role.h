@@ -29,6 +29,9 @@
 enum eventtype
 { READ, SEND, CLAIM, ANYEVENT };
 
+enum comprtype
+{ COMPR_NONE, COMPR_SSR, COMPR_RNR, COMPR_SKR };
+
 //! The container for the claim info list
 /**
  * Defaults are set in compiler.c (claimCreate)
@@ -126,6 +129,12 @@ struct roledef
   Claimlist claiminfo;
 
   /*
+   * Substructure for sends
+   */
+  //! compromise type
+  int compromisetype;
+
+  /*
    * Bindings for Arachne engine
    */
   int bound;			//!< determines whether it is already bound
@@ -181,6 +190,8 @@ Roledef roledefInit (int type, Term label, Term from, Term to, Term msg,
 		     Claimlist cl);
 Roledef roledefAdd (Roledef rd, int type, Term label, Term from, Term to,
 		    Term msg, Claimlist cl);
+Roledef roledefInsert (Roledef head, Roledef rd, int type, Term label, Term from, Term to, Term msg,
+	    Claimlist cl);
 Roledef roledefTail (Roledef rd);	//! Fast forward to tail of roledef list
 Role roleCreate (Term nameterm);
 Role roleDuplicate (Role source);
