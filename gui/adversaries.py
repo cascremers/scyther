@@ -2039,7 +2039,9 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
         We make a progress bar for these.
         Counts: claims * models
         """
-        maxclmods = len(FCD[fn]) * len(DB.keys())
+        maxclaims = len(FCD[fn])
+        maxmodels = SecModel().countTypes()
+        maxclmods = maxclaims * maxmodels
 
         # If needed, consider only modulo
         if modulo != None:
@@ -2068,7 +2070,7 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
                     FCDX += 1
                 else:
                     FCDS += 1
-                incount += len(DB.keys())
+                incount += maxclaims
 
             pbar.finish()
         else:
