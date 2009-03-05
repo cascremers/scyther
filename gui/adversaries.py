@@ -1499,11 +1499,11 @@ def Investigate(file,claimid,callback=None):
     # Here we actually want an optimal scan (and not some linear thing)
     # so Traverse() is not so good here.
     for (model,done) in NextOptimalOpen(file,claimid):
+        if callback != None:
+            callback(done)
         res = TestClaim(file,claimid,model)
         if res:
             DB[model.dbkey()] = DB[model.dbkey()] + [data]
-        if callback != None:
-            callback(done)
 
     return True
 
