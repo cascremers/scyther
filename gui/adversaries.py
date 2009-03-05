@@ -1769,9 +1769,10 @@ def GraphProtocolSecurityHierarchy():
         if model not in shownmodels:
             thisimplied = False
             for model2 in shownmodels:
-                if model.weakerthan(model2):
-                    thisimplied = True
-                    break
+                if model != model2:
+                    if model.weakerthan(model2):
+                        thisimplied = True
+                        break
             if not thisimplied:
                 notimplied.add(model)
 
