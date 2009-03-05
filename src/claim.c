@@ -844,11 +844,14 @@ addFullSession (const System sys, int (*iter) (void))
 	      if (substlist != MGUFAIL)
 		{
 		  substlist =
-		    termlistConcat (substlist, termMguTerm (rd1->from, rd2->from));
+		    termlistConcat (substlist,
+				    termMguTerm (rd1->from, rd2->from));
 		}
 	      if (substlist != MGUFAIL)
 		{
-		  substlist = termlistConcat (substlist, termMguTerm (rd1->to, rd2->to));
+		  substlist =
+		    termlistConcat (substlist,
+				    termMguTerm (rd1->to, rd2->to));
 		}
 	      if (substlist != MGUFAIL)
 		{
@@ -867,21 +870,21 @@ addFullSession (const System sys, int (*iter) (void))
   termmapDelete (f);
 
   // Iterate
-  result = iter();
+  result = iter ();
 
   // Undo substitutions
-  termlistSubstReset(substlist);
+  termlistSubstReset (substlist);
 
   // Undo orders
   while (addeddepends > 0)
     {
-      dependPopEvent();
+      dependPopEvent ();
       addeddepends--;
     }
   // Remove runs
   while (addedruns > 0)
     {
-      semiRunDestroy();
+      semiRunDestroy ();
       addedruns--;
     }
 
