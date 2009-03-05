@@ -260,7 +260,7 @@ class SecModel(object):
         axis2 = ["","--LKRrnsafe=1","--LKRaftercorrect=1","--LKRafter=1"]
         axis3 = ["","--SKR=1"]
         axis4 = ["","--SSRfilter=1","--SSR=1"]
-        axis5 = ["","--RNR=1","--RNRinfer=1"]
+        axis5 = ["","--RNR=1"]
 
         #axis1 = ["--LKRnotgroup=1"]
 
