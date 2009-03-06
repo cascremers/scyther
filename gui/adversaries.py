@@ -457,11 +457,11 @@ class SecModel(object):
         else:
             return (True,xn)
 
-    def __cmp__(self,other):
+    def __eq__(self,other):
         if other != None:
             if self.vector == other.vector:
-                return 0
-        return 1
+                return True
+        return False
 
     def weakerthan(self,other,direction=1):
         if direction >= 0:
@@ -1558,19 +1558,19 @@ def allTrueModels(fn,fix=False):
     allcorrect = set()
     for model in Traverse():
 
-        yeahright = True
+        allclaimscorrect = True
         for cid in FCD[fn]:
             if goodclaim(fn,cid):
                 res = TestClaim(fn,cid,model)
                 if res == False:
-                    yeahright = False
+                    allclaimscorrect = False
                     break
 
-        if yeahright == True:
+        if allclaimscorrect == True:
             if fix:
                 allcorrect.add(str(model))
             else:
-                allcorrect.add(model.copy())
+                allcorrect.add(model)
 
     return allcorrect
 
