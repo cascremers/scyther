@@ -29,8 +29,12 @@
 enum eventtype
 { READ, SEND, CLAIM, ANYEVENT };
 
-enum comprtype
-{ COMPR_NONE, COMPR_SSR, COMPR_RNR, COMPR_SKR };
+enum Comprtype
+{ COMPR_NONE = 0,
+  COMPR_SSR = (1 << 0),
+  COMPR_RNR = (1 << 1),
+  COMPR_SKR = (1 << 2)
+};
 
 //! The container for the claim info list
 /**
@@ -132,7 +136,7 @@ struct roledef
    * Substructure for sends
    */
   //! compromise type
-  int compromisetype;
+  enum Comprtype compromisetype;
 
   /*
    * Bindings for Arachne engine
