@@ -4,8 +4,6 @@
 # http://www.lsv.ens-cachan.fr/spore/yahalomBAN.html
 #
 
-secret k : Function;
-
 usertype SessionKey;
 const Fresh: Function;
 const Compromised: Function;

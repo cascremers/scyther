@@ -17,9 +17,7 @@
 #
 
 usertype SessionKey;
-secret k: Function;
 const Fresh: Function;
-const Compromised: Function;
 
 protocol @swapkey(X)
 {
