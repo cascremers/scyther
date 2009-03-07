@@ -7,7 +7,6 @@
 
 usertype SessionKey;
 
-secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
@@ -26,7 +25,7 @@ protocol woolam(I,R,S)
         send_7(I,R, {N2}Kir);
         
 
-        claim_I1(I,Secret,Kir);
+        claim_I1(I,SKR,Kir);
         claim_I2(I,Nisynch);
         claim_I3(I,Empty,(Fresh,Kir));
     }    
@@ -46,7 +45,7 @@ protocol woolam(I,R,S)
         send_6(R,I, T2, {N1,N2}Kir);
         read_7(I,R, {N2}Kir);
         
-        claim_R1(R,Secret,Kir);
+        claim_R1(R,SKR,Kir);
         claim_R2(R,Nisynch);
         claim_R3(R,Empty,(Fresh,Kir));
     }
@@ -60,15 +59,6 @@ protocol woolam(I,R,S)
         send_5(S,R, {R, N1, N2, Kir}k(I,S), {I, N1, N2, Kir}k(R,S));
     }
 }
-
-const Alice,Bob,Eve,Simon: Agent;
-const Ke: SessionKey;
-const Te: Ticket;
-const Ne: Nonce;
-
-
-untrusted Eve;
-compromised k(Eve,Simon);
 
 
 
