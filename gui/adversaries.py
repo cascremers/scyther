@@ -76,6 +76,7 @@ FCDX = 0
 FCDS = 0
 DRAWGRAPH = True
 DOTABBREVS = {}
+PROTOCOLSDONE = set()
 
 RESTRICTEDMODELS = None # No restricted model set
 FILTER = None
@@ -1660,6 +1661,7 @@ def GraphProtocolSecurityHierarchy():
     global GRAPHPSH
     global FILTER
     global RESTRICTEDMODELS
+    global PROTOCOLSDONE
 
     print "- Generating protocol-security hierarchy."
     fp = open("%s.dot" % (GRAPHPSH),"w")
@@ -1680,7 +1682,7 @@ def GraphProtocolSecurityHierarchy():
 
     # Report only minimal paths
     edges = set()
-    for fn in FCD.keys():
+    for fn in PROTOCOLSDONE:
         for pn in wkrs[fn]:
             # Report this link iff there is no node in between
             nope = True
@@ -1699,7 +1701,7 @@ def GraphProtocolSecurityHierarchy():
     # Name the nodes
     shownmodels = set()
     shown = set()
-    for fn in FCD.keys():
+    for fn in PROTOCOLSDONE:
         if not fn in shown:
             # Only draw equivalence class for fn once
             shown = shown.union(equals[fn])
@@ -2051,6 +2053,8 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
             checkit = True
 
         if maxclmods > 0:
+            global PROTOCOLSDONE
+
             incount = 0
             widgets = [comment, Percentage(), ' ',
                        Bar(marker='#',left='[',right=']')
@@ -2073,6 +2077,7 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
                 incount += maxclaims
 
             pbar.finish()
+            PROTOCOLSDONE.add(fn)
         else:
             print comment + "Nothing to do."
         
