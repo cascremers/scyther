@@ -603,7 +603,7 @@ compromiseRNRpartner (int *partners, Term a)
 	{
 	  if (isTermEqual (agentOfRun (sys, r2), a))
 	    {
-	      if (isRunCompromised (r2) & COMPR_RNR)
+	      if ((isRunCompromised (r2) & COMPR_RNR) != 0)
 		{
 		  return true;
 		}
