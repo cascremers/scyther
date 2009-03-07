@@ -2074,7 +2074,7 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
                     FCDX += 1
                 else:
                     FCDS += 1
-                incount += maxclaims
+                incount += maxmodels
 
             pbar.finish()
             PROTOCOLSDONE.add(fn)
