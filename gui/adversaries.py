@@ -770,63 +770,66 @@ class NextOptimalOpen(object):
     Tries to be as good as possible in the worst case.
     """
     def __init__(self,fileid,claimid):
-	self.fileid = fileid
-	self.claimid = claimid
-	self.toverify = None
-	self.last = None
+        self.fileid = fileid
+        self.claimid = claimid
+        self.toverify = None
+        self.last = None
 
     def __iter__(self):
         return self
 
     def isOpen(self,model):
-	global CACHE
+        global CACHE
 
-	res = CACHE.get(self.fileid, self.claimid, model.dbkey())
-	return (res == None)
+        res = CACHE.get(self.fileid, self.claimid, model.dbkey())
+        return (res == None)
 
     def next(self):
-	"""
-	We scan all open goals and choose the optimal one.
+        """
+        We scan all open goals and choose the optimal one.
 
-	We use a lexicographical ordering on the worst,best cases.
-	"""
+        We use a lexicographical ordering on the worst,best cases.
+        """
 
-	max = SecModel().countTypes()
-	bestgain = -1
-	bestmodel = None
-	remaining = 0
-	for model in Traverse():
-	    if self.isOpen(model):
-		# Possible candidate
-		remaining += 1
-		lowers = 1
-		highers = 1
-		for model2 in Traverse():
-		    if self.isOpen(model2):
-			if model2.weakerthan(model):
-			    lowers += 1
-			if model.weakerthan(model2):
-			    highers += 1
-		if lowers > highers:
-		    bestcase = lowers
-		    worstcase = highers
-		else:
-		    bestcase = highers
-		    worstcase = lowers
-		gain = (max * worstcase) + bestcase
-		if gain > bestgain:
-		    bestgain = gain
-		    bestmodel = model
-	if bestmodel == None:
-	    raise StopIteration
-	else:
-	    if bestmodel == self.last:
-		global CACHE
+        max = SecModel().countTypes()
+        bestgain = -1
+        bestmodel = None
+        done = 0
+        for model in Traverse():
+            if self.isOpen(model):
+                # Possible candidate
+                lowers = 1
+                highers = 1
+                for model2 in Traverse():
+                    if self.isOpen(model2):
+                        if model2.weakerthan(model):
+                            lowers += 1
+                        if model.weakerthan(model2):
+                            highers += 1
 
-		print CACHE.get(self.fileid, self.claimid, self.last.dbkey())
-		raise "Trying to visit a model twice in a row, may lead to infinite loop. Aborting preemptively."
-	    self.last = bestmodel
-	    return (bestmodel,max - remaining)
+                if lowers > highers:
+                    bestcase = lowers
+                    worstcase = highers
+                else:
+                    bestcase = highers
+                    worstcase = lowers
+                gain = (max * worstcase) + bestcase
+                if gain > bestgain:
+                    bestgain = gain
+                    bestmodel = model
+            else:
+                done += 1
+
+        if bestmodel == None:
+            raise StopIteration
+        else:
+            if bestmodel == self.last:
+                global CACHE
+
+                print CACHE.get(self.fileid, self.claimid, self.last.dbkey())
+                raise "Trying to visit a model twice in a row, may lead to infinite loop. Aborting preemptively."
+            self.last = bestmodel
+        return (bestmodel, done)
 
 
 class SecDelta(object):
