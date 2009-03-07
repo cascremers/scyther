@@ -596,7 +596,7 @@ setRunColorBuf (const System sys, int run, char *colorbuf)
     }
 
   // If the run is compromised, we lower the saturation significantly
-  if (isRunCompromised (run) != 0)
+  if (isRunCompromised (run))
     {
       s = COMPROMISEDCOLORS;
     }
@@ -1524,7 +1524,7 @@ printRunExplanation (const System sys, const int run,
 	}
     }
   compromisetype = isRunCompromised (run);
-  if (compromisetype != 0)
+  if (compromisetype)
     {
       eprintf ("Compromise");
       if (compromisetype & COMPR_SSR)

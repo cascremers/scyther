@@ -286,11 +286,9 @@ weighCompromisedRuns (void)
   countCompr = 0;
   countAgent = 0;
   countActor = 0;
-  // We start at run 1, because run 0 is the claim run which should not be
-  // compromised at all.
-  for (run = 1; run < sys->maxruns; run++)
+  for (run = 0; run < sys->maxruns; run++)
     {
-      if (isRunCompromised (run) != 0)
+      if (isRunCompromised (run))
 	{
 	  Term cagent;
 
@@ -559,13 +557,13 @@ compromisePrune (int *partners)
 	      int type;
 
 	      type = isRunCompromised (run);
-	      if ((type & (COMPR_SKR | COMPR_SSR)) != 0)
+	      if (type & (COMPR_SKR | COMPR_SSR))
 		{
 		  // One of the partners is compromised with type SKR/SSR, prune
 		  result = true;
 		  break;
 		}
-	      if ((type & COMPR_RNR) != 0)
+	      if (type & COMPR_RNR)
 		{
 		  /*
 		   * For RNR we do allow compromise of the partners, but
@@ -595,15 +593,18 @@ int
 compromiseRNRpartner (int *partners, Term a)
 {
   // Check for RNR compromise type
-  int r2;
+  int run;
 
-  for (r2 = 0; r2 < sys->maxruns; r2++)
+  for (run = 0; run < sys->maxruns; run++)
     {
-      if (partners[r2])
+      if (partners[run])
 	{
-	  if (isTermEqual (agentOfRun (sys, r2), a))
+	  if (isTermEqual (agentOfRun (sys, run), a))
 	    {
-	      if ((isRunCompromised (r2) & COMPR_RNR) != 0)
+	      int type;
+
+	      type = isRunCompromised (run);
+	      if (type & COMPR_RNR)
 		{
 		  return true;
 		}
