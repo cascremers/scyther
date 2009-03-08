@@ -420,7 +420,7 @@ knowledgeSet (const Knowledge know)
 int
 inKnowledgeSet (const Knowledge know, Term t)
 {
-  return (inTermlist(know->basic, t) || inTermlist(know->encrypt,t));
+  return (inTermlist (know->basic, t) || inTermlist (know->encrypt, t));
 }
 
 //! Get the inverses pointer of the knowledge.

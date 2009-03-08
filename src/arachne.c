@@ -2146,9 +2146,10 @@ fork_iteration_matchingsessions (void)
       if (switches.output == PROOF)
 	{
 	  indentPrint ();
-	  eprintf("Distinguishing between with and without matching session.\n");
+	  eprintf
+	    ("Distinguishing between with and without matching session.\n");
 	  indentPrint ();
-	  eprintf("Case 1: With matching session.\n");
+	  eprintf ("Case 1: With matching session.\n");
 	}
       switches.markFullSession = true;
       //###################################
@@ -2158,7 +2159,7 @@ fork_iteration_matchingsessions (void)
       if (switches.output == PROOF)
 	{
 	  indentPrint ();
-	  eprintf("Case 2: Without matching session (as is standard).\n");
+	  eprintf ("Case 2: Without matching session (as is standard).\n");
 	}
     }
 

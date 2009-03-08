@@ -780,7 +780,7 @@ tryMGU (Termlist substlist, Term t1, Term t2)
 
 //! Store bindings of a certain run
 List
-stealBindings(const System sys, int run)
+stealBindings (const System sys, int run)
 {
   List bl;
   List stolen;
@@ -795,7 +795,7 @@ stealBindings(const System sys, int run)
       b = (Binding) bl->data;
       if (b->run_to != run)
 	{
-	  newlist = list_append(newlist,b);
+	  newlist = list_append (newlist, b);
 	}
     }
   sys->bindings = newlist;
@@ -900,13 +900,13 @@ addFullSession (const System sys, int (*iter) (void))
   termmapDelete (f);
 
   // Disable run 0 bindings
-  stolenbindings = stealBindings(sys, 0);
+  stolenbindings = stealBindings (sys, 0);
 
   // Iterate
   result = iter ();
 
   // Reverse the stealing process
-  list_destroy(sys->bindings);
+  list_destroy (sys->bindings);
   sys->bindings = stolenbindings;
 
   // Undo substitutions
