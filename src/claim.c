@@ -42,6 +42,7 @@
 #include "arachne.h"
 #include "mgu.h"
 #include "depend.h"
+#include "list.h"
 
 //! When none of the runs match
 #define MATCH_NONE 0
@@ -777,6 +778,30 @@ tryMGU (Termlist substlist, Term t1, Term t2)
   return substlist;
 }
 
+//! Store bindings of a certain run
+List
+stealBindings(const System sys, int run)
+{
+  List bl;
+  List stolen;
+  List newlist;
+
+  stolen = sys->bindings;
+  newlist = NULL;
+  for (bl = stolen; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (b->run_to != run)
+	{
+	  newlist = list_append(newlist,b);
+	}
+    }
+  sys->bindings = newlist;
+  return stolen;
+}
+
 //! Add some runs
 /**
  * Turn a single claim run into a full preceding matching session.
@@ -803,6 +828,7 @@ addFullSession (const System sys, int (*iter) (void))
   Termmap f;
   Termlist tl;
   Termlist substlist;
+  List stolenbindings;
 
   addedruns = 0;
   addeddepends = 0;
@@ -873,8 +899,15 @@ addFullSession (const System sys, int (*iter) (void))
   // Cleanup
   termmapDelete (f);
 
+  // Disable run 0 bindings
+  stolenbindings = stealBindings(sys, 0);
+
   // Iterate
   result = iter ();
+
+  // Reverse the stealing process
+  list_destroy(sys->bindings);
+  sys->bindings = stolenbindings;
 
   // Undo substitutions
   termlistSubstReset (substlist);
