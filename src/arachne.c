@@ -2143,11 +2143,23 @@ fork_iteration_matchingsessions (void)
   // Sometimes we need another phase with e.g. a full session
   if (switches.LKRaftercorrect || switches.LKRrnsafe)
     {
+      if (switches.output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf("Distinguishing between with and without matching session.\n");
+	  indentPrint ();
+	  eprintf("Case 1: With matching session.\n");
+	}
       switches.markFullSession = true;
       //###################################
       result = addFullSession (sys, iterate);
       //###################################
       switches.markFullSession = false;
+      if (switches.output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf("Case 2: Without matching session (as is standard).\n");
+	}
     }
 
   /**
