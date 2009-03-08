@@ -41,6 +41,7 @@
 #include "timer.h"
 #include "arachne.h"
 #include "mgu.h"
+#include "depend.h"
 
 //! When none of the runs match
 #define MATCH_NONE 0

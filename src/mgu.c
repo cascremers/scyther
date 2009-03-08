@@ -342,6 +342,10 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
 
 
 //! Fold vs unfold
+/**
+ * Takes a list of v1,x1,v2,x2,..., where vN are open variables
+ * and returns v1,v2,v3 where vN -> xN
+ */
 Termlist
 fold (Termlist tuples)
 {
@@ -403,7 +407,8 @@ termMguTerm (Term t1, Term t2)
     return false;
   }
 
-  if (!unify (t1, t2, NULL, found))
+  unify (t1, t2, NULL, found);
+  if ((results != NULL) && (results != MGUFAIL))
     {
       Termlist tlnew;
 
