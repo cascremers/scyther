@@ -759,6 +759,24 @@ goodHeight (Role role, Termlist labels)
   return goodheight;
 }
 
+//! Wrapper for termMGUterm
+/**
+ * If MGU works, the substitutions are added to the list.
+ * Otherwise not.
+ */
+Termlist
+tryMGU (Termlist substlist, Term t1, Term t2)
+{
+  Termlist res;
+
+  res = termMguTerm (t1, t2);
+  if (res != MGUFAIL)
+    {
+      substlist = termlistConcat (substlist, res);
+    }
+  return substlist;
+}
+
 //! Add some runs
 /**
  * Turn a single claim run into a full preceding matching session.
@@ -841,24 +859,10 @@ addFullSession (const System sys, int (*iter) (void))
 	      // For now we don't add the binding (to avoid having to delete it too)
 
 	      // TODO this will not work if we get multiple unifiers later, and we have to really iterate into this
-	      if (substlist != MGUFAIL)
-		{
-		  substlist =
-		    termlistConcat (substlist,
-				    termMguTerm (rd1->from, rd2->from));
-		}
-	      if (substlist != MGUFAIL)
-		{
-		  substlist =
-		    termlistConcat (substlist,
-				    termMguTerm (rd1->to, rd2->to));
-		}
-	      if (substlist != MGUFAIL)
-		{
-		  substlist =
-		    termlistConcat (substlist,
-				    termMguTerm (rd1->message, rd2->message));
-		}
+	      substlist = tryMGU (substlist, rd1->from, rd2->from);
+	      substlist = tryMGU (substlist, rd1->to, rd2->to);
+	      substlist = tryMGU (substlist, rd1->message, rd2->message);
+
 	      // Push order into graph
 	      dependPushEvent (r1, e1, r2, e2);
 	      addeddepends++;
