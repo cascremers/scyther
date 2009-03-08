@@ -93,6 +93,7 @@ systemInit ()
   sys->current_claim = NULL;
   sys->trustedRoles = NULL;
   sys->hasUntypedVariable = false;
+  sys->m0run = -1;
 
   /* init others */
   partnerInit (sys);

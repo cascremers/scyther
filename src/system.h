@@ -156,6 +156,7 @@ struct system
   List bindings;		//!< List of bindings
   Claimlist current_claim;	//!< The claim under current investigation
   Termlist trustedRoles;	//!< Roles that should be trusted for this claim (the default, NULL, means all)
+  int m0run;			//!< Run containing M0 initial knowledge send.
 };
 
 typedef struct system *System;

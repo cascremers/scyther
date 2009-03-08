@@ -2232,7 +2232,6 @@ wrap_iteration_createclaimrun (Claimlist cl, Protocol p, Role r)
     {
       Termlist m0tl;
       Term m0t;
-      int m0run;
 
       m0tl = knowledgeSet (sys->know);
       if (m0tl != NULL)
@@ -2242,14 +2241,14 @@ wrap_iteration_createclaimrun (Claimlist cl, Protocol p, Role r)
 	  // termPrint(m0t);
 	  // eprintf("\n");
 	  I_M->roledef->message = m0t;
-	  m0run = semiRunCreate (INTRUDER, I_M);
+	  sys->m0run = semiRunCreate (INTRUDER, I_M);
 	  newruns++;
-	  proof_suppose_run (m0run, 0, 1);
-	  sys->runs[m0run].height = 1;
+	  proof_suppose_run (sys->m0run, 0, 1);
+	  sys->runs[sys->m0run].height = 1;
 	}
       else
 	{
-	  m0run = -1;
+	  sys->m0run = -1;
 	}
 
       {
@@ -2262,11 +2261,12 @@ wrap_iteration_createclaimrun (Claimlist cl, Protocol p, Role r)
       }
 
 
-      if (m0run != -1)
+      if (sys->m0run != -1)
 	{
 	  // remove initial knowledge node
 	  termDelete (m0t);
 	  termlistDelete (m0tl);
+	  sys->m0run = -1;
 	  semiRunDestroy ();
 	  newruns--;
 	}
