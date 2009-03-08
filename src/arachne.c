@@ -1526,102 +1526,11 @@ bind_goal_all_options (const Binding b)
 	}
       else
 	{
-	  int know_only;
-
-	  know_only = false;
-
-	  if (1 == 0)		// blocked for now
-	    {
-	      // Prune: if it is an SK type construct, ready
-	      // No regular run will apply SK for you.
-	      //!@todo This still needs a lemma, and a more generic (correct) algorithm!! It is currently
-	      // actually false, e.g. for signing protocols, and password-like functions.
-	      //
-	      Term function;
-
-	      function = getTermFunction (b->term);
-	      if (function != NULL)
-		{
-		  if (!inKnowledge (sys->know, function))
-		    {
-		      // Prune because we didn't know it before, and it is never subterm-sent
-		      if (switches.output == PROOF)
-			{
-			  indentPrint ();
-			  eprintf ("* Because ");
-			  termPrint (b->term);
-			  eprintf
-			    (" is never sent from a regular run, so we only intruder construct it.\n");
-			}
-		      know_only = true;
-		    }
-		}
-	    }
-
-	  if (switches.experimental & 16)
-	    {
-	      // Keylevel lemmas: improves on the previous one
-	      if (!isPossiblySent (b->term))
-		{
-		  if (switches.output == PROOF)
-		    {
-		      eprintf
-			("Rejecting a term as a regular bind because key levels are off: ");
-		      termPrint (b->term);
-		      if (know_only)
-			{
-			  eprintf (" [in accordance with function lemma]");
-			}
-		      else
-			{
-			  eprintf (" [stronger than function lemma]");
-			}
-		      eprintf ("\n");
-		    }
-		  know_only = true;
-		}
-	    }
-
-	  if (!(switches.experimental & 32))
-	    {
-		    /**
-		     * Note: this is slightly weaker than the previous & 16,
-		     * but it actually differs in such minimal cases that it
-		     * might be better to simply have the (much cleaner)
-		     * keylevel lemma.
-		     *
-		     * That's why this is default and the other isn't.
-		     */
-
-	      // Hidelevel variant
-	      int hlf;
-
-	      hlf = hidelevelFlag (sys, b->term);
-	      if (hlf == HLFLAG_NONE || hlf == HLFLAG_KNOW)
-		{
-		  know_only = true;
-		}
-	    }
-
-
-	  // Allright, proceed
-
 	  proofDepth++;
-	  if (know_only)
-	    {
-	      // Special case: only from intruder
-	      flag = flag && bind_goal_old_intruder_run (b);
-	      //flag = flag && bind_goal_new_intruder_run (b);
-	    }
-	  else
-	    {
-	      // Normal case
-	      {
-		flag = bind_goal_regular_run (b);
-	      }
-	      flag = flag && bind_goal_old_intruder_run (b);
-	      flag = flag && bind_goal_new_intruder_run (b);
-	    }
+	  // Normal case
+	  flag = bind_goal_regular_run (b);
+	  flag = flag && bind_goal_old_intruder_run (b);
+	  flag = flag && bind_goal_new_intruder_run (b);
 	  proofDepth--;
 
 	  indentDepth--;
