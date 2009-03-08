@@ -75,6 +75,9 @@ roledefPrintGeneric (Roledef rd, int print_actor)
 	  printlabel = false;
 	  switch (rd->compromisetype)
 	    {
+	    case COMPR_NONE:
+	      eprintf ("None");
+	      break;
 	    case COMPR_SSR:
 	      eprintf ("SSR");
 	      break;
