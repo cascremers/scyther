@@ -1526,11 +1526,25 @@ bind_goal_all_options (const Binding b)
 	}
       else
 	{
+	  // Check for immediate M0 binding
 	  proofDepth++;
-	  // Normal case
-	  flag = bind_goal_regular_run (b);
-	  flag = flag && bind_goal_old_intruder_run (b);
-	  flag = flag && bind_goal_new_intruder_run (b);
+	  if ((sys->m0run != -1) && inKnowledgeSet (sys->know, b->term))
+	    {
+	      // Bind to M0 run
+	      if (goal_bind (b, sys->m0run, 0))
+		{
+		  proof_suppose_binding (b);
+		  flag = flag && iterate ();
+		  goal_unbind (b);
+		}
+	    }
+	  else
+	    {
+	      // Normal case
+	      flag = bind_goal_regular_run (b);
+	      flag = flag && bind_goal_old_intruder_run (b);
+	      flag = flag && bind_goal_new_intruder_run (b);
+	    }
 	  proofDepth--;
 
 	  indentDepth--;
