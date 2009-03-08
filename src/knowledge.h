@@ -58,6 +58,7 @@ int knowledgeAddTerm (Knowledge know, Term term);
 int knowledgeAddTermlist (Knowledge know, Termlist tl);
 void knowledgeAddInverse (Knowledge know, Term t1, Term t2);
 void knowledgeSetInverses (Knowledge know, Termlist tl);
+int inKnowledgeSet (const Knowledge know, Term t);
 void knowledgeSimplify (Knowledge know, Term decryptkey);
 int inKnowledge (const Knowledge know, Term term);
 void knowledgePrint (Knowledge know);

@@ -416,6 +416,13 @@ knowledgeSet (const Knowledge know)
   return termlistConcat (tl1, tl2);
 }
 
+//! Check for elements in the knowledge set
+int
+inKnowledgeSet (const Knowledge know, Term t)
+{
+  return (inTermlist(know->basic, t) || inTermlist(know->encrypt,t));
+}
+
 //! Get the inverses pointer of the knowledge.
 /**
  * Essentially the inverse function of knowledgeSetInverses()
