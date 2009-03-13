@@ -211,14 +211,10 @@ indentPrefixPrint (const int annotate, const int jumps)
       // If it is not to stdout, or it is not an attack...
       int i;
 
-      counterPrint ();
+      //counterPrint ();
       for (i = 0; i < jumps; i++)
 	{
-	  if (i % 3 == 0)
-	    eprintf ("|");
-	  else
-	    eprintf (" ");
-	  eprintf (" ");
+	  eprintf ("  ");
 	}
     }
 }
@@ -238,14 +234,14 @@ indentPrint ()
 	  if (prevIndentDepth < indentDepth)
 	    {
 	      indentPrefixPrint (indentDepthChanges, prevIndentDepth);
-	      eprintf ("{\n");
+	      eprintf ("<level>\n");
 	      prevIndentDepth++;
 	    }
 	  else
 	    {
 	      prevIndentDepth--;
 	      indentPrefixPrint (indentDepthChanges, prevIndentDepth);
-	      eprintf ("}\n");
+	      eprintf ("</level>\n");
 	    }
 	}
     }

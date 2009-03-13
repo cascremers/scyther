@@ -343,7 +343,7 @@ select_goal_masked (const System sys)
 	      if (switches.output == PROOF)
 		{
 		  termPrint (b->term);
-		  eprintf ("<%.2f>", w);
+		  eprintf ("[%.2f]", w);
 		}
 	    }
 	}
