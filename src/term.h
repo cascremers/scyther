@@ -24,6 +24,7 @@
 #include "bool.h"
 
 // type <= LEAF means it's a leaf, nkay?
+// GLOBAL also includes nonces (as they have a run identifier)
 enum termtypes
 { GLOBAL, VARIABLE, LEAF, ENCRYPT, TUPLE };
 

@@ -537,6 +537,9 @@ actorInClaim (const System sys, const int run)
 }
 
 //! Check for invalid states
+/**
+ * Return true if state needs to be pruned.
+ */
 int
 compromisePrune (int *partners)
 {

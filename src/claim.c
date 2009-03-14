@@ -802,6 +802,41 @@ stealBindings (const System sys, int run)
   return stolen;
 }
 
+// Fill out any open variables with real things.
+/**
+ * Now just fills sigma; we may consider doing a subset based on the preceding labels.
+ */
+Termlist
+dummyBind (const System sys)
+{
+  Termlist added;
+  int run;
+
+  added = NULL;
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      Termlist tl;
+
+      for (tl = sys->runs[run].sigma; tl != NULL; tl = tl->next)
+	{
+	  Term t;
+
+	  t = deVar (tl->term);
+	  if (realTermVariable (t))
+	    {
+	      // Still open, which is not what we want.
+	      added = termlistAppend (added, t);
+	      // Yes, it's weird like that.
+	      t->type = GLOBAL;
+	      //eprintf("Closed dummy: ");
+	      //termPrint(t);
+	      //eprintf("\n");
+	    }
+	}
+    }
+  return added;
+}
+
 //! Add some runs
 /**
  * Turn a single claim run into a full preceding matching session.
@@ -815,6 +850,11 @@ stealBindings (const System sys, int run)
  * case that matching session partners are contaminated.
  *
  * @TODO: We're not storing the undoing of the instantiated variables.
+ *
+ * @TODO: In case of approximated algebraic properties, the unification may
+ * fail. That does not mean the adversary can arbitrarily bind such variables,
+ * and so we have made a hack to at least ensure he does not know them apriori
+ * (the dummies).
  */
 int
 addFullSession (const System sys, int (*iter) (void))
@@ -828,6 +868,7 @@ addFullSession (const System sys, int (*iter) (void))
   Termmap f;
   Termlist tl;
   Termlist substlist;
+  Termlist dummies;
   List stolenbindings;
 
   addedruns = 0;
@@ -862,7 +903,7 @@ addFullSession (const System sys, int (*iter) (void))
 	}
     }
 
-  // Sync the labels
+  // Sync the labels and unify the messages where possible.
   substlist = NULL;
   for (tl = sys->current_claim->prec; tl != NULL; tl = tl->next)
     {
@@ -899,6 +940,9 @@ addFullSession (const System sys, int (*iter) (void))
   // Cleanup
   termmapDelete (f);
 
+  // Any remaining variables are dummy-bound (see note about failing unification and algebraic hacks)
+  dummies = dummyBind (sys);
+
   // Disable run 0 bindings
   stolenbindings = stealBindings (sys, 0);
 
@@ -908,6 +952,13 @@ addFullSession (const System sys, int (*iter) (void))
   // Reverse the stealing process
   list_destroy (sys->bindings);
   sys->bindings = stolenbindings;
+
+  // Undo dummies
+  while (dummies != NULL)
+    {
+      dummies->term->type = VARIABLE;
+      dummies = dummies->next;
+    }
 
   // Undo substitutions
   termlistSubstReset (substlist);
