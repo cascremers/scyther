@@ -153,13 +153,14 @@ def InitRestricted(models=None):
 
     # ck2001hmqv: notgroup aftercorrect skr ssr
     ck2001hmqv = ck2001.copy()
-    ck2001hmqv.vector[1] = 1    # KCI
+    ck2001hmqv.vector[1] = 2    # KCI
     ck2001hmqv.vector[2] = 2    # aftercorrect
     ck2001hmqv.setName("CKw")
 
     # eck: notgroup actor rnsafe skr rnr
     eck = kci.copy()
     eck.union(internal)
+    eck.vector[1] = 1    
     eck.vector[2] = 1
     eck.vector[3] = 1
     eck.vector[5] = 1
@@ -257,7 +258,7 @@ class SecModel(object):
     def __init__(self,minmax=None,unrestricted=False):
 
         axis0 = ["--LKRnotgroup=0","--LKRnotgroup=1"]
-        axis1 = ["","--LKRactor=1"]
+        axis1 = ["","--LKRactorrnsafe=1","--LKRactor=1"]
         axis2 = ["","--LKRrnsafe=1","--LKRaftercorrect=1","--LKRafter=1"]
         axis3 = ["","--SKR=1"]
         axis4 = ["","--SSRfilter=1","--SSR=1"]
