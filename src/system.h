@@ -191,7 +191,7 @@ void commandlinePrint (FILE * stream);
 int compute_rolecount (const System sys);
 int compute_roleeventmax (const System sys);
 
-int isAgentTrusted (const System sys, Term agent);
+int isAgentTrusted (const System sys, Term agent, int run, int ev);
 int isAgentlistTrusted (const System sys, Termlist agents);
 int isRunTrusted (const System sys, const int run);
 

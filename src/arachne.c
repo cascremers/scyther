@@ -1654,7 +1654,7 @@ createNewTerm (Termlist tl, Term t, int isagent)
 	    {
 	      /* agent */
 	      /* We don't want to instantiate untrusted agents. */
-	      if (isAgentTrusted (sys, k))
+	      if (isAgentTrusted (sys, k, -1, 0))
 		{
 		  /* trusted agent */
 		  if (!inTermlist (tl, k))
@@ -2049,7 +2049,7 @@ iterateAgentUnfolding (const System sys, const Term rolevar)
       t = deVar (kl->term);
       if (realTermLeaf (t) && inTermlist (t->stype, TERM_Agent))
 	{
-	  if (isAgentTrusted (sys, t))
+	  if (isAgentTrusted (sys, t, -1, 0))
 	    {
 	      iterateAgentUnfoldThis (rolevar, t);
 	      count++;

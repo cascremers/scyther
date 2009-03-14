@@ -571,8 +571,15 @@ compromisePrune (int *partners)
 		   *
 		   * @TODO: Possible problem with LKR of symmetric keys, in
 		   * which case this may disallow too much. Check out later.
+		   *
+		   * @TODO: Should only check for untrustedness *before* the
+		   * RNR compromise. Note that the RNR compromise may be at the
+		   * end of the run, so the reference point should be the last
+		   * event of the run.
 		   */
-		  if (!isAgentTrusted (sys, agentOfRun (sys, run)))
+		  if (!isAgentTrusted
+		      (sys, agentOfRun (sys, run), run,
+		       sys->runs[run].step - 1))
 		    {
 		      // There was a long-term compromise at some point.
 		      // Hence we prune. Otherwise it's allowed.
@@ -582,7 +589,6 @@ compromisePrune (int *partners)
 		}
 	    }
 	}
-      free (partners);
       return result;
     }
   return false;

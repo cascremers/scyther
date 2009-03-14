@@ -921,15 +921,15 @@ protocolsPrint (Protocol p)
 /**
  * 1 (True) means trusted, 0 is untrusted
  *
- * Probably we need an ordered variant later (is trusted after)
+ * It is before run/ev (or overall if run < 0)
  */
 int
-isAgentTrusted (const System sys, Term agent)
+isAgentTrusted (const System sys, Term agent, int run, int ev)
 {
   Termlist al;
 
   agent = deVar (agent);
-  al = getAllPrivateKeyAgents ();
+  al = getAllPrivateKeyAgents (run, ev);
   if (inSubtermTermlist (al, agent))
     {
       return false;
@@ -946,7 +946,7 @@ isAgentlistTrusted (const System sys, Termlist agents)
 {
   while (agents != NULL)
     {
-      if (!isAgentTrusted (sys, agents->term))
+      if (!isAgentTrusted (sys, agents->term, -1, 0))
 	{
 	  return 0;
 	}

@@ -235,16 +235,10 @@ prune_theorems (const System sys)
   /**
    * This is not really due to any theorem but rather to the model/property. Maybe we need a separate file.
    */
-  /* Compute partner array iff we need it later
+  /* Compute partner array, we need it later
    */
-  if (switches.SSR || switches.SKR || switches.RNR)
-    {
-      partners = getPartnerArray ();
-    }
-  else
-    {
-      partners = NULL;
-    }
+  partners = getPartnerArray ();
+
   if (compromisePrune (partners))
     {
       if (switches.output == PROOF)
@@ -253,9 +247,9 @@ prune_theorems (const System sys)
 	  eprintf
 	    ("Pruned because the compromise model does not allow for this state.\n");
 	}
+      free (partners);
       return true;
     }
-
   // Prune for trusted mode
   if (pruneTrusted (sys, partners))
     {
@@ -265,8 +259,10 @@ prune_theorems (const System sys)
 	  eprintf
 	    ("Pruned because one of the runs does not conform to the trusted requirements.\n");
 	}
+      free (partners);
       return true;
     }
+  free (partners);
 
   // Prune if any initiator run talks to itself
   /**

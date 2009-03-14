@@ -576,14 +576,24 @@ getPrivateKeyAgents (Binding b, Termlist tlold)
 //! Find all agents whose long-term keys have been revealed.
 /**
  * Returns the agent name list if true, returns NULL if not true.
+ *
+ * Should be before run, ev. If run < 0 then just anything goes.
  */
 Termlist
-getAllPrivateKeyAgents ()
+getAllPrivateKeyAgents (int run, int ev)
 {
   Termlist tl;
 
   int scan (Binding b)
   {
+    if (run >= 0)
+      {
+	if (!isDependEvent (b->run_to, b->ev_to, run, ev))
+	  {
+	    // If the binding target is not before the target we don't consider it.
+	    return true;
+	  }
+      }
     tl = getPrivateKeyAgents (b, tl);
     return true;
   }
