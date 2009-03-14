@@ -381,11 +381,13 @@ class Scyther(object):
 
 #---------------------------------------------------------------------------
 
-def GetClaims(filelist):
+def GetClaims(filelist, filterlist=None):
     """
     Given a list of file names in filelist,
     returns a dictionary of filenames to lists claim names.
     Filenames which yielded no claims are filtered out.
+    
+    Filterlist may be None or a list of claim names (Secret, SKR, Niagree etc).
     """
 
     dict = {}
@@ -397,7 +399,11 @@ def GetClaims(filelist):
             if l != None:
                 cl = []
                 for claim in l:
-                    cl.append(claim.id)
+                    if filterlist == None:
+                        cl.append(claim.id)
+                    else:
+                        if claim.claimtype in filterlist:
+                            cl.append(claim.id)
                 dict[fname] = cl
         except:
             pass

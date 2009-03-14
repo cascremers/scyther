@@ -61,6 +61,8 @@ def initParser():
     parser.add_option("","--MH",  action="append_const", const="mh",  dest="graphs", help="Generate adversary-model hierarchy.")
     parser.add_option("","--CH",  action="append_const", const="ch",  dest="graphs", help="Generate detailed combined hierarchy.")
     parser.add_option("-g","--graphs", action="store_const", const=["psh","mh","ch"],  dest="graphs", help="Generate all graphs.")
+    parser.add_option("-A","--authentication", action="store_const", const="authentication",  dest="claimfilter", help="Restrict to authentication claims.")
+    parser.add_option("-S","--secrecy", action="store_const", const="secrecy",  dest="claimfilter", help="Restrict to secrecy claims.")
     parser.add_option("-M","--modulo", action="store", dest="modulo", metavar="\"(MOD,IDX)\"", help="Only consider protocol claims for which (count % MOD) == IDX")
     parser.add_option("","--cache-transitive-closure", action="store_const", const=True,  dest="closecache", default=False, help="Compute transitive closure of cached verification data.")
     parser.add_option("-D","--debug", action="store_const", const=True,  dest="debug", default=False, help="Display debugging information.")
@@ -98,7 +100,7 @@ if __name__ == '__main__':
 
 
     # Call main 
-    main(models=options.models, protocolpaths=protocolpaths, filefilter=filefilter, graphs=options.graphs, debug=options.debug, closecache=options.closecache, modulo=options.modulo)
+    main(models=options.models, protocolpaths=protocolpaths, filefilter=filefilter, graphs=options.graphs, debug=options.debug, closecache=options.closecache, modulo=options.modulo, options=options)
 
 
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:

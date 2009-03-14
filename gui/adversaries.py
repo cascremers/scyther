@@ -646,13 +646,15 @@ class SecModel(object):
                 self.vector[i] = res[i]
 
 
-def FindClaims(filelist):
+def FindClaims(filelist, filterlist=None):
     """
     Get the claim ids
 
+    May be filtered.
+
     returns a dict of filename to claimname*
     """
-    ll = Scyther.GetClaims(filelist)
+    ll = Scyther.GetClaims(filelist, filterlist)
     llnew = {}
     for fn in ll.keys():
         if goodprotocol(fn):
@@ -1666,6 +1668,10 @@ def GraphProtocolSecurityHierarchy():
     global RESTRICTEDMODELS
     global PROTOCOLSDONE
 
+    if len(FCD.keys()) == 0:
+        print "x No claims to generate protocol-security hierarchy for."
+        return 
+
     print "- Generating protocol-security hierarchy."
     fp = open("%s.dot" % (GRAPHPSH),"w")
     fp.write("digraph protocolSecurityHierarchy {\n")
@@ -1976,7 +1982,7 @@ individuals.
     """ % (CACHEFILE)
 
 
-def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/AdversaryModels"],filefilter=None,graphs=[], debug=False, closecache=False, modulo=None):
+def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/AdversaryModels"],filefilter=None,graphs=[], debug=False, closecache=False, modulo=None, options={}):
     """
     Simple test case with a few protocols, or so it started out at least.
     """
@@ -2022,7 +2028,14 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
     #print "Performing compromise analysis for the following protocols:", list
     #print
 
-    FCD = FindClaims(list)
+    fl = None
+    if options.claimfilter == "secrecy":
+        fl = ['SKR','Secret']
+    else:
+        if options.claimfilter == "authentication":
+            fl = ['Niagree','Nisynch']
+
+    FCD = FindClaims(list, filterlist=fl)
     FCDN = 0
     FCDX = 0
     for fn in FCD.keys():
