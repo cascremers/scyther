@@ -71,7 +71,7 @@ defaultprefs = {'--SKR=':'0', \
         '--SSR=':'0', \
         '--RNR=':'0', \
         '--SSRinfer=':'1', \
-        '--LKRactor=':'0', \
+        'LKRactor':'0', \
         '--LKRnotgroup=':'1', \
         'LKRafter':'0', \
         }
