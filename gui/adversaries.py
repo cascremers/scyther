@@ -910,7 +910,7 @@ def VerifyClaim(file,claimid,model,onlycache=False):
         res = s.verifyOne(claimid)
         claimres = res[0].getRank()
 
-        CACHE.setTransitive(file,claimid,model.dbkey(),claimres)
+        CACHE.setTransitive(file,claimid,model.dbkey(),claimres,comment="[Time %s] [Options %s] " % (time.ctime(), s.options))
 
         return claimres
     else:
@@ -1408,7 +1408,7 @@ class ScytherCache(object):
         self.data.setdefault(protocol,ProtCache(protocol))
         self.data[protocol].set(claim,dbkey,res)
 
-    def set(self,protocol,claim,dbkey,res):
+    def set(self,protocol,claim,dbkey,res,comment=""):
         """
         Store this item in the DB.
 
@@ -1423,11 +1423,15 @@ class ScytherCache(object):
 
             # Write to cache
             fp = open(CACHEFILE,"a")
-            fp.write("%s\t%s\t%s\t%s\n" % (protocol,claim,dbkey,res))
+            if comment != "":
+                cres = "\t" + comment
+            else:
+                cres = ""
+            fp.write("%s\t%s\t%s\t%s%s\n" % (protocol,claim,dbkey,res,cres))
             fp.flush()
             fp.close()
 
-    def setTransitive(self,file,claim,dbkey,res):
+    def setTransitive(self,file,claim,dbkey,res,comment=""):
         """
         Similar arguments as set but better names, as the model
         really here is the dbkey.
@@ -1437,8 +1441,9 @@ class ScytherCache(object):
         model.enscribe(dbkey)
 
 	# Store self
-        self.set(file,claim,dbkey,res)
+        self.set(file,claim,dbkey,res,comment)
 
+        comment = "[Transitive closure from %s] %s" % (dbkey, comment)
         # For transitive closure we consider all models,
         # so we actually store the implications for use in
         # later (bigger) scans.
@@ -1457,7 +1462,7 @@ class ScytherCache(object):
                         if model2.weakerthan(model):
                             storehere = True
 		    if storehere:
-			self.set(file,claim,model2.dbkey(),res)
+			self.set(file,claim,model2.dbkey(),res,comment)
 
     def get(self,protocol,claim,dbkey):
         try:
