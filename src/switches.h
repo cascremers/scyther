@@ -72,6 +72,7 @@ struct switchdata
   int SKR;			//!< session-key reveal (for others)
   int SSR;			//!< SSR others 
   int RNR;			//!< RNR reveal
+  int forceRegular;		//!< Force considering regular run
   // Filters
   int SSRfilter;		//!< SSR filtering on nonces (implies SSR)
   int RNRinfer;			//!< Do full state for RNR contents: takes whatever SSR would do.

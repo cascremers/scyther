@@ -96,6 +96,7 @@ switchesInit (int argc, char **argv)
   switches.SKR = false;		//!< default is no session-key reveal
   switches.SSR = false;		//!< default is no SSR 
   switches.RNR = false;		//!< default is no RNR
+  switches.forceRegular = false;	//<! default is no forced regular session
   // Parameters
   switches.SSRfilter = false;	//!< default is no SSR filtering on nonces
   switches.RNRinfer = false;	//!< default is no RNR extension to state
@@ -768,6 +769,19 @@ switcher (const int process, int index, int commandline)
       if (process)
 	{
 	  switches.SSRinfer = integer_argument ();
+	  return index;
+	}
+    }
+  if (detect (' ', "force-regular", 0))
+    {
+      /* 
+       * Force a considering a regular run (as you'd have with aftercorrect) of
+       * the protocol, even if the messages don't usually admit to a normal
+       * execution (as with DH-variants).
+       */
+      if (process)
+	{
+	  switches.forceRegular = true;
 	  return index;
 	}
     }

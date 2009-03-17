@@ -2151,7 +2151,7 @@ fork_iteration_matchingsessions (void)
   int result;
 
   // Sometimes we need another phase with e.g. a full session
-  if (switches.LKRaftercorrect || switches.LKRrnsafe)
+  if (switches.LKRaftercorrect || switches.LKRrnsafe || switches.forceRegular)
     {
       if (switches.output == PROOF)
 	{
