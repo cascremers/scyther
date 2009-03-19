@@ -1,0 +1,39 @@
+protocol CarlsenSKIP(A,B,S)
+{
+	role A
+	{
+		const Na: Nonce;
+		var Nb, Nb2: Nonce;
+		var Kab: SessionKey;
+
+		send_1(A,B, A,Na);
+		recv_4(B,A, { Na, B, Kab }k(A,S), { Na }Kab, Nb2 );
+		send_5(A,B, { Nb2 }Kab );
+
+		claim(A, SKR, Kab);
+	}
+	role B
+	{
+		var Na: Nonce;
+		const Nb, Nb2: Nonce;
+		var T: Ticket;
+		var Kab: SessionKey;
+
+		recv_1(A,B, A,Na);
+		send_2(B,S, A,Na,B,Nb);
+		recv_3(S,B, { Kab, Nb, A }k(B,S), T);
+		send_4(B,A, T, { Na }Kab, Nb2 );
+		recv_5(A,B, { Nb2 }Kab );
+
+		claim(B, SKR, Kab);
+	}
+	role S
+	{
+		var Na,Nb: Nonce;
+		const Kab: SessionKey;
+
+		recv_2(B,S, A,Na,B,Nb);
+		send_3(S,B, { Kab, Nb, A }k(B,S), { Na, B, Kab }k(A,S));
+	}
+
+}
