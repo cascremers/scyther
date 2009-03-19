@@ -328,14 +328,6 @@ class SecModel(object):
                     if correct:
                         self.vector[i] = self.ax(i) - 1
                     sane = False
-                # Model particulars
-                if (i == 2) and (self.vector[i] == 1):
-                    if self.vector[5] == 0:
-                        # Funny case: No RNR, but want to use rnsafe. Then
-                        # it's equal to aftercorrect.
-                        if correct:
-                            self.vector[i] = 2
-                        sane = False
             return sane
         else:
             assert(correct == False)
