@@ -64,6 +64,7 @@ SUMMARYDB = {}      # prot -> delta
 SUMMARYALL = False  # Delta's in all or in some contexts?
 ACLMAX = 10         # After 10 we give up for the nodes
 SCANERRORS = False  # Scan for arrows with no counterexamples
+OPTIONS = {}
 
 CALLSCYTHER = True  # After exit, make sure we don't call Scyther anymore.
 
@@ -1673,6 +1674,7 @@ def GraphProtocolSecurityHierarchy():
     global FILTER
     global RESTRICTEDMODELS
     global PROTOCOLSDONE
+    global OPTIONS
 
     if len(FCD.keys()) == 0:
         print "x No claims to generate protocol-security hierarchy for."
@@ -1682,6 +1684,12 @@ def GraphProtocolSecurityHierarchy():
     fp = open("%s.dot" % (GRAPHPSH),"w")
     fp.write("digraph protocolSecurityHierarchy {\n")
     fp.write("\trankdir=BT;\n")
+
+    if OPTIONS.label:
+        label = " (" + OPTIONS.label + ")"
+    else:
+        label = ""
+    fp.write("\tlabel=\"Protocol Security Hierarchy%s\";\n" % label)
 
     # Progress bar
     maxcount = len(FCD.keys()) * 2
@@ -1998,8 +2006,10 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
     global CACHE
     global FILTER
     global DEBUG
+    global OPTIONS
 
     DEBUG = debug
+    OPTIONS = options
 
     FILTER = protocollist
     if modulo == None:
