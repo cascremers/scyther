@@ -154,7 +154,7 @@ def InitRestricted(models=None):
 
     # ck2001hmqv: notgroup aftercorrect skr ssr
     ck2001hmqv = ck2001.copy()
-    ck2001hmqv.vector[1] = 2    # KCI
+    ck2001hmqv.vector[1] = 1    # KCI
     ck2001hmqv.vector[2] = 2    # aftercorrect
     ck2001hmqv.setName("CKw")
 
@@ -186,11 +186,6 @@ def InitRestricted(models=None):
     ck2001hmqvrnr.vector[4] = 1
     ck2001hmqvrnr.setName("CKw-nr")
 
-    # eckssr: SSR variant of eCK
-    eckssr = kci.copy()
-    eckssr.vector[5] = 2
-    eckssr.setName("eCK-ssr")
-
     RESTRICTEDMODELS = [eck, eckalt,ck2001rnr,ck2001hmqvrnr]    # To compare equal choice for RNR/SSR
 
     # append maximum
@@ -200,13 +195,25 @@ def InitRestricted(models=None):
     if max not in RESTRICTEDMODELS:
         RESTRICTEDMODELS.append(max)
 
-    RESTRICTEDMODELS = [eckssr, ck2001,ck2001hmqv]      # To compare equal choice for RNR/SSR
+    RESTRICTEDMODELS = [ck2001,ck2001hmqv]      # To compare equal choice for RNR/SSR
     RESTRICTEDMODELS = [eck, ck2001hmqvrnr,ck2001rnr]   # Triangle restriction
     RESTRICTEDMODELS = [eck, ck2001hmqv,ck2001,ck2001hmqvrnr,ck2001rnr]         # Triangle restriction but allow state-reveal too
 
     #RESTRICTEDMODELS = None #   default
-    if models == "CSF09":
+    if models in ["CSF09","Literature"]:
         RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck]   # As in paper
+    elif models in ["8", "112", "CSF09Rules"]:
+        RESTRICTEDMODELS = None
+        MS = []
+        for model in Traverse(unrestricted=True):
+            if model.vector[1] == 2:
+                # We don't consider LKRactor, only actorrnsafe
+                continue
+            if model.vector[4] == 1:
+                # We don't consider SSR filter for now
+                continue
+            MS.append(model.copy())
+        RESTRICTEDMODELS = MS
     else:
         RESTRICTEDMODELS = None
 
