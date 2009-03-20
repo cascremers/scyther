@@ -59,6 +59,8 @@ DEFAULTARGS += " --force-regular"   # Force considering a regular run (for DH-ha
 ALLCORRECT = True   # Require all claims to be correct of the protocol in prev. node for counterexample
 BRIEF = False
 FAST = True    # True means Skip intermediate graph drawing
+PROTPREFIX = "P_"
+PROTPOSTFIX = "_Alt"
 
 SUMMARYDB = {}      # prot -> delta
 SUMMARYALL = False  # Delta's in all or in some contexts?
@@ -82,6 +84,7 @@ PROTOCOLSDONE = set()
 
 RESTRICTEDMODELS = None # No restricted model set
 FILTER = None
+PREDEFINEDMODELS = []       # Not yet set
 
 SECMODELMIN = None
 SECMODELMAX = None
@@ -288,8 +291,18 @@ class SecModel(object):
 
     def setName(self,name):
 
-        self.name = name
+        global PREDEFINEDMODELS
 
+        self.name = name
+        d = self.dbkey()
+        for model in PREDEFINEDMODELS:
+            if model.dbkey() == d:
+                if model.name != name:
+                    print "Name clash for models %s and %s!" % (model.name, name)
+                    sys.exit()
+                else:
+                    return
+        PREDEFINEDMODELS.append(self)
 
     def ax(self,ax):
         """
@@ -398,29 +411,28 @@ class SecModel(object):
         """
         Yield abbreviation
         """
-        global RESTRICTEDMODELS
 
-        pref = ""
-        if RESTRICTEDMODELS != None:
-            try:
-                i = RESTRICTEDMODELS.index(self)
-                xn = RESTRICTEDMODELS[i].name
-                if xn != None:
-                    return xn
-            except:
-                pass
-        return unknown
+        self.findName()
+        if self.name:
+            return self.name
+        else:
+            return unknown
 
-    def __str__(self,sep=" ",empty="External",display=False,sort=False):
+    def __str__(self,sep=" ",empty="External",display=False,sort=False,oneline=False):
         """
         Yield string
         """
 
+        closeup = ""
         pref = ""
         if display == True:
             pref = self.shortname(unknown="")
             if pref != "":
-                pref += "\\n"
+                if oneline:
+                    pref += " (="
+                    closeup = ")"
+                else:
+                    pref += "\\n="
 
         sl = []
         for i in range(0,self.length):
@@ -430,12 +442,12 @@ class SecModel(object):
         if sort == True:
             sl.sort()
         if sl == []:
-            return pref + empty
+            return pref + empty + closeup
         else:
-            return pref + sep.join(sl)
+            return pref + sep.join(sl) + closeup
 
-    def display(self):
-        return self.__str__(display=True)
+    def display(self,oneline=False):
+        return self.__str__(display=True,oneline=oneline)
 
     def options(self):
         sl = []
@@ -487,6 +499,7 @@ class SecModel(object):
         tomodel.vector = []
         for i in range(0,self.length):
             tomodel.vector.append(self.vector[i])
+        tomodel.name = self.name
         return tomodel
 
     def nextLinear(self):
@@ -503,6 +516,8 @@ class SecModel(object):
                     # no overflow, do it
                     self.vector[i] = self.vector[i]+1
                     if self.checkSane(False):
+                        self.name = None
+                        self.findName()
                         return self
                     # not sane, continue to increase
         return None
@@ -521,6 +536,22 @@ class SecModel(object):
                 return None
             else:
                 return RESTRICTEDMODELS[i+1]
+
+    def findName(self):
+        """
+        Turns the model into a named one if possible
+        """
+    
+        global PREDEFINEDMODELS
+
+        if self.name == None:
+            d = self.dbkey()
+            for model in PREDEFINEDMODELS:
+                if d == model.dbkey():
+                    self.name = model.name
+                    break
+
+        return self.name
 
     def getDir(self,direction,all=False):
         """
@@ -557,6 +588,8 @@ class SecModel(object):
                             else:
                                 ldir -= 1
                             ctd = True
+
+                        model2.findName()
 
         else:
             mlist = []
@@ -659,8 +692,9 @@ def FindClaims(filelist, filterlist=None):
     ll = Scyther.GetClaims(filelist, filterlist)
     llnew = {}
     for fn in ll.keys():
-        if goodprotocol(fn):
-            llnew[fn] = ll[fn]
+        if len(ll[fn]) > 0:
+            if goodprotocol(fn):
+                llnew[fn] = ll[fn]
     return llnew
 
 
@@ -1620,6 +1654,7 @@ def dotabbrev(fn):
     Shorten a filename for dot usage
     """
     global DOTABBREVS
+    global PROTPREFIX, PROTPOSTFIX
 
     try:
         return DOTABBREVS[fn]
@@ -1629,9 +1664,9 @@ def dotabbrev(fn):
     # shorten
     repl = fn.replace("-","_")
     fullfile = repl.split("/")[-1]
-    short = "P_%s" % fullfile.split(".")[0]
+    short = "%s%s" % (PROTPREFIX,fullfile.split(".")[0])
     while short in DOTABBREVS.values():
-        short = short + "'"
+        short = short + PROTPOSTFIX
 
     DOTABBREVS[fn] = short
     return short
@@ -1742,7 +1777,14 @@ def GraphProtocolSecurityHierarchy():
             # Make the node name (line 2)
             nl = []
             for x in equals[repr]:
+                global PROTPREFIX, PROTPOSTFIX
+
                 da = dotabbrev(x)
+                if da.startswith(PROTPREFIX):
+                    da = da[len(PROTPREFIX):]
+                while da.endswith(PROTPOSTFIX):
+                    da = da[:-len(PROTPOSTFIX)]
+                
                 if da not in nl:
                     nl.append(da)
 
@@ -1791,6 +1833,7 @@ def GraphProtocolSecurityHierarchy():
     # Draw the adversary models which have no satisfying protocols.
     notimplied = set()
     for model in Traverse():
+        model.findName()
         if model not in shownmodels:
             thisimplied = False
             for model2 in shownmodels:
@@ -1819,12 +1862,12 @@ def GraphProtocolSecurityHierarchy():
         txt = "The following models (and any stronger\\nmodels) have no satisfying protocol:\\n"
         tl = []
         for m in needed:
-            tl.append(m.display())
+            tl.append(m.display(oneline=True))
         tl.sort()
         txt += "\\n".join(tl)
     else:
         txt = "All models have a satisfying protocol."
-    fp.write("\tNOPROTOCOLS [label=\"%s\",shape=\"box\"];\n" % (txt))
+    fp.write("\tNOPROTOCOLS [label=\"%s\",style=\"filled\",shape=\"box\",color=\"lightsalmon\"];\n" % (txt))
 
 
     fp.write("};\n")
