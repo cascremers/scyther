@@ -38,8 +38,9 @@ try:
 	from progressbar import *
 	PROGRESSBAR = True
 except ImportError:
-	PROGRESSBAR = False
-	print """
+    from progressbarDummy import *
+    PROGRESSBAR = False
+    print """
 Missing the progressbar library.
 
 It can be downloaded from:
@@ -47,7 +48,6 @@ It can be downloaded from:
 http://code.google.com/p/python-progressbar/
 
 """
-	sys.exit()
 
 CACHEFILE = "verification-result-cache.tmp"   # Filename of cache
 SHOWPATH = False    # Switch to true to show paths in the graph
