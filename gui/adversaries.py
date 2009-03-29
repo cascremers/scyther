@@ -1791,7 +1791,26 @@ def GraphProtocolSecurityHierarchy():
 
             nl.sort()
             txt = ",".join(nl)
+            if len(txt) > 60 and len(nl) > 1:
+                from math import sqrt
+
+                width = int(sqrt(len(txt))) + 1
+                txt = ""
+                line = ""
+                for x in nl:
+                    if len(txt + line) > 0:
+                        line += ","
+                    if len(line) > width:
+                        txt += line + "\\n"
+                        line = ""
+                    line += x
+
+                txt += line
+                if len(txt) > len(line):
+                    txt += "\\n"
+
             txt += "\\n"
+
 
             # Store whatever is already implied
             shownmodels = shownmodels.union(AT[repr])
