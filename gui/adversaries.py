@@ -32,6 +32,7 @@ Author: Cas Cremers
 
 import commands
 import sys
+import time
 
 from Scyther import *
 try:
