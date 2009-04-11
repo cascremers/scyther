@@ -1,7 +1,3 @@
-const pk: Function;
-secret sk: Function;
-inversekeys (pk,sk);
-
 protocol nsl3(I,R)
 {
 	role I
@@ -34,10 +30,4 @@ protocol nsl3(I,R)
 		claim_r4(R,Nisynch);
 	}
 }
-
-const Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 

@@ -2,12 +2,6 @@
  * Needham-Schroeder protocol
  */
 
-// PKI infrastructure
-
-const pk: Function;
-secret sk: Function;
-inversekeys (pk,sk);
-
 // The protocol description
 
 protocol ns3(I,R)
@@ -41,27 +35,4 @@ protocol ns3(I,R)
 	}
 }
 
-// The agents in the system
-
-const Alice,Bob: Agent;
-
-// An untrusted agent, with leaked information
-
-const Eve: Agent;
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
-
-// The runs (only needed for the modelchecker algorithm)
-
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
 
