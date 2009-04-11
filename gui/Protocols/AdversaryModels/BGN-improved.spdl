@@ -1,0 +1,33 @@
+const H: Function;
+secret UNH: Function;
+inversekeys (H,UNH);
+
+protocol BGN-improved(U1,U2)
+{
+	role U1
+	{
+		const N1: Nonce;
+		var N2: Nonce;
+
+		send_1(U1,U2, { U1,U2, { N1,U1 }pk(U2) }sk(U1) );
+		send_2(U1,U2,          { N1,U1 }pk(U2)         );
+		recv_3(U2,U1, { N2,U2 }pk(U1) );
+	
+		claim_SK1U1(U1, SKR, H(N1, U1, U2, { { N1,U1 }pk(U2), { N2,U2 }pk(U1) }sk(U1), { N1,U1 }pk(U1), U1, N1 ) );
+		claim_SK2U1(U1, SKR, H(N1, U1, U2, { { N1,U1 }pk(U2), { N2,U2 }pk(U1) }sk(U1), { N1,U1 }pk(U2), U2, N2 ) );
+	}	
+	
+	role U2
+	{
+		var N1: Nonce;
+		const N2: Nonce;
+
+		recv_1(U1,U2, { U1,U2, { N1,U1 }pk(U2) }sk(U1) );
+		recv_2(U1,U2,          { N1,U1 }pk(U2)         );
+		send_3(U2,U1, { N2,U2 }pk(U1) );
+	
+		claim_SK1U2(U1, SKR, H(N1, U1, U2, { { N1,U1 }pk(U2), { N2,U2 }pk(U1) }sk(U1), { N1,U1 }pk(U1), U1, N1 ) );
+		claim_SK2U2(U1, SKR, H(N1, U1, U2, { { N1,U1 }pk(U2), { N2,U2 }pk(U1) }sk(U1), { N1,U1 }pk(U2), U2, N2 ) );
+	}
+}
+
