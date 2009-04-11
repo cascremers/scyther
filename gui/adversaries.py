@@ -944,11 +944,18 @@ def VerifyClaim(file,claimid,model,onlycache=False):
         s.addFile(file)
         s.options = "%s %s" % (DEFAULTARGS,model.options())
         res = s.verifyOne(claimid)
-        claimres = res[0].getRank()
+        if len(res) > 0:
+            claimres = res[0].getRank()
 
-        CACHE.setTransitive(file,claimid,model.dbkey(),claimres,comment="[Time %s] [Options %s] " % (time.ctime(), s.options))
+            CACHE.setTransitive(file,claimid,model.dbkey(),claimres,comment="[Time %s] [Options %s] " % (time.ctime(), s.options))
 
-        return claimres
+            return claimres
+        else:
+            """
+            Some error occurred.
+            """
+            print "Warning: some problem occurred when running Scyther for", file, str(model), claimid
+            sys.exit(0)
     else:
         """
         At exit code, we just assume it's sort of okay (2)
