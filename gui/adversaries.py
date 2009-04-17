@@ -1824,17 +1824,9 @@ def GraphProtocolSecurityHierarchy():
             # Make the node models list
             # We want alltruemodels, except for:
             # - Anything implied among them
-            # - Anything satisfied by weakers
-            # Computed satisfied by weakers
-            weakerssat = set()
-            for fnw in wkrs[repr]:
-                for mw in AT[fnw]:
-                    weakerssat.add(str(mw))
-            # Turn whatever is not satisfied into newmodels
             newmodels = set()
             for m in filterImpliedModels(AT[repr]):
-                if str(m) not in weakerssat:
-                    newmodels.add(m)
+                newmodels.add(m)
             # Combine names
             nm = []
             allshort = True
