@@ -868,6 +868,49 @@ commEvent (int event, Tac tc)
     }
 }
 
+//! Create hash functions
+/**
+ * Assumption: hfuncs list in same order as tac.
+ *
+ * Note: Destroys tc contents, so please don't reuse afterwards.
+ */
+int
+hashfunctions (Tac tcstart)
+{
+  Termlist hfuncs;
+  Termlist hinvs;
+  Tac tc;
+
+  // As long as tc is intact.
+  levelDeclareConst (tcstart);
+  hfuncs = tacTermlist (tcstart->t1.tac);
+  if (level < 2)
+    knowledgeAddTermlist (sys->know, hfuncs);
+
+  for (tc = tcstart->t1.tac; tc != NULL; tc = tc->next)
+    {
+      tc->t1.sym = symbolNextFree (symbolSysConst ("_unhash-"));
+    }
+  levelDeclareConst (tcstart);
+  hinvs = tacTermlist (tcstart->t1.tac);
+
+  while (hfuncs != NULL)
+    {
+      if (hinvs == NULL)
+	{
+	  error
+	    ("Bug in hashfunction generation code. Please contact the authors.\n");
+	}
+      knowledgeAddInverse (sys->know, hfuncs->term, hinvs->term);
+      hfuncs->term->stype = termlistAdd (NULL, TERM_Function);
+      hinvs->term->stype = termlistAdd (NULL, TERM_Function);
+      hfuncs = hfuncs->next;
+      hinvs = hinvs->next;
+    }
+  return true;
+}
+
+
 int
 normalDeclaration (Tac tc)
 {
@@ -892,6 +935,9 @@ normalDeclaration (Tac tc)
     case TAC_INVERSEKEYS:
       knowledgeAddInverse (sys->know, tacTerm (tc->t1.tac),
 			   tacTerm (tc->t2.tac));
+      break;
+    case TAC_HASHFUNCTION:
+      hashfunctions (tc);
       break;
     default:
       /* abort with false */
@@ -1291,6 +1337,10 @@ tacTerm (Tac tc)
     }
 }
 
+//! Extract termlist from tac
+/**
+ * Note: termlist in same order as tac. This is required for correct working of functions such as 'hashfunctions'.
+ */
 Termlist
 tacTermlist (Tac tc)
 {
