@@ -39,6 +39,7 @@
 #include "compromise.h"
 #include "trusted.h"
 #include "partner.h"
+#include "mymalloc.h"
 
 extern Protocol INTRUDER;
 extern int proofDepth;
