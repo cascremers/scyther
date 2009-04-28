@@ -330,6 +330,11 @@ tacPrint (Tac t)
       tacPrint (t->t2.tac);
       printf (");\n");
       break;
+    case TAC_HASHFUNCTION:
+      printf ("hashfunction ");
+      tacPrint (t->t1.tac);
+      printf (";\n");
+      break;
     case TAC_UNTRUSTED:
       printf ("untrusted ");
       tacPrint (t->t1.tac);

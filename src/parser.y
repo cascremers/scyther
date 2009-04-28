@@ -257,6 +257,13 @@ declaration	: secretpref CONST basictermlist typeinfo1 ';'
 		  	t->t1.tac= $2;
 			$$ = t;
 		  }
+		| HASHFUNCTION basictermlist ';'
+		  {	Tac t = tacCreate(TAC_HASHFUNCTION);
+		  	t->t1.tac = $2;
+		  	t->t2.tac = tacCreate(TAC_UNDEF);
+			t->t3.tac = NULL;	// Not secret: public
+			$$ = t;
+		  }
 		;
 
 secretpref	: /* empty */
