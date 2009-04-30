@@ -1,0 +1,81 @@
+/* 
+ * BoydCliffNietoPaterson 2008
+ *
+ * DH-variant of protocol
+ */
+
+hashfunction Expd,Ext;
+hashfunction xor;
+hashfunction Expo;
+
+usertype Base;
+const g: Base;
+
+protocol @xorhelper(H1,H2,H3)
+{
+	role H1
+	{
+		var X,Y: Ticket;
+
+		recv_!1(H1,H1, xor(X,Y) );
+		send_!2(H1,H1, xor(Y,X) );
+	}
+	role H2
+	{
+		var X,Y,Z: Ticket;
+
+		recv_!3(H2,H2, xor(X,xor(Y,Z)) );
+		send_!4(H2,H2, xor(xor(X,Y),Z) );
+	}
+	role H3
+	{
+		var X,Y: Ticket;
+
+		recv_!5(H3,H3, X,xor(X,Y) );
+		send_!6(H3,H3, Y );
+	}
+}
+
+// The protocol description
+
+protocol BCNP-2(I,R)
+{
+	role I
+	{
+		const Kap: Nonce;
+		var Kbp: Nonce;
+		var Y: Ticket;
+		const a: Nonce;
+
+		send_Compromise(I,I, Kap);
+
+		send_1(I,R, I, { Kap }pk(R),Expo(g,a) );
+		recv_2(R,I, R, { Kbp }pk(I),Y );
+
+		claim(I,SKR, xor( xor(Expd( Ext(Kap),  I, {Kap}pk(R), Expo(g,a), R, {Kbp}pk(I), Y ), 
+		                      Expd( Ext(Kbp),  I, {Kap}pk(R), Expo(g,a), R, {Kbp}pk(I), Y )),
+		                      Expd( Expo(Y,a), I, {Kap}pk(R), Expo(g,a), R, {Kbp}pk(I), Y )
+		                )
+		     );
+	}	
+	
+	role R
+	{
+		var Kap: Nonce;
+		const Kbp: Nonce;
+		var X: Ticket;
+		const b: Nonce;
+
+		send_Compromise(R,R, Kbp);
+
+		recv_1(I,R, I, { Kap }pk(R),X );
+		send_2(R,I, R, { Kbp }pk(I),Expo(g,b) );
+
+		claim(R,SKR, xor( xor(Expd( Ext(Kap),  I, X, {Kap}pk(R), R, {Kbp}pk(I), Expo(g,b) ),
+		                      Expd( Ext(Kbp),  I, X, {Kap}pk(R), R, {Kbp}pk(I), Expo(g,b) )),
+		                      Expd( Expo(X,b), I, X, {Kap}pk(R), R, {Kbp}pk(I), Expo(g,b) )
+		                )
+		     );
+	}
+}
+
