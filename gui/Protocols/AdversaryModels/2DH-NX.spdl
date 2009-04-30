@@ -4,6 +4,22 @@
  * Two-move Diffie-Hellman simplified, Naxossed
  *
  * Cas Cremers, 30 April 2009
+ *
+ * Design decision:
+ *
+ * 1. Tried to be minimal.
+ *
+ * 2. Content outside of signature is technically speaking redundant,
+ * just there for clarity.
+ *
+ * 3. Including alpha (the third element of the tuple) in the second
+ * message serves two purposes. First, it distinguishes message 1 and 2.
+ * Second, alpha is used as 'session identifier'. If it is replaced by a
+ * constant, a state-reveal query on a non-matching thread may reveal
+ * the responders nonce. If desired, an explicit session identifier may
+ * be added to the first and second message; if so, the alpha can be
+ * omitted from the second message, if care is taken to distinguish both
+ * messages (either by labeling or reordering the tuple).
  */
 
 // Hash functions
