@@ -1,0 +1,65 @@
+/* 
+ * 2DH-NX
+ *
+ * Two-move Diffie-Hellman simplified, Naxossed
+ *
+ * Cas Cremers, 30 April 2009
+ */
+
+// Hash functions
+const h1,h2,g1,g2: Function;
+secret unh1,unh2,ung1,ung2: Function;
+
+inversekeys (h1,unh1);
+inversekeys (h2,unh2);
+inversekeys (g1,ung1);
+inversekeys (g2,ung2);
+
+/*
+ * Hack to simulate g^ab = g^ba.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exponentiation(RA)
+{
+	role RA
+	{
+		var alpha,beta, T1,T2: Ticket;
+
+		recv_!1(RA,RA, g2(g1(T1),T2) );
+		send_!2(RA,RA, g2(g1(T2),T1) );
+	}
+}
+
+// The protocol description
+
+protocol 2DH-NX(I,R)
+{
+	role I
+	{
+		const x: Nonce;
+		var beta: Ticket;
+
+		send_Compromise(I,I, h1(sk(I),x) );
+
+		send_1(I,R,  g1(h1(sk(I),x)),R,      { g1(h1(sk(I),x)),R       }sk(I) );
+		recv_2(R,I,  beta,I,g1(h1(sk(I),x)), { beta,I, g1(h1(sk(I),x)) }sk(R) );
+
+		claim(I,SKR, g2(beta,h1(sk(I),x)) );
+	}	
+	
+	role R
+	{
+		const y: Nonce;
+		var alpha: Ticket;
+
+		send_Compromise(R,R, h1(sk(R),y) );
+
+		recv_1(I,R,  alpha,R,                 { alpha,R                 }sk(I) );
+		send_2(R,I,  g1(h1(sk(R),y)),I,alpha, { g1(h1(sk(R),y)),I,alpha }sk(R) );
+
+		claim(R,SKR, g2(alpha,h1(sk(R),y)) );
+	}
+}
+
