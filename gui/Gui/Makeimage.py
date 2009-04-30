@@ -31,7 +31,7 @@ import sys
 """ Import scyther components """
 
 """ Import scyther-gui components """
-import Tempfile
+import Temporary
 import Preference
 
 #---------------------------------------------------------------------------
@@ -123,7 +123,7 @@ def makeImageDot(dotdata,attackthread=None):
         ext = ".png"
 
     # command to write to temporary file
-    (fd2,fpname2) = Tempfile.tempcleaned(ext)
+    (fd2,fpname2) = Temporary.tempcleaned(ext)
     f = os.fdopen(fd2,'w')
 
     cmd = "dot -T%s" % (type)
