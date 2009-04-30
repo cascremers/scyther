@@ -1533,7 +1533,7 @@ printRunExplanation (const System sys, const int run,
 	eprintf (" SKR");
       if (compromisetype & COMPR_RNR)
 	eprintf (" RNR");
-      eprintf (")\\l");
+      eprintf ("\\l");
     }
 
   eprintf (newline);
