@@ -845,14 +845,18 @@ class NextOptimalOpen(object):
                             lowers += 1
                         if model.weakerthan(model2):
                             highers += 1
+                ### This was the code for optimal in both directions.
+                # if lowers > highers:
+                #     bestcase = lowers
+                #     worstcase = highers
+                # else:
+                #     bestcase = highers
+                #     worstcase = lowers
+                # gain = (max * worstcase) + bestcase
+                
+                ### Most to get rid of, fewest remaining to check with overlaps, that's it for now.
+                gain = (max * highers) - lowers
 
-                if lowers > highers:
-                    bestcase = lowers
-                    worstcase = highers
-                else:
-                    bestcase = highers
-                    worstcase = lowers
-                gain = (max * worstcase) + bestcase
                 if gain > bestgain:
                     bestgain = gain
                     bestmodel = model
@@ -1491,21 +1495,23 @@ class ScytherCache(object):
         # so we actually store the implications for use in
         # later (bigger) scans.
         for model2 in Traverse(unrestricted = True):
-            oldres = self.get(file,claim,model2.dbkey())
-            if oldres == None:
-                # Not set yet, so something to store here
-                if model != model2:
-		    storehere = False
-                    if res < 2:
-                        # False in model, so also false in all stronger
-                        if model.weakerthan(model2):
-                            storehere = True
-                    else:
-                        # (semi)correct in model, so also correct in all weaker
-                        if model2.weakerthan(model):
-                            storehere = True
-		    if storehere:
-			self.set(file,claim,model2.dbkey(),res,comment)
+            if model != model2:
+                storehere = False
+                if res < 2:
+                    # False in model, so also false in all stronger
+                    if model.weakerthan(model2):
+                        storehere = True
+                else:
+                    ### Old code propagated correctness. Not so now: correctness has no direct implications.
+                    ## (semi)correct in model, so also correct in all weaker
+                    #if model2.weakerthan(model):
+                    #    oldres = self.get(file,claim,model2.dbkey())
+                    #    if oldres == None:
+                    #         # Not set yet, so something to store here
+                    #         storehere = True
+                    pass
+                if storehere:
+                    self.set(file,claim,model2.dbkey(),res,comment)
 
     def get(self,protocol,claim,dbkey):
         try:
