@@ -2012,37 +2012,40 @@ def exiter(graphs=[],modulo=None):
 
     CALLSCYTHER = False
 
-    reportProtocolTable()
-
-    print """
-
-     .--==################################==--.
-    |      Verification process completed      |
-     `--==################################==--`
-"""
-
     if modulo == None:
+        """
+        No reporting, sorting, graphing if modulo things.
+        """
+        reportProtocolTable()
+
+        print """
+
+ .--==################################==--.
+|      Verification process completed      |
+ `--==################################==--`
+        """
+
         print "- Sorting buffer at exit."
         sortBuffer()
 
-    """
-    Graphs
-    """
-    DRAWGRAPH = True
-    if graphs == None:
-        graphs = []
-    if "mh" in graphs:
-        GraphModelHierarchy()
-    else:
-        print "- No model hierarchy requested (--MH)"
-    if "ch" in graphs:
-        GraphCombinedHierarchy(True)
-    else:
-        print "- No combined hierarchy requested (--CH)"
-    if "psh" in graphs:
-        GraphProtocolSecurityHierarchy()
-    else:
-        print "- No protocol-security hierarchy requested (--PSH)"
+        """
+        Graphs
+        """
+        DRAWGRAPH = True
+        if graphs == None:
+            graphs = []
+        if "mh" in graphs:
+            GraphModelHierarchy()
+        else:
+            print "- No model hierarchy requested (--MH)"
+        if "ch" in graphs:
+            GraphCombinedHierarchy(True)
+        else:
+            print "- No combined hierarchy requested (--CH)"
+        if "psh" in graphs:
+            GraphProtocolSecurityHierarchy()
+        else:
+            print "- No protocol-security hierarchy requested (--PSH)"
 
     ### Report summary
     #reportContext()
