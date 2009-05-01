@@ -1,0 +1,54 @@
+/* 
+ * JeongKatzLee 2004 TS-1
+ *
+ */
+
+hashfunction H;
+hashfunction exp;
+usertype Generator;
+const g: Generator;
+
+protocol @exphelper(H1,H2)
+{
+	role H1
+	{
+		var n1,n2: Nonce;
+		var X,Y: Ticket;
+
+		recv_!1(H1,H1, H(n1,n2,exp(exp(g,X),Y)) );
+		send_!2(H1,H1, H(n1,n2,exp(exp(g,Y),X)) );
+	}
+	role H2
+	{
+		recv_!3(H2,H2, H2);
+		send_!4(H2,H2, exp(g,sk(H2)));
+	}
+}
+
+// The protocol description
+
+protocol JKL-TS-1(I,R)
+{
+	role I
+	{
+		const ri: Nonce;
+		var rn: Nonce;
+
+		send_1(I,R, ri);
+		recv_2(R,I, rn);
+
+		claim(I, SKR, H( ri,rn, exp(exp(g,sk(R)),sk(I))) );
+	}	
+	
+	role R
+	{
+		var ri: Nonce;
+		const rn: Nonce;
+
+		recv_1(I,R, ri);
+		send_2(R,I, rn);
+
+		claim(R, SKR, H( ri,rn, exp(exp(g,sk(R)),sk(I))) );
+	}
+}
+
