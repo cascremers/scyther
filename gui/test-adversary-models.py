@@ -72,6 +72,16 @@ def initParser():
     return (options, args)
 
 
+def pathAdd(paths, args):
+    if args != None:
+        if len(args) > 0:
+            for dir in args:
+                while dir.endswith("/"):
+                    dir = dir[:-1]
+                paths.append(dir)
+    return paths
+
+
 if __name__ == '__main__':
     # Options
     (options, args) = initParser()
@@ -87,17 +97,20 @@ if __name__ == '__main__':
     if options.asymmetric:
         filefilter = filterAsymmetric
 
-    # Base dir
-    protocolpaths = ["Protocols/AdversaryModels"]
-    if options.dirs != None:
-        if len(options.dirs) > 0:
-            protocolpaths = []
-            for dir in options.dirs:
-                while dir.endswith("/"):
-                    dir = dir[:-1]
-                protocolpaths.append(dir)
+    protocolpaths = []
 
-    # Name list
+    # Add paths to dirs
+    protocolpaths = pathAdd(protocolpaths, options.dirs)
+
+    # Any additional args are considered similar to -d (protocolpath) options.
+    protocolpaths = pathAdd(protocolpaths, args)
+
+    # Override by default
+    if len(protocolpaths) == 0:
+        protocolpaths = ["Protocols/AdversaryModels"]
+
+    # Write back
+    options.dirs = protocolpaths
 
 
     # Call main 
