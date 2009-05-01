@@ -767,13 +767,15 @@ switcher (const int process, int index, int commandline)
   if (detect (' ', "SSRinfer", 1))
     {
       /*
-       * Note: 0 = not
+       * Note: 0 = leave as is
        *       1 = only if not manually specified
        *       2 = override
+       * Using this switch implies SSR.
        */
       if (process)
 	{
 	  switches.SSRinfer = integer_argument ();
+	  switches.SSR = true;
 	  return index;
 	}
     }

@@ -274,7 +274,7 @@ class SecModel(object):
         axis1 = ["","--LKRactorrnsafe=1","--LKRactor=1"]
         axis2 = ["","--LKRrnsafe=1","--LKRaftercorrect=1","--LKRafter=1"]
         axis3 = ["","--SKR=1"]
-        axis4 = ["","--SSRfilter=1","--SSR=1"]
+        axis4 = ["","--SSRfilter=1","--SSRinfer=1","--SSRinfer=2"]
         axis5 = ["","--RNR=1"]
 
         #axis1 = ["--LKRnotgroup=1"]
