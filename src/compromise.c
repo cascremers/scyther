@@ -657,6 +657,11 @@ addComprSend (Role r, Roledef rdlast, Termlist tl, int type)
 }
 
 //! Insert Compromise events into role
+/**
+ * Special case for SSRinfer = 1: If so, we scan the role for such things first.
+ * If compromise event, we just leave it, and add no further SSR reveals.
+ * If no compromise event, we may add them.
+ */
 void
 adaptRoleCompromised (Protocol p, Role r)
 {
@@ -664,11 +669,34 @@ adaptRoleCompromised (Protocol p, Role r)
   Termlist SKRseen;
   Termlist SSRseen;
   Termlist RNRseen;
+  int addSSR;
 
+  /*
+   * Phase 1: Scan for manual compromise events if relevant.
+   */
+  addSSR = false;
+  if (switches.SSR && (switches.SSRinfer > 0))
+    {
+      addSSR = true;
+      if (switches.SSRinfer == 1)
+	{
+	  for (rd = r->roledef; rd != NULL; rd = rd->next)
+	    {
+	      if (isCompromiseEvent (rd))
+		{
+		  addSSR = false;
+		  break;
+		}
+	    }
+	}
+    }
+
+  /*
+   * Phase 2: Deduce and add
+   */
   SKRseen = NULL;
   SSRseen = NULL;
   RNRseen = NULL;
-
   for (rd = r->roledef; rd != NULL; rd = rd->next)
     {
       //********************************************************
@@ -721,7 +749,7 @@ adaptRoleCompromised (Protocol p, Role r)
 	    }
 	  //********************************************************
 	  // Scan for SSR
-	  if (switches.SSR && switches.SSRinfer)
+	  if (addSSR)
 	    {
 	      Termlist SSRnew;
 	      Termlist SSRsend;
@@ -765,7 +793,8 @@ adaptProtocolsCompromised (void)
 {
   Protocol p;
 
-  if (switches.SSRinfer || switches.SKR || switches.RNR)
+  if ((switches.SSR && (switches.SSRinfer > 0)) || switches.SKR
+      || switches.RNR)
     {
       for (p = sys->protocols; p != NULL; p = p->next)
 	{
@@ -788,9 +817,9 @@ compromisePrepare (const System mysys)
 {
   sys = mysys;
 
-  if (switches.SSRinfer)
+  if ((switches.SSRinfer == 2) || (!switches.SSR))
     {
-      /* If we are not using any self-defined compromised events, remove them.
+      /* If we are surely not using any self-defined compromised events, remove them.
        * */
       removeCompromiseEvents ();
     }

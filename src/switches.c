@@ -100,7 +100,7 @@ switchesInit (int argc, char **argv)
   // Parameters
   switches.SSRfilter = false;	//!< default is no SSR filtering on nonces
   switches.RNRinfer = false;	//!< default is no RNR extension to state
-  switches.SSRinfer = true;	//!< default is SSR inferred
+  switches.SSRinfer = 1;	//!< default is SSR inferred for roles in which not specified
   switches.markFullSession = false;	//!< Not a real switch but a marker
 
   // Misc
@@ -766,6 +766,11 @@ switcher (const int process, int index, int commandline)
     }
   if (detect (' ', "SSRinfer", 1))
     {
+      /*
+       * Note: 0 = not
+       *       1 = only if not manually specified
+       *       2 = override
+       */
       if (process)
 	{
 	  switches.SSRinfer = integer_argument ();
