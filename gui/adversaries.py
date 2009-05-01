@@ -36,8 +36,8 @@ import time
 
 from Scyther import *
 try:
-	from progressbar import *
-	PROGRESSBAR = True
+    from progressbar import *
+    PROGRESSBAR = True
 except ImportError:
     from progressbarDummy import *
     PROGRESSBAR = False
@@ -1483,7 +1483,7 @@ class ScytherCache(object):
         model = SecModel()
         model.enscribe(dbkey)
 
-	# Store self
+        # Store self
         self.set(file,claim,dbkey,res,comment)
 
         comment = "[Transitive closure from %s] %s" % (dbkey, comment)
