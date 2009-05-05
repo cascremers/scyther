@@ -385,6 +385,8 @@ class SecModel(object):
         s = self.axes[i][self.vector[i]]
         if s.endswith("=1"):
             return s[2:-2]
+        if s.endswith("=2"):
+            return s[2:]
         return ""
 
     def enscribe(self,dbkey):
@@ -401,11 +403,18 @@ class SecModel(object):
             for y in range(0,len(self.axes[i])):
                 # is it equal to the y thing?
                 vecstr = self.axes[i][y]
-                if vecstr.startswith("--") and vecstr.endswith("=1"):
-                    # It's a triggered option, for sure
-                    if vecstr[2:-2] in elements:
-                        # Override previous
-                        self.vector[i] = y
+                if vecstr.startswith("--"):
+                    if vecstr.endswith("=1"):
+                        # It's a triggered option, for sure
+                        if vecstr[2:-2] in elements:
+                            # Override previous
+                            self.vector[i] = y
+                    else:
+                        if vecstr.endswith("=2"):
+                            # Worse.
+                            if vecstr[2:] in elements:
+                                # Override previous
+                                self.vector[i] = y
         return
 
     def shortname(self,unknown="???"):
