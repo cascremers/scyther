@@ -1455,6 +1455,8 @@ class ScytherCache(object):
             pbar.finish()
 
         print "Closure computation completed."
+        print "Ignoring any other commands and exiting."
+        sys.exit()
 
 
     def setForce(self,protocol,claim,dbkey,res):
