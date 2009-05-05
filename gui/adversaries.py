@@ -1846,18 +1846,13 @@ def GraphProtocolSecurityHierarchy():
                 newmodels.add(m)
             # Combine names
             nm = []
-            allshort = True
             for m in newmodels:
                  (short,xn) = m.shortornot()
-                 if not short:
-                     allshort = False
+                 if short:
+                     xn = xn + " = " + str(m)
                  nm.append(xn)
             nm.sort()
-            # Decide on how to layout
-            if not allshort:
-                sep = "\\n"
-            else:
-                sep = " ; "
+            sep = "\\n"
             txt += sep.join(nm)
 
             # Output the dot code
