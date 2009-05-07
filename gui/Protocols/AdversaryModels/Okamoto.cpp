@@ -100,7 +100,7 @@ protocol Okamoto(A,B)
 		#define sigma5b exp(pk2(B),mult(cb,FY(B,y1,y2)))
 		#define sigmab 	mult(mult(mult(mult(sigma1b,sigma2b),sigma3b),sigma4b),sigma5b)
 		#define sidb	(A,B,X1,X2,X3,Y123(B,y1,y2))
-		claim(A, SKR, FCAS(sigmaa, sida) );
+		claim(B, SKR, FCAS(sigmab, sidb) );
 	}
 }
 
