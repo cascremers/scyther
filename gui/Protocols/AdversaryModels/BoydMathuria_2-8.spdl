@@ -1,0 +1,31 @@
+/*
+ * Boyd Mathuria book
+ *
+ * Protocol 2.8, page 51
+ */
+
+hashfunction h;
+
+protocol BoydMathuria-2-8(A,B)
+{
+	role A
+	{
+		const Na: Nonce;
+		const kta: Nonce;
+		var kab: SessionKey;
+
+		send_1(A,B, pk(kta), Na, { pk(kta), B }sk(A) );
+		recv_2(B,A, { kab }pk(kta), { h(kab),A,Na }sk(B) );
+		claim(A, SKR, kab);
+	}
+	role B
+	{
+		var Na: Nonce;
+		var kta: Nonce;
+		const kab: SessionKey;
+
+		recv_1(A,B, pk(kta), Na, { pk(kta), B }sk(A) );
+		send_2(B,A, { kab }pk(kta), { h(kab),A,Na }sk(B) );
+		claim(B, SKR, kab);
+	}
+}
