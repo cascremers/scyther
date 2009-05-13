@@ -1,6 +1,14 @@
 /* 
  * JeongKatzLee 2004 TS-1
  *
+ * From "One-Round Protocols for Two-Party Authenticated Key Exchange",
+ * Ik Rae Jeong, Jonathan Katz, Dong Hoon Lee, ACNS 2004.
+ *
+ * Claim: KI secure AKE under CDH / random oracle assumptions.
+ *
+ * KI = Key Independence (allow session-key reveal)
+ *
+ * Assumption: Alice does not talk to Alice in either role.
  */
 
 hashfunction H;
