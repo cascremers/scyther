@@ -52,7 +52,7 @@ http://code.google.com/p/python-progressbar/
 
 CACHEFILE = "verification-result-cache.tmp"   # Filename of cache
 SHOWPATH = False    # Switch to true to show paths in the graph
-#DEFAULTARGS = "--max-runs=7 --extravert"       ### If you're picky and have time. The results are the same, by the way.
+#DEFAULTARGS = "--max-runs=7"       ### If you're picky and have time. The results are the same, by the way.
 DEFAULTARGS = "--max-runs=4"
 DEFAULTARGS += " -T 300"         # Timeout after 5 minutes 
 DEFAULTARGS += " --prune=1"     # Stop at first attack
@@ -118,6 +118,7 @@ def InitRestricted(models=None):
     RESTRICTEDMODELS = None #   default
 
     external = SecModel()
+    external.vector[6] = 1
     external.setName("EXT")
 
     # internal: notgroup
@@ -129,6 +130,12 @@ def InitRestricted(models=None):
     kci = external.copy()
     kci.vector[1] = 1
     kci.setName("CA")
+
+    # jkl2004: skr extravert afc
+    jkl2004 = internal.copy()
+    jkl2004.vector[3] = 1   # SKR
+    jkl2004.vector[6] = 0   # extravert, very specific to this model
+    jkl2004.setName("JKL")
 
     # bpr2000: skr
     bpr2000 = external.copy()
@@ -276,10 +283,11 @@ class SecModel(object):
         axis3 = ["","--SKR=1"]
         axis4 = ["","--SSRfilter=1","--SSRinfer=1","--SSRinfer=2"]
         axis5 = ["","--RNR=1"]
+        axis6 = ["--extravert",""]
 
         #axis1 = ["--LKRnotgroup=1"]
 
-        self.axes = [axis0,axis1,axis2,axis3,axis4,axis5]
+        self.axes = [axis0,axis1,axis2,axis3,axis4,axis5,axis6]
         self.length = len(self.axes)
 
         if minmax == "max" or minmax == True:
@@ -383,10 +391,11 @@ class SecModel(object):
         Turn vector i into a parameter name.
         """
         s = self.axes[i][self.vector[i]]
-        if s.endswith("=1"):
-            return s[2:-2]
-        if s.endswith("=2"):
-            return s[2:]
+        if s.startswith("--"):
+            if s.endswith("=1"):
+                return s[2:-2]
+            else:
+                return s[2:]
         return ""
 
     def enscribe(self,dbkey):
@@ -399,21 +408,27 @@ class SecModel(object):
         elements = dbkey.split("_")
         for i in range(0,self.length):
             # Cover vector[i]
-            self.vector[i] = 0
+            # Set defaults for empty string
+            if i == 6:
+                self.vector[i] = 1
+            else:
+                self.vector[i] = 0
+            # Scan string settings
+            # does a label of this axis occur in the dbkey?
             for y in range(0,len(self.axes[i])):
-                # is it equal to the y thing?
+                # axe label under investigation is vecstr
                 vecstr = self.axes[i][y]
                 if vecstr.startswith("--"):
-                    if vecstr.endswith("=1"):
-                        # It's a triggered option, for sure
-                        if vecstr[2:-2] in elements:
-                            # Override previous
-                            self.vector[i] = y
+                    # Check for exact occurrence of label in dbkey
+                    if vecstr[2:] in elements:
+                        # Exact match
+                        self.vector[i] = y
                     else:
-                        if vecstr.endswith("=2"):
-                            # Worse.
-                            if vecstr[2:] in elements:
-                                # Override previous
+                        # This label does not occur. Maybe the '=1'
+                        # suffix was stripped in dbkey?
+                        if vecstr.endswith("=1"):
+                            if vecstr[2:-2] in elements:
+                                # Ah, short version
                                 self.vector[i] = y
         return
 
