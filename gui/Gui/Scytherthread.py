@@ -338,6 +338,9 @@ class ResultWindow(wx.Frame):
         claimdetails = str(cl.claimtype)
         if cl.parameter:
             claimdetails += " %s" % (cl.parameter)
+        # Cut off if very very long
+        if len(claimdetails) > 50:
+            claimdetails = claimdetails[:50] + "..."
         addtxt(claimdetails + "  ",xpos)
         xpos += 1
 
