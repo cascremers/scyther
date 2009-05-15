@@ -16,7 +16,7 @@ const g1,g2: Generator;
 const 1,2,3,4: Integer;
 hashfunction FCAS;
 
-protocol @exphelper(H1,H2)
+protocol @exphelper(H1,H2,H3)
 {
 	role H1
 	{
@@ -29,8 +29,18 @@ protocol @exphelper(H1,H2)
 	}
 	role H2
 	{
-		recv_!3(H2,H2, H2);
-		send_!4(H2,H2, pk1(H2),pk2(H2) );
+		var X: Agent;
+
+		recv_!3(H2,H2, X);
+		send_!4(H2,H2, pk1(X),pk2(X) );
+	}
+	role H3
+	{
+		var X,Y: Ticket;
+		var g: Generator;
+
+		recv_!5(H3,H3, exp(exp(g,X),Y) );
+		send_!6(H3,H3, exp(exp(g,Y),X) );
 	}
 }
 
