@@ -131,6 +131,12 @@ def InitRestricted(models=None):
     kci.vector[1] = 1
     kci.setName("CA")
 
+    # jkl2004: skr extravert afc
+    jkl2004 = internal.copy()
+    jkl2004.vector[3] = 1   # SKR
+    jkl2004.vector[6] = 0   # extravert, very specific to this model
+    jkl2004.setName("JKL")
+
     # bpr2000: skr
     bpr2000 = external.copy()
     bpr2000.vector[3] = 1
