@@ -52,7 +52,7 @@ http://code.google.com/p/python-progressbar/
 
 CACHEFILE = "verification-result-cache.tmp"   # Filename of cache
 SHOWPATH = False    # Switch to true to show paths in the graph
-#DEFAULTARGS = "--max-runs=7 --extravert"       ### If you're picky and have time. The results are the same, by the way.
+#DEFAULTARGS = "--max-runs=7"       ### If you're picky and have time. The results are the same, by the way.
 DEFAULTARGS = "--max-runs=4"
 DEFAULTARGS += " -T 300"         # Timeout after 5 minutes 
 DEFAULTARGS += " --prune=1"     # Stop at first attack
@@ -118,6 +118,7 @@ def InitRestricted(models=None):
     RESTRICTEDMODELS = None #   default
 
     external = SecModel()
+    external.vector[6] = 1
     external.setName("EXT")
 
     # internal: notgroup
@@ -276,10 +277,11 @@ class SecModel(object):
         axis3 = ["","--SKR=1"]
         axis4 = ["","--SSRfilter=1","--SSRinfer=1","--SSRinfer=2"]
         axis5 = ["","--RNR=1"]
+        axis6 = ["--extravert",""]
 
         #axis1 = ["--LKRnotgroup=1"]
 
-        self.axes = [axis0,axis1,axis2,axis3,axis4,axis5]
+        self.axes = [axis0,axis1,axis2,axis3,axis4,axis5,axis6]
         self.length = len(self.axes)
 
         if minmax == "max" or minmax == True:
