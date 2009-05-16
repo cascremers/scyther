@@ -383,10 +383,11 @@ class SecModel(object):
         Turn vector i into a parameter name.
         """
         s = self.axes[i][self.vector[i]]
-        if s.endswith("=1"):
-            return s[2:-2]
-        if s.endswith("=2"):
-            return s[2:]
+        if s.startswith("--"):
+            if s.endswith("=1"):
+                return s[2:-2]
+            else:
+                return s[2:]
         return ""
 
     def enscribe(self,dbkey):
@@ -399,21 +400,27 @@ class SecModel(object):
         elements = dbkey.split("_")
         for i in range(0,self.length):
             # Cover vector[i]
-            self.vector[i] = 0
+            # Set defaults for empty string
+            if i == 6:
+                self.vector[i] = 1
+            else:
+                self.vector[i] = 0
+            # Scan string settings
+            # does a label of this axis occur in the dbkey?
             for y in range(0,len(self.axes[i])):
-                # is it equal to the y thing?
+                # axe label under investigation is vecstr
                 vecstr = self.axes[i][y]
                 if vecstr.startswith("--"):
-                    if vecstr.endswith("=1"):
-                        # It's a triggered option, for sure
-                        if vecstr[2:-2] in elements:
-                            # Override previous
-                            self.vector[i] = y
+                    # Check for exact occurrence of label in dbkey
+                    if vecstr[2:] in elements:
+                        # Exact match
+                        self.vector[i] = y
                     else:
-                        if vecstr.endswith("=2"):
-                            # Worse.
-                            if vecstr[2:] in elements:
-                                # Override previous
+                        # This label does not occur. Maybe the '=1'
+                        # suffix was stripped in dbkey?
+                        if vecstr.endswith("=1"):
+                            if vecstr[2:-2] in elements:
+                                # Ah, short version
                                 self.vector[i] = y
         return
 
