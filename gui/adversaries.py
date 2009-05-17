@@ -1716,7 +1716,8 @@ def GetWeakersEquals(prots):
     """
     For all protocols infer weakers.
 
-    Returns (wkrs,equals,AT), tuple of dicts. Each maps protocols to sets of protocols.
+    Returns (wkrs,equals,AT), tuple of dicts. wkrs and equals map protocols to
+    sets of protocols.  AT maps protocols to a set of security models.
     """
     alltrue = {}
     AT = {}
@@ -1739,6 +1740,94 @@ def GetWeakersEquals(prots):
                     wkrs[fn].add(fn2)
     return (wkrs,equals,AT)
         
+
+def GetMinVec(modelset, axis):
+    """
+    Get the minimum value in the model set for the given axis.
+    """
+    minv = None
+    for m in modelset:
+        if minv == None:
+            minv = m.vector[axis]
+        else:
+            if m.vector[axis] < minv:
+                minv = m.vector[axis]
+    return minv
+
+
+def SwitchCutter(swt, cutparam=False):
+    """
+    Cut of switch stuff, possibly also param.
+    """
+    if swt.startswith("--"):
+        swt = swt[2:]
+    if cutparam:
+        x = swt.rfind("=")
+        if x >= 0:
+            swt = swt[:x]
+    return swt
+
+
+def FixDelta(leftnode,rightnode):
+    """
+    Given two sets of security models, compute a FixDelta that indicates what the right node sets 'fix'.
+
+    Idea: the resulting SecDelta captures all axis which no longer have attacks
+    in the rightnode, but did have some in the left node.
+    """
+    diff = rightnode - leftnode
+    if (len(leftnode) == 0) or (len(diff) == 0):
+        print "Error: Node adversary model sets should not be empty for protocol security hierarchy."
+        sys.exit(-1)
+
+    ref = SecModel()
+    fixed = []
+    for x in range(0,ref.length):
+        leftmin = GetMinVec(leftnode,x)
+        rightmin = GetMinVec(diff,x)
+        if leftmin != rightmin:
+            """
+            Does it really fix all left models?
+            """
+            fixall = True
+            for m in leftnode:
+                m2 = m.copy()
+                m2.vector[x] = rightmin
+                fixallone = False
+                for m3 in rightnode:
+                    if m3 == m2:
+                        fixallone = True
+                        break
+                if fixallone != True:
+                    fixall = False
+                    break
+    
+            if fixall:
+                """
+                Good, draw it.
+                """
+                lab = "%i: " % x
+                simple = False
+                if len(ref.axes[x]) == 2:
+                    # Just two choices, call it 'simple'
+                    s1 = SwitchCutter(ref.axes[x][leftmin], True)
+                    s2 = SwitchCutter(ref.axes[x][rightmin], True)
+                    if (s1 == "") or (s2 == ""):
+                        lab += s1 + s2
+                        simple = True
+                    else:
+                        if s1 == s2:
+                            lab += s1
+                            simple = True
+
+                if not simple:
+                    # Otherwise show diff
+                    lab += "%s -> %s" % (SwitchCutter(ref.axes[x][leftmin]),SwitchCutter(ref.axes[x][rightmin]))
+
+                fixed.append(lab)
+
+    return fixed
+
 
 def GraphProtocolSecurityHierarchy():
     """
@@ -1789,10 +1878,38 @@ def GraphProtocolSecurityHierarchy():
                     nope = False
                     break
             if nope == True:
-                edge = "\t%s -> %s;\n" % (dotabbrev(pickfirst(equals,pn)),dotabbrev(pickfirst(equals,fn)))
-                if edge not in edges:
-                    edges.add(edge)
+                """
+                Edge exists. Did we draw it already?
+                """
+                leftstr = dotabbrev(pickfirst(equals,pn))
+                rightstr = dotabbrev(pickfirst(equals,fn))
+                edgestr = (leftstr,rightstr)
+                if edgestr not in edges:
+                    edges.add(edgestr)
+                    """
+                    Draw new edge
+                    """
+
+                    # Draw edge with label 'lab'
+                    # Determine edge label: what does it 'fix'
+                    lab = ""
+                    # First determine set on models on the nodes
+                    #leftweakers = set()
+                    #for wn in wkrs[pn]:
+                    #    leftweakers = leftweakers | AT[wn]
+
+                    leftnode = AT[pn]
+                    rightnode = AT[fn]
+                    #leftnode = leftnode - leftweakers
+                    # Check each axis
+                    fixed = FixDelta(leftnode,rightnode)
+                    if fixed != []:
+                        lab = "Fixes:\\l%s\\l" % ("\\l".join(fixed))
+
+                    # Draw edge with label 'lab'
+                    edge = "\t%s -> %s [label=\"%s\"];\n" % (leftstr,rightstr,lab)
                     fp.write(edge)
+
         count += 1
         pbar.update(count)
 
