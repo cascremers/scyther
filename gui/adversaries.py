@@ -226,6 +226,15 @@ def InitRestricted(models=None):
                 continue
             MS.append(model.copy())
         RESTRICTEDMODELS = MS
+    elif models in ["extravert"]:
+        RESTRICTEDMODELS = None
+        MS = []
+        for model in Traverse(unrestricted=True):
+            if model.vector[6] != 0:
+                # We only consider extravert models
+                continue
+            MS.append(model.copy())
+        RESTRICTEDMODELS = MS
     else:
         RESTRICTEDMODELS = None
 
