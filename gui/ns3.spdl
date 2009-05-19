@@ -17,8 +17,9 @@ protocol ns3(I,R)
 
 		claim_i1(I,Secret,ni);
 		claim_i2(I,Secret,nr);
-		claim_i3(I,Niagree);
-		claim_i4(I,Nisynch);
+		claim_i3(I,Alive);
+		claim_i4(I,Niagree);
+		claim_i5(I,Nisynch);
 	}	
 	
 	role R
@@ -32,8 +33,9 @@ protocol ns3(I,R)
 
 		claim_r1(R,Secret,ni);
 		claim_r2(R,Secret,nr);
-		claim_r3(R,Niagree);
-		claim_r4(R,Nisynch);
+		claim_r3(R,Alive);
+		claim_r4(R,Niagree);
+		claim_r5(R,Nisynch);
 	}
 }
 

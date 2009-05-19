@@ -41,8 +41,9 @@ extern Term TERM_Compromise;
 
 extern Term TERM_Claim;
 extern Term CLAIM_Secret;
-extern Term CLAIM_Nisynch;
+extern Term CLAIM_Alive;
 extern Term CLAIM_Niagree;
+extern Term CLAIM_Nisynch;
 extern Term CLAIM_Empty;
 extern Term CLAIM_Reachable;
 extern Term CLAIM_SID;

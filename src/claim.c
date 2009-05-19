@@ -733,6 +733,39 @@ arachne_claim_nisynch (const System sys, const int claim_run,
   return arachne_claim_authentications (sys, claim_run, claim_index, 1);
 }
 
+//! Test aliveness
+int
+arachne_claim_alive (const System sys, const int claim_run,
+		     const int claim_index)
+{
+  /*
+   * Fairly simple claim: there must exist runs for each agent involved.
+   * We don't even consider the roles.
+   */
+  Termlist tl;
+
+  for (tl = sys->runs[claim_run].rho; tl != NULL; tl = tl->next)
+    {
+      int run;
+      int principalLives;
+
+      principalLives = false;
+      for (run = 0; run < sys->maxruns; run++)
+	{
+	  if (isTermEqual (tl->term, agentOfRun (sys, run)))
+	    {
+	      principalLives = true;
+	      break;
+	    }
+	}
+      if (!principalLives)
+	{
+	  return false;
+	}
+    }
+  return true;
+}
+
 //! Determine good height for full session
 /**
  * For a role, assume in context of claim role
@@ -1015,6 +1048,21 @@ prune_claim_specifics (const System sys)
 	      indentPrint ();
 	      eprintf
 		("Pruned: nisynch holds in this part of the proof tree.\n");
+	    }
+	  return 1;
+	}
+    }
+  if (sys->current_claim->type == CLAIM_Alive)
+    {
+      if (arachne_claim_alive (sys, 0, sys->current_claim->ev))
+	{
+	  sys->current_claim->count =
+	    statesIncrease (sys->current_claim->count);
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf
+		("Pruned: alive holds in this part of the proof tree.\n");
 	    }
 	  return 1;
 	}

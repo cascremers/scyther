@@ -973,6 +973,7 @@ claimAddAll (const System sys, const Protocol protocol, const Role role)
       addSecrecyList (role->declaredvars);
 
       /* full non-injective agreement and ni-synch */
+      claimCreate (sys, protocol, role, CLAIM_Alive, NULL, NULL, -1);
       claimCreate (sys, protocol, role, CLAIM_Niagree, NULL, NULL, -1);
       claimCreate (sys, protocol, role, CLAIM_Nisynch, NULL, NULL, -1);
     }

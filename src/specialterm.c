@@ -47,8 +47,9 @@ Term TERM_Compromise;
 
 Term TERM_Claim;
 Term CLAIM_Secret;
-Term CLAIM_Nisynch;
+Term CLAIM_Alive;
 Term CLAIM_Niagree;
+Term CLAIM_Nisynch;
 Term CLAIM_Empty;
 Term CLAIM_Reachable;
 Term CLAIM_SID;
@@ -89,8 +90,9 @@ specialTermInit (const System sys)
   langcons (TERM_Compromise, "Compromise", TERM_Marker);	// send label for compromise send
 
   langcons (CLAIM_Secret, "Secret", TERM_Claim);
-  langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);
+  langcons (CLAIM_Alive, "Alive", TERM_Claim);
   langcons (CLAIM_Niagree, "Niagree", TERM_Claim);
+  langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);
   langcons (CLAIM_Empty, "Empty", TERM_Claim);
   langcons (CLAIM_Reachable, "Reachable", TERM_Claim);
 
@@ -110,7 +112,7 @@ specialTermInit (const System sys)
   /* basically all authentication claims */
   CLAIMS_dep_prec = termlistAdd (NULL, CLAIM_Niagree);
   CLAIMS_dep_prec = termlistAdd (CLAIMS_dep_prec, CLAIM_Nisynch);
-
+  CLAIMS_dep_prec = termlistAdd (CLAIMS_dep_prec, CLAIM_Alive);
 }
 
 //! After compilation (so the user gets the first choice)
