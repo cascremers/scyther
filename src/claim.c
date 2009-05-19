@@ -733,6 +733,46 @@ arachne_claim_nisynch (const System sys, const int claim_run,
   return arachne_claim_authentications (sys, claim_run, claim_index, 1);
 }
 
+//! Test weak agreement
+int
+arachne_claim_weakagree (const System sys, const int claim_run,
+			 const int claim_index)
+{
+  /*
+   * Runs for each role, with matching lists for rho.
+   */
+  Role role;
+
+  for (role = sys->runs[claim_run].protocol->roles; role != NULL;
+       role = role->next)
+    {
+      if (role != sys->runs[claim_run].role)
+	{
+	  int run;
+	  int roleokay;
+
+	  roleokay = false;
+	  for (run = 0; run < sys->maxruns; run++)
+	    {
+	      if (run != claim_run)
+		{
+		  if (isTermlistEqual
+		      (sys->runs[run].rho, sys->runs[claim_run].rho))
+		    {
+		      roleokay = true;
+		      break;
+		    }
+		}
+	    }
+	  if (!roleokay)
+	    {
+	      return false;
+	    }
+	}
+    }
+  return true;
+}
+
 //! Test aliveness
 int
 arachne_claim_alive (const System sys, const int claim_run,
@@ -1048,6 +1088,21 @@ prune_claim_specifics (const System sys)
 	      indentPrint ();
 	      eprintf
 		("Pruned: nisynch holds in this part of the proof tree.\n");
+	    }
+	  return 1;
+	}
+    }
+  if (sys->current_claim->type == CLAIM_Weakagree)
+    {
+      if (arachne_claim_weakagree (sys, 0, sys->current_claim->ev))
+	{
+	  sys->current_claim->count =
+	    statesIncrease (sys->current_claim->count);
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf
+		("Pruned: Weak agreement holds in this part of the proof tree.\n");
 	    }
 	  return 1;
 	}
