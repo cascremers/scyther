@@ -337,6 +337,9 @@ knowledgePrint (Knowledge know)
   eprintf (" [Vars]: ");
   termlistPrint (know->vars);
   eprintf ("\n");
+  eprintf (" [Inverses]: ");
+  termlistPrint (know->inverses);
+  eprintf ("\n");
 }
 
 //! Print a knowledge set, short version (no newline)
