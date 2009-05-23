@@ -884,8 +884,6 @@ hashfunctions (Tac tcstart)
   // As long as tc is intact.
   levelDeclareConst (tcstart);
   hfuncs = tacTermlist (tcstart->t1.tac);
-  if (level < 2)
-    knowledgeAddTermlist (sys->know, hfuncs);
 
   for (tc = tcstart->t1.tac; tc != NULL; tc = tc->next)
     {
@@ -903,6 +901,7 @@ hashfunctions (Tac tcstart)
 	}
       knowledgeAddInverse (sys->know, hfuncs->term, hinvs->term);
       hfuncs->term->stype = termlistAdd (NULL, TERM_Function);
+      knowledgeAddTerm (sys->know, hfuncs->term);
       hinvs->term->stype = termlistAdd (NULL, TERM_Function);
       hfuncs = hfuncs->next;
       hinvs = hinvs->next;
