@@ -253,6 +253,7 @@ knowledgeAddTermlist (Knowledge know, Termlist tl)
 
   while (tl != NULL)
     {
+      // Evil old fashioned code relies on lazy left-to-right parsing. Get rid of it.
       flag = knowledgeAddTerm (know, tl->term) || flag;
       tl = tl->next;
     }
