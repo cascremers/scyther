@@ -36,6 +36,7 @@
 #include "binding.h"
 #include "depend.h"
 #include "compromise.h"
+#include "type.h"
 
 extern Protocol INTRUDER;	// from arachne.c
 
@@ -164,10 +165,16 @@ goodBindingKeyAgents (const System sys, int *partners, Binding b,
   alist = tuple_to_termlist (keyagents);
   for (tl = alist; tl != NULL; tl = tl->next)
     {
-      if (isCompromiseAllowed (sys, partners, b, tl->term))
+      Term agentt;
+
+      agentt = deVar (tl->term);
+      if (agentCompatible (agentt->stype))
 	{
-	  isFine = true;
-	  break;
+	  if (isCompromiseAllowed (sys, partners, b, agentt))
+	    {
+	      isFine = true;
+	      break;
+	    }
 	}
     }
   termlistDelete (alist);

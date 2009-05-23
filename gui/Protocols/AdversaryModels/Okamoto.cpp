@@ -29,10 +29,7 @@ protocol @exphelper(H1,H2,H3)
 	}
 	role H2
 	{
-		var X: Agent;
-
-		recv_!3(H2,H2, X);
-		send_!4(H2,H2, pk1(X),pk2(X) );
+		send_!3(H2,H2, pk1(H2),pk2(H2) );
 	}
 	role H3
 	{
@@ -53,7 +50,7 @@ protocol Okamoto(A,B)
 		const x1,x2: Nonce;
 		var Y1,Y2,Y3: Ticket;
 
-		#define squig(A) (pk1(A),pk2(A))
+		#define squig(A) pk1(A),pk2(A)
 		/*
 		 * Strange: how to interpret (x,x_3) <- X + Y ?
 		 *
@@ -63,7 +60,7 @@ protocol Okamoto(A,B)
 		#define FX(A,Y,Z)  FCAS(1,squig(A),Y,Z)
 		#define FX3(A,Y,Z) FCAS(2,squig(A),Y,Z)
 
-		#define  X123(A,x1,x2)  exp(g1,FX(A,x1,x2)), exp(g2,FX(A,x1,x2)), exp(g1,FX3(A,x1,x2))
+		#define  X123(A,x1,x2)  exp(g1,FX(A,x1,x2)),exp(g2,FX(A,x1,x2)),exp(g1,FX3(A,x1,x2))
 		send_1(A,B, X123(A,x1,x2) );
 		recv_2(B,A, Y1,Y2,Y3 );
 
@@ -84,7 +81,14 @@ protocol Okamoto(A,B)
 		#define sigma4a exp(pk1(B),FX(A,x1,x2))
 		#define sigma5a exp(pk2(B),mult(da,FX(A,x1,x2)))
 		#define sigmaa 	mult(mult(mult(mult(sigma1a,sigma2a),sigma3a),sigma4a),sigma5a)
-		#define sida	(A,B,X123(A,x1,x2),Y1,Y2,Y3)
+		#define sida	A,B,X123(A,x1,x2),Y1,Y2,Y3
+		/*
+		 * Adv. cannot produce sigmaa
+		 * nor X123(A,x1,x2)
+		 *
+		 * Adv. cannot produce X123(A,x1,x2) from x1,x2
+		 */
+		send_!xx(A,A, sigmaa,x1,x2);
 		claim(A, SKR, FCAS(sigmaa, sida) );
 	}
 	role B
@@ -98,7 +102,7 @@ protocol Okamoto(A,B)
 		 */
 		#define FY(A,Y,Z)  FCAS(1,squig(A),Y,Z)
 		#define FY3(A,Y,Z) FCAS(2,squig(A),Y,Z)
-		#define Y123(B,y1,y2)  exp(g1,FY(B,y1,y2)), exp(g2,FY(B,y1,y2)), exp(g1,FY3(B,y1,y2))
+		#define Y123(B,y1,y2)  exp(g1,FY(B,y1,y2)),exp(g2,FY(B,y1,y2)),exp(g1,FY3(B,y1,y2))
 		send_2(B,A, Y123(B,y1,y2) );
 
 		#define cb	FCAS(A,A,B,Y123(B,y1,y2) )
@@ -109,8 +113,10 @@ protocol Okamoto(A,B)
 		#define sigma4b exp(pk1(B),FY(B,y1,y2))
 		#define sigma5b exp(pk2(B),mult(cb,FY(B,y1,y2)))
 		#define sigmab 	mult(mult(mult(mult(sigma1b,sigma2b),sigma3b),sigma4b),sigma5b)
-		#define sidb	(A,B,X1,X2,X3,Y123(B,y1,y2))
-		claim(B, SKR, FCAS(sigmab, sidb) );
+		#define sidb	A,B,X1,X2,X3,Y123(B,y1,y2)
+		/*
+		 * claim(B, SKR, FCAS(sigmab, sidb) );
+		 */
 	}
 }
 
