@@ -198,6 +198,18 @@ def InitRestricted(models=None):
     ck2001hmqvrnr.vector[4] = 1
     ck2001hmqvrnr.setName("CKw-nr")
 
+    # Extravert variants of eCK,ck2001,ck2001hmqv
+    eckextravert = eck.copy()
+    eckextravert.vector[6] = 0
+    eckextravert.setName("eCK-extravert")
+    ck2001extravert = ck2001.copy()
+    ck2001extravert.vector[6] = 0
+    ck2001extravert.setName("CK-extravert")
+    ck2001hmqvextravert = ck2001hmqv.copy()
+    ck2001hmqvextravert.vector[6] = 0
+    ck2001hmqvextravert.setName("CKw-extravert")
+    
+
     RESTRICTEDMODELS = [eck, eckalt,ck2001rnr,ck2001hmqvrnr]    # To compare equal choice for RNR/SSR
 
     # append maximum
@@ -224,7 +236,22 @@ def InitRestricted(models=None):
                 continue
             MS.append(model.copy())
         RESTRICTEDMODELS = MS
+    elif models in ["old"]:
+        """
+        Not-extravert, in fact
+        """
+        RESTRICTEDMODELS = None
+        MS = []
+        for model in Traverse(unrestricted=True):
+            if model.vector[6] == 0:
+                # We don't consider extravert models
+                continue
+            MS.append(model.copy())
+        RESTRICTEDMODELS = MS
     elif models in ["extravert"]:
+        """
+        Extravert only
+        """
         RESTRICTEDMODELS = None
         MS = []
         for model in Traverse(unrestricted=True):
@@ -237,6 +264,8 @@ def InitRestricted(models=None):
         RESTRICTEDMODELS = [eck, ck2001hmqvrnr,ck2001rnr]   # Triangle restriction
     elif models in ["triangleSSR"]:
         RESTRICTEDMODELS = [eck, ck2001hmqv,ck2001,ck2001hmqvrnr,ck2001rnr]         # Triangle restriction but allow state-reveal too
+    elif models in ["triangleExtravert"]:
+        RESTRICTEDMODELS = [eck,ck2001hmqv,ck2001,eckextravert,ck2001hmqvextravert,ck2001extravert]         # Triangle restriction but allow state-reveal too, and extravert
     elif models in ["all","any"]:
         RESTRICTEDMODELS = None
     else:
