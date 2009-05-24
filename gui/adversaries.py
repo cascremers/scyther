@@ -207,9 +207,7 @@ def InitRestricted(models=None):
     if max not in RESTRICTEDMODELS:
         RESTRICTEDMODELS.append(max)
 
-    RESTRICTEDMODELS = [ck2001,ck2001hmqv]      # To compare equal choice for RNR/SSR
-    RESTRICTEDMODELS = [eck, ck2001hmqvrnr,ck2001rnr]   # Triangle restriction
-    RESTRICTEDMODELS = [eck, ck2001hmqv,ck2001,ck2001hmqvrnr,ck2001rnr]         # Triangle restriction but allow state-reveal too
+    #RESTRICTEDMODELS = [ck2001,ck2001hmqv]      # To compare equal choice for RNR/SSR
 
     #RESTRICTEDMODELS = None #   default
     if models in ["CSF09","Literature"]:
@@ -235,8 +233,15 @@ def InitRestricted(models=None):
                 continue
             MS.append(model.copy())
         RESTRICTEDMODELS = MS
-    else:
+    elif models in ["triangle"]:
+        RESTRICTEDMODELS = [eck, ck2001hmqvrnr,ck2001rnr]   # Triangle restriction
+    elif models in ["triangleSSR"]:
+        RESTRICTEDMODELS = [eck, ck2001hmqv,ck2001,ck2001hmqvrnr,ck2001rnr]         # Triangle restriction but allow state-reveal too
+    elif models in ["all","any"]:
         RESTRICTEDMODELS = None
+    else:
+        print "ERROR: Unknown model type %s" % (models)
+        sys.exit(0)
 
     # Report
     reportModels(RESTRICTEDMODELS)
@@ -1786,8 +1791,7 @@ def FixDelta(leftnode,rightnode):
     """
     diff = rightnode - leftnode
     if (len(leftnode) == 0) or (len(diff) == 0):
-        print "Error: Node adversary model sets should not be empty for protocol security hierarchy."
-        sys.exit(-1)
+        return []
 
     ref = SecModel()
     fixed = []
