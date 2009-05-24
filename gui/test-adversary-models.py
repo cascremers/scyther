@@ -19,6 +19,7 @@
 """
 
 import sys
+import time
 import commands
 from optparse import OptionParser
 
@@ -83,6 +84,9 @@ def pathAdd(paths, args):
 
 
 if __name__ == '__main__':
+    # Store command line in log
+    commands.getoutput("echo \"[%s] %s\" >>test.log" % (time.ctime()," ".join(sys.argv)))
+
     # Options
     (options, args) = initParser()
 
