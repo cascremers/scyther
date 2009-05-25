@@ -1,0 +1,57 @@
+/* 
+ * SKEME from Boyd-Mathuria book
+ */
+
+// Hash functions
+hashfunction MAC,h1,h2,g1,g2,H;
+
+/*
+ * Hack to simulate g^ab = g^ba.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exponentiation(RA)
+{
+	role RA
+	{
+		var alpha,beta, T1,T2: Ticket;
+
+		recv_!1(RA,RA, g2(g1(T1),T2) );
+		send_!2(RA,RA, g2(g1(T2),T1) );
+	}
+}
+
+// The protocol description
+
+protocol SKEME(I,R)
+{
+	role I
+	{
+		const x: Nonce;
+		const ni: Nonce;
+		var beta: Ticket;
+		var nr: Nonce;
+
+		send_1(I,R,  {I, ni}pk(R), g1(x) );
+		recv_2(R,I,  {nr}pk(I), beta, MAC(H(ni,nr),g1(x),beta,R,I) );
+		send_3(I,R,  MAC(H(ni,nr),beta,g1(x),I,R) );
+
+		claim(I,SKR, g2(beta,x) );
+	}	
+	
+	role R
+	{
+		const y: Nonce;
+		const nr: Nonce;
+		var alpha: Ticket;
+		var ni: Nonce;
+
+		recv_1(I,R,  {I, ni}pk(R), alpha );
+		send_2(R,I,  {nr}pk(I), g1(y), MAC(H(ni,nr),alpha,g1(y),R,I) );
+		recv_3(I,R,  MAC(H(ni,nr),g1(y),alpha,I,R) );
+
+		claim(R,SKR, g2(alpha,y) );
+	}
+}
+
