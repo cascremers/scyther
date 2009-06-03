@@ -41,6 +41,24 @@ protocol @exphelper(H1,H2,H3)
 	}
 }
 
+protocol @multhelper(H1,H2)
+{
+	role H1
+	{
+		var X,Y: Ticket;
+
+		recv_!1(H1,H1, mult(X,Y));
+		send_!2(H1,H1, mult(Y,X));
+	}
+	role H2
+	{
+		var X,Y,Z: Ticket;
+
+		recv_!3(H2,H2, mult(mult(X,Y),Z));
+		send_!4(H2,H2, mult(mult(X,Z),Y));
+	}
+}
+
 // The protocol description
 
 protocol Okamoto(A,B)

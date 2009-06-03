@@ -26,8 +26,6 @@ protocol @exphelper(H1,H2,H3)
  }
  role H2
  {
-  var X: Agent;
-
   send_!3(H2,H2, mult(exp(g1,sk(H2,1)),exp(g2,sk(H2,2))),mult(exp(g1,sk(H2,3)),exp(g2,sk(H2,4))) );
  }
  role H3
@@ -40,6 +38,24 @@ protocol @exphelper(H1,H2,H3)
  }
 }
 
+protocol @multhelper(H1,H2)
+{
+ role H1
+ {
+  var X,Y: Ticket;
+
+  recv_!1(H1,H1, mult(X,Y));
+  send_!2(H1,H1, mult(Y,X));
+ }
+ role H2
+ {
+  var X,Y,Z: Ticket;
+
+  recv_!3(H2,H2, mult(mult(X,Y),Z));
+  send_!4(H2,H2, mult(mult(X,Z),Y));
+ }
+}
+
 
 
 protocol Okamoto(A,B)
@@ -48,10 +64,10 @@ protocol Okamoto(A,B)
  {
   const x1,x2: Nonce;
   var Y1,Y2,Y3: Ticket;
-# 66 "Okamoto.cpp"
+# 82 "Okamoto.cpp"
   send_1(A,B, exp(g1,FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)),exp(g2,FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)),exp(g1,FCAS(2,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)) );
   recv_2(B,A, Y1,Y2,Y3 );
-# 93 "Okamoto.cpp"
+# 109 "Okamoto.cpp"
   send_!xx(A,A, mult(mult(mult(mult(exp(Y1,add(sk(A,1), mult(FCAS(A,A,B,Y1,Y2,Y3),sk(A,3)))),exp(Y2,add(sk(A,2), mult(FCAS(A,A,B,Y1,Y2,Y3),sk(A,4))))),exp(Y3,FCAS(2,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2))),exp(mult(exp(g1,sk(B,1)),exp(g2,sk(B,2))),FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2))),exp(mult(exp(g1,sk(B,3)),exp(g2,sk(B,4))),mult(FCAS(A,B,A,exp(g1,FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)),exp(g2,FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)),exp(g1,FCAS(2,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2))),FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)))),x1,x2);
   claim(A, SKR, FCAS(mult(mult(mult(mult(exp(Y1,add(sk(A,1), mult(FCAS(A,A,B,Y1,Y2,Y3),sk(A,3)))),exp(Y2,add(sk(A,2), mult(FCAS(A,A,B,Y1,Y2,Y3),sk(A,4))))),exp(Y3,FCAS(2,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2))),exp(mult(exp(g1,sk(B,1)),exp(g2,sk(B,2))),FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2))),exp(mult(exp(g1,sk(B,3)),exp(g2,sk(B,4))),mult(FCAS(A,B,A,exp(g1,FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)),exp(g2,FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)),exp(g1,FCAS(2,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2))),FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)))), A,B,exp(g1,FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)),exp(g2,FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)),exp(g1,FCAS(2,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)),Y1,Y2,Y3) );
  }
@@ -68,6 +84,6 @@ protocol Okamoto(A,B)
 
 
   send_2(B,A, exp(g1,FCAS(1,mult(exp(g1,sk(B,1)),exp(g2,sk(B,2))),mult(exp(g1,sk(B,3)),exp(g2,sk(B,4))),y1,y2)),exp(g2,FCAS(1,mult(exp(g1,sk(B,1)),exp(g2,sk(B,2))),mult(exp(g1,sk(B,3)),exp(g2,sk(B,4))),y1,y2)),exp(g1,FCAS(2,mult(exp(g1,sk(B,1)),exp(g2,sk(B,2))),mult(exp(g1,sk(B,3)),exp(g2,sk(B,4))),y1,y2)) );
-# 122 "Okamoto.cpp"
+# 138 "Okamoto.cpp"
  }
 }
