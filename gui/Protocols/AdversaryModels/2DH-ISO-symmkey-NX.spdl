@@ -1,0 +1,81 @@
+/* 
+ * 2DH-symmkey-NX
+ *
+ * Two-move Diffie-Hellman simplified, Naxossed
+ *
+ * Cas Cremers, 30 April 2009
+ *
+ * Design decision:
+ *
+ * 1. Tried to be minimal.
+ *
+ * 2. Content outside of signature is technically speaking redundant,
+ * just there for clarity.
+ *
+ * 3. Including alpha (the third element of the tuple) in the second
+ * message serves two purposes. First, it distinguishes message 1 and 2.
+ * Second, alpha is used as 'session identifier'. If it is replaced by a
+ * constant, a state-reveal query on a non-matching thread may reveal
+ * the responders nonce. If desired, an explicit session identifier may
+ * be added to the first and second message; if so, the alpha can be
+ * omitted from the second message, if care is taken to distinguish both
+ * messages (either by labeling or reordering the tuple).
+ */
+
+// Hash functions
+const h1,h2,g1,g2: Function;
+secret unh1,unh2,ung1,ung2: Function;
+
+inversekeys (h1,unh1);
+inversekeys (h2,unh2);
+inversekeys (g1,ung1);
+inversekeys (g2,ung2);
+
+/*
+ * Hack to simulate g^ab = g^ba.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exponentiation(RA)
+{
+	role RA
+	{
+		var alpha,beta, T1,T2: Ticket;
+
+		recv_!1(RA,RA, g2(g1(T1),T2) );
+		send_!2(RA,RA, g2(g1(T2),T1) );
+	}
+}
+
+// The protocol description
+
+protocol 2DH-symmkey-NX(I,R)
+{
+	role I
+	{
+		const x: Nonce;
+		var beta: Ticket;
+
+		send_Compromise(I,I, h1(k(I,R),x) );
+
+		send_1(I,R,  g1(h1(k(I,R),x)),R,      { g1(h1(k(I,R),x)),R       }k(I,R) );
+		recv_2(R,I,  beta,I,g1(h1(k(I,R),x)), { beta,I, g1(h1(k(I,R),x)) }k(I,R) );
+
+		claim(I,SKR, g2(beta,h1(k(I,R),x)) );
+	}	
+	
+	role R
+	{
+		const y: Nonce;
+		var alpha: Ticket;
+
+		send_Compromise(R,R, h1(k(I,R),y) );
+
+		recv_1(I,R,  alpha,R,                 { alpha,R                 }k(I,R) );
+		send_2(R,I,  g1(h1(k(I,R),y)),I,alpha, { g1(h1(k(I,R),y)),I,alpha }k(I,R) );
+
+		claim(R,SKR, g2(alpha,h1(k(I,R),y)) );
+	}
+}
+
