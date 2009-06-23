@@ -262,6 +262,8 @@ def InitRestricted(models=None):
         RESTRICTEDMODELS = MS
     elif models in ["triangle"]:
         RESTRICTEDMODELS = [eck, ck2001hmqvrnr,ck2001rnr]   # Triangle restriction
+    elif models in ["square"]:
+        RESTRICTEDMODELS = [eck, ck2001hmqvrnr,ck2001rnr,pfs]   # Square restriction
     elif models in ["triangleSSR"]:
         RESTRICTEDMODELS = [eck, ck2001hmqv,ck2001,ck2001hmqvrnr,ck2001rnr]         # Triangle restriction but allow state-reveal too
     elif models in ["triangleExtravert"]:
