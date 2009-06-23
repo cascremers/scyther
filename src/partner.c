@@ -121,15 +121,12 @@ isLabelComprEqual (Term l1, Term l2)
 /**
  * Roledef based.
  *@returns MATCH_NONE or MATCH_CONTENT
- * 
- * This compromise version ignores the agents. However, we need the labels for
- * the ordering on matching histories.
  */
 __inline__ int
 events_hist_match_rd (const Roledef rdi, const Roledef rdj)
 {
   if (isTermEqual (rdi->message, rdj->message) &&
-      // isTermEqual (rdi->from, rdj->from) && isTermEqual (rdi->to, rdj->to) &&
+      isTermEqual (rdi->from, rdj->from) && isTermEqual (rdi->to, rdj->to) &&
       isLabelComprEqual (rdi->label, rdj->label) &&
       !(rdi->internal || rdj->internal))
     {
