@@ -89,10 +89,8 @@ switchesInit (int argc, char **argv)
   // Adversary type
   switches.LKRnotgroup = true;	//!< default is anybody outside the group
   switches.LKRactor = false;	//!< default is no KCI
-  switches.LKRactorrnsafe = false;	//!< default is no KCI if rn safe
   switches.LKRafter = false;	//!< default is no perfect forward secrecy
   switches.LKRaftercorrect = false;	//!< default is no weak perfect forward secrecy
-  switches.LKRrnsafe = false;	//!< default is no weaker perfect forward 
   switches.SKR = false;		//!< default is no session-key reveal
   switches.SSR = false;		//!< default is no SSR 
   switches.RNR = false;		//!< default is no RNR
@@ -678,14 +676,6 @@ switcher (const int process, int index, int commandline)
 	  return index;
 	}
     }
-  if (detect (' ', "LKRactorrnsafe", 1))
-    {
-      if (process)
-	{
-	  switches.LKRactorrnsafe = integer_argument ();
-	  return index;
-	}
-    }
   if (detect (' ', "LKRafter", 1))
     {
       if (process)
@@ -699,14 +689,6 @@ switcher (const int process, int index, int commandline)
       if (process)
 	{
 	  switches.LKRaftercorrect = integer_argument ();
-	  return index;
-	}
-    }
-  if (detect (' ', "LKRrnsafe", 1))
-    {
-      if (process)
-	{
-	  switches.LKRrnsafe = integer_argument ();
 	  return index;
 	}
     }
