@@ -276,13 +276,6 @@ def InitRestricted(models=None):
         print "ERROR: Unknown model type %s" % (models)
         sys.exit(0)
 
-    # append maximum
-    max = external.copy()
-    for m in RESTRICTEDMODELS:
-        max.union(m)
-    if max not in RESTRICTEDMODELS:
-        RESTRICTEDMODELS.append(max)
-
     # Report
     reportModels(RESTRICTEDMODELS)
 
