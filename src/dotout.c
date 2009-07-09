@@ -1507,7 +1507,7 @@ printRunExplanation (const System sys, const int run,
   }
 
   // Partner or compromise? (if needed to show this)
-  if (switches.LKRaftercorrect || switches.LKRafter || switches.LKRrnsafe
+  if (switches.LKRaftercorrect || switches.LKRafter
       || switches.SSR || switches.SKR || switches.RNR)
     {
       if (sys->runs[run].partner)

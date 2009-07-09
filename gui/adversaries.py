@@ -149,45 +149,54 @@ def InitRestricted(models=None):
     
     # pfs: notgroup after
     pfs = external.copy()
-    pfs.vector[2] = 3
+    pfs.vector[2] = 2
     pfs.setName("AF")
 
     # wpfs: notgroup aftercorrect
     wpfs = pfs.copy()
-    wpfs.vector[2] = 2
+    wpfs.vector[2] = 1
     wpfs.setName("AFC")
 
     # ck2001: notgroup after skr ssr
     ck2001 = pfs.copy()
     ck2001.union(internal)
     ck2001.vector[3] = 1
-    ck2001.vector[4] = 2
+    ck2001.vector[4] = 3
     ck2001.setName("CK")
 
     # ck2001hmqv: notgroup aftercorrect skr ssr
     ck2001hmqv = ck2001.copy()
     ck2001hmqv.vector[1] = 1    # KCI
-    ck2001hmqv.vector[2] = 2    # aftercorrect
+    ck2001hmqv.vector[2] = 1    # aftercorrect
     ck2001hmqv.setName("CKw")
 
-    # eck: notgroup actor rnsafe skr rnr
-    eck = kci.copy()
-    eck.union(internal)
-    eck.vector[1] = 1    
-    eck.vector[2] = 1
-    eck.vector[3] = 1
-    eck.vector[5] = 1
-    eck.setName("eCK")
+    # eck-1: notgroup skr rnr
+    eck1 = kci.copy()
+    eck1.union(internal)
+    eck1.vector[1] = 0    
+    eck1.vector[2] = 0
+    eck1.vector[3] = 1
+    eck1.vector[5] = 1
+    eck1.setName("eCK-1")
 
-    # eckalt: notgroup actor after skr rnr ssr
-    eckalt = eck.copy()
-    eckalt.vector[2] = 2
-    eckalt.setName("eCK-alt")
+    # eck-2: notgroup actor aftercorrect skr 
+    eck2 = kci.copy()
+    eck2.union(internal)
+    eck2.vector[1] = 1    
+    eck2.vector[2] = 1
+    eck2.vector[3] = 1
+    eck2.vector[5] = 0
+    eck2.setName("eCK-2")
 
-    # eckplus: notgroup actor rnsafe skr rnr ssr
-    eckplus = eck.copy()
-    eckplus.vector[4] = 2
-    eckplus.setName("eCK+")
+    ## eckalt: notgroup actor after skr rnr ssr
+    #eckalt = eck.copy()
+    #eckalt.vector[2] = 2
+    #eckalt.setName("eCK-alt")
+
+    ## eckplus: notgroup actor after skr rnr ssr
+    #eckplus = eck.copy()
+    #eckplus.vector[4] = 2
+    #eckplus.setName("eCK+")
 
     # RNR variants of SSR filters
     ck2001rnr = ck2001.copy()
@@ -199,9 +208,9 @@ def InitRestricted(models=None):
     ck2001hmqvrnr.setName("CKw-nr")
 
     # Extravert variants of eCK,ck2001,ck2001hmqv
-    eckextravert = eck.copy()
-    eckextravert.vector[6] = 0
-    eckextravert.setName("eCK-extravert")
+    #eckextravert = eck.copy()
+    #eckextravert.vector[6] = 0
+    #eckextravert.setName("eCK-extravert")
     ck2001extravert = ck2001.copy()
     ck2001extravert.vector[6] = 0
     ck2001extravert.setName("CK-extravert")
@@ -210,20 +219,13 @@ def InitRestricted(models=None):
     ck2001hmqvextravert.setName("CKw-extravert")
     
 
-    RESTRICTEDMODELS = [eck, eckalt,ck2001rnr,ck2001hmqvrnr]    # To compare equal choice for RNR/SSR
-
-    # append maximum
-    max = external.copy()
-    for m in RESTRICTEDMODELS:
-        max.union(m)
-    if max not in RESTRICTEDMODELS:
-        RESTRICTEDMODELS.append(max)
+    #RESTRICTEDMODELS = [eck1,eck2, eckalt,ck2001rnr,ck2001hmqvrnr]    # To compare equal choice for RNR/SSR
 
     #RESTRICTEDMODELS = [ck2001,ck2001hmqv]      # To compare equal choice for RNR/SSR
 
     #RESTRICTEDMODELS = None #   default
     if models in ["CSF09","Literature"]:
-        RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck]   # As in paper
+        RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck1,eck2]   # As in paper
     elif models in ["8", "112", "CSF09Rules"]:
         RESTRICTEDMODELS = None
         MS = []
@@ -261,15 +263,15 @@ def InitRestricted(models=None):
             MS.append(model.copy())
         RESTRICTEDMODELS = MS
     elif models in ["triangle"]:
-        RESTRICTEDMODELS = [eck, ck2001hmqvrnr,ck2001rnr]   # Triangle restriction
+        RESTRICTEDMODELS = [eck1,eck2, ck2001hmqvrnr,ck2001rnr]   # Triangle restriction
     elif models in ["triangle2"]:
-        RESTRICTEDMODELS = [eck, ck2001hmqvrnr, pfs]        # Second triangle restriction
+        RESTRICTEDMODELS = [eck1,eck2, ck2001hmqvrnr, pfs]        # Second triangle restriction
     elif models in ["square"]:
-        RESTRICTEDMODELS = [eck, ck2001hmqvrnr,ck2001rnr,pfs]   # Square restriction
+        RESTRICTEDMODELS = [eck1,eck2, ck2001hmqvrnr,ck2001rnr,pfs]   # Square restriction
     elif models in ["triangleSSR"]:
-        RESTRICTEDMODELS = [eck, ck2001hmqv,ck2001,ck2001hmqvrnr,ck2001rnr]         # Triangle restriction but allow state-reveal too
+        RESTRICTEDMODELS = [eck1,eck2, ck2001hmqv,ck2001,ck2001hmqvrnr,ck2001rnr]         # Triangle restriction but allow state-reveal too
     elif models in ["triangleExtravert"]:
-        RESTRICTEDMODELS = [eck,ck2001hmqv,ck2001,eckextravert,ck2001hmqvextravert,ck2001extravert]         # Triangle restriction but allow state-reveal too, and extravert
+        RESTRICTEDMODELS = [eck1,eck2,ck2001hmqv,ck2001,eckextravert,ck2001hmqvextravert,ck2001extravert]         # Triangle restriction but allow state-reveal too, and extravert
     elif models in ["all","any"]:
         RESTRICTEDMODELS = None
     else:
@@ -325,8 +327,8 @@ class SecModel(object):
     def __init__(self,minmax=None,unrestricted=False):
 
         axis0 = ["--LKRnotgroup=0","--LKRnotgroup=1"]
-        axis1 = ["","--LKRactorrnsafe=1","--LKRactor=1"]
-        axis2 = ["","--LKRrnsafe=1","--LKRaftercorrect=1","--LKRafter=1"]
+        axis1 = ["","--LKRactor=1"]
+        axis2 = ["","--LKRaftercorrect=1","--LKRafter=1"]
         axis3 = ["","--SKR=1"]
         axis4 = ["","--SSRfilter=1","--SSRinfer=1","--SSRinfer=2"]
         axis5 = ["","--RNR=1"]
@@ -528,7 +530,8 @@ class SecModel(object):
         return " ".join(sl)
 
     def dotkey(self):
-        return self.__str__(sep="_",empty="None")
+        s = self.__str__(sep="_",empty="None")
+        return s.replace("=","_is_")
 
     def dbkey(self):
         return self.__str__(sep="_",empty="None",sort=True)

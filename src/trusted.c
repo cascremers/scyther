@@ -53,7 +53,7 @@ isCompromiseAllowed (const System sys, int *partners, Binding b, Term a)
 	  return true;
 	}
     }
-  if (switches.LKRactor || switches.LKRactorrnsafe)
+  if (switches.LKRactor)
     {
       // Is it the agent the actor of run 0,...
       if (isTermEqual (a, agentOfRun (sys, 0)))
@@ -80,21 +80,11 @@ isCompromiseAllowed (const System sys, int *partners, Binding b, Term a)
 	  if (allgood)
 	    {
 	      // It was the actor, but not assigned to any of the other roles
-	      if (switches.LKRactor)
-		{
-		  return true;
-		}
-	      if (switches.LKRactorrnsafe)
-		{
-		  if (!compromiseRNRpartner (partners, a))
-		    {
-		      return true;
-		    }
-		}
+	      return true;
 	    }
 	}
     }
-  if (switches.LKRafter || switches.LKRaftercorrect || switches.LKRrnsafe)
+  if (switches.LKRafter || switches.LKRaftercorrect)
     {
       // After the claim?
       //
@@ -124,13 +114,6 @@ isCompromiseAllowed (const System sys, int *partners, Binding b, Term a)
 		  if (switches.LKRaftercorrect)
 		    {
 		      return true;
-		    }
-		  if (switches.LKRrnsafe)
-		    {
-		      if (!compromiseRNRpartner (partners, a))
-			{
-			  return true;
-			}
 		    }
 		}
 	    }
