@@ -161,7 +161,7 @@ def InitRestricted(models=None):
     ck2001 = pfs.copy()
     ck2001.union(internal)
     ck2001.vector[3] = 1
-    ck2001.vector[4] = 2
+    ck2001.vector[4] = 3
     ck2001.setName("CK")
 
     # ck2001hmqv: notgroup aftercorrect skr ssr
@@ -528,7 +528,8 @@ class SecModel(object):
         return " ".join(sl)
 
     def dotkey(self):
-        return self.__str__(sep="_",empty="None")
+        s = self.__str__(sep="_",empty="None")
+        return s.replace("=","_is_")
 
     def dbkey(self):
         return self.__str__(sep="_",empty="None",sort=True)
