@@ -1,0 +1,94 @@
+/* 
+ * MRTD PACE
+ *
+ */
+
+// Hash functions
+hashfunction h1,h2,g1,g2;
+
+/*
+ * Hack to simulate public knowledge of public keys.
+ */
+protocol @publickeys(PK)
+{
+	role PK
+	{
+		send_!1(PK,PK, g1(sk(PK)));
+	}
+}
+		
+/*
+ * Hack to simulate g^ab = g^ba inside terms.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exponentiation(RA,RB,RC)
+{
+	role RA
+	{
+		var X,Y: Ticket;
+
+		recv_!1(RA,RA, 
+		  g2(g1(X),Y)
+		  );
+		send_!2(RA,RA, 
+		  g2(g1(Y),X)
+		  );
+	}
+	role RB
+	{
+		var X,Y: Ticket;
+		var s: Nonce;
+
+		recv_!3(RB,RB, h1(
+		  g2(g1(X),Y),
+		  s, RA,RB
+		  ));
+		send_!4(RB,RB, h1(
+		  g2(g1(Y),X),
+		  s, RA,RB
+		  ));
+	}
+	role RC
+	{
+	}
+}
+
+// The protocol description
+
+protocol MRTD-PACE(I,R)
+{
+	role I
+	{
+		const eskI: Nonce;
+		var Y: Ticket;
+		const s: Nonce;
+
+		send_0(I,R, { s }k(I,R) );
+		send_1(I,R, g1(eskI) );
+		recv_2(R,I, Y );
+
+		claim(I,SKR,h1( 
+			g2(Y,eskI),
+			s,I,R ));
+	}	
+	
+	role R
+	{
+		const eskR: Nonce;
+		var X: Ticket;
+		var s: Nonce;
+
+		recv_0(I,R, { s }k(I,R) );
+
+		recv_1(I,R, X );
+
+		send_2(R,I, g1(eskR) );
+
+		claim(R,SKR,h1( 
+			g2(X,eskR),
+			s,I,R ));
+	}
+}
+
