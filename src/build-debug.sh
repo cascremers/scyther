@@ -4,7 +4,7 @@
 CMFLAGS="-D CMAKE_BUILD_TYPE:STRING=Debug"
 
 # Make for linux
-cmake $CMFLAGS                   . && make
+cmake $CMFLAGS -D TARGETOS=Unix  . && make
 
 echo
 echo
