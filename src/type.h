@@ -29,5 +29,6 @@ int checkAllSubstitutions (const System sys);
 int isAgentType (Termlist typelist);
 int goodAgentType (Term agent);
 int isOpenVariable (const Term tvar);
+int agentCompatible (Termlist tl);
 
 #endif

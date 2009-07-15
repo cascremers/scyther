@@ -120,6 +120,8 @@ struct roledef
    */
   //! Illegal injections for this event.
   /**
+   * @TODO: Obsolete, needs to go!
+   *
    * For send this means that the send is allowed if it is NULL, otherwise it is blocked.
    */
   Knowledge forbidden;

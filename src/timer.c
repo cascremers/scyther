@@ -18,6 +18,7 @@
  */
 
 #include "timer.h"
+#include "error.h"
 
 /*
  * Timer functions
