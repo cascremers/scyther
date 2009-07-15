@@ -1312,6 +1312,7 @@ switcher (const int process, int index, int commandline)
 	   * 0: partner is anything temporally necessarily close to the claim [default]
 	   * 1: partner is matching histories (non-injective message agreement)
 	   * 2: partner is based on SID definitions (requires CLAIM(R,SID,...) in each role)
+	   * 3: partner is similar to CK_HMQV (actor, other, m1, m2, ...)
 	   *
 	   * These models are actually incomparable. Hmm.
 	   */
@@ -1320,10 +1321,10 @@ switcher (const int process, int index, int commandline)
 	{
 	  switches.partnerDefinition = integer_argument ();
 	  if ((switches.partnerDefinition < 0)
-	      || (switches.partnerDefinition > 2))
+	      || (switches.partnerDefinition > 3))
 	    {
 	      printfstderr
-		("Partner definition mode must be between 0 and 2.\n");
+		("Partner definition mode must be between 0 and 3.\n");
 	      exit (1);
 	    }
 	  return index;
