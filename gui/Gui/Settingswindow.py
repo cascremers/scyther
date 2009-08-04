@@ -144,7 +144,7 @@ class SettingsWindow(wx.Panel):
 
         # LKRactor variants
         desc = wx.StaticText(self,-1,"   Long-term Key Reveal of actor")
-        options = ['None (DY)','actor-notrnr','actor']
+        options = ['None (DY)','actor']
         rdb = wx.RadioBox(self,-1,"",(10,10),wx.DefaultSize,options,1)
         rdb.SetSelection(int(Preference.get("LKRactor")))
         self.Bind(wx.EVT_RADIOBOX, lambda event: myradio(rdb, "LKRactor", event), rdb)
@@ -152,7 +152,7 @@ class SettingsWindow(wx.Panel):
 
         # LKRaftercorrect variants
         desc = wx.StaticText(self,-1,"   Long-term Key Reveal after claim")
-        options = ['None (DY)','aftercorrect-notrnr','aftercorrect (wPFS)','after (PFS)']
+        options = ['None (DY)','aftercorrect (wPFS)','after (PFS)']
         rdb = wx.RadioBox(self,-1,"",(10,10),wx.DefaultSize,options,1)
         rdb.SetSelection(int(Preference.get("LKRafter")))
         self.Bind(wx.EVT_RADIOBOX, lambda event: myradio(rdb, "LKRafter", event), rdb)

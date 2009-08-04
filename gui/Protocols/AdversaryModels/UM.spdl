@@ -1,0 +1,70 @@
+/* 
+ * UM
+ *
+ * Protocol 5.10 in Boyd & Mathuria (p. 158)
+ *
+ */
+
+// Hash functions
+hashfunction h1,h2,g1,g2;
+hashfunction KDF;
+
+/*
+ * Hack to simulate g^ab = g^ba.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exponentiation(RA,RB,RC)
+{
+	role RA
+	{
+		var alpha,beta, T1,T2: Ticket;
+
+		recv_!1(RA,RA, g2(g1(T1),T2) );
+		send_!2(RA,RA, g2(g1(T2),T1) );
+	}
+	role RB
+	{
+		var alpha,beta, T1,T2,T3: Ticket;
+
+		recv_!3(RB,RB, KDF( g2(g1(T1),T2),T3) );
+		send_!4(RB,RB, KDF( g2(g1(T2),T1),T3) );
+	}
+	role RC
+	{
+		var alpha,beta, T1,T2,T3: Ticket;
+
+		recv_!5(RC,RC, KDF( T3,g2(g1(T1),T2) ) );
+		send_!6(RC,RC, KDF( T3,g2(g1(T2),T1) ) );
+	}
+}
+
+// The protocol description
+
+protocol UM(I,R)
+{
+	role I
+	{
+		const x: Nonce;
+		var beta: Ticket;
+
+		send_1(I,R,  g1(x) );
+		recv_2(R,I,  beta );
+
+		claim(I,SKR, KDF(g2(beta,x),g2(pk(R),sk(I))) );
+	}	
+	
+	role R
+	{
+		const y: Nonce;
+		var alpha: Ticket;
+
+		recv_1(I,R,  alpha );
+		send_2(R,I,  g1(y) );
+
+		claim(R,SKR, KDF(g2(alpha,y),g2(pk(I),sk(R))) );
+	}
+}
+
+

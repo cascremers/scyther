@@ -418,6 +418,96 @@ matchingSIDs (int *partners)
     }
 }
 
+//! Compute mlist for a run for type = READ || SEND
+/**
+ * Result needs to be deleted afterwards.
+ */
+Termlist
+getMList (int run, int type)
+{
+  int step;
+  Termlist mlist;
+  Roledef rd;
+  int first;
+
+  mlist = NULL;
+  first = true;
+  rd = sys->runs[run].start;
+  for (step = 0; step < sys->runs[run].step; step++)
+    {
+      if (rd->type == type)
+	{
+	  if (rd->compromisetype == COMPR_NONE)
+	    {
+	      if (inTermlist (sys->current_claim->prec, rd->label))
+		{
+		  if (first == true)
+		    {
+		      Term from, to;
+
+		      from = rd->from;
+		      to = rd->to;
+
+		      mlist = termlistAppend (mlist, from);
+		      mlist = termlistAppend (mlist, to);
+		      first = false;
+		    }
+		  mlist = termlistAppend (mlist, rd->message);
+		}
+	    }
+	}
+      rd = rd->next;
+    }
+  return mlist;
+}
+
+//! Matching mlist to claim?
+int
+isMListMatching (Termlist sendlist, Termlist recvlist, int run)
+{
+  Termlist sent, received;
+  int result;
+
+  if (sys->current_claim->protocol != sys->runs[run].protocol)
+    {
+      return false;
+    }
+  sent = getMList (run, SEND);
+  result = isTermlistEqual (recvlist, sent);
+  if (result)
+    {
+      received = getMList (run, READ);
+      result = isTermlistEqual (sendlist, received);
+      termlistDelete (received);
+    }
+
+  termlistDelete (sent);
+
+  return result;
+}
+
+//! Fix partners on the basis of CK_HMQV message list
+void
+matchingMList (int *partners)
+{
+  int run;
+  Termlist sendlist, recvlist;
+
+  // Hardcoded to claim run
+  sendlist = getMList (0, SEND);
+  recvlist = getMList (0, READ);
+
+  for (run = 1; run < sys->maxruns; run++)
+    {
+      if (isMListMatching (sendlist, recvlist, run))
+	{
+	  partners[run] = true;
+	}
+    }
+  termlistDelete (sendlist);
+  termlistDelete (recvlist);
+}
+
 //! get array of partners
 /**
  * Depending on the settings in switches, returns the partner array. This is a
@@ -449,6 +539,9 @@ getPartnerArray (void)
       break;
     case 2:
       matchingSIDs (partners);
+      break;
+    case 3:
+      matchingMList (partners);
       break;
     }
 
