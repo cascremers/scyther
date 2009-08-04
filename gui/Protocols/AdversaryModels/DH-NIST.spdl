@@ -1,7 +1,7 @@
 /* 
- * UM
+ * DH-NIST
  *
- * Protocol 5.10 in Boyd & Mathuria (p. 158)
+ * DH Hybrid
  *
  */
 
@@ -42,7 +42,7 @@ protocol @exponentiation(RA,RB,RC)
 
 // The protocol description
 
-protocol UM(I,R)
+protocol DH-NIST(I,R)
 {
 	role I
 	{
@@ -52,7 +52,7 @@ protocol UM(I,R)
 		send_1(I,R,  g1(x) );
 		recv_2(R,I,  beta );
 
-		claim(I,SKR, KDF(g2(beta,x),g2(g1(sk(R)),sk(I))) );
+		claim(I,SKR, KDF(g2(beta,x),g2(g1(sk(R)),sk(I)),I,R ) );
 	}	
 	
 	role R
@@ -63,7 +63,7 @@ protocol UM(I,R)
 		recv_1(I,R,  alpha );
 		send_2(R,I,  g1(y) );
 
-		claim(R,SKR, KDF(g2(alpha,y),g2(g1(sk(I)),sk(R))) );
+		claim(R,SKR, KDF(g2(alpha,y),g2(g1(sk(I)),sk(R)),I,R ) );
 	}
 }
 
