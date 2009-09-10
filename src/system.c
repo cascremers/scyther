@@ -834,6 +834,7 @@ protocolCreate (Term name)
   p->locals = NULL;
   p->next = NULL;
   p->lineno = 0;
+  p->symmetry = 0;
   return p;
 }
 

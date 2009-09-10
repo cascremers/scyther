@@ -117,7 +117,7 @@ protocol @keyswap(I,R)
 
 // The protocol description
 
-protocol HMQV-twopass(I,R)
+symmetric-role protocol HMQV-twopass(I,R)
 {
 	role I
 	{

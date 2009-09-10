@@ -1040,3 +1040,19 @@ termlistReverse (Termlist tl)
     }
   return tlrev;
 }
+
+//! Check whether the shortest termlist matches the prefix of the longest.
+int
+termlistEqualPrefix (Termlist tl1, Termlist tl2)
+{
+  while ((tl1 != NULL) && (tl2 != NULL))
+    {
+      if (!isTermEqual (tl1->term, tl2->term))
+	{
+	  return false;
+	}
+      tl1 = tl1->next;
+      tl2 = tl2->next;
+    }
+  return true;
+}

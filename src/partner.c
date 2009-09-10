@@ -461,7 +461,14 @@ getMList (int run, int type)
   return mlist;
 }
 
-//! Matching mlist to claim?
+//! Matching mlist of run to claim?
+/**
+ *
+ * Note that we only compare prefixes, as any thing not resolved at the end is
+ * considered a '*', matching anything.
+ *
+ * The input lists are the ones computed for the claim run
+ */
 int
 isMListMatching (Termlist sendlist, Termlist recvlist, int run)
 {
@@ -473,11 +480,12 @@ isMListMatching (Termlist sendlist, Termlist recvlist, int run)
       return false;
     }
   sent = getMList (run, SEND);
-  result = isTermlistEqual (recvlist, sent);
+
+  result = termlistEqualPrefix (recvlist, sent);
   if (result)
     {
       received = getMList (run, READ);
-      result = isTermlistEqual (sendlist, received);
+      result = termlistEqualPrefix (sendlist, received);
       termlistDelete (received);
     }
 
@@ -521,6 +529,8 @@ getPartnerArray (void)
 {
   int run;
   int *partners;
+  Protocol pr;
+
 
   partners = (int *) malloc (sizeof (int) * sys->maxruns);
   partners[0] = true;
@@ -535,7 +545,17 @@ getPartnerArray (void)
       propagateOverlap (partners);
       break;
     case 1:
-      matchingHistories (partners);
+      // This is the default setting, taking into account role symmetry
+      pr = (Protocol) sys->current_claim->protocol;
+      switch (pr->symmetry)
+	{
+	case 1:
+	  matchingMList (partners);
+	  break;
+	default:		// Includes, in particular, symmetry == 0.
+	  matchingHistories (partners);
+	  break;
+	}
       break;
     case 2:
       matchingSIDs (partners);

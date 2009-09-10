@@ -1,8 +1,6 @@
 /* 
- * MQV two pass version
+ * MQV two pass version, NIST adaption
  *
- * From "An efficient protocol for authenticated key agreement"
- * Law, Menezes, Qu, Solinas
  */
 
 // Hash functions
@@ -23,13 +21,15 @@ protocol @publickeys(PK)
 	}
 }
 		
-protocol @keyswap(I,R)
+protocol @keyswap(I,R,S)
 {
 	role I
 	{
 		var x,y: Nonce;
-		recv_!1(I,I, KDF(exp(mult(g1(y),exp(g1(sk(R)),LSB(g1(y)))),add(x,mult(LSB(g1(x)),sk(I))))) );
-		send_!2(I,I, KDF(exp(mult(g1(x),exp(g1(sk(I)),LSB(g1(x)))),add(y,mult(LSB(g1(y)),sk(R))))) );
+		recv_!1(I,I,
+		KDF(exp(mult(g1(y),exp(g1(sk(R)),LSB(g1(y)))),add(x,mult(LSB(g1(x)),sk(I)))),R,S) );
+		send_!2(I,I,
+		KDF(exp(mult(g1(x),exp(g1(sk(I)),LSB(g1(x)))),add(y,mult(LSB(g1(y)),sk(R)))),R,S) );
 	}
 }
 
@@ -106,7 +106,7 @@ protocol @addmult(I,R)
 
 // The protocol description
 
-symmetric-role protocol MQV-twopass(I,R)
+symmetric-role protocol MQV-NIST(I,R)
 {
 	role I
 	{
@@ -114,9 +114,19 @@ symmetric-role protocol MQV-twopass(I,R)
 		var Y: Ticket;
 
 		send_1(I,R, g1(x) );
+
 		recv_2(R,I, Y );
 
-		claim(I,SKR,    KDF(exp(mult(Y,exp(g1(sk(R)),LSB(Y))),add(x,mult(LSB(g1(x)),sk(I))))) );
+		//send_Compromise(I,I, LSB(g1(x)) );
+		//send_Compromise(I,I, mult(LSB(g1(x)),sk(I)) );
+		//send_Compromise(I,I, add(x,mult(LSB(g1(x)),sk(I))) );
+		//send_Compromise(I,I, LSB(Y) );
+		//send_Compromise(I,I, exp(g1(sk(R)),LSB(Y)) );
+		//send_Compromise(I,I, mult(Y,exp(g1(sk(R)),LSB(Y))) );
+		//send_Compromise(I,I, exp(mult(Y,exp(g1(sk(R)),LSB(Y))),add(x,mult(LSB(g1(x)),sk(I)))) );
+
+		claim(I,SKR,
+		KDF(exp(mult(Y,exp(g1(sk(R)),LSB(Y))),add(x,mult(LSB(g1(x)),sk(I)))),I,R) );
 	}	
 	
 	role R
@@ -125,9 +135,19 @@ symmetric-role protocol MQV-twopass(I,R)
 		var X: Ticket;
 
 		recv_1(I,R, X );
+
 		send_2(R,I, g1(y) );
 
-		claim(R,SKR,    KDF(exp(mult(X,exp(g1(sk(I)),LSB(X))),add(y,mult(LSB(g1(y)),sk(R))))) );
+		//send_Compromise(R,R, LSB(g1(y)) );
+		//send_Compromise(R,R, mult(LSB(g1(y)),sk(R)) );
+		//send_Compromise(R,R, add(y,mult(LSB(g1(y)),sk(R))) );
+		//send_Compromise(R,R, LSB(X) );
+		//send_Compromise(R,R, exp(g1(sk(I)),LSB(X)) );
+		//send_Compromise(R,R, mult(X,exp(g1(sk(I)),LSB(X))) );
+		//send_Compromise(R,R, exp(mult(X,exp(g1(sk(I)),LSB(X))),add(y,mult(LSB(g1(y)),sk(R)))) );
+
+		claim(R,SKR,
+		KDF(exp(mult(X,exp(g1(sk(I)),LSB(X))),add(y,mult(LSB(g1(y)),sk(R)))),I,R) );
 	}
 }
 

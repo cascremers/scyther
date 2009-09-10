@@ -81,6 +81,7 @@ struct tacnode
     char *str;
     int value;
   } t3;
+  int misc;			//!< Miscelleaneous information
 };
 
 typedef struct tacnode *Tac;

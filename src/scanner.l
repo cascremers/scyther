@@ -174,6 +174,7 @@ function	{ return FUNCTION; }
 hashfunction	{ return HASHFUNCTION; }
 knows		{ return KNOWS; }
 trusted		{ return TRUSTED; }
+symmetric-role	{ return SYMMETRICROLE; }
 {id}		{	
 			yylval.symb = mkstring(yytext);
 			return ID;
