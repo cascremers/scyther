@@ -2126,6 +2126,9 @@ def reportProtocolTable():
     #if FILTER == None:
     #    return
     
+    # Additionally CSV file
+    fp = open("protocol-table.csv", "w")
+
     maxprotwidth = 1
     for fn in FCD.keys():
         da = len(dotabbrev(fn))
@@ -2144,9 +2147,12 @@ def reportProtocolTable():
 
     # Protocols on Y axis, models on X
     header = " ".ljust(maxprotwidth)
+    fp.write("Protocol, symmetric-role, ")
     header += "|SR"
     for model in Traverse():
         header += "|%s" % model.shortname().ljust(maxmodwidth)
+        fp.write("%s, " % model.shortname())
+    fp.write("\n")
 
     print header
     print "-" * len(header)
@@ -2163,11 +2169,14 @@ def reportProtocolTable():
     for fn in kal:
         # Generate a line for this protocol
         line = dotabbrev(fn).ljust(maxprotwidth)
+        fp.write("%s, " % dotabbrev(fn))
         # Symmetric-role?
         if isProtocolSymmetric(fn):
             line += "|Y "
+            fp.write("Yes, ")
         else:
             line += "|N "
+            fp.write("No, ")
         # Report model things
         cntgood = 0
         cntbad = 0
@@ -2179,14 +2188,17 @@ def reportProtocolTable():
                 res = noattackstr
                 cntgood += 1
             line += "|%s" % res.ljust(maxmodwidth)
+            fp.write("%s, " % res)
 
         if (cntgood == 0) or (cntbad == 0):
             line += "\t[same for all models]"
         else:
             line += "\t[model matters]"
         print line
+        fp.write("\n")
 
     print "-" * len(header)
+    fp.close()
 
 
 def GraphModelHierarchy():
