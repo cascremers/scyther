@@ -276,12 +276,12 @@ class SettingsWindow(wx.Panel):
 
         # Parse LKR actor type
         lkratype = int(Preference.get("LKRactor"))
-        lkratxt = ["","--LKRactorrnsafe=1 ","--LKRactor=1 "]
+        lkratxt = ["","--LKRactor=1 "]
         tstr += lkratxt[lkratype]
 
         # Parse LKR after type
         lkratype = int(Preference.get("LKRafter"))
-        lkratxt = ["","--LKRrnsafe=1 ","--LKRaftercorrect=1 ","--LKRafter=1 "]
+        lkratxt = ["","--LKRaftercorrect=1 ","--LKRafter=1 "]
         tstr += lkratxt[lkratype]
 
         # Verification type
