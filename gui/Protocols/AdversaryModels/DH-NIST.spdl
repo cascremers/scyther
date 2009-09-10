@@ -42,7 +42,7 @@ protocol @exponentiation(RA,RB,RC)
 
 // The protocol description
 
-protocol DH-NIST(I,R)
+symmetric-role protocol DH-NIST(I,R)
 {
 	role I
 	{

@@ -106,7 +106,7 @@ protocol @addmult(I,R)
 
 // The protocol description
 
-protocol MQV-NIST(I,R)
+symmetric-role protocol MQV-NIST(I,R)
 {
 	role I
 	{

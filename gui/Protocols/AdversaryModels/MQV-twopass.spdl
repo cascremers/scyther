@@ -106,7 +106,7 @@ protocol @addmult(I,R)
 
 // The protocol description
 
-protocol MQV-twopass(I,R)
+symmetric-role protocol MQV-twopass(I,R)
 {
 	role I
 	{
