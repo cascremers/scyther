@@ -42,7 +42,7 @@ protocol @exponentiation(RA,RB,RC)
 
 // The protocol description
 
-protocol UM(I,R)
+symmetric-role protocol UM(I,R)
 {
 	role I
 	{
