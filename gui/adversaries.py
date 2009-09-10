@@ -105,6 +105,23 @@ def debugging():
 
     return DEBUG
 
+def isProtocolSymmetric(protfilename):
+    """
+    Check, crudely, if a protocol has symmetric roles.
+
+    This is crude because it can be flawed for things in comments etc.,
+    and a much cleaner way would be to have the role symmetry stored in
+    the output of Scyther. But, unfortunately, that hasn't been done
+    yet.
+    """
+    cmd = "grep symmetric-role '%s'" % (protfilename)
+    op = commands.getoutput(cmd)
+    if len(op.splitlines()) > 0:
+        return True
+    else:
+        return False
+
+
 def InitRestricted(models=None):
     """
     If we want restricted models, do so here.
@@ -224,7 +241,7 @@ def InitRestricted(models=None):
     #RESTRICTEDMODELS = [ck2001,ck2001hmqv]      # To compare equal choice for RNR/SSR
 
     #RESTRICTEDMODELS = None #   default
-    if models in ["CSF09","Literature"]:
+    if models in ["CSF09","Literature","paper"]:
         RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck1,eck2]   # As in paper
     elif models in ["8", "112", "CSF09Rules"]:
         RESTRICTEDMODELS = None
@@ -2127,6 +2144,7 @@ def reportProtocolTable():
 
     # Protocols on Y axis, models on X
     header = " ".ljust(maxprotwidth)
+    header += "|SR"
     for model in Traverse():
         header += "|%s" % model.shortname().ljust(maxmodwidth)
 
@@ -2143,7 +2161,14 @@ def reportProtocolTable():
     kal.sort(dasort)
 
     for fn in kal:
+        # Generate a line for this protocol
         line = dotabbrev(fn).ljust(maxprotwidth)
+        # Symmetric-role?
+        if isProtocolSymmetric(fn):
+            line += "|Y "
+        else:
+            line += "|N "
+        # Report model things
         cntgood = 0
         cntbad = 0
         for model in Traverse():

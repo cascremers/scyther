@@ -68,6 +68,7 @@ def initParser():
     parser.add_option("-M","--modulo", action="store", dest="modulo", metavar="\"(MOD,IDX)\"", help="Only consider protocol claims for which (count % MOD) == IDX")
     parser.add_option("","--cache-transitive-closure", action="store_const", const=True,  dest="closecache", default=False, help="Compute transitive closure of cached verification data.")
     parser.add_option("-D","--debug", action="store_const", const=True,  dest="debug", default=False, help="Display debugging information.")
+    parser.add_option("","--paper", action="store_const", const=True, dest="paper", default=False, help="Repeat experiments as in paper.")
 
     (options, args) = parser.parse_args()
     return (options, args)
@@ -116,6 +117,25 @@ if __name__ == '__main__':
     # Write back
     options.dirs = protocolpaths
 
+    # Paper settings for repeating the experiments
+    if options.paper:
+        protocolpaths = [ \
+            "Protocols/AdversaryModels/2DH-ISO-C.spdl", \
+            "Protocols/AdversaryModels/2DH-ISO.spdl", \
+            "Protocols/AdversaryModels/BKE.spdl", \
+            "Protocols/AdversaryModels/DHKE-1.spdl", \
+            "Protocols/AdversaryModels/HMQV-C.spdl", \
+            "Protocols/AdversaryModels/HMQV-twopass.spdl", \
+            "Protocols/AdversaryModels/kea-plus.spdl", \
+            "Protocols/AdversaryModels/MQV-twopass.spdl", \
+            "Protocols/AdversaryModels/naxos.spdl", \
+            "Protocols/AdversaryModels/ns3.spdl", \
+            "Protocols/AdversaryModels/nsl3.spdl", \
+            "Protocols/AdversaryModels/yahalom-ban-paulson-modified.spdl", \
+            "Protocols/AdversaryModels/yahalom-ban-paulson.spdl" \
+            ]
+        options.models = "paper"
+        options.graphs = ["psh","mh","ch"]
 
     # Call main 
     main(models=options.models, protocolpaths=protocolpaths, filefilter=filefilter, graphs=options.graphs, debug=options.debug, closecache=options.closecache, modulo=options.modulo, options=options)
