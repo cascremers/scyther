@@ -461,7 +461,14 @@ getMList (int run, int type)
   return mlist;
 }
 
-//! Matching mlist to claim?
+//! Matching mlist of run to claim?
+/**
+ *
+ * Note that we only compare prefixes, as any thing not resolved at the end is
+ * considered a '*', matching anything.
+ *
+ * The input lists are the ones computed for the claim run
+ */
 int
 isMListMatching (Termlist sendlist, Termlist recvlist, int run)
 {
@@ -473,11 +480,12 @@ isMListMatching (Termlist sendlist, Termlist recvlist, int run)
       return false;
     }
   sent = getMList (run, SEND);
-  result = isTermlistEqual (recvlist, sent);
+
+  result = termlistEqualPrefix (recvlist, sent);
   if (result)
     {
       received = getMList (run, READ);
-      result = isTermlistEqual (sendlist, received);
+      result = termlistEqualPrefix (sendlist, received);
       termlistDelete (received);
     }
 
