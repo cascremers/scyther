@@ -56,6 +56,7 @@ int yylex(void);
 %token 		HASHFUNCTION
 %token		KNOWS
 %token		TRUSTED
+%token 		SYMMETRICROLE
 
 %type	<tac>	spdlcomplete
 %type	<tac>	spdlrep
@@ -76,6 +77,7 @@ int yylex(void);
 %type	<tac>	roleref
 %type	<tac>	knowsdecl
 
+%type   <value>	symmrole
 %type   <value>	singular
 
 %type	<symb>	label
@@ -109,12 +111,13 @@ spdl		: UNTRUSTED termlist ';'
 			t->t2.tac = $4;
 			$$ = t;
 		  }
-		| PROTOCOL ID '(' termlist ')' '{' roles '}' optclosing
+		| symmrole PROTOCOL ID '(' termlist ')' '{' roles '}' optclosing
 	 	  {
 		  	Tac t = tacCreate(TAC_PROTOCOL);
-			t->t1.sym = $2;
-			t->t2.tac = $7;
-			t->t3.tac = $4;
+			t->misc = $1;
+			t->t1.sym = $3;
+			t->t2.tac = $8;
+			t->t3.tac = $5;
 			$$ = t;
 		  }
 		| USERTYPE termlist ';'
@@ -146,6 +149,12 @@ role		: singular ROLE ID '{' roledef '}' optclosing
 			t->t3.value = $1;
 			$$ = t;
 		  }
+		;
+
+symmrole	: /* empty */
+	 	  {	$$ = 0; }
+		| SYMMETRICROLE
+		  {	$$ = 1; }
 		;
 
 singular	: /* empty */

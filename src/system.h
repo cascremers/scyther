@@ -45,6 +45,8 @@ struct protocol
   Termlist rolenames;
   //! List of local terms for this protocol.
   Termlist locals;
+  //! Symmetry type (0=none,1=symmetric)
+  int symmetry;
   //! Pointer to next protocol.
   struct protocol *next;
   int lineno;			//!< Line number of definition (for errors)?

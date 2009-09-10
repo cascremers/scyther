@@ -1171,13 +1171,24 @@ checkProtocolRoles (void)
 
 //! Compile a protocol description
 void
-protocolCompile (Symbol prots, Tac tc, Tac tcroles)
+protocolCompile (Symbol prots, Tac tc, Tac tcroles, int symmetry)
 {
   Protocol pr;
   Term t;
 
   /* make new (empty) current protocol with name */
   pr = protocolCreate (levelConst (prots));
+  pr->symmetry = symmetry;
+
+  /*
+     if (pr->symmetry == 1)
+     {
+     eprintf("Role symmetry found for ");
+     termPrint(pr->nameterm);
+     eprintf("\n");
+     }
+   */
+
   thisProtocol = pr;
   {
     // check for double name declarations
@@ -1286,7 +1297,7 @@ tacProcess (Tac tc)
       switch (tc->op)
 	{
 	case TAC_PROTOCOL:
-	  protocolCompile (tc->t1.sym, tc->t2.tac, tc->t3.tac);
+	  protocolCompile (tc->t1.sym, tc->t2.tac, tc->t3.tac, tc->misc);
 	  break;
 	case TAC_UNTRUSTED:
 	  sys->untrusted =

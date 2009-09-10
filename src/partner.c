@@ -529,6 +529,8 @@ getPartnerArray (void)
 {
   int run;
   int *partners;
+  Protocol pr;
+
 
   partners = (int *) malloc (sizeof (int) * sys->maxruns);
   partners[0] = true;
@@ -543,7 +545,17 @@ getPartnerArray (void)
       propagateOverlap (partners);
       break;
     case 1:
-      matchingHistories (partners);
+      // This is the default setting, taking into account role symmetry
+      pr = (Protocol) sys->current_claim->protocol;
+      switch (pr->symmetry)
+	{
+	case 1:
+	  matchingMList (partners);
+	  break;
+	default:		// Includes, in particular, symmetry == 0.
+	  matchingHistories (partners);
+	  break;
+	}
       break;
     case 2:
       matchingSIDs (partners);

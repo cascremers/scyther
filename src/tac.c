@@ -68,6 +68,7 @@ tacCreate (int op)
   t->t1.tac = NULL;
   t->t2.tac = NULL;
   t->t3.tac = NULL;
+  t->misc = 0;
   return t;
 }
 
