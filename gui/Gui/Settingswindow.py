@@ -136,19 +136,13 @@ class SettingsWindow(wx.Panel):
             grid.stepAdd(btn,desc)
             return btn
 
-        toggler("Long-term Key Reveal","notgroup (DY)","--LKRnotgroup=")
+        toggler("Long-term Key Reveal","Others (DY)","--LKRnotgroup=")
         
         # myradio
         def myradio(rdb,pref,event):
             Preference.set(pref,int(rdb.GetSelection()))
 
-        # LKRactor variants
-        desc = wx.StaticText(self,-1,"   Long-term Key Reveal of actor")
-        options = ['None (DY)','actor']
-        rdb = wx.RadioBox(self,-1,"",(10,10),wx.DefaultSize,options,1)
-        rdb.SetSelection(int(Preference.get("LKRactor")))
-        self.Bind(wx.EVT_RADIOBOX, lambda event: myradio(rdb, "LKRactor", event), rdb)
-        grid.stepAdd(rdb,desc)
+        toggler("Long-term Key Reveal","Actor (KCI)","--LKRactor=")
 
         # LKRaftercorrect variants
         desc = wx.StaticText(self,-1,"   Long-term Key Reveal after claim")
@@ -159,8 +153,8 @@ class SettingsWindow(wx.Panel):
         grid.stepAdd(rdb,desc)
         
         toggler("Session-Key Reveal","","--SKR=")
-        toggler("Random Number Reveal","","--RNR=")
-        toggler("Session-State Reveal","","--SSR=")
+        toggler("Random Reveal","","--RNR=")
+        toggler("State Reveal","","--SSR=")
         InferToggle = toggler("   Automatically infer local state","","--SSRinfer=")
         SSRpropagate()
 
@@ -273,11 +267,6 @@ class SettingsWindow(wx.Panel):
                     val = Preference.get(pk)
                     if val == True or (int(val) == 1):
                         tstr += "%s " % pk
-
-        # Parse LKR actor type
-        lkratype = int(Preference.get("LKRactor"))
-        lkratxt = ["","--LKRactor=1 "]
-        tstr += lkratxt[lkratype]
 
         # Parse LKR after type
         lkratype = int(Preference.get("LKRafter"))
