@@ -34,6 +34,9 @@ Please install this package in order to use the graphical user
 interface of Scyther.
 The [wxPython] packages can be found at http://www.wxpython.org/
 
+Ubuntu users: the wxPython packages are called 'python-wxgtk' followed by the
+version number.
+
 Note that you can still use the Scyther binaries in the 'Scyther' directory.
     """
     sys.exit(1)
@@ -167,8 +170,38 @@ class ScytherApp(wx.App):
 
 #---------------------------------------------------------------------------
 
+def CheckRequirements():
+    """ Check for any required programs """
+
+    """ We need 'dot', in the graphviz package """
+    def dotNotFound():
+        print """
+Could not find the required 'dot' program, which is part of the graphviz suite.
+Please install it from http://www.graphviz.org/
+
+Ubuntu users: install the 'graphviz' package.
+
+Restarting your system may be needed for Scyther to locate any newly installed
+programs.
+"""
+        sys.exit(-1)
+    try:
+        import commands
+
+        (st,op) = commands.getstatusoutput("dot --version")
+        # Check for error. 0 is fine, but we need masking etc. for this 
+        # to work, strangely enough.
+        exitcode = st >> 8
+        if (exitcode & 127) == 127:
+            raise ImportError
+    except ImportError:
+        dotNotFound()
+
+#---------------------------------------------------------------------------
+
 
 if __name__ == '__main__':
+    CheckRequirements()
     scythergui = ScytherApp()
     scythergui.MainLoop()
 
