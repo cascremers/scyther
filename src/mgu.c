@@ -398,17 +398,26 @@ termMguTerm (Term t1, Term t2)
 {
   Termlist results;
 
-  results = NULL;
+  results = MGUFAIL;
 
   int found (Termlist tl)
   {
-    termlistDelete (results);
+    // Given that we only do this once, the condition should be false anyway,
+    // but it's here for extensions to multiple unifiers.
+    if (results != MGUFAIL)
+      {
+	termlistDelete (results);
+      }
     results = unfold (tl);
     return false;
   }
 
   unify (t1, t2, NULL, found);
-  if ((results != NULL) && (results != MGUFAIL))
+  if (results == MGUFAIL)
+    {
+      return results;
+    }
+  else
     {
       Termlist tlnew;
 
@@ -419,10 +428,6 @@ termMguTerm (Term t1, Term t2)
       tlnew = fold (results);
       termlistDelete (results);
       return tlnew;
-    }
-  else
-    {
-      return MGUFAIL;
     }
 }
 
