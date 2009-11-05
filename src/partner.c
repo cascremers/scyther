@@ -138,6 +138,28 @@ events_hist_match_rd (const Roledef rdi, const Roledef rdj)
     }
 }
 
+//! Check complete message match for new style prefix partnering.
+/**
+ * Roledef based.
+ *@returns MATCH_NONE or MATCH_CONTENT
+ *
+ * This omits the check on the label; we assume this is covered by the caller if needed.
+ */
+__inline__ int
+events_prefix_match_rd (const Roledef rdi, const Roledef rdj)
+{
+  if (isTermEqual (rdi->message, rdj->message) &&
+      isTermEqual (rdi->from, rdj->from) && isTermEqual (rdi->to, rdj->to) &&
+      !(rdi->internal || rdj->internal))
+    {
+      return MATCH_CONTENT;
+    }
+  else
+    {
+      return MATCH_NONE;
+    }
+}
+
 //! Check generic agree claim for a given set of runs, arachne style
 int
 arachne_runs_hist_match (const System sys, const Claimlist cl,
@@ -369,6 +391,258 @@ debugPrintArray (int *greens)
 	}
     }
   eprintf ("\n");
+}
+
+//! Partnering for compromise, standard protocols, Termmap parameter
+int
+isCompromisePartnerStdTermmap (const int targetrun, const int targetev,
+			       const Termmap runs)
+{
+  List ll;
+  Protocol prot;
+
+  prot = (Protocol) sys->current_claim->protocol;
+
+  // Check each label
+  for (ll = sys->labellist; ll != NULL; ll = ll->next)
+    {
+      Labelinfo linfo;
+
+      linfo = (Labelinfo) ll->data;
+
+      if ((!linfo->ignore) && (linfo->protocol == prot))
+	{
+	  // Locate roledefs for read & send, and check whether they are before step
+
+	  Roledef get_label_event (const Term role, const Term label)
+	  {
+	    int run;
+	    Roledef rd;
+	    int ev;
+
+	    run = termmapGet (runs, role);
+	    if (run == -1)
+	      {
+		return NULL;
+	      }
+#ifdef DEBUG
+	    if (run < 0 || run >= sys->maxruns)
+	      {
+		globalError++;
+		eprintf ("Run mapping %ev out of bounds for role ", run);
+		termPrint (role);
+		eprintf (" and label ");
+		termPrint (label);
+		eprintf ("\n");
+		eprintf ("This label has sendrole ");
+		termPrint (linfo->sendrole);
+		eprintf (" and readrole ");
+		termPrint (linfo->readrole);
+		eprintf ("\n");
+		globalError--;
+		error ("Run mapping is out of bounds.");
+	      }
+#endif
+	    rd = sys->runs[run].start;
+	    for (ev = 0; ev < sys->runs[run].step; ev++)
+	      {
+		if (isLabelComprEqual (rd->label, label))
+		  {
+		    // check also whether it precedes the thing
+		    // NOTE: really < and not <=, so best called with a non-communication target event
+		    if (isDependEvent (run, ev, targetrun, targetev))
+		      {
+			// Precedes, so mention
+			return rd;
+		      }
+		    else
+		      {
+			// It's the right one, but does not precede, so bad
+			return NULL;
+		      }
+		  }
+		rd = rd->next;
+	      }
+	    return NULL;
+	  }
+
+	  // Main
+	  Roledef rd_send, rd_read;
+
+	  rd_read = get_label_event (linfo->readrole, linfo->label);
+	  if (rd_read == NULL)
+	    {
+	      // Need only to match as far as they exist
+	      break;
+	    }
+	  rd_send = get_label_event (linfo->sendrole, linfo->label);
+	  if (rd_send == NULL)
+	    {
+	      // Need only to match as far as they exist
+	      break;
+	    }
+	  // Compare
+	  if (events_prefix_match_rd (rd_send, rd_read) != MATCH_CONTENT)
+	    {
+	      // False!
+	      return false;
+	    }
+	}
+    }
+  return true;
+}
+
+//! Partnering for compromise, standard protocols.
+/**
+ * Maybe needs some buffering later, as now we recompute in all cases.
+ * Check whether this run is a partner now at this event (usually for SKR evaluation etc.)
+ *
+ * targetrun 	the run
+ * targetev 	the index of the event
+ *
+ * Idea: anything before this event must be a prefix of the matching histories, so it might become a matching event later
+ */
+int
+isCompromisePartnerStd (const int targetrun, const int targetev)
+{
+  int checkPartner (Termmap runs_involved)
+  {
+    if (isCompromisePartnerStdTermmap (targetrun, targetev, runs_involved))
+      {
+	// abort (== flag)
+	return false;
+      }
+    return true;
+  }
+  if (iterateInvolvedRuns (checkPartner))
+    {
+      // Terminate without finding a partner map
+      return false;
+    }
+  else
+    {
+      // Aborted, so is partner for some map
+      return true;
+    }
+}
+
+//! proceed to next run event of a particular type (unless we're already on one or NULL)
+Roledef
+nextEventType (Roledef rd, int evtype)
+{
+  while (rd != NULL)
+    {
+      if (rd->type == evtype)
+	{
+	  break;
+	}
+      rd = rd->next;
+    }
+  return rd;
+}
+
+//! Partnering for compromise, role-symmetric protocols, for a single run
+int
+isCompromisePartnerSymmOne (const int targetrun, const int targetev,
+			    const int run)
+{
+  Roledef rdsend;
+  Roledef rdrecv;
+  Roledef rdstart;
+  Roledef rd;
+
+  int ev;
+
+  rdstart = sys->runs[0].start;
+  rdsend = nextEventType (rdstart, SEND);
+  rdrecv = nextEventType (rdstart, READ);
+
+  rd = sys->runs[run].start;
+  for (ev = 0; ev < sys->runs[run].step; ev++)
+    {
+      if (!isDependEvent (run, ev, targetrun, targetev))
+	{
+	  // We're done, this is all we consider
+	  break;
+	}
+      if (rd->type == READ)
+	{
+	  if (rdsend == NULL)
+	    {
+	      return false;
+	    }
+	  else
+	    {
+	      if (!events_prefix_match_rd (rdsend, rd))
+		{
+		  return false;
+		}
+	      rdsend = nextEventType (rdsend, SEND);
+	    }
+	}
+      if (rd->type == SEND)
+	{
+	  if (rdrecv == NULL)
+	    {
+	      return false;
+	    }
+	  else
+	    {
+	      if (!events_prefix_match_rd (rdrecv, rd))
+		{
+		  return false;
+		}
+	      rdrecv = nextEventType (rdrecv, READ);
+	    }
+	}
+      rd = rd->next;
+    }
+  return true;
+}
+
+//! Partnering for compromise, role-symmetric protocols.
+/**
+ * Maybe needs some buffering later, as now we recompute in all cases.
+ * Check whether this run is a partner now at this event (usually for SKR evaluation etc.)
+ *
+ * targetrun 	the run
+ * targetev 	the index of the event
+ *
+ * Idea: anything before this event must be a prefix of the matching histories, so it might become a matching event later
+ *
+ * Pretty simple case (compared to standard) as we only need to consider a single partner run,
+ * and we can safely assume the test thread exists completely.
+ */
+int
+isCompromisePartnerSymm (const int targetrun, const int targetev)
+{
+  int run;
+
+  for (run = 1; run < sys->maxruns; run++)
+    {
+      if (isCompromisePartnerSymmOne (targetrun, targetev, run))
+	{
+	  return true;
+	}
+    }
+  return false;
+}
+
+//! Generalized partnering for protocols
+int
+isCompromisePartner (const int targetrun, const int targetev)
+{
+  Protocol prot;
+
+  prot = (Protocol) sys->current_claim->protocol;
+  if (prot->symmetry)
+    {
+      return isCompromisePartnerSymm (targetrun, targetev);
+    }
+  else
+    {
+      return isCompromisePartnerStd (targetrun, targetev);
+    }
 }
 
 //! Return the SID of a run, or NULL if none found.

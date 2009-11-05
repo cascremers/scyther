@@ -26,5 +26,6 @@ void partnerInit (const System mysys);
 int partnerDone (void);
 
 int *getPartnerArray (void);
+int isCompromisePartner (const int targetrun, const int targetev);
 
 #endif
