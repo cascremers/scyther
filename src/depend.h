@@ -48,7 +48,7 @@ void dependPopEvent ();
 
 int getNode (const int n1, const int n2);
 void setNode (const int n1, const int n2);
-int isDependEvent (const int r1, const int e1, const int r2, const int e2);
+int isDependEvent (const int r1, const int e1, const int r2, const int e2);	// r1,e1 before r2,e2
 void setDependEvent (const int r1, const int e1, const int r2, const int e2);
 
 /*

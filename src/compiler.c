@@ -466,6 +466,9 @@ isClaimlabelUsed (const System sys, const Term label)
 }
 
 //! Generate a fresh claim label
+/**
+ * Note it is always a tuple (protocolname,idterm)
+ */
 Term
 generateFreshClaimlabel (const System sys, const Protocol protocol,
 			 const Role role, const Term claim)
