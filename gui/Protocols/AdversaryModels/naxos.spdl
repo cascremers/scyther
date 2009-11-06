@@ -18,13 +18,9 @@
  */
 
 // Hash functions
-const h1,h2,g1,g2: Function;
-secret unh1,unh2,ung1,ung2: Function;
+hashfunction h1,h2,mexp;
 
-inversekeys (h1,unh1);
-inversekeys (h2,unh2);
-inversekeys (g1,ung1);
-inversekeys (g2,ung2);
+const g;
 
 /*
  * Hack to simulate public knowledge of public keys.
@@ -33,7 +29,7 @@ protocol @publickeys(PK)
 {
 	role PK
 	{
-		send_!1(PK,PK, g1(sk(PK)));
+		send_!1(PK,PK, mexp(g,sk(PK)));
 	}
 }
 		
@@ -50,11 +46,11 @@ protocol @exponentiation(RA,RB,RC)
 		var X,Y, T1,T2: Ticket;
 
 		recv_!1(RA,RA, h2(
-		  g2(g1(X),Y),
+		  mexp(mexp(g,X),Y),
 		  T1, T2, RA,RB
 		  ));
 		send_!2(RA,RA, h2(
-		  g2(g1(Y),X),
+		  mexp(mexp(g,Y),X),
 		  T1, T2, RA,RB
 		  ));
 	}
@@ -64,12 +60,12 @@ protocol @exponentiation(RA,RB,RC)
 
 		recv_!3(RB,RB, h2(
 		  T1,
-		  g2(g1(X),Y),
+		  mexp(mexp(g,X),Y),
 		  T2, RA,RB
 		  ));
 		send_!4(RB,RB, h2(
 		  T1,
-		  g2(g1(Y),X),
+		  mexp(mexp(g,Y),X),
 		  T2, RA,RB
 		  ));
 	}
@@ -79,12 +75,12 @@ protocol @exponentiation(RA,RB,RC)
 
 		recv_!5(RC,RC, h2(
 		  T1, T2,
-		  g2(g1(X),Y),
+		  mexp(mexp(g,X),Y),
 		  RA,RB
 		  ));
 		send_!6(RC,RC, h2(
 		  T1, T2,
-		  g2(g1(Y),X),
+		  mexp(mexp(g,Y),X),
 		  RA,RB
 		  ));
 	}
@@ -98,11 +94,11 @@ protocol @keysymmetry(R1,R2,R3)
 		var Z1,Z2: Ticket;
 
 		recv_!1(R1,R1, h2( 
-			g2(g1(Y),X),
+			mexp(mexp(g,Y),X),
 			Z1,Z2,
 			R1,R2));
 		send_!2(R1,R1, h2( 
-			g2(g1(X),Y), 
+			mexp(mexp(g,X),Y), 
 			Z1,Z2,
 			R1,R2));
 	}
@@ -113,12 +109,12 @@ protocol @keysymmetry(R1,R2,R3)
 
 		recv_!4(R2,R2, h2( 
 			Z1,
-			g2(g1(Y),X),
+			mexp(mexp(g,Y),X),
 			Z2,
 			R2,R3));
 		send_!5(R2,R2, h2( 
 			Z1,
-			g2(g1(X),Y), 
+			mexp(mexp(g,X),Y), 
 			Z2,
 			R2,R3));
 	}
@@ -128,12 +124,12 @@ protocol @keysymmetry(R1,R2,R3)
 		var Z1,Z2: Ticket;
 
 		recv_!5(R3,R3, h2( 
-			g2(g1(Y),X),
+			mexp(mexp(g,Y),X),
 			Z1,
 			Z2,
 			R3,R1));
 		send_!6(R3,R3, h2( 
-			g2(g1(X),Y), 
+			mexp(mexp(g,X),Y), 
 			Z1,
 			Z2,
 			R3,R1));
@@ -151,14 +147,14 @@ protocol naxos(I,R)
 
 		send_Compromise(I,I, eskI );
 
-		send_1(I,R, g1(h1(eskI,sk(I))) );
+		send_1(I,R, mexp(g,h1(eskI,sk(I))) );
 
 		recv_2(R,I, Y );
 
 		claim(I,SKR,h2( 
-			g2(Y,sk(I)),
-			g2(g1(sk(R)),h1(eskI,sk(I))), 
-			g2(Y,h1(eskI,sk(I))),
+			mexp(Y,sk(I)),
+			mexp(mexp(g,sk(R)),h1(eskI,sk(I))), 
+			mexp(Y,h1(eskI,sk(I))),
 			I,R));
 	}	
 	
@@ -171,12 +167,12 @@ protocol naxos(I,R)
 
 		recv_1(I,R, X );
 
-		send_2(R,I, g1(h1(eskR,sk(R))) );
+		send_2(R,I, mexp(g,h1(eskR,sk(R))) );
 
 		claim(R,SKR,h2( 
-			g2(g1(sk(I)),h1(eskR,sk(R))), 
-			g2(X,sk(R)),
-			g2(X,h1(eskR,sk(R))),
+			mexp(mexp(g,sk(I)),h1(eskR,sk(R))), 
+			mexp(X,sk(R)),
+			mexp(X,h1(eskR,sk(R))),
 			I,R));
 	}
 }
