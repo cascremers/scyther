@@ -53,8 +53,8 @@ http://code.google.com/p/python-progressbar/
 CACHEFILE = "verification-result-cache.tmp"   # Filename of cache
 SHOWPATH = False    # Switch to true to show paths in the graph
 #DEFAULTARGS = "--max-runs=7"       ### If you're picky and have time. The results are the same, by the way.
-DEFAULTARGS = "--max-runs=4"
-DEFAULTARGS += " -T 300"         # Timeout after 5 minutes 
+DEFAULTARGS = "--max-runs=5"
+DEFAULTARGS += " -T 360"         # Timeout after 6 minutes 
 DEFAULTARGS += " --prune=1"     # Stop at first attack
 DEFAULTARGS += " --force-regular"   # Force considering a regular run (for DH-hack problems)
 ALLCORRECT = True   # Require all claims to be correct of the protocol in prev. node for counterexample
