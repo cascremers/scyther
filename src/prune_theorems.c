@@ -265,6 +265,21 @@ prune_theorems (const System sys)
     }
   free (partners);
 
+  // Prune for final compromise
+  /**
+   * Refined check of the previous; recomputes partners internally
+   */
+  if (!checkCompromiseSanity ())
+    {
+      if (switches.output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf
+	    ("Pruned because of final compromise sanity check on realizable pattern.\n");
+	}
+      return true;
+    }
+
   // Prune if any initiator run talks to itself
   /**
    * This effectively disallows Alice from talking to Alice, for all

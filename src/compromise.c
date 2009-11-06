@@ -40,6 +40,7 @@
 #include "partner.h"
 #include "depend.h"
 #include "binding.h"
+#include "heuristic.h"
 
 /*
 	 Simple sys pointer as a global. Yields cleaner code although it's against programming standards.
@@ -825,4 +826,71 @@ compromisePrepare (const System mysys)
 	}
       exit (0);
     }
+}
+
+//! Check preconditions of a particular compromise event in a realizable pattern
+/**
+ * One remaining problem is the tension between the 'first binding' enforcement 
+ * and the compromise enablement that's only valid after a certain point.
+ *
+ * The rationale here is to check the prefix-bound nature of the OS (where it
+ * differs from the future-inspection in the crypto models). It therefore only
+ * applies to SKR and SSR where the partnering definition is used.
+ */
+int
+checkCompromiseSanityEvent (const int run, const int ev, const int comprtype)
+{
+  if ((comprtype == COMPR_SKR) || (comprtype == COMPR_SSR))
+    {
+      if (isCompromisePartner (run, ev))
+	{
+	  // It is a partner based on the preceding events, so that is bad.
+	  return false;
+	}
+    }
+  return true;
+}
+
+//! Check preconditions of compromise events in a realizable pattern
+/**
+ * @TODO: This only makes sense for partnering definition 1, I guess.
+ *
+ * One remaining problem is the tension between the 'first binding' enforcement 
+ * and the compromise enablement that's only valid after a certain point.
+ */
+int
+checkCompromiseSanity ()
+{
+  List bl;
+
+  if (count_selectable_goals (sys) != 0)
+    {
+      // This check only makes sense for realizable patterns.
+      // Not realizable? Nothing to see here, please continue.
+      return true;
+    }
+
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (b->done)
+	{
+	  // This comes from this event
+	  int ct;
+	  Roledef rd;
+
+	  rd = eventRoledef (sys, b->run_from, b->ev_from);
+	  ct = rd->compromisetype;
+	  if (ct != 0)
+	    {
+	      if (!checkCompromiseSanityEvent (b->run_to, b->ev_to, ct))
+		{
+		  return false;
+		}
+	    }
+	}
+    }
+  return true;
 }

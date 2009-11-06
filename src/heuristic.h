@@ -24,5 +24,6 @@
 #include "binding.h"
 
 Binding select_goal (const System sys);
+int count_selectable_goals (const System sys);
 
 #endif

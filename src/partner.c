@@ -185,8 +185,8 @@ arachne_runs_hist_match (const System sys, const Claimlist cl,
       Roledef get_label_event (const Term role, const Term label)
       {
 	int run;
-	Roledef rd;
 	int i;
+	Roledef rd;
 
 	run = termmapGet (runs, role);
 	if (run == -1)
@@ -412,80 +412,68 @@ isCompromisePartnerStdTermmap (const int targetrun, const int targetev,
 
       if ((!linfo->ignore) && (linfo->protocol == prot))
 	{
+	  Roledef rd_read;
+
 	  // Locate roledefs for read & send, and check whether they are before step
 
 	  Roledef get_label_event (const Term role, const Term label)
 	  {
 	    int run;
-	    Roledef rd;
 	    int ev;
+	    Roledef rd;
 
 	    run = termmapGet (runs, role);
 	    if (run == -1)
 	      {
 		return NULL;
 	      }
-#ifdef DEBUG
-	    if (run < 0 || run >= sys->maxruns)
-	      {
-		globalError++;
-		eprintf ("Run mapping %ev out of bounds for role ", run);
-		termPrint (role);
-		eprintf (" and label ");
-		termPrint (label);
-		eprintf ("\n");
-		eprintf ("This label has sendrole ");
-		termPrint (linfo->sendrole);
-		eprintf (" and readrole ");
-		termPrint (linfo->readrole);
-		eprintf ("\n");
-		globalError--;
-		error ("Run mapping is out of bounds.");
-	      }
-#endif
+	    // Scan through the run to find the position of the label's event and check whether it precedes.
 	    rd = sys->runs[run].start;
 	    for (ev = 0; ev < sys->runs[run].step; ev++)
 	      {
-		if (isLabelComprEqual (rd->label, label))
+		// check also whether it precedes the thing
+		// NOTE: really < and not <=, so best called with a non-communication target event
+		// If ev does not precede, neither will any subsequent events, so abort now.
+		if (!isDependEvent (run, ev, targetrun, targetev))
 		  {
-		    // check also whether it precedes the thing
-		    // NOTE: really < and not <=, so best called with a non-communication target event
-		    if (isDependEvent (run, ev, targetrun, targetev))
+		    return NULL;
+		  }
+		else
+		  {
+		    if (isLabelComprEqual (rd->label, label))
 		      {
-			// Precedes, so mention
 			return rd;
 		      }
-		    else
-		      {
-			// It's the right one, but does not precede, so bad
-			return NULL;
-		      }
+		    rd = rd->next;
 		  }
-		rd = rd->next;
 	      }
 	    return NULL;
 	  }
 
 	  // Main
-	  Roledef rd_send, rd_read;
 
 	  rd_read = get_label_event (linfo->readrole, linfo->label);
-	  if (rd_read == NULL)
+	  if (rd_read != NULL)
 	    {
-	      // Need only to match as far as they exist
-	      break;
-	    }
-	  rd_send = get_label_event (linfo->sendrole, linfo->label);
-	  if (rd_send == NULL)
-	    {
-	      // Need only to match as far as they exist
-	      break;
-	    }
-	  // Compare
-	  if (events_prefix_match_rd (rd_send, rd_read) != MATCH_CONTENT)
-	    {
-	      // False!
-	      return false;
+	      Roledef rd_send;
+
+	      rd_send = get_label_event (linfo->sendrole, linfo->label);
+	      if (rd_send == NULL)
+		{
+		  // Need only to match as far as they exist
+		  // Compare
+		  if (events_prefix_match_rd (rd_send, rd_read) !=
+		      MATCH_CONTENT)
+		    {
+		      // They are different!
+		      globalError++;
+		      eprintf("Cutting prefix match on label ");
+		      termPrint(linfo->label);
+		      eprintf("\n");
+		      globalError--;
+		      return false;
+		    }
+		}
 	    }
 	}
     }
@@ -567,6 +555,7 @@ isCompromisePartnerSymmOne (const int targetrun, const int targetev,
 	}
       if (rd->type == READ)
 	{
+	  // Receive in run must have a matching send in Test
 	  if (rdsend == NULL)
 	    {
 	      return false;

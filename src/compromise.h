@@ -28,5 +28,6 @@ int weighCompromisedRuns (void);
 int isCompromiseEvent (Roledef rd);
 int compromiseRNRpartner (int *partners, Term a);
 int isRunCompromised (const int run);
+int checkCompromiseSanity ();
 
 #endif

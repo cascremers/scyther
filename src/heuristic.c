@@ -44,7 +44,10 @@ is_goal_selectable (const Binding b)
     {
       if (!b->done)
 	{
-	  return true;
+	  if (!isTermVariable (b->term))
+	    {
+	      return true;
+	    }
 	}
     }
   return false;
@@ -322,29 +325,26 @@ select_goal_masked (const System sys)
       // Only if not done
       if (is_goal_selectable (b))
 	{
-	  if (!isTermVariable (b->term))
+	  float w;
+
+	  w = computeGoalWeight (sys, b);
+
+	  // Spacing between output
+	  if (switches.output == PROOF && best != NULL)
+	    eprintf (", ");
+
+	  // Better alternative?
+	  if (w <= best_weight)
 	    {
-	      float w;
-
-	      w = computeGoalWeight (sys, b);
-
-	      // Spacing between output
-	      if (switches.output == PROOF && best != NULL)
-		eprintf (", ");
-
-	      // Better alternative?
-	      if (w <= best_weight)
-		{
-		  best_weight = w;
-		  best = b;
-		  if (switches.output == PROOF)
-		    eprintf ("*");
-		}
+	      best_weight = w;
+	      best = b;
 	      if (switches.output == PROOF)
-		{
-		  termPrint (b->term);
-		  eprintf ("[%.2f]", w);
-		}
+		eprintf ("*");
+	    }
+	  if (switches.output == PROOF)
+	    {
+	      termPrint (b->term);
+	      eprintf ("[%.2f]", w);
 	    }
 	}
       bl = bl->next;
