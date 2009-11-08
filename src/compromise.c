@@ -863,6 +863,23 @@ checkCompromiseSanity ()
 {
   List bl;
 
+  /*
+   * First some big preconditions to this test
+   */
+  if (switches.partnerDefinition != 1)
+    {
+      // For the other partner definitions no final check is needed.
+      return true;
+    }
+  if ((switches.SKR == 0) && (switches.SSR == 0))
+    {
+      // No SKR, no SSR: irrelevant
+      return true;
+    }
+
+  /*
+   * Only done for realizable patterns
+   */
   if (count_selectable_goals (sys) != 0)
     {
       // This check only makes sense for realizable patterns.
@@ -870,6 +887,9 @@ checkCompromiseSanity ()
       return true;
     }
 
+  /*
+   * Now we actually scan for the conditions
+   */
   for (bl = sys->bindings; bl != NULL; bl = bl->next)
     {
       Binding b;
@@ -885,7 +905,8 @@ checkCompromiseSanity ()
 	  ct = rd->compromisetype;
 	  if (ct != 0)
 	    {
-	      if (!checkCompromiseSanityEvent (b->run_to, b->ev_to, ct))
+	      // It is actually a compromise
+	      if (!checkCompromiseSanityEvent (b->run_from, b->ev_from, ct))
 		{
 		  return false;
 		}
