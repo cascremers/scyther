@@ -466,11 +466,6 @@ isCompromisePartnerStdTermmap (const int targetrun, const int targetev,
 		      MATCH_CONTENT)
 		    {
 		      // They are different!
-		      globalError++;
-		      eprintf ("Cutting prefix match on label ");
-		      termPrint (linfo->label);
-		      eprintf ("\n");
-		      globalError--;
 		      return false;
 		    }
 		}
