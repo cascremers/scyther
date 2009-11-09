@@ -264,7 +264,28 @@ roledefTail (Roledef rd)
     }
 }
 
-//! Add a role event to an existing list, with the given parameters.
+//! RoleDef constuction
+/**
+ * Given the head, appends rdnew to the end. Returns the new head.
+ */
+Roledef
+roledefAppend (Roledef rdhead, Roledef rdnew)
+{
+  Roledef rdtail;
+
+  rdtail = roledefTail (rdhead);
+  if (rdtail == NULL)
+    {
+      return rdnew;
+    }
+  else
+    {
+      rdtail->next = rdnew;
+      return rdhead;
+    }
+}
+
+//! Append a role event to an existing list, with the given parameters.
 /**
  *\sa roledefInit()
  * Returns the new head (if given NULL) or the rd it was given as input.

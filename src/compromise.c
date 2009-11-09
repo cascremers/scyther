@@ -482,27 +482,6 @@ createCompromiseSends (Role role, Termlist comprlist)
   return rd;
 }
 
-//! RoleDef constuction
-/**
- * Given the head, appends rdnew to the end. Returns the new head.
- */
-Roledef
-roledefAppend (Roledef rdhead, Roledef rdnew)
-{
-  Roledef rdtail;
-
-  rdtail = roledefTail (rdhead);
-  if (rdtail == NULL)
-    {
-      return rdnew;
-    }
-  else
-    {
-      rdtail->next = rdnew;
-      return rdhead;
-    }
-}
-
 //! Infer session key if needed, from explicit marker
 Termlist
 learnSessionKey (Termlist compterms, Roledef rd)
