@@ -243,18 +243,25 @@ def InitRestricted(models=None):
     #RESTRICTEDMODELS = None #   default
     if models in ["CSF09","Literature","paper"]:
         RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck1,eck2]   # As in paper
-    elif models in ["8", "112", "CSF09Rules"]:
+    elif models in ["7", "96", "SnP10Rules"]:
         RESTRICTEDMODELS = None
         MS = []
         for model in Traverse(unrestricted=True):
-            if model.vector[1] == 2:
-                # We don't consider LKRactor, only actorrnsafe
-                continue
             if model.vector[4] == 1:
                 # We don't consider SSR filter for now
                 continue
+            if model.vector[4] == 3:
+                # We don't consider overriding the local state for now
+                continue
+            if model.vector[6] == 0:
+                # We only consider the full model, no --extravert restriction 
+                # (Though it could be a protocol-induced restriction - this is not covered here)
+                continue
             MS.append(model.copy())
         RESTRICTEDMODELS = MS
+    elif models in ["8", "112", "CSF09Rules"]:
+        print "Sorry, this model is not supported anymore."
+        sys.exit(0)
     elif models in ["old"]:
         """
         Not-extravert, in fact
