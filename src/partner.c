@@ -815,7 +815,9 @@ getPartnerArray (void)
       propagateOverlap (partners);
       break;
     case 1:
+    case 4:
       // This is the default setting, taking into account role symmetry
+      // Also covers crypto version.
       pr = (Protocol) sys->current_claim->protocol;
       switch (pr->symmetry)
 	{

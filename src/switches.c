@@ -82,7 +82,7 @@ switchesInit (int argc, char **argv)
   switches.agentUnfold = 0;	// default not to unfold agents
   switches.abstractionMethod = 0;	// default no abstraction used
   switches.useAttackBuffer = false;	// don't use by default as it does not work properly under windows vista yet
-  switches.partnerDefinition = 1;	// 0: temporally close, 1: matching histories [default], 2: SID based
+  switches.partnerDefinition = 1;	// 0: temporally close, 1: matching histories [default], 2: SID based, 3: close to CK-HMQV, 4: matching histories (crypto filtering)
   switches.requireSynch = false;	// default no synch required for attacks, but maybe we do
   switches.checkMatchingLabels = true;	// default is to check matching labels
 
@@ -1309,10 +1309,11 @@ switcher (const int process, int index, int commandline)
 	{
 	  /* Relevant for key compromise:
 	   *
-	   * 0: partner is anything temporally necessarily close to the claim [default]
-	   * 1: partner is matching histories (non-injective message agreement)
+	   * 0: partner is anything temporally necessarily close to the claim
+	   * 1: partner is matching histories (non-injective message agreement) with prefix-closure (as in paper). [default]
 	   * 2: partner is based on SID definitions (requires CLAIM(R,SID,...) in each role)
 	   * 3: partner is similar to CK_HMQV (actor, other, m1, m2, ...)
+	   * 4: partnering as in 1, but without prefix-closure (so closer to crypto models)
 	   *
 	   * These models are actually incomparable. Hmm.
 	   */
@@ -1321,10 +1322,10 @@ switcher (const int process, int index, int commandline)
 	{
 	  switches.partnerDefinition = integer_argument ();
 	  if ((switches.partnerDefinition < 0)
-	      || (switches.partnerDefinition > 3))
+	      || (switches.partnerDefinition > 4))
 	    {
 	      printfstderr
-		("Partner definition mode must be between 0 and 3.\n");
+		("Partner definition mode must be between 0 and 4.\n");
 	      exit (1);
 	    }
 	  return index;
