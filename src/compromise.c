@@ -743,6 +743,78 @@ adaptRoleCompromised (Protocol p, Role r)
   termlistDelete (RNRseen);
 }
 
+//! Delay all compromise events in an atomic section to the end of the atomic section
+/**
+ * This mimics cryptographic models which don't allow any compromise between a
+ * receive and a send as 'send' queries are considered atomic.
+ */
+void
+delayCompromiseAtomic (const Protocol p, const Role r)
+{
+  Roledef delayed;
+  Roledef rdold;
+  Roledef rdnew;
+  int empty;
+
+  delayed = NULL;
+  rdnew = NULL;
+
+  rdold = r->roledef;
+  empty = true;
+  while (rdold != NULL)
+    {
+      Roledef rdnext;
+      int flush;
+
+      // Isolate event
+      rdnext = rdold->next;
+      rdold->next = NULL;
+
+      // See where to put it
+      if (isCompromiseEvent (rdold))
+	{
+	  // Delay this event
+	  delayed = roledefAppend (delayed, rdold);
+	}
+      else
+	{
+	  // Append this event here
+	  rdnew = roledefAppend (rdnew, rdold);
+	  empty = false;
+	}
+
+      // Do we need to flush?
+      flush = false;
+      if (rdnext == NULL)
+	{
+	  // Always at the end
+	  flush = true;
+	}
+      else
+	{
+	  if ((rdnext->type == READ) || (rdnext->type == CLAIM))
+	    {
+	      if (!empty)
+		{
+		  // Don't flush in initial segment, otherwise fine
+		  flush = true;
+		}
+	    }
+	}
+      if (flush)
+	{
+	  rdnew = roledefAppend (rdnew, delayed);
+	  delayed = NULL;
+	}
+
+      // Continue
+      rdold = rdnext;
+    }
+
+  // Store new event order
+  r->roledef = rdnew;
+}
+
 //! Insert Compromise events into all protocols
 void
 adaptProtocolsCompromised (void)
@@ -761,6 +833,10 @@ adaptProtocolsCompromised (void)
 	      for (r = p->roles; r != NULL; r = r->next)
 		{
 		  adaptRoleCompromised (p, r);
+		  if (switches.delayCompromiseAtomic)
+		    {
+		      delayCompromiseAtomic (p, r);
+		    }
 		}
 	    }
 	}

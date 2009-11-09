@@ -71,6 +71,7 @@ struct switchdata
   int SSR;			//!< SSR others 
   int RNR;			//!< RNR reveal
   int forceRegular;		//!< Force considering regular run
+  int delayCompromiseAtomic;	//!< Delay reveals within atomic sections (a la step compression)
   // Filters
   int SSRfilter;		//!< SSR filtering on nonces (implies SSR)
   int RNRinfer;			//!< Do full state for RNR contents: takes whatever SSR would do.

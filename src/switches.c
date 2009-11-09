@@ -95,6 +95,7 @@ switchesInit (int argc, char **argv)
   switches.SSR = false;		//!< default is no SSR 
   switches.RNR = false;		//!< default is no RNR
   switches.forceRegular = false;	//<! default is no forced regular session
+  switches.delayCompromiseAtomic = false;	//<! default is allow compromise anywhere: even between a receive and a send
   // Parameters
   switches.SSRfilter = false;	//!< default is no SSR filtering on nonces
   switches.RNRinfer = false;	//!< default is no RNR extension to state
@@ -771,6 +772,20 @@ switcher (const int process, int index, int commandline)
       if (process)
 	{
 	  switches.forceRegular = true;
+	  return index;
+	}
+    }
+  if (detect (' ', "delay-compromise-atomic", 0))
+    {
+      /* 
+       * Cryptographic models use a reactive system model that often does not
+       * allow for a compromise within an atomic section, i.e., not between a
+       * receive and a send.  Enabling this switch mimics this behaviour by
+       * delaying any compromise events until after the atomic section.
+       */
+      if (process)
+	{
+	  switches.delayCompromiseAtomic = true;
 	  return index;
 	}
     }
