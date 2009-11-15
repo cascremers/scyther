@@ -154,14 +154,16 @@ def InitRestricted(models=None):
     jkl2004.vector[6] = 0   # extravert, very specific to this model
     jkl2004.setName("JKL")
 
-    # bpr2000: skr
+    # bpr2000: notgroup aftercorrect skr (not completely sure anymore)
     bpr2000 = external.copy()
+    bpr2000.vector[2] = 1
     bpr2000.vector[3] = 1
     bpr2000.setName("BPR")
     
     # br9395: notgroup skr
-    br9395 = bpr2000.copy()
+    br9395 = external.copy()
     br9395.vector[0] = 1
+    br9395.vector[3] = 1
     br9395.setName("BR")
     
     # pfs: notgroup after
@@ -242,7 +244,7 @@ def InitRestricted(models=None):
 
     #RESTRICTEDMODELS = None #   default
     if models in ["CSF09","Literature","paper"]:
-        RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, bpr2000, br9395, ck2001hmqv, ck2001, eck1,eck2]   # As in paper
+        RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, br9395, ck2001hmqv, ck2001, eck1,eck2]   # As in paper
     elif models in ["7", "96", "SnP10Rules"]:
         RESTRICTEDMODELS = None
         MS = []
