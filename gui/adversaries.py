@@ -237,71 +237,63 @@ def InitRestricted(models=None):
     ck2001hmqvextravert.vector[6] = 0
     ck2001hmqvextravert.setName("CKw-extravert")
     
+    # Give the sets names
 
-    #RESTRICTEDMODELS = [eck1,eck2, eckalt,ck2001rnr,ck2001hmqvrnr]    # To compare equal choice for RNR/SSR
+    namedmodels = {}
+    RESTRICTEDMODELS = None
 
-    #RESTRICTEDMODELS = [ck2001,ck2001hmqv]      # To compare equal choice for RNR/SSR
+    namedmodels["paper"] = [external, internal, kci, wpfs, pfs, br9395, ck2001hmqv, ck2001, eck1,eck2]   # As in paper
+    namedmodels["compareRNRSSR1"] = [eck1,eck2, ck2001rnr,ck2001hmqvrnr]    # To compare equal choice for RNR/SSR
+    namedmodels["compareRNRSSR2"] = [ck2001,ck2001hmqv]      # To compare equal choice for RNR/SSR
+    MS = []
+    for model in Traverse(unrestricted=True):
+        if model.vector[4] == 1:
+            # We don't consider SSR filter for now
+            continue
+        if model.vector[4] == 3:
+            # We don't consider overriding the local state for now
+            continue
+        if model.vector[6] == 0:
+            # We only consider the full model, no --extravert restriction 
+            # (Though it could be a protocol-induced restriction - this is not covered here)
+            continue
+        MS.append(model.copy())
+    namedmodels["SnP10rules"] = MS  # Rules as in S&P 2010 submission
 
-    #RESTRICTEDMODELS = None #   default
-    if models in ["CSF09","Literature","paper"]:
-        RESTRICTEDMODELS = [external, internal, kci, wpfs, pfs, br9395, ck2001hmqv, ck2001, eck1,eck2]   # As in paper
-    elif models in ["7", "96", "SnP10Rules"]:
-        RESTRICTEDMODELS = None
-        MS = []
-        for model in Traverse(unrestricted=True):
-            if model.vector[4] == 1:
-                # We don't consider SSR filter for now
-                continue
-            if model.vector[4] == 3:
-                # We don't consider overriding the local state for now
-                continue
-            if model.vector[6] == 0:
-                # We only consider the full model, no --extravert restriction 
-                # (Though it could be a protocol-induced restriction - this is not covered here)
-                continue
-            MS.append(model.copy())
-        RESTRICTEDMODELS = MS
-    elif models in ["8", "112", "CSF09Rules"]:
-        print "Sorry, this model is not supported anymore."
-        sys.exit(0)
-    elif models in ["old"]:
-        """
-        Not-extravert, in fact
-        """
-        RESTRICTEDMODELS = None
-        MS = []
-        for model in Traverse(unrestricted=True):
-            if model.vector[6] == 0:
-                # We don't consider extravert models
-                continue
-            MS.append(model.copy())
-        RESTRICTEDMODELS = MS
-    elif models in ["extravert"]:
-        """
-        Extravert only
-        """
-        RESTRICTEDMODELS = None
-        MS = []
-        for model in Traverse(unrestricted=True):
-            if model.vector[6] != 0:
-                # We only consider extravert models
-                continue
-            MS.append(model.copy())
-        RESTRICTEDMODELS = MS
-    elif models in ["triangle"]:
-        RESTRICTEDMODELS = [eck1,eck2, ck2001hmqvrnr,ck2001rnr]   # Triangle restriction
-    elif models in ["triangle2"]:
-        RESTRICTEDMODELS = [eck1,eck2, ck2001hmqvrnr, pfs]        # Second triangle restriction
-    elif models in ["square"]:
-        RESTRICTEDMODELS = [eck1,eck2, ck2001hmqvrnr,ck2001rnr,pfs]   # Square restriction
-    elif models in ["triangleSSR"]:
-        RESTRICTEDMODELS = [eck1,eck2, ck2001hmqv,ck2001,ck2001hmqvrnr,ck2001rnr]         # Triangle restriction but allow state-reveal too
-    elif models in ["triangleExtravert"]:
-        RESTRICTEDMODELS = [eck1,eck2,ck2001hmqv,ck2001,eckextravert,ck2001hmqvextravert,ck2001extravert]         # Triangle restriction but allow state-reveal too, and extravert
+    RESTRICTEDMODELS = None
+    MS = []
+    for model in Traverse(unrestricted=True):
+        if model.vector[6] == 0:
+            # We don't consider extravert models
+            continue
+        MS.append(model.copy())
+    namedmodels["old"] = MS     # Non-extravert
+
+    RESTRICTEDMODELS = None
+    MS = []
+    for model in Traverse(unrestricted=True):
+        if model.vector[6] != 0:
+            # We only consider extravert models
+            continue
+        MS.append(model.copy())
+    namedmodels["extravert"] = MS   # Extravert only
+
+    namedmodels["triangle"] = [eck1,eck2, ck2001hmqvrnr,ck2001rnr]   # Triangle restriction
+    namedmodels["triangle2"] = [eck1,eck2, ck2001hmqvrnr, pfs]        # Second triangle restriction
+    namedmodels["square"] = [eck1,eck2, ck2001hmqvrnr,ck2001rnr,pfs]   # Square restriction
+    namedmodels["triangleSSR"] = [eck1,eck2, ck2001hmqv,ck2001,ck2001hmqvrnr,ck2001rnr]         # Triangle restriction but allow state-reveal too
+    namedmodels["triangleExtravert"] = [eck1,eck2,ck2001hmqv,ck2001,ck2001hmqvextravert,ck2001extravert]         # Triangle restriction but allow state-reveal too, and extravert
+
+    # Propagate choice
+    if models in namedmodels.keys():
+        RESTRICTEDMODELS = namedmodels[models]
     elif models in ["all","any"]:
         RESTRICTEDMODELS = None
     else:
         print "ERROR: Unknown model type %s" % (models)
+        print
+        print "Available model names:"
+        print namedmodels.keys()
         sys.exit(0)
 
     # Report
