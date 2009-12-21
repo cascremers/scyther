@@ -25,6 +25,7 @@
 import wx
 import os
 import sys
+from subprocess import *
 
 #---------------------------------------------------------------------------
 
@@ -129,7 +130,9 @@ def makeImageDot(dotdata,attackthread=None):
     cmd = "dot -T%s" % (type)
 
     # execute command
-    cin,cout = os.popen2(cmd,'b')
+    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
+    (cin,cout) = (p.stdin, p.stdout)
+
 
     if attackthread:
         writeGraph(attackthread,dotdata,cin)
