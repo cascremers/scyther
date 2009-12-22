@@ -1,0 +1,68 @@
+/* 
+ * Two-move Diffie-Hellman from CK2001
+ * Transformed using MT-authenticator based on encryption
+ */
+
+// Hash functions
+hashfunction h1,h2,g1,g2,MAC;
+
+/*
+ * Hack to simulate g^ab = g^ba.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exponentiation(RA)
+{
+	role RA
+	{
+		var T1,T2: Ticket;
+
+		recv_!1(RA,RA, g2(g1(T1),T2) );
+		send_!2(RA,RA, g2(g1(T2),T1) );
+	}
+}
+
+// The protocol description
+
+protocol twoDH-MTencr(I,R)
+{
+	role I
+	{
+		const x: Nonce;
+		const s: Nonce;
+		const Na: Nonce;
+		var Nb: Nonce;
+		var i: Nonce;
+		var beta: Ticket;
+
+		send_1a(I,R,  I,s,g1(x) );
+		recv_1b(R,I,  { Nb }pk(I) );
+		send_1c(I,R,  MAC(Nb,I,s,g1(x)) );
+		recv_2a(R,I,  R,s,beta );
+		send_2b(I,R,  { Na }pk(R) );
+		recv_2c(R,I,  MAC(Na,R,s,beta) );
+
+		claim(I,SKR, g2(beta,x) );
+	}	
+	
+	role R
+	{
+		const y: Nonce;
+		const i: Nonce;
+		const Nb: Nonce;
+		var alpha: Ticket;
+		var s: Nonce;
+		var Na: Nonce;
+
+		recv_1a(I,R,  I,s,alpha );
+		send_1b(R,I,  { Nb }pk(I) );
+		recv_1c(I,R,  MAC(Nb,I,s,alpha) );
+		send_2a(R,I,  R,s,g1(y) );
+		recv_2b(I,R,  { Na }pk(R) );
+		send_2c(R,I,  MAC(Na,R,s,g1(y)) );
+
+		claim(R,SKR, g2(alpha,y) );
+	}
+}
+
