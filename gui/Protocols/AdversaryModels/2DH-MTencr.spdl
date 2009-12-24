@@ -36,6 +36,7 @@ protocol twoDH-MTencr(I,R)
 		var i: Nonce;
 		var beta: Ticket;
 
+                claim(I,SID,s);
 		send_1a(I,R,  I,s,g1(x) );
 		recv_1b(R,I,  { Nb }pk(I) );
 		send_1c(I,R,  MAC(Nb,I,s,g1(x)) );
@@ -56,6 +57,7 @@ protocol twoDH-MTencr(I,R)
 		var Na: Nonce;
 
 		recv_1a(I,R,  I,s,alpha );
+                claim(R,SID,s);
 		send_1b(R,I,  { Nb }pk(I) );
 		recv_1c(I,R,  MAC(Nb,I,s,alpha) );
 		send_2a(R,I,  R,s,g1(y) );

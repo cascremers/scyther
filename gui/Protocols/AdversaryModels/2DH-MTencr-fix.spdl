@@ -40,8 +40,10 @@ protocol twoDH-MTencr-fix(I,R)
 		send_1a(I,R,  I,s,g1(x) );
 		recv_1b(R,I,  { Nb }pk(I) );
 		send_1c(I,R,  MAC(Nb,I,R,s,g1(x)) );
+		send_Compromise(I,I, x);
 		recv_2a(R,I,  R,s,beta );
 		send_2b(I,R,  { Na }pk(R) );
+		send_Compromise(I,I, Na);
 		recv_2c(R,I,  MAC(Na,R,I,s,beta) );
 
 		claim(I,SKR, g2(beta,x) );
@@ -58,8 +60,10 @@ protocol twoDH-MTencr-fix(I,R)
 
 		recv_1a(I,R,  I,s,alpha );
 		send_1b(R,I,  { Nb }pk(I) );
+		send_Compromise(R,R, Nb);
 		recv_1c(I,R,  MAC(Nb,I,R,s,alpha) );
 		send_2a(R,I,  R,s,g1(y) );
+		send_Compromise(R,R, y);
 		recv_2b(I,R,  { Na }pk(R) );
 		send_2c(R,I,  MAC(Na,R,I,s,g1(y)) );
 
