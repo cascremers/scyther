@@ -112,10 +112,10 @@ checkSIDrequirements (void)
 void
 checkCompromiseRequirements (void)
 {
-  if (switches.partnerDefinition == 2)
+  if ((switches.partnerDefinition == 2) || (switches.partnerDefinition == 5))
     {
 	/**
-	 * SID based partner definition requires that it is defined for all partners.
+	 * SID based partner definitions requires that it is defined for all partners.
 	 */
       checkSIDrequirements ();
     }

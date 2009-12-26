@@ -688,6 +688,45 @@ matchingSIDs (int *partners)
     }
 }
 
+//! Check actor match a la CK2001
+/**
+ * The original definition only really works for two-party protocols, where it is symmetric.
+ * Here we break the symmetry for all other cases.
+ */
+int
+actorMatchCK2001 (const int run1, const int run2)
+{
+  return termlistSetEqual (sys->runs[run1].rho, sys->runs[run2].rho);
+}
+
+//! Fix partners on the basis of SIDs and agent names (CK2001)
+void
+matchingCK2001 (int *partners)
+{
+  int run;
+  Term SID;
+
+  SID = getSID (0);
+  if (SID == NULL)
+    {
+      error
+	("Claim run needs to have a Session ID (SID) for this partner definition.");
+    }
+  for (run = 1; run < sys->maxruns; run++)
+    {
+      Term xsid;
+
+      xsid = getSID (run);
+      if (isTermEqual (SID, xsid))
+	{
+	  if (actorMatchCK2001 (0, run))
+	    {
+	      partners[run] = true;
+	    }
+	}
+    }
+}
+
 //! Compute mlist for a run for type = READ || SEND
 /**
  * Result needs to be deleted afterwards.
@@ -834,6 +873,9 @@ getPartnerArray (void)
       break;
     case 3:
       matchingMList (partners);
+      break;
+    case 5:
+      matchingCK2001 (partners);
       break;
     }
 
