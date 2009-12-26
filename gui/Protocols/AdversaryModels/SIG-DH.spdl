@@ -1,0 +1,58 @@
+/* 
+ * Two-move Diffie-Hellman in the UM
+ * From CK2001, p. 20
+ */
+
+// Hash functions
+hashfunction h1,h2,g1,g2;
+
+/*
+ * Hack to simulate g^ab = g^ba.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exponentiation(RA)
+{
+	role RA
+	{
+		var alpha,beta, T1,T2: Ticket;
+
+		recv_!1(RA,RA, g2(g1(T1),T2) );
+		send_!2(RA,RA, g2(g1(T2),T1) );
+	}
+}
+
+// The protocol description
+
+protocol SIG-DH-UM(I,R)
+{
+	role I
+	{
+		const s: Nonce;
+		const x: Nonce;
+		var beta: Ticket;
+
+		claim(I, SID, s);
+		send_1(I,R, I,s,g1(x) );
+		recv_2(R,I, R,s,beta, { R,s,beta,g1(x),I }sk(R) );
+		send_3(I,R, I,s, { I,s,g1(x),beta,R }sk(I) );
+
+		claim(I,SKR, g2(beta,x) );
+	}	
+	
+	role R
+	{
+		const y: Nonce;
+		var s: Nonce;
+		var alpha: Ticket;
+
+		recv_1(I,R, I,s,alpha );
+		claim(R, SID, s);
+		send_2(R,I, R,s,g1(y), { R,s,g1(y),alpha,I }sk(R) );
+		recv_3(I,R, I,s, { I,s,alpha,g1(y),R }sk(I) );
+
+		claim(R,SKR, g2(alpha,y) );
+	}
+}
+
