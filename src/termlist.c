@@ -793,6 +793,8 @@ termlistLocal (Termlist tl, const Termlist fromlist, const Termlist tolist)
  *@param tlbig The big list.
  *@param tlsmall The list that is possibly contained in the big one.
  *@return True iff tlsmall is contained in tlbig.
+ * 
+ * To be precise: it checks whether all elements in the small list occur in the big list.
  */
 int
 termlistContained (const Termlist tlbig, Termlist tlsmall)
@@ -804,6 +806,20 @@ termlistContained (const Termlist tlbig, Termlist tlsmall)
       tlsmall = tlsmall->next;
     }
   return 1;
+}
+
+//! Set equality, abusing lists
+int
+termlistSetEqual (const Termlist tl1, const Termlist tl2)
+{
+  if (termlistContained (tl1, tl2))
+    {
+      if (termlistContained (tl2, tl1))
+	{
+	  return true;
+	}
+    }
+  return false;
 }
 
 //! Yield the result of f(x)
