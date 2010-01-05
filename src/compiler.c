@@ -784,7 +784,8 @@ commEvent (int event, Tac tc)
 	  if (!inTermlist (claim->stype, TERM_Claim))
 	    {
 	      globalError++;
-	      eprintf ("error: [%i] claim term is not of claim type ",
+	      error_pre ();
+	      eprintf ("[%i] claim term is not of claim type ",
 		       trip->next->lineno);
 	      termPrint (claim);
 	      errorTac (trip->next->lineno);
@@ -1001,7 +1002,8 @@ roleCompile (Term nameterm, Tac tc)
   if (thisRole == NULL)
     {
       globalError++;
-      eprintf ("error: [%i] undeclared role name ", tc->lineno);
+      error_pre ();
+      eprintf ("[%i] undeclared role name ", tc->lineno);
       termPrint (nameterm);
       eprintf (" in line ");
       errorTac (tc->lineno);
@@ -1030,7 +1032,8 @@ roleCompile (Term nameterm, Tac tc)
 	  if (!normalDeclaration (tc))
 	    {
 	      globalError++;
-	      eprintf ("error: [%i] illegal command %i in role ",
+	      error_pre ();
+	      eprintf ("[%i] illegal command %i in role ",
 		       tc->lineno, tc->op);
 	      termPrint (thisRole->nameterm);
 	      eprintf (" ");
@@ -1095,8 +1098,9 @@ runInstanceCreate (Tac tc)
   if (p == NULL)
     {
       globalError++;
+      error_pre ();
       eprintf
-	("error: [%i] Trying to create a run of a non-declared protocol ",
+	("[%i] Trying to create a run of a non-declared protocol ",
 	 tc->lineno);
       symbolPrint (psym);
       eprintf (" ");
@@ -1111,7 +1115,8 @@ runInstanceCreate (Tac tc)
   if (r == NULL)
     {
       globalError++;
-      eprintf ("error: [%i] Protocol ", tc->lineno);
+      error_pre ();
+      eprintf ("[%i] Protocol ", tc->lineno);
       symbolPrint (psym);
       eprintf (" has no role called ");
       symbolPrint (rsym);
@@ -1124,8 +1129,9 @@ runInstanceCreate (Tac tc)
   if (termlistLength (instParams) != termlistLength (p->rolenames))
     {
       globalError++;
+      error_pre ();
       eprintf
-	("error: [%i] Run instance has different number of parameters than protocol ",
+	("[%i] Run instance has different number of parameters than protocol ",
 	 tc->lineno);
       termPrint (p->nameterm);
       eprintf (" ");
@@ -1203,8 +1209,8 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles, int symmetry)
 	if (isTermEqual (pr->nameterm, prold->nameterm))
 	  {
 	    globalError++;
-	    eprintf ("error: [%i] Double declaration of protocol ",
-		     tc->lineno);
+	    error_pre ();
+	    eprintf ("[%i] Double declaration of protocol ", tc->lineno);
 	    symbolPrint (prots);
 	    eprintf (" ");
 	    errorTac (tc->lineno);
@@ -1276,7 +1282,8 @@ protocolCompile (Symbol prots, Tac tc, Tac tcroles, int symmetry)
 	  if (!normalDeclaration (tc))
 	    {
 	      globalError++;
-	      eprintf ("error: [%i] illegal command %i in protocol ",
+	      error_pre ();
+	      eprintf ("[%i] illegal command %i in protocol ",
 		       tc->lineno, tc->op);
 	      termPrint (thisProtocol->nameterm);
 	      errorTac (tc->lineno);
@@ -1316,7 +1323,8 @@ tacProcess (Tac tc)
 	  if (!normalDeclaration (tc))
 	    {
 	      globalError++;
-	      eprintf ("error: [%i] illegal command %i at the global level ",
+	      error_pre ();
+	      eprintf ("[%i] illegal command %i at the global level ",
 		       tc->lineno, tc->op);
 	      errorTac (tc->lineno);
 	    }
@@ -1341,7 +1349,8 @@ tacTerm (Tac tc)
 	if (t == NULL)
 	  {
 	    globalError++;
-	    eprintf ("error: [%i] undeclared symbol ", tc->lineno);
+	    error_pre ();
+	    eprintf ("[%i] undeclared symbol ", tc->lineno);
 	    symbolPrint (tc->t1.sym);
 	    errorTac (tc->lineno);
 	  }
@@ -2132,7 +2141,8 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
 		      if (!checkEventMatch (event, readevent, p->rolenames))
 			{
 			  globalError++;
-			  eprintf ("error: [%i]", readevent->lineno);
+			  error_pre ();
+			  eprintf ("[%i]", readevent->lineno);
 			  if (sys->protocols != NULL)
 			    {
 			      if (sys->protocols->next != NULL)
@@ -2144,10 +2154,12 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
 			  eprintf (" events for label ");
 			  termPrint (event->label);
 			  eprintf (" do not match, in particular: \n");
-			  eprintf ("error: [%i] ", event->lineno);
+			  error_pre ();
+			  eprintf ("[%i] ", event->lineno);
 			  roledefPrint (event);
 			  eprintf (" does not match\n");
-			  eprintf ("error: [%i] ", readevent->lineno);
+			  error_pre ();
+			  eprintf ("[%i] ", readevent->lineno);
 			  roledefPrint (readevent);
 			  eprintf ("\n");
 			  error_die ();
@@ -2184,7 +2196,8 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
   if (found == 0)
     {
       globalError++;
-      eprintf ("error: [%i] for the read event ", readevent->lineno);
+      error_pre ();
+      eprintf ("[%i] for the read event ", readevent->lineno);
       roledefPrint (readevent);
       eprintf (" of protocol ");
       termPrint (p->nameterm);
@@ -2226,8 +2239,9 @@ checkLabelMatchProtocol (const System sys, const Protocol p)
 	      else
 		{
 		  globalError++;
+		  error_pre ();
 		  eprintf
-		    ("error: [%i] cannot determine label information for ",
+		    ("[%i] cannot determine label information for ",
 		     rd->lineno);
 		  roledefPrint (rd);
 		  eprintf ("\n");
