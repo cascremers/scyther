@@ -96,6 +96,13 @@ error (char *fmt, ...)
   error_die ();
 }
 
+//! Warning pre
+void
+warning_pre (void)
+{
+  printfstderr ("warning: ");
+}
+
 //! Print warning
 /**
  * Input is comparable to printf, only end of line is not required.
@@ -106,7 +113,7 @@ warning (char *fmt, ...)
   va_list args;
 
   va_start (args, fmt);
-  printfstderr ("warning: ");
+  warning_pre ();
   vprintfstderr (fmt, args);
   printfstderr ("\n");
   va_end (args);
