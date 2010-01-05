@@ -136,7 +136,7 @@ class SettingsWindow(wx.Panel):
             grid.stepAdd(btn,desc)
             return btn
 
-        toggler("Long-term Key Reveal","Others (DY)","--LKRnotgroup=")
+        toggler("Long-term Key Reveal","Others (DY)","--LKRothers=")
         
         # myradio
         def myradio(rdb,pref,event):
