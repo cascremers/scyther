@@ -850,6 +850,30 @@ normalDeclaration (Tac tc)
       levelDeclareConst (tc);
       if (level < 2 && tc->t3.tac == NULL)
 	knowledgeAddTermlist (sys->know, tacTermlist (tc->t1.tac));
+      if (level > 0)
+	{
+	  globalError++;
+	  warning_pre ();
+	  eprintf ("const ");
+	  termlistPrint (tacTermlist (tc->t1.tac));
+	  eprintf
+	    (" usage inside roles is deprecated. Please use 'fresh' instead on line %i.\n",
+	     tc->lineno);
+	  globalError--;
+	}
+      break;
+    case TAC_FRESH:
+      levelDeclareConst (tc);
+      if (level < 2)
+	{
+	  globalError++;
+	  error_pre ();
+	  eprintf ("fresh terms ");
+	  termlistPrint (tacTermlist (tc->t1.tac));
+	  eprintf (" should be declared inside roles,");
+	  errorTac (tc->lineno);	// exits Scyther here
+	  globalError--;
+	}
       break;
     case TAC_SECRET:
       levelDeclareConst (tc);

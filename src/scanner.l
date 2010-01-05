@@ -162,6 +162,7 @@ recv		{ return RECVT; }
 send		{ return SENDT; }
 var		{ return VAR; }
 const		{ return CONST; }
+fresh		{ return FRESH; }
 claim		{ return CLAIMT; }
 run		{ return RUN; }
 secret		{ return SECRET; }

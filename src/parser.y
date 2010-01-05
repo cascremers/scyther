@@ -45,6 +45,7 @@ int yylex(void);
 %token 		CLAIMT
 %token 		VAR
 %token 		CONST
+%token 		FRESH
 %token 		RUN
 %token 		SECRET
 %token 		COMPROMISED
@@ -221,16 +222,22 @@ knowsdecl	: KNOWS termlist ';'
 
 declaration	: secretpref CONST basictermlist typeinfo1 ';'
 		  {	Tac t = tacCreate(TAC_CONST);
-		  	t->t1.tac = $3;
-			t->t2.tac = $4;
-			t->t3.tac = $1;
+		  	t->t1.tac = $3; // names
+			t->t2.tac = $4; // type
+			t->t3.tac = $1; // secret?
+			$$ = t;
+		  }
+		| FRESH basictermlist typeinfo1 ';'
+		  {	Tac t = tacCreate(TAC_FRESH);
+		  	t->t1.tac = $2;	// names
+			t->t2.tac = $3; // type
 			$$ = t;
 		  }
 		| secretpref VAR basictermlist typeinfoN ';'
 		  {	Tac t = tacCreate(TAC_VAR);
 		  	t->t1.tac = $3;
 			t->t2.tac = $4;
-			t->t3.tac = $1;
+			t->t3.tac = $1; // obsolete: should not even occur at the global level
 			$$ = t;
 		  }
 		| SECRET basictermlist typeinfo1 ';'
