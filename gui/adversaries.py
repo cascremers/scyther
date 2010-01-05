@@ -344,7 +344,7 @@ class SecModel(object):
 
     def __init__(self,minmax=None,unrestricted=False):
 
-        axis0 = ["--LKRnotgroup=0","--LKRnotgroup=1"]
+        axis0 = ["--LKRothers=0","--LKRothers=1"]
         axis1 = ["","--LKRactor=1"]
         axis2 = ["","--LKRaftercorrect=1","--LKRafter=1"]
         axis3 = ["","--SKR=1"]

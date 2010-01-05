@@ -45,7 +45,7 @@ extern Protocol INTRUDER;	// from arachne.c
 int
 isCompromiseAllowed (const System sys, int *partners, Binding b, Term a)
 {
-  if (switches.LKRnotgroup)
+  if (switches.LKRothers)
     {
       // Is any of the agents outside the group of main actors?
       if (!inTermlist (sys->runs[0].rho, a))

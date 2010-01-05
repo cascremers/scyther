@@ -87,7 +87,7 @@ switchesInit (int argc, char **argv)
   switches.checkMatchingLabels = true;	// default is to check matching labels
 
   // Adversary type
-  switches.LKRnotgroup = true;	//!< default is anybody outside the group
+  switches.LKRothers = true;	//!< default is anybody outside the group
   switches.LKRactor = false;	//!< default is no KCI
   switches.LKRafter = false;	//!< default is no perfect forward secrecy
   switches.LKRaftercorrect = false;	//!< default is no weak perfect forward secrecy
@@ -661,11 +661,11 @@ switcher (const int process, int index, int commandline)
   /* ==================
    * Adversary choice
    */
-  if (detect (' ', "LKRnotgroup", 1))
+  if (detect (' ', "LKRothers", 1) || detect (' ', "LKRothers", 1))
     {
       if (process)
 	{
-	  switches.LKRnotgroup = integer_argument ();
+	  switches.LKRothers = integer_argument ();
 	  return index;
 	}
     }

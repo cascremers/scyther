@@ -63,7 +63,7 @@ struct switchdata
   int checkMatchingLabels;	//!< default is to check matching labels
 
   // Adversary type
-  int LKRnotgroup;		//!< anybody outside the group
+  int LKRothers;		//!< anybody outside the group
   int LKRactor;			//!< KCI
   int LKRafter;			//!< perfect forward secrecy
   int LKRaftercorrect;		//!< weak perfect forward secrecy
