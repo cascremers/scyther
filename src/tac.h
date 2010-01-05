@@ -34,6 +34,7 @@ enum tactypes
   TAC_ENCRYPT,
   TAC_VAR,
   TAC_CONST,
+  TAC_FRESH,
   TAC_READ,
   TAC_SEND,
   TAC_CLAIM,
