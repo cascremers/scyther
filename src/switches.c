@@ -81,7 +81,7 @@ switchesInit (int argc, char **argv)
   switches.intruder = true;	// default allows an intruder
   switches.agentUnfold = 0;	// default not to unfold agents
   switches.abstractionMethod = 0;	// default no abstraction used
-  switches.useAttackBuffer = false;	// don't use by default as it does not work properly under windows vista yet
+  switches.useAttackBuffer = true;	// fixed for Vista
   switches.partnerDefinition = 1;	// 0: temporally close, 1: matching histories [default], 2: SID based, 3: close to CK-HMQV, 4: matching histories (crypto filtering), 5: CK2001
   switches.requireSynch = false;	// default no synch required for attacks, but maybe we do
   switches.checkMatchingLabels = true;	// default is to check matching labels

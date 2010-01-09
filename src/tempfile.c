@@ -33,6 +33,7 @@
 #ifdef FORWINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <io.h>
 #endif
 
 #include "bool.h"
@@ -43,16 +44,96 @@
  * Before Vista this was trivial, more or less. However Vista restricts access
  * so much that this call usually breaks, which is a pretty annoying bug.
  *
- * http://msdn2.microsoft.com/en-us/library/aa363875.aspx
+ * See e.g., http://msdn2.microsoft.com/en-us/library/aa363875.aspx
+ */
+
+#ifdef FORWINDOWS
+
+/* 
+ * tmpfile() replacement for Windows Vista (and later?)
+ */
+FILE *
+win32_tmpfile (void)
+{
+  DWORD pathlength;
+  WCHAR path[MAX_PATH + 1];
+
+  pathlength = GetTempPathW (MAX_PATH, path);
+  if ((pathlength > 0) && (pathlength < MAX_PATH))
+    {
+      WCHAR filename[MAX_PATH + 1];
+
+      if (GetTempFileNameW (path, L"scyther_", 0, filename) != 0)
+	{
+	  HANDLE handle;
+
+	  handle = CreateFileW (filename,
+				GENERIC_READ | GENERIC_WRITE,
+				0,
+				NULL,
+				CREATE_ALWAYS,
+				FILE_ATTRIBUTE_NORMAL |
+				FILE_FLAG_DELETE_ON_CLOSE, NULL);
+	  if (handle != INVALID_HANDLE_VALUE)
+	    {
+	      int fd;
+
+	      fd = _open_osfhandle ((intptr_t) handle, 0);
+	      if (fd < 0)
+		{
+		  CloseHandle (handle);
+		}
+	      else
+		{
+		  FILE *fp;
+
+		  fp = fdopen (fd, "w+b");
+		  if (fp == NULL)
+		    {
+		      _close (fd);
+		    }
+		  else
+		    {
+		      // Return a real filepointer
+		      return fp;
+		    }
+		}
+	    }
+	  else
+	    {
+	      DeleteFileW (filename);
+	    }
+	}
+    }
+  return NULL;
+}
+
+#endif
+
+//! Create a tempfile
+/**
+ * Returns a filepointer to an open temporary file.
+ *
+ * Really, this should always work and the calling code should not be required
+ * to check for errors (such as fp=NULL).  We therefore simply throw an error
+ * if the underlying code returns NULL.
  */
 FILE *
 scyther_tempfile (void)
 {
+  FILE *fp;
+
 #ifdef FORWINDOWS
-  /* For now, just the broken copy, I'm sorry. */
-  return tmpfile ();
+  /* Do special version because of M$ breaking tmpfile in Vista */
+  fp = win32_tmpfile ();
 #else
   /* On any other platform the normal stuff just works (tm) */
-  return tmpfile ();
+  fp = tmpfile ();
 #endif
+  if (fp == NULL)
+    {
+      error
+	("Attempt at creating a temporary file failed for unknown reasons.");
+    }
+  return fp;
 }
