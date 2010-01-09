@@ -815,6 +815,48 @@ delayCompromiseAtomic (const Protocol p, const Role r)
   r->roledef = rdnew;
 }
 
+//! Unfold compromise events consisting of tuples
+/**
+ * This does not make a difference for the algorithm,
+ * but it makes displaying things a bit easier.
+ */
+unfoldCompromise (Protocol p, Role r)
+{
+  Roledef rdnew;
+  Roledef rdold;
+  Roledef rd;
+
+  rdnew = NULL;
+  rdold = r->roledef;
+  for (rd = rdold; rd != NULL; rd = rd->next)
+    {
+      if (isCompromiseEvent (rd) && isTermTuple (rd->message))
+	{
+	  Termlist tl, tltup;
+
+	  tltup = tuple_to_termlist (rd->message);
+	  for (tl = tltup; tl != NULL; tl = tl->next)
+	    {
+	      Roledef rd2;
+
+	      rd2 = roledefDuplicate1 (rd);
+	      rd2->message = tl->term;
+	      rdnew = roledefAppend (rdnew, rd2);
+	    }
+	  termlistDelete (tltup);
+	}
+      else
+	{
+	  Roledef rd2;
+
+	  rd2 = roledefDuplicate1 (rd);
+	  rdnew = roledefAppend (rdnew, rd2);
+	}
+    }
+  r->roledef = rdnew;
+  roledefDelete (rdold);
+}
+
 //! Insert Compromise events into all protocols
 void
 adaptProtocolsCompromised (void)
@@ -837,6 +879,7 @@ adaptProtocolsCompromised (void)
 		    {
 		      delayCompromiseAtomic (p, r);
 		    }
+		  unfoldCompromise (p, r);
 		}
 	    }
 	}
