@@ -1037,7 +1037,6 @@ regularModifiedLabel (Binding b)
 	  unknown = false;
 	  eprintf ("select ");
 	  termPrintRemap (b->term);
-	  eprintf ("\\n");
 	}
     }
 
@@ -1049,7 +1048,6 @@ regularModifiedLabel (Binding b)
 	  unknown = false;
 	  eprintf ("fake sender ");
 	  termPrintRemap (rdto->from);
-	  eprintf ("\\n");
 	}
       else
 	{
@@ -1058,7 +1056,6 @@ regularModifiedLabel (Binding b)
 	      unknown = false;
 	      eprintf ("redirect to ");
 	      termPrintRemap (rdto->to);
-	      eprintf ("\\n");
 	    }
 	  else
 	    {
@@ -1066,7 +1063,6 @@ regularModifiedLabel (Binding b)
 		{
 		  unknown = false;
 		  eprintf ("redirect");
-		  eprintf ("\\n");
 		}
 	    }
 	}
@@ -1083,7 +1079,6 @@ regularModifiedLabel (Binding b)
 	  eprintf (" ");
 	  termPrintRemap (b->term);
 	}
-      eprintf ("\\n");
     }
 }
 
@@ -1248,16 +1243,8 @@ drawBinding (const System sys, Binding b)
 	      eprintf ("\t");
 	      node (sys, b->run_from, b->ev_from);
 	      eprintf (" -> ");
-	      redirNode (sys, b);
-	      eprintf (" -> ");
 	      node (sys, b->run_to, b->ev_to);
-	      eprintf (";\n");
-
-	      eprintf ("\t");
-	      redirNode (sys, b);
-	      eprintf (" [style=filled,fillcolor=\"");
-	      printColor (INTRUDERCOLORH, INTRUDERCOLORL, INTRUDERCOLORS);
-	      eprintf ("\",label=\"");
+	      eprintf (" [label=\"");
 	      regularModifiedLabel (b);
 	      eprintf ("\"]");
 	      eprintf (";\n");
