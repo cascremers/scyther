@@ -1752,7 +1752,7 @@ drawRegularRuns (const System sys)
 				  rd = rd->next;
 				}
 
-			      if (!switches.clusters)
+			      if (true || !switches.clusters)
 				{
 				  // Draw the first box (HEADER)
 				  // This used to be drawn only if done && send_before_read, now we always draw it.
@@ -1777,8 +1777,8 @@ drawRegularRuns (const System sys)
 				  eprintf
 				    (" [style=bold, weight=\"%s\"];\n",
 				     RUNWEIGHT);
-				  prevnode = index;
 				}
+			      prevnode = index;
 			    }
 			  firstnode = false;
 			}
@@ -2047,7 +2047,11 @@ dotSemiState (const System mysys)
 #endif
 
   // Ranks
-  if (switches.clusters)
+  /**
+   * Disabled for now, as they don't work well with clusters, and the ranking mechanism is not really working
+   * as the adversary nodes aren't correctly considered.
+   */
+  if (false && switches.clusters)	// To enable again, remove the 'false &&'
     {
       showRanks (sys, maxrank, ranks, nodes);
     }

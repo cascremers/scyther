@@ -1283,8 +1283,6 @@ switcher (const int process, int index, int commandline)
       if (!process)
 	{
 	  /* discourage: hide
-	   *
-	   * currently broken: bisection needed to find out where it broke exactly and fix, or remove.
 	   */
 	}
       else
