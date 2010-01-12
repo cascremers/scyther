@@ -138,12 +138,12 @@ def InitRestricted(models=None):
     external.vector[6] = 1
     external.setName("EXT")
 
-    # internal: notgroup
+    # internal: others
     internal = external.copy()
     internal.vector[0] = 1     
     internal.setName("INT")
 
-    # kci: notgroup actor
+    # kci: others actor
     kci = external.copy()
     kci.vector[1] = 1
     kci.setName("CA")
@@ -154,42 +154,42 @@ def InitRestricted(models=None):
     jkl2004.vector[6] = 0   # extravert, very specific to this model
     jkl2004.setName("JKL")
 
-    # bpr2000: notgroup aftercorrect skr (not completely sure anymore)
+    # bpr2000: others aftercorrect skr (not completely sure anymore)
     bpr2000 = external.copy()
     bpr2000.vector[2] = 1
     bpr2000.vector[3] = 1
     bpr2000.setName("BPR")
     
-    # br9395: notgroup skr
+    # br9395: others skr
     br9395 = external.copy()
     br9395.vector[0] = 1
     br9395.vector[3] = 1
     br9395.setName("BR")
     
-    # pfs: notgroup after
+    # pfs: others after
     pfs = external.copy()
     pfs.vector[2] = 2
     pfs.setName("AF")
 
-    # wpfs: notgroup aftercorrect
+    # wpfs: others aftercorrect
     wpfs = pfs.copy()
     wpfs.vector[2] = 1
     wpfs.setName("AFC")
 
-    # ck2001: notgroup after skr ssr
+    # ck2001: others after skr ssr
     ck2001 = pfs.copy()
     ck2001.union(internal)
     ck2001.vector[3] = 1
     ck2001.vector[4] = 3
     ck2001.setName("CK")
 
-    # ck2001hmqv: notgroup aftercorrect skr ssr
+    # ck2001hmqv: others aftercorrect skr ssr
     ck2001hmqv = ck2001.copy()
     ck2001hmqv.vector[1] = 1    # KCI
     ck2001hmqv.vector[2] = 1    # aftercorrect
     ck2001hmqv.setName("CKw")
 
-    # eck-1: notgroup skr rnr
+    # eck-1: others skr rnr
     eck1 = kci.copy()
     eck1.union(internal)
     eck1.vector[1] = 0    
@@ -198,7 +198,7 @@ def InitRestricted(models=None):
     eck1.vector[5] = 1
     eck1.setName("eCK-1")
 
-    # eck-2: notgroup actor aftercorrect skr 
+    # eck-2: others actor aftercorrect skr 
     eck2 = kci.copy()
     eck2.union(internal)
     eck2.vector[1] = 1    
@@ -207,12 +207,12 @@ def InitRestricted(models=None):
     eck2.vector[5] = 0
     eck2.setName("eCK-2")
 
-    ## eckalt: notgroup actor after skr rnr ssr
+    ## eckalt: others actor after skr rnr ssr
     #eckalt = eck.copy()
     #eckalt.vector[2] = 2
     #eckalt.setName("eCK-alt")
 
-    ## eckplus: notgroup actor after skr rnr ssr
+    ## eckplus: others actor after skr rnr ssr
     #eckplus = eck.copy()
     #eckplus.vector[4] = 2
     #eckplus.setName("eCK+")
