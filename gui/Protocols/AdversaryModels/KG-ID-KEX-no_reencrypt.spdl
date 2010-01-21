@@ -1,0 +1,83 @@
+/* 
+ * Boyd et al 2007
+ * Kiltz-Galindo KEM based two pass version
+ *
+ * No reencrypt possible
+ *
+ */
+
+// Hash functions
+hashfunction exp;
+
+const g;
+secret const carpet;
+
+/*
+ * Hack to simulate g^ab = g^ba inside terms.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exponentiation(RA)
+{
+	role RA
+	{
+		var X,Y: Nonce;
+
+		recv_!1(RA,RA, exp(exp(g,X),Y) );
+		send_!1(RA,RA, exp(exp(g,Y),X) );
+	}
+}
+
+protocol @KG-ID-KEM(I,R)
+{
+	role I
+	{
+		fresh w: Nonce;
+
+		send_!1(I,I, w,{ exp(g,w),I }carpet );
+	}
+	role R
+	{
+		var X: Ticket;
+
+		// Note: we work using I for sk(I) requirement because R
+		// instances only range over honest agents (actor of
+		// role).
+
+		recv_!2(R,R, sk(I), { X,I }carpet );
+		send_!3(R,R, X );
+	}
+}
+
+// The protocol description
+
+symmetric-role protocol KG-ID-KEX-nre(I,R)
+{
+	role I
+	{
+		fresh x: Nonce;
+		var Y: Ticket;
+
+		send_1(I,R, { exp(g,x),R }carpet );
+		send_Compromise(I,I,x);
+		recv_2(R,I, { Y,I }carpet );
+		send_Compromise(I,I,Y);
+
+		claim(I,SKR, exp(Y,x) );
+	}	
+	
+	role R
+	{
+		fresh y: Nonce;
+		var X: Ticket;
+
+		recv_1(I,R, { X,R }carpet );
+		send_Compromise(R,R,X);
+		send_2(R,I, { exp(g,y),I }carpet );
+		send_Compromise(R,R,y);
+
+		claim(R,SKR, exp(X,y) );
+	}
+}
+
