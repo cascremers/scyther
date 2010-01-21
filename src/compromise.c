@@ -978,7 +978,7 @@ checkCompromiseSanity ()
   /*
    * Only done for realizable patterns
    */
-  if (count_selectable_goals (sys) != 0)
+  if (count_selectable_goals (sys) == 0)
     {
       // This check only makes sense for realizable patterns.
       // Not realizable? Nothing to see here, please continue.
