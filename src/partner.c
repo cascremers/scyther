@@ -394,12 +394,26 @@ debugPrintArray (int *greens)
 }
 
 //! Partnering for compromise, standard protocols, Termmap parameter
+/**
+ * Evaluates the following: if we restrict the pattern to the events that precede (targetrun, targetev), is there an extension of the restricted pattern
+ * such that targetrun becomes a partner with matching histories (within the 'runs' termmap)?
+ *
+ * Clearly, if targetrun is not in runs, this cannot happen.
+ */
 int
 isCompromisePartnerStdTermmap (const int targetrun, const int targetev,
 			       const Termmap runs)
 {
   List ll;
   Protocol prot;
+
+  /**
+  // Subsumed by areRolesCorretc
+  if (!inTermmapRange (runs, targetrun))
+    {
+      return false;
+    }
+   */
 
   prot = (Protocol) sys->current_claim->protocol;
 
@@ -438,14 +452,11 @@ isCompromisePartnerStdTermmap (const int targetrun, const int targetev,
 		  {
 		    return NULL;
 		  }
-		else
+		if (isLabelComprEqual (rd->label, label))
 		  {
-		    if (isLabelComprEqual (rd->label, label))
-		      {
-			return rd;
-		      }
-		    rd = rd->next;
+		    return rd;
 		  }
+		rd = rd->next;
 	      }
 	    return NULL;
 	  }
@@ -465,13 +476,14 @@ isCompromisePartnerStdTermmap (const int targetrun, const int targetev,
 		  if (events_prefix_match_rd (rd_send, rd_read) !=
 		      MATCH_CONTENT)
 		    {
-		      // They are different!
+		      // They are different, so cannot be partners.
 		      return false;
 		    }
 		}
 	    }
 	}
     }
+  // All labels whose S&R occur before the target have matching contents.
   return true;
 }
 
