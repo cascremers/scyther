@@ -140,3 +140,18 @@ termmapPrint (Termmap f)
 	}
     }
 }
+
+//! Check for inclusion in range
+int
+inTermmapRange (Termmap f, const int x)
+{
+  while (f != NULL)
+    {
+      if (x == f->result)
+	{
+	  return true;
+	}
+      f = f->next;
+    }
+  return false;
+}

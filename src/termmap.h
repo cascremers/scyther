@@ -46,5 +46,6 @@ Termmap termmapSet (const Termmap f, const Term x, const int y);
 Termmap termmapDuplicate (const Termmap f);
 void termmapDelete (const Termmap f);
 void termmapPrint (Termmap f);
+int inTermmapRange (Termmap f, const int x);
 
 #endif
