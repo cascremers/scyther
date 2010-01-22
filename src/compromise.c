@@ -949,6 +949,13 @@ checkCompromiseSanityEvent (const int run, const int ev, const int comprtype)
   return true;
 }
 
+//! Check realizability
+int
+isRealizable ()
+{
+  return (count_selectable_goals (sys) == 0);
+}
+
 //! Check preconditions of compromise events in a realizable pattern
 /**
  * @TODO: This only makes sense for partnering definition 1, I guess.
@@ -978,7 +985,7 @@ checkCompromiseSanity ()
   /*
    * Only done for realizable patterns
    */
-  if (count_selectable_goals (sys) == 0)
+  if (!isRealizable ())
     {
       // This check only makes sense for realizable patterns.
       // Not realizable? Nothing to see here, please continue.
