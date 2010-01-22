@@ -253,6 +253,9 @@ arachne_runs_hist_match (const System sys, const Claimlist cl,
 }
 
 //! Iterate over all termmap for runs_involved
+/**
+ * Involved all roles of the protocol in which the current claim occurs.
+ */
 int
 iterateInvolvedRuns (int (*f) (Termmap runs_involved))
 {
@@ -270,18 +273,29 @@ iterateInvolvedRuns (int (*f) (Termmap runs_involved))
       {
 	// Choose a run for this role, if possible
 	// Note that any will do
+	// choices may not be distinct, claim role always 0
 	int run, flag;
 
 	flag = true;
-	for (run = 0; run < sys->maxruns; run++)
+	if (isTermEqual (roles_tofill->term, sys->current_claim->rolename))
 	  {
-	    // Choose, iterate
-	    runs_involved =
-	      termmapSet (runs_involved, roles_tofill->term, run);
-	    flag = fill_roles (roles_tofill->next);
-	    if (!flag)
+	    runs_involved = termmapSet (runs_involved, roles_tofill->term, 0);
+	    if (!fill_roles (roles_tofill->next));
+	    {
+	      return false;
+	    }
+	  }
+	else
+	  {
+	    for (run = 0; run < sys->maxruns; run++)
 	      {
-		return false;
+		// Choose, iterate
+		runs_involved =
+		  termmapSet (runs_involved, roles_tofill->term, run);
+		if (!fill_roles (roles_tofill->next));
+		{
+		  return false;
+		}
 	      }
 	  }
 	return true;
@@ -290,8 +304,8 @@ iterateInvolvedRuns (int (*f) (Termmap runs_involved))
 
   cl = sys->current_claim;
 
-  runs_involved = termmapSet (NULL, cl->roles->term, 0);	// 0 is the claim run
-  flag = fill_roles (cl->roles->next);
+  runs_involved = NULL;
+  flag = fill_roles (cl->roles);
 
   termmapDelete (runs_involved);
   return flag;
