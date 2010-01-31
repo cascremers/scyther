@@ -820,6 +820,7 @@ delayCompromiseAtomic (const Protocol p, const Role r)
  * This does not make a difference for the algorithm,
  * but it makes displaying things a bit easier.
  */
+void
 unfoldCompromise (Protocol p, Role r)
 {
   Roledef rdnew;

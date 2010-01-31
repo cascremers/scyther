@@ -38,6 +38,7 @@
 
 #include "bool.h"
 #include "symbol.h"
+#include "error.h"
 
 //! Create a new temporary file and return the pointer.
 /**
