@@ -45,7 +45,8 @@ void termmapsDone (void);
 int termmapGet (Termmap f, const Term x);
 Termmap termmapSet (const Termmap f, const Term x, const int y);
 Termmap termmapDuplicate (const Termmap f);
-void termmapDelete (const Termmap f);
+Termmap termmapRemove (Termmap f, const Term t);	// remove element
+void termmapDelete (const Termmap f);	// remove entire list
 void termmapPrint (Termmap f);
 int inTermmapRange (Termmap f, const int x);
 Termmap termmapIterInit (Termlist t);	// make an iterator

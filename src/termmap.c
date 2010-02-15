@@ -113,6 +113,42 @@ termmapDuplicate (const Termmap f)
     }
 }
 
+//! Delete a domain element
+Termmap
+termmapRemove (Termmap f, const Term t)
+{
+  Termmap fscan;
+  Termmap fprev;
+
+  if (f == NULL)
+    {
+      return NULL;
+    }
+  // There are elements, check which one
+  fprev = NULL;
+  for (fscan = f; fscan != NULL; fscan = fscan->next)
+    {
+      if (isTermEqual (fscan->term, t))
+	{
+	  // Remove fscan
+	  if (fprev != NULL)
+	    {
+	      // Not the first element, string up nicely
+	      fprev->next = fscan->next;
+	    }
+	  else
+	    {
+	      // The first element
+	      f = fscan->next;
+	    }
+	  free (fscan);
+	  return f;
+	}
+      fprev = fscan;
+    }
+  return f;
+}
+
 //! Delete a function
 void
 termmapDelete (const Termmap f)
