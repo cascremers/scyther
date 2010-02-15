@@ -105,10 +105,16 @@ isLabelComprEqual (Term l1, Term l2)
 
       tl1 = tuple_to_termlist (l1);
       tl2 = tuple_to_termlist (l2);
-
-      // First element is protocol, skip
-      // Second element is remainder
-      result = isTermlistEqual (tl1->next, tl2->next);
+      if ((tl1 != NULL) && (tl2 != NULL))
+	{
+	  // First element is protocol, skip
+	  // Second element is remainder
+	  result = isTermlistEqual (tl1->next, tl2->next);
+	}
+      else
+	{
+	  result = false;
+	}
 
       termlistDelete (tl1);
       termlistDelete (tl2);
