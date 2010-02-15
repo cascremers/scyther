@@ -21,6 +21,7 @@
 #define TERMMAPS
 
 #include "term.h"
+#include "termlist.h"
 
 //! The function container for the term to integer function type.
 /**
@@ -47,5 +48,7 @@ Termmap termmapDuplicate (const Termmap f);
 void termmapDelete (const Termmap f);
 void termmapPrint (Termmap f);
 int inTermmapRange (Termmap f, const int x);
+Termmap termmapIterInit (Termlist t);	// make an iterator
+Termmap termmapIterNext (Termmap f, const int max);	// iterate each to (max-1); delete at end and return NULL
 
 #endif
