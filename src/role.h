@@ -76,7 +76,7 @@ struct claimlist
   int ev;			//!< event index in role
   //! Preceding label list
   Termlist prec;
-  //! Roles that are involved (nameterms)
+  //! Roles that are involved (nameterms) based on the preceding labels. NOTE: subset of protocol roles.
   Termlist roles;
   //! Next node pointer or NULL for the last element of the function.
   struct claimlist *next;
