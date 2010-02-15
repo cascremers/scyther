@@ -59,6 +59,7 @@ Termlist termlistUnique (Termlist tl);
 Termlist termlistConcat (Termlist tl1, Termlist tl2);
 Termlist termlistConcatStatic (Termlist tl1, Termlist tl2);
 Termlist termlistDelTerm (Termlist tl);
+Termlist termlistRemoveTerm (Termlist tl, Term t);
 Termlist termlistConjunct (Termlist tl1, Termlist tl2);
 Termlist termlistConjunctType (Termlist tl1, Termlist tl2, int termtype);
 Termlist termlistType (Termlist tl, int termtype);

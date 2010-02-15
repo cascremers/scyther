@@ -413,6 +413,41 @@ termlistDelTerm (Termlist tl)
   return newhead;
 }
 
+//! Remove the first occurrence of a particular from a list
+/**
+ * Shallow deletion
+ */
+Termlist
+termlistRemoveTerm (Termlist tlhead, Term t)
+{
+  Termlist tl, tlprev;
+
+  tlprev = NULL;
+  for (tl = tlhead; tl != NULL; tl = tl->next)
+    {
+      if (isTermEqual (tl->term, t))
+	{
+	  if (tlprev == NULL)
+	    {
+	      tlhead = tl->next;
+	      tlhead->prev = NULL;
+	    }
+	  else
+	    {
+	      if (tl->next != NULL)
+		{
+		  (tl->next)->prev = tlprev;
+		}
+	      tlprev->next = tl->next;
+	    }
+	  free (tl);
+	  return tlhead;
+	}
+      tlprev = tl;
+    }
+  return tlhead;
+}
+
 //! Construct the conjunction of two termlists.
 /**
  *@return A new termlist containing the elements in both lists.
