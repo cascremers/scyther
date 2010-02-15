@@ -260,61 +260,29 @@ arachne_runs_hist_match (const System sys, const Claimlist cl,
 
 //! Iterate over all termmap for runs_involved
 /**
- * Involved all roles of the protocol in which the current claim occurs.
+ * Involves all roles of the protocol in which the current claim occurs;
+ * ensures the claim role is associated with run 0.
+ * If f returns false, abort (so we compute the logical 'and' with lazy evaluation).
  */
 int
 iterateInvolvedRuns (int (*f) (Termmap runs_involved))
 {
-  Claimlist cl;
-  Termmap runs_involved;
-  int flag;
+  Termmap runs;
 
-  int fill_roles (Termlist roles_tofill)
-  {
-    if (roles_tofill == NULL)
-      {
-	return f (runs_involved);
-      }
-    else
-      {
-	// Choose a run for this role, if possible
-	// Note that any will do
-	// choices may not be distinct, claim role always 0
-	int run, flag;
 
-	flag = true;
-	if (isTermEqual (roles_tofill->term, sys->current_claim->rolename))
-	  {
-	    runs_involved = termmapSet (runs_involved, roles_tofill->term, 0);
-	    if (!fill_roles (roles_tofill->next));
+  for (runs =
+       termmapIterInit (((Protocol) sys->current_claim->protocol)->rolenames);
+       runs != NULL; runs = termmapIterNext (runs, sys->maxruns))
+    {
+      if (termmapGet (runs, sys->current_claim->rolename) == 0)
+	{
+	  if (!f (runs))
 	    {
 	      return false;
 	    }
-	  }
-	else
-	  {
-	    for (run = 0; run < sys->maxruns; run++)
-	      {
-		// Choose, iterate
-		runs_involved =
-		  termmapSet (runs_involved, roles_tofill->term, run);
-		if (!fill_roles (roles_tofill->next));
-		{
-		  return false;
-		}
-	      }
-	  }
-	return true;
-      }
-  }
-
-  cl = sys->current_claim;
-
-  runs_involved = NULL;
-  flag = fill_roles (cl->roles);
-
-  termmapDelete (runs_involved);
-  return flag;
+	}
+    }
+  return true;
 }
 
 //! Check whether histories match for a given runmap.
@@ -413,12 +381,49 @@ debugPrintArray (int *greens)
   eprintf ("\n");
 }
 
+
+//! Find rd for a label under compr_equivalence (ignore protocol name) before some event
+/**
+ * Locate in termmap too
+ * Returns NULL for not found
+ */
+Roledef
+findComprLabelBefore (const Termmap runs, const Term role, const Term label,
+		      const int targetrun, const int targetev)
+{
+  int run;
+  int ev;
+  Roledef rd;
+
+  run = termmapGet (runs, role);
+  if (run == -1)
+    {
+      return NULL;
+    }
+  // Scan through the run to find the position of the label's event and check whether it precedes.
+  rd = sys->runs[run].start;
+  for (ev = 0; ev < sys->runs[run].step; ev++)
+    {
+      if (isLabelComprEqual (rd->label, label))
+	{
+	  // check whether it precedes the thing, or is in run 0
+	  // NOTE: really < and not <=, so best called with a non-communication target event
+	  // If ev does not precede, neither will any subsequent events, so abort now.
+	  if ((run == 0) || (isDependEvent (run, ev, targetrun, targetev)))
+	    {
+	      return rd;
+	    }
+	}
+      rd = rd->next;
+    }
+  return NULL;
+}
+
+
 //! Partnering for compromise, standard protocols, Termmap parameter
 /**
  * Evaluates the following: if we restrict the pattern to the events that precede (targetrun, targetev), is there an extension of the restricted pattern
- * such that targetrun becomes a partner with matching histories (within the 'runs' termmap)?
- *
- * Clearly, if targetrun is not in runs, this cannot happen.
+ * such that termmap designates partners with matching histories?
  */
 int
 isCompromisePartnerStdTermmap (const int targetrun, const int targetev,
@@ -426,14 +431,6 @@ isCompromisePartnerStdTermmap (const int targetrun, const int targetev,
 {
   List ll;
   Protocol prot;
-
-  /**
-  // Subsumed by areRolesCorretc
-  if (!inTermmapRange (runs, targetrun))
-    {
-      return false;
-    }
-   */
 
   prot = (Protocol) sys->current_claim->protocol;
 
@@ -450,45 +447,18 @@ isCompromisePartnerStdTermmap (const int targetrun, const int targetev,
 
 	  // Locate roledefs for read & send, and check whether they are before step
 
-	  Roledef get_label_event (const Term role, const Term label)
-	  {
-	    int run;
-	    int ev;
-	    Roledef rd;
-
-	    run = termmapGet (runs, role);
-	    if (run == -1)
-	      {
-		return NULL;
-	      }
-	    // Scan through the run to find the position of the label's event and check whether it precedes.
-	    rd = sys->runs[run].start;
-	    for (ev = 0; ev < sys->runs[run].step; ev++)
-	      {
-		// check also whether it precedes the thing
-		// NOTE: really < and not <=, so best called with a non-communication target event
-		// If ev does not precede, neither will any subsequent events, so abort now.
-		if (!isDependEvent (run, ev, targetrun, targetev))
-		  {
-		    return NULL;
-		  }
-		if (isLabelComprEqual (rd->label, label))
-		  {
-		    return rd;
-		  }
-		rd = rd->next;
-	      }
-	    return NULL;
-	  }
-
 	  // Main
 
-	  rd_read = get_label_event (linfo->readrole, linfo->label);
+	  rd_read =
+	    findComprLabelBefore (runs, linfo->readrole, linfo->label,
+				  targetrun, targetev);
 	  if (rd_read != NULL)
 	    {
 	      Roledef rd_send;
 
-	      rd_send = get_label_event (linfo->sendrole, linfo->label);
+	      rd_send =
+		findComprLabelBefore (runs, linfo->sendrole, linfo->label,
+				      targetrun, targetev);
 	      if (rd_send != NULL)
 		{
 		  // Need only to match as far as they exist
@@ -507,39 +477,21 @@ isCompromisePartnerStdTermmap (const int targetrun, const int targetev,
   return true;
 }
 
-//! Check whether runs_involved runs have the correct role, and also whether targetrun is in there (or targetrun < 0).
+//! Check whether runs_involved runs have the correct role.
 int
-areRolesCorrect (const Termmap runs_involved, const int targetrun)
+areRolesCorrect (const Termmap runs_involved)
 {
-  int foundtarget;
   Termmap tm;
 
-  if (targetrun < 0)
-    {
-      foundtarget = true;
-    }
-  else
-    {
-      foundtarget = false;
-    }
   for (tm = runs_involved; tm != NULL; tm = tm->next)
     {
-      int run;
-
       // Check whether role is correct
-      run = tm->result;
-      if (!isTermEqual (sys->runs[run].role->nameterm, tm->term))
+      if (!isTermEqual (sys->runs[tm->result].role->nameterm, tm->term))
 	{
-	  // Wrong role, skip to next
 	  return false;
 	}
-      // Check target occurrence.
-      if (run == targetrun)
-	{
-	  foundtarget = true;
-	}
     }
-  return foundtarget;
+  return true;
 }
 
 //! Partnering for compromise, standard protocols.
@@ -557,14 +509,21 @@ isCompromisePartnerStd (const int targetrun, const int targetev)
 {
   int checkPartner (Termmap runs_involved)
   {
-    if (!areRolesCorrect (runs_involved, targetrun))
+
+    if (!inTermmapRange (runs_involved, targetrun))
+      {
+	// target not involved, so irrelevant
+	return true;
+      }
+
+    if (!areRolesCorrect (runs_involved))
       {
 	// Not within spec for this, skip to next case
 	return true;
       }
     if (isCompromisePartnerStdTermmap (targetrun, targetev, runs_involved))
       {
-	// there is a partner, so abort (== flag)
+	// targetev is a partner for this map, so abort (== flag)
 	return false;
       }
     return true;
