@@ -258,33 +258,6 @@ arachne_runs_hist_match (const System sys, const Claimlist cl,
   return 1;
 }
 
-//! Iterate over all termmap for runs_involved
-/**
- * Involves all roles of the protocol in which the current claim occurs;
- * ensures the claim role is associated with run 0.
- * If f returns false, abort (so we compute the logical 'and' with lazy evaluation).
- */
-int
-iterateInvolvedRuns (int (*f) (Termmap runs_involved))
-{
-  Termmap runs;
-
-
-  for (runs =
-       termmapIterInit (((Protocol) sys->current_claim->protocol)->rolenames);
-       runs != NULL; runs = termmapIterNext (runs, sys->maxruns))
-    {
-      if (termmapGet (runs, sys->current_claim->rolename) == 0)
-	{
-	  if (!f (runs))
-	    {
-	      return false;
-	    }
-	}
-    }
-  return true;
-}
-
 //! Check whether histories match for a given runmap.
 int
 doHistoriesMatch (Termmap runs_involved)

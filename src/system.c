@@ -38,6 +38,7 @@
 #include "depend.h"
 #include "specialterm.h"
 #include "partner.h"
+#include "termmap.h"
 
 //! Global count of protocols
 int protocolCount;
@@ -1225,6 +1226,37 @@ iterateRoles (const System sys, int (*callback) (Protocol p, Role r))
       p = p->next;
     }
   return true;
+}
+
+//! Iterate over involved runs for each role in the protocol
+/**
+ * Claim role is always run 0
+ * Iterates as 'lazy logical and' evaluation
+ */
+int
+iterateInvolvedRuns (int (*callback) (Termmap runs))
+{
+  int flag;
+  Termmap runs;
+  Termlist otherroles;
+  Term claimrole;
+
+  claimrole = sys->current_claim->rolename;
+  otherroles =
+    termlistShallow (((Protocol) sys->current_claim->protocol)->rolenames);
+  otherroles = termlistRemoveTerm (otherroles, claimrole);
+
+  flag = true;
+  for (runs =
+       termmapIterInit (otherroles);
+       (flag && (runs != NULL)); runs = termmapIterNext (runs, sys->maxruns))
+    {
+      runs = termmapSet (runs, claimrole, 0);
+      flag = callback (runs);
+      runs = termmapRemove (runs, claimrole);
+    }
+  termlistDelete (otherroles);
+  return flag;
 }
 
 //! Get first read/send occurrence (event index) of term t in run r
