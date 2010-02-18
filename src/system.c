@@ -1248,8 +1248,9 @@ iterateInvolvedRuns (int (*callback) (Termmap runs))
 
   flag = true;
   for (runs =
-       termmapIterInit (otherroles);
-       (flag && (runs != NULL)); runs = termmapIterNext (runs, sys->maxruns))
+       termmapIterInit (otherroles, -1);
+       (flag && (runs != NULL));
+       runs = termmapIterNext (runs, -1, sys->maxruns - 1))
     {
       runs = termmapSet (runs, claimrole, 0);
       flag = callback (runs);

@@ -195,7 +195,7 @@ arachne_runs_hist_match (const System sys, const Claimlist cl,
 	Roledef rd;
 
 	run = termmapGet (runs, role);
-	if (run == -1)
+	if (run < 0)
 	  {
 	    return NULL;
 	  }
@@ -280,7 +280,10 @@ matchingHistories (int *partners)
 
 	for (tmi = runs_involved; tmi != NULL; tmi = tmi->next)
 	  {
-	    partners[tmi->result] = true;
+	    if (tmi->result >= 0)
+	      {
+		partners[tmi->result] = true;
+	      }
 	  }
       }
     return true;		// always proceed
@@ -369,7 +372,7 @@ findComprLabelBefore (const Termmap runs, const Term role, const Term label,
   Roledef rd;
 
   run = termmapGet (runs, role);
-  if (run == -1)
+  if (run < 0)
     {
       return NULL;
     }
@@ -458,10 +461,13 @@ areRolesCorrect (const Termmap runs_involved)
 
   for (tm = runs_involved; tm != NULL; tm = tm->next)
     {
-      // Check whether role is correct
-      if (!isTermEqual (sys->runs[tm->result].role->nameterm, tm->term))
+      if (tm->result >= 0)
 	{
-	  return false;
+	  // Check whether role is correct
+	  if (!isTermEqual (sys->runs[tm->result].role->nameterm, tm->term))
+	    {
+	      return false;
+	    }
 	}
     }
   return true;

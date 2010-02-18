@@ -194,7 +194,7 @@ inTermmapRange (Termmap f, const int x)
 
 //! Create an iterator
 Termmap
-termmapIterInit (Termlist tinit)
+termmapIterInit (Termlist tinit, const int min)
 {
   Termlist tl;
   Termmap f;
@@ -202,18 +202,18 @@ termmapIterInit (Termlist tinit)
   f = NULL;
   for (tl = tinit; tl != NULL; tl = tl->next)
     {
-      f = termmapSet (f, tl->term, 0);
+      f = termmapSet (f, tl->term, min);
     }
   return f;
 }
 
 //! Advance iterator
 /**
- * Advance each to max-1, then flip over.
+ * Advance each to max, then flip over to min
  * When done, delete termmap and return NULL
  */
 Termmap
-termmapIterNext (Termmap f, const int max)
+termmapIterNext (Termmap f, const int min, const int max)
 {
   Termmap fi;
 
@@ -222,14 +222,14 @@ termmapIterNext (Termmap f, const int max)
       int y;
 
       y = fi->result + 1;
-      if (y < max)
+      if (y <= max)
 	{
 	  fi->result = y;
 	  return f;
 	}
       else
 	{
-	  fi->result = 0;
+	  fi->result = min;
 	}
     }
   termmapDelete (f);

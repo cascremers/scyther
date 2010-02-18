@@ -49,7 +49,7 @@ Termmap termmapRemove (Termmap f, const Term t);	// remove element
 void termmapDelete (const Termmap f);	// remove entire list
 void termmapPrint (Termmap f);
 int inTermmapRange (Termmap f, const int x);
-Termmap termmapIterInit (Termlist t);	// make an iterator
-Termmap termmapIterNext (Termmap f, const int max);	// iterate each to (max-1); delete at end and return NULL
+Termmap termmapIterInit (Termlist t, const int min);	// make an iterator
+Termmap termmapIterNext (Termmap f, const int min, const int max);	// iterate each [min..max]; delete at end and return NULL
 
 #endif
