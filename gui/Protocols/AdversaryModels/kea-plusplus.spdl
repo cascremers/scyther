@@ -1,12 +1,10 @@
 /* 
- * KEA+
+ * KEA++
  *
- * From "Security Analysis of KEA Authenticated Key Exchange Protocol"
+ * Derived from KEA+ from "Security Analysis of KEA Authenticated Key Exchange Protocol"
  * Lauter, Mityagin, 2006.
  * 
- * We find no attacks in CK if only the ephemeral key is revealed.
- * We do find attacks for both roles in CK if the input to hash1 is
- * revealed.
+ * Additional element from Naxos introduced by Cas.
  */
 
 // Hash functions
@@ -45,7 +43,7 @@ protocol @publickeys(RA,RB,RC)
  * Scyther for displaying, and such protocols are ignored in
  * auto-generation of protocol modifiers.
  */
-protocol @exponentiation(RA,RB,RC)
+protocol @exponentiation(RA,RB,RC,RD)
 {
 	role RA
 	{
@@ -56,27 +54,34 @@ protocol @exponentiation(RA,RB,RC)
 	}
 	role RB
 	{
-		var T1,T2,T3: Ticket;
+		var T1,T2,T3,T4: Ticket;
 
-		recv_!3(RB,RB, h1(g2(g1(T1),T2),T3,RC,RB) );
-		send_!4(RB,RB, h1(g2(g1(T2),T1),T3,RC,RB) );
+		recv_!3(RB,RB, h1(g2(g1(T1),T2),T3,T4,RC,RB) );
+		send_!4(RB,RB, h1(g2(g1(T2),T1),T3,T4,RC,RB) );
 	}
 	role RC
 	{
-		var T1,T2,T3: Ticket;
+		var T1,T2,T3,T4: Ticket;
 
-		recv_!5(RC,RC, h1(T3,g2(g1(T1),T2),RC,RA) );
-		send_!6(RC,RC, h1(T3,g2(g1(T2),T1),RC,RA) );
+		recv_!5(RC,RC, h1(T3,g2(g1(T1),T2),T4,RC,RA) );
+		send_!6(RC,RC, h1(T3,g2(g1(T2),T1),T4,RC,RA) );
+	}
+	role RD
+	{
+		var T1,T2,T3,T4: Ticket;
+
+		recv_!7(RD,RD, h1(T3,T4,g2(g1(T1),T2),RD,RA) );
+		send_!8(RD,RD, h1(T3,T4,g2(g1(T2),T1),RD,RA) );
 	}
 }
 
 // The protocol description
 
-protocol KEAplus(I,R)
+protocol KEAplusplus(I,R)
 {
 	role I
 	{
-		const x: Nonce;
+		fresh x: Nonce;
 		var beta: Ticket;
 
 		send_Compromise(I,I, x);
@@ -86,13 +91,14 @@ protocol KEAplus(I,R)
 		claim(I,SKR, h1(
 		  g2(beta,sk(I)),
 		  g2(pk(R),x),
+		  g2(beta,x),
 		  I,R
 		));
 	}	
 	
 	role R
 	{
-		const y: Nonce;
+		fresh y: Nonce;
 		var alpha: Ticket;
 
 		recv_1(I,R, alpha );
@@ -102,6 +108,7 @@ protocol KEAplus(I,R)
 		claim(R,SKR, h1(
 		  g2(pk(I),y),
 		  g2(alpha,sk(R)),
+		  g2(alpha,y),
 		  I,R
 		));
 	}

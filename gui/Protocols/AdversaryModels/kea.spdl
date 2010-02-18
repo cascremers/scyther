@@ -1,12 +1,11 @@
 /* 
- * KEA+
+ * KEA
  *
  * From "Security Analysis of KEA Authenticated Key Exchange Protocol"
  * Lauter, Mityagin, 2006.
  * 
- * We find no attacks in CK if only the ephemeral key is revealed.
- * We do find attacks for both roles in CK if the input to hash1 is
- * revealed.
+ * We simplified the protocol, changing xor to a hash. Clearly, with xor
+ * there are more attacks.
  */
 
 // Hash functions
@@ -49,7 +48,7 @@ protocol @exponentiation(RA,RB,RC)
 {
 	role RA
 	{
-		var alpha,beta, T1,T2: Ticket;
+		var T1,T2: Ticket;
 
 		recv_!1(RA,RA, g2(g1(T1),T2) );
 		send_!2(RA,RA, g2(g1(T2),T1) );
@@ -58,25 +57,25 @@ protocol @exponentiation(RA,RB,RC)
 	{
 		var T1,T2,T3: Ticket;
 
-		recv_!3(RB,RB, h1(g2(g1(T1),T2),T3,RC,RB) );
-		send_!4(RB,RB, h1(g2(g1(T2),T1),T3,RC,RB) );
+		recv_!3(RB,RB, h1(g2(g1(T1),T2),T3) );
+		send_!4(RB,RB, h1(g2(g1(T2),T1),T3) );
 	}
 	role RC
 	{
 		var T1,T2,T3: Ticket;
 
-		recv_!5(RC,RC, h1(T3,g2(g1(T1),T2),RC,RA) );
-		send_!6(RC,RC, h1(T3,g2(g1(T2),T1),RC,RA) );
+		recv_!5(RC,RC, h1(T3,g2(g1(T1),T2)) );
+		send_!6(RC,RC, h1(T3,g2(g1(T2),T1)) );
 	}
 }
 
 // The protocol description
 
-protocol KEAplus(I,R)
+protocol KEA(I,R)
 {
 	role I
 	{
-		const x: Nonce;
+		fresh x: Nonce;
 		var beta: Ticket;
 
 		send_Compromise(I,I, x);
@@ -85,14 +84,13 @@ protocol KEAplus(I,R)
 
 		claim(I,SKR, h1(
 		  g2(beta,sk(I)),
-		  g2(pk(R),x),
-		  I,R
+		  g2(pk(R),x)
 		));
 	}	
 	
 	role R
 	{
-		const y: Nonce;
+		fresh y: Nonce;
 		var alpha: Ticket;
 
 		recv_1(I,R, alpha );
@@ -101,8 +99,7 @@ protocol KEAplus(I,R)
 
 		claim(R,SKR, h1(
 		  g2(pk(I),y),
-		  g2(alpha,sk(R)),
-		  I,R
+		  g2(alpha,sk(R))
 		));
 	}
 }
