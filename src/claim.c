@@ -26,6 +26,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "termmap.h"
 #include "system.h"
@@ -1492,4 +1493,58 @@ claimStatusReport (const System sys, Claimlist cl)
 
       return true;
     }
+}
+
+//! Boolean sanity wrapper around C low level madness
+int
+isStringEqual (const char *s1, const char *s2)
+{
+  return (strcmp (s1, s2) == 0);
+}
+
+//! Check whether this claim needs to be verified according to filter settings
+int
+isClaimRelevant (const Claimlist cl)
+{
+  // Is there something to filter?
+  if (switches.filterProtocol == NULL)
+    {
+      // No: consider all claims
+      return true;
+    }
+  else
+    {
+      // only this protocol
+      if (!isStringEqual
+	  (switches.filterProtocol,
+	   TermSymb (((Protocol) cl->protocol)->nameterm)->text))
+	{
+	  // not this protocol; return
+	  return false;
+	}
+      // and maybe also a specific cl->label?
+      if (switches.filterLabel != NULL)
+	{
+	  if (cl->label == NULL)
+	    {
+	      return false;
+	    }
+	  else
+	    {
+	      Term t;
+
+	      t = cl->label;
+	      while (isTermTuple (t))
+		{
+		  t = TermOp2 (t);
+		}
+	      if (!isStringEqual (switches.filterLabel, TermSymb (t)->text))
+		{
+		  // not this label; return
+		  return false;
+		}
+	    }
+	}
+    }
+  return true;
 }

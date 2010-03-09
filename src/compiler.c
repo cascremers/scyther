@@ -481,13 +481,6 @@ generateFreshClaimlabel (const System sys, const Protocol protocol,
   return label;
 }
 
-//! Boolean sanity wrapper around C low level madness
-int
-isStringEqual (const char *s1, const char *s2)
-{
-  return (strcmp (s1, s2) == 0);
-}
-
 //! Create a claim and add it to the claims list, and add the role event.
 Claimlist
 claimCreate (const System sys, const Protocol protocol, const Role role,
@@ -501,40 +494,6 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
     {
       /* simply generate a fresh one */
       label = generateFreshClaimlabel (sys, protocol, role, claim);
-    }
-
-  if (switches.filterProtocol != NULL)
-    {
-      // only this protocol
-      if (!isStringEqual
-	  (switches.filterProtocol, TermSymb (protocol->nameterm)->text))
-	{
-	  // not this protocol; return
-	  return NULL;
-	}
-      // and maybe also a specific label?
-      if (switches.filterLabel != NULL)
-	{
-	  if (label == NULL)
-	    {
-	      return NULL;
-	    }
-	  else
-	    {
-	      Term t;
-
-	      t = label;
-	      while (isTermTuple (t))
-		{
-		  t = TermOp2 (t);
-		}
-	      if (!isStringEqual (switches.filterLabel, TermSymb (t)->text))
-		{
-		  // not this label; return
-		  return NULL;
-		}
-	    }
-	}
     }
 
   // Assert: label is unique, add claimlist info
@@ -628,7 +587,7 @@ isCompromiseSymbol (Symbol s)
 {
   if (s != NULL)
     {
-      if (isStringEqual (s->text, TermSymb (TERM_Compromise)->text))
+      if (strcmp (s->text, TermSymb (TERM_Compromise)->text) == 0)
 	{
 	  return true;
 	}

@@ -2508,9 +2508,12 @@ arachne ()
        * Check each claim
        */
       sys->current_claim = cl;
-      if (arachneClaim ())
+      if (isClaimRelevant (cl))
 	{
-	  count++;
+	  if (arachneClaim ())
+	    {
+	      count++;
+	    }
 	}
 
       // next
