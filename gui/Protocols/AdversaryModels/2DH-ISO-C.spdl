@@ -1,17 +1,15 @@
 /* 
- * Two-move Diffie-Hellman ISO-9798-3 according to Shmatikov, Gupta
+ * Two-move Diffie-Hellman ISO-9798-3 
+ *
+ * Modeled the same way as done before by Shmatikov and Gupta in "Key
+ * confirmation and adaptive corruptions in the protocol security
+ * logic", full version, 2006, page 2.
  *
  * Version with key confirmation
  */
 
 // Hash functions
-const h1,h2,g1,g2: Function;
-secret unh1,unh2,ung1,ung2: Function;
-
-inversekeys (h1,unh1);
-inversekeys (h2,unh2);
-inversekeys (g1,ung1);
-inversekeys (g2,ung2);
+hashfunction h1,h2,g1,g2;
 
 /*
  * Hack to simulate g^ab = g^ba.
