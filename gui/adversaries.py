@@ -1836,64 +1836,95 @@ def SwitchCutter(swt, cutparam=False):
     return swt
 
 
-def FixDelta(leftnode,rightnode):
+def findSuprema(modelset):
     """
-    Given two sets of security models, compute a FixDelta that indicates what the right node sets 'fix'.
+    Find the least upper bound set
+    """
+    LUBS = set()
+    for model in modelset:
+        isLUB = True
+        for refmodel in modelset:
+            if refmodel > model:
+                isLUB = False
+                break
+        if isLUB:
+            LUBS.add(model)
+    return LUBS
+
+
+def axisClosureNumber(modelset, axis):
+    """
+    Given a set of models and an axis, return the closure number, i.e.,
+    the smallest number n such that for all m in modelset, m' with m' = m[axis]=n is also in m.
+
+    If the model set is empty we return None.
+    """
+    closureNumber = None
+    for model in modelset:
+        thisCN = model.vector[axis]
+        if closureNumber == None:
+            closureNumber = thisCN
+        else:
+            if thisCN < closureNumber:
+                closureNumber = thisCN
+    return closureNumber
+
+
+def FixDelta(oldModels,newModels):
+    """
+    Given two sets of security models in which a protocol (class) is correct,
+    compute a FixDelta that indicates what aspects are 'fixdescriptions'.
+
+    Assumption: newModels is a superset of oldModels
 
     Idea: the resulting SecDelta captures all axis which no longer have attacks
-    in the rightnode, but did have some in the left node.
+    in the new models, but did have some in the old models.
+
+    Returns a list of descriptive strings.
     """
-    diff = rightnode - leftnode
-    if (len(leftnode) == 0) or (len(diff) == 0):
+    oldSuprema = findSuprema(oldModels)
+    newSuprema = findSuprema(newModels)
+
+    addedSuprema = newSuprema - oldSuprema
+    if (len(oldSuprema) == 0) or (len(addedSuprema) == 0):
         return []
 
-    ref = SecModel()
-    fixed = []
-    for x in range(0,ref.length):
-        leftmin = GetMinVec(leftnode,x)
-        rightmin = GetMinVec(diff,x)
-        if leftmin != rightmin:
+    referenceModel = SecModel()
+    fixdescriptions = []
+    """
+    Iterate over each axis
+    """
+    for axis in range(0,referenceModel.length):
+        """
+        For this axis, determine the old minimum value and the new minimum value
+        """
+        oldCN = axisClosureNumber(oldSuprema, axis)
+        newCN = axisClosureNumber(newSuprema, axis)
+        if oldCN != newCN:
             """
-            Does it really fix all left models?
+            Good, draw it. Maybe it's simple.
             """
-            fixall = True
-            for m in leftnode:
-                m2 = m.copy()
-                m2.vector[x] = rightmin
-                fixallone = False
-                for m3 in rightnode:
-                    if m3 == m2:
-                        fixallone = True
-                        break
-                if fixallone != True:
-                    fixall = False
-                    break
-    
-            if fixall:
-                """
-                Good, draw it.
-                """
-                lab = "%i: " % x
-                simple = False
-                if len(ref.axes[x]) == 2:
-                    # Just two choices, call it 'simple'
-                    s1 = SwitchCutter(ref.axes[x][leftmin], True)
-                    s2 = SwitchCutter(ref.axes[x][rightmin], True)
-                    if (s1 == "") or (s2 == ""):
-                        lab += s1 + s2
+            axisDeltaDescription = "%i: " % axis
+            simple = False
+            if len(referenceModel.axes[axis]) == 2:
+                # Just two choices, call it 'simple'
+                s1 = SwitchCutter(referenceModel.axes[axis][oldCN], True)
+                s2 = SwitchCutter(referenceModel.axes[axis][newCN], True)
+                if (s1 == "") or (s2 == ""):
+                    axisDeltaDescription += s1 + s2
+                    simple = True
+                else:
+                    if s1 == s2:
+                        axisDeltaDescription += s1
                         simple = True
-                    else:
-                        if s1 == s2:
-                            lab += s1
-                            simple = True
 
-                if not simple:
-                    # Otherwise show diff
-                    lab += "%s -> %s" % (SwitchCutter(ref.axes[x][leftmin]),SwitchCutter(ref.axes[x][rightmin]))
+            if not simple:
+                # Otherwise show addedmodels
+                axisDeltaDescription += "%s -> %s" % (SwitchCutter(referenceModel.axes[axis][oldCN]),SwitchCutter(referenceModel.axes[axis][newCN]))
 
-                fixed.append(lab)
+            fixdescriptions.append(axisDeltaDescription)
 
-    return fixed
+    return fixdescriptions
 
 
 def GraphProtocolSecurityHierarchy():
@@ -2040,12 +2071,12 @@ def GraphProtocolSecurityHierarchy():
             # Make the node models list
             # We want alltruemodels, except for:
             # - Anything implied among them
-            newmodels = set()
+            newModels = set()
             for m in filterImpliedModels(AT[repr]):
-                newmodels.add(m)
+                newModels.add(m)
             # Combine names
             nm = []
-            for m in newmodels:
+            for m in newModels:
                  (short,xn) = m.shortornot()
                  if short:
                      xn = xn + " = " + str(m)

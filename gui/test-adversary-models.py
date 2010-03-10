@@ -54,7 +54,7 @@ def initParser():
     #                  action="store_false", dest="verbose", default=True,
     #                  help="don't print status messages to stdout")
 
-    parser.add_option("-m","--models", action="store", dest="models", help="Consider adversary models by name.", metavar="ID", default="CSF09")
+    parser.add_option("-m","--models", action="store", dest="models", help="Consider adversary models by name.", metavar="ID", default="paper")
     parser.add_option("-d","--dir", action="append", dest="dirs", help="Set directories to scan for protocols.", metavar="PATH")
     parser.add_option("-a","--asymmetric", action="store_true", dest="asymmetric", help="Filter to assymetric crypto only.", default=False)
     parser.add_option("-s","--symmetric", action="store_true", dest="symmetric", help="Filter to ssymetric crypto only.", default=False)
@@ -69,6 +69,7 @@ def initParser():
     parser.add_option("","--cache-transitive-closure", action="store_const", const=True,  dest="closecache", default=False, help="Compute transitive closure of cached verification data.")
     parser.add_option("-D","--debug", action="store_const", const=True,  dest="debug", default=False, help="Display debugging information.")
     parser.add_option("","--paper", action="store_const", const=True, dest="paper", default=False, help="Repeat experiments as in paper.")
+    parser.add_option("","--paper-protocols", action="store_const", const=True, dest="paperprotocols", default=False, help="Add protocols from paper.")
 
     (options, args) = parser.parse_args()
     return (options, args)
@@ -82,6 +83,24 @@ def pathAdd(paths, args):
                     dir = dir[:-1]
                 paths.append(dir)
     return paths
+
+
+def protocolListPaper():
+    return [ \
+        "Protocols/AdversaryModels/2DH-ISO-C.spdl", \
+        "Protocols/AdversaryModels/2DH-ISO.spdl", \
+        "Protocols/AdversaryModels/BKE.spdl", \
+        "Protocols/AdversaryModels/DHKE-1.spdl", \
+        "Protocols/AdversaryModels/HMQV-C.spdl", \
+        "Protocols/AdversaryModels/HMQV-twopass.spdl", \
+        "Protocols/AdversaryModels/kea-plus.spdl", \
+        "Protocols/AdversaryModels/MQV-twopass.spdl", \
+        "Protocols/AdversaryModels/naxos.spdl", \
+        "Protocols/AdversaryModels/ns3.spdl", \
+        "Protocols/AdversaryModels/nsl3.spdl", \
+        "Protocols/AdversaryModels/yahalom-ban-paulson-modified.spdl", \
+        "Protocols/AdversaryModels/yahalom-ban-paulson.spdl" \
+        ]
 
 
 if __name__ == '__main__':
@@ -104,6 +123,10 @@ if __name__ == '__main__':
 
     protocolpaths = []
 
+    # Paper protocols?
+    if options.paperprotocols:
+        protocolpaths += protocolListPaper()
+
     # Add paths to dirs
     protocolpaths = pathAdd(protocolpaths, options.dirs)
 
@@ -114,28 +137,14 @@ if __name__ == '__main__':
     if len(protocolpaths) == 0:
         protocolpaths = ["Protocols/AdversaryModels"]
 
-    # Write back
-    options.dirs = protocolpaths
-
     # Paper settings for repeating the experiments
     if options.paper:
-        protocolpaths = [ \
-            "Protocols/AdversaryModels/2DH-ISO-C.spdl", \
-            "Protocols/AdversaryModels/2DH-ISO.spdl", \
-            "Protocols/AdversaryModels/BKE.spdl", \
-            "Protocols/AdversaryModels/DHKE-1.spdl", \
-            "Protocols/AdversaryModels/HMQV-C.spdl", \
-            "Protocols/AdversaryModels/HMQV-twopass.spdl", \
-            "Protocols/AdversaryModels/kea-plus.spdl", \
-            "Protocols/AdversaryModels/MQV-twopass.spdl", \
-            "Protocols/AdversaryModels/naxos.spdl", \
-            "Protocols/AdversaryModels/ns3.spdl", \
-            "Protocols/AdversaryModels/nsl3.spdl", \
-            "Protocols/AdversaryModels/yahalom-ban-paulson-modified.spdl", \
-            "Protocols/AdversaryModels/yahalom-ban-paulson.spdl" \
-            ]
+        protocolpaths = protocolListPaper()
         options.models = "paper"
         options.graphs = ["psh","mh","ch"]
+
+    # Write back
+    options.dirs = protocolpaths
 
     # Call main 
     main(models=options.models, protocolpaths=protocolpaths, filefilter=filefilter, graphs=options.graphs, debug=options.debug, closecache=options.closecache, modulo=options.modulo, options=options)
