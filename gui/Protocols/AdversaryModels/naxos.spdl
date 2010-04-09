@@ -1,29 +1,33 @@
 /* 
  * NAXOS AKE (Authenticated Key Exchange) protocol
  *
- * From "Stronger Security of Authenticated Key Exchange"
- * LaMacchia Lauter Mityagin 2006
+ * Modeled by Cas Cremers, 2009
  *
- * It's not really NAXOS in the sense that we don't have the group
- * exponentiations. These are emulated by the exponentiation protocol,
- * which simulates the g^ab = g^ba relation inside of the generated key
- * term. This is of course an underapproximation of the algebraic
- * properties but because we are here only looking for attacks, it seems
- * to be no problem.
+ * From "Stronger Security of Authenticated Key Exchange" LaMacchia
+ * Lauter Mityagin 2006
  *
  * Attacks:
  * 
- * For full-compromise (generated) and matching partners, we find
- * attacks for both the initiator and responder roles.
+ * For state-reveal with automatic state inference, we find attacks for
+ * both the initiator and responder roles.
  */
 
 // Hash functions
-hashfunction h1,h2,p;
+hashfunction h1,h2;
 
+// Exponentiation operator modeled using one-way function and helper
+// protocols (see below)
+hashfunction p;
+
+// Generator
 const g;
 
 /*
- * Hack to simulate public knowledge of public keys.
+ * Simulate public knowledge of public keys.
+ *
+ * The '@' prefix of the protocol name denotes that it is a helper
+ * protocol, which is used by Scyther for displaying, and such protocols
+ * are ignored in auto-generation of protocol modifiers.
  */
 protocol @publickeys(PK)
 {
@@ -34,10 +38,8 @@ protocol @publickeys(PK)
 }
 		
 /*
- * Hack to simulate g^ab = g^ba inside terms.
- * '@' prefix of protocol name denotes helper protocol, which is used by
- * Scyther for displaying, and such protocols are ignored in
- * auto-generation of protocol modifiers.
+ * Approximation for the equational theory g^ab = g^ba in subterms of
+ * the Naxos protocol.
  */
 protocol @exponentiation(RA,RB,RC)
 {
@@ -136,7 +138,7 @@ protocol @keysymmetry(R1,R2,R3)
 	}
 }
 
-// The protocol description
+// The Naxos protocol description
 
 protocol naxos(I,R)
 {
