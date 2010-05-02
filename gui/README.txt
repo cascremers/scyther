@@ -32,14 +32,4 @@ the base directory.  Many other protocol input files can be found in the
 'Protocols' directory.
 
 
-3. Citing Scyther
-===========================
-
-@phdthesis{cremers06,
-  Author    = "Cas Cremers",
-  Title     = "Scyther - Semantics and Verification of Security Protocols",
-  school    = "Eindhoven University of Technology",
-  publisher = "University Press Eindhoven",
-  year      = "2006",
-}
 
