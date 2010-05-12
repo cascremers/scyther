@@ -259,6 +259,7 @@ def InitRestricted(models=None):
             continue
         MS.append(model.copy())
     namedmodels["SnP10rules"] = MS  # Rules as in S&P 2010 submission
+    namedmodels["7rules"] = MS  # Rules as in S&P 2010 submission
 
     RESTRICTEDMODELS = None
     MS = []
