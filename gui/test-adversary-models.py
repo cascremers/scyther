@@ -36,11 +36,27 @@ def isEmpty(cmd):
         return False
 
 def filterSymmetric(protfile):
+    """
+    The filter should return true to select, false to reject.
+    """
     return isEmpty("grep -l \"\<sk\>\|\<pk\>\" %s" % (protfile))
 
 def filterAsymmetric(protfile):
+    """
+    The filter should return true to select, false to reject.
+    """
     return isEmpty("grep -L \"\<sk\>\|\<pk\>\" %s" % (protfile))
 
+
+def chainFunc(f1,f2):
+    """
+    Returns a function that is only true if both filters are true.
+    """
+    if f1 == None:
+        return f2
+    if f2 == None:
+        return f1
+    return lambda x:f1(x) and f2(x)
 def initParser():
     """
     Init the main parser.
@@ -117,9 +133,10 @@ if __name__ == '__main__':
             print "Error: cannot use filter for symmetric and asymmetric at once."
             sys.exit()
     if options.symmetric:
-        filefilter = filterSymmetric
+        filefilter = chainFunc(filefilter,filterSymmetric)
     if options.asymmetric:
-        filefilter = filterAsymmetric
+        filefilter = chainFunc(filefilter,filterAsymmetric)
+
 
     protocolpaths = []
 
