@@ -71,7 +71,7 @@ def cmdpushwrite(cmd,data,fname):
     """
     fp = open(fname,'w')
     # execute command
-    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
+    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE)
     (cin,cout) = (p.stdin, p.stdout)
     cin.write(data)
     cin.close()
