@@ -47,6 +47,15 @@ def filterAsymmetric(protfile):
     """
     return isEmpty("grep -L \"\<sk\>\|\<pk\>\" %s" % (protfile))
 
+def filterNoString(s,fn):
+    """
+    The filter should return true to select, false to reject.
+    """
+    if s in fn:
+        return False
+    else:
+        # s must not occur in fn as a substring
+        return True
 
 def chainFunc(f1,f2):
     """
@@ -57,6 +66,7 @@ def chainFunc(f1,f2):
     if f2 == None:
         return f1
     return lambda x:f1(x) and f2(x)
+
 def initParser():
     """
     Init the main parser.
@@ -73,6 +83,7 @@ def initParser():
     parser.add_option("-m","--models", action="store", dest="models", help="Consider adversary models by name.", metavar="ID", default="paper")
     parser.add_option("-d","--dir", action="append", dest="dirs", help="Set directories to scan for protocols.", metavar="PATH")
     parser.add_option("-a","--asymmetric", action="store_true", dest="asymmetric", help="Filter to asymmetric crypto only.", default=False)
+    parser.add_option("","--ignore", action="append", dest="ignore", help="Ignore file names with this substring.", metavar="STRING")
     parser.add_option("-s","--symmetric", action="store_true", dest="symmetric", help="Filter to symmetric crypto only.", default=False)
     parser.add_option("","--PSH", action="append_const", const="psh", dest="graphs", help="Generate protocol-security hierarchy.")
     parser.add_option("","--MH",  action="append_const", const="mh",  dest="graphs", help="Generate adversary-model hierarchy.")
@@ -137,6 +148,10 @@ if __name__ == '__main__':
     if options.asymmetric:
         filefilter = chainFunc(filefilter,filterAsymmetric)
 
+    # Removing files
+    if options.ignore != None:
+        for ign in options.ignore:
+            filefilter = chainFunc(filefilter, lambda fn: filterNoString(ign,fn))
 
     protocolpaths = []
 
