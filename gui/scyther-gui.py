@@ -21,26 +21,14 @@
 
 #---------------------------------------------------------------------------
 
-def panic(text):
-    """
-    Errors that occur before we even are sure about wxPython etc. are dumped
-    on the command line and reported using Tkinter.
-    """
-
-    import Tkinter
-    
-    print text
-
-    root = Tkinter.Tk()
-    w = Tkinter.Label(root, text=text)
-    w.pack()
-    root.mainloop()
-
-    sys.exit(-1)
-
 
 #---------------------------------------------------------------------------
 
+""" Import scyther-gui components """
+from Gui import About,Preference,Mainwindow
+from Scyther import Scyther,Misc
+
+#---------------------------------------------------------------------------
 
 """ Import externals """
 import sys
@@ -48,7 +36,7 @@ try:
     import wx
 except ImportError:
 
-    panic("""
+    Misc.panic("""
 ERROR:
 
 Could not find the required [wxPython] package.
@@ -64,12 +52,7 @@ Note that you can still use the Scyther binaries in the 'Scyther' directory.
 
 import os
 from optparse import OptionParser, SUPPRESS_HELP
-
-#---------------------------------------------------------------------------
-
-""" Import scyther-gui components """
-from Gui import About,Preference,Mainwindow,Misc
-from Scyther import Scyther
+from subprocess import *
 
 #---------------------------------------------------------------------------
 
@@ -196,8 +179,16 @@ def CheckRequirements():
     """ Check for any required programs """
 
     """ We need 'dot', in the graphviz package """
-    def dotNotFound():
-        print """
+    failed = False
+    try:
+        (sts,sout,serr) = Misc.safeCommandOutput("dot -V")
+        output = (sout + serr).lower()
+        if output.find("graphviz") == -1:
+            failed = True
+    except OSError, ImportError:
+        failed = True
+    if failed:
+        Misc.panic("""
 Could not find the required 'dot' program, which is part of the graphviz suite.
 Please install it from http://www.graphviz.org/
 
@@ -205,19 +196,7 @@ Ubuntu users: install the 'graphviz' package.
 
 Restarting your system may be needed for Scyther to locate any newly installed
 programs.
-"""
-        sys.exit(-1)
-    try:
-        import commands
-
-        (st,op) = commands.getstatusoutput("dot --version")
-        # Check for error. 0 is fine, but we need masking etc. for this 
-        # to work, strangely enough.
-        exitcode = st >> 8
-        if (exitcode & 127) == 127:
-            raise ImportError
-    except ImportError:
-        dotNotFound()
+""")
 
 #---------------------------------------------------------------------------
 
