@@ -27,11 +27,13 @@
 import sys
 import os.path
 try:
-    from subprocess import Popen
-    AvailablePopen = True
+    from subprocess import Popen,PIPE
 except:
-    import os
-    AvailablePopen = False
+    panic("""
+Cannot import 'subprocess.Popen' module. 
+
+You need at least Python 2.4 to use this program.
+""")
 
 #---------------------------------------------------------------------------
 
@@ -69,21 +71,51 @@ def mypath(file):
     basedir = os.path.dirname(__file__)
     return os.path.join(basedir,file)
 
+def getShell():
+    """
+    Determine if we want a shell for Popen
+    """
+    if sys.platform.startswith("win"):
+        shell=False
+    else:
+        # Needed to handle the string input correctly (as opposed to a sequence where the first element is the executable)
+        # This is not needed on Windows, where it has a different effect altogether.
+        # See http://docs.python.org/library/subprocess.html?highlight=subprocess#module-subprocess
+        shell=True
+    return shell
+
+def safeCommandOutput(cmd):
+    """ Execute a command and return (sts,sout,serr).
+    Meant for short outputs, as output is stored in memory and
+    not written to a file.
+    """
+    p = Popen(cmd, shell=getShell(), stdout=PIPE, stderr=PIPE)
+    (sout,serr) = p.communicate()
+    return (p.returncode,sout,serr)
+
 def safeCommand(cmd):
     """ Execute a command with some arguments. Safe cross-platform
     version, I hope. """
 
-    global AvailablePopen
-
-    if AvailablePopen:
-        if sys.platform.startswith("win"):
-            shell=False
-        else:
-            shell=True
-        p = Popen(cmd, shell=shell)
-        sts = p.wait()
-    else:
-        sts = os.system(cmd)
+    p = Popen(cmd, shell=getShell())
+    sts = p.wait()
 
     return sts
+
+def panic(text):
+    """
+    Errors that occur before we even are sure about wxPython etc. are dumped
+    on the command line and reported using Tkinter.
+    """
+
+    import Tkinter
+    
+    print text
+
+    root = Tkinter.Tk()
+    w = Tkinter.Label(root, text=text)
+    w.pack()
+    root.mainloop()
+
+    sys.exit(-1)
 
