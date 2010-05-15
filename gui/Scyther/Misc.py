@@ -89,15 +89,17 @@ def safeCommandOutput(cmd):
     Meant for short outputs, as output is stored in memory and
     not written to a file.
     """
-    p = Popen(cmd, shell=getShell(), stdout=PIPE, stderr=PIPE)
+
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     (sout,serr) = p.communicate()
+
     return (p.returncode,sout,serr)
 
 def safeCommand(cmd):
     """ Execute a command with some arguments. Safe cross-platform
     version, I hope. """
 
-    p = Popen(cmd, shell=getShell())
+    p = Popen(cmd, shell=True)
     sts = p.wait()
 
     return sts
