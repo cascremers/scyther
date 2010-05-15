@@ -21,12 +21,34 @@
 
 #---------------------------------------------------------------------------
 
+def panic(text):
+    """
+    Errors that occur before we even are sure about wxPython etc. are dumped
+    on the command line and reported using Tkinter.
+    """
+
+    import Tkinter
+    
+    print text
+
+    root = Tkinter.Tk()
+    w = Tkinter.Label(root, text=text)
+    w.pack()
+    root.mainloop()
+
+    sys.exit(-1)
+
+
+#---------------------------------------------------------------------------
+
+
 """ Import externals """
 import sys
 try:
     import wx
 except ImportError:
-    print """
+
+    panic("""
 ERROR:
 
 Could not find the required [wxPython] package.
@@ -34,9 +56,12 @@ Please install this package in order to use the graphical user
 interface of Scyther.
 The [wxPython] packages can be found at http://www.wxpython.org/
 
+Ubuntu users: the wxPython packages are called 'python-wxgtk' followed by the
+version number.
+
 Note that you can still use the Scyther binaries in the 'Scyther' directory.
-    """
-    sys.exit(1)
+    """)
+
 import os
 from optparse import OptionParser, SUPPRESS_HELP
 
