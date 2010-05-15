@@ -2324,7 +2324,7 @@ individuals.
     """ % (CACHEFILE)
 
 
-def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/AdversaryModels"],filefilter=None,graphs=[], debug=False, closecache=False, modulo=None, options={}):
+def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/AdversaryModels"],filefilters=None,graphs=[], debug=False, closecache=False, modulo=None, options={}):
     """
     Simple test case with a few protocols, or so it started out at least.
     """
@@ -2354,20 +2354,27 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
     if closecache:
         CACHE.closeTransitive()
     
-    list = []
+    uflist = []
     for path in protocolpaths:
         print path
         prots = Scyther.FindProtocols(path)
         for p in prots:
-            if p not in list:
-                list.append(p)
+            if p not in uflist:
+                uflist.append(p)
 
-    if filefilter != None:
-        nlist = []
-        for protfile in list:
-            if filefilter(protfile):
-                nlist.append(protfile)
-        list = nlist
+    if filefilters != None:
+        finallist = []
+        print len(filefilters)
+        for protfile in uflist:
+            allgood = True
+            for ff in filefilters:
+                if not ff(protfile):
+                    allgood = False
+                    break
+            if allgood == True:
+                finallist.append(protfile)
+    else:
+        finallist = uflist
 
     #print "Performing compromise analysis for the following protocols:", list
     #print
@@ -2379,7 +2386,7 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
         if options.claimfilter == "authentication":
             fl = ['Niagree','Nisynch']
 
-    FCD = FindClaims(list, filterlist=fl)
+    FCD = FindClaims(finallist, filterlist=fl)
     FCDN = 0
     FCDX = 0
     for fn in FCD.keys():

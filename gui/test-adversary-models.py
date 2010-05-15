@@ -47,26 +47,6 @@ def filterAsymmetric(protfile):
     """
     return isEmpty("grep -L \"\<sk\>\|\<pk\>\" %s" % (protfile))
 
-def filterNoString(s,fn):
-    """
-    The filter should return true to select, false to reject.
-    """
-    if s in fn:
-        return False
-    else:
-        # s must not occur in fn as a substring
-        return True
-
-def chainFunc(f1,f2):
-    """
-    Returns a function that is only true if both filters are true.
-    """
-    if f1 == None:
-        return f2
-    if f2 == None:
-        return f1
-    return lambda x:f1(x) and f2(x)
-
 def initParser():
     """
     Init the main parser.
@@ -137,21 +117,23 @@ if __name__ == '__main__':
     # Options
     (options, args) = initParser()
 
+    # Init filters
+    filefilters = []
+
     # Symmetric/asymmetric filters
-    filefilter = None
     if options.symmetric:
         if options.asymmetric:
             print "Error: cannot use filter for symmetric and asymmetric at once."
             sys.exit()
     if options.symmetric:
-        filefilter = chainFunc(filefilter,filterSymmetric)
+        filefilters.append(filterSymmetric)
     if options.asymmetric:
-        filefilter = chainFunc(filefilter,filterAsymmetric)
+        filefilters.append(filterAsymmetric)
 
     # Removing files
     if options.ignore != None:
         for ign in options.ignore:
-            filefilter = chainFunc(filefilter, lambda fn: filterNoString(ign,fn))
+            filefilters.append(lambda fn: fn.find(ign) == -1)
 
     protocolpaths = []
 
@@ -179,7 +161,7 @@ if __name__ == '__main__':
     options.dirs = protocolpaths
 
     # Call main 
-    main(models=options.models, protocolpaths=protocolpaths, filefilter=filefilter, graphs=options.graphs, debug=options.debug, closecache=options.closecache, modulo=options.modulo, options=options)
+    main(models=options.models, protocolpaths=protocolpaths, filefilters=filefilters, graphs=options.graphs, debug=options.debug, closecache=options.closecache, modulo=options.modulo, options=options)
 
 
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:
