@@ -1,4 +1,15 @@
 #!/bin/sh
 
-./test-adversary-models.py --models=7rules --secrecy        Protocols/*.spdl Protocols/AdversaryModels/*.spdl 
-./test-adversary-models.py --models=7rules --authentication Protocols/*.spdl 
+#IGN=" --ignore=ksl-lowe --ignore=Okamoto"
+IGN=" --ignore=Okamoto --ignore=ksl-lowe"
+MDS=" --models=7rules"
+DEF=" --PSH $MDS"
+APROTS="Protocols/*.spdl"
+SPROTS="$APROTS Protocols/AdversaryModels/*.spdl"
+DEFOUT="protocol-security-hierarchy.pdf"
+
+./test-adversary-models.py $DEF --secrecy        $SPROTS $IGN
+cp $DEFOUT psh-secrecy.pdf
+./test-adversary-models.py $DEF --authentication $APROTS $IGN
+cp $DEFOUT psh-authentication.pdf
+
