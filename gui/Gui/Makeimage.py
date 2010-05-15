@@ -130,7 +130,7 @@ def makeImageDot(dotdata,attackthread=None):
     cmd = "dot -T%s" % (type)
 
     # execute command
-    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, close_fds=True)
+    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE)
     (cin,cout) = (p.stdin, p.stdout)
 
 
