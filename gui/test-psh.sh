@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #IGN=" --ignore=ksl-lowe --ignore=Okamoto"
-IGN=" --ignore=Okamoto --ignore=ksl-lowe"
+IGN=" --ignore=Okamoto --ignore=ksl-lowe --ignore=SKEME"
 MDS=" --models=7rules"
 DEF=" --PSH $MDS"
 APROTS="Protocols/*.spdl"

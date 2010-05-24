@@ -2364,11 +2364,10 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
 
     if filefilters != None:
         finallist = []
-        print len(filefilters)
         for protfile in uflist:
             allgood = True
             for ff in filefilters:
-                if not ff(protfile):
+                if ff(protfile) == False:
                     allgood = False
                     break
             if allgood == True:

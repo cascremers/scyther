@@ -21,6 +21,7 @@
 import sys
 import time
 import commands
+import functools
 from optparse import OptionParser
 
 from adversaries import main
@@ -46,6 +47,16 @@ def filterAsymmetric(protfile):
     The filter should return true to select, false to reject.
     """
     return isEmpty("grep -L \"\<sk\>\|\<pk\>\" %s" % (protfile))
+
+def filterString(protfile,filterstring):
+    """
+    Returns true to select, i.e. txt does not occur as substring
+    """
+    if protfile.find(filterstring) >= 0:
+        print "Ignoring '%s' because it contains an ignored substring '%s'" % (protfile,filterstring)
+        return False
+    else:
+        return True
 
 def initParser():
     """
@@ -133,7 +144,7 @@ if __name__ == '__main__':
     # Removing files
     if options.ignore != None:
         for ign in options.ignore:
-            filefilters.append(lambda fn: fn.find(ign) == -1)
+            filefilters.append(functools.partial(filterString,filterstring=ign))
 
     protocolpaths = []
 
