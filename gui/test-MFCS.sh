@@ -22,7 +22,7 @@ SPROTS="$SPROTS \
 	"
 
 ./test-adversary-models.py $DEF --secrecy        $SPROTS $IGN
-cp $DEFOUT psh-secrecy.pdf
+cp $DEFOUT psh-MFCS-secrecy.pdf
 ./test-adversary-models.py $DEF --authentication $APROTS $IGN
-cp $DEFOUT psh-authentication.pdf
+cp $DEFOUT psh-MFCS-authentication.pdf
 
