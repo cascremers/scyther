@@ -65,6 +65,7 @@ PROTPOSTFIX = "_Alt"
 
 SUMMARYDB = {}      # prot -> delta
 SUMMARYALL = False  # Delta's in all or in some contexts?
+VERIFICATIONS = {}  # file -> claimid -> int (real Scyther invocations)
 ACLMAX = 10         # After 10 we give up for the nodes
 SCANERRORS = False  # Scan for arrows with no counterexamples
 OPTIONS = {}
@@ -1037,6 +1038,15 @@ def VerifyClaim(file,claimid,model,onlycache=False):
         """
         Normal proceedings: call Scyther to verify claim.
         """
+        global VERIFICATIONS
+
+        # Update global counter of real invocations for this file, claim
+        if file not in VERIFICATIONS.keys():
+            VERIFICATIONS[file] = {}
+        if claimid not in VERIFICATIONS[file].keys():
+            VERIFICATIONS[file][claimid] = 0
+        VERIFICATIONS[file][claimid] += 1
+
         s = Scyther.Scyther()
         s.addFile(file)
         s.options = "%s %s" % (DEFAULTARGS,model.options())
@@ -2267,6 +2277,19 @@ def GraphModelHierarchy():
     print
 
 
+def reportVerifications():
+    """
+    Show verifications performed for each claim, protocol
+    """
+    global VERIFICATIONS
+
+    for fn in VERIFICATIONS.keys():
+        print "[%s]" % (fn),
+        for cid in VERIFICATIONS[fn].keys():
+            print "%s: %i, " % (cid,VERIFICATIONS[fn][cid]),
+        print
+
+
 def exiter(graphs=[],modulo=None):
     global CALLSCYTHER
     global DRAWGRAPH
@@ -2280,6 +2303,7 @@ def exiter(graphs=[],modulo=None):
         No reporting, sorting, graphing if modulo things.
         """
         reportProtocolTable()
+        reportVerifications()
 
         print """
 
@@ -2446,7 +2470,7 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
             PROTOCOLSDONE.add(fn)
         else:
             print comment + "Nothing to do."
-        
+
     print
     print "Analysis complete."
 
