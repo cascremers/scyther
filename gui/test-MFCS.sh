@@ -18,7 +18,6 @@ SPROTS="$SPROTS \
 	Protocols/AdversaryModels/BCNP-2.spdl \
 	Protocols/AdversaryModels/naxos.spdl \
 	Protocols/AdversaryModels/2DH-ISO.spdl \
-	Protocols/AdversaryModels/DHKE-1.spdl \
 	"
 
 ./test-adversary-models.py $DEF --secrecy        $SPROTS $IGN
