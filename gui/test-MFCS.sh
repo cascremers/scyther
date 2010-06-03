@@ -3,7 +3,9 @@
 #IGN=" --ignore=ksl-lowe --ignore=Okamoto"
 IGN=" --ignore=Okamoto --ignore=ksl --ignore=SKEME"
 MDS=" --models=7rules"
-DEF=" --PSH $MDS"
+DEF=" --PSH $MDS \
+      --max-runs=0 \
+      "
 APROTS="Protocols/*.spdl"
 SPROTS="$APROTS Protocols/AdversaryModels/*.spdl"
 DEFOUT="protocol-security-hierarchy.pdf"
