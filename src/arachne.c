@@ -2123,12 +2123,12 @@ iterate ()
 	      // Go and pick a binding for iteration
 	      flag = iterateOneBinding ();
 	    }
-	  else
-	    {
-	      // Pruned because of bound!
-	      sys->current_claim->complete = 0;
-	    }
 	}
+    }
+  else
+    {
+      // Pruned because of bound!
+      sys->current_claim->complete = false;
     }
 
 #ifdef DEBUG
