@@ -52,8 +52,10 @@ http://code.google.com/p/python-progressbar/
 
 CACHEFILE = "verification-result-cache.tmp"   # Filename of cache
 SHOWPATH = False    # Switch to true to show paths in the graph
-#DEFAULTARGS = "--max-runs=7"       ### If you're picky and have time. The results are the same, by the way.
-DEFAULTARGS = "--max-runs=5"
+DEFAULTARGS = ""
+### maxruns now handled by switches (OPTIONS) to python scripts
+#DEFAULTARGS += "--max-runs=7"       ### If you're picky and have time. The results are the same, by the way.
+#DEFAULTARGS += "--max-runs=5"
 DEFAULTARGS += " -T 360"         # Timeout after 6 minutes 
 DEFAULTARGS += " --prune=1"     # Stop at first attack
 DEFAULTARGS += " --force-regular"   # Force considering a regular run (for DH-hack problems)
@@ -1050,6 +1052,10 @@ def VerifyClaim(file,claimid,model,onlycache=False):
         s = Scyther.Scyther()
         s.addFile(file)
         s.options = "%s %s" % (DEFAULTARGS,model.options())
+
+        if OPTIONS.maxruns != None:
+            s.options += " --max-runs=%s" % (OPTIONS.maxruns)
+
         res = s.verifyOne(claimid)
         if len(res) > 0:
             claimres = res[0].getRank()

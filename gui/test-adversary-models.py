@@ -72,6 +72,7 @@ def initParser():
     #                  help="don't print status messages to stdout")
 
     parser.add_option("-m","--models", action="store", dest="models", help="Consider adversary models by name.", metavar="ID", default="paper")
+    parser.add_option("","--max-runs", action="store", dest="maxruns", help="Bound maximum number of runs.", metavar="INT", default="5")
     parser.add_option("-d","--dir", action="append", dest="dirs", help="Set directories to scan for protocols.", metavar="PATH")
     parser.add_option("-a","--asymmetric", action="store_true", dest="asymmetric", help="Filter to asymmetric crypto only.", default=False)
     parser.add_option("","--ignore", action="append", dest="ignore", help="Ignore file names with this substring.", metavar="STRING")
