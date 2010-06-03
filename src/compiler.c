@@ -506,7 +506,7 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
   cl->role = role;
   cl->roledef = NULL;
   cl->count = 0;
-  cl->complete = 0;
+  cl->complete = true;
   cl->timebound = 0;
   cl->failed = 0;
   cl->states = 0;

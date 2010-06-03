@@ -2366,7 +2366,7 @@ arachneClaimTest ()
   cl = sys->current_claim;
   attack_length = INT_MAX;
   attack_leastcost = INT_MAX;
-  cl->complete = 1;
+  cl->complete = true;
   p = (Protocol) cl->protocol;
   r = (Role) cl->role;
 
