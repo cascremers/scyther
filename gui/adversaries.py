@@ -1509,7 +1509,7 @@ class ScytherCache(object):
     """
     global CACHEFILE
 
-    def __init__(self):
+    def __init__(self,plist):
         self.data = {}
         try:
             fp = open(CACHEFILE,"r")
@@ -1517,10 +1517,11 @@ class ScytherCache(object):
             for l in fp.xreadlines():
                 da = (l.rstrip("\n")).split("\t")
                 protocol = da[0]
-                claim = da[1]
-                dbkey = da[2]
-                res = int(da[3])
-                self.setForce(protocol,claim,dbkey,res)
+                if protocol in plist:
+                    claim = da[1]
+                    dbkey = da[2]
+                    res = int(da[3])
+                    self.setForce(protocol,claim,dbkey,res)
             fp.close()
 
         except:
@@ -2379,11 +2380,6 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
 
     InitRestricted(models)
 
-    CACHE = ScytherCache()
-
-    if closecache:
-        CACHE.closeTransitive()
-    
     uflist = []
     for path in protocolpaths:
         print path
@@ -2405,6 +2401,11 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
     else:
         finallist = uflist
 
+    CACHE = ScytherCache(finallist)
+
+    if closecache:
+        CACHE.closeTransitive()
+    
     #print "Performing compromise analysis for the following protocols:", list
     #print
 
