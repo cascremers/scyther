@@ -1,12 +1,15 @@
 #!/bin/sh
+#
+# Script to recreate test result for CSL 2010 paper.
+#
+
+DEFOUT="protocol-security-hierarchy.pdf"
 
 IGN=""
 MDS=" --models=7rules"
 DEF=" --PSH $MDS \
       --max-runs=0 \
       "
-DEFOUT="protocol-security-hierarchy.pdf"
-
 APROTS=""
 APROTS="$APROTS ns3.spdl nsl3.spdl"
 APROTS="$APROTS Protocols/ccitt509-1.spdl Protocols/ccitt509-1c.spdl Protocols/ccitt509-3.spdl"
