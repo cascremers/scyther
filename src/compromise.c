@@ -663,12 +663,7 @@ adaptRoleCompromised (Protocol p, Role r)
 	  SSRseen = termlistConcat (SSRseen, tuple_to_termlist (rd->message));
 	  RNRseen = termlistConcat (RNRseen, tuple_to_termlist (rd->message));
 	}
-      if (isCompromiseEvent (rd))
-	{
-	  // Already mentioned for state reveal
-	  rd->compromisetype = COMPR_SSR;
-	}
-      else
+      if (!isCompromiseEvent (rd))
 	{
 	  Roledef rdlast;
 

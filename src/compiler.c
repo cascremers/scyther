@@ -717,6 +717,14 @@ commEvent (int event, Tac tc)
 				      fromrole, torole, msg, cl);
       /* mark last one with line number */
       markLastRoledef (thisRole->roledef, tc->lineno);
+      /* mark compromise events as state reveals */
+      if (isCompromiseEvent)
+	{
+	  Roledef rd;
+
+	  rd = getLastRoledef (thisRole->roledef);
+	  rd->compromisetype = COMPR_SSR;
+	}
       break;
 
     case CLAIM:
