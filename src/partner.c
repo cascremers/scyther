@@ -740,6 +740,39 @@ getMList (int run, int type)
   return mlist;
 }
 
+//! Matching full mlist of run to claim?
+/**
+ *
+ * Note that we compare full sequences, and therefore a completed session can
+ * only match another completed session.
+ *
+ * The input lists are the ones computed for the claim run
+ */
+int
+isMListFullMatching (Termlist sendlist, Termlist recvlist, int run)
+{
+  Termlist sent, received;
+  int result;
+
+  if (sys->current_claim->protocol != sys->runs[run].protocol)
+    {
+      return false;
+    }
+  sent = getMList (run, SEND);
+
+  result = isTermlistEqual (recvlist, sent);
+  if (result)
+    {
+      received = getMList (run, READ);
+      result = isTermlistEqual (sendlist, received);
+      termlistDelete (received);
+    }
+
+  termlistDelete (sent);
+
+  return result;
+}
+
 //! Matching mlist of run to claim?
 /**
  *
@@ -789,6 +822,42 @@ matchingMList (int *partners)
       if (isMListMatching (sendlist, recvlist, run))
 	{
 	  partners[run] = true;
+	}
+    }
+  termlistDelete (sendlist);
+  termlistDelete (recvlist);
+}
+
+//! Fix partners on the basis of eCK definition
+void
+matchingeCK (int *partners)
+{
+  int run;
+  Termlist sendlist, recvlist, rho0;
+
+  // Hardcoded to claim run
+  rho0 = sys->runs[0].rho;
+  if (termlistLength (rho0) != 2)
+    {
+      return;
+    }
+  sendlist = getMList (0, SEND);
+  recvlist = getMList (0, READ);
+
+  for (run = 1; run < sys->maxruns; run++)
+    {
+      /* conditions: different role, flipped actor/peer, matching lists */
+      if (sys->runs[run].role != sys->runs[0].role)
+	{
+	  Termlist rho;
+	  rho = sys->runs[run].rho;
+	  if (isTermlistEqual (rho0, rho))
+	    {
+	      if (isMListFullMatching (sendlist, recvlist, run))
+		{
+		  partners[run] = true;
+		}
+	    }
 	}
     }
   termlistDelete (sendlist);
@@ -846,6 +915,9 @@ getPartnerArray (void)
       break;
     case 5:
       matchingCK2001 (partners);
+      break;
+    case 6:
+      matchingeCK (partners);
       break;
     }
 
