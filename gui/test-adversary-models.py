@@ -21,7 +21,6 @@
 import sys
 import time
 import commands
-import functools
 from optparse import OptionParser
 
 from adversaries import main
@@ -145,6 +144,8 @@ if __name__ == '__main__':
     # Removing files
     if options.ignore != None:
         for ign in options.ignore:
+            import functools
+
             filefilters.append(functools.partial(filterString,filterstring=ign))
 
     protocolpaths = []
