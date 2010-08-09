@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# Brutus-specific setup
+echo "If things don't work, try:"
+echo
+echo "  module load cmake"
+echo "  module load gcc"
+echo
+
 # Default flags
 CMFLAGS="-D CMAKE_BUILD_TYPE:STRING=Release"
 
