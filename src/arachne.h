@@ -25,6 +25,7 @@
 void arachneInit (const System sys);
 void arachneDone ();
 int arachne ();
+int iterate ();
 int get_semitrace_length ();
 void indentPrint ();
 int isTriviallyKnownAtArachne (const System sys, const Term t, const int run,

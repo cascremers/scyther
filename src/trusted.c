@@ -95,16 +95,26 @@ isCompromiseAllowed (const System sys, int *partners, Binding b, Term a)
       // Bindings always have a 'to' destination
       int r1, e1, r2, e2;
 
+      // Where is the key used?
       r1 = b->run_to;
       e1 = b->ev_to;
+      // End of the claim run/test thread
       r2 = 0;
-      e2 = sys->runs[0].step - 1;	// assumption that it contains at least an event.
+      e2 = sys->runs[0].step - 1;
+
+      if (e2 < 0)
+	{
+	  // This does not make sense if the claim run is empty. Hence we
+	  // prune.
+	  return false;
+	}
       if (((r1 != r2) || (e1 != e2)))
 	{
 	  // If they were the same, not allowed (by this rule)
-	  if (!isDependEvent (r1, e1, r2, e2))
+	  if (isDependEvent (r2, e2, r1, e1))
 	    {
-	      // Claim may be before the long-term key reveal. That's fine.
+	      // Key is needed strictly after the claim run end. Good.
+
 	      if (switches.LKRafter)
 		{
 		  return true;
@@ -116,6 +126,22 @@ isCompromiseAllowed (const System sys, int *partners, Binding b, Term a)
 		      return true;
 		    }
 		}
+	    }
+	  else
+	    {
+		  /**
+		   * Claim may be before the long-term key reveal. That's fine
+		   * but we want to enforce it.
+		   *
+		   * Trick: we add the binding, iterate. Because we already
+		   * iterate, we can prune this particular state then later on.
+		   */
+	      if (dependPushEvent (r2, e2, r1, e1))
+		{
+		  iterate ();
+		  dependPopEvent ();
+		}
+	      return false;
 	    }
 	}
     }
