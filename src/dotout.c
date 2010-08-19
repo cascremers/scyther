@@ -284,6 +284,121 @@ redirNode (const System sys, Binding b)
   node (sys, b->run_to, b->ev_to);
 }
 
+
+int
+isAlreadyBound (const System sys, const int run1, const int ev1,
+		const int run2, const int ev2)
+{
+  int checkBind (const Binding b)
+  {
+    if ((b->run_from == run1) && (b->ev_from == ev1))
+      {
+	if ((b->run_to == run2) && (b->ev_to == ev2))
+	  {
+	    return false;
+	  }
+      }
+    return true;
+  }
+
+  if (iterate_bindings (checkBind))
+    {
+      return false;
+    }
+  else
+    {
+      return true;
+    }
+}
+
+int
+isAlreadyInduced (const System sys, const int run1, const int ev1,
+		  const int run2, const int ev2)
+{
+  int run3;
+
+  for (run3 = 0; run3 < sys->maxruns; run3++)
+    {
+      int ev3;
+
+      for (ev3 = 0; ev3 < sys->runs[run3].step; ev3++)
+	{
+	  if ((run3 == run1) && (ev3 == ev1))
+	    {
+	      continue;
+	    }
+	  if ((run3 == run2) && (ev3 == ev2))
+	    {
+	      continue;
+	    }
+	  if (isDependEvent (run1, ev1, run3, ev3))
+	    {
+	      if (isDependEvent (run3, ev3, run2, ev2))
+		{
+		  return true;
+		}
+	    }
+	}
+    }
+  return false;
+}
+
+void
+considerOrder (const System sys, const int run1, const int ev1,
+	       const int run2, const int ev2)
+{
+  if (!isDependEvent (run1, ev1, run2, ev2))
+    {
+      return;
+    }
+  if (isAlreadyBound (sys, run1, ev1, run2, ev2))
+    {
+      return;
+    }
+  if (isAlreadyInduced (sys, run1, ev1, run2, ev2))
+    {
+      return;
+    }
+  /*
+   * Display dependency graph
+   */
+  eprintf ("\t");
+  node (sys, run1, ev1);
+  eprintf (" -> ");
+  node (sys, run2, ev2);
+  eprintf (" [style=dotted];\n");
+}
+
+//! Draw order on nodes
+void
+drawOrder (const System sys)
+{
+  int run;
+
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      int ev;
+
+      for (ev = 0; ev < sys->runs[run].length; ev++)
+	{
+	  int run2;
+
+	  for (run2 = 0; run2 < sys->maxruns; run2++)
+	    {
+	      if (run2 != run)
+		{
+		  int ev2;
+
+		  for (ev2 = 0; ev2 < sys->runs[run2].length; ev2++)
+		    {
+		      considerOrder (sys, run, ev, run2, ev2);
+		    }
+		}
+	    }
+	}
+    }
+}
+
 //! Roledef draw
 void
 roledefDraw (Roledef rd)
@@ -1956,6 +2071,7 @@ dotSemiState (const System mysys)
   drawRegularRuns (sys);
   drawIntruderRuns (sys);
   from_intruder_count = drawAllBindings (sys);
+  drawOrder (sys);
 
   // Third, the intruder node (if needed)
   {
