@@ -42,4 +42,7 @@ void levelTacDeclaration (Tac tc, int isVar);
 #define	levelVar(s)	symbolDeclare(s,1)
 #define	levelConst(s)	symbolDeclare(s,0)
 
+#define freshGlobalConstant(pfs)	makeGlobalConstant(stringNextFree(pfs));
+#define freshGlobalVariable(pfs)	makeGlobalVariable(stringNextFree(pfs));
+
 #endif

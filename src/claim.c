@@ -38,6 +38,7 @@
 #include "specialterm.h"
 #include "switches.h"
 #include "color.h"
+#include "compiler.h"
 #include "cost.h"
 #include "timer.h"
 #include "arachne.h"
@@ -900,11 +901,7 @@ dummyBind (const System sys)
 	    {
 	      // Still open, which is not what we want.
 	      added = termlistAppend (added, t);
-	      // Yes, it's weird like that.
-	      t->type = GLOBAL;
-	      //eprintf("Closed dummy: ");
-	      //termPrint(t);
-	      //eprintf("\n");
+	      t->subst = (Term) freshGlobalConstant ("C");
 	    }
 	}
     }
@@ -1030,7 +1027,11 @@ addFullSession (const System sys, int (*iter) (void))
   // Undo dummies
   while (dummies != NULL)
     {
-      dummies->term->type = VARIABLE;
+      Term tnew;
+
+      tnew = dummies->term->subst;
+      dummies->term->subst = NULL;
+      termDelete (tnew);
       dummies = dummies->next;
     }
 

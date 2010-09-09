@@ -231,30 +231,28 @@ symbolSysConst (const char *str)
   return symb;
 }
 
-//! Generate the first fresh free number symbol, prefixed by a certain symbol's string.
+//! Generate the first fresh free number symbol string, prefixed by a certain string (or NULL).
 /**
- * Note that there is an upper limit to this, to avoid some problems with buffer overflows etc.
+ * Note that there is an upper limit to the sequence of numbers, to avoid some
+ * problems with dynamic memory allocation. Or lazy coding. You pick.
  */
-Symbol
-symbolNextFree (Symbol prefixsymbol)
+char *
+stringNextFree (char *prefixer)
 {
-  char *prefixstr;
   int n;
   int len;
 
-  if (prefixsymbol != NULL)
+  if (prefixer != NULL)
     {
-      prefixstr = (char *) prefixsymbol->text;
-      len = strlen (prefixstr);
+      len = strlen (prefixer);
     }
   else
     {
-      prefixstr = "";
+      prefixer = "";
       len = 0;
     }
 
-  n = 1;
-  while (n <= 9999)
+  for (n = 1; n <= 9999; n++)
     {
       /*
        * The construction below (variable buffer length) is not allowed in ISO C90
@@ -263,7 +261,7 @@ symbolNextFree (Symbol prefixsymbol)
       Symbol symb;
       int slen;
 
-      slen = sprintf (buffer, "%s%i", prefixstr, n);
+      slen = sprintf (buffer, "%s%i", prefixer, n);
       buffer[slen] = EOS;
       symb = lookup (buffer);
       if (symb == NULL)
@@ -279,15 +277,39 @@ symbolNextFree (Symbol prefixsymbol)
 	  memcpy (newstring, buffer, slen + 1);
 
 	  /* This persistent string can be used to return a fresh symbol */
-
-	  return symbolSysConst (newstring);
+	  return newstring;
 	}
-
-      // Try next one
-      n++;
     }
-  error ("We ran out of numbers (%i) when trying to generate a fresh symbol.",
-	 n);
+  error
+    ("We ran out of numbers (%i) when trying to generate a fresh symbol string.",
+     n);
+  return NULL;
+}
+
+//! Generate the first fresh free number symbol, prefixed by a certain symbol's string.
+/**
+ * Upper limit inherited from stringNextFree 
+ */
+Symbol
+symbolNextFree (Symbol prefixsymbol)
+{
+  char *prefixstr;
+  char *newstr;
+
+  if (prefixsymbol != NULL)
+    {
+      prefixstr = (char *) prefixsymbol->text;
+    }
+  else
+    {
+      prefixstr = NULL;
+    }
+
+  newstr = stringNextFree (prefixstr);
+  if (newstr != NULL)
+    {
+      return symbolSysConst (newstr);
+    }
   return NULL;
 }
 
