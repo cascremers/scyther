@@ -113,17 +113,17 @@ protocol @addmult(I,R)
 	}
 }
 
-protocol @keyswap(I,R)
-{
-	role I
-	{
-		var x,y: Nonce;
-		recv_!1(I,I,
-		KDF(exp(mult(g1(y),exp(g1(sk(R)),LSB(g1(y),I))),add(x,mult(LSB(g1(x),R),sk(I)))),I,R,g1(x),g1(y)) );
-		send_!2(I,I,
-		KDF(exp(mult(g1(x),exp(g1(sk(I)),LSB(g1(x),R))),add(y,mult(LSB(g1(y),I),sk(R)))),I,R,g1(x),g1(y)) );
-	}
-}
+//protocol @keyswap(I,R)
+//{
+//	role I
+//	{
+//		var x,y: Nonce;
+//		recv_!1(I,I,
+//		KDF(exp(mult(g1(y),exp(g1(sk(R)),LSB(g1(y),I))),add(x,mult(LSB(g1(x),R),sk(I)))),I,R,g1(x),g1(y)) );
+//		send_!2(I,I,
+//		KDF(exp(mult(g1(x),exp(g1(sk(I)),LSB(g1(x),R))),add(y,mult(LSB(g1(y),I),sk(R)))),I,R,g1(x),g1(y)) );
+//	}
+//}
 
 // The protocol description
 
@@ -148,7 +148,7 @@ protocol FHMQV(I,R)
 		//send_Compromise(I,I, mult(Y,exp(g1(sk(R)),LSB(Y,I))) ) ;
 		//send_Compromise(I,I, exp(mult(Y,exp(g1(sk(R)),LSB(Y,I))),add(x,mult(LSB(g1(x),R),sk(I)))) ) ;
 
-		claim(R,SKR, keyA);
+		claim(I,SKR, keyA);
 	}	
 	
 	role R
