@@ -1,0 +1,57 @@
+/* 
+ * Protocol 2:
+ * Uses symmetric data encryption and the simplification 
+ * that no communication is required between the TPM and R, 
+ * i.e., the key is stored safely on R directly.
+ *
+ * Note: verification requires the switch '--partner-definition=2'
+ */
+
+// Model pk functions for mid-term public/secret key pair
+const pubk: Function;
+secret seck: Function;
+inversekeys (pubk,seck);
+
+usertype Tag;
+const l1,l2a,l2b: Tag;
+
+// The protocol description
+protocol protocol0(S,R)
+{
+	role S
+	{
+		var te: Nonce;		// expiration time
+		const M: Nonce;	// time-limited data
+		var alpha: Ticket;	// R's public key
+
+		// phase 1
+		recv_1( R,S, pubk(alpha),te, {l1,pubk(alpha),te}sk(R) );
+
+		// mark session identifier for state-reveal
+		claim_sids(S, SID, te);
+
+		// phase 2
+		send_2( S,R, {l2a,M}pubk(alpha),te, {l2b,{l2a,M}pubk(alpha),te}sk(S) );
+
+		claim_s(S,Secret,M);
+	}
+
+	role R
+	{
+		const PKR: Nonce;	// P's mid-term public key
+		const te: Nonce;	// expiration time
+		var M: Nonce;		// time-limited data
+
+		// mark session identifier for state-reveal
+		claim_sidr(R, SID, te);
+
+		// phase 1
+		send_1( R,S, pubk(PKR),te, {l1,pubk(PKR),te}sk(R) );
+
+		// phase 2
+		recv_2( S,R, {l2a,M}pubk(PKR),te, {l2b,{l2a,M}pubk(PKR),te}sk(S) );
+
+		claim_r(R,Secret,M);
+	}
+
+}
