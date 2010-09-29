@@ -1,0 +1,113 @@
+/* 
+ * Protocol 1: Delayed Data Deletion
+ * Uses symmetric data encryption
+ *
+ * Note: requires the '--partner-definition=2' switch.
+ */
+
+hashfunction g1,g2,hash;
+usertype Tag;
+const l1,l2,l3,l4a,l4b,l5,l6a,l6b,l7,l8a,l8b: Tag;
+
+/*
+ * Helper function to simulate g^ab = g^ba.
+ * '@' prefix of protocol name denotes helper protocol, which is used by 
+ * Scyther for displaying
+ */
+protocol @exponentiation(RA,RB) {
+	role RA {
+		var x,y: Nonce;
+
+		recv_!1(RA,RA, g2(g1(x),y) );
+		send_!2(RA,RA, g2(g1(y),x) );
+	}
+	role RB {
+		var m: Ticket;
+		var x,y: Nonce;
+		recv_!3(RB,RB, { m }g2(g1(x),y) );
+		send_!4(RB,RB, { m }g2(g1(y),x) );
+	}
+}
+
+// The protocol description
+protocol protocol0(S,R,P)
+{
+	role S
+	{
+		const rS: Nonce;	// own DH key contribution
+		const te: Nonce;	// expiration time
+		const M: Nonce;		// time-limited data
+		var beta: Ticket;	// R's DH key contribution
+
+		// mark T_e as session identifier
+		claim_sidS(S, SID, te);
+
+		// phase 1
+		send_1( S,R, g1(rS),te,    {l1, g1(rS),te}sk(S)       );
+		recv_5( R,S, g1(rS),beta,te, {l5, g1(rS),beta,te }sk(R) );
+
+		// phase 2
+		send_!6( S,R, {l6a,M}g2(beta,rS), {l6b,{l6a,M}g2(beta,rS)}sk(S));
+
+		claim_s(S,Secret,M);
+	}
+
+	role R
+	{
+		const rR: Nonce;	// own DH key contribution with S
+		const rR2: Nonce;	// own DH key contribution with P
+		const rR3: Nonce;	// 2. own DH key contribution with P
+		var te: Nonce;		// expiration time
+		var M: Nonce;		// time-limited data
+		var alpha: Ticket;	// S's DH key contribution
+		var teta: Ticket;	// P's DH key contribution
+		var teta2: Ticket;	// P's second DH key contribution
+		var K: Ticket;		// The key K
+
+		// phase 1
+		recv_1( S,R, alpha,te,  {l1,alpha,te}sk(S) );
+
+		// mark T_e as session identifier
+		claim_sidR(R, SID, te);
+
+		send_2( R,P, g1(rR2),   {l2,g1(rR2)}sk(R)  );
+		recv_3( P,R, teta,        {l3,teta}sk(P)        );
+		send_4( R,P, S,te, {l4a,g2(alpha,rR)}g2(teta,rR2), {l4b, S,te, {l4a,g2(alpha,rR)}g2(teta,rR2)}sk(R)  );
+		
+		send_5( R,S, alpha,g1(rR),te, {l5,alpha,g1(rR),te}sk(R) );
+
+		// phase 2
+		recv_!6( S,R, {l6a,M}g2(alpha,rR), {l6b,{l6a,M}g2(alpha,rR)}sk(S) );
+
+		// phase 3
+		send_7( R,P, g1(rR3),S,te, {l7,g1(rR3),S,te}sk(R) );
+		recv_!8(  P,R, g1(rR3), teta2, {l8a,K}g2(teta2,rR3), {l8b, g1(rR3), teta2, {l8a,K}g2(teta2,rR3)}sk(P));
+		// decryption and use of M internally without messages
+
+		claim_r(R,Secret,M);
+}
+	
+	role P
+	{
+		var te: Nonce;  	// expiration time
+		const rP: Nonce;	// own DH key contribution
+		const rP2: Nonce;	// own DH key contribution
+		var gamma1: Ticket;	// R's 1. DH key contribution
+		var gamma2: Ticket;	// R's 2. DH key contribution
+		var K: Ticket;		// The key K
+
+		// phase 1
+		recv_2( R,P, gamma1, {l2,gamma1}sk(R) );
+		send_3( P,R, g1(rP), {l3,g1(rP)}sk(P) );
+		recv_!4( R,P, S,te, {l4a,K}g2(gamma1,rP), {l4b,S,te, {l4a,K}g2(gamma1,rP)}sk(R));
+
+		// mark T_e as session identifier
+		claim_sidP(P, SID, te);
+
+		// phase 3
+		recv_7( R,P, gamma2,S,te, {l7,gamma2,S,te}sk(R) );
+		send_8( P,R, gamma2,g1(rP2),{l8a,K}g2(gamma2,rP2), {l8b,gamma2,g1(rP2),{l8a,K}g2(gamma2,rP2)}sk(P));
+
+		claim_p(P,Secret,K);
+	}
+}
