@@ -150,6 +150,9 @@ events_hist_match_rd (const Roledef rdi, const Roledef rdj)
  *@returns MATCH_NONE or MATCH_CONTENT
  *
  * This omits the check on the label; we assume this is covered by the caller if needed.
+ *
+ * We are also checking the from/to fields: this is crucial for detecting UKS
+ * attacks on protocols that don't mention both names in the messages.
  */
 __inline__ int
 events_prefix_match_rd (const Roledef rdi, const Roledef rdj)
