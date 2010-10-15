@@ -1,8 +1,8 @@
-/* 
+/*
  * Protocol 2
+ * Uses symmetric data encryption. The communication between R and 
+ * the TPM is assumed to be secure, i.e., not explicitly modeled.
  */
-
-hashfunction g1;		// Hash functions
 
 // Model pk functions for mid-term public/secret key pair
 const pubk: Function;

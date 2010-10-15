@@ -93,7 +93,6 @@ static FILE *attack_stream;
  * Forward declarations
  */
 
-int iterate ();
 
 /*
  * Program code
