@@ -36,11 +36,11 @@ protocol protocol0(S,R,P) {
         claim_sidS(S, SID, te);
 
         // phase 1
-        send_1( S,R, g1(rS),te, {l1,g1(rS),te}sk(S) );
-        recv_5( R,S, g1(rS),g1(beta),te, {l5,g1(rS),g1(beta),te}sk(R) );
+        send_1( S,R, {l1,g1(rS),te}sk(S) );
+        recv_5( R,S, {l5,g1(rS),g1(beta),te}sk(R) );
 
         // phase 2
-        send_!6( S,R, {l6a,M}g2(g1(beta),rS),te, {l6b,{l6a,M}g2(g1(beta),rS),te}sk(S) );
+        send_!6( S,R, {l6b,{l6a,M}g2(g1(beta),rS),te}sk(S) );
 
         claim_s(S,Secret,M);
     }
@@ -62,18 +62,18 @@ protocol protocol0(S,R,P) {
         // mark T_e as session identifier
         claim_sidR(R, SID, te);
 
-        send_2( R,P, g1(rR2), {l2,g1(rR2)}sk(R) );
-        recv_3( P,R, g1(rR2),g1(teta), {l3,g1(rR2),g1(teta)}sk(P) );
-        send_4( R,P, S,te,{l4a,g2(g1(alpha),rR)}g2(g1(teta),rR2), {l4b,S,te,{l4a,g2(g1(alpha),rR)}g2(g1(teta),rR2)}sk(R));
+        send_2( R,P, {l2,g1(rR2)}sk(R) );
+        recv_3( P,R, {l3,g1(rR2),g1(teta)}sk(P) );
+        send_4( R,P, {l4b,S,te,{l4a,g2(g1(alpha),rR)}g2(g1(teta),rR2)}sk(R));
 
-        send_5( R,S, g1(alpha),g1(rR),te, {l5,g1(alpha),g1(rR),te}sk(R) );
+        send_5( R,S, {l5,g1(alpha),g1(rR),te}sk(R) );
 
         // phase 2
-        recv_!6( S,R, {l6a,M}g2(g1(alpha),rR),te, {l6b,{l6a,M}g2(g1(alpha),rR),te}sk(S) );
+        recv_!6( S,R, {l6b,{l6a,M}g2(g1(alpha),rR),te}sk(S) );
 
         // phase 3
-        send_7( R,P, g1(rR3),S,te, {l7,g1(rR3),S,te}sk(R) );
-        recv_!8( P,R, g1(rR3),g1(teta2),{l8a,g2(g1(k1),k2)}g2(g1(teta2),rR3), {l8b,g1(rR3),g1(teta2),{l8a,g2(g1(k1),k2)}g2(g1(teta2),rR3)}sk(P));
+        send_7( R,P, {l7,g1(rR3),S,te}sk(R) );
+        recv_!8( P,R, {l8b,g1(rR3),g1(teta2),{l8a,g2(g1(k1),k2)}g2(g1(teta2),rR3)}sk(P));
         // decryption and use of M internally without messages
 
         claim_ r(R,Secret,M);
@@ -88,16 +88,16 @@ protocol protocol0(S,R,P) {
         var k1,k2: Nonce;	// The key K
 
         // phase 1
-        recv_2( R,P, g1(gamma), {l2,g1(gamma)}sk(R) );
-        send_3( P,R, g1(gamma),g1(rP), {l3,g1(gamma),g1(rP)}sk(P) );
-        recv_!4( R,P, S,te,{l4a,g2(g1(k1),k2)}g2(g1(gamma),rP), {l4b,S,te,{l4a,g2(g1(k1),k2)}g2(g1(gamma),rP)}sk(R) );
+        recv_2( R,P, {l2,g1(gamma)}sk(R) );
+        send_3( P,R, {l3,g1(gamma),g1(rP)}sk(P) );
+        recv_!4( R,P, {l4b,S,te,{l4a,g2(g1(k1),k2)}g2(g1(gamma),rP)}sk(R) );
 
         // mark T_e as session identifier
         claim_sidP(P, SID, te);
 
         // phase 3
-        recv_7( R,P, g1(gamma2),S,te, {l7,g1(gamma2),S,te}sk(R) );
-        send_8( P,R, g1(gamma2),g1(rP2),{l8a,g2(g1(k1),k2)}g2(g1(gamma2),rP2), {l8b,g1(gamma2),g1(rP2),{l8a,g2(g1(k1),k2)}g2(g1(gamma2),rP2)}sk(P));
+        recv_7( R,P, {l7,g1(gamma2),S,te}sk(R) );
+        send_8( P,R, {l8b,g1(gamma2),g1(rP2),{l8a,g2(g1(k1),k2)}g2(g1(gamma2),rP2)}sk(P));
 
         claim_p(P,Secret,g2(g1(k1),k2));
     }
