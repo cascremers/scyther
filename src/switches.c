@@ -100,6 +100,7 @@ switchesInit (int argc, char **argv)
   switches.SSRfilter = false;	//!< default is no SSR filtering on nonces
   switches.RNRinfer = false;	//!< default is no RNR extension to state
   switches.SSRinfer = 1;	//!< default is SSR inferred for roles in which not specified
+  switches.SKRinfer = false;	//!< default is no SKR inferred 
   switches.markFullSession = false;	//!< Not a real switch but a marker
 
   // Misc
@@ -759,6 +760,17 @@ switcher (const int process, int index, int commandline)
 	{
 	  switches.SSRinfer = integer_argument ();
 	  switches.SSR = true;
+	  return index;
+	}
+    }
+  if (detect (' ', "SKRinfer", 0))
+    {
+      /*
+       * Add automatic inference of session keys 
+       */
+      if (process)
+	{
+	  switches.SKRinfer = true;
 	  return index;
 	}
     }
