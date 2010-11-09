@@ -32,23 +32,44 @@ Author: Cas Cremers
 """
 
 from Scyther import Scyther
+import time
+try:
+    from progressbar import *
+    PROGRESSBAR = True
+except ImportError:
+    from progressbarDummy import *
+    PROGRESSBAR = False
+    print """
+Missing the progressbar library.
 
-def MyScyther(protocollist,filter=None):
+It can be downloaded from:
+
+http://code.google.com/p/python-progressbar/
+
+"""
+
+
+def MyScyther(protocollist,filt=None,options=None):
     """
     Evaluate the composition of the protocols in protocollist.
     If there is a filter, i.e. "ns3,I1" then only this specific claim
     will be evaluated.
     """
     s = Scyther.Scyther()
-    # untyped matching
-    s.options = "--match=2"
+
+    if options == None:
+        # untyped matching
+        s.options = "--match=2"
+    else:
+        s.options = options
+
     for protocol in protocollist:
         s.addFile(protocol)
-    s.verifyOne(filter)
+    s.verifyOne(filt)
     return s
     
 
-def getCorrectIsolatedClaims(protocolset):
+def getCorrectIsolatedClaims(protocolset,options=None):
     """
     Given a set of protocols, determine the correct claims when run in
     isolation.
@@ -58,17 +79,28 @@ def getCorrectIsolatedClaims(protocolset):
     """
     correctclaims = []
     goodprotocols = []
+
+    widgets = ['Scanning for claims that are correct in isolation: ', Percentage(), ' ',
+               Bar(marker='#',left='[',right=']')
+               ]
+    pbar = ProgressBar(widgets=widgets, maxval=len(protocolset))
+    pbar.start()
+    count = 0
     for protocol in protocolset:
         # verify protocol in isolation
-        s = MyScyther([protocol])
+        s = MyScyther([protocol],options=options)
         # investigate the results
         goodprotocols.append(protocol)
         for claim in s.claims:
             if claim.okay:
                 correctclaims.append((protocol,claim.id))
+        count += 1
+        pbar.update(count)
+    pbar.finish()
     return (goodprotocols,correctclaims)
 
-def verifyMPAlist(mpalist,claimid):
+
+def verifyMPAlist(mpalist,claimid,options=None):
     """
     Verify the existence of an attack in this context
 
@@ -76,7 +108,8 @@ def verifyMPAlist(mpalist,claimid):
     needed for the iteration later.
     """
     # This should be a more restricted verification
-    s = MyScyther(mpalist,claimid)
+    print time.asctime(), mpalist, claimid, options # [DEBUG]
+    s = MyScyther(mpalist,claimid,options)
     claim = s.getClaim(claimid)
     if claim:
         if not claim.okay:
@@ -87,7 +120,7 @@ def verifyMPAlist(mpalist,claimid):
         return True
 
 
-def constructMPAlist(protocolset,claimid,mpalist,length,start,callback):
+def constructMPAlist(protocolset,claimid,mpalist,length,start,callback,options=None):
     """
     Append a list of parallel protocols, without duplicates,
     such that the added part is lexicographically ordered (from
@@ -101,15 +134,15 @@ def constructMPAlist(protocolset,claimid,mpalist,length,start,callback):
         for pn in range(start,len(protocolset)):
             p = protocolset[pn]
             if p not in mpalist:
-                if not constructMPAlist(protocolset,claimid,mpalist + [p],length,pn+1,callback):
+                if not constructMPAlist(protocolset,claimid,mpalist + [p],length,pn+1,callback,options=options):
                     return False
         return True
     else:
         # list is long enough: callback
-        return callback(mpalist,claimid)
+        return callback(mpalist,claimid,options)
     
 
-def findMPA(protocolset,protocol,claimid,maxcount=3):
+def findMPA(protocolset,protocol,claimid,maxcount=3,options=None):
     """
     The protocol claim is assumed to be correct. When does it break?
     """
@@ -125,35 +158,85 @@ def findMPA(protocolset,protocol,claimid,maxcount=3):
 
     # the actual incremental search loop
     while count <= maxcount:
-        constructMPAlist(protocolset,claimid,[protocol],count,0,verifyMPAlist)
+        constructMPAlist(protocolset,claimid,[protocol],count,0,verifyMPAlist,options)
         count += 1
     return None
 
 
-def findAllMPA(protocolset,maxcount=3):
+def findAllMPA(protocolset,maxcount=3,options=None):
     """
     Given a set of protocols, find multi-protocol attacks
     """
 
     # Find all correct claims in each protocol
-    (protocolset,correct) = getCorrectIsolatedClaims(protocolset)
+    (protocolset,correct) = getCorrectIsolatedClaims(protocolset,options)
+    print "We found %i correct claims." % (len(correct))
     # For all these claims...
+    widgets = ['Scanning for MPA attacks: ', Percentage(), ' ',
+               Bar(marker='#',left='[',right=']')
+               ]
+    pbar = ProgressBar(widgets=widgets, maxval=len(correct))
+    pbar.start()
+    count = 0
     for (protocol,claimid) in correct:
         # Try to find multi-protocol attacks
-        findMPA(protocolset,protocol,claimid,maxcount=3)
+        findMPA(protocolset,protocol,claimid,maxcount,options)
+        count += 1
+        pbar.update(count)
+    pbar.finish()
 
 
-def main():
+def bigTest():
+    """
+    Perform the tests as reported in the book.
+    """
+    import os
+
+    testpath = "Protocols/MultiProtocolAttacks/"
+    fl = os.listdir(testpath)
+    nl = []
+    for fn in fl:
+        if fn.endswith(".spdl"):
+            nl.append(fn)
+
+    # Report list
+    print "Performing multi-protocol analysis for the following protocols:", nl
+
+    # Prepend again the path
+    l = []
+    for fn in nl:
+        l.append(testpath+fn)
+
+    defopts = "--max-runs=3 -T 360"
+
+    # First typed
+    print "Scanning without type flaws"
+    findAllMPA(l,maxcount=2,options = defopts + " --match=0")
+    # Basic type flaws
+    print "Scanning for basic type flaws"
+    findAllMPA(l,maxcount=2,options = defopts + " --match=1")
+    # All type flaws
+    print "Scanning for any type flaws"
+    findAllMPA(l,maxcount=2,options = defopts + " --match=2")
+
+
+
+def simpleTest():
     """
     Simple test case with a few protocols
     """
 
-    list = ['nsl3-broken.spdl','ns3.spdl','nsl3.spdl']
-    print "Performing multi-protocol analysis for the following protocols:", list
+    l = ['nsl3-broken.spdl','ns3.spdl','nsl3.spdl']
+    print "Performing multi-protocol analysis for the following protocols:", l
     print
-    findAllMPA(list)
+    findAllMPA(l)
     print
     print "Analysis complete."
+
+
+def main():
+    bigTest()
+    #simpleTest()
 
 
 if __name__ == '__main__':
