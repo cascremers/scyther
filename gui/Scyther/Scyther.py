@@ -163,6 +163,7 @@ class Scyther(object):
         self.program = getScytherBackend()
         self.spdl = None
         self.inputfile = None
+        self.filenames = []
         self.options = ""
         self.claims = None
         self.errors = None
@@ -178,9 +179,11 @@ class Scyther(object):
     def setInput(self,spdl):
         self.spdl = spdl
         self.inputfile = None
+        self.guessFileNames()
 
     def setFile(self,filename):
         self.inputfile = filename
+        self.filenames = [self.inputfile]
         self.spdl = ""
         fp = open(filename,"r")
         for l in fp.readlines():
@@ -195,6 +198,37 @@ class Scyther(object):
         for l in fp.readlines():
             self.spdl += l
         fp.close()
+        self.guessFileNames()
+
+    def guessFileNames(self,spdl=None):
+        """
+        Try to extract filenames (well, actually, protocol names) sloppily from some spdl script.
+
+        There are two modes:
+
+        [init] : If the spdl parameter is empty or None, we reset the filenames and extract from self.spdl
+        [add]  : If the spdl parameter is non-empty, add the extracted filenames to an existing list
+
+        """
+
+        if (spdl == None) or (len(spdl) == 0):
+            spdl = self.spdl
+            self.filenames = []
+
+        for sl in spdl.splitlines():
+            l = sl.strip()
+            prefix = "protocol "
+            postfix = "("
+            x = l.find(prefix)
+            if x >= 0:
+                # The prefix occurs
+                y = l.find(postfix,x+len(prefix))
+                if y >= 0:
+                    gn = l[x+len(prefix):y]
+                    # check for helper protocols
+                    if not gn.startswith("@"):
+                        if gn not in self.filenames:
+                            self.filenames.append(gn)
 
     def addArglist(self,arglist):
         for arg in arglist:
@@ -220,6 +254,9 @@ class Scyther(object):
         if spdl == "":
             # Scyther hickups on completely empty input
             spdl = "\n"
+
+        # Extract filenames for error reporting later
+        self.guessFileNames(spdl=spdl)
 
         # Generate temporary files for the output.
         # Requires Python 2.3 though.
@@ -307,7 +344,7 @@ class Scyther(object):
 
         self.errorcount = len(self.errors)
         if self.errorcount > 0:
-            raise Error.ScytherError(self.errors)
+            raise Error.ScytherError(self.errors,filenames=self.filenames,options=self.options)
 
         # process output
         self.output = output
