@@ -30,7 +30,12 @@ import os.path
 import sys
 import StringIO
 import tempfile
-
+try:
+    import hashlib
+    HASHLIB = True
+except ImportError:
+    HASHLIB = False
+    pass
 
 #---------------------------------------------------------------------------
 
@@ -235,6 +240,73 @@ class Scyther(object):
             self.options += " %s" % (arg)
 
     def doScytherCommand(self, spdl, args):
+        """
+        Cached version of the 'real' below
+        """
+        global HASHLIB
+
+        if not HASHLIB:
+            return self.doScytherCommandReal(spdl,args)
+
+        # So we have the hashing libs
+        m = hashlib.sha256()
+        if spdl == None:
+            m.update("[spdl:None]")
+        else:
+            m.update(spdl)
+        if args == None:
+            m.update("[args:None]")
+        else:
+            m.update(args)
+
+        uid = m.hexdigest()
+
+        # Split the uid to make (256?) subdirectories
+        prefixlen = 2
+        uid1 = uid[:prefixlen]
+        uid2 = uid[prefixlen:]
+
+        # Possibly we could also decide to store input and arguments in the cache to analyze things later
+
+        path = "Cache/%s/" % (uid1)
+        name1 = "%s.out" % (uid2)
+        name2 = "%s.err" % (uid2)
+
+        fname1 = path + name1
+        fname2 = path + name2
+
+        try:
+            """
+            Try to retrieve the result from the cache
+            """
+            fh1 = open(fname1,"r")
+            out = fh1.read()
+            fh1.close()
+            fh2 = open(fname2,"r")
+            err = fh2.read()
+            fh2.close()
+            return (out,err)
+        except:
+            """
+            Something went wrong, do the real thing and cache afterwards
+            """
+            (out,err) = self.doScytherCommandReal(spdl,args)
+
+            # Store result in cache
+            ensurePath(path)
+
+            fh1 = open(fname1,"w")
+            fh1.write(out)
+            fh1.close()
+
+            fh2 = open(fname2,"w")
+            fh2.write(err)
+            fh2.close()
+
+            return (out,err)
+
+
+    def doScytherCommandReal(self, spdl, args):
         """ 
         Run Scyther backend on the input
         
