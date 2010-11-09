@@ -1,0 +1,62 @@
+# Denning-Sacco shared key
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/denningSacco.html
+#
+
+usertype Key;
+usertype SessionKey;
+usertype TimeStamp;
+usertype ExpiredTimeStamp;
+const Fresh: Function;
+const Compromised: Function;
+
+protocol denningSacco(I,R,S)
+{
+    role I
+    {
+        var W: Ticket;
+        var Kir: SessionKey;
+        var T: TimeStamp;
+
+        send_1(I,S, I,R );
+        read_2(S,I, {R, Kir, T, W}k(I,S) );
+        send_3(I,R, W);
+        claim_I1(I,Niagree);
+        claim_I2(I,Nisynch);
+        claim_I3(I,Secret,Kir);
+        claim_I4(I,Empty, (Fresh,Kir));
+    }    
+    
+    role R
+    {
+        var Kir: SessionKey;
+        var T: TimeStamp;
+
+        read_3(I,R, {Kir,I,T}k(R,S));
+        claim_R1(R,Niagree);
+        claim_R2(R,Nisynch);
+        claim_R3(R,Secret,Kir);
+        claim_R4(R,Empty, (Fresh,Kir));
+    }
+    
+    role S
+    {
+        var W: Ticket;
+        fresh Kir: SessionKey;
+        fresh T: TimeStamp;
+
+        read_1(I,S, I,R );
+        send_2(S,I, {R, Kir, T, {Kir, I,T}k(R,S)}k(I,S));
+    }    
+}
+
+const Alice,Bob,Simon,Eve: Agent;
+
+untrusted Eve;
+const kee: SessionKey;
+const tee: TimeStamp;
+compromised k(Eve,Simon);
+
+
+

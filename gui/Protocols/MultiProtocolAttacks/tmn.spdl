@@ -1,0 +1,60 @@
+# TMN
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/tmn.html
+#
+# Note:
+# According to Boyd and Mathuria Kb is the session key this is not clear
+# from the description in SPORE
+usertype SessionKey;
+
+const Fresh: Function;
+const Compromised: Function;
+
+protocol tmn(I,R,S)
+{
+    role I
+    {
+        fresh Ki: SessionKey;
+        var Kr: SessionKey;
+
+        send_1(I,S, R,{Ki}pk(S) );
+        read_4(S,I, R,{Kr}Ki );
+
+        claim_I1(I,Secret,Kr);
+        claim_I2(I,Nisynch);
+        claim_I3(I,Empty,(Fresh,Kr));
+    }    
+    
+    role R
+    {
+        fresh Kr: SessionKey;
+
+        read_2(S,R, I );
+        send_3(R,S, I, { Kr }pk(S) );
+
+        claim_R1(R,Secret,Kr);
+        claim_R2(R,Nisynch);
+        claim_R3(R,Empty,(Fresh,Kr));
+    }
+
+    role S
+    {
+        var Ki,Kr: SessionKey;
+
+        read_1(I,S, R,{Ki}pk(S) );
+        send_2(S,R, I );
+        read_3(R,S, I, { Kr }pk(S) );
+        send_4(S,I, R,{Kr}Ki );
+    }
+}
+
+const Alice,Bob,Eve,Simon: Agent;
+const Ke: SessionKey;
+
+
+untrusted Eve;
+compromised sk(Eve);
+
+
+

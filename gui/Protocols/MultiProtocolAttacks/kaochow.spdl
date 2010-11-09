@@ -1,0 +1,69 @@
+# Kao Chow Authentication v.1
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/kaoChow1.html
+#
+
+usertype SessionKey;
+const Fresh: Function;
+const Compromised: Function;
+
+protocol kaochow(I,R,S)
+{
+    role I
+    {
+        fresh ni: Nonce;
+        var nr: Nonce;
+        var kir: SessionKey;
+
+        send_1 (I,S, I,R,ni);
+        read_3 (R,I, {I,R,ni,kir}k(I,S), {ni}kir, nr );
+        send_4 (I,R, {nr}kir );
+
+        claim_I1 (I, Nisynch);
+        claim_I2 (I, Niagree);
+        claim_I3 (I, Secret, kir);
+        claim_I4 (I, Empty, (Fresh,kir));
+    }    
+    
+    role R
+    {
+        var ni: Nonce;
+        fresh nr: Nonce;
+        var kir: SessionKey;
+        var T;
+
+        read_2 (S,R, T, { I,R,ni,kir }k(R,S) ); 
+        send_3 (R,I, T, {ni}kir, nr );
+        read_4 (I,R, {nr}kir );
+
+        claim_R1 (R, Nisynch);
+        claim_R2 (R, Niagree);
+        claim_R3 (R, Secret, kir);
+        claim_R4 (R, Empty, (Fresh,kir));
+    }
+
+    role S
+    {
+        var ni: Nonce;
+        fresh kir: SessionKey;
+
+        read_1 (I,S, I,R,ni);
+        send_2 (S,R, {I,R,ni,kir}k(I,S), { I,R,ni,kir }k(R,S)  ); 
+    }
+}
+
+const Alice,Bob,Simon,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const te: Ticket;
+const ke: SessionKey;
+compromised k(Eve,Eve);
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Eve,Simon);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
+compromised k(Simon,Eve);
+

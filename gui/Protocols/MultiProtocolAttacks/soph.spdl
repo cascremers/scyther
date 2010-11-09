@@ -1,0 +1,31 @@
+
+protocol soph(I,R)
+{
+	role I
+	{
+		fresh ni: Nonce;
+
+		send_1(I,R, {I,ni}pk(R) );
+		read_2(R,I, ni );
+		claim_3(I,Niagree);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+
+		read_1(I,R, {I,ni}pk(R) );
+		send_2(R,I, ni );
+	}
+}
+
+const Alice,Bob,Eve: Agent;
+
+untrusted Eve;
+const nc: Nonce;
+compromised sk(Eve);
+
+run soph.I(Agent,Agent);
+run soph.R(Agent,Agent);
+run soph.I(Agent,Agent);
+run soph.R(Agent,Agent);

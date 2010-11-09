@@ -1,0 +1,70 @@
+usertype Sessionkey;
+usertype Macseed;
+const m: Function;
+secret unm: Function;
+const f: Function;
+
+inversekeys (m, unm);
+
+/*
+ * Boyd key agreement
+ *
+ * Boyd & Mathuria: Protocols for authentication and key establishment
+ * (2003) p. 101
+ *
+ * Note that MAC_ks(x) has been interpreted as MAC(x,ks); this
+ * assumption causes some possible false attacks.
+ */
+
+protocol boyd(I,R,S)
+{
+	role I
+	{
+		fresh ni: Nonce;
+		var nr: Nonce;
+		var ks: Macseed;
+
+		send_1 (I,S, I,R, ni );
+		read_3 (R,I, { I,R, ks }k(I,S), m(ni, m(ks,ni,nr)), nr );
+		send_4 (I,R, m(nr, m(ks,ni,nr)) );
+
+		claim_6 (I, Secret, m(ks,ni,nr) );
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		fresh nr: Nonce;
+		var ks: Macseed;
+
+		read_2 (S,R, { I,R, ks }k(I,S), { I,R, ks }k(R,S), ni );
+		send_3 (R,I, { I,R, ks }k(I,S), m(ni, m(ks,ni,nr)), nr );
+		read_4 (I,R, m(nr, m(ks,ni,nr)) );
+
+		claim_10 (R, Secret, m(ks,ni,nr));
+	}
+
+	role S
+	{
+		var ni,nr: Nonce;
+		fresh ks: Macseed;
+
+		read_1 (I,S, I,R, ni );
+		send_2 (S,R, { I,R, ks }k(I,S), { I,R, ks }k(R,S), ni );
+	}
+}
+
+const Alice,Bob,Simon,Eve: Agent;
+
+untrusted Eve;
+const ne: Nonce;
+const mcsde: Macseed;
+const ke: Sessionkey;
+compromised k(Eve,Eve);
+compromised k(Eve,Alice);
+compromised k(Eve,Bob);
+compromised k(Eve,Simon);
+compromised k(Alice,Eve);
+compromised k(Bob,Eve);
+compromised k(Simon,Eve);
+

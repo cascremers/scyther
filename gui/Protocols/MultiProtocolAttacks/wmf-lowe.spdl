@@ -1,0 +1,73 @@
+# Lowe modified Wide Mouthed Frog
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/wideMouthedFrogLowe.html
+#
+# Note:
+# According to SPORE there are no known attacks on this protocol, scyther
+# finds one however this has to do with the unusual assumption that every 
+# agent can recognise and will reject to read messages that it has created
+# itself.
+
+usertype SessionKey;
+usertype TimeStamp;
+usertype ExpiredTimeStamp;
+const succ,pred: Function;
+inversekeys (succ,pred);
+const Fresh: Function;
+const Compromised: Function;
+
+protocol wmf-Lowe(I,R,S)
+{
+    role I
+    {
+        fresh Kir: SessionKey;
+        fresh Ti: TimeStamp;
+        var Kr: SessionKey;
+        var Nr: Nonce;
+
+        send_1(I,S, I, {Ti, R, Kir}k(I,S)); 
+        read_3(R,I,{Nr}Kir);
+        send_4(I,R,{{Nr}succ}Kir);
+
+        claim_I1(I,Secret,Kir);
+        claim_I2(I,Nisynch);
+        claim_I3(I,Empty,(Fresh,Kir));
+    }    
+    
+    role R
+    {
+        var Ts: TimeStamp;
+        var Kir: SessionKey;
+        fresh Nr: Nonce;
+
+        read_2(S,R, {Ts, I, Kir}k(R,S) );
+        send_3(R,I, {Nr}Kir);
+        read_4(I,R, {{Nr}succ}Kir);
+
+        claim_R1(R,Secret,Kir);
+        claim_R2(R,Nisynch);
+        claim_R3(R,Empty,(Fresh,Kir));
+    }
+
+    role S
+    {
+        var Kir: SessionKey;
+        fresh Ts: TimeStamp;
+        var Ti: TimeStamp;
+
+        read_1(I,S, I,{Ti, R, Kir}k(I,S) );
+        send_2(S,R, {Ts, I, Kir}k(R,S));
+    }
+}
+
+const Alice,Bob,Eve,Simon: Agent;
+const Ke: SessionKey;
+const Te: TimeStamp;
+
+
+untrusted Eve;
+compromised k(Eve,Simon);
+
+
+

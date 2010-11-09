@@ -1,0 +1,41 @@
+/* 
+ * Needham-Schroeder protocol
+ */
+
+// The protocol description
+
+protocol ns3(I,R)
+{
+	role I
+	{
+		fresh ni: Nonce;
+		var nr: Nonce;
+
+		send_1(I,R, {ni,I}pk(R) );
+		read_2(R,I, {ni,nr}pk(I) );
+		send_3(I,R, {nr}pk(R) );
+
+		claim_i1(I,Secret,ni);
+		claim_i2(I,Secret,nr);
+		//claim_i3(I,Alive);
+		claim_i4(I,Niagree);
+		claim_i5(I,Nisynch);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		fresh nr: Nonce;
+
+		read_1(I,R, {ni,I}pk(R) );
+		send_2(R,I, {ni,nr}pk(I) );
+		read_3(I,R, {nr}pk(R) );
+
+		claim_r1(R,Secret,ni);
+		claim_r2(R,Secret,nr);
+		//claim_r3(R,Alive);
+		claim_r4(R,Niagree);
+		claim_r5(R,Nisynch);
+	}
+}
+

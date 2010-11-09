@@ -1,0 +1,59 @@
+# Yahalom
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/yahalom.html
+#
+#
+
+usertype SessionKey;
+
+protocol yahalom(I,R,S)
+{
+    role I
+    {
+        fresh Ni: Nonce;
+        var Nr: Nonce;
+        var T: Ticket;
+        var Kir: SessionKey;
+
+        send_1(I,R, I,Ni);
+        read_3(S,I, {R,Kir,Ni,Nr}k(I,S), T );
+        send_4(I,R, T, {Nr}Kir );
+
+        claim_I1(I, Secret,Kir);
+    }
+
+    role R
+    {
+        fresh Nr: Nonce;
+        var Ni: Nonce;
+        var T: Ticket;
+        var Kir: SessionKey;
+
+        read_1(I,R, I,Ni);
+        send_2(R,S, R, {I,Ni,Nr}k(R,S) );
+        read_4(I,R, {I,Kir}k(R,S) , {Nr}Kir );
+
+        claim_R1(R, Secret,Kir);
+    }
+
+    role S
+    {
+        fresh Kir: SessionKey;
+        var Ni,Nr: Nonce;
+
+        read_2(R,S, R, {I,Ni,Nr}k(R,S) );
+        send_3(S,I, {R,Kir,Ni,Nr}k(I,S), {I,Kir}k(R,S) );
+
+        claim(S, Secret, Ni);
+        claim(S, Secret, Nr);
+    }
+}
+
+const Alice,Bob,Simon : Agent;
+
+const Eve: Agent;
+untrusted Eve;
+
+compromised k(Eve,Simon);
+

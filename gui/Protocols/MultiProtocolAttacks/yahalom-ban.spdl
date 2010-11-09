@@ -1,0 +1,56 @@
+# BAN simplified version of Yahalom
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/yahalomBAN.html
+#
+
+usertype SessionKey;
+const Fresh: Function;
+const Compromised: Function;
+
+protocol yahalom-BAN(I,R,S)
+{
+    role I
+    {
+        fresh Ni: Nonce;
+        var Nr: Nonce;
+        var T: Ticket;
+        var Kir: SessionKey;
+
+        send_1(I,R, I,Ni);
+        read_3(S,I, Nr, {R,Kir,Ni}k(I,S), T );
+        send_4(I,R, T, {Nr}Kir );
+
+        claim_I1(I, Secret,Kir);
+        claim_I2(I, Nisynch);
+        claim_I3(I, Empty, (Fresh,Kir));
+    }
+
+    role R
+    {
+        fresh Nr: Nonce;
+        var Ni: Nonce;
+        var T: Ticket;
+        var Kir: SessionKey;
+
+        read_1(I,R, I,Ni);
+        send_2(R,S, R, Nr, {I,Ni}k(R,S) );
+        read_4(I,R, {I,Kir,Nr}k(R,S) , {Nr}Kir );
+
+        claim_R1(R, Secret,Kir);
+        claim_R2(R, Nisynch);
+        claim_R3(R, Empty, (Fresh,Kir));
+    }
+
+    role S
+    {
+        fresh Kir: SessionKey;
+        var Ni,Nr: Nonce;
+
+        read_2(R,S, R, Nr, {I,Ni}k(R,S) );
+        send_3(S,I, Nr, {R,Kir,Ni}k(I,S), {I,Kir,Nr}k(R,S) );
+    }
+}
+
+const Alice,Bob,Charlie,David: Agent;
+
