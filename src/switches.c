@@ -1295,7 +1295,7 @@ switcher (const int process, int index, int commandline)
 	  printf ("Scyther comes with ABSOLUTELY NO WARRANTY.\n");
 	  printf ("This is free software, and you are welcome\n");
 	  printf ("to redistribute it under certain conditions.\n");
-	  printf ("Use the `--license' option for details.\n", progname);
+	  printf ("Use the `--license' option for details.\n");
 	  exit (0);
 	}
     }
