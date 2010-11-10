@@ -1,5 +1,10 @@
 #!/bin/sh
 # 
-# Indent any changed files, ending in .c or .h
+# Indent any files ending in .c or .h
 #
-svn st | grep "^[MA].*\.[ch]$"| awk '{print $2}' | xargs indent
+# Apparently unstable behaviour is possible; a stupid fix for my
+# concrete problem was to always run it twice.
+#
+indent *.c *.h
+indent *.c *.h
+
