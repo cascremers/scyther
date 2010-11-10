@@ -27,6 +27,7 @@
 
 #ifdef linux
 #include <time.h>
+#include <unistd.h>
 #include <sys/times.h>
 static clock_t endwait = 0;
 #endif
@@ -44,7 +45,7 @@ set_time_limit (int seconds)
     {
       time_max_seconds = seconds;
 #ifdef linux
-      endwait = seconds * CLOCKS_PER_SEC;
+      endwait = seconds * sysconf (_SC_CLK_TCK);
 #endif
     }
   else
@@ -77,7 +78,7 @@ passed_time_limit ()
       struct tms t;
 
       times (&t);
-      if (t.tms_utime > endwait)
+      if ((t.tms_utime + t.tms_stime) > endwait)
 	return 1;
       else
 	return 0;
