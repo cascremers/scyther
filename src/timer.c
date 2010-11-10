@@ -18,6 +18,10 @@
  */
 
 #include "timer.h"
+#include "system.h"
+#include "switches.h"
+#include "symbol.h"
+#include "arachne.h"
 
 /*
  * Timer functions
@@ -27,6 +31,7 @@
 
 #ifdef linux
 #include <time.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <sys/times.h>
 static clock_t endwait = 0;
@@ -80,8 +85,14 @@ passed_time_limit ()
       times (&t);
       if ((t.tms_utime + t.tms_stime) > endwait)
 	return 1;
-      else
-	return 0;
+      else if (switches.output == PROOF)
+	{
+	  indentPrint ();
+	  eprintf ("Clockticks per second: %jd\tTicks passed: %jd\n",
+		   (intmax_t) (sysconf (_SC_CLK_TCK)),
+		   (intmax_t) (t.tms_utime + t.tms_stime));
+	}
+      return 0;
     }
 #else
   return 0;
