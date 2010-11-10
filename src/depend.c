@@ -74,7 +74,7 @@ extern Role I_M;		//!< special role; precedes all other events always
  * ---------------------------------------------------------------
  */
 
-Depeventgraph currentdepgraph;
+Depeventgraph currentdepgraph = NULL;
 
 /*
  * Default code
@@ -497,27 +497,31 @@ dependPushEvent (const int r1, const int e1, const int r2, const int e2)
 	{
 	  // change: make new graph copy of the old one
 	  dependPushGeneric (dependCopy (currentdepgraph));
-	  // add new binding
-	  setDependEvent (r1, e1, r2, e2);
-	  // recompute closure
-	  transitive_closure (currentdepgraph->G, currentdepgraph->n);
-	  // check for cycles
-	  if (hasCycle ())
+	  // really new?
+	  if (!isDependEvent (r1, e1, r2, e2))
 	    {
-	      //warning ("Cycle slipped undetected by the reverse check.");
-	      // Closure introduced cycle, undo it
-	      dependPopEvent ();
-	      return false;
-	    }
+	      // add new binding
+	      setDependEvent (r1, e1, r2, e2);
+	      // recompute closure
+	      transitive_closure (currentdepgraph->G, currentdepgraph->n);
+	      // check for cycles
+	      if (hasCycle ())
+		{
+		  //warning ("Cycle slipped undetected by the reverse check.");
+		  // Closure introduced cycle, undo it
+		  dependPopEvent ();
+		  return false;
+		}
 #ifdef DEBUG
-	  debug (5, "Push dependGraph for new event (real push)\n");
-	  if (DEBUGL (5))
-	    {
-	      globalError++;
-	      eprintf ("r%ii%i --> r%ii%i\n", r1, e1, r2, e2);
-	      globalError--;
-	    }
+	      debug (5, "Push dependGraph for new event (real push)\n");
+	      if (DEBUGL (5))
+		{
+		  globalError++;
+		  eprintf ("r%ii%i --> r%ii%i\n", r1, e1, r2, e2);
+		  globalError--;
+		}
 #endif
+	    }
 	}
       return true;
     }
