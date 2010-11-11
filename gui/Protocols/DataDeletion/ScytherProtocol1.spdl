@@ -27,9 +27,9 @@ protocol @exponentiation(RA,RB) {
 // The protocol description
 protocol protocol0(S,R,P) {
     role S {
-        const rS: Nonce;	// own DH key contribution
-        const te: Nonce;	// expiration time
-        const M: Nonce;		// time-limited data
+        fresh rS: Nonce;	// own DH key contribution
+        fresh te: Nonce;	// expiration time
+        fresh M: Nonce;		// time-limited data
         var beta: Nonce;	// R's public DH key contribution
 
         // mark T_e as session identifier
@@ -46,9 +46,9 @@ protocol protocol0(S,R,P) {
     }
 
     role R {
-        const rR: Nonce;	// own DH key contribution with S
-        const rR2: Nonce;	// own DH key contribution with P
-        const rR3: Nonce;	// 2. own DH key contribution with P
+        fresh rR: Nonce;	// own DH key contribution with S
+        fresh rR2: Nonce;	// own DH key contribution with P
+        fresh rR3: Nonce;	// 2. own DH key contribution with P
         var te: Nonce;		// expiration time
         var M: Nonce;		// time-limited data
         var alpha: Nonce;	// S's public DH key contribution
@@ -57,7 +57,7 @@ protocol protocol0(S,R,P) {
         var k1,k2: Nonce;	// The key K
 
         // phase 1
-        recv_1( S,R, g1(alpha),te, {l1,g1(alpha),te}sk(S) );
+        recv_1( S,R, {l1,g1(alpha),te}sk(S) );
 
         // mark T_e as session identifier
         claim_sidR(R, SID, te);
@@ -81,8 +81,8 @@ protocol protocol0(S,R,P) {
 	
     role P {
         var te: Nonce;  	// expiration time
-        const rP: Nonce;	// own DH key contribution
-        const rP2: Nonce;	// own DH key contribution
+        fresh rP: Nonce;	// own DH key contribution
+        fresh rP2: Nonce;	// own DH key contribution
         var gamma: Nonce;	// R's public DH key contribution
         var gamma2: Ticket;	// R's second public DH key contribution
         var k1,k2: Nonce;	// The key K
