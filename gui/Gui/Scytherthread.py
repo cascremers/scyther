@@ -33,7 +33,6 @@ import Scyther.Error
 from Scyther.Misc import *
 
 """ Import scyther-gui components """
-import Tempfile
 import Preference
 import Attackwindow
 import Icon

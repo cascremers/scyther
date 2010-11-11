@@ -398,6 +398,11 @@ learnFromMessage (Role r, Termlist tl, Term t, int type)
       if (type == COMPR_SKR)
 	{
 	  // Key compromise: scan for SessionKey type
+	  /**
+	   * Still badly documented: defining a variable or constant with the
+	   * SessionKey type makes it available through session-key reveal
+	   * queries.
+	   */
 	  if (inTermlist (t->stype, TERM_SessionKey))
 	    {
 	      tl = termlistAddNew (tl, t);
@@ -434,15 +439,17 @@ learnFromMessage (Role r, Termlist tl, Term t, int type)
 		      tl = termlistAddNew (tl, t);
 		    }
 		}
-	      /* Otherwise we may learn any key terms anyway (automatically
-	       * inferred, needs documentation for user!)
-	       */
-	      if (type == COMPR_SKR)
+	      if (switches.SKRinfer)
 		{
-		  // We learn the key if it contains a local
-		  if (containsLocal (r, TermKey (t)))
+		  /* If --SKRinfer then automatically infer session keys.
+		   */
+		  if (type == COMPR_SKR)
 		    {
-		      tl = termlistAddNew (tl, TermKey (t));
+		      // We learn the key if it contains a local
+		      if (containsLocal (r, TermKey (t)))
+			{
+			  tl = termlistAddNew (tl, TermKey (t));
+			}
 		    }
 		}
 
@@ -686,8 +693,7 @@ adaptRoleCompromised (Protocol p, Role r)
 		}
 	      if (rd->type == SEND || rd->type == READ)
 		{
-		  // Here we actually do inference of keys. This may be later
-		  // converted to optional behaviour with a SKRinfer switch.
+		  // Here we actually do inference of keys. 
 		  SKRnew =
 		    learnFromMessage (r, SKRnew, rd->message, COMPR_SKR);
 		}

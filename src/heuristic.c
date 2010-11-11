@@ -220,6 +220,76 @@ term_constcount (const System sys, Term t)
   return ratio;
 }
 
+//! determine lowest level at which sk/sk occurs, or -1 otherwise.
+int
+lowest_skk_level (Term t)
+{
+  t = deVar (t);
+  if (t == NULL)
+    {
+      return -1;
+    }
+  if (isTermEqual (t, TERM_SK) || isTermEqual (t, TERM_K))
+    {
+      return 0;
+    }
+  if (realTermLeaf (t))
+    {
+      return -1;
+    }
+  if (realTermTuple (t))
+    {
+      int x, y;
+      x = lowest_skk_level (TermOp1 (t));
+      y = lowest_skk_level (TermOp2 (t));
+      if (x < 0)
+	return y;
+      if (y < 0)
+	return x;
+      if (y < x)
+	return y;
+      else
+	return x;
+    }
+  else
+    {
+      int x, y;
+      x = lowest_skk_level (TermOp (t));
+      y = lowest_skk_level (TermKey (t));
+      if (x < 0)
+	return y + 1;
+      if (y < 0)
+	return x + 1;
+      if (y < x)
+	return y + 1;
+      else
+	return x + 1;
+    }
+}
+
+//! count sk/k level depth
+float
+term_skk_level (const System sys, Term t)
+{
+  int l;
+
+  l = lowest_skk_level (t);
+  if (l < 0)
+    {
+      return 1.0;
+    }
+  else
+    {
+      float res;
+
+      res = l / 4;
+      if (res > 1)
+	return 1;
+      else
+	return res;
+    }
+}
+
 //! Determine the weight of a given goal
 /**
  * 0 to ... (lower is better)
@@ -283,6 +353,9 @@ computeGoalWeight (const System sys, const Binding b)
 
   // Bit 8: 256 use known nonces (Athena try 2), half weight
   erode (0.5 * term_constcount (sys, t));
+
+  // Bit 9: 512 do sk first (first sk, then sk occurrence level 1, etc)
+  erode (16 * term_skk_level (sys, t));
 
   // Define legal range
   if (smode > 0)

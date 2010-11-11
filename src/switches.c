@@ -72,7 +72,7 @@ switchesInit (int argc, char **argv)
   switches.maxOfRole = 0;	// no maximum default
 
   // Arachne
-  switches.heuristic = 162;	// default goal selection method
+  switches.heuristic = 674;	// default goal selection method (used to be 162)
   switches.maxIntruderActions = INT_MAX;	// max number of encrypt/decrypt events
   switches.agentTypecheck = 1;	// default do check agent types
   switches.concrete = true;	// default removes symbols, and makes traces concrete
@@ -100,6 +100,7 @@ switchesInit (int argc, char **argv)
   switches.SSRfilter = false;	//!< default is no SSR filtering on nonces
   switches.RNRinfer = false;	//!< default is no RNR extension to state
   switches.SSRinfer = 1;	//!< default is SSR inferred for roles in which not specified
+  switches.SKRinfer = false;	//!< default is no SKR inferred 
   switches.markFullSession = false;	//!< Not a real switch but a marker
 
   // Misc
@@ -762,6 +763,17 @@ switcher (const int process, int index, int commandline)
 	  return index;
 	}
     }
+  if (detect (' ', "SKRinfer", 0))
+    {
+      /*
+       * Add automatic inference of session keys 
+       */
+      if (process)
+	{
+	  switches.SKRinfer = true;
+	  return index;
+	}
+    }
   if (detect (' ', "force-regular", 0))
     {
       /* 
@@ -841,7 +853,7 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  set_time_limit ((double) integer_argument ());
+	  set_time_limit (integer_argument ());
 	  return index;
 	}
     }
@@ -1128,7 +1140,7 @@ switcher (const int process, int index, int commandline)
 	{
 	  if (switches.expert)
 	    {
-	      helptext ("    --heuristic=<int>", "use heuristic <int> [162]");
+	      helptext ("    --heuristic=<int>", "use heuristic <int> [674]");
 	    }
 	}
       else

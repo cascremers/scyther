@@ -235,7 +235,7 @@ class Scyther(object):
 
         # Generate command line for the Scyther process
         self.cmd = ""
-        self.cmd += "\"%s\"" % self.program
+        self.cmd += "\'%s\'" % self.program
         self.cmd += " --append-errors=%s" % fne
         self.cmd += " --append-output=%s" % fno
         self.cmd += " %s" % args
