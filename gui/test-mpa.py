@@ -237,17 +237,23 @@ def bigTest():
     for fn in nl:
         l.append(testpath+fn)
 
-    defopts = "--max-runs=3 -T 360"
+    ### Simplified test setup
+    #defopts = "--max-runs=3 -T 360"
+    #maxcount = 2
+
+    ### Full test setup
+    defopts = "--max-runs=4 -T 600"
+    maxcount = 3
 
     # First typed
     print "Scanning without type flaws"
-    findAllMPA(l,maxcount=2,options = defopts + " --match=0")
+    findAllMPA(l,maxcount=maxcount,options = defopts + " --match=0")
     # Basic type flaws
     print "Scanning for basic type flaws"
-    findAllMPA(l,maxcount=2,options = defopts + " --match=1")
+    findAllMPA(l,maxcount=maxcount,options = defopts + " --match=1")
     # All type flaws
     print "Scanning for any type flaws"
-    findAllMPA(l,maxcount=2,options = defopts + " --match=2")
+    findAllMPA(l,maxcount=maxcount,options = defopts + " --match=2")
 
 
 
