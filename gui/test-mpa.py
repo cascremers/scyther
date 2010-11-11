@@ -48,6 +48,7 @@ http://code.google.com/p/python-progressbar/
 
 """
 
+FOUND = []
 
 def MyScyther(protocollist,filt=None,options=None):
     """
@@ -113,8 +114,12 @@ def verifyMPAlist(mpalist,claimid,options=None):
     claim = s.getClaim(claimid)
     if claim:
         if not claim.okay:
+            global FOUND
+
             # This is an MPA attack!
             print "I've found a multi-protocol attack on claim %s in the context %s." % (claimid,str(mpalist))
+            FOUND.append((claimid,mpalist))
+
             return False
     else:
         return True
@@ -168,9 +173,13 @@ def findAllMPA(protocolset,maxcount=3,options=None):
     Given a set of protocols, find multi-protocol attacks
     """
 
+    global FOUND
+
+    FOUND = []
+
     # Find all correct claims in each protocol
     (protocolset,correct) = getCorrectIsolatedClaims(protocolset,options)
-    print "We found %i correct claims." % (len(correct))
+    print "Investigating %i correct claims." % (len(correct))
     # For all these claims...
     widgets = ['Scanning for MPA attacks: ', Percentage(), ' ',
                Bar(marker='#',left='[',right=']')
@@ -184,6 +193,27 @@ def findAllMPA(protocolset,maxcount=3,options=None):
         count += 1
         pbar.update(count)
     pbar.finish()
+
+    """
+    The below computation assumes protocol names are unique to files, but if
+    they are not, some other errors should have been reported by the Scyther
+    backend anyway (conflicting protocol definitions in MPA analysis).
+    """
+    mpaprots = []
+    for (claimid,mpalist) in FOUND:
+        pel = claimid.split(",")
+        pn = pel[0]
+        if pn not in mpaprots:
+            mpaprots.append(pn)
+
+    print "-" * 70
+    print "Summary:"
+    print
+    print "We scanned %i protocols with options [%s]." % (len(protocolset),options)
+    print "We found %i correct claims." % (len(correct))
+    print "We found %i MPA attacks with a maximum of %i protocols." % (len(FOUND),maxcount)
+    print "The attacks involve the claims of %i protocols." % (len(mpaprots))
+    print "-" * 70
 
 
 def bigTest():
