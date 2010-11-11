@@ -37,14 +37,15 @@ def bsubJob(args=[],inputstring=None,script=None):
 
 def scytherJob(filename,runs,basename):
 
-	home = os.environ["HOME"]
-	scyther = "%s/bin/scyther-linux" % (home)
+	#home = os.environ["HOME"]
+	#scyther = "%s/bin/scyther-linux" % (home)
+	scyther = "../../Scyther/scyther-linux"
 	args = ["--partner-definition=2","--LKRothers=1","--LKRactor=1","--LKRafter=1","--SKR=1","--SSR=1"]
 	args += ["--max-runs=%i" % (runs)]
 	args += [filename]
 
 	logname = "lsf-%s.log" % (basename)
-	bsubJob(args=["-oo",logname,"-J",basename,"-W","96:00"],inputstring=(" ".join([scyther]+args)))
+	bsubJob(args=["-oo",logname,"-J",basename,"-W","23:00"],inputstring=(" ".join([scyther]+args)))
 
 	
 def makeAll():
