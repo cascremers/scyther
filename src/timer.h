@@ -24,7 +24,7 @@
 
 void timeInit (void);
 void timeDone (void);
-void set_time_limit (double seconds);
+void set_time_limit (int seconds);
 int get_time_limit ();
 int passed_time_limit ();
 int passed_time_limit_store (const System sys);

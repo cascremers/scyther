@@ -19,6 +19,8 @@
 
 #include "timer.h"
 #include "error.h"
+#include "switches.h"
+#include "arachne.h"
 
 /*
  * Timer functions
@@ -28,17 +30,18 @@
 
 #ifdef linux
 #include <time.h>
-static clock_t clockstart;
+#include <stdint.h>
+#include <unistd.h>
+#include <sys/times.h>
+static clock_t endwait = 0;
 #endif
-static double time_max_seconds;
+
+static int time_max_seconds = 0;
 
 void
 timeInit (void)
 {
   time_max_seconds = 0;
-#ifdef linux
-  clockstart = clock ();
-#endif
 }
 
 void
@@ -52,20 +55,22 @@ timeDone (void)
  * <= 0 means none.
  */
 void
-set_time_limit (double seconds)
+set_time_limit (int seconds)
 {
-#ifdef linux
   if (seconds > 0)
     {
       time_max_seconds = seconds;
+#ifdef linux
+      endwait = seconds * sysconf (_SC_CLK_TCK);
+#endif
     }
   else
     {
       time_max_seconds = 0;
-    }
-#else
-  warning ("This build of Scyther does not support the --timer (-T) switch.");
+#ifdef linux
+      endwait = 0;
 #endif
+    }
 }
 
 //! Retrieve time limit
@@ -80,24 +85,29 @@ int
 passed_time_limit ()
 {
 #ifdef linux
-  if (time_max_seconds == 0)
+  if (endwait <= 0)
     {
-      return false;
+      return 0;
     }
   else
     {
-      time_t clockend;
-      double duration;
+      struct tms t;
 
-      clockend = clock ();
-      duration = ((double) (clockend - clockstart)) / CLOCKS_PER_SEC;
-      if (duration > time_max_seconds)
+      times (&t);
+      if ((t.tms_utime + t.tms_stime) > endwait)
+	return 1;
+      else if (switches.output == PROOF)
 	{
-	  return true;
+	  indentPrint ();
+	  eprintf ("Clockticks per second: %jd\tTicks passed: %jd\n",
+		   (intmax_t) (sysconf (_SC_CLK_TCK)),
+		   (intmax_t) (t.tms_utime + t.tms_stime));
 	}
+      return 0;
     }
+#else
+  return 0;
 #endif
-  return false;
 }
 
 //! Check time limit and store cause if so
