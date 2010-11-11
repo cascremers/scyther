@@ -20,4 +20,5 @@ echo "Built the Linux binary for Brutus"
 
 # Copy to the correct locations
 cp scyther-linux ../gui/Scyther/
+cp scyther-linux $HOME/bin/
 
