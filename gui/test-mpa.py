@@ -58,11 +58,11 @@ def MyScyther(protocollist,filt=None,options=None):
     """
     s = Scyther.Scyther()
 
-    if options == None:
+    if (options == None) or (options == ""):
         # untyped matching
         s.options = "--match=2"
     else:
-        s.options = options
+        s.options = options.strip() # Some cleanup of string (idiot's normalization)
 
     for protocol in protocollist:
         s.addFile(protocol)
@@ -168,7 +168,7 @@ def findMPA(protocolset,protocol,claimid,maxcount=3,options=None):
     return None
 
 
-def findAllMPA(protocolset,maxcount=3,options=None):
+def findAllMPA(protocolset,maxcount=3,options="",mpaoptions=""):
     """
     Given a set of protocols, find multi-protocol attacks
     """
@@ -187,9 +187,13 @@ def findAllMPA(protocolset,maxcount=3,options=None):
     pbar = ProgressBar(widgets=widgets, maxval=len(correct))
     pbar.start()
     count = 0
+
+    # Concatenate options but add space iff needed
+    alloptions = (options + " " + mpaoptions).strip()
+
     for (protocol,claimid) in correct:
         # Try to find multi-protocol attacks
-        findMPA(protocolset,protocol,claimid,maxcount,options)
+        findMPA(protocolset,protocol,claimid,maxcount,options=alloptions)
         count += 1
         pbar.update(count)
     pbar.finish()
@@ -240,20 +244,27 @@ def bigTest():
     ### Simplified test setup
     #defopts = "--max-runs=3 -T 360"
     #maxcount = 2
+    #mpaopts = ""
 
     ### Full test setup
+    #defopts = "--max-runs=4 -T 600"
+    #mpaopts = ""
+    #maxcount = 3
+
+    ### Full test setup with --init-unique
     defopts = "--max-runs=4 -T 600"
+    mpaopts = "--init-unique"
     maxcount = 3
 
     # First typed
     print "Scanning without type flaws"
-    findAllMPA(l,maxcount=maxcount,options = defopts + " --match=0")
+    findAllMPA(l,maxcount=maxcount,options = defopts + " --match=0", mpaoptions = mpaopts)
     # Basic type flaws
     print "Scanning for basic type flaws"
-    findAllMPA(l,maxcount=maxcount,options = defopts + " --match=1")
+    findAllMPA(l,maxcount=maxcount,options = defopts + " --match=1", mpaoptions = mpaopts)
     # All type flaws
     print "Scanning for any type flaws"
-    findAllMPA(l,maxcount=maxcount,options = defopts + " --match=2")
+    findAllMPA(l,maxcount=maxcount,options = defopts + " --match=2", mpaoptions = mpaopts)
 
 
 
