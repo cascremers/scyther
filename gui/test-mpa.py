@@ -215,7 +215,8 @@ def findAllMPA(protocolset,maxcount=3,options="",mpaoptions=""):
     print
     print "We scanned %i protocols with options [%s]." % (len(protocolset),options)
     print "We found %i correct claims." % (len(correct))
-    print "We found %i MPA attacks with a maximum of %i protocols." % (len(FOUND),maxcount)
+    print "We then scanned combinations of at most %i protocols with options [%s]." % (maxcount,alloptions)
+    print "We found %i MPA attacks." % (len(FOUND))
     print "The attacks involve the claims of %i protocols." % (len(mpaprots))
     print "-" * 70
 
