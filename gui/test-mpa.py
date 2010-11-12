@@ -32,7 +32,10 @@ Author: Cas Cremers
 """
 
 from Scyther import Scyther
+
+from optparse import OptionParser, SUPPRESS_HELP
 import time
+
 try:
     from progressbar import *
     PROGRESSBAR = True
@@ -49,6 +52,36 @@ http://code.google.com/p/python-progressbar/
 """
 
 FOUND = []
+OPTS = None
+ARGS = None
+
+
+#---------------------------------------------------------------------------
+
+def parseArgs():
+    usage = "usage: %s [options] [inputfile]" % sys.argv[0]
+    description = "test-mpa.py is a test script to help with multi-protocol analysis."
+    parser = OptionParser(usage=usage,description=description)
+
+    # command
+    parser.add_option("-t","--typed",dest="types",default=None,action="store_const",const=[0],
+            help="Verify protocols with respect to a typed model (-m 0)")
+    parser.add_option("-b","--basic-types",dest="types",default=None,action="store_const",const=[1],
+            help="Verify protocols with respect to basic type flaws only (-m 1)")
+    parser.add_option("-u","--untyped",dest="types",default=None,action="store_const",const=[2],
+            help="Verify protocols with respect to an untyped model (-m 2)")
+    parser.add_option("-T","--all-types",dest="types",default=None,action="store_const",const=[0,1,2],
+            help="Verify protocols with respect to all matching types")
+
+    parser.add_option("-U","--init-unique",dest="initunique",default=False,action="store_true",
+            help="Use Scythers --init-unique switch to filter out initiators talking to themselves.")
+
+    parser.add_option("-D","--debug",dest="debug",default=False,action="store_true",
+            help="Enable debugging features.")
+
+    return parser.parse_args()
+
+#---------------------------------------------------------------------------
 
 def MyScyther(protocollist,filt=None,options=None):
     """
@@ -108,8 +141,11 @@ def verifyMPAlist(mpalist,claimid,options=None):
     If an attack is found, we return False, otherwise True. This is
     needed for the iteration later.
     """
-    # This should be a more restricted verification
-    print time.asctime(), mpalist, claimid, options # [DEBUG]
+    global OPTS, ARGS
+
+    if OPTS.debug:
+        print time.asctime(), mpalist, claimid, options
+
     s = MyScyther(mpalist,claimid,options)
     claim = s.getClaim(claimid)
     if claim:
@@ -117,7 +153,8 @@ def verifyMPAlist(mpalist,claimid,options=None):
             global FOUND
 
             # This is an MPA attack!
-            print "I've found a multi-protocol attack on claim %s in the context %s." % (claimid,str(mpalist))
+            if OPTS.debug:
+                print "I've found a multi-protocol attack on claim %s in the context %s." % (claimid,str(mpalist))
             FOUND.append((claimid,mpalist))
 
             return False
@@ -227,6 +264,8 @@ def bigTest():
     """
     import os
 
+    global OPTS, ARGS
+
     testpath = "Protocols/MultiProtocolAttacks/"
     fl = os.listdir(testpath)
     nl = []
@@ -242,30 +281,39 @@ def bigTest():
     for fn in nl:
         l.append(testpath+fn)
 
+    # Initialize mpa options
+    mpaopts = ""
+
+    if OPTS.initunique:
+        mpaopts = (mpaopts + " --init-unique").strip()
+
     ### Simplified test setup
     #defopts = "--max-runs=3 -T 360"
     #maxcount = 2
-    #mpaopts = ""
 
     ### Full test setup
     #defopts = "--max-runs=4 -T 600"
-    #mpaopts = ""
     #maxcount = 3
 
     ### Full test setup with --init-unique
     defopts = "--max-runs=4 -T 600"
-    mpaopts = "--init-unique"
     maxcount = 3
 
-    # First typed
-    print "Scanning without type flaws"
-    findAllMPA(l,maxcount=maxcount,options = defopts + " --match=0", mpaoptions = mpaopts)
-    # Basic type flaws
-    print "Scanning for basic type flaws"
-    findAllMPA(l,maxcount=maxcount,options = defopts + " --match=1", mpaoptions = mpaopts)
-    # All type flaws
-    print "Scanning for any type flaws"
-    findAllMPA(l,maxcount=maxcount,options = defopts + " --match=2", mpaoptions = mpaopts)
+    if OPTS.types == None:
+        OPTS.types = [0]
+
+    if 0 in OPTS.types:
+        # First typed
+        print "Scanning without type flaws"
+        findAllMPA(l,maxcount=maxcount,options = defopts + " --match=0", mpaoptions = mpaopts)
+    if 1 in OPTS.types:
+        # Basic type flaws
+        print "Scanning for basic type flaws"
+        findAllMPA(l,maxcount=maxcount,options = defopts + " --match=1", mpaoptions = mpaopts)
+    if 2 in OPTS.types:
+        # All type flaws
+        print "Scanning for any type flaws"
+        findAllMPA(l,maxcount=maxcount,options = defopts + " --match=2", mpaoptions = mpaopts)
 
 
 
@@ -283,6 +331,9 @@ def simpleTest():
 
 
 def main():
+    global OPTS, ARGS
+
+    (OPTS,ARGS) = parseArgs()
     bigTest()
     #simpleTest()
 
