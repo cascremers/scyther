@@ -70,6 +70,10 @@ def parseArgs():
             help="Verify protocols with respect to basic type flaws only (-m 1)")
     parser.add_option("-u","--untyped",dest="types",default=None,action="store_const",const=[2],
             help="Verify protocols with respect to an untyped model (-m 2)")
+
+    parser.add_option("-m","--max-protocols",type="int",dest="maxprotocols",default=3,
+            help="Define maximum number of protocols in a multi-protocol attack.")
+
     parser.add_option("-T","--all-types",dest="types",default=None,action="store_const",const=[0,1,2],
             help="Verify protocols with respect to all matching types")
 
@@ -298,15 +302,13 @@ def bigTest():
 
     ### Simplified test setup
     #defopts = "--max-runs=3 -T 360"
-    #maxcount = 2
 
     ### Full test setup
     #defopts = "--max-runs=4 -T 600"
-    #maxcount = 3
 
     ### Full test setup with --init-unique
     defopts = "--max-runs=4 -T 600"
-    maxcount = 3
+    maxcount = OPTS.maxprotocols
 
     if OPTS.types == None:
         OPTS.types = [0]
