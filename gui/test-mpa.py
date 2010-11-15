@@ -35,6 +35,7 @@ from Scyther import Scyther
 
 from optparse import OptionParser, SUPPRESS_HELP
 import time
+import os.path
 
 try:
     from progressbar import *
@@ -64,23 +65,24 @@ def parseArgs():
     parser = OptionParser(usage=usage,description=description)
 
     # command
-    parser.add_option("-t","--typed",dest="types",default=None,action="store_const",const=[0],
+    parser.add_option("-t","--typed",dest="types",default=[0],action="store_const",const=[0],
             help="Verify protocols with respect to a typed model (-m 0)")
-    parser.add_option("-b","--basic-types",dest="types",default=None,action="store_const",const=[1],
+    parser.add_option("-b","--basic-types",dest="types",default=[1],action="store_const",const=[1],
             help="Verify protocols with respect to basic type flaws only (-m 1)")
-    parser.add_option("-u","--untyped",dest="types",default=None,action="store_const",const=[2],
+    parser.add_option("-u","--untyped",dest="types",default=[2],action="store_const",const=[2],
             help="Verify protocols with respect to an untyped model (-m 2)")
+    parser.add_option("-T","--all-types",dest="types",default=[0],action="store_const",const=[0,1,2],
+            help="Verify protocols with respect to all matching types")
 
     parser.add_option("-m","--max-protocols",type="int",dest="maxprotocols",default=3,
             help="Define maximum number of protocols in a multi-protocol attack.")
-
-    parser.add_option("-T","--all-types",dest="types",default=None,action="store_const",const=[0,1,2],
-            help="Verify protocols with respect to all matching types")
 
     parser.add_option("-U","--init-unique",dest="initunique",default=False,action="store_true",
             help="Use Scythers --init-unique switch to filter out initiators talking to themselves.")
     parser.add_option("-E","--extravert",dest="extravert",default=False,action="store_true",
             help="Use Scythers --extravert switch to filter out agents talking to themselves.")
+    parser.add_option("","--self-communication",dest="selfcommunication",default=False,action="store_true",
+            help="Explore self-communication effects.")
 
     parser.add_option("-D","--debug",dest="debug",default=False,action="store_true",
             help="Enable debugging features.")
@@ -89,6 +91,48 @@ def parseArgs():
             help="Ensure plain output, e.g., no progress bars.")
 
     return parser.parse_args()
+
+#---------------------------------------------------------------------------
+
+class Attack(object):
+
+    def __init__(self,claim,mpalist):
+
+        self.claim = claim
+        self.mpalist = mpalist
+
+    def protocol(self):
+        return self.claim.protocol
+
+    def mpashort(self):
+
+        s = []
+        for fn in self.mpalist:
+            ptn = os.path.normpath(fn)
+            (head,tail) = os.path.split(ptn)
+            s.append(tail)
+
+        return s
+
+    def __str__(self):
+        s = "(%s,%s)" % (self.claim.id, self.mpashort())
+        return s
+
+    def fullstr(self):
+        s = "%s,%s" % (self.claim.id, self.mpalist)
+        return s
+
+    def __cmp__(self,other):
+        s1 = self.fullstr()
+        s2 = other.fullstr()
+        if (s1 == s2):
+            return 0
+        else:
+            if s1 < s2:
+                return -1
+            else:
+                return 1
+
 
 #---------------------------------------------------------------------------
 
@@ -172,7 +216,7 @@ def verifyMPAlist(mpalist,claimid,options=None):
             # This is an MPA attack!
             if OPTS.debug:
                 print "I've found a multi-protocol attack on claim %s in the context %s." % (claimid,str(mpalist))
-            FOUND.append((claimid,mpalist))
+            FOUND.append(Attack(claim,mpalist))
 
             return False
     else:
@@ -261,11 +305,12 @@ def findAllMPA(protocolset,maxcount=3,options="",mpaoptions=""):
     backend anyway (conflicting protocol definitions in MPA analysis).
     """
     mpaprots = []
-    for (claimid,mpalist) in FOUND:
-        pel = claimid.split(",")
-        pn = pel[0]
+    res = []
+    for att in FOUND:
+        pn = att.protocol()
         if pn not in mpaprots:
             mpaprots.append(pn)
+        res.append(att)
 
     print "-" * 70
     print "Summary:"
@@ -276,6 +321,107 @@ def findAllMPA(protocolset,maxcount=3,options="",mpaoptions=""):
     print "We found %i MPA attacks." % (len(FOUND))
     print "The attacks involve the claims of %i protocols." % (len(mpaprots))
     print "-" * 70
+    print
+
+    return res
+
+
+def showDiff(reslist):
+    """
+    Show difference between (attacklist,descr) tuples in list
+    """
+    for i in range(0,len(reslist)-1):
+        (al1,descr1) = reslist[i]
+        (al2,descr2) = reslist[i+1]
+
+        print "-" * 70
+        print "Comparing the attacks for [%s] with [%s]:" % (descr1,descr2)
+        print len(al1), len(al2)
+        print repr(al1)
+        print repr(al2)
+        for a in al2:
+            if a not in al1:
+                print "New attack: %s" % (a)
+        for a in al1:
+            if a not in al2:
+                print "[Strange] disappeared attack: %s" % (a)
+
+        print "-" * 70
+        print
+
+
+
+def scanTypes(l = [],defopts = "",mpaopts = ""):
+
+    global OPTS, ARGS
+
+    reslist = []
+
+    if 0 in OPTS.types:
+        # First typed
+        print "Scanning without type flaws"
+        res = findAllMPA(l,maxcount = OPTS.maxprotocols,options = defopts + " --match=0", mpaoptions = mpaopts)
+        reslist.append((res,"no type flaws"))
+
+    if 1 in OPTS.types:
+        # Basic type flaws
+        print "Scanning for basic type flaws"
+        res = findAllMPA(l,maxcount = OPTS.maxprotocols,options = defopts + " --match=1", mpaoptions = mpaopts)
+        reslist.append((res,"basic type flaws"))
+
+    if 2 in OPTS.types:
+        # All type flaws
+        print "Scanning for any type flaws"
+        res = findAllMPA(l,maxcount = OPTS.maxprotocols,options = defopts + " --match=2", mpaoptions = mpaopts)
+        reslist.append((res,"type flaws"))
+
+    if len(reslist) < 1:
+        import sys
+
+        print "Error: we didn't do anything."
+        sys.exit()
+
+    return reslist
+
+
+def scanSelfComm(l = [],defopts = "",mpaopts = ""):
+
+    global OPTS, ARGS
+
+    reslist = []
+
+    print "Scanning without AA-comm."
+    res = findAllMPA(l,maxcount = OPTS.maxprotocols,options = defopts, mpaoptions = mpaopts + " --extravert")
+    reslist.append((res,"Allow Alice-Alice"))
+
+    print "Scanning for AA-resp only."
+    res = findAllMPA(l,maxcount = OPTS.maxprotocols,options = defopts, mpaoptions = mpaopts + " --init-unique")
+    reslist.append((res,"Allow Alice-Alice"))
+
+    print "Scanning for AA-comm."
+    res = findAllMPA(l,maxcount = OPTS.maxprotocols,options = defopts, mpaoptions = mpaopts)
+    reslist.append((res,"Allow Alice-Alice"))
+
+    return reslist
+
+
+def scanSC(l,defopts,mpaopts):
+
+    if (len(OPTS.types) > 1) and (OPTS.selfcommunication):
+        import sys
+
+        print "Error: cannot analyze multiple types as well as self-communication at the same time."
+        sys.exit()
+
+    if OPTS.selfcommunication:
+        reslist = scanSelfComm(l,defopts,mpaopts)
+    else:
+        reslist = scanTypes(l,defopts,mpaopts)
+
+    if len(reslist) > 1:
+        showDiff(reslist)
+
+
 
 
 def bigTest():
@@ -304,11 +450,6 @@ def bigTest():
     # Initialize mpa options
     mpaopts = ""
 
-    if OPTS.extravert:
-        mpaopts = (mpaopts + " --extravert").strip()
-    if OPTS.initunique:
-        mpaopts = (mpaopts + " --init-unique").strip()
-
     ### Simplified test setup
     #defopts = "--max-runs=3 -T 360"
 
@@ -317,23 +458,13 @@ def bigTest():
 
     ### Full test setup with --init-unique
     defopts = "--max-runs=4 -T 600"
-    maxcount = OPTS.maxprotocols
 
-    if OPTS.types == None:
-        OPTS.types = [0]
+    if OPTS.extravert:
+        mpaopts = (mpaopts + " --extravert").strip()
+    if OPTS.initunique:
+        mpaopts = (mpaopts + " --init-unique").strip()
 
-    if 0 in OPTS.types:
-        # First typed
-        print "Scanning without type flaws"
-        findAllMPA(l,maxcount=maxcount,options = defopts + " --match=0", mpaoptions = mpaopts)
-    if 1 in OPTS.types:
-        # Basic type flaws
-        print "Scanning for basic type flaws"
-        findAllMPA(l,maxcount=maxcount,options = defopts + " --match=1", mpaoptions = mpaopts)
-    if 2 in OPTS.types:
-        # All type flaws
-        print "Scanning for any type flaws"
-        findAllMPA(l,maxcount=maxcount,options = defopts + " --match=2", mpaoptions = mpaopts)
+    scanSC(l,defopts,mpaopts)
 
 
 
