@@ -79,6 +79,9 @@ def parseArgs():
     parser.add_option("-D","--debug",dest="debug",default=False,action="store_true",
             help="Enable debugging features.")
 
+    parser.add_option("-p","--plain",dest="plain",default=False,action="store_true",
+            help="Ensure plain output, e.g., no progress bars.")
+
     return parser.parse_args()
 
 #---------------------------------------------------------------------------
@@ -114,11 +117,12 @@ def getCorrectIsolatedClaims(protocolset,options=None):
     correctclaims = []
     goodprotocols = []
 
-    widgets = ['Scanning for claims that are correct in isolation: ', Percentage(), ' ',
-               Bar(marker='#',left='[',right=']')
-               ]
-    pbar = ProgressBar(widgets=widgets, maxval=len(protocolset))
-    pbar.start()
+    if not OPTS.plain:
+        widgets = ['Scanning for claims that are correct in isolation: ', Percentage(), ' ',
+                   Bar(marker='#',left='[',right=']')
+                   ]
+        pbar = ProgressBar(widgets=widgets, maxval=len(protocolset))
+        pbar.start()
     count = 0
     for protocol in protocolset:
         # verify protocol in isolation
@@ -129,9 +133,11 @@ def getCorrectIsolatedClaims(protocolset,options=None):
             if claim.okay:
                 correctclaims.append((protocol,claim.id))
         count += 1
-        pbar.update(count)
-    pbar.finish()
     return (goodprotocols,correctclaims)
+        if not OPTS.plain:
+            pbar.update(count)
+    if not OPTS.plain:
+        pbar.finish()
 
 
 def verifyMPAlist(mpalist,claimid,options=None):
@@ -218,11 +224,12 @@ def findAllMPA(protocolset,maxcount=3,options="",mpaoptions=""):
     (protocolset,correct) = getCorrectIsolatedClaims(protocolset,options)
     print "Investigating %i correct claims." % (len(correct))
     # For all these claims...
-    widgets = ['Scanning for MPA attacks: ', Percentage(), ' ',
-               Bar(marker='#',left='[',right=']')
-               ]
-    pbar = ProgressBar(widgets=widgets, maxval=len(correct))
-    pbar.start()
+    if not OPTS.plain:
+        widgets = ['Scanning for MPA attacks: ', Percentage(), ' ',
+                   Bar(marker='#',left='[',right=']')
+                   ]
+        pbar = ProgressBar(widgets=widgets, maxval=len(correct))
+        pbar.start()
     count = 0
 
     # Concatenate options but add space iff needed
@@ -232,8 +239,10 @@ def findAllMPA(protocolset,maxcount=3,options="",mpaoptions=""):
         # Try to find multi-protocol attacks
         findMPA(protocolset,protocol,claimid,maxcount,options=alloptions)
         count += 1
-        pbar.update(count)
-    pbar.finish()
+        if not OPTS.plain:
+            pbar.update(count)
+    if not OPTS.plain:
+        pbar.finish()
 
     """
     The below computation assumes protocol names are unique to files, but if
