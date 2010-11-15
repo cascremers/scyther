@@ -128,20 +128,25 @@ def getCorrectIsolatedClaims(protocolset,options=None):
         pbar = ProgressBar(widgets=widgets, maxval=len(protocolset))
         pbar.start()
     count = 0
+    cpcount = 0
     for protocol in protocolset:
         # verify protocol in isolation
         s = MyScyther([protocol],options=options)
         # investigate the results
         goodprotocols.append(protocol)
+        allfalse = True
         for claim in s.claims:
             if claim.okay:
                 correctclaims.append((protocol,claim.id))
+                allfalse = False
         count += 1
-    return (goodprotocols,correctclaims)
+        if not allfalse:
+            cpcount += 1
         if not OPTS.plain:
             pbar.update(count)
     if not OPTS.plain:
         pbar.finish()
+    return (goodprotocols,correctclaims,cpcount)
 
 
 def verifyMPAlist(mpalist,claimid,options=None):
@@ -225,8 +230,8 @@ def findAllMPA(protocolset,maxcount=3,options="",mpaoptions=""):
     FOUND = []
 
     # Find all correct claims in each protocol
-    (protocolset,correct) = getCorrectIsolatedClaims(protocolset,options)
-    print "Investigating %i correct claims." % (len(correct))
+    (protocolset,correct,cpcount) = getCorrectIsolatedClaims(protocolset,options)
+    print "Investigating %i correct claims in %i protocols." % (len(correct), cpcount)
     # For all these claims...
     if not OPTS.plain:
         widgets = ['Scanning for MPA attacks: ', Percentage(), ' ',
