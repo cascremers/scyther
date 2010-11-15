@@ -79,6 +79,8 @@ def parseArgs():
 
     parser.add_option("-U","--init-unique",dest="initunique",default=False,action="store_true",
             help="Use Scythers --init-unique switch to filter out initiators talking to themselves.")
+    parser.add_option("-E","--extravert",dest="extravert",default=False,action="store_true",
+            help="Use Scythers --extravert switch to filter out agents talking to themselves.")
 
     parser.add_option("-D","--debug",dest="debug",default=False,action="store_true",
             help="Enable debugging features.")
@@ -302,6 +304,8 @@ def bigTest():
     # Initialize mpa options
     mpaopts = ""
 
+    if OPTS.extravert:
+        mpaopts = (mpaopts + " --extravert").strip()
     if OPTS.initunique:
         mpaopts = (mpaopts + " --init-unique").strip()
 
