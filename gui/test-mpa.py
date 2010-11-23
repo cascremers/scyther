@@ -33,7 +33,7 @@ Author: Cas Cremers
 
 from Scyther import Scyther
 
-from optparse import OptionParser, SUPPRESS_HELP
+from optparse import OptionParser, OptionGroup, SUPPRESS_HELP
 import time
 import os.path
 
@@ -60,40 +60,43 @@ ARGS = None
 #---------------------------------------------------------------------------
 
 def parseArgs():
-    usage = "usage: %s [options] [inputfile]" % sys.argv[0]
+    usage = "usage: %prog [options] [inputfile]" 
     description = "test-mpa.py is a test script to help with multi-protocol analysis."
-    parser = OptionParser(usage=usage,description=description)
+    parser = OptionParser(usage=usage,description=description, version="%prog 2.0")
 
-    # command
-    parser.add_option("-m","--max-protocols",type="int",dest="maxprotocols",default=3,
-            help="Define maximum number of protocols in a multi-protocol attack.")
+    group = OptionGroup(parser, "Bounding the search space")
+    group.add_option("-m","--max-protocols",type="int",dest="maxprotocols",default=3,
+            help="Define maximum number of protocols in a multi-protocol attack [3].")
 
-    parser.add_option("-r","--max-runs",type="int",dest="maxruns",default=4,
-            help="Define maximum number of runs in the analysis.")
+    group.add_option("-r","--max-runs",type="int",dest="maxruns",default=4,
+            help="Define maximum number of runs in the analysis [4].")
 
-    parser.add_option("-T","--timeout",type="int",dest="timeout",default=600,
-            help="Timeout in seconds for each analysis.")
+    group.add_option("-T","--timeout",type="int",dest="timeout",default=600,
+            help="Timeout in seconds for each analysis [600].")
 
-    parser.add_option("-L","--limit",type="int",dest="limit",default=0,
-            help="Limit the length of the list of protocols.")
+    group.add_option("-L","--limit",type="int",dest="limit",default=0,
+            help="Limit the length of the list of protocols [None].")
+    parser.add_option_group(group)
 
-    parser.add_option("-t","--typed",dest="defoptarray",default=[],action="append_const",const="--match=0",
-            help="Verify protocols with respect to a typed model (-m 0)")
-    parser.add_option("-b","--basic-types",dest="defoptarray",default=[],action="append_const",const="--match=1",
+    group = OptionGroup(parser, "Matching type options")
+    group.add_option("-t","--typed",dest="defoptarray",default=[],action="append_const",const="--match=0",
+            help="Verify protocols with respect to a typed model (-m 0) [default]")
+    group.add_option("-b","--basic-types",dest="defoptarray",default=[],action="append_const",const="--match=1",
             help="Verify protocols with respect to basic type flaws only (-m 1)")
-    parser.add_option("-u","--untyped",dest="defoptarray",default=[],action="append_const",const="--match=2",
+    group.add_option("-u","--untyped",dest="defoptarray",default=[],action="append_const",const="--match=2",
             help="Verify protocols with respect to an untyped model (-m 2)")
-
-    parser.add_option("-U","--init-unique",dest="defoptarray",default=[],action="append_const",const="--init-unique",
-            help="Use Scythers --init-unique switch to filter out initiators talking to themselves.")
-    parser.add_option("-E","--extravert",dest="defoptarray",default=[],action="append_const",const="--extravert",
-            help="Use Scythers --extravert switch to filter out agents talking to themselves.")
-
-    # Choice tree
-    parser.add_option("-A","--all-types",dest="alltypes",default=False,action="store_true",
+    group.add_option("-A","--all-types",dest="alltypes",default=False,action="store_true",
             help="Verify protocols with respect to all matching types")
-    parser.add_option("","--self-communication",dest="selfcommunication",default=False,action="store_true",
-            help="Explore self-communication effects.")
+    parser.add_option_group(group)
+
+    group = OptionGroup(parser, "Restricting self-communication")
+    group.add_option("-U","--init-unique",dest="defoptarray",default=[],action="append_const",const="--init-unique",
+            help="Use Scythers --init-unique switch to filter out initiators talking to themselves.")
+    group.add_option("-E","--extravert",dest="defoptarray",default=[],action="append_const",const="--extravert",
+            help="Use Scythers --extravert switch to filter out agents talking to themselves.")
+    group.add_option("","--self-communication",dest="selfcommunication",default=False,action="store_true",
+            help="Explore all self-communication restrictions (as MPA-only option).")
+    parser.add_option_group(group)
 
     # Misc
     parser.add_option("-D","--debug",dest="debug",default=False,action="store_true",
@@ -359,23 +362,37 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
 
 def showDiff(reslist):
     """
-    Show difference between (attacklist,descr) tuples in list
+    Show difference between (opts,mpaopts,attacklist) tuples in list
     """
+    if len(reslist) == 0:
+        print "Comparison list is empty"
+        return
+
+    (opt1,mpaopt1,al1) = reslist[0]
+    print "-" * 70
+    print "Base case: attacks for \n  [%s]:" % (opt1 + mpaopt1)
+    print
+    print len(al1)
+    for a in al1:
+        print "Base attack: %s" % (a)
+
+    print "-" * 70
+    print
+
     for i in range(0,len(reslist)-1):
-        (al1,descr1) = reslist[i]
-        (al2,descr2) = reslist[i+1]
+        (opt1,mpaopt1,al1) = reslist[i]
+        (opt2,mpaopt2,al2) = reslist[i+1]
 
         print "-" * 70
-        print "Comparing the attacks for [%s] with [%s]:" % (descr1,descr2)
+        print "Comparing the attacks for \n  [%s] with\n  [%s]:" % (opt1 + mpaopt1, opt2 + mpaopt2)
+        print
         print len(al1), len(al2)
-        print repr(al1)
-        print repr(al2)
         for a in al2:
             if a not in al1:
-                print "New attack: %s" % (a)
+                print "Added attack: %s" % (a)
         for a in al1:
             if a not in al2:
-                print "[Strange] disappeared attack: %s" % (a)
+                print "Removed attack: %s" % (a)
 
         print "-" * 70
         print
@@ -424,7 +441,7 @@ def exploreTree( i, choices , l, options = [], mpaoptions = []):
     """
 
     if i >= len(choices):
-        return findAllMPA(l, options = options, mpaoptions = mpaoptions)
+        return [(options,mpaoptions,findAllMPA(l, options = options, mpaoptions = mpaoptions))]
 
     mpaonly = choices[i][0]
     cl = choices[i][1:]
@@ -460,7 +477,9 @@ def fullScan(l, options = [], mpaoptions = []):
         res = findAllMPA(l, options = options, mpaoptions = mpaoptions)
 
     else:
-        exploreTree(0, choices, l, options = options, mpaoptions = mpaoptions)
+        lres = exploreTree(0, choices, l, options = options, mpaoptions = mpaoptions)
+        if len(lres) > 1:
+            showDiff(lres)
 
 
 
