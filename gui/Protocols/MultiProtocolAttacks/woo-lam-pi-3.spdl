@@ -1,0 +1,51 @@
+# Woo and Lam Pi 2
+#
+# Modelled after the description in the SPORE library
+# http://www.lsv.ens-cachan.fr/spore/wooLamPi3.html
+#
+
+protocol woolamPi-3(I,R,S)
+{
+    role I
+    {
+        var Nr: Nonce;
+
+        send_1(I,R, I); 
+        read_2(R,I, Nr);
+        send_3(I,R, {Nr}k(I,S));
+
+    }    
+    
+    role R
+    {
+        const Nr: Nonce;
+        var T: Ticket;
+
+        read_1(I,R, I);
+        send_2(R,I, Nr);
+        read_3(I,R, T);
+        send_4(R,S, {I, T}k(R,S)); 
+        read_5(S,R, {I, Nr}k(R,S));
+        
+        claim_R1(R,Nisynch);
+    }
+
+    role S
+    {
+        var Nr: Nonce;
+        
+        read_4(R,S, {I, {Nr}k(I,S)}k(R,S));
+        send_5(S,R, {I,Nr}k(R,S));
+    }
+}
+
+const Alice,Bob,Eve,Simon: Agent;
+const Te: Ticket;
+const Ne: Nonce;
+
+
+untrusted Eve;
+compromised k(Eve,Simon);
+
+
+
