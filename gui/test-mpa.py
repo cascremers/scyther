@@ -53,6 +53,11 @@ http://code.google.com/p/python-progressbar/
 """
 
 FOUND = []
+ALLMPA = []
+ALLCLAIMS = []
+INVOLVED = []
+PROTFILETONAME = {}
+PROTNAMETOFILE = {}
 OPTS = None
 ARGS = None
 
@@ -214,9 +219,20 @@ def getCorrectIsolatedClaims(protocolset,options=[]):
         goodprotocols.append(protocol)
         allfalse = True
         for claim in s.claims:
+            global ALLCLAIMS
+            global PROTFILETONAME
+            global PROTNAMETOFILE
+
+            if claim not in ALLCLAIMS:
+                ALLCLAIMS.append(claim)
+
             if claim.okay:
                 correctclaims.append((protocol,claim.id))
                 allfalse = False
+
+            PROTFILETONAME[protocol] = str(claim.protocol)
+            PROTNAMETOFILE[str(claim.protocol)] = protocol
+
         count += 1
         if not allfalse:
             cpcount += 1
@@ -244,11 +260,25 @@ def verifyMPAlist(mpalist,claimid,options=[]):
     if claim:
         if not claim.okay:
             global FOUND
+            global ALLFOUND
+            global INVOLVED
 
             # This is an MPA attack!
             if OPTS.debug:
                 print "I've found a multi-protocol attack on claim %s in the context %s." % (claimid,str(mpalist))
-            FOUND.append(Attack(claim,mpalist))
+            
+            att = Attack(claim,mpalist)
+            FOUND.append(att)
+            ALLFOUND.append(att)
+
+            inv = [claim.protocol]
+            for fn in mpalist:
+                global PROTFILETONAME
+                inv.append(PROTFILETONAME[fn])
+
+            for pn in inv:
+                if pn not in INVOLVED:
+                    INVOLVED.append(pn)
 
             return False
     else:
@@ -465,6 +495,15 @@ def exploreTree( i, choices , l, options = [], mpaoptions = []):
 def fullScan(l, options = [], mpaoptions = []):
 
     global OPTS
+    global ALLFOUND
+    global ALLCLAIMS
+    global INVOLVED
+    global PROTNAMETOFILE
+    global PROTFILETONAME
+
+    ALLFOUND = []
+    ALLCLAIMS = []
+    INVOLVED = []
 
     if OPTS.limit > 0:
         l = l[:OPTS.limit]
@@ -480,6 +519,34 @@ def fullScan(l, options = [], mpaoptions = []):
         lres = exploreTree(0, choices, l, options = options, mpaoptions = mpaoptions)
         if len(lres) > 1:
             showDiff(lres)
+
+    allprots = set()
+    attprots = set()
+    invprots = set()
+    for att in ALLFOUND:
+        attprots.add(str(att.protocol()))
+    for cl in ALLCLAIMS:
+        allprots.add(str(cl.protocol))
+    for prot in INVOLVED:
+        invprots.add(str(prot))
+
+    print "The bottom line: we found %i protocols with multi-protocol attacks from a set of %i protocols." % (len(attprots),len(allprots))
+    print
+
+    print "Multi-protocol attacks were found on:"
+    for prot in sorted(list(allprots & attprots)):
+        print "  %s" % (prot)
+    print
+
+    print "No multi-protocol attacks were found on these protocols, but they caused MPA attacks:"
+    for prot in sorted(list((allprots - attprots) & invprots)):
+        print "  %s" % (prot)
+    print
+
+    print "These protocols were not involved in any MPA attacks:"
+    for prot in sorted(list((allprots - attprots) - invprots)):
+        print "  %s\t[%s]" % (prot,PROTNAMETOFILE[prot])
+    print
 
 
 
