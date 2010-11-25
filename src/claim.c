@@ -758,11 +758,14 @@ arachne_claim_weakagree (const System sys, const int claim_run,
 	    {
 	      if (run != claim_run)
 		{
-		  if (isTermlistEqual
-		      (sys->runs[run].rho, sys->runs[claim_run].rho))
+		  if (role == sys->runs[run].role)
 		    {
-		      roleokay = true;
-		      break;
+		      if (isTermlistEqual
+			  (sys->runs[run].rho, sys->runs[claim_run].rho))
+			{
+			  roleokay = true;
+			  break;
+			}
 		    }
 		}
 	    }
