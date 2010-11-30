@@ -163,9 +163,9 @@ def InitRestricted(models=None):
     bpr2000.vector[3] = 1
     bpr2000.setName("BPR")
     
-    # br9395: others skr
+    # br9395: skr
     br9395 = external.copy()
-    br9395.vector[0] = 1
+    #br9395.vector[0] = 1   # this was a bug: BR93 really only has SKR
     br9395.vector[3] = 1
     br9395.setName("BR")
     
