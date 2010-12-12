@@ -42,5 +42,6 @@ void count_false_claim (const System sys);
 int property_check (const System sys);
 int claimStatusReport (const System sys, Claimlist cl);
 int isClaimRelevant (const Claimlist cl);
+int isClaimSignal (const Claimlist cl);
 
 #endif

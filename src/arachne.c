@@ -2402,9 +2402,7 @@ arachneClaim ()
 
   // Skip the dummy claims or SID markers
   cl = sys->current_claim;
-  if (!
-      (isTermEqual (cl->type, CLAIM_Empty)
-       || isTermEqual (cl->type, CLAIM_SID)))
+  if (!isClaimSignal (cl))
     {
       // Some claims are always true!
       if (!cl->alwaystrue)
@@ -2507,7 +2505,7 @@ arachne ()
        * Check each claim
        */
       sys->current_claim = cl;
-      if (isClaimRelevant (cl))
+      if (isClaimRelevant (cl))	// check for any filtered claims (switch)
 	{
 	  if (arachneClaim ())
 	    {

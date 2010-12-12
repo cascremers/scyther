@@ -55,6 +55,8 @@ Term CLAIM_Empty;
 Term CLAIM_Reachable;
 Term CLAIM_SID;
 Term CLAIM_SKR;
+Term CLAIM_Commit;
+Term CLAIM_Running;
 
 Term AGENT_Alice;
 Term AGENT_Bob;
@@ -100,6 +102,9 @@ specialTermInit (const System sys)
 
   langcons (CLAIM_SID, "SID", TERM_Claim);	// claim specifying session ID
   langcons (CLAIM_SKR, "SKR", TERM_Claim);	// claim specifying session key : doubles as secrecy claim
+
+  langcons (CLAIM_Commit, "Commit", TERM_Claim);	// claim specifying session agreement for a subset of data items
+  langcons (CLAIM_Running, "Running", TERM_Claim);	// claim for signaling data item possession (checked by commit)
 
   /* Define default PKI using PK/SK/K */
   langcons (TERM_PK, "pk", TERM_Function);
