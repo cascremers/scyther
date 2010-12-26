@@ -178,6 +178,15 @@ def MyScyther(protocollist,filt=None,options=[]):
     # Standard
     opts = OPTS.defoptarray + options
 
+    # Cover for caching issue where no --match= option is given (default to 0)
+    matchfound = False
+    for opt in opts:
+        if opt.startswith("--match="):
+            matchfound = True
+            break
+    if not matchfound:
+        opts.append("--match=0")
+
     # Adding other command-line parameters (i.e. with arguments)
     opts.append("-T %i" % (int(OPTS.timeout)))
     opts.append("--max-runs=%i" % (int(OPTS.maxruns)))
