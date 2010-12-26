@@ -104,6 +104,8 @@ def parseArgs():
     parser.add_option_group(group)
 
     # Misc
+    parser.add_option("-v","--verbose",dest="verbose",default=False,action="store_true",
+            help="Be more verbose.")
     parser.add_option("-D","--debug",dest="debug",default=False,action="store_true",
             help="Enable debugging features.")
     parser.add_option("-p","--plain",dest="plain",default=False,action="store_true",
@@ -247,6 +249,7 @@ def getCorrectIsolatedClaims(protocolset,options=[]):
             cpcount += 1
         if not OPTS.plain:
             pbar.update(count)
+
     if not OPTS.plain:
         pbar.finish()
     return (goodprotocols,correctclaims,cpcount)
@@ -345,12 +348,41 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
     """
 
     global FOUND
+    global OPTS
 
     FOUND = []
 
     # Find all correct claims in each protocol
     (protocolset,correct,cpcount) = getCorrectIsolatedClaims(protocolset,options)
     print "Investigating %i correct claims in %i protocols." % (len(correct), cpcount)
+    if OPTS.verbose:
+        """
+        When verbose, list correct claims in protocols
+        """
+        pmapclaims = {}
+        for (protocol,claimid) in correct:
+            if protocol not in pmapclaims.keys():
+                pmapclaims[protocol] = set()
+            pmapclaims[protocol].add(claimid)
+        print "Protocols with correct claims:"
+        if len(pmapclaims.keys()) == 0:
+            print "  None."
+        else:
+            for pk in pmapclaims.keys():
+                print "  %s, %s" % (pk, pmapclaims[pk])
+        print
+        left = set()
+        for p in protocolset:
+            if p not in pmapclaims.keys():
+                left.add(p)
+        print "Protocols with no correct claims:"
+        if len(left) == 0:
+            print "  None."
+        else:
+            for p in left:
+                print "  %s" % (p)
+        print
+
     # For all these claims...
     if not OPTS.plain:
         widgets = ['Scanning for MPA attacks: ', Percentage(), ' ',
