@@ -104,6 +104,8 @@ def parseArgs():
     parser.add_option_group(group)
 
     # Misc
+    parser.add_option("-l","--latex",dest="latex",
+            help="Output latex files with the given prefix.")   # action="store" and type="string" are defaults
     parser.add_option("-v","--verbose",dest="verbose",default=False,action="store_true",
             help="Be more verbose.")
     parser.add_option("-D","--debug",dest="debug",default=False,action="store_true",
@@ -382,6 +384,27 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
             for p in left:
                 print "  %s" % (p)
         print
+
+    # Latex output of protocols with correct claims
+    if OPTS.latex:
+        pmapclaims = {}
+        for (protocol,claimid) in correct:
+            if protocol not in pmapclaims.keys():
+                pmapclaims[protocol] = set()
+            pmapclaims[protocol].add(claimid)
+
+        fp = open("gen-%s-correctclaims.tex" % (OPTS.latex),"w")
+        fp.write("\\begin{tabular}{ll}\n")
+        fp.write("Protocol & Claims \\\\\n")
+        for protocol in pmapclaims.keys():
+            # Cut off path prefix, then cut off ".spdl"
+            fp.write("%s & " % (protocol.split("/")[-1][:-5]))   # TODO use path split for multi-platform support
+            claims = sorted(pmapclaims[protocol])
+            for claimid in claims:
+                fp.write("%s " % (claimid.split(",")[-1]))
+            fp.write("\\\\\n")
+        fp.write("\\end{tabular}\n")
+        fp.close()
 
     # For all these claims...
     if not OPTS.plain:
