@@ -297,9 +297,9 @@ def verifyMPAlist(mpalist,claimid,options=[]):
                 if pn not in INVOLVED:
                     INVOLVED.append(pn)
 
-            return False
-    else:
-        return True
+            #return False
+
+    return True
 
 
 def constructMPAlist(protocolset,claimid,mpalist,length,start,callback,options=[]):
