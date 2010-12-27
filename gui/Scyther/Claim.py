@@ -173,13 +173,21 @@ class Claim(object):
         """
         return (self.protocol, self.role, self.shortlabel)
 
+    def describe(self):
+        s = str(self.claimtype)
+        if self.parameter:
+            s+= "(%s)" % self.parameter
+
+        return s
+
+    def roledescribe(self):
+        return "%s: %s" % (self.role,self.describe())
+
     def __str__(self):
         """
         Resulting string
         """
-        s = "claim id [%s], %s" % (self.id,self.claimtype)
-        if self.parameter:
-            s+= " %s" % self.parameter
+        s = "claim id [%s], %s" % (self.id,self.desribe())
 
         # determine status
         s+= "\t: %s" % self.getComment()

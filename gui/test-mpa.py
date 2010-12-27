@@ -137,6 +137,9 @@ class Attack(object):
 
         return s
 
+    def claimid(self):
+        return "%s" % (self.claim.id)
+
     def __str__(self):
         s = "(%s,%s)" % (self.claim.id, self.mpashort())
         return s
@@ -344,6 +347,24 @@ def findMPA(protocolset,protocol,claimid,options=[]):
     return None
 
 
+def foundToDicts(attacklist = []):
+    """
+    Turn a list of attacks into a more structured dict of dicts
+    protocolname -> claimid -> P(attack)
+    """
+    res = {}
+    for att in attacklist:
+        pn = str(att.protocol())
+        cl = att.claimid()
+
+        if pn not in res.keys():
+            res[pn] = {}
+        if cl not in res[pn].keys():
+            res[pn][cl] = set()
+        res[pn][cl].add(att)
+    return res
+
+
 def findAllMPA(protocolset,options=[],mpaoptions=[]):
     """
     Given a set of protocols, find multi-protocol attacks
@@ -396,12 +417,15 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
         fp = open("gen-%s-correctclaims.tex" % (OPTS.latex),"w")
         fp.write("\\begin{tabular}{ll}\n")
         fp.write("Protocol & Claims \\\\\n")
-        for protocol in pmapclaims.keys():
-            # Cut off path prefix, then cut off ".spdl"
-            fp.write("%s & " % (protocol.split("/")[-1][:-5]))   # TODO use path split for multi-platform support
+        for protocol in sorted(pmapclaims.keys()):
+            fp.write("%s & " % (PROTFILETONAME[protocol]))
             claims = sorted(pmapclaims[protocol])
+            latexcl = set()
             for claimid in claims:
-                fp.write("%s " % (claimid.split(",")[-1]))
+                claim = claimidToClaim(claimid)
+                latexcl.add(claim.roledescribe())
+
+            fp.write("; ".join(sorted(latexcl)))
             fp.write("\\\\\n")
         fp.write("\\end{tabular}\n")
         fp.close()
@@ -440,6 +464,57 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
             mpaprots.append(pn)
         res.append(att)
 
+    """
+    Latex table of attacks
+
+    TODO : map file names to protocol names, write out claim details
+
+    TODO : remove main protocol from list (it's: "MPA attacks when run in parallel with")
+
+    TODO : Check whether current tests stop after finding *one* MPA attack or whether they find *all*.
+
+    """
+    if OPTS.latex:
+        fp = open("gen-%s-mpaattacks.tex" % (OPTS.latex),"w")
+        fp.write("\\begin{tabular}{lll}\n")
+        fp.write("Protocol & Claim & MPA attacks \\\\ \n")
+
+        # Convert to more useful structure (maybe move one level up)
+        res = foundToDicts(FOUND)
+
+        """
+        Scan per protocol in mpaprots (maybe sorted?)
+        """
+        for prot in sorted(res.keys()):
+            """
+            List claim and then attack scenarios (to some max?)
+            """
+            ltprot = prot
+            for claimid in sorted(res[prot].keys()):
+
+                firstclaim = True
+                for att in sorted(res[prot][claimid]):
+
+                    if firstclaim:
+
+                        ltclaim = att.claim.roledescribe()
+                        firstclaim = False
+
+                    attl = att.mpalist
+                    ltattacks = []
+                    for attprot in attl:
+                        if PROTFILETONAME[attprot] != att.claim.protocol:
+                            ltattacks.append(PROTFILETONAME[attprot])
+
+                    fp.write("%s & %s & %s \\\\ \n" % (ltprot,ltclaim,sorted(ltattacks)))
+
+                    # Erase for cleaner table
+                    ltprot = ""
+                    ltclaim = ""
+
+        fp.write("\\end{tabular}\n")
+        fp.close()
+
     print "-" * 70
     print "Summary:"
     print
@@ -452,6 +527,18 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
     print
 
     return res
+
+
+def claimidToClaim(claimid):
+    """
+    Return claim object given a claim id
+    """
+    global ALLCLAIMS
+
+    for claim in ALLCLAIMS:
+        if claim.id == claimid:
+            return claim
+
 
 
 def showDiff(reslist):
