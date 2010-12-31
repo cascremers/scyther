@@ -36,6 +36,7 @@ from Scyther import Scyther
 from optparse import OptionParser, OptionGroup, SUPPRESS_HELP
 import time
 import os.path
+import json
 
 try:
     from progressbar import *
@@ -60,6 +61,7 @@ PROTFILETONAME = {}
 PROTNAMETOFILE = {}
 OPTS = None
 ARGS = None
+PICKLEDATA = set()
 
 
 #---------------------------------------------------------------------------
@@ -104,6 +106,8 @@ def parseArgs():
     parser.add_option_group(group)
 
     # Misc
+    parser.add_option("","--pickle",dest="pickle",
+            help="Do not invoke Scyther but write intended calls to a file with the given name.")   # action="store" and type="string" are defaults
     parser.add_option("-l","--latex",dest="latex",
             help="Output latex files with the given prefix.")   # action="store" and type="string" are defaults
     parser.add_option("-v","--verbose",dest="verbose",default=False,action="store_true",
@@ -162,6 +166,7 @@ class Attack(object):
 
 #---------------------------------------------------------------------------
 
+
 def uniq(l):
 
     ll = []
@@ -170,15 +175,36 @@ def uniq(l):
             ll.append(x)
     return ll
 
+
+def powerset(s):
+    """
+    s is a set
+    returns the powerset
+    """
+    pws = set([frozenset()])
+    for el in s:
+        # Double old powerset by adding its elements and also new ones
+        for s2 in pws.copy():
+            if len(s2) == 0:
+                pws.add(frozenset([el]))
+            else:
+                pws.add(frozenset([el]).union(s2))
+    return pws
+    
+
 #---------------------------------------------------------------------------
 
-def MyScyther(protocollist,filt=None,options=[]):
+def MyScyther(protocollist,filt=None,options=[],checkpickle=True):
     """
     Evaluate the composition of the protocols in protocollist.
     If there is a filter, i.e. "ns3,I1" then only this specific claim
     will be evaluated.
+
+    By default, when Pickling, no evaluation is done (checkpickle=True).
+    Setting 'checkpickle' to False ignores this check and verifies anyway.
     """
     global OPTS
+    global PICKLEDATA
 
     s = Scyther.Scyther()
 
@@ -203,9 +229,14 @@ def MyScyther(protocollist,filt=None,options=[]):
     if OPTS.debug:
         print s.options
 
-    for protocol in protocollist:
+    for protocol in sorted(protocollist):
         s.addFile(protocol)
-    s.verifyOne(filt)
+    if checkpickle and OPTS.pickle:
+        # Do not really verify! Just dump request
+        PICKLEDATA.add((tuple(sorted(protocollist)),s.options,filt))
+    else:
+        # Verify results
+        s.verifyOne(filt)
     return s
     
 
@@ -221,7 +252,7 @@ def getCorrectIsolatedClaims(protocolset,options=[]):
     goodprotocols = []
 
     if not OPTS.plain:
-        widgets = ['Scanning for claims that are correct in isolation: ', Percentage(), ' ',
+        widgets = ['Scanning for claims that are correct in isolation: ', SimpleProgress(), ' protocols (', Percentage(), ') ',
                    Bar(marker='#',left='[',right=']')
                    ]
         pbar = ProgressBar(widgets=widgets, maxval=len(protocolset))
@@ -230,7 +261,7 @@ def getCorrectIsolatedClaims(protocolset,options=[]):
     cpcount = 0
     for protocol in protocolset:
         # verify protocol in isolation
-        s = MyScyther([protocol],options=options)
+        s = MyScyther([protocol],options=options,checkpickle=False)
         # investigate the results
         goodprotocols.append(protocol)
         allfalse = True
@@ -260,9 +291,63 @@ def getCorrectIsolatedClaims(protocolset,options=[]):
     return (goodprotocols,correctclaims,cpcount)
 
 
+def verifyProtList(protlist,claimid,options=[]):
+    """
+    Check attacks on this protocol list.
+    Returns True if no attack ("correct") and False if an attack is found.
+    """
+    s = MyScyther(protlist,claimid,options)
+    claim = s.getClaim(claimid)
+    if claim:
+        if not claim.okay:
+            return False
+    return True
+
+
+
+def verifyProtSubSet(protlist,claimid,options=[]):
+    """
+    Check attacks on true subsets of this list.
+    Note subsets must include the claim id
+    """
+    global OPTS
+
+    ps = powerset(set(protlist))
+    for s in ps:
+        if (len(s) > 0) and (len(s) < len(protlist)):
+            res = verifyProtList(list(s),claimid,options)
+            if res == False:
+                """
+                If an attack is found we're actually done but for pickle we
+                make an exception to generate all possible variants.
+                """
+                if not OPTS.pickle:
+                    return False
+    return True
+
+
+def verifyMPAattack(mpalist,claimid,options=[]):
+    """
+    Check for Multi-Protocol Attacks on this protocol list.
+    Returns True if no attack ("correct") and False if an MPA attack is found.
+
+    First consider subsets, so if there is an attack there, don't consider others.
+    """
+    global OPTS
+
+    res = verifyProtSubSet(mpalist,claimid,options)
+    if res or OPTS.pickle:
+        """
+        Only really needed when no attack found but for pickle we make an
+        exception to generate all possible variants.
+        """
+        return verifyProtList(mpalist,claimid,options)
+    return True
+
+
 def verifyMPAlist(mpalist,claimid,options=[]):
     """
-    Verify the existence of an attack in this context
+    Check the existence of a multi-protocol attack in this context
 
     If an attack is found, we return False, otherwise True. This is
     needed for the iteration later.
@@ -272,32 +357,31 @@ def verifyMPAlist(mpalist,claimid,options=[]):
     if OPTS.debug:
         print time.asctime(), mpalist, claimid, options
 
-    s = MyScyther(mpalist,claimid,options)
-    claim = s.getClaim(claimid)
-    if claim:
-        if not claim.okay:
-            global FOUND
-            global ALLFOUND
-            global INVOLVED
+    if not verifyMPAattack(mpalist,claimid,options):
+        global FOUND
+        global ALLFOUND
+        global INVOLVED
 
-            # This is an MPA attack!
-            if OPTS.debug:
-                print "I've found a multi-protocol attack on claim %s in the context %s." % (claimid,str(mpalist))
-            
-            att = Attack(claim,mpalist)
-            FOUND.append(att)
-            ALLFOUND.append(att)
+        claim = claimidToClaim(claimid)
 
-            inv = [claim.protocol]
-            for fn in mpalist:
-                global PROTFILETONAME
-                inv.append(PROTFILETONAME[fn])
+        # This is an MPA attack!
+        if OPTS.debug:
+            print "I've found a multi-protocol attack on claim %s in the context %s." % (claimid,str(mpalist))
+        
+        att = Attack(claim,mpalist)
+        FOUND.append(att)
+        ALLFOUND.append(att)
 
-            for pn in inv:
-                if pn not in INVOLVED:
-                    INVOLVED.append(pn)
+        inv = [claim.protocol]
+        for fn in mpalist:
+            global PROTFILETONAME
+            inv.append(PROTFILETONAME[fn])
 
-            #return False
+        for pn in inv:
+            if pn not in INVOLVED:
+                INVOLVED.append(pn)
+
+        #return False
 
     return True
 
@@ -432,8 +516,9 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
 
     # For all these claims...
     if not OPTS.plain:
-        widgets = ['Scanning for MPA attacks: ', Percentage(), ' ',
-                   Bar(marker='#',left='[',right=']')
+        widgets = ['Scanning for MPA attacks: ', SimpleProgress(), ' claims (', Percentage(), ') ',
+                   Bar(marker='#',left='[',right=']'),
+                   ETA()
                    ]
         pbar = ProgressBar(widgets=widgets, maxval=len(correct))
         pbar.start()
@@ -730,11 +815,22 @@ def bigTest():
 
 
 def main():
-    global OPTS, ARGS
+    global OPTS, ARGS, PICKLEDATA
 
     (OPTS,ARGS) = parseArgs()
+    if OPTS.pickle:
+        PICKLEDATA = set()
+
     bigTest()
+
     #simpleTest()
+
+    if OPTS.pickle:
+        pf = open(OPTS.pickle,"wa")
+        for el in PICKLEDATA:
+            json.dump(el,pf)
+            pf.write("\n")
+        pf.close()
 
 
 if __name__ == '__main__':
