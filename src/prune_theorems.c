@@ -80,46 +80,13 @@ correctLocalOrder (const System sys)
 			      eprintf ("Pruned because ordering for term ");
 			      termSubstPrint (t);
 			      eprintf
-				(" cannot be correct: the first send r%ii%i occurs after the read r%ii%i.\n",
+				(" cannot be correct: the first send r%ii%i occurs after the receive r%ii%i.\n",
 				 r2, e2, r1, e1);
 			    }
 			  flag = false;
 			  return false;
 			}
 		    }
-		  else
-		    {
-		      globalError++;
-		      eprintf ("error: ");
-		      termPrint (sys->runs[r2].protocol->nameterm);
-		      eprintf (",");
-		      termPrint (sys->runs[r2].role->nameterm);
-		      eprintf (": term ");
-		      termSubstPrint (t);
-		      eprintf
-			(" from run %i should occur in run %i, but it doesn't.\n",
-			 r2, r2);
-		      globalError--;
-		      error ("Abort");
-		    }
-		}
-	      else
-		{
-		  // not a read first? That's definitely impossible (can be caused by choices 
-		  globalError++;
-		  eprintf ("error: term ");
-		  termSubstPrint (t);
-		  eprintf
-		    (" from run %i should occur in run %i first in a READ event, but it occurs first in event %i.\n",
-		     r2, r1, e1);
-		  eprintf ("It occurs first in ");
-		  roledefPrint (eventRoledef (sys, r1, e1));
-		  eprintf ("\n");
-		  eprintf ("which starts with ");
-		  roledefPrint (eventRoledef (sys, r1, 0));
-		  eprintf ("\n");
-		  globalError--;
-		  error ("Abort");
 		}
 	    }
 	  else
@@ -336,6 +303,8 @@ prune_theorems (const System sys)
 
   /*
    * Check for correct orderings involving local constants
+   *
+   * TODO: Clarify how this works with agent name variables in a non strict-typed setting.
    */
   if (!(switches.experimental & 8))
     {
