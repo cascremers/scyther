@@ -1,3 +1,9 @@
+/*
+ * From Boyd Mathuria
+ *
+ * To check: 3.38 or other?
+ *
+ */
 usertype Sessionkey;
 usertype Keypart;
 
@@ -63,9 +69,3 @@ compromised k(Alice,Eve);
 compromised k(Bob,Eve);
 compromised k(Simon,Eve);
 
-run gongnonce.I(Agent,Agent,Simon);
-run gongnonce.R(Agent,Agent,Simon);
-run gongnonce.S(Agent,Agent,Simon);
-run gongnonce.I(Agent,Agent,Simon);
-run gongnonce.R(Agent,Agent,Simon);
-run gongnonce.S(Agent,Agent,Simon);

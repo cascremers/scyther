@@ -25,7 +25,3 @@ untrusted Eve;
 const nc: Nonce;
 compromised sk(Eve);
 
-run soph.I(Agent,Agent);
-run soph.R(Agent,Agent);
-run soph.I(Agent,Agent);
-run soph.R(Agent,Agent);

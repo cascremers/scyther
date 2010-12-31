@@ -36,12 +36,5 @@ const Simon: Server;
 untrusted Eve;
 compromised k(Eve,Simon);
 
-run wmfbrutus.A(Agent, Agent, Simon);
-run wmfbrutus.B(Agent, Agent, Simon);
-run wmfbrutus.A(Agent, Agent, Simon);
-run wmfbrutus.B(Agent, Agent, Simon);
-run wmfbrutus.A(Agent, Agent, Simon);
-run wmfbrutus.B(Agent, Agent, Simon);
 
-run wmfbrutus.S(Agent, Agent, Simon);
 

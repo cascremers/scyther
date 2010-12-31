@@ -72,9 +72,3 @@ compromised k(Alice,Eve);
 compromised k(Bob,Eve);
 compromised k(Simon,Eve);
 
-run gongnonceb.I(Agent,Agent,Simon);
-run gongnonceb.R(Agent,Agent,Simon);
-run gongnonceb.S(Agent,Agent,Simon);
-run gongnonceb.I(Agent,Agent,Simon);
-run gongnonceb.R(Agent,Agent,Simon);
-run gongnonceb.S(Agent,Agent,Simon);

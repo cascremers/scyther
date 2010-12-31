@@ -37,3 +37,8 @@ protocol nsl3(I,R)
 	}
 }
 
+// An untrusted agent, with leaked information
+
+const Eve: Agent;
+untrusted Eve;
+compromised sk(Eve);

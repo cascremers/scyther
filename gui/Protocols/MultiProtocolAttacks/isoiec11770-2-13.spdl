@@ -54,9 +54,3 @@ compromised k(Alice,Eve);
 compromised k(Bob,Eve);
 compromised k(Simon,Eve);
 
-run isoiec11770213.I(Agent,Agent,Simon);
-run isoiec11770213.R(Agent,Agent,Simon);
-run isoiec11770213.S(Agent,Agent,Simon);
-run isoiec11770213.I(Agent,Agent,Simon);
-run isoiec11770213.R(Agent,Agent,Simon);
-run isoiec11770213.S(Agent,Agent,Simon);
