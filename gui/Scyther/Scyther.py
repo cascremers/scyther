@@ -218,6 +218,8 @@ class Scyther(object):
 
         if (spdl == None) or (len(spdl) == 0):
             spdl = self.spdl
+            if spdl == None:
+                spdl = ""
             self.filenames = []
 
         for sl in spdl.splitlines():
