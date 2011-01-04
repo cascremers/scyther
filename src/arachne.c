@@ -2368,10 +2368,13 @@ arachneClaimTest (Claimlist cl)
 
 //! Arachne single claim inspection
 int
-arachneClaim (Claimlist cl)
+arachneClaim ()
 {
-  // Skip the dummy claims
-  if (!isTermEqual (cl->type, CLAIM_Empty))
+  Claimlist cl;
+
+  // Skip the dummy claims or SID markers
+  cl = sys->current_claim;
+  if (!isClaimSignal (cl))
     {
       // Some claims are always true!
       if (!cl->alwaystrue)
@@ -2472,9 +2475,13 @@ arachne ()
       /**
        * Check each claim
        */
-      if (arachneClaim (cl))
+      sys->current_claim = cl;
+      if (isClaimRelevant (cl))	// check for any filtered claims (switch)
 	{
-	  count++;
+	  if (arachneClaim ())
+	    {
+	      count++;
+	    }
 	}
 
       // next

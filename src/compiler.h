@@ -42,4 +42,6 @@ void levelTacDeclaration (Tac tc, int isVar);
 #define	levelVar(s)	symbolDeclare(s,1)
 #define	levelConst(s)	symbolDeclare(s,0)
 
+int isStringEqual (const char *s1, const char *s2);
+
 #endif

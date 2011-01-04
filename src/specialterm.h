@@ -42,6 +42,8 @@ extern Term CLAIM_Nisynch;
 extern Term CLAIM_Niagree;
 extern Term CLAIM_Empty;
 extern Term CLAIM_Reachable;
+extern Term CLAIM_SID;
+extern Term CLAIM_SKR;
 
 extern Term AGENT_Alice;
 extern Term AGENT_Bob;

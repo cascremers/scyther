@@ -39,6 +39,7 @@
 #include "color.h"
 #include "cost.h"
 #include "timer.h"
+#include "compiler.h"
 
 //! When none of the runs match
 #define MATCH_NONE 0
@@ -816,7 +817,7 @@ add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd,
   // per default, all agents are trusted
   sys->trustedRoles = NULL;
 
-  if (cl->type == CLAIM_Secret)
+  if (cl->type == CLAIM_Secret || cl->type == CLAIM_SKR)
     {
       int newgoals;
       int flag;
@@ -1152,4 +1153,69 @@ claimStatusReport (const System sys, Claimlist cl)
 
       return true;
     }
+}
+
+//! Check whether this claim needs to be verified according to filter settings
+int
+isClaimRelevant (const Claimlist cl)
+{
+  // Is there something to filter?
+  if (switches.filterProtocol == NULL)
+    {
+      // No: consider all claims
+      return true;
+    }
+  else
+    {
+      // only this protocol
+      if (!isStringEqual
+	  (switches.filterProtocol,
+	   TermSymb (((Protocol) cl->protocol)->nameterm)->text))
+	{
+	  // not this protocol; return
+	  return false;
+	}
+      // and maybe also a specific cl->label?
+      if (switches.filterLabel != NULL)
+	{
+	  if (cl->label == NULL)
+	    {
+	      return false;
+	    }
+	  else
+	    {
+	      Term t;
+
+	      t = cl->label;
+	      while (isTermTuple (t))
+		{
+		  t = TermOp2 (t);
+		}
+	      if (!isStringEqual (switches.filterLabel, TermSymb (t)->text))
+		{
+		  // not this label; return
+		  return false;
+		}
+	    }
+	}
+    }
+  return true;
+}
+
+//! Check whether a claim is really just a signal, and not a claim
+/**
+ * This piece of code effectively decides what is a signal and what not
+ */
+int
+isClaimSignal (const Claimlist cl)
+{
+  if (isTermEqual (cl->type, CLAIM_Empty))
+    {
+      return true;
+    }
+  if (isTermEqual (cl->type, CLAIM_SID))
+    {
+      return true;
+    }
+  return false;
 }
