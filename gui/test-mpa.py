@@ -795,20 +795,31 @@ def bigTest():
 
     global OPTS, ARGS
 
-    testpath = "Protocols/MultiProtocolAttacks/"
-    fl = os.listdir(testpath)
+    l = []
     nl = []
-    for fn in fl:
-        if fn.endswith(".spdl"):
-            nl.append(fn)
+
+    """
+    Check for any given filenames
+    """
+    if len(ARGS) == 0:
+        # No filenames given
+        testpath = "Protocols/MultiProtocolAttacks/"
+        fl = os.listdir(testpath)
+        for fn in fl:
+            if fn.endswith(".spdl"):
+                nl.append(fn)
+
+        # Prepend again the path
+        l = []
+        for fn in nl:
+            l.append(testpath+fn)
+    else:
+        for fn in ARGS:
+            l.append(fn)
+        nl = l
 
     # Report list
     print "Performing multi-protocol analysis for the following protocols:", nl
-
-    # Prepend again the path
-    l = []
-    for fn in nl:
-        l.append(testpath+fn)
 
     fullScan(l)
 
