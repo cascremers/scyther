@@ -44,6 +44,8 @@ Term TERM_Data;
 
 Term TERM_Claim;
 Term CLAIM_Secret;
+Term CLAIM_Alive;
+Term CLAIM_Weakagree;
 Term CLAIM_Nisynch;
 Term CLAIM_Niagree;
 Term CLAIM_Empty;
@@ -82,6 +84,8 @@ specialTermInit (const System sys)
   langcons (TERM_Data, "Data", TERM_Type);
 
   langcons (CLAIM_Secret, "Secret", TERM_Claim);
+  langcons (CLAIM_Alive, "Alive", TERM_Claim);
+  langcons (CLAIM_Weakagree, "Weakagree", TERM_Claim);
   langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);
   langcons (CLAIM_Niagree, "Niagree", TERM_Claim);
   langcons (CLAIM_Empty, "Empty", TERM_Claim);
@@ -101,7 +105,8 @@ specialTermInit (const System sys)
   /* basically all authentication claims */
   CLAIMS_dep_prec = termlistAdd (NULL, CLAIM_Niagree);
   CLAIMS_dep_prec = termlistAdd (CLAIMS_dep_prec, CLAIM_Nisynch);
-
+  CLAIMS_dep_prec = termlistAdd (CLAIMS_dep_prec, CLAIM_Alive);
+  CLAIMS_dep_prec = termlistAdd (CLAIMS_dep_prec, CLAIM_Weakagree);
 }
 
 //! After compilation (so the user gets the first choice)
