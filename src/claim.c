@@ -769,6 +769,54 @@ arachne_claim_weakagree (const System sys, const int claim_run,
     }
   return true;
 }
+
+//! Test commit(X) => running(X)
+int
+arachne_claim_commit (const System sys, const int claim_run,
+		      const int claim_index)
+{
+  /* Check whether preceded by a running with equal parameters */
+
+  int run;
+  Roledef rd_claim;
+
+  rd_claim = roledef_shift (sys->runs[claim_run].start, claim_index);
+  /*
+   * Iterate over all preceding events (include claim run for consistency with formal definition)
+   */
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      int ev;
+      Roledef rd;
+
+      rd = sys->runs[run].start;
+      for (ev = 0; ev < sys->runs[run].step; ev++)
+	{
+	  if (!isDependEvent (run, ev, claim_run, claim_index))
+	    {
+	      break;
+	    }
+	  /* so this event precedes */
+	  if (rd->type == CLAIM)
+	    {
+	      // Check for running signal/claim
+	      // (Check: maybe below can also be rd->to)
+	      if (isTermEqual (rd->claiminfo->type, CLAIM_Running))
+		{
+		  if (isTermEqual (rd->message, rd_claim->message))
+		    {
+		      // Claim holds
+		      return true;
+		    }
+		}
+	    }
+	  /* next */
+	  rd = rd->next;
+	}
+    }
+  return false;
+}
+
 //! Test aliveness
 int
 arachne_claim_alive (const System sys, const int claim_run,
@@ -906,6 +954,21 @@ prune_claim_specifics (const System sys)
 	      indentPrint ();
 	      eprintf
 		("Pruned: alive holds in this part of the proof tree.\n");
+	    }
+	  return 1;
+	}
+    }
+  if (sys->current_claim->type == CLAIM_Commit)
+    {
+      if (arachne_claim_commit (sys, 0, sys->current_claim->ev))
+	{
+	  sys->current_claim->count =
+	    statesIncrease (sys->current_claim->count);
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf
+		("Pruned: 'commit => running' holds in this part of the proof tree.\n");
 	    }
 	  return 1;
 	}
@@ -1322,6 +1385,10 @@ isClaimSignal (const Claimlist cl)
       return true;
     }
   if (isTermEqual (cl->type, CLAIM_SID))
+    {
+      return true;
+    }
+  if (isTermEqual (cl->type, CLAIM_Running))
     {
       return true;
     }
