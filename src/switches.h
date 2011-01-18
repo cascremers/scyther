@@ -55,6 +55,7 @@ struct switchdata
   int initUnique;		//!< Default allows duplicate terms in rho (init) 
   int respUnique;		//!< Default allows duplicate terms in rho (resp)
   int intruder;			//!< Enable intruder actions (default)
+  int chosenName;		//!< Check for chosen name attacks
   int agentUnfold;		//!< Explicitly unfold for N honest agents and 1 compromised iff > 0
   int abstractionMethod;	//!< 0 means none, others are specific modes
   int useAttackBuffer;		//!< Use temporary file for attack storage

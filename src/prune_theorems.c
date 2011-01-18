@@ -113,6 +113,32 @@ correctLocalOrder (const System sys)
   return flag;
 }
 
+//! Check all runs
+/**
+ * Returns false iff an agent type is wrong
+ */
+int
+allAgentsType (const System sys)
+{
+  int run;
+
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      Termlist agents;
+
+      agents = sys->runs[run].rho;
+      while (agents != NULL)
+	{
+	  if (!goodAgentType (agents->term))
+	    {
+	      return false;
+	    }
+	  agents = agents->next;
+	}
+    }
+  return true;			// seems to be okay
+}
+
 //! Check initiator roles
 /**
  * Returns false iff an agent type is wrong
@@ -170,30 +196,6 @@ prune_theorems (const System sys)
       return true;
     }
 
-  // Check if all actors are agents for responders (initiators come next)
-  run = 0;
-  while (run < sys->maxruns)
-    {
-      if (!sys->runs[run].role->initiator)
-	{
-	  Term actor;
-
-	  actor = agentOfRun (sys, run);
-	  if (!goodAgentType (actor))
-	    {
-	      if (switches.output == PROOF)
-		{
-		  indentPrint ();
-		  eprintf ("Pruned because the actor ");
-		  termPrint (actor);
-		  eprintf (" of run %i is not of a compatible type.\n", run);
-		}
-	      return true;
-	    }
-	}
-      run++;
-    }
-
   // Prune if any initiator run talks to itself
   /**
    * This effectively disallows Alice from talking to Alice, for all
@@ -224,16 +226,65 @@ prune_theorems (const System sys)
 	}
     }
 
-  // Prune wrong agents type for initators
-  if (!initiatorAgentsType (sys))
+/*
+The semantics imply that create event chose agent names, i.e., the range of rho is a subset of Agent.
+
+For chosen name attacks we may want to loosen that. However, this requires inserting receive events for the non-actor role variables of responders, and we don't have that yet,
+so technically this is a bug. Don't use.
+*/
+  if (switches.chosenName)
     {
-      if (switches.output == PROOF)
+      // Check if all actors are agents for responders (initiators come next)
+      run = 0;
+      while (run < sys->maxruns)
 	{
-	  indentPrint ();
-	  eprintf
-	    ("Pruned: an initiator role does not have the correct type for one of its agents.\n");
+	  if (!sys->runs[run].role->initiator)
+	    {
+	      Term actor;
+
+	      actor = agentOfRun (sys, run);
+	      if (!goodAgentType (actor))
+		{
+		  if (switches.output == PROOF)
+		    {
+		      indentPrint ();
+		      eprintf ("Pruned because the actor ");
+		      termPrint (actor);
+		      eprintf (" of run %i is not of a compatible type.\n",
+			       run);
+		    }
+		  return true;
+		}
+	    }
+	  run++;
 	}
-      return true;
+
+      // Prune wrong agents type for initators
+      if (!initiatorAgentsType (sys))
+	{
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf
+		("Pruned: an initiator role does not have the correct type for one of its agents.\n");
+	    }
+	  return true;
+	}
+
+    }
+  else
+    {
+      // Prune wrong agents type for runs
+      if (!allAgentsType (sys))
+	{
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf
+		("Pruned: some run does not have the correct type for one of its agents.\n");
+	    }
+	  return true;
+	}
     }
 
   // Check if the actors of all other runs are not untrusted

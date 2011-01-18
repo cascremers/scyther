@@ -79,6 +79,7 @@ switchesInit (int argc, char **argv)
   switches.initUnique = false;	// default allows initiator rho to contain duplicate terms
   switches.respUnique = false;	// default allows responder rho to contain duplicate terms
   switches.intruder = true;	// default allows an intruder
+  switches.chosenName = false;	// default no chosen name attacks
   switches.agentUnfold = 0;	// default not to unfold agents
   switches.abstractionMethod = 0;	// default no abstraction used
   switches.useAttackBuffer = false;	// don't use by default as it does not work properly under windows vista yet
@@ -1060,6 +1061,22 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.respUnique = true;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "chosen-name", 0))
+    {
+      if (!process)
+	{
+	  /* discourage: hide
+	   *
+	   * Check for chosen-name attacks. Currently buggy: see prune_theorems.c for more details.
+	   */
+	}
+      else
+	{
+	  switches.chosenName = true;
 	  return index;
 	}
     }
