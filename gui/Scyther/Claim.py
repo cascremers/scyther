@@ -187,7 +187,7 @@ class Claim(object):
         """
         Resulting string
         """
-        s = "claim id [%s], %s" % (self.id,self.desribe())
+        s = "claim id [%s], %s" % (self.id,self.describe())
 
         # determine status
         s+= "\t: %s" % self.getComment()
