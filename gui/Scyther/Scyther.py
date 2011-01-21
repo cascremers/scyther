@@ -263,16 +263,17 @@ class Scyther(object):
 
         uid = m.hexdigest()
 
-        # Split the uid to make (256?) subdirectories
+        # Split the uid to make 256 subdirectories with 256 subdirectories...
         prefixlen = 2
         uid1 = uid[:prefixlen]
-        uid2 = uid[prefixlen:]
+        uid2 = uid[prefixlen:prefixlen+2]
+        uid3 = uid[prefixlen+2:]
 
         # Possibly we could also decide to store input and arguments in the cache to analyze things later
 
-        path = "Cache/%s/" % (uid1)
-        name1 = "%s.out" % (uid2)
-        name2 = "%s.err" % (uid2)
+        path = "Cache/%s/%s/" % (uid1,uid2)
+        name1 = "%s.out" % (uid3)
+        name2 = "%s.err" % (uid3)
 
         fname1 = path + name1
         fname2 = path + name2
