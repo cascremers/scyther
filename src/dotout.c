@@ -1454,9 +1454,8 @@ drawRegularRuns (const System sys)
 	      Roledef rd;
 	      int index;
 	      int prevnode;
+	      int firstnode;
 
-	      prevnode = 0;
-	      index = 0;
 	      rd = sys->runs[run].start;
 	      // Regular run
 
@@ -1476,8 +1475,13 @@ drawRegularRuns (const System sys)
 	      setRunColorBuf (sys, run, colorbuf);
 
 	      // Display the respective events
-	      while (index < sys->runs[run].length)
+	      prevnode = 0;
+	      firstnode = true;
+	      for (index = 0; index < sys->runs[run].length; index++)
 		{
+		  /*
+		   * invariant: prevnode has been drawn OR firstnode is true
+		   */
 		  if (!isEventIgnored (sys, run, index))
 		    {
 		      // Print node itself
@@ -1504,9 +1508,9 @@ drawRegularRuns (const System sys)
 		      eprintf (";\n");
 
 		      // Print binding to previous node
-		      if (index > sys->runs[run].firstReal)
+		      if (firstnode == false)
 			{
-			  // index > 0
+			  // not the first node
 			  eprintf ("\t\t");
 			  node (sys, run, prevnode);
 			  eprintf (" -> ");
@@ -1514,67 +1518,32 @@ drawRegularRuns (const System sys)
 			  eprintf (" [style=\"bold\", weight=\"%s\"]",
 				   RUNWEIGHT);
 			  eprintf (";\n");
-			  prevnode = index;
 			}
 		      else
 			{
-			  // index <= firstReal
-			  if (index == sys->runs[run].firstReal)
+			  // firstnode
+			  if (!switches.clusters)
 			    {
-			      // index == firstReal
-			      Roledef rd;
-			      int send_before_read;
-			      int done;
+			      // Draw the first box (HEADER)
+			      eprintf ("\t\ts%i [label=\"{ ", run);
 
-			      // Determine if it is an active role or note
-			      /**
-			       *@todo note that this will probably become a standard function call for role.h
-			       */
-			      rd =
-				roledef_shift (sys->runs[run].start,
-					       sys->runs[run].firstReal);
-			      done = 0;
-			      send_before_read = 0;
-			      while (!done && rd != NULL)
-				{
-				  if (rd->type == READ)
-				    {
-				      done = 1;
-				    }
-				  if (rd->type == SEND)
-				    {
-				      done = 1;
-				      send_before_read = 1;
-				    }
-				  rd = rd->next;
-				}
-
-			      if (!switches.clusters)
-				{
-				  // Draw the first box (HEADER)
-				  // This used to be drawn only if done && send_before_read, now we always draw it.
-				  eprintf ("\t\ts%i [label=\"{ ", run);
-
-				  printRunExplanation (sys, run, "\\l", "|");
-				  // close up
-				  eprintf ("}\", shape=record");
-				  eprintf
-				    (",style=filled,fillcolor=\"%s\"",
-				     colorbuf + 8);
-				  eprintf ("];\n");
-				  eprintf ("\t\ts%i -> ", run);
-				  node (sys, run, index);
-				  eprintf
-				    (" [style=bold, weight=\"%s\"];\n",
-				     RUNWEIGHT);
-				  prevnode = index;
-				}
-
-
+			      printRunExplanation (sys, run, "\\l", "|");
+			      // close up
+			      eprintf ("}\", shape=record");
+			      eprintf
+				(",style=filled,fillcolor=\"%s\"",
+				 colorbuf + 8);
+			      eprintf ("];\n");
+			      eprintf ("\t\ts%i -> ", run);
+			      node (sys, run, index);
+			      eprintf
+				(" [style=bold, weight=\"%s\"];\n",
+				 RUNWEIGHT);
 			    }
+			  firstnode = false;
 			}
+		      prevnode = index;
 		    }
-		  index++;
 		  rd = rd->next;
 		}
 
