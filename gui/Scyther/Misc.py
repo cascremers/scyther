@@ -64,7 +64,7 @@ def sorted(li):
     return result
 
 
-# ensurePath: does what os.makedirs should do.
+# ensurePath: wraps os.makedirs
 def ensurePath(pt):
     """
     Make sure the path exists: if not, create the directories one by one
@@ -75,27 +75,9 @@ def ensurePath(pt):
     It ensures this by doing the procedure for "dog", then "dog/cat", etc...
     """
 
-    ptn = os.path.normpath(pt)
-
-    # First we see what needs to exist overall
-    todo = [ptn]
-    tail = "x"
-    while len(tail) > 0:
-        (head,tail) = os.path.split(ptn)
-        if len(head) > 0:
-            todo.append(head)
-            ptn = head
-        else:
-            break
-
-    # Reverse list: path prefixes first
-    todo.reverse()
-
-    # Create bottom-up
-    for pt in todo:
-        if not os.path.isdir(pt):
-            # Note that os.path.exists(pt) may still hold. In this case the next command will cause an error.
-            os.mkdir(pt)
+    if not os.path.isdir(pt):
+         # Note that os.path.exists(pt) may still hold. In this case the next command will cause an error.
+         os.makedirs(pt)
 
 
 # path
