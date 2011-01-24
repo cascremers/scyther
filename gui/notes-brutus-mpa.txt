@@ -1,0 +1,178 @@
+run test-MPA with --pickle to some file FILE.
+
+Choose a STEP integer: how many verifications are batched into a single job.
+
+Then:
+
+./make-bsub.py FILE STEP -W 1:00 [OTHER BSUB OPTIONS] > tests.sh
+
+Then
+
+bash tests.sh
+
+
+When all is done, rerun the original thing without pickle.
+
+
+
+This invokes then:
+json-scyther.py
+in different batches
+
+
+
+
+
+Test run for real
+
+
+Fri Dec 31 16:33:20 CET 2010
+
+Login & screen on brutus3 node.
+
+bsub -W 2:00 ./test-mpa.py --pickle mpa-tests.json -A Protocols/MultiProtocolAttacks/*.spdl
+
+Fri Dec 31 18:48:29 CET 2010
+
+Given the 6 minutes timeout, decided to batch into the 1h queues. Thus 9
+verifications can safely go in a batch.
+
+./make-bsub.py mpa-tests.json 9 -W 1:00 >mpa-tests.sh
+
+bash mpa-tests.sh
+
+
+Hmm. For the 1h queue on Brutus, there is a 10.000 pending jobs limit. Thus my
+40.000+ jobs get stuck here.
+
+So I could have done the division such that the jobs can be pended at onces
+but it would have meant putting the jobs in the 8h or more queues.
+
+For the batching thing, it would be nice to print a counter every 10 bsubs so
+if it gets stuck, you can see where it is (or better: how much is left).
+
+The lsf.o* output files clog up the directory. Find a way to disable them!
+
+Woops, we get mail once in a while. Not good. Unclear under which conditions
+this occurs, it seems to be errors only. (Probably stale file pointers from
+the old watch & rm solution.)
+
+Sun Jan  2 10:54:23 CET 2011
+
+All jobs have been submitted, now only 3000 pending.
+
+There may be a limit for me of about 128 active jobs at the same time.
+
+Sun Jan  2 11:30:30 CET 2011
+
+2200 pending.
+
+Sun Jan  2 12:38:48 CET 2011
+
+1155 pending.
+(bjobs -p | grep PEND | wc -l)
+
+Sun Jan  2 13:59:04 CET 2011
+
+0 jobs pending, 32 jobs active.
+
+Sun Jan  2 14:18:11 CET 2011
+
+Done. Recomp started (without --pickle FILE above)
+Takes too long on login node. Killed at 14:40.
+
+Instead, rerunning with:
+
+bsub -I -N ./test-mpa.py  -A Protocols/MultiProtocolAttacks/*.spdl
+
+-I for interactive, -N for mail at end.
+
+Sun Jan  2 14:45:04 CET 2011
+
+Above job is running. It also seems faster.
+
+Sun Jan  2 20:07:58 CET 2011
+
+Sigh. It got killed after one hour because no time limit was set.
+Rerunning with -W 6:00
+
+
+
+
+
+
+Sun Jan  2 14:30:19 CET 2011
+
+In parallel, starting new huge job; biggest possible using current script options.
+
+bsub -W 7:00 ./test-mpa.py --pickle test-full-mpa.json --self-communication -A Protocols/MultiProtocolAttacks/*.spdl 
+
+Actually, these big jobs should be started with finishing e-mail notification
+or the switch that makes the bsub command only return after the jobs has
+finished, otherwise we end up watching bjobs all the time, which is boring.
+
+Sun Jan  2 14:40:08 CET 2011
+
+The above test generation is now running.
+
+Sun Jan  2 20:09:42 CET 2011
+
+The test generation seems to have finished at 15:31.
+
+./make-bsub.py test-full-mpa.json 10 -W 1:00 >test-full-mpa.sh
+
+This finished at 20:11.
+So now running
+
+nice bash test-full-mpa.sh
+
+G
+
+
+
+Sun Jan  2 15:07:13 CET 2011
+
+A third parallel test:
+
+batcher.sh OPTIONS_AND_FILES_FOR_TEST_MPA_SCRIPT
+
+Running with -L5. This should automate all of the previous stuff.
+
+
+
+
+Wed Jan  5 15:37:11 CET 2011
+
+Running for cryptrec (with new Scyther version and new batches of 5 things)
+./batcher.sh ~/papers/iso/*.spdl
+
+
+
+Tue Jan 18 17:10:49 CET 2011
+
+./batcher.sh -m 1 --all-types --self-communication ~/papers/iso/*.spdl
+The batcher has jobid 930582
+
+(error, reverting to os.makedirs(path))
+
+Tue Jan 18 23:45:15 CET 2011
+
+./test-iso-combo.sh
+
+Tue Jan 18 23:49:15 CET 2011
+
+./batcher.sh -m 2 --all-types --self-communication ~/papers/iso/*.spdl
+
+Solved: do "watch -n 10 ./WIPER.sh 11"
+(wiper.sh finds lsf files accessed longer ago than 11 minutes and wipes them)
+
+./test-mpa-alltypes.sh 
+
+
+
+Mon Jan 24 14:55:23 CET 2011
+
+./batcher.sh -m 2 --all-types Protocols/MultiProtocolAttacks/*.spdl
+
+
+
