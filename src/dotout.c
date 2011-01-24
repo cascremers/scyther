@@ -27,6 +27,7 @@
 #include "type.h"
 #include "debug.h"
 #include "error.h"
+#include "specialterm.h"
 
 extern Protocol INTRUDER;	// Pointers, to be set by the Init of arachne.c
 extern Role I_M;		// Same here.
@@ -607,6 +608,10 @@ isCommunicationExact (const System sys, Binding b)
 }
 
 //! Ignore some events
+/**
+ * Used only in graph drawing. Return true to ignore, return false to
+ * draw.
+ */
 int
 isEventIgnored (const System sys, int run, int ev)
 {
@@ -615,17 +620,28 @@ isEventIgnored (const System sys, int run, int ev)
   rd = eventRoledef (sys, run, ev);
   if (rd->type == CLAIM)
     {
-      if (run != 0)
+      // If we are doing a reachability analysis, show all
+      if (isTermEqual(sys->current_claim->type, CLAIM_Reachable))
 	{
-	  return true;
+	  return false;
 	}
-      else
+      // If the claim type is commit, we also show running claims
+      if (isTermEqual(sys->current_claim->type, CLAIM_Commit) || isTermEqual(sys->current_claim->type, CLAIM_Reachable))
 	{
-	  if (ev != sys->current_claim->ev)
+	  if (isTermEqual(rd->claiminfo->type, CLAIM_Running))
 	    {
-	      return true;
+	      return false;
 	    }
 	}
+      // Remaining cases: only active claim is shown
+      if (run == 0)
+	{
+	  if (ev == sys->current_claim->ev)
+	    {
+	      return false;
+	    }
+	}
+      return true;
     }
   return false;
 }

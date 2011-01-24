@@ -925,6 +925,17 @@ tuple_to_termlist (Term t)
     }
 }
 
+//! Get the leftmost term of a tuple (e.g. a non-tuple)
+Term termLeft(Term t)
+{
+  t = deVar(t);
+  if (realTermTuple (t))
+    {
+      return termLeft(TermOp1 (t));
+    }
+  return t;
+}
+
 //! Remove all items from tlbig that occur in tlsmall, and return the pointer to the new tlbig.
 Termlist
 termlistMinusTermlist (const Termlist tlbig, const Termlist tlsmall)

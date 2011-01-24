@@ -771,6 +771,14 @@ arachne_claim_weakagree (const System sys, const int claim_run,
 }
 
 //! Test commit(X) => running(X)
+/**
+ * To be precise:
+ *
+ * for all claim(a,Commit,b,data) => 
+ *    claim(b,Running,a,data)#rid and role(rid) == ROLE(b in claim role spec)
+ *
+ * For now we assume data is non-empty
+ */
 int
 arachne_claim_commit (const System sys, const int claim_run,
 		      const int claim_index)
@@ -779,8 +787,17 @@ arachne_claim_commit (const System sys, const int claim_run,
 
   int run;
   Roledef rd_claim;
+  Term actor_a;
+  Term actor_b;
+  Term partner_role;
+  Termlist params_a;
 
   rd_claim = roledef_shift (sys->runs[claim_run].start, claim_index);
+  params_a = tuple_to_termlist(rd_claim->message);
+  actor_a = rd_claim->from;
+  actor_b = params_a->term;
+  partner_role = termLeft(rd_claim->claiminfo->parameter);
+
   /*
    * Iterate over all preceding events (include claim run for consistency with formal definition)
    */
@@ -803,10 +820,30 @@ arachne_claim_commit (const System sys, const int claim_run,
 	      // (Check: maybe below can also be rd->to)
 	      if (isTermEqual (rd->claiminfo->type, CLAIM_Running))
 		{
-		  if (isTermEqual (rd->message, rd_claim->message))
+		  // Now check whether they match up nicely
+		  // protocols should be the same
+		  if (sys->current_claim->protocol == rd->claiminfo->protocol)
 		    {
-		      // Claim holds
-		      return true;
+		      Termlist params_b;
+
+		      params_b = tuple_to_termlist(rd->message);
+		      // check agent requirements
+		      if (isTermEqual(rd->from,actor_b) && isTermEqual(params_b->term,actor_a))
+			{
+			  // check role (also same protocol)
+			  if (isTermEqual(partner_role,rd->claiminfo->rolename))
+			    {
+			      // check parameters
+			      if (isTermlistEqual (params_a->next,params_b->next))
+				{
+				  // Claim holds
+				  termlistDelete(params_b);
+				  termlistDelete(params_a);
+				  return true;
+				}
+			    }
+			}
+		      termlistDelete(params_b);
 		    }
 		}
 	    }
@@ -814,6 +851,7 @@ arachne_claim_commit (const System sys, const int claim_run,
 	  rd = rd->next;
 	}
     }
+  termlistDelete(params_a);
   return false;
 }
 
