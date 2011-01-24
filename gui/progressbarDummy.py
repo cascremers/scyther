@@ -45,6 +45,12 @@ class ProgressBar(object):
         print " Done."
 
 
+def SimpleProgress():
+    return
+
+def ETA():
+    return
+
 def Percentage():
     return
 

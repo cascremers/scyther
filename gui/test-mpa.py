@@ -464,6 +464,14 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
     # Find all correct claims in each protocol
     (protocolset,correct,cpcount) = getCorrectIsolatedClaims(protocolset,options)
     print "Investigating %i correct claims in %i protocols." % (len(correct), cpcount)
+
+    mpaprots = []
+    res = []
+
+    if len(correct) == 0:
+        print "Nothing to do."
+        return res
+
     if OPTS.verbose:
         """
         When verbose, list correct claims in protocols
@@ -570,8 +578,6 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
     they are not, some other errors should have been reported by the Scyther
     backend anyway (conflicting protocol definitions in MPA analysis).
     """
-    mpaprots = []
-    res = []
     for att in FOUND:
         pn = att.protocol()
         if pn not in mpaprots:
