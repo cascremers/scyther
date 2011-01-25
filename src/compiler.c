@@ -498,40 +498,6 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
       label = generateFreshClaimlabel (sys, protocol, role, claim);
     }
 
-  if (switches.filterProtocol != NULL)
-    {
-      // only this protocol
-      if (!isStringEqual
-	  (switches.filterProtocol, TermSymb (protocol->nameterm)->text))
-	{
-	  // not this protocol; return
-	  return NULL;
-	}
-      // and maybe also a specific label?
-      if (switches.filterLabel != NULL)
-	{
-	  if (label == NULL)
-	    {
-	      return NULL;
-	    }
-	  else
-	    {
-	      Term t;
-
-	      t = label;
-	      while (isTermTuple (t))
-		{
-		  t = TermOp2 (t);
-		}
-	      if (!isStringEqual (switches.filterLabel, TermSymb (t)->text))
-		{
-		  // not this label; return
-		  return NULL;
-		}
-	    }
-	}
-    }
-
   // Assert: label is unique, add claimlist info
   cl = malloc (sizeof (struct claimlist));
   cl->type = claim;
