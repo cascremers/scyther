@@ -1,5 +1,7 @@
 #!/bin/sh
 
-find lsf.* -amin +11 -print0 -delete
+clear
+
+find lsf.* -maxdepth 0 -amin +11 -print0 -delete
 
 
