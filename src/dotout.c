@@ -621,14 +621,15 @@ isEventIgnored (const System sys, int run, int ev)
   if (rd->type == CLAIM)
     {
       // If we are doing a reachability analysis, show all
-      if (isTermEqual(sys->current_claim->type, CLAIM_Reachable))
+      if (isTermEqual (sys->current_claim->type, CLAIM_Reachable))
 	{
 	  return false;
 	}
       // If the claim type is commit, we also show running claims
-      if (isTermEqual(sys->current_claim->type, CLAIM_Commit) || isTermEqual(sys->current_claim->type, CLAIM_Reachable))
+      if (isTermEqual (sys->current_claim->type, CLAIM_Commit)
+	  || isTermEqual (sys->current_claim->type, CLAIM_Reachable))
 	{
-	  if (isTermEqual(rd->claiminfo->type, CLAIM_Running))
+	  if (isTermEqual (rd->claiminfo->type, CLAIM_Running))
 	    {
 	      return false;
 	    }

@@ -793,10 +793,10 @@ arachne_claim_commit (const System sys, const int claim_run,
   Termlist params_a;
 
   rd_claim = roledef_shift (sys->runs[claim_run].start, claim_index);
-  params_a = tuple_to_termlist(rd_claim->message);
+  params_a = tuple_to_termlist (rd_claim->message);
   actor_a = rd_claim->from;
   actor_b = params_a->term;
-  partner_role = termLeft(rd_claim->claiminfo->parameter);
+  partner_role = termLeft (rd_claim->claiminfo->parameter);
 
   /*
    * Iterate over all preceding events (include claim run for consistency with formal definition)
@@ -826,24 +826,27 @@ arachne_claim_commit (const System sys, const int claim_run,
 		    {
 		      Termlist params_b;
 
-		      params_b = tuple_to_termlist(rd->message);
+		      params_b = tuple_to_termlist (rd->message);
 		      // check agent requirements
-		      if (isTermEqual(rd->from,actor_b) && isTermEqual(params_b->term,actor_a))
+		      if (isTermEqual (rd->from, actor_b)
+			  && isTermEqual (params_b->term, actor_a))
 			{
 			  // check role (also same protocol)
-			  if (isTermEqual(partner_role,rd->claiminfo->rolename))
+			  if (isTermEqual
+			      (partner_role, rd->claiminfo->rolename))
 			    {
 			      // check parameters
-			      if (isTermlistEqual (params_a->next,params_b->next))
+			      if (isTermlistEqual
+				  (params_a->next, params_b->next))
 				{
 				  // Claim holds
-				  termlistDelete(params_b);
-				  termlistDelete(params_a);
+				  termlistDelete (params_b);
+				  termlistDelete (params_a);
 				  return true;
 				}
 			    }
 			}
-		      termlistDelete(params_b);
+		      termlistDelete (params_b);
 		    }
 		}
 	    }
@@ -851,7 +854,7 @@ arachne_claim_commit (const System sys, const int claim_run,
 	  rd = rd->next;
 	}
     }
-  termlistDelete(params_a);
+  termlistDelete (params_a);
   return false;
 }
 
