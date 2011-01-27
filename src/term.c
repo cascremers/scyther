@@ -1386,6 +1386,22 @@ freshTermPrefix (Term prefixterm)
   return makeTermType (GLOBAL, freshsymbol, -1);
 }
 
+//! Generate a term from an int, prefixed with the string of the given term.
+Term
+intTermPrefix (const int n, Term prefixterm)
+{
+  Symbol prefixsymbol;
+  Symbol freshsymbol;
+
+  prefixsymbol = NULL;
+  if (prefixterm != NULL && realTermLeaf (prefixterm))
+    {
+      prefixsymbol = TermSymb (prefixterm);
+    }
+  freshsymbol = symbolFromInt (n, prefixsymbol);
+  return makeTermType (GLOBAL, freshsymbol, -1);
+}
+
 //! Determine whether a term is a functor
 int
 isTermFunctionName (Term t)

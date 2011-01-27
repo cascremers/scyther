@@ -67,6 +67,7 @@ void symbolPrintAll (void);
 Symbol symbolSysConst (const char *str);
 void symbol_fix_keylevels (void);
 Symbol symbolNextFree (Symbol prefixsymbol);
+Symbol symbolFromInt (int n, Symbol prefixsymbol);
 
 void eprintf (char *fmt, ...);
 void veprintf (const char *fmt, va_list args);

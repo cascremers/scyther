@@ -201,6 +201,7 @@ void term_set_keylevels (const Term term);
 void termPrintDiff (Term t1, Term t2);
 int isLeafNameEqual (Term t1, Term t2);
 Term freshTermPrefix (Term prefixterm);
+Term intTermPrefix (const int n, Term prefixterm);
 int isTermFunctionName (Term t);
 Term getTermFunction (Term t);
 unsigned int termHidelevel (const Term tsmall, Term tbig);

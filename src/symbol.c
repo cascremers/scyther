@@ -291,6 +291,60 @@ symbolNextFree (Symbol prefixsymbol)
   return NULL;
 }
 
+//! Return symbol according to integer
+Symbol
+symbolFromInt (int n, Symbol prefixsymbol)
+{
+  char *prefixstr;
+  int len;
+
+  if (!(n <= 9999))
+    {
+      error ("Can only make symbol from int when smaller than 10000");
+    }
+
+  if (prefixsymbol != NULL)
+    {
+      prefixstr = (char *) prefixsymbol->text;
+      len = strlen (prefixstr);
+    }
+  else
+    {
+      prefixstr = "";
+      len = 0;
+    }
+
+  /*
+   * The construction below (variable buffer length) is not allowed in ISO C90
+   */
+  char buffer[len + 5];		// thus we must enforce a maximum of 9.999 (allowing for storage of \0 )
+  Symbol symb;
+  int slen;
+
+  slen = sprintf (buffer, "%s%i", prefixstr, n);
+  buffer[slen] = EOS;
+  symb = lookup (buffer);
+  if (symb == NULL)
+    {
+      char *newstring;
+      // Copy the buffer to something that will survive
+	  /**
+	   * Memory leak: although this routine should not be called recursively, it will never de-allocate this memory.
+	   * Thus, some precaution is necessary.
+	   * [x][CC]
+	   */
+      newstring = (char *) malloc (slen + 1);
+      memcpy (newstring, buffer, slen + 1);
+
+      /* This persistent string can be used to return a fresh symbol */
+
+      symb = symbolSysConst (newstring);
+    }
+
+  return symb;
+
+}
+
 //! Fix all the unset keylevels
 void
 symbol_fix_keylevels (void)

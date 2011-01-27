@@ -466,7 +466,7 @@ isClaimlabelUsed (const System sys, const Term label)
 //! Generate a fresh claim label
 Term
 generateFreshClaimlabel (const System sys, const Protocol protocol,
-			 const Role role, const Term claim)
+			 const Role role, const Term claim, const int n)
 {
   Term label;
 
@@ -489,13 +489,16 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 	     const Term claim, Term label, const Term msg, const int lineno)
 {
   Claimlist cl;
+  int len;
+
+  len = roledef_length (role->roledef);
 
   /* generate full unique label */
   /* is the label empty or used? */
   if (label == NULL || isClaimlabelUsed (sys, label))
     {
       /* simply generate a fresh one */
-      label = generateFreshClaimlabel (sys, protocol, role, claim);
+      label = generateFreshClaimlabel (sys, protocol, role, claim, len);
     }
 
   // Assert: label is unique, add claimlist info
@@ -606,7 +609,18 @@ commEvent (int event, Tac tc)
        * This can be a weird choice if it is a read or send, because in that case
        * we cannot chain them anymore and the send-read correspondence is lost.
        */
-      label = freshTermPrefix (thisRole->nameterm);
+      int n;
+      Roledef rd;
+
+      n = 1;
+      for (rd = thisRole->roledef; rd != NULL; rd = rd->next)
+	{
+	  if (rd->type == CLAIM)
+	    {
+	      n++;
+	    }
+	}
+      label = intTermPrefix (n, thisRole->nameterm);
     }
   else
     {
