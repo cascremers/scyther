@@ -36,11 +36,22 @@ class ScytherError(Error):
         backend
     """
 
-    def __init__(self, errorlist):
+    def __init__(self, errorlist,filenames=None,options=None):
         self.errorlist = errorlist
+        self.filenames = filenames
+        self.options = options
 
     def __str__(self):
-        s = "Scyther backend reported the following errors:\n"
+        s = "Scyther backend reported errors"
+        if len(self.filenames) == 0:
+            s = s + " for unknown files."
+        if len(self.filenames) == 1:
+            s = s + " for file %s" % (self.filenames)
+        if len(self.filenames) > 1:
+            s = s + " for files %s" % (self.filenames)
+        s = s + "\n"
+        s = s + "Options: '%s'\n\n" % (self.options)
+        S = s + "Error details:\n"
         s = s + "\n".join(self.errorlist)
         return s
 

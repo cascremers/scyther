@@ -30,7 +30,12 @@ import os.path
 import sys
 import StringIO
 import tempfile
-
+try:
+    import hashlib
+    HASHLIB = True
+except ImportError:
+    HASHLIB = False
+    pass
 
 #---------------------------------------------------------------------------
 
@@ -163,6 +168,7 @@ class Scyther(object):
         self.program = getScytherBackend()
         self.spdl = None
         self.inputfile = None
+        self.filenames = []
         self.options = ""
         self.claims = None
         self.errors = None
@@ -178,9 +184,11 @@ class Scyther(object):
     def setInput(self,spdl):
         self.spdl = spdl
         self.inputfile = None
+        self.guessFileNames()
 
     def setFile(self,filename):
         self.inputfile = filename
+        self.filenames = [self.inputfile]
         self.spdl = ""
         fp = open(filename,"r")
         for l in fp.readlines():
@@ -195,12 +203,113 @@ class Scyther(object):
         for l in fp.readlines():
             self.spdl += l
         fp.close()
+        self.guessFileNames()
+
+    def guessFileNames(self,spdl=None):
+        """
+        Try to extract filenames (well, actually, protocol names) sloppily from some spdl script.
+
+        There are two modes:
+
+        [init] : If the spdl parameter is empty or None, we reset the filenames and extract from self.spdl
+        [add]  : If the spdl parameter is non-empty, add the extracted filenames to an existing list
+
+        """
+
+        if (spdl == None) or (len(spdl) == 0):
+            spdl = self.spdl
+            if spdl == None:
+                spdl = ""
+            self.filenames = []
+
+        for sl in spdl.splitlines():
+            l = sl.strip()
+            prefix = "protocol "
+            postfix = "("
+            x = l.find(prefix)
+            if x >= 0:
+                # The prefix occurs
+                y = l.find(postfix,x+len(prefix))
+                if y >= 0:
+                    gn = l[x+len(prefix):y]
+                    # check for helper protocols
+                    if not gn.startswith("@"):
+                        if gn not in self.filenames:
+                            self.filenames.append(gn)
 
     def addArglist(self,arglist):
         for arg in arglist:
             self.options += " %s" % (arg)
 
     def doScytherCommand(self, spdl, args):
+        """
+        Cached version of the 'real' below
+        """
+        global HASHLIB
+
+        if not HASHLIB:
+            return self.doScytherCommandReal(spdl,args)
+
+        # So we have the hashing libs
+        m = hashlib.sha256()
+        if spdl == None:
+            m.update("[spdl:None]")
+        else:
+            m.update(spdl)
+        if args == None:
+            m.update("[args:None]")
+        else:
+            m.update(args)
+
+        uid = m.hexdigest()
+
+        # Split the uid to make 256 subdirectories with 256 subdirectories...
+        prefixlen = 2
+        uid1 = uid[:prefixlen]
+        uid2 = uid[prefixlen:prefixlen+2]
+        uid3 = uid[prefixlen+2:]
+
+        # Possibly we could also decide to store input and arguments in the cache to analyze things later
+
+        path = "Cache/%s/%s/" % (uid1,uid2)
+        name1 = "%s.out" % (uid3)
+        name2 = "%s.err" % (uid3)
+
+        fname1 = path + name1
+        fname2 = path + name2
+
+        try:
+            """
+            Try to retrieve the result from the cache
+            """
+            fh1 = open(fname1,"r")
+            out = fh1.read()
+            fh1.close()
+            fh2 = open(fname2,"r")
+            err = fh2.read()
+            fh2.close()
+            return (out,err)
+        except:
+            """
+            Something went wrong, do the real thing and cache afterwards
+            """
+            (out,err) = self.doScytherCommandReal(spdl,args)
+
+            # Store result in cache
+            ensurePath(path)
+
+            fh1 = open(fname1,"w")
+            fh1.write(out)
+            fh1.close()
+
+            fh2 = open(fname2,"w")
+            fh2.write(err)
+            fh2.close()
+
+            return (out,err)
+
+
+    def doScytherCommandReal(self, spdl, args):
         """ 
         Run Scyther backend on the input
         
@@ -221,6 +330,9 @@ class Scyther(object):
             # Scyther hickups on completely empty input
             spdl = "\n"
 
+        # Extract filenames for error reporting later
+        self.guessFileNames(spdl=spdl)
+
         # Generate temporary files for the output.
         # Requires Python 2.3 though.
         (fde,fne) = tempfile.mkstemp()  # errors
@@ -235,7 +347,7 @@ class Scyther(object):
 
         # Generate command line for the Scyther process
         self.cmd = ""
-        self.cmd += "\'%s\'" % self.program
+        self.cmd += "\"%s\"" % self.program
         self.cmd += " --append-errors=%s" % fne
         self.cmd += " --append-output=%s" % fno
         self.cmd += " %s" % args
@@ -307,7 +419,7 @@ class Scyther(object):
 
         self.errorcount = len(self.errors)
         if self.errorcount > 0:
-            raise Error.ScytherError(self.errors)
+            raise Error.ScytherError(self.errors,filenames=self.filenames,options=self.options)
 
         # process output
         self.output = output
