@@ -64,6 +64,22 @@ def sorted(li):
     return result
 
 
+# ensurePath: wraps os.makedirs
+def ensurePath(pt):
+    """
+    Make sure the path exists: if not, create the directories one by one
+
+    By example:
+
+    Call with "dog/cat/bone" ensures that afterwards, this subdirectory structure (dog/cat/bone) exists, with 'bone' a directory.
+    It ensures this by doing the procedure for "dog", then "dog/cat", etc...
+    """
+
+    if not os.path.isdir(pt):
+         # Note that os.path.exists(pt) may still hold. In this case the next command will cause an error.
+         os.makedirs(pt)
+
+
 # path
 def mypath(file):
     """ Construct a file path relative to the scyther-gui main directory
@@ -91,6 +107,7 @@ def safeCommandOutput(cmd):
     """
     p = Popen(cmd, shell=getShell(), stdout=PIPE, stderr=PIPE)
     (sout,serr) = p.communicate()
+
     return (p.returncode,sout,serr)
 
 def safeCommand(cmd):
