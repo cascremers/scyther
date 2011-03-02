@@ -114,10 +114,20 @@ def safeCommand(cmd):
     """ Execute a command with some arguments. Safe cross-platform
     version, I hope. """
 
-    p = Popen(cmd, shell=getShell())
-    sts = p.wait()
+    try:
+        p = Popen(cmd, shell=getShell())
+        sts = p.wait()
+    except KeyboardInterrupt, EnvironmentError:
+        raise
+    except:
+        print "Wile processing [%s] we had an" % (cmd)
+        print "unexpected error:", sys.exc_info()[0]
+        print
+        sts = -1
+        raise   # For now still raise
 
     return sts
+
 
 def panic(text):
     """
