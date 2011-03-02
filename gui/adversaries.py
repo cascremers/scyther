@@ -282,6 +282,24 @@ def InitRestricted(models=None):
         MS.append(model.copy())
     namedmodels["extravert"] = MS   # Extravert only
 
+    RESTRICTEDMODELS = None
+    MS = []
+    for model in Traverse(unrestricted=True):
+        if model.vector[2] == 0:
+            MS.append(model.copy())
+    namedmodels["allauth"] = MS # Authentication-relevant only
+
+    RESTRICTEDMODELS = None
+    MS = []
+    for model in Traverse(unrestricted=True):
+        okay = True
+        for i in range(2,6):
+            if model.vector[i] != 0:
+                okay = False
+        if okay:
+            MS.append(model.copy())
+    namedmodels["someauth"] = MS # Authentication-relevant only
+
     namedmodels["triangle"] = [eck1,eck2, ck2001hmqvrnr,ck2001rnr]   # Triangle restriction
     namedmodels["triangle2"] = [eck1,eck2, ck2001hmqvrnr, pfs]        # Second triangle restriction
     namedmodels["square"] = [eck1,eck2, ck2001hmqvrnr,ck2001rnr,pfs]   # Square restriction
