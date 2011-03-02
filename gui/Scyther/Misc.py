@@ -116,8 +116,17 @@ def safeCommand(cmd):
 
     p = Popen(cmd, shell=getShell())
     sts = p.wait()
+    try:
+        p = Popen(cmd, shell=getShell())
+        sts = p.wait()
+    except:
+        print "Wile processing [%s] we had an" % (cmd)
+        print "unexpected error:", sys.exc_info()[0]
+        print
+        sts = -1
 
     return sts
+
 
 def panic(text):
     """
