@@ -232,8 +232,9 @@ def MyScyther(protocollist,filt=None,options=[],checkpickle=True):
     for protocol in sorted(protocollist):
         s.addFile(protocol)
     if checkpickle and OPTS.pickle:
-        # Do not really verify! Just dump request
-        PICKLEDATA.add((tuple(sorted(protocollist)),s.options,filt))
+        # Do not really verify! Just dump request if not already known
+        if s.verifyOne(filt, checkKnown=True) == False:
+            PICKLEDATA.add((tuple(sorted(protocollist)),s.options,filt))
     else:
         # Verify results
         s.verifyOne(filt)

@@ -176,3 +176,6 @@ Mon Jan 24 14:55:23 CET 2011
 
 
 
+Sat Jan 29 13:35:22 CET 2011
+
+./batcher.sh -m 2 -A --self-communication Protocols/MultiProtocolAttacks/*.spdl
