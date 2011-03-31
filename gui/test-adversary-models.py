@@ -88,6 +88,7 @@ def initParser():
     parser.add_option("-D","--debug", action="store_const", const=True,  dest="debug", default=False, help="Display debugging information.")
     parser.add_option("","--paper", action="store_const", const=True, dest="paper", default=False, help="Repeat experiments as in paper.")
     parser.add_option("","--paper-protocols", action="store_const", const=True, dest="paperprotocols", default=False, help="Add protocols from paper.")
+    parser.add_option("","--no-buffer", action="store_const", const=True, dest="nobuffer", default=False, help="Do not write large verification file cache.")
 
     (options, args) = parser.parse_args()
     return (options, args)

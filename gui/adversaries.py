@@ -1502,6 +1502,10 @@ def sortBuffer():
     Sort the Cache file
     """
     global CACHEFILE
+    global OPTIONS 
+
+    if OPTIONS.nobuffer == True:
+        return
 
     ll = []
     try:
@@ -1526,9 +1530,13 @@ class ScytherCache(object):
     self.data = (protocol [file]) -> ((claim,model) -> res)
     """
     global CACHEFILE
+    global OPTIONS 
 
     def __init__(self,plist):
         self.data = {}
+
+        if OPTIONS.nobuffer == True:
+            return
         try:
             fp = open(CACHEFILE,"r")
             print "Reloading cache file."
@@ -1598,15 +1606,16 @@ class ScytherCache(object):
             # Store in cache object
             self.setForce(protocol,claim,dbkey,res)
 
-            # Write to cache
-            fp = open(CACHEFILE,"a")
-            if comment != "":
-                cres = "\t" + comment
-            else:
-                cres = ""
-            fp.write("%s\t%s\t%s\t%s%s\n" % (protocol,claim,dbkey,res,cres))
-            fp.flush()
-            fp.close()
+            if not (OPTIONS.nobuffer == True):
+                # Write to cache
+                fp = open(CACHEFILE,"a")
+                if comment != "":
+                    cres = "\t" + comment
+                else:
+                    cres = ""
+                fp.write("%s\t%s\t%s\t%s%s\n" % (protocol,claim,dbkey,res,cres))
+                fp.flush()
+                fp.close()
 
     def setTransitive(self,file,claim,dbkey,res,comment=""):
         """
