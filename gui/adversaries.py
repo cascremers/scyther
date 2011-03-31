@@ -56,7 +56,8 @@ DEFAULTARGS = ""
 ### maxruns now handled by switches (OPTIONS) to python scripts
 #DEFAULTARGS += "--max-runs=7"       ### If you're picky and have time. The results are the same, by the way.
 #DEFAULTARGS += "--max-runs=5"
-DEFAULTARGS += " -T 360"         # Timeout after 6 minutes 
+DEFAULTARGS += " -T 600"         # Timeout after 10 minutes 
+#DEFAULTARGS += " -T 360"         # Timeout after 6 minutes 
 DEFAULTARGS += " --prune=1"     # Stop at first attack
 DEFAULTARGS += " --force-regular"   # Force considering a regular run (for DH-hack problems)
 ALLCORRECT = True   # Require all claims to be correct of the protocol in prev. node for counterexample
