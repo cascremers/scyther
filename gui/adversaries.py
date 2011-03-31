@@ -2442,7 +2442,7 @@ def main(protocollist = None, models = "CSF09", protocolpaths=["Protocols/Advers
         fl = ['SKR','Secret']
     else:
         if options.claimfilter == "authentication":
-            fl = ['Alive','Weakagree','Niagree','Nisynch']
+            fl = ['Alive','Weakagree','Niagree','Nisynch','Commit']
 
     FCD = FindClaims(finallist, filterlist=fl)
     FCDN = 0
