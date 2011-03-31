@@ -3,4 +3,5 @@ progressbar.py
 lsf*.log
 *.lsf
 lsf.*
+Cache
 
