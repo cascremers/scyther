@@ -1,66 +1,14 @@
-1. Installation
+========================================================================
+Installation and usage of the Scyther tool
 ========================================================================
 
-For installing Scyther on systems running Microsoft Windows, proceed to
-'2. Windows'. For installing Scyther on systems running a version of the
-Linux operating system, proceed to '3. Linux'.
-
-
-2. Microsoft Windows
-========================================================================
-
-Windows users that already have the Python language installed are
-advised to follow the generic installation procedure (detailed in
-Section 4 below) to install the remaining items. If you don't have (or
-are not sure) whether you already have python, the following two steps
-will get Scyther up and running:
-
-2.1. Install GraphViz
-
-  This library is used by the Scyther tool to draw graphs. It can be
-  freely downloaded from:
-
-	http://www.graphviz.org/
-
-  Download the latest stable release and install it.
-
-2.2. Install Enthought Python
-
-  Visit:
-  	
-	http://code.enthought.com/enthon/#download
-
-  Download the latest release at the bottom of the page, and install it.
-  Note that this is a fairly large file (+- 125 MB) which can take a
-  while to download.
-
-2.3. Start scyther
-
-  Double-click:
-
-  	scyther-gui.py
-
-  In the directory where you found this file.
-
-
-3. Linux
-========================================================================
-
-For Linux users, it is easiest to follow the generic installation
-procedure (detailed in Section 4 below).
-
-Note for Ubuntu users: all required packages are directly available from
-universe.
-
-
-4. Generic Installation
-========================================================================
-
-4.1. Requirements
+------------------------------------------------------------------------
+1. Requirements
+------------------------------------------------------------------------
 
 To be able to use Scyther, you need the following things:
 
-4.1.1. The GraphViz library.
+1.1. The GraphViz library.
 
   This library is used by the Scyther tool to draw graphs. It can be
   freely downloaded from:
@@ -69,7 +17,7 @@ To be able to use Scyther, you need the following things:
 
   Download the latest stable release and install it.
 
-4.1.2. Python and Python libraries.
+1.2. Python and wxPython libraries.
 
   The graphical user interface of Scyther is written in the Python
   language. Consequently, the following things are required:
@@ -78,12 +26,23 @@ To be able to use Scyther, you need the following things:
 
   	Python			http://www.python.org/download/
 	wxPython (*1)		http://www.wxpython.org/download.php
-	cElementtree		http://effbot.org/zone/celementtree.htm
 
   *1: Note that there are many different wxPython packages. Any package
-  that matches your Python version (currently 2.4) will do just fine.
+  that matches your Python version (e.g., 2.4 or 2.6) will do just fine.
 
-4.2. Running Scyther
+
+1.3. Obsolete requirements.
+
+  Older versions of Python required cElementtree, but this should not be
+  necessary anymore. If the program complains, you can get it here:
+
+	cElementtree		http://effbot.org/zone/celementtree.htm
+
+
+------------------------------------------------------------------------
+2. Running Scyther
+------------------------------------------------------------------------
+
 
   Start Scyther by executing the file
 
