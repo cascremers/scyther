@@ -82,5 +82,6 @@ Termlist termlistMinusTermlist (const Termlist tlbig, const Termlist tlsmall);
 
 #define TERMLISTADD(l,t)	l = termlistAdd (l,t)
 #define TERMLISTAPPEND(l,t)	l = termlistAppend (l,t)
+#define TERMLISTPREPEND(l,t)	l = termlistPrepend (l,t)
 
 #endif
