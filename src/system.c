@@ -1291,9 +1291,12 @@ selfSession (const System sys, const int run)
 int
 selfResponder (const System sys, const int run)
 {
-  if (sys->runs[run].role->initiator)
+  if (!isHelperProtocol (sys->runs[run].protocol))
     {
-      return false;
+      if (sys->runs[run].role->initiator)
+	{
+	  return false;
+	}
     }
   else
     {
@@ -1328,9 +1331,12 @@ selfResponders (const System sys)
 int
 selfInitiator (const System sys, const int run)
 {
-  if (sys->runs[run].role->initiator)
+  if (!isHelperProtocol (sys->runs[run].protocol))
     {
-      return selfSession (sys, run);
+      if (sys->runs[run].role->initiator)
+	{
+	  return selfSession (sys, run);
+	}
     }
   else
     {
@@ -1356,4 +1362,25 @@ selfInitiators (const System sys)
       run++;
     }
   return count;
+}
+
+//! Check a protocol for being a helper protocol.
+/**
+ * Special helper protocols start with an '@' conform the usage in Gijs
+ * Hollestelle's work.
+ */
+int
+isHelperProtocol (Protocol p)
+{
+  if (p != NULL)
+    {
+      if (p->nameterm != NULL)
+	{
+	  if (TermSymb (p->nameterm)->text[0] == '@')
+	    {
+	      return true;
+	    }
+	}
+    }
+  return false;
 }
