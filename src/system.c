@@ -1384,3 +1384,57 @@ isHelperProtocol (Protocol p)
     }
   return false;
 }
+
+//! Check whether agents are performing unique roles
+int
+agentsUniqueRoles (const System sys)
+{
+  Termlist roles;
+  Termlist agents;
+  int run;
+  int res;
+
+  roles = NULL;
+  agents = NULL;
+  res = true;
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      if (!isHelperProtocol (sys->runs[run].protocol))
+	{
+	  Term agentname;
+	  Term rolename;
+	  Termlist tla, tlr;
+
+	  rolename = sys->runs[run].role->nameterm;
+	  agentname = agentOfRunRole (sys, run, rolename);
+
+	  // Find out whether agent name was already mapped to a role
+	  tlr = roles;
+	  tla = agents;
+	  while ((tlr != NULL) && (tla != NULL))
+	    {
+	      if (isTermEqual (tla->term, agentname))
+		{
+		  // okay so this matches. Then so should the second.
+		  if (!isTermEqual (tlr->term, rolename))
+		    {
+		      res = false;
+		      // full abort
+		      tlr = NULL;
+		      run = sys->maxruns;
+		    }
+		  // stop anyway, because the agent is fine, should not occur twice
+		  break;
+		}
+	      tlr = tlr->next;
+	      tla = tla->next;
+	    }
+	  // Not in there yet, add. 
+	  agents = termlistAdd (agents, agentname);
+	  roles = termlistAdd (roles, rolename);
+	}
+    }
+  termlistDelete (agents);
+  termlistDelete (roles);
+  return res;
+}

@@ -54,6 +54,7 @@ struct switchdata
   int concrete;			//!< Swap out variables at the end.
   int initUnique;		//!< Default allows duplicate terms in rho (init) 
   int respUnique;		//!< Default allows duplicate terms in rho (resp)
+  int roleUnique;		//!< Default allows agents to perform multiple roles
   int intruder;			//!< Enable intruder actions (default)
   int chosenName;		//!< Check for chosen name attacks
   int agentUnfold;		//!< Explicitly unfold for N honest agents and 1 compromised iff > 0

@@ -226,6 +226,20 @@ prune_theorems (const System sys)
 	}
     }
 
+  if (switches.roleUnique)
+    {
+      if (!agentsUniqueRoles (sys))
+	{
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf
+		("Pruned because agents are not performing unique roles.\n");
+	    }
+	  return true;
+	}
+    }
+
 /*
 The semantics imply that create event chose agent names, i.e., the range of rho is a subset of Agent.
 

@@ -78,6 +78,7 @@ switchesInit (int argc, char **argv)
   switches.concrete = true;	// default removes symbols, and makes traces concrete
   switches.initUnique = false;	// default allows initiator rho to contain duplicate terms
   switches.respUnique = false;	// default allows responder rho to contain duplicate terms
+  switches.roleUnique = false;	// default allows agents to perform multiple roles
   switches.intruder = true;	// default allows an intruder
   switches.chosenName = false;	// default no chosen name attacks
   switches.agentUnfold = 0;	// default not to unfold agents
@@ -1061,6 +1062,22 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.respUnique = true;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "role-unique", 0))
+    {
+      if (!process)
+	{
+	  /* discourage: hide
+	   *
+	   * Finds only attacks in which agents perform at most one role
+	   */
+	}
+      else
+	{
+	  switches.roleUnique = true;
 	  return index;
 	}
     }
