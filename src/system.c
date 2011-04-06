@@ -1244,6 +1244,48 @@ countInitiators (const System sys)
   return count;
 }
 
+//! Iterate over regular non-helper runs
+/**
+ * stopval is the stopping value, defval is the default value.
+ * if stopval == -2, we increment defval for each true result and return the total.
+ */
+int
+iterateRegularNonHelper (const System sys,
+			 int (*callback) (const System sys, int rid),
+			 int defval, int stopval)
+{
+  int res, run;
+
+  res = defval;
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      if ((!isHelperProtocol (sys->runs[run].protocol))
+	  && (sys->runs[run].protocol != INTRUDER))
+	{
+	  int tmp;
+
+	  tmp = callback (sys, run);
+	  if (stopval == -2)
+	    {
+	      if (tmp == true)
+		{
+		  res++;
+		}
+	    }
+	  else
+	    {
+	      if (tmp == stopval)
+		{
+		  return stopval;
+		}
+	      res = tmp;
+	    }
+	}
+    }
+  return res;
+}
+
+
 //! determine whether a run talks to itself
 int
 selfSession (const System sys, const int run)
@@ -1291,12 +1333,9 @@ selfSession (const System sys, const int run)
 int
 selfResponder (const System sys, const int run)
 {
-  if (!isHelperProtocol (sys->runs[run].protocol))
+  if (sys->runs[run].role->initiator)
     {
-      if (sys->runs[run].role->initiator)
-	{
-	  return false;
-	}
+      return false;
     }
   else
     {
@@ -1308,20 +1347,7 @@ selfResponder (const System sys, const int run)
 int
 selfResponders (const System sys)
 {
-  int count;
-  int run;
-
-  count = 0;
-  run = 0;
-  while (run < sys->maxruns)
-    {
-      if (selfResponder (sys, run))
-	{
-	  count++;
-	}
-      run++;
-    }
-  return count;
+  return iterateRegularNonHelper (sys, selfResponder, 0, -2);
 }
 
 //! determine whether a run is a so-called self-initiator
@@ -1331,12 +1357,9 @@ selfResponders (const System sys)
 int
 selfInitiator (const System sys, const int run)
 {
-  if (!isHelperProtocol (sys->runs[run].protocol))
+  if (sys->runs[run].role->initiator)
     {
-      if (sys->runs[run].role->initiator)
-	{
-	  return selfSession (sys, run);
-	}
+      return selfSession (sys, run);
     }
   else
     {
@@ -1348,20 +1371,7 @@ selfInitiator (const System sys, const int run)
 int
 selfInitiators (const System sys)
 {
-  int count;
-  int run;
-
-  count = 0;
-  run = 0;
-  while (run < sys->maxruns)
-    {
-      if (selfInitiator (sys, run))
-	{
-	  count++;
-	}
-      run++;
-    }
-  return count;
+  return iterateRegularNonHelper (sys, selfInitiator, 0, -2);
 }
 
 //! Check a protocol for being a helper protocol.
