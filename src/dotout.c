@@ -28,6 +28,7 @@
 #include "debug.h"
 #include "error.h"
 #include "specialterm.h"
+#include "cost.h"
 
 extern Protocol INTRUDER;	// Pointers, to be set by the Init of arachne.c
 extern Role I_M;		// Same here.
@@ -1658,6 +1659,8 @@ dotSemiState (const System mysys)
   termPrintRemap (sys->current_claim->rolename);
   eprintf (", claim type ");
   termPrintRemap (sys->current_claim->type);
+  // For debugging:
+  eprintf (", cost %i", computeAttackCost (sys));
   eprintf ("\";\n");
 
   // Needed for the bindings later on: create graph

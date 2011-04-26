@@ -20,6 +20,7 @@
 #ifndef COST
 #define COST
 
+int computeAttackCost (const System sys);
 int attackCost (const System sys);
 
 #endif
