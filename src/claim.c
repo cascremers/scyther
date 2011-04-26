@@ -733,35 +733,38 @@ arachne_claim_weakagree (const System sys, const int claim_run,
 			 const int claim_index)
 {
   /*
-   * Runs for each role, with matching lists for rho.
+   * Runs for each supposed agent, with matching *sets* for rho.
+   * (so we can skip the actor)
    */
-  Role role;
+  Termlist tl;
 
-  for (role = sys->runs[claim_run].protocol->roles; role != NULL;
-       role = role->next)
+  for (tl = sys->runs[claim_run].rho; tl != NULL; tl = tl->next)
     {
-      if (role != sys->runs[claim_run].role)
+      Term agent;
+
+      agent = tl->term;
+      if (!isTermEqual (agent, agentOfRun (sys, claim_run)))
 	{
 	  int run;
-	  int roleokay;
+	  int agentokay;
 
-	  roleokay = false;
+	  agentokay = false;
 	  for (run = 0; run < sys->maxruns; run++)
 	    {
 	      if (run != claim_run)
 		{
-		  if (role == sys->runs[run].role)
+		  if (isTermEqual (agent, agentOfRun (sys, run)))
 		    {
-		      if (isTermlistEqual
+		      if (isTermlistSetEqual
 			  (sys->runs[run].rho, sys->runs[claim_run].rho))
 			{
-			  roleokay = true;
+			  agentokay = true;
 			  break;
 			}
 		    }
 		}
 	    }
-	  if (!roleokay)
+	  if (!agentokay)
 	    {
 	      return false;
 	    }
