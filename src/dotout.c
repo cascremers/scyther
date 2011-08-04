@@ -1163,6 +1163,7 @@ regularModifiedLabel (Binding b)
 	  unknown = false;
 	  eprintf ("fake sender ");
 	  termPrintRemap (rdto->from);
+          eprintf ("\\n");
 	}
       else
 	{
@@ -1171,6 +1172,7 @@ regularModifiedLabel (Binding b)
 	      unknown = false;
 	      eprintf ("redirect to ");
 	      termPrintRemap (rdto->to);
+              eprintf ("\\n");
 	    }
 	  else
 	    {
@@ -1178,6 +1180,7 @@ regularModifiedLabel (Binding b)
 		{
 		  unknown = false;
 		  eprintf ("redirect");
+                  eprintf ("\\n");
 		}
 	    }
 	}
