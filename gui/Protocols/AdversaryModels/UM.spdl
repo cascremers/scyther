@@ -9,6 +9,14 @@
 hashfunction h1,h2,g1,g2;
 hashfunction KDF;
 
+protocol @publickeys(RA)
+{
+	role RA
+	{
+		send_!1(RA,RA, g1(sk(RA)));
+	}
+}
+
 /*
  * Hack to simulate g^ab = g^ba.
  * '@' prefix of protocol name denotes helper protocol, which is used by
