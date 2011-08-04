@@ -126,7 +126,7 @@ symmetric-role protocol HMQV-twopass(I,R)
 
 		send_1(I,R, g1(x) );
 
-		send_Compromise(I,I, x ) ;
+		//send_Compromise(I,I, x ) ;
 
 		recv_2(R,I, Y );
 
@@ -148,7 +148,7 @@ symmetric-role protocol HMQV-twopass(I,R)
 
 		recv_1(I,R, X );
 
-		send_Compromise(R,R, y );
+		//send_Compromise(R,R, y );
 
 		send_2(R,I, g1(y) );
 
