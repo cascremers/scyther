@@ -120,6 +120,8 @@ specialTermInit (const System sys)
 void
 specialTermInitAfter (const System sys)
 {
+  Term SKE;
+
   langcons (AGENT_Alice, "Alice", TERM_Agent);
   langcons (AGENT_Bob, "Bob", TERM_Agent);
   langcons (AGENT_Charlie, "Charlie", TERM_Agent);
@@ -132,6 +134,9 @@ specialTermInitAfter (const System sys)
   knowledgeAddTerm (sys->know, AGENT_Dave);
   knowledgeAddTerm (sys->know, AGENT_Eve);
 
+  // Make special Eve key and add to initial knowledge
+  SKE = makeTermEncrypt (AGENT_Eve, TERM_SK);
+  knowledgeAddTerm (sys->know, SKE);
   sys->untrusted = termlistAddNew (sys->untrusted, AGENT_Eve);
 }
 
