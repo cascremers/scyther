@@ -56,19 +56,22 @@ FirstCheck = True
 #---------------------------------------------------------------------------
 
 """
-The default path for the binaries is set in __init__.py in the (current)
-directory 'Scyther'.
+Get current directory (for this file)
 """
+def getMyDir():
+    return os.path.dirname( os.path.realpath( __file__ ) )
 
-def setBinDir(dir):
-    global bindir
-
-    bindir = dir
-
+"""
+The default path for the binaries is the current one.
+"""
 def getBinDir():
-    global bindir
+    return getMyDir()
 
-    return bindir
+"""
+Return Cache prefix path
+"""
+def getCacheDir():
+    return os.path.join(getMyDir(),"Cache")
 
 #---------------------------------------------------------------------------
 
@@ -271,12 +274,13 @@ class Scyther(object):
 
         # Possibly we could also decide to store input and arguments in the cache to analyze things later
 
-        path = "Cache/%s/%s/" % (uid1,uid2)
+        # Construct: cachePath/uid1/uid2/...
+        path = os.path.join(getCacheDir(),uid1,uid2)
         name1 = "%s.out" % (uid3)
         name2 = "%s.err" % (uid3)
 
-        fname1 = path + name1
-        fname2 = path + name2
+        fname1 = os.path.join(path, name1)
+        fname2 = os.path.join(path, name2)
 
         try:
             """
