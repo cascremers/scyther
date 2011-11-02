@@ -1,0 +1,180 @@
+/* 
+ * NAXOS AKE (Authenticated Key Exchange) protocol
+ *
+ * With Boyd-Gonzales transformation to also satisfy (strong) PFS.
+ *
+ * Modeled by Cas Cremers, 2011
+ *
+ * From "Stronger Security of Authenticated Key Exchange" LaMacchia
+ * Lauter Mityagin 2006
+ *
+ */
+
+// Hash functions
+hashfunction h1,h2;
+hashfunction MAC;
+
+// Exponentiation operator modeled using one-way function and helper
+// protocols (see below)
+hashfunction p;
+
+// Generator
+const g;
+
+/*
+ * Simulate public knowledge of public keys.
+ *
+ * The '@' prefix of the protocol name denotes that it is a helper
+ * protocol, which is used by Scyther for displaying, and such protocols
+ * are ignored in auto-generation of protocol modifiers.
+ */
+protocol @publickeys(PK)
+{
+	role PK
+	{
+		send_!1(PK,PK, p(g,sk(PK)));
+	}
+}
+		
+/*
+ * Approximation for the equational theory g^ab = g^ba in subterms of
+ * the Naxos protocol.
+ */
+protocol @exponentiation(RA,RB,RC)
+{
+	role RA
+	{
+		var X,Y, T1,T2: Ticket;
+
+		recv_!1(RA,RA, h2(
+		  p(p(g,X),Y),
+		  T1, T2, RA,RB
+		  ));
+		send_!2(RA,RA, h2(
+		  p(p(g,Y),X),
+		  T1, T2, RA,RB
+		  ));
+	}
+	role RB
+	{
+		var X,Y, T1,T2: Ticket;
+
+		recv_!3(RB,RB, h2(
+		  T1,
+		  p(p(g,X),Y),
+		  T2, RA,RB
+		  ));
+		send_!4(RB,RB, h2(
+		  T1,
+		  p(p(g,Y),X),
+		  T2, RA,RB
+		  ));
+	}
+	role RC
+	{
+		var X,Y, T1,T2: Ticket;
+
+		recv_!5(RC,RC, h2(
+		  T1, T2,
+		  p(p(g,X),Y),
+		  RA,RB
+		  ));
+		send_!6(RC,RC, h2(
+		  T1, T2,
+		  p(p(g,Y),X),
+		  RA,RB
+		  ));
+	}
+}
+
+protocol @keysymmetry(R1,R2,R3)
+{
+	role R1
+	{
+		var Y,X: Ticket;
+		var Z1,Z2: Ticket;
+
+		recv_!1(R1,R1, h2( 
+			p(p(g,Y),X),
+			Z1,Z2,
+			R1,R2));
+		send_!2(R1,R1, h2( 
+			p(p(g,X),Y), 
+			Z1,Z2,
+			R1,R2));
+	}
+	role R2
+	{
+		var Y,X: Ticket;
+		var Z1,Z2: Ticket;
+
+		recv_!4(R2,R2, h2( 
+			Z1,
+			p(p(g,Y),X),
+			Z2,
+			R2,R3));
+		send_!5(R2,R2, h2( 
+			Z1,
+			p(p(g,X),Y), 
+			Z2,
+			R2,R3));
+	}
+	role R3
+	{
+		var Y,X: Ticket;
+		var Z1,Z2: Ticket;
+
+		recv_!5(R3,R3, h2( 
+			p(p(g,Y),X),
+			Z1,
+			Z2,
+			R3,R1));
+		send_!6(R3,R3, h2( 
+			p(p(g,X),Y), 
+			Z1,
+			Z2,
+			R3,R1));
+	}
+}
+
+// The protocol description
+
+protocol naxos-BN(I,R)
+{
+	role I
+	{
+		fresh eskI: Nonce;
+		var Y: Ticket;
+
+
+		send_1(I,R, p(g,h1(eskI,sk(I))),
+		 MAC(k(I,R),I,R,p(g,h1(eskI,sk(I)))) );
+
+		recv_2(R,I, Y,MAC(k(I,R),R,I,Y) );
+
+		claim(I,SKR,h2( 
+			p(Y,sk(I)),
+			p(p(g,sk(R)),h1(eskI,sk(I))), 
+			p(Y,h1(eskI,sk(I))),
+			I,R));
+	}	
+	
+	role R
+	{
+		fresh eskR: Nonce;
+		var X: Ticket;
+
+
+		recv_1(I,R, X,MAC(k(I,R),I,R,X) );
+
+		send_2(R,I, p(g,h1(eskR,sk(R))),
+		 MAC(k(I,R),R,I,p(g,h1(eskR,sk(R)))) );
+
+		claim(R,SKR,h2( 
+			p(p(g,sk(I)),h1(eskR,sk(R))), 
+			p(X,sk(R)),
+			p(X,h1(eskR,sk(R))),
+			I,R));
+	}
+}
+
