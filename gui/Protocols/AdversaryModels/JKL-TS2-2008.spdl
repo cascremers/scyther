@@ -1,0 +1,81 @@
+/* 
+ * JeongKatzLee 2008 TS-2
+ *
+ * From "One-Round Protocols for Two-Party Authenticated Key Exchange",
+ * Ik Rae Jeong, Jonathan Katz, Dong Hoon Lee
+ *
+ * Claim: KI & FS secure under the random oracle model.
+ *
+ * KI = Key Independence (allow session-key reveal)
+ * FS = Forward secure (but in the sense of AFC, or Krawczyk's weak 
+ * Perfect Forward Secrecy)
+ *
+ * Assumption: Alice does not talk to Alice in either role.
+ */
+
+hashfunction H;
+hashfunction exp;
+usertype Generator;
+const g: Generator;
+
+protocol @exphelper(H1,H2,H3,H4)
+{
+	role H1
+	{
+		var X,Y: Ticket;
+
+		recv_!1(H1,H1, exp(exp(g,X),Y) );
+		send_!2(H1,H1, exp(exp(g,Y),X) );
+	}
+	role H2
+	{
+		var T1,T2: Ticket;
+
+		recv_!3(H2,H2, T1,T2);
+		send_!4(H2,H2, exp(T1,T2), exp(g,sk(H2)));
+	}
+	role H3
+	{
+		var n1,n2: Ticket;
+		var X,Y,Z,V: Ticket;
+
+		recv_!5(H3,H3, H(H1,H2,n1,n2, exp(exp(g,Z),V), exp(exp(g,X),Y)) );
+		send_!6(H3,H3, H(H1,H2,n1,n2, exp(exp(g,Z),V), exp(exp(g,Y),X)) );
+	}
+	role H4
+	{
+		var n1,n2: Ticket;
+		var X,Y,Z,V: Ticket;
+
+		recv_!7(H4,H4, H(H1,H2,n1,n2, exp(exp(g,Z),V), exp(exp(g,X),Y)) );
+		send_!8(H4,H4, H(H1,H2,n1,n2, exp(exp(g,V),Z), exp(exp(g,X),Y)) );
+	}
+}
+
+// The protocol description
+
+protocol JKL-TS-2(I,R)
+{
+	role I
+	{
+		const ri: Nonce;
+		var RN: Ticket;
+
+		send_1(I,R, exp(g,ri) );
+		recv_2(R,I, RN);
+
+		claim(I, SKR, H( I,R, exp(g,ri),RN, exp(RN,ri), exp(exp(g,sk(R)),sk(I))) );
+	}	
+	
+	role R
+	{
+		var RI: Ticket;
+		const rn: Nonce;
+
+		recv_1(I,R, RI);
+		send_2(R,I, exp(g,rn));
+
+		claim(R, SKR, H( I,R, RI,exp(g,rn), exp(RI,rn), exp(exp(g,sk(I)),sk(R))) );
+	}
+}
+
