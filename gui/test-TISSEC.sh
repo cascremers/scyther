@@ -29,7 +29,6 @@ SPROTS="$SPROTS \
         Protocols/AdversaryModels/ns3.spdl \
         Protocols/AdversaryModels/nsl3.spdl \
 	Protocols/AdversaryModels/UM.spdl \
-	Protocols/AdversaryModels/UP.spdl \
         Protocols/AdversaryModels/yahalom-ban-paulson-modified.spdl \
         Protocols/AdversaryModels/yahalom-ban-paulson.spdl \
 	"
