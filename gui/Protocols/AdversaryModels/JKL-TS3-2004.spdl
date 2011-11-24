@@ -55,7 +55,7 @@ protocol @exphelper(H1,H2,H3,H4)
 
 // The protocol description
 
-symmetric-role protocol JKL-TS-3(I,R)
+symmetric-role protocol JKL-TS-3-2004(I,R)
 {
 	role I
 	{

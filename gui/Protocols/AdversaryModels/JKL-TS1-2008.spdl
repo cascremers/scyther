@@ -35,7 +35,7 @@ protocol @exphelper(H1,H2)
 
 // The protocol description
 
-protocol JKL-TS-1(I,R)
+protocol JKL-TS-1-2008(I,R)
 {
 	role I
 	{

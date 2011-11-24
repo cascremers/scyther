@@ -17,9 +17,9 @@ APROTS="$APROTS Protocols/ccitt509-1.spdl Protocols/ccitt509-1c.spdl Protocols/c
 SPROTS=""
 SPROTS="$SPROTS \
 	Protocols/BKE.spdl \
-	Protocols/AdversaryModels/JKL-TS1.spdl \
-	Protocols/AdversaryModels/JKL-TS2.spdl \
-	Protocols/AdversaryModels/JKL-TS3.spdl \
+	Protocols/AdversaryModels/JKL-TS1-2004.spdl \
+	Protocols/AdversaryModels/JKL-TS2-2004.spdl \
+	Protocols/AdversaryModels/JKL-TS3-2004.spdl \
 	Protocols/AdversaryModels/BCNP-1.spdl \
 	Protocols/AdversaryModels/BCNP-2.spdl \
 	Protocols/AdversaryModels/naxos.spdl \
