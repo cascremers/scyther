@@ -53,7 +53,7 @@ cp $DEFOUT psh-TISSEC-simple.pdf
 IGN=""
 MDS=" --models=7rules"
 DEF=" --PSH $MDS \
-      --max-runs=0 \
+      --max-runs=4 \
       "
 ./test-adversary-models.py $DEF --secrecy        $SPROTS $IGN
 cp $DEFOUT psh-TISSEC-secrecy.pdf
