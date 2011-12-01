@@ -143,10 +143,6 @@ class ScytherApp(wx.App):
         # Load preferences file
         Preference.init()
 
-        # Init Scyther libs from preferences
-        bindir = Preference.get("bindir",Scyther.getBinDir())
-        Scyther.setBinDir(bindir)
-
         #"""
         #Create and show the splash screen.  It will then create and show
         #the main frame when it is time to do so.
