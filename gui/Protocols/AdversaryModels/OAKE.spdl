@@ -1,0 +1,108 @@
+/* 
+ * OAKE 
+ *
+ * Yao & Zhao, 2011
+ *
+ */
+
+// Hash functions
+hashfunction h,h1,h2,gexp,exp,KDF,LSB;
+
+// Addition, multiplication
+// For now, simply hashes
+hashfunction mult,add;
+
+/*
+ * Hack to simulate public knowledge of public keys.
+ */
+protocol @publickeys(PK)
+{
+	role PK
+	{
+		send_!1(PK,PK, gexp(sk(PK)));
+	}
+}
+		
+/*
+ * Hack to simulate g^ab = g^ba inside terms.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol OAKE(I,R)
+{
+	role I
+	{
+		fresh x: Nonce;
+		var Y: Ticket;
+
+		send_1(I,R, gexp(x) );
+		recv_2(R,I, Y );
+
+		//claim(I,SKR,    KDF(exp(mult(Y,exp(gexp(sk(R)),LSB(Y,I))),add(x,mult(LSB(gexp(x),R),sk(I))))) );
+		
+		claim(I,SKR, KDF(
+		  mult(
+		    exp(	// B^xd
+		      gexp(sk(R))	// B
+		      ,
+		      mult(	// xd
+		        x,			// x
+		        h(R,gexp(sk(R)),gexp(x))	// d = h(R,pk(R),X)
+		      )
+		    ),
+		    exp(	// Y^(ac+xe)
+		      Y,
+		      add(	// ac+xe
+		        mult(	// ac
+			  sk(I),
+			  h(R,gexp(sk(R)),Y)	// c = h(I,pk(I),Y)
+			),
+			mult(	// xe
+			  x,
+			  h(gexp(x),Y)		// e = h(X,Y)
+			)
+		      )
+		    )
+		  )
+		));
+	}	
+	
+	role R
+	{
+		fresh y: Nonce;
+		var X: Ticket;
+
+		recv_1(I,R, X );
+		send_2(R,I, gexp(y) );
+
+		//claim(R,SKR,    KDF(exp(mult(X,exp(gexp(sk(I)),LSB(X,R))),add(y,mult(LSB(gexp(y),I),sk(R))))) );
+		
+		claim(R,SKR, KDF(
+		  mult(
+		    exp(		// A^yc
+		      gexp(sk(I))	// A
+		      ,
+		      mult(		// yc
+		        y,				// y
+		        h(I,gexp(sk(I)),gexp(y))	// c = h(I,pk(I),Y)
+		      )
+		    ),
+		    exp(			// X^(bd+ye)
+		      X,
+		      add(			// bd+ye
+		        mult(			// bd
+			  sk(R),
+			  h(R,gexp(sk(R)),X)	// d = h(R,pk(R),X)
+			),
+			mult(			// ye
+			  y,
+			  h(X,gexp(y))		// e = h(X,Y)
+			)
+		      )
+		    )
+		  )
+		));
+	}
+}
+

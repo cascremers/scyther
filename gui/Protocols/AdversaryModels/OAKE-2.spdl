@@ -1,0 +1,130 @@
+/* 
+ * OAKE 
+ *
+ * Yao & Zhao, 2011
+ *
+ */
+
+// Generator of G
+const g: Nonce;
+
+// Hash functions
+hashfunction h,h1,h2,gexp,exp,KDF,LSB;
+
+// Addition, multiplication
+// For now, simply hashes
+hashfunction mult,add;
+
+/*
+ * Hack to simulate public knowledge of public keys.
+ */
+protocol @publickeys(PK)
+{
+	role PK
+	{
+		send_!1(PK,PK, exp(g,sk(PK)));
+	}
+}
+		
+/*
+ * Hack to simulate g^ab = g^ba inside terms.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exp(RA,RB)
+{
+ 	role RA
+	{
+		var x,y,z: Ticket;
+
+		recv_!1(RA, RA, exp(exp(z,x),y) );
+		send_!2(RA, RA, exp(exp(z,y),x) );
+	}
+ 	role RB
+	{
+		var x,y,z: Ticket;
+
+		recv_!3(RB, RB, mult(exp(z,x),exp(z,y)) );
+		send_!4(RB, RB, exp(z,add(x,y)) );
+	}
+}
+
+/* Protocol */
+protocol OAKE2(I,R)
+{
+	role I
+	{
+		fresh x: Nonce;
+		var Y: Ticket;
+
+		send_1(I,R, exp(g,x) );
+		recv_2(R,I, Y );
+
+		//claim(I,SKR,    KDF(exp(mult(Y,exp(exp(g,sk(R)),LSB(Y,I))),add(x,mult(LSB(exp(g,x),R),sk(I))))) );
+		
+		claim(I,SKR, KDF(
+		  mult(
+		    exp(	// B^xd
+		      exp(g,sk(R))	// B
+		      ,
+		      mult(	// xd
+		        x,			// x
+		        h(R,exp(g,sk(R)),exp(g,x))	// d = h(R,pk(R),X)
+		      )
+		    ),
+		    exp(	// Y^(ac+xe)
+		      Y,
+		      add(	// ac+xe
+		        mult(	// ac
+			  sk(I),
+			  h(R,exp(g,sk(R)),Y)	// c = h(I,pk(I),Y)
+			),
+			mult(	// xe
+			  x,
+			  h(exp(g,x),Y)		// e = h(X,Y)
+			)
+		      )
+		    )
+		  )
+		));
+	}	
+	
+	role R
+	{
+		fresh y: Nonce;
+		var X: Ticket;
+
+		recv_1(I,R, X );
+		send_2(R,I, exp(g,y) );
+
+		//claim(R,SKR,    KDF(exp(mult(X,exp(exp(g,sk(I)),LSB(X,R))),add(y,mult(LSB(exp(g,y),I),sk(R))))) );
+		
+		claim(R,SKR, KDF(
+		  mult(
+		    exp(		// A^yc
+		      exp(g,sk(I))	// A
+		      ,
+		      mult(		// yc
+		        y,				// y
+		        h(I,exp(g,sk(I)),exp(g,y))	// c = h(I,pk(I),Y)
+		      )
+		    ),
+		    exp(			// X^(bd+ye)
+		      X,
+		      add(			// bd+ye
+		        mult(			// bd
+			  sk(R),
+			  h(R,exp(g,sk(R)),X)	// d = h(R,pk(R),X)
+			),
+			mult(			// ye
+			  y,
+			  h(X,exp(g,y))		// e = h(X,Y)
+			)
+		      )
+		    )
+		  )
+		));
+	}
+}
+
