@@ -26,11 +26,14 @@ SPROTS="$SPROTS \
         Protocols/AdversaryModels/kea-plus.spdl \
         Protocols/AdversaryModels/MQV-twopass.spdl \
         Protocols/AdversaryModels/naxos.spdl \
+        Protocols/AdversaryModels/naxos-MTencr.spdl \
+        Protocols/AdversaryModels/naxos-C.spdl \
         Protocols/AdversaryModels/ns3.spdl \
         Protocols/AdversaryModels/nsl3.spdl \
 	Protocols/AdversaryModels/UM.spdl \
         Protocols/AdversaryModels/yahalom-ban-paulson-modified.spdl \
         Protocols/AdversaryModels/yahalom-ban-paulson.spdl \
+	Protocols/AdversaryModels/CF.spdl \
 	"
 # Protocols for authentication
 APROTS=""
