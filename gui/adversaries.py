@@ -1916,6 +1916,20 @@ def axisClosureNumber(modelset, axis):
     return closureNumber
 
 
+def getMinimum(models, axis, minim=None):
+    """
+    Get the minimal value at some axis for any model in the list
+    """
+    for m in models:
+        v = m.axes[axis]
+        if minim == None:
+            minim = v
+        else:
+            if v < minim:
+                minim = v
+    return minim
+
+
 def FixDelta(oldModels,newModels):
     """
     Given two sets of security models in which a protocol (class) is correct,
@@ -1944,8 +1958,8 @@ def FixDelta(oldModels,newModels):
         """
         For this axis, determine the old minimum value and the new minimum value
         """
-        oldCN = axisClosureNumber(oldSuprema, axis)
-        newCN = axisClosureNumber(newSuprema, axis)
+        oldCN = getMinimum(oldModels, axis)
+        newCN = getMinimum(newModels, axis)
         if oldCN != newCN:
             """
             Good, draw it. Maybe it's simple.
