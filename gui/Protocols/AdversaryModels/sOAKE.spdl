@@ -1,0 +1,143 @@
+/* 
+ * sOAKE 
+ *
+ * Yao & Zhao, 2011
+ *
+ */
+
+// Generator of G
+const g: Nonce;
+
+// Hash functions
+hashfunction h,exp,KDF;
+
+// Addition, multiplication
+// For now, simply hashes
+hashfunction mult,add;
+
+/*
+ * Hack to simulate public knowledge of public keys.
+ */
+protocol @publickeys(PK)
+{
+	role PK
+	{
+		send_!1(PK,PK, exp(g,sk(PK)));
+	}
+}
+		
+/*
+ * Hack to simulate g^ab = g^ba inside terms.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exp(RA,RB,RC,RD,RE)
+{
+ 	role RA
+	{
+		var x,y,z: Ticket;
+
+		recv_!1(RA, RA, exp(exp(z,x),y) );
+		send_!2(RA, RA, exp(exp(z,y),x) );
+	}
+ 	role RB
+	{
+		var x,y,z: Ticket;
+
+		recv_!3(RB, RB, mult(exp(z,x),exp(z,y)) );
+		send_!4(RB, RB, exp(z,add(x,y)) );
+	}
+ 	role RC
+	{
+		var x1,x2,y1,y2,z: Ticket;
+
+		recv_!5(RC, RC, exp(exp(z,x2),x1), exp(exp(z,y2,y1)) );
+		send_!6(RC, RC, exp(z,add(mult(x1,x2),mult(y1,y2))) );
+	}
+ 	role RD
+	{
+		var x,y1,y2,z: Ticket;
+
+		recv_!7(RD, RD, exp(z,x), exp(exp(z,y2,y1)) );
+		send_!8(RD, RD, exp(z,add(x,mult(y1,y2))) );
+	}
+ 	role RE
+	{
+		var x1,x2,y,z: Ticket;
+
+		recv_!9 (RE, RE, exp(exp(z,x2),x1), exp(z,y) );
+		send_!10(RE, RE, exp(z,add(mult(x1,x2),y)) );
+	}
+}
+
+/* Protocol */
+protocol sOAKE(I,R)
+{
+	role I
+	{
+		fresh x: Nonce;
+		var Y: Ticket;
+
+		send_1(I,R, exp(g,sk(I)), I, exp(g,x) );
+		recv_2(R,I, exp(g,sk(R)), R, Y );
+
+		claim(I,SKR, KDF(
+		  mult(
+		    exp(			// B^xd
+		      exp(g,sk(R))		// B
+		      ,
+		      x				// d = 1, xd = x
+		    ),
+		    exp(			// Y^(ac+xe)
+		      Y,
+		      add(			// ac+xe
+		        sk(I),			// c = 1, ac = a
+			mult(			// xe
+			  x,
+			  h(			// e = h(pk(A),A,pk(B),B,X,Y)
+			    exp(g,sk(I)), I,
+			    exp(g,sk(R)), R,
+			    exp(g,x),Y
+			  )		
+			)
+		      )
+		    )
+		  )
+		));
+	}	
+	
+	role R
+	{
+		fresh y: Nonce;
+		var X: Ticket;
+
+		recv_1(I,R, exp(g,sk(I)), I, X );
+		send_2(R,I, exp(g,sk(R)), R, exp(g,y) );
+
+		claim(R,SKR, KDF(
+		  mult(
+		    exp(			// A^yc
+		      exp(g,sk(I))		// A
+		      ,
+		      y				// c = 1, yc = y
+		    ),
+		    exp(			// X^(bd+ye)
+		      X,
+		      add(			// bd+ye
+		        sk(R),			// d = 1, bd = b
+			mult(			// ye
+			  y,
+			  h(			// e = h(pk(A),A,pk(B),B,X,Y)
+			    exp(g,sk(I)), I,
+			    exp(g,sk(R)), R,
+			    X, exp(g,y)
+			  )		
+			)
+		      )
+		    )
+		  )
+		));
+	}
+}
+
