@@ -32,7 +32,7 @@ protocol @publickeys(PK)
  * Scyther for displaying, and such protocols are ignored in
  * auto-generation of protocol modifiers.
  */
-protocol @exp(RA,RB)
+protocol @exp(RA,RB,RC)
 {
  	role RA
 	{
@@ -47,6 +47,13 @@ protocol @exp(RA,RB)
 
 		recv_!3(RB, RB, mult(exp(z,x),exp(z,y)) );
 		send_!4(RB, RB, exp(z,add(x,y)) );
+	}
+ 	role RC
+	{
+		var x1,x2,y1,y2,z: Ticket;
+
+		recv_!5(RC, RC, exp(exp(z,x2),x1), exp(exp(z,y2,y1)) );
+		send_!6(RC, RC, exp(z,add(mult(x1,x2),mult(y1,y2))) );
 	}
 }
 
