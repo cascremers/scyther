@@ -20,3 +20,10 @@
 #
 #   Init this module
 #
+#   Set prefix for __all__
+#
+import Scyther
+
+#   Provide scope
+__all__ = ["Scyther"]
+
