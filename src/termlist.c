@@ -843,9 +843,12 @@ termlistContained (const Termlist tlbig, Termlist tlsmall)
   return 1;
 }
 
-//! Set equality, abusing lists
+//! Check whether the element sets corresponding to two termlist are equal
+/**
+ * Currently this is a classical two-way containment test, but probably it can be done smarter.
+ */
 int
-termlistSetEqual (const Termlist tl1, const Termlist tl2)
+isTermlistSetEqual (const Termlist tl1, const Termlist tl2)
 {
   if (termlistContained (tl1, tl2))
     {

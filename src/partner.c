@@ -669,7 +669,7 @@ matchingSIDs (int *partners)
 int
 actorMatchCK2001 (const int run1, const int run2)
 {
-  return termlistSetEqual (sys->runs[run1].rho, sys->runs[run2].rho);
+  return isTermlistSetEqual (sys->runs[run1].rho, sys->runs[run2].rho);
 }
 
 //! Fix partners on the basis of SIDs and agent names (CK2001)
