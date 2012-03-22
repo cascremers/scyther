@@ -197,10 +197,6 @@ prune_bounds (const System sys)
       return 1;
     }
 
-  // Limit on attack count
-  if (enoughAttacks (sys))
-    return 1;
-
   // Pruning involving the number of intruder actions
   {
     // Count intruder actions
