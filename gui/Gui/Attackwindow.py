@@ -52,14 +52,6 @@ class AttackDisplay(wx.ScrolledWindow):
 
         wx.ScrolledWindow.__init__(self,parent,id=-1)
 
-        # [CC][X] The below statement might be iffy on older versions.
-        # (Python 2.3? What settings?)
-        # Cf. bug report Vimal Subra
-        try:
-            self.SetBackgroundColour(wx.Colour(255,255,255))
-        except:
-            pass
-
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Image = wx.StaticBitmap(self, -1, wx.EmptyBitmap(1,1))
         self.box = wx.BoxSizer(wx.VERTICAL)
@@ -247,12 +239,6 @@ class AttackDisplay(wx.ScrolledWindow):
 class AttackWindow(wx.Frame):
     def __init__(self,cl):
         super(AttackWindow, self).__init__(None, size=(800,800))
-
-        # [CC][X] Same here; no background set for safety.
-        try:
-            self.SetBackgroundColour('Default')
-        except:
-            pass
 
         self.claim = cl
 
