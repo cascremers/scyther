@@ -242,7 +242,7 @@ class ResultWindow(wx.Frame):
             ):
 
         wx.Frame.__init__(self,parentwindow,-1,title,pos,size,style)
-        self.SetBackgroundColour('Default')
+
         Icon.ScytherIcon(self)
 
         self.parent = parent
