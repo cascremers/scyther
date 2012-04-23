@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import division # 2.2+-only
 """
 	Scyther : An automatic verifier for security protocols.
 	Copyright (C) 2007 Cas Cremers
@@ -149,8 +150,8 @@ class AttackDisplay(wx.ScrolledWindow):
         self.box.Layout()
 
         step = 20
-        xn = int(virtualwidth / step) + 1
-        yn = int(virtualheight / step) + 1
+        xn = int(virtualwidth // step) + 1
+        yn = int(virtualheight // step) + 1
         self.SetScrollbars(step,step,xn,yn,0,0)
 
         """
