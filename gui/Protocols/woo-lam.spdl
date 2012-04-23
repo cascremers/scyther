@@ -7,7 +7,6 @@
 
 usertype SessionKey;
 
-secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
@@ -15,7 +14,7 @@ protocol woolam(I,R,S)
 {
     role I
     {
-        const N1: Nonce;
+        fresh N1: Nonce;
         var Kir: SessionKey;
         var N2: Nonce;
 
@@ -33,7 +32,7 @@ protocol woolam(I,R,S)
     
     role R
     {
-        const N2: Nonce;
+        fresh N2: Nonce;
         var N1: Nonce;
         var Kir: SessionKey;
         var T1,T2: Ticket;
@@ -53,22 +52,11 @@ protocol woolam(I,R,S)
 
     role S
     {
-        const Kir: SessionKey;
+        fresh Kir: SessionKey;
         var N1,N2: Nonce;
 
         read_4(R,S, {I, R, N1, N2}k(I,S), {I, R, N1, N2}k(R,S));
         send_5(S,R, {R, N1, N2, Kir}k(I,S), {I, N1, N2, Kir}k(R,S));
     }
 }
-
-const Alice,Bob,Eve,Simon: Agent;
-const Ke: SessionKey;
-const Te: Ticket;
-const Ne: Nonce;
-
-
-untrusted Eve;
-compromised k(Eve,Simon);
-
-
 

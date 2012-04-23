@@ -61,13 +61,3 @@ protocol wmf-Lowe(I,R,S)
     }
 }
 
-const Alice,Bob,Eve,Simon: Agent;
-const Ke: SessionKey;
-const Te: TimeStamp;
-
-
-untrusted Eve;
-compromised k(Eve,Simon);
-
-
-

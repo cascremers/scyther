@@ -5,15 +5,13 @@
 #
 #
 
-secret k : Function;
-
 usertype SessionKey;
 
 protocol yahalom(I,R,S)
 {
     role I
     {
-        const Ni: Nonce;
+        fresh Ni: Nonce;
         var Nr: Nonce;
         var T: Ticket;
         var Kir: SessionKey;
@@ -27,7 +25,7 @@ protocol yahalom(I,R,S)
 
     role R
     {
-        const Nr: Nonce;
+        fresh Nr: Nonce;
         var Ni: Nonce;
         var T: Ticket;
         var Kir: SessionKey;
@@ -41,7 +39,7 @@ protocol yahalom(I,R,S)
 
     role S
     {
-        const Kir: SessionKey;
+        fresh Kir: SessionKey;
         var Ni,Nr: Nonce;
 
         read_2(R,S, R, {I,Ni,Nr}k(R,S) );
@@ -51,11 +49,4 @@ protocol yahalom(I,R,S)
         claim(S, Secret, Nr);
     }
 }
-
-const Alice,Bob,Simon : Agent;
-
-const Eve: Agent;
-untrusted Eve;
-
-compromised k(Eve,Simon);
 

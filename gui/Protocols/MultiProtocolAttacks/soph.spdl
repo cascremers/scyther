@@ -19,9 +19,3 @@ protocol soph(I,R)
 	}
 }
 
-const Alice,Bob,Eve: Agent;
-
-untrusted Eve;
-const nc: Nonce;
-compromised sk(Eve);
-

@@ -50,5 +50,4 @@ protocol yahalom-Lowe(I,R,S)
     }
 }
 
-const Alice,Bob,Simon : Agent;
 

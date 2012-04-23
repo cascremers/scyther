@@ -2,19 +2,13 @@
  * Needham-Schroeder-Lowe protocol
  */
 
-// PKI infrastructure
-
-const pk: Function;
-secret sk: Function;
-inversekeys (pk,sk);
-
 // The protocol description
 
 protocol nsl3(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 
 		send_1(I,R, {ni,I}pk(R) );
@@ -30,7 +24,7 @@ protocol nsl3(I,R)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
+		fresh nr: Nonce;
 
 		read_1(I,R, {ni,I}pk(R) );
 		send_2(R,I, {ni,nr,R}pk(I) );
@@ -42,10 +36,4 @@ protocol nsl3(I,R)
 		claim_r4(R,Nisynch);
 	}
 }
-
-// An untrusted agent, with leaked information
-
-const Eve: Agent;
-untrusted Eve;
-compromised sk(Eve);
 

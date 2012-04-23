@@ -5,7 +5,6 @@
 #
 
 usertype SessionKey;
-secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
@@ -13,7 +12,7 @@ protocol kaochow(I,R,S)
 {
     role I
     {
-        const ni: Nonce;
+        fresh ni: Nonce;
         var nr: Nonce;
         var kir: SessionKey;
 
@@ -30,7 +29,7 @@ protocol kaochow(I,R,S)
     role R
     {
         var ni: Nonce;
-        const nr: Nonce;
+        fresh nr: Nonce;
         var kir: SessionKey;
         var T;
 
@@ -47,24 +46,10 @@ protocol kaochow(I,R,S)
     role S
     {
         var ni: Nonce;
-        const kir: SessionKey;
+        fresh kir: SessionKey;
 
         read_1 (I,S, I,R,ni);
         send_2 (S,R, {I,R,ni,kir}k(I,S), { I,R,ni,kir }k(R,S)  ); 
     }
 }
-
-const Alice,Bob,Simon,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-const te: Ticket;
-const ke: SessionKey;
-compromised k(Eve,Eve);
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Eve,Simon);
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
-compromised k(Simon,Eve);
 

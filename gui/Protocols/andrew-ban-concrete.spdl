@@ -17,7 +17,6 @@
 #
 
 usertype SessionKey;
-secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
@@ -38,7 +37,7 @@ protocol andrew-Concrete(I,R)
     
     role I
     {
-        const ni: Nonce;
+        fresh ni: Nonce;
         var nr: Nonce;
         var kir: SessionKey;
         
@@ -54,8 +53,8 @@ protocol andrew-Concrete(I,R)
     role R
     {
         var ni: Nonce;
-        const nr: Nonce;
-        const kir: SessionKey;
+        fresh nr: Nonce;
+        fresh kir: SessionKey;
 
         read_1(I,R, I,ni );
         send_2(R,I, {ni,kir}k(I,R) );
@@ -66,10 +65,4 @@ protocol andrew-Concrete(I,R)
         claim_R3(R,Empty,(Fresh,kir));
     }
 }
-
-const Alice,Bob,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-const kee: SessionKey;
 

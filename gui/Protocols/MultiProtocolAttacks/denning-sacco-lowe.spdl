@@ -63,12 +63,4 @@ protocol denningSacco-Lowe(I,R,S)
     }    
 }
 
-const Alice,Bob,Simon,Eve: Agent;
-
-untrusted Eve;
-const kee: SessionKey;
-const tee: TimeStamp;
-compromised k(Eve,Simon);
-
-
 

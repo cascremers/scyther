@@ -10,16 +10,11 @@
 # synchronisation and agreement, because the keys that the server sends
 # out can be replayed.
 
-secret pk: Function; # For some reason SPORE models it such that the agents
-                     # do not know the public keys of the other agents
-secret sk: Function;
-inversekeys(pk,sk);
-
 protocol needhamschroederpk-Lowe(I,R,S)
 {
     role I
     {
-        const Ni: Nonce;
+        fresh Ni: Nonce;
         var Nr: Nonce;
 
         send_1(I,S, (I,R));
@@ -34,7 +29,7 @@ protocol needhamschroederpk-Lowe(I,R,S)
     
     role R
     {
-        const Nr: Nonce;
+        fresh Nr: Nonce;
         var Ni: Nonce;
         
         read_3(I,R,{Ni,I}pk(R));
@@ -55,12 +50,4 @@ protocol needhamschroederpk-Lowe(I,R,S)
         send_5(S,R,{pk(I),I}sk(S));
     }
 }
-
-const Alice,Bob,Simon,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
-compromised pk(Eve);
-compromised pk(Simon); # Needed because of the way SPORE models nsl
 

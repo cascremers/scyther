@@ -49,12 +49,3 @@ protocol tmn(I,R,S)
     }
 }
 
-const Alice,Bob,Eve,Simon: Agent;
-const Ke: SessionKey;
-
-
-untrusted Eve;
-compromised sk(Eve);
-
-
-

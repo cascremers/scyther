@@ -54,9 +54,3 @@ protocol needhamschroedersk(I,R,S)
     }
 }
 
-const Alice,Bob,Simon,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-compromised k(Eve,Simon);
-

@@ -5,8 +5,6 @@
 #
 #
 
-secret k : Function;
-
 usertype SessionKey;
 
 
@@ -14,7 +12,7 @@ protocol yahalom-Lowe(I,R,S)
 {
     role I
     {
-        const Ni: Nonce;
+        fresh Ni: Nonce;
         var Nr: Nonce;
         var Kir: SessionKey;
 
@@ -28,7 +26,7 @@ protocol yahalom-Lowe(I,R,S)
 
     role R
     {
-        const Nr: Nonce;
+        fresh Nr: Nonce;
         var Ni: Nonce;
         var Kir: SessionKey;
 
@@ -43,7 +41,7 @@ protocol yahalom-Lowe(I,R,S)
 
     role S
     {
-        const Kir: SessionKey;
+        fresh Kir: SessionKey;
         var Ni,Nr: Nonce;
 
         read_2(R,S, {I,Ni,Nr}k(R,S) );
@@ -51,6 +49,4 @@ protocol yahalom-Lowe(I,R,S)
         send_4(S,R, {I,Kir}k(R,S));
     }
 }
-
-const Alice,Bob,Simon : Agent;
 

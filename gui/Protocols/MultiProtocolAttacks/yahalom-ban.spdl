@@ -52,5 +52,4 @@ protocol yahalom-BAN(I,R,S)
     }
 }
 
-const Alice,Bob,Charlie,David: Agent;
 

@@ -8,9 +8,6 @@
 # from the description in SPORE
 usertype SessionKey;
 
-const pk: Function;
-secret sk: Function;
-inversekeys(pk,sk);
 const Fresh: Function;
 const Compromised: Function;
 
@@ -18,7 +15,7 @@ protocol tmn(I,R,S)
 {
     role I
     {
-        const Ki: SessionKey;
+        fresh Ki: SessionKey;
         var Kr: SessionKey;
 
         send_1(I,S, R,{Ki}pk(S) );
@@ -31,7 +28,7 @@ protocol tmn(I,R,S)
     
     role R
     {
-        const Kr: SessionKey;
+        fresh Kr: SessionKey;
 
         read_2(S,R, I );
         send_3(R,S, I, { Kr }pk(S) );
@@ -51,13 +48,4 @@ protocol tmn(I,R,S)
         send_4(S,I, R,{Kr}Ki );
     }
 }
-
-const Alice,Bob,Eve,Simon: Agent;
-const Ke: SessionKey;
-
-
-untrusted Eve;
-compromised sk(Eve);
-
-
 

@@ -50,10 +50,3 @@ protocol yahalom(I,R,S)
     }
 }
 
-const Alice,Bob,Simon : Agent;
-
-const Eve: Agent;
-untrusted Eve;
-
-compromised k(Eve,Simon);
-

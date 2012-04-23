@@ -7,9 +7,6 @@
 usertype Server;
 usertype SessionKey;
 
-const a,b,c : Agent;
-const s : Server;
-
 protocol yahalom-BAN-Paulson(A,B,S)
 {
 	role A

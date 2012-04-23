@@ -10,7 +10,6 @@
 
 
 
-secret k: Function;
 # Model dec that is invertible by inc
 const dec,inc: Function;
 inversekeys(dec,inc);
@@ -22,7 +21,7 @@ protocol needhamschroedersk-amend(I,R,S)
 {
     role I
     {
-        const Ni: Nonce;
+        fresh Ni: Nonce;
         var Nr: Nonce;
         var Kir: SessionKey;
         var T,T2: Ticket;
@@ -42,7 +41,7 @@ protocol needhamschroedersk-amend(I,R,S)
     
     role R
     {
-        const Nr: Nonce;
+        fresh Nr: Nonce;
         var Kir: SessionKey;
         
         read_1(I,R,I);
@@ -58,17 +57,10 @@ protocol needhamschroedersk-amend(I,R,S)
     role S
     {
         var Ni,Nr: Nonce;
-        const Kir: SessionKey;
+        fresh Kir: SessionKey;
         read_3(I,S,(I,R,Ni,{I,Nr}k(R,S)));
         send_4(S,I,{Ni,R,Kir,{Kir,Nr,I}k(R,S)}k(I,S));
     }
     
 }
 
-const Alice,Bob,Simon,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-compromised k(Eve,Simon);
-
- 

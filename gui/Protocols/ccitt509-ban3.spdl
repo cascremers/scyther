@@ -11,10 +11,6 @@
 # According to SPORE there are no known attacks on this protocol
 #
 
-const pk: Function;
-secret sk: Function;
-inversekeys(pk,sk);
-
 protocol ccitt509-ban3(I,R)
 {
     role I
@@ -40,10 +36,4 @@ protocol ccitt509-ban3(I,R)
         # There should also be Fresh Xa and Fresh Ya claims here
     }
 }
-
-const Alice,Bob,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 

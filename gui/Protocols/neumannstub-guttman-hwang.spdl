@@ -10,27 +10,20 @@
 
 usertype Server, SessionKey, TimeStamp, TicketKey;
 usertype ExpiredTimeStamp;
-secret k: Function;
 
-const Alice, Bob, Simon, Eve: Agent;
 const Fresh: Function;
 const Compromised: Function;
 
-const ne: Nonce;
-const kee: SessionKey;
-untrusted Eve;
-compromised k(Eve,Simon);
-
 protocol neustub-GuttmanHwang^Repeat(I,R,S)
 {
-    const Kir: SessionKey;
+    fresh Kir: SessionKey;
 
     role I
     {
-        const Mi: Nonce;
+        fresh Mi: Nonce;
         var Mr: Nonce;
-        const Kir: SessionKey;
-        const Tr: TimeStamp;
+        fresh Kir: SessionKey;
+        fresh Tr: TimeStamp;
 
         send_5(I,R,Mi,{I,Kir,Tr}k(R,S));
         read_6(R,I,{Mi,Mr}Kir);
@@ -43,7 +36,7 @@ protocol neustub-GuttmanHwang^Repeat(I,R,S)
 
     role R
     {
-        const Mr: Nonce;
+        fresh Mr: Nonce;
         var Tr: TimeStamp;
         var Kir: SessionKey;
         var Mi: Nonce;
@@ -65,7 +58,7 @@ protocol neustub-GuttmanHwang(I,R,S)
 {
     role I
     {
-        const Ni: Nonce;
+        fresh Ni: Nonce;
         var Nr: Nonce;
         var T: Ticket;
         var Tb: TimeStamp;
@@ -84,9 +77,9 @@ protocol neustub-GuttmanHwang(I,R,S)
     role R
     {
         var Ni,Mi: Nonce;
-        const Nr,Mr: Nonce;
+        fresh Nr,Mr: Nonce;
         var Kir: SessionKey;
-        const Tb: TimeStamp;
+        fresh Tb: TimeStamp;
         var T: Ticket;
         
         read_1(I,R, I, Ni);
@@ -102,7 +95,7 @@ protocol neustub-GuttmanHwang(I,R,S)
     role S
     {
         var Ni, Nr: Nonce;
-        const Kir: SessionKey;
+        fresh Kir: SessionKey;
         var Tb: TimeStamp;
 
         read_!2(R,S, R, {I,Ni,Tb,Nr}k(R,S));

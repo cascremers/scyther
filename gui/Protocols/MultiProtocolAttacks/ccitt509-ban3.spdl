@@ -37,9 +37,3 @@ protocol ccitt509-ban3(I,R)
     }
 }
 
-const Alice,Bob,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
-

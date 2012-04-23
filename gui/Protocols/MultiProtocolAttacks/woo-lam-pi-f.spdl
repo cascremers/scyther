@@ -39,11 +39,3 @@ protocol woolamPi-f(I,R,S)
     }
 }
 
-const Alice,Bob,Eve,Simon: Agent;
-const Te: Ticket;
-const Ne: Nonce;
-
-
-untrusted Eve;
-compromised k(Eve,Simon);
-

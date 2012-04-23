@@ -65,9 +65,3 @@ protocol andrew-Concrete(I,R)
     }
 }
 
-const Alice,Bob,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-const kee: SessionKey;
-

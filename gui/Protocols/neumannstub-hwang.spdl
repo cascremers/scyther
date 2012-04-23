@@ -10,23 +10,15 @@
 
 usertype Server, SessionKey, TimeStamp, TicketKey;
 usertype ExpiredTimeStamp;
-secret k: Function;
 
-const a, b, e: Agent;
-const s: Server;
 const Fresh: Function;
 const Compromised: Function;
-
-const ne: Nonce;
-const kee: SessionKey;
-untrusted e;
-compromised k(e,s);
 
 protocol neustub-Hwang(I,R,S)
 {
     role I
     {
-        const Ni,Mi: Nonce;
+        fresh Ni,Mi: Nonce;
         var Nr,Mr: Nonce;
         var T: Ticket;
         var Tb: TimeStamp;
@@ -48,9 +40,9 @@ protocol neustub-Hwang(I,R,S)
     role R
     {
         var Ni,Mi: Nonce;
-        const Nr,Mr: Nonce;
+        fresh Nr,Mr: Nonce;
         var Kir: SessionKey;
-        const Tb: TimeStamp;
+        fresh Tb: TimeStamp;
         var T: Ticket;
         
         read_1(I,R, I, Ni);
@@ -69,7 +61,7 @@ protocol neustub-Hwang(I,R,S)
     role S
     {
         var Ni, Nr: Nonce;
-        const Kir: SessionKey;
+        fresh Kir: SessionKey;
         var Tb: TimeStamp;
 
         read_!2(R,S, R, {I,Ni,Tb,Nr}k(R,S));

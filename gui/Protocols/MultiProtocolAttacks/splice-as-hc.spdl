@@ -7,9 +7,6 @@
 
 usertype TimeStamp, LifeTime;
 
-const pk: Function;
-secret sk: Function;
-inversekeys (pk,sk);
 const inc,dec: Function;
 inversekeys (inc,dec);
 
@@ -61,12 +58,4 @@ protocol spliceAS-HC(I,R,S)
         claim_12(R, Nisynch);
     }
 }
-
-const Alice,Bob,Simon,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
-
-
 

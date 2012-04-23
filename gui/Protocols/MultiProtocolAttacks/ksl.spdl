@@ -9,13 +9,8 @@
 usertype Server, SessionKey, TimeStamp, TicketKey;
 usertype ExpiredTimeStamp;
 
-const a, b, e: Agent;
-const s: Server;
 const Fresh: Function;
 const Compromised: Function;
-
-untrusted e;
-compromised k(e,s);
 
 
 
@@ -23,7 +18,7 @@ protocol ksl(I,R,S)
 {
     role I
     {
-        const Ni, Mi: Nonce;
+        fresh Ni, Mi: Nonce;
         var Nc, Mr: Nonce;
         var T: Ticket;
         var Kir: SessionKey;
@@ -45,10 +40,10 @@ protocol ksl(I,R,S)
     role R
     {
         var Ni,Mi: Nonce;
-        const Nr,Nc,Mr: Nonce;
+        fresh Nr,Nc,Mr: Nonce;
         var Kir: SessionKey;
-        const Kbb: TicketKey;
-        const Tr: TimeStamp;
+        fresh Kbb: TicketKey;
+        fresh Tr: TimeStamp;
         var T: Ticket;
         
         read_1(I,R, Ni, I);
@@ -70,7 +65,7 @@ protocol ksl(I,R,S)
     role S
     {
         var Ni, Nr: Nonce;
-        const Kir: SessionKey;
+        fresh Kir: SessionKey;
 
         read_2(R,S, Ni, I, Nr, R );
         send_3(S,R, { Nr, I, Kir }k(R,S), { Ni,R,Kir }k(I,S) );

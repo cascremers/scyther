@@ -54,8 +54,3 @@ protocol otwayrees(I,R,S)
     }
 }
 
-const Alice, Bob, Eve, Simon: Agent;
-
-untrusted Eve;
-compromised k(Eve,Simon);
-
