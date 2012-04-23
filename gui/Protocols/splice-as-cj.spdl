@@ -12,9 +12,6 @@
 
 usertype TimeStamp, LifeTime;
 
-const pk: Function;
-secret sk: Function;
-inversekeys (pk,sk);
 const inc,dec: Function;
 inversekeys (inc,dec);
 
@@ -22,9 +19,9 @@ protocol spliceAS-CJ(I,R,S)
 {
         role I
     {
-        const N1,N2: Nonce;
-        const T: TimeStamp;
-        const L: LifeTime;
+        fresh N1,N2: Nonce;
+        fresh T: TimeStamp;
+        fresh L: LifeTime;
 
         send_1(I,S,  I, R, N1 );
         read_2(S,I,  S, {S, I, N1, R, pk(R)}sk(S) );
@@ -48,13 +45,13 @@ protocol spliceAS-CJ(I,R,S)
 
     role R
     {
-        const N3: Nonce;
+        fresh N3: Nonce;
         var N2: Nonce;
         var T: TimeStamp;
         var L: LifeTime;
 
         var ni: Nonce;
-        const nr: Nonce;
+        fresh nr: Nonce;
 
         read_3(I,R, I, R, {T, L, {I, N2}pk(R)}sk(I) );
         send_4(R,S, R, I, N3 );
@@ -66,10 +63,4 @@ protocol spliceAS-CJ(I,R,S)
         claim_12(R, Nisynch);
     }
 }
-
-const Alice,Bob,Simon,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 

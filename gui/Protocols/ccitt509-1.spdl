@@ -9,17 +9,14 @@
 # which can currently not be modelled in scyther
 #
 
-const pk: Function;
-secret sk: Function;
-inversekeys(pk,sk);
 usertype Timestamp;
 
 protocol ccitt509-1(I,R)
 {
     role I
     {
-        const Ta: Timestamp;
-        const Na,Xa,Ya: Nonce;
+        fresh Ta: Timestamp;
+        fresh Na,Xa,Ya: Nonce;
         send_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
         # claim_2(I,Nisynch);
         # This claim is useless as there are no preceding read events
@@ -35,12 +32,4 @@ protocol ccitt509-1(I,R)
         # There should also be Fresh Xa and Fresh Ya claims here
     }
 }
-
-const Alice,Bob,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-const te: Timestamp;
-compromised sk(Eve);
-
 

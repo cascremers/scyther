@@ -8,7 +8,6 @@ usertype Key;
 usertype SessionKey;
 usertype TimeStamp;
 usertype ExpiredTimeStamp;
-secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
@@ -44,20 +43,11 @@ protocol denningSacco(I,R,S)
     role S
     {
         var W: Ticket;
-        const Kir: SessionKey;
-        const T: TimeStamp;
+        fresh Kir: SessionKey;
+        fresh T: TimeStamp;
 
         read_1(I,S, I,R );
         send_2(S,I, {R, Kir, T, {Kir, I,T}k(R,S)}k(I,S));
     }    
 }
-
-const Alice,Bob,Simon,Eve: Agent;
-
-untrusted Eve;
-const kee: SessionKey;
-const tee: TimeStamp;
-compromised k(Eve,Simon);
-
-
 

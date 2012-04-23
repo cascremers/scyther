@@ -12,7 +12,6 @@
 # According to SPORE there are no known attacks on this protocol
 #
 usertype SessionKey;
-secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
@@ -20,7 +19,7 @@ protocol andrew-Ban(I,R)
 {
     role I
     {
-        const ni: Nonce;
+        fresh ni: Nonce;
         var nr,nr2: Nonce;
         var kir: SessionKey;
 
@@ -37,8 +36,8 @@ protocol andrew-Ban(I,R)
     role R
     {
         var ni: Nonce;
-        const nr,nr2: Nonce;
-        const kir: SessionKey;
+        fresh nr,nr2: Nonce;
+        fresh kir: SessionKey;
 
         read_1(I,R, I,{ni}k(I,R) );
         send_2(R,I, {ni,nr}k(I,R) );
@@ -50,15 +49,4 @@ protocol andrew-Ban(I,R)
         claim_R5(R,Empty, (Fresh,kir));
     }
 }
-
-const Alice,Bob,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-const kee: SessionKey;
-compromised k(Eve,Eve);
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
 

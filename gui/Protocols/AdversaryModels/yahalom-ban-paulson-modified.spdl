@@ -8,9 +8,6 @@
 
 usertype Server;
 
-const a,b,c : Agent;
-const s : Server;
-
 protocol yahalom-BAN-Paulson-modified(A,B,S)
 {
 	role A

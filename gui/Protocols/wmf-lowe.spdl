@@ -17,14 +17,12 @@ inversekeys (succ,pred);
 const Fresh: Function;
 const Compromised: Function;
 
-secret k: Function;
-
 protocol wmf-Lowe(I,R,S)
 {
     role I
     {
-        const Kir: SessionKey;
-        const Ti: TimeStamp;
+        fresh Kir: SessionKey;
+        fresh Ti: TimeStamp;
         var Kr: SessionKey;
         var Nr: Nonce;
 
@@ -41,7 +39,7 @@ protocol wmf-Lowe(I,R,S)
     {
         var Ts: TimeStamp;
         var Kir: SessionKey;
-        const Nr: Nonce;
+        fresh Nr: Nonce;
 
         read_2(S,R, {Ts, I, Kir}k(R,S) );
         send_3(R,I, {Nr}Kir);
@@ -55,21 +53,11 @@ protocol wmf-Lowe(I,R,S)
     role S
     {
         var Kir: SessionKey;
-        const Ts: TimeStamp;
+        fresh Ts: TimeStamp;
         var Ti: TimeStamp;
 
         read_1(I,S, I,{Ti, R, Kir}k(I,S) );
         send_2(S,R, {Ts, I, Kir}k(R,S));
     }
 }
-
-const Alice,Bob,Eve,Simon: Agent;
-const Ke: SessionKey;
-const Te: TimeStamp;
-
-
-untrusted Eve;
-compromised k(Eve,Simon);
-
-
 

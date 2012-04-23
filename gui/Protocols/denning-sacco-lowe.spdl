@@ -11,7 +11,6 @@ usertype Key;
 usertype SessionKey;
 usertype TimeStamp;
 usertype ExpiredTimeStamp;
-secret k: Function;
 usertype PseudoFunction;
 const dec: PseudoFunction;
 const Fresh: Function;
@@ -41,7 +40,7 @@ protocol denningSacco-Lowe(I,R,S)
     {
         var Kir: SessionKey;
         var T: TimeStamp;
-        const Nr: Nonce;
+        fresh Nr: Nonce;
 
         read_3(I,R, {Kir,I,T}k(R,S));
         send_4(R,I, {Nr}Kir);
@@ -55,21 +54,12 @@ protocol denningSacco-Lowe(I,R,S)
     role S
     {
         var W: Ticket;
-        const Kir: SessionKey;
-        const T: TimeStamp;
+        fresh Kir: SessionKey;
+        fresh T: TimeStamp;
 
         read_1(I,S, I,R );
         send_2(S,I, {R, Kir, T, {Kir, I,T}k(R,S)}k(I,S));
 	claim_x(S, SKR, Kir);
     }    
 }
-
-const Alice,Bob,Simon,Eve: Agent;
-
-untrusted Eve;
-const kee: SessionKey;
-const tee: TimeStamp;
-compromised k(Eve,Simon);
-
-
 

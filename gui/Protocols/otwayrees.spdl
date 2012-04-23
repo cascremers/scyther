@@ -5,7 +5,6 @@
 #
 
 
-secret const k : Function;
 const Fresh: Function;
 const Compromised: Function;
 
@@ -15,8 +14,8 @@ protocol otwayrees(I,R,S)
 {
     role I
     {
-        const Ni : Nonce;
-        const M : String;
+        fresh Ni : Nonce;
+        fresh M : String;
         var Kir : SessionKey;
 
         send_1(I,R, M,I,R,{Ni,M,I,R}k(I,S) );
@@ -30,7 +29,7 @@ protocol otwayrees(I,R,S)
     role R
     {
         var M : String;
-        const Nr : Nonce;
+        fresh Nr : Nonce;
         var Kir : SessionKey;
         var T1,T2: Ticket;
 
@@ -48,15 +47,10 @@ protocol otwayrees(I,R,S)
     {
         var Ni,Nr : Nonce;
         var M : String;
-        const Kir : SessionKey;
+        fresh Kir : SessionKey;
         
         read_2(R,S, M,I,R, { Ni,M,I,R}k(I,S), { Nr,M,I,R }k(R,S) );
         send_3(S,R, M, { Ni,Kir }k(I,S) , { Nr,Kir }k(R,S) );
     }
 }
-
-const Alice, Bob, Eve, Simon: Agent;
-
-untrusted Eve;
-compromised k(Eve,Simon);
 

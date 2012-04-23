@@ -8,18 +8,15 @@
 # this can not be verified using scyther
 #
 
-const pk: Function;
-secret sk: Function;
-inversekeys(pk,sk);
 usertype Timestamp;
 
 protocol ccitt509-3(I,R)
 {
     role I
     {
-        const Ta: Timestamp;
+        fresh Ta: Timestamp;
         var Tb: Timestamp;
-        const Na,Xa,Ya: Nonce;
+        fresh Na,Xa,Ya: Nonce;
         var Xb,Nb,Yb: Nonce;
         send_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
         read_2(R,I, R,{Tb, Nb, I, Na, Xb,{Yb}pk(I)}sk(R));
@@ -32,9 +29,9 @@ protocol ccitt509-3(I,R)
     role R
     {
         var Ta: Timestamp;
-        const Tb: Timestamp;
+        fresh Tb: Timestamp;
         var Na,Xa,Ya: Nonce;
-        const Xb,Yb,Nb: Nonce;
+        fresh Xb,Yb,Nb: Nonce;
 
         read_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
         send_2(R,I, R,{Tb, Nb, I, Na, Xb,{Yb}pk(I)}sk(R));
@@ -45,11 +42,4 @@ protocol ccitt509-3(I,R)
         # There should also be Fresh Xa and Fresh Ya claims here
     }
 }
-
-const Alice,Bob,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-const te: Timestamp;
-compromised sk(Eve);
 

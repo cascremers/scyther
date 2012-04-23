@@ -4,8 +4,6 @@
 # http://www.lsv.ens-cachan.fr/spore/wooLamPi1.html
 #
 
-secret k: Function;
-
 protocol woolamPi-1(I,R,S)
 {
     role I
@@ -20,7 +18,7 @@ protocol woolamPi-1(I,R,S)
     
     role R
     {
-        const Nr: Nonce;
+        fresh Nr: Nonce;
         var T: Ticket;
 
         read_1(I,R, I);
@@ -40,14 +38,4 @@ protocol woolamPi-1(I,R,S)
         send_5(S,R, {I,R,Nr}k(R,S));
     }
 }
-
-const Alice,Bob,Eve,Simon: Agent;
-const Te: Ticket;
-const Ne: Nonce;
-
-
-untrusted Eve;
-compromised k(Eve,Simon);
-
-
 

@@ -10,10 +10,7 @@
 # Scyther finds an attack because the value of VoR in te last message can
 # be replaced with an arbitrary value
 
-const hash: Function;
-secret unhash: Function;
-secret k: Function;
-inversekeys (hash,unhash);
+hashfunction hash;
 usertype SessionKey;
 usertype XorKey;
 const Vor: XorKey;
@@ -22,9 +19,9 @@ protocol smartright(I,R)
 {
     role I
     {
-        const VoKey: SessionKey;
-        const VoR: XorKey;
-        const CW;
+        fresh VoKey: SessionKey;
+        fresh VoR: XorKey;
+        fresh CW;
         var VoRi: Nonce;
 
         send_1(I,R, {VoKey,{CW}VoR}k(I,R));
@@ -37,7 +34,7 @@ protocol smartright(I,R)
         var T: Ticket;
         var VoR: XorKey;
         var VoKey: SessionKey;
-        const VoRi: Nonce;
+        fresh VoRi: Nonce;
 
         read_1(I,R, {VoKey,T}k(I,R));
         send_2(R,I, VoRi);
@@ -46,9 +43,4 @@ protocol smartright(I,R)
         claim_R1(R,Nisynch);
     }
 }
-
-const Alice,Bob,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
 

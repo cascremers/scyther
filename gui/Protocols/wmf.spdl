@@ -12,7 +12,6 @@ usertype SessionKey;
 usertype TimeStamp;
 usertype ExpiredTimeStamp;
 
-secret k: Function;
 const Fresh: Function;
 const Compromised: Function;
 
@@ -20,8 +19,8 @@ protocol wmf(I,R,S)
 {
     role I
     {
-        const Kir: SessionKey;
-        const Ti: TimeStamp;
+        fresh Kir: SessionKey;
+        fresh Ti: TimeStamp;
         var Kr: SessionKey;
 
         send_1(I,S, I, {I, Ti, R, Kir}k(I,S)); 
@@ -45,21 +44,11 @@ protocol wmf(I,R,S)
     role S
     {
         var Kir: SessionKey;
-        const Ts: TimeStamp;
+        fresh Ts: TimeStamp;
         var Ti: TimeStamp;
 
         read_1(I,S, I,{I, Ti, R, Kir}k(I,S) );
         send_2(S,R, {S, Ts, I, Kir}k(R,S));
     }
 }
-
-const Alice,Bob,Eve,Simon: Agent;
-const Ke: SessionKey;
-const Te: TimeStamp;
-
-
-untrusted Eve;
-compromised k(Eve,Simon);
-
-
 

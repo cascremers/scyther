@@ -12,7 +12,7 @@ protocol yahalom-BAN(I,R,S)
 {
     role I
     {
-        const Ni: Nonce;
+        fresh Ni: Nonce;
         var Nr: Nonce;
         var T: Ticket;
         var Kir: SessionKey;
@@ -28,7 +28,7 @@ protocol yahalom-BAN(I,R,S)
 
     role R
     {
-        const Nr: Nonce;
+        fresh Nr: Nonce;
         var Ni: Nonce;
         var T: Ticket;
         var Kir: SessionKey;
@@ -44,13 +44,11 @@ protocol yahalom-BAN(I,R,S)
 
     role S
     {
-        const Kir: SessionKey;
+        fresh Kir: SessionKey;
         var Ni,Nr: Nonce;
 
         read_2(R,S, R, Nr, {I,Ni}k(R,S) );
         send_3(S,I, Nr, {R,Kir,Ni}k(I,S), {I,Kir,Nr}k(R,S) );
     }
 }
-
-const Alice,Bob,Charlie,David: Agent;
 

@@ -17,7 +17,7 @@ protocol andrew(I,R)
 {
     role I
     {
-        const ni: Nonce;
+        fresh ni: Nonce;
         var nr,nr2: Nonce;
         var kir: SessionKey;
 
@@ -34,8 +34,8 @@ protocol andrew(I,R)
     role R
     {
         var ni: Nonce;
-        const nr,nr2: Nonce;
-        const kir: SessionKey;
+        fresh nr,nr2: Nonce;
+        fresh kir: SessionKey;
 
         read_1(I,R, I,{ni}k(I,R) );
         send_2(R,I, {succ(ni),nr}k(I,R) );
