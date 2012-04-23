@@ -226,7 +226,7 @@ def init():
 def get(key,alt=None):
     global prefs
 
-    if prefs.has_key(key):
+    if key in prefs.keys():
         return prefs[key]
     else:
         return alt
