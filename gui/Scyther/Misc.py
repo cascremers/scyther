@@ -125,7 +125,11 @@ def panic(text):
     on the command line and reported using Tkinter.
     """
 
-    import Tkinter
+    try:
+        import Tkinter
+    except:
+        print text
+        sys.exit(-1)
     
     print text
 

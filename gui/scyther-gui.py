@@ -21,6 +21,8 @@
 
 #---------------------------------------------------------------------------
 
+""" Import externals """
+import sys
 
 #---------------------------------------------------------------------------
 
@@ -29,9 +31,7 @@ from Gui import About,Preference,Mainwindow
 from Scyther import Scyther,Misc
 
 #---------------------------------------------------------------------------
-
-""" Import externals """
-import sys
+# Try to get wxPython
 try:
     import wx
 except ImportError:
@@ -49,6 +49,8 @@ version number.
 
 Note that you can still use the Scyther binaries in the 'Scyther' directory.
     """)
+
+#---------------------------------------------------------------------------
 
 import os
 from optparse import OptionParser, SUPPRESS_HELP
