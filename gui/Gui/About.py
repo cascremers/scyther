@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2009 Cas Cremers
+	Copyright (C) 2007-2012 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -71,7 +71,7 @@ class AboutScyther(wx.Dialog):
     <h5>License</h5>
     <p>
         Scyther : An automatic verifier for security protocols.<br>
-        Copyright (C) 2007-2009 Cas Cremers
+        Copyright (C) 2007-2012 Cas Cremers
     </p>
     <p>
         This program is free software; you can redistribute it and/or
