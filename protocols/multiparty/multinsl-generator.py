@@ -236,8 +236,8 @@ def action (event,label,inrole):
     s += " );\n"
     return s
 
-def read (label,inrole):
-    return action ("read", label,inrole)
+def recv (label,inrole):
+    return action ("recv", label,inrole)
 
 
 def send (label,inrole):
@@ -282,10 +282,10 @@ def roledef (r):
     
     s += "\n"
     if r > 0:
-        # Initial read
-        s += read(r-1,r)
+        # Initial recv
+        s += recv(r-1,r)
     s += send(r,r)
-    s += read(P+r-1,r)
+    s += recv(P+r-1,r)
     if r < (P-1):
         # Final send
         s += send(P+r,r)
@@ -312,9 +312,6 @@ def protocol (args):
     s += "// Generalized %s protocol for %i parties\n\n" % (opts.protocol,P)
     s += "// " + str(opts) + "\n\n"
     s += "// Variant %i\n" % variant
-    s += "const pk: Function;\n"
-    s += "secret sk: Function;\n"
-    s += "inversekeys (pk,sk);\n"
     
     if opts.protocol == "bke":
         s += "usertype Globalconstant;\n"
@@ -333,13 +330,6 @@ def protocol (args):
         s += roledef(i)
     
     s += "}\n\n"
-
-    s += "const Alice, Bob: Agent;\n\n"
-
-    s += "const Eve: Agent;\n"
-    s += "untrusted Eve;\n"
-    s += "const ne: Nonce;\n"
-    s += "compromised sk(Eve);\n"
 
     s += "\n"
     return s
