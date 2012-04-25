@@ -21,7 +21,6 @@ WOULD LIKE TO HAVE
 - Line numbering is needed for the editor window otherwise you cannot
   interpret attacks. Probably use wx.Py editor things.
 - Scyther executable should be able to be set by means of preferences.
-- Save attacks (dot/xml/png) to file.
 
 IN AN IDEAL WORLD...
 

@@ -2,12 +2,6 @@
  * Needham-Schroeder protocol
  */
 
-// PKI infrastructure
-
-const pk: Function;
-secret sk: Function;
-inversekeys (pk,sk);
-
 // The protocol description
 
 protocol ns3(I,R)
@@ -42,5 +36,6 @@ protocol ns3(I,R)
 		claim_r4(R,Nisynch);
 	}
 }
+
 
 

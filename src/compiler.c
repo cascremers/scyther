@@ -1816,8 +1816,6 @@ compute_prec_sets (const System sys)
       r2 = 0;
       while (r2 < sys->rolecount)
 	{
-	  Roledef rd2;
-
 	  ev2 = 0;
 	  rd = roledef_re (r2, ev2);
 	  while (rd != NULL)

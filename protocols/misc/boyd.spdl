@@ -1,6 +1,5 @@
 usertype Sessionkey;
 usertype Macseed;
-secret k: Function;
 const m: Function;
 secret unm: Function;
 const f: Function;
@@ -59,23 +58,3 @@ protocol boyd(I,R,S)
 	}
 }
 
-const Alice,Bob,Simon,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-const mcsde: Macseed;
-const ke: Sessionkey;
-compromised k(Eve,Eve);
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Eve,Simon);
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
-compromised k(Simon,Eve);
-
-run boyd.I(Agent,Agent,Simon);
-run boyd.R(Agent,Agent,Simon);
-run boyd.S(Agent,Agent,Simon);
-run boyd.I(Agent,Agent,Simon);
-run boyd.R(Agent,Agent,Simon);
-run boyd.S(Agent,Agent,Simon);

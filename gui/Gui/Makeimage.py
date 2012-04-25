@@ -134,6 +134,7 @@ def makeImageDot(dotdata,attackthread=None):
     # execute command
     p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE)
 
+
     if attackthread:
         writeGraph(attackthread,dotdata,p.stdin)
     else:
