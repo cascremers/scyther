@@ -54,15 +54,15 @@ roledefPrintGeneric (Roledef rd, int print_actor)
       eprintf ("[Empty roledef]");
       return;
     }
-  if (rd->type == READ && rd->internal)
+  if (rd->type == RECV && rd->internal)
     {
-      /* special case: internal read == choose ! */
+      /* special case: internal recv == choose ! */
       eprintf ("CHOOSE(");
       termPrint (rd->message);
       eprintf (")");
       return;
     }
-  if (rd->type == READ)
+  if (rd->type == RECV)
     eprintf ("RECV");
   if (rd->type == SEND)
     eprintf ("SEND");
@@ -93,14 +93,14 @@ roledefPrintGeneric (Roledef rd, int print_actor)
   eprintf ("(");
   if (!(rd->from == NULL && rd->to == NULL))
     {
-      if (print_actor || rd->type == READ)
+      if (print_actor || rd->type == RECV)
 	{
 	  termPrint (rd->from);
 	  eprintf (",");
 	}
       if (rd->type == CLAIM)
 	eprintf (" ");
-      if (print_actor || rd->type != READ)
+      if (print_actor || rd->type != RECV)
 	{
 	  termPrint (rd->to);
 	  eprintf (", ");
@@ -205,7 +205,7 @@ roledefInit (int type, Term label, Term from, Term to, Term msg, Claimlist cl)
   newEvent->forbidden = NULL;	// no forbidden stuff
   newEvent->knowPhase = -1;	// we haven't explored any knowledge yet
   newEvent->claiminfo = cl;	// only for claims
-  if (type == READ)
+  if (type == RECV)
     newEvent->bound = 0;	// bound goal (Used for arachne only). Technically involves choose events as well.
   else
     newEvent->bound = 1;	// other stuff does not need to be bound
@@ -247,7 +247,7 @@ roleCreate (Term name)
   r->variables = NULL;
   r->declaredvars = NULL;
   r->declaredconsts = NULL;
-  r->initiator = 1;		//! Will be determined later, if a read is the first action (in compiler.c)
+  r->initiator = 1;		//! Will be determined later, if a recv is the first action (in compiler.c)
   r->singular = false;		// by default, a role is not singular
   r->next = NULL;
   r->knows = NULL;
@@ -470,7 +470,7 @@ WellFormedEvent (Term role, Knowledge know, Roledef rd)
     {
       return know;
     }
-  if (rd->type == READ)
+  if (rd->type == RECV)
     {
       // Read
       if (!isTermEqual (role, rd->to))

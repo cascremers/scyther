@@ -104,7 +104,7 @@ switchesInit (int argc, char **argv)
   switches.reportMemory = 0;
   switches.reportTime = 0;
   switches.countStates = false;	// default off
-  switches.extendNonReads = 0;	// default off
+  switches.extendNonRecvs = 0;	// default off
   switches.extendTrivial = 0;	// default off
   switches.plain = false;	// default colors for terminal
   switches.monochrome = false;	// default colors for dot
@@ -204,7 +204,7 @@ openFileSearch (char *filename, FILE * reopener)
 	if (switches.expert)
 	  {
 	    globalError++;
-	    eprintf ("Reading file %s.\n", buffer);
+	    eprintf ("Recving file %s.\n", buffer);
 	    globalError--;
 	  }
 
@@ -987,7 +987,7 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "extend-nonreads", 0))
+  if (detect (' ', "extend-nonrecvs", 0))
     {
       if (!process)
 	{
@@ -996,7 +996,7 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  switches.extendNonReads = 1;
+	  switches.extendNonRecvs = 1;
 	  return index;
 	}
     }

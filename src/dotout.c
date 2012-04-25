@@ -36,7 +36,7 @@ extern Role I_RRS;
 extern Role I_RRSD;
 
 #define INVALID		-1
-#define isGoal(rd)	(rd->type == READ && !rd->internal)
+#define isGoal(rd)	(rd->type == RECV && !rd->internal)
 #define isBound(rd)	(rd->bound)
 #define length		step
 
@@ -283,7 +283,7 @@ roledefDraw (Roledef rd)
       }
   }
 
-  if (rd->type == READ)
+  if (rd->type == RECV)
     {
       eprintf ("recv");
       optlabel ();
@@ -1244,7 +1244,7 @@ showLocal (const int run, Term told, Term tnew, char *prefix, char *cursep)
     {
       if (termOccursInRun (tnew, run))
 	{
-	  // Variables are mapped, maybe. But then we wonder whether they occur in reads.
+	  // Variables are mapped, maybe. But then we wonder whether they occur in recvs.
 	  eprintf (cursep);
 	  eprintf (prefix);
 	  termPrintRemap (told);

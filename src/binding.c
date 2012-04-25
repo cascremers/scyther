@@ -295,7 +295,7 @@ goal_remove_last (int n)
     }
 }
 
-//! Determine whether some label set is ordered w.r.t. send/read order.
+//! Determine whether some label set is ordered w.r.t. send/recv order.
 /**
  * Assumes all these labels exist in the system, within length etc, and that the run mappings are valid.
  */
@@ -304,9 +304,9 @@ labels_ordered (Termmap runs, Termlist labels)
 {
   while (labels != NULL)
     {
-      // Given this label, and the mapping of runs, we want to know if the order is okay. Thus, we need to know sendrole and readrole
+      // Given this label, and the mapping of runs, we want to know if the order is okay. Thus, we need to know sendrole and recvrole
       Labelinfo linfo;
-      int send_run, send_ev, read_run, read_ev;
+      int send_run, send_ev, recv_run, recv_ev;
 
       int get_index (const int run)
       {
@@ -323,7 +323,7 @@ labels_ordered (Termmap runs, Termlist labels)
 #ifdef DEBUG
 	if (rd == NULL)
 	  error
-	    ("Could not locate send or read for label, after niagree holds, to test for order.");
+	    ("Could not locate send or recv for label, after niagree holds, to test for order.");
 #endif
 	return i;
       }
@@ -332,10 +332,10 @@ labels_ordered (Termmap runs, Termlist labels)
       if (!linfo->ignore)
 	{
 	  send_run = termmapGet (runs, linfo->sendrole);
-	  read_run = termmapGet (runs, linfo->readrole);
+	  recv_run = termmapGet (runs, linfo->recvrole);
 	  send_ev = get_index (send_run);
-	  read_ev = get_index (read_run);
-	  if (!isDependEvent (send_run, send_ev, read_run, read_ev))
+	  recv_ev = get_index (recv_run);
+	  if (!isDependEvent (send_run, send_ev, recv_run, recv_ev))
 	    {
 	      // Not ordered; false
 	      return false;
@@ -550,7 +550,7 @@ bindings_c_minimal ()
 		//!@todo hardcoded reference to step, should be length
 		for (ev = 0; ev < sys->runs[run].step; ev++)
 		  {
-		    if (rd->type == SEND || rd->type == READ)
+		    if (rd->type == SEND || rd->type == RECV)
 		      {
 			if (isDependEvent (run, ev, b->run_from, b->ev_from))
 			  {

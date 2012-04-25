@@ -142,7 +142,7 @@ systemRuns (const System sys)
       Roledef rd;
 
       rd = runPointerGet (sys, run);
-      if (rd != NULL && rd->internal && rd->type == READ)
+      if (rd != NULL && rd->internal && rd->type == RECV)
 	{
 	  /* increasing run traversal, so this yields max */
 	  sys->lastChooseRun = run;
@@ -243,7 +243,7 @@ ensureValidRun (const System sys, int run)
 
 
       sys->runs[i].prevSymmRun = -1;
-      sys->runs[i].firstNonAgentRead = -1;
+      sys->runs[i].firstNonAgentRecv = -1;
       sys->runs[i].firstReal = 0;
     }
 }
@@ -283,13 +283,13 @@ runsPrint (const System sys)
     }
 }
 
-//! Determine whether a term is sent or claimed, but not read first in a roledef
+//! Determine whether a term is sent or claimed, but not recv first in a roledef
 /**
  * @returns True iff the term occurs, and is sent/claimed first. If this returns true,
- * we have to prefix a read.
+ * we have to prefix a recv.
  */
 int
-not_read_first (const Roledef rdstart, const Term t)
+not_recv_first (const Roledef rdstart, const Term t)
 {
   Roledef rd;
 
@@ -298,12 +298,12 @@ not_read_first (const Roledef rdstart, const Term t)
     {
       if (termSubTerm (rd->message, t))
 	{
-	  return (rd->type != READ);
+	  return (rd->type != RECV);
 	}
       rd = rd->next;
     }
-  /* this term is not read or sent explicitly, which is no problem */
-  /* So we signal we don't have to prefix a read */
+  /* this term is not recv or sent explicitly, which is no problem */
+  /* So we signal we don't have to prefix a recv */
   return 0;
 }
 
@@ -349,12 +349,12 @@ agentOfRun (const System sys, const int run)
   return agentOfRunRole (sys, run, sys->runs[run].role->nameterm);
 }
 
-//! Determine first read with variables besides agents
+//! Determine first recv with variables besides agents
 /**
- *@todo For now, we assume it is simply the first read after the choose, if there is one.
+ *@todo For now, we assume it is simply the first recv after the choose, if there is one.
  */
 int
-firstNonAgentRead (const System sys, int rid)
+firstNonAgentRecv (const System sys, int rid)
 {
   int step;
   Roledef rd;
@@ -366,21 +366,21 @@ firstNonAgentRead (const System sys, int rid)
     }
   rd = sys->runs[rid].start;
   step = 0;
-  while (rd != NULL && rd->internal && rd->type == READ)	// assumes lazy LR eval
+  while (rd != NULL && rd->internal && rd->type == RECV)	// assumes lazy LR eval
     {
       rd = rd->next;
       step++;
     }
-  if (rd != NULL && !rd->internal && rd->type == READ)	// assumes lazy LR eval
+  if (rd != NULL && !rd->internal && rd->type == RECV)	// assumes lazy LR eval
     {
 #ifdef DEBUG
       warning
-	("First read %i with dependency on symmetrical found in run %i.",
+	("First recv %i with dependency on symmetrical found in run %i.",
 	 step, rid);
 #endif
       return step;
     }
-  /* no such read */
+  /* no such recv */
   return -1;
 }
 
@@ -391,7 +391,7 @@ firstNonAgentRead (const System sys, int rid)
  *
 *************************************************/
 
-//! Prefix a read before a given run.
+//! Prefix a recv before a given run.
 /**
  * Maybe this simply needs integration in the role definitions. However, in practice it
  * depends on the specific scenario. For Arachne it can thus depend on the roledef.
@@ -399,15 +399,15 @@ firstNonAgentRead (const System sys, int rid)
  * Stores the (new) rd pointer in start and index
  */
 void
-run_prefix_read (const System sys, const int run, Roledef rd,
+run_prefix_recv (const System sys, const int run, Roledef rd,
 		 const Term extterm)
 {
-  /* prefix a read for such reads. TODO: this should also cover any external stuff */
+  /* prefix a recv for such recvs. TODO: this should also cover any external stuff */
   if (extterm != NULL)
     {
       Roledef rdnew;
 
-      rdnew = roledefInit (READ, NULL, NULL, NULL, extterm, NULL);
+      rdnew = roledefInit (RECV, NULL, NULL, NULL, extterm, NULL);
       /* this is an internal action! */
       rdnew->internal = 1;
       /* Store this new pointer */
@@ -524,12 +524,12 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 	    TERMLISTAPPEND (runs[rid].rho, newt);
 	    if (!role->initiator)
 	      {
-		// For non-initiators, we prepend the reading of the role names
+		// For non-initiators, we prepend the recving of the role names
 
 		// XXX disabled for now TODO [x] [cc]
-		if (0 == 1 && not_read_first (rd, oldt))
+		if (0 == 1 && not_recv_first (rd, oldt))
 		  {
-		    /* this term is forced as a choose, or it does not occur in the (first) read event */
+		    /* this term is forced as a choose, or it does not occur in the (first) recv event */
 		    if (extterm == NULL)
 		      {
 			extterm = newt;
@@ -594,11 +594,11 @@ roleInstanceArachne (const System sys, const Protocol protocol,
   createLocals (role->declaredvars, true, false);
   createLocals (role->declaredconsts, false, false);
 
-  /* Now we prefix the read before rd, if extterm is not NULL.  Even if
+  /* Now we prefix the recv before rd, if extterm is not NULL.  Even if
    * extterm is NULL, rd is still set as the start and the index pointer of
    * the run.
    */
-  run_prefix_read (sys, rid, rd, extterm);
+  run_prefix_recv (sys, rid, rd, extterm);
 
   /* TODO this is not what we want yet, also local knowledge. The local
    * knowledge (list?) also needs to be substituted on invocation. */
@@ -1131,7 +1131,7 @@ iterateLocalToOther (const System sys, const int myrun,
 
   flag = true;
   tlo = NULL;
-  // construct all others occuring in the reads
+  // construct all others occuring in the recvs
   for (tls = sys->runs[myrun].sigma; tls != NULL; tls = tls->next)
     {
       Term tt;
@@ -1181,7 +1181,7 @@ iterateRoles (const System sys, int (*callback) (Protocol p, Role r))
   return true;
 }
 
-//! Get first read/send occurrence (event index) of term t in run r
+//! Get first recv/send occurrence (event index) of term t in run r
 int
 firstOccurrence (const System sys, const int r, Term t, int evtype)
 {

@@ -33,7 +33,7 @@ struct labelinfo
   int ignore;
   Protocol protocol;
   Term sendrole;
-  Term readrole;
+  Term recvrole;
 };
 
 typedef struct labelinfo *Labelinfo;

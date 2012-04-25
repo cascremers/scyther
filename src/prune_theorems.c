@@ -65,7 +65,7 @@ correctLocalOrder (const System sys)
 	  e1 = firstOccurrence (sys, r1, t, ANYEVENT);
 	  if (e1 >= 0)
 	    {
-	      if (roledef_shift (sys->runs[r1].start, e1)->type == READ)
+	      if (roledef_shift (sys->runs[r1].start, e1)->type == RECV)
 		{
 		  e2 = firstOccurrence (sys, r2, t, SEND);
 		  if (e2 >= 0)

@@ -119,15 +119,15 @@ compilerDone (void)
   return;
 }
 
-//! Compute read variables for a role
+//! Compute recv variables for a role
 Termlist
-compute_read_variables (const Role r)
+compute_recv_variables (const Role r)
 {
   Termlist tl;
 
   int process_event (Roledef rd)
   {
-    if (rd->type == READ)
+    if (rd->type == RECV)
       {
 	tl = termlistAddVariables (tl, rd->from);
 	tl = termlistAddVariables (tl, rd->to);
@@ -549,20 +549,20 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
   if (claim == CLAIM_Secret)
     {
       Termlist claimvars;
-      Termlist readvars;
+      Termlist recvvars;
 
       /* now check whether the claim contains variables that can actually be influenced by the intruder */
 
       claimvars = termlistAddVariables (NULL, msg);
-      readvars = compute_read_variables (thisRole);
+      recvvars = compute_recv_variables (thisRole);
       while (claimvars != NULL)
 	{
 	  if (!inTermlist (protocol->rolenames, claimvars->term))
 	    {
 	      /* only if it is not a role */
-	      if (!inTermlist (readvars, claimvars->term))
+	      if (!inTermlist (recvvars, claimvars->term))
 		{
-		  /* this claimvar does not occur in the reads? */
+		  /* this claimvar does not occur in the recvs? */
 		  /* then we should ignore it later */
 		  cl->alwaystrue = true;
 		  cl->warnings = true;
@@ -574,14 +574,14 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 		  eprintf (" contains a variable ");
 		  termPrint (claimvars->term);
 		  eprintf
-		    (" which is never read; therefore the claim will be true.\n");
+		    (" which is never recv; therefore the claim will be true.\n");
 		  globalError--;
 		}
 	    }
 	  claimvars = claimvars->next;
 	}
       termlistDelete (claimvars);
-      termlistDelete (readvars);
+      termlistDelete (recvvars);
     }
   return cl;
 }
@@ -590,7 +590,7 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 void
 commEvent (int event, Tac tc)
 {
-  /* Add an event to the roledef, send or read */
+  /* Add an event to the roledef, send or recv */
   Claimlist cl;
   Term fromrole = NULL;
   Term torole = NULL;
@@ -606,8 +606,8 @@ commEvent (int event, Tac tc)
   if (tc->t1.sym == NULL)
     {
       /* right, now this should not be NULL anyway, if so we construct a fresh one.
-       * This can be a weird choice if it is a read or send, because in that case
-       * we cannot chain them anymore and the send-read correspondence is lost.
+       * This can be a weird choice if it is a recv or send, because in that case
+       * we cannot chain them anymore and the send-recv correspondence is lost.
        */
       int n;
       Roledef rd;
@@ -646,7 +646,7 @@ commEvent (int event, Tac tc)
   trip = tc->t2.tac;
   switch (event)
     {
-    case READ:
+    case RECV:
     case SEND:
       /**
        * We know the label. Find the corresponding labelinfo bit or make a new one
@@ -687,18 +687,18 @@ commEvent (int event, Tac tc)
 	}
       else
 	{
-	  // READ
-	  /* set readrole */
+	  // RECV
+	  /* set recvrole */
 	  if (!isTermEqual (torole, thisRole->nameterm))
 	    error
-	      ("Read role does not correspond to execution role at line %i.",
+	      ("Recv role does not correspond to execution role at line %i.",
 	       tc->lineno);
-	  if (linfo->readrole != NULL)
-	    error ("Label defined twice for readrole!");
-	  linfo->readrole = torole;
+	  if (linfo->recvrole != NULL)
+	    error ("Label defined twice for recvrole!");
+	  linfo->recvrole = torole;
 	}
 
-      /* and make that read/send event */
+      /* and make that recv/send event */
       thisRole->roledef = roledefAdd (thisRole->roledef, event, label,
 				      fromrole, torole, msg, cl);
       /* mark last one with line number */
@@ -990,18 +990,18 @@ roleCompile (Term nameterm, Tac tc)
       {
 	switch (tc->op)
 	  {
-	  case TAC_READ:
+	  case TAC_RECV:
 	    if (firstEvent)
 	      {
-		// First a read, thus responder
+		// First a recv, thus responder
 		/*
-		 * Semantics: defaults (in role.c) to initiator _unless_ the first event is a read,
+		 * Semantics: defaults (in role.c) to initiator _unless_ the first event is a recv,
 		 * in which case we assume that the agent names are possibly received as variables
 		 */
 		thisRole->initiator = 0;
 		firstEvent = 0;
 	      }
-	    commEvent (READ, tc);
+	    commEvent (RECV, tc);
 	    break;
 	  case TAC_SEND:
 	    firstEvent = 0;
@@ -1412,7 +1412,7 @@ compute_label_roles (Termlist labels)
 	error ("Label in prec list not found in label info list");
 #endif
       roles = termlistAddNew (roles, linfo->sendrole);
-      roles = termlistAddNew (roles, linfo->readrole);
+      roles = termlistAddNew (roles, linfo->recvrole);
 
       labels = labels->next;
     }
@@ -1479,8 +1479,8 @@ order_label_roles (const Claimlist cl)
 		    }
 		}
 
-		roles_test (linfo->sendrole, linfo->readrole);
-		roles_test (linfo->readrole, linfo->sendrole);
+		roles_test (linfo->sendrole, linfo->recvrole);
+		roles_test (linfo->recvrole, linfo->sendrole);
 	      }
 	  }
 	return 1;
@@ -1673,7 +1673,7 @@ compute_prec_sets (const System sys)
 		      Roledef rd2;
 
 		      rd2 = roledef_re (r2, ev2);
-		      if (rd2 != NULL && rd2->type == READ
+		      if (rd2 != NULL && rd2->type == RECV
 			  && isTermEqual (rd1->label, rd2->label))
 			{
 			  SETBIT (prec + rowsize * index (r1, ev1),
@@ -1769,9 +1769,9 @@ compute_prec_sets (const System sys)
 		{
 		  // This event precedes the claim
 
-		  if (rd->type == READ)
+		  if (rd->type == RECV)
 		    {
-		      // Only store read labels (but send would work as well)
+		      // Only store recv labels (but send would work as well)
 		      cl->prec = termlistAdd (cl->prec, rd->label);
 		    }
 		}
@@ -1941,7 +1941,7 @@ checkRoleVariables (const System sys, const Protocol p, const Role r)
 
   int process_event (Roledef rd)
   {
-    if (rd->type == READ)
+    if (rd->type == RECV)
       {
 	vars = termlistAddVariables (vars, rd->from);
 	vars = termlistAddVariables (vars, rd->to);
@@ -1950,11 +1950,11 @@ checkRoleVariables (const System sys, const Protocol p, const Role r)
     return 1;
   }
 
-  /* Gather all variables occurring in the reads */
+  /* Gather all variables occurring in the recvs */
   vars = NULL;
   roledef_iterate_events (r->roledef, process_event);
 
-  /* Now, all variables for this role should be in the reads */
+  /* Now, all variables for this role should be in the recvs */
   declared = r->declaredvars;
   while (declared != NULL)
     {
@@ -1970,7 +1970,7 @@ checkRoleVariables (const System sys, const Protocol p, const Role r)
 	      termPrint (p->nameterm);
 	      eprintf (",");
 	      termPrint (r->nameterm);
-	      eprintf (" but never used in a read event.\n");
+	      eprintf (" but never used in a recv event.\n");
 	      globalError--;
 	    }
 	}
@@ -2081,13 +2081,13 @@ checkEventMatch (const Roledef rd1, const Roledef rd2,
   return true;
 }
 
-//! Check label matchup for protocol p,r, roledef rd (which is a read)
+//! Check label matchup for protocol p,r, roledef rd (which is a recv)
 /**
  * Any send with the same label should match
  */
 void
-checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
-		     const Roledef readevent)
+checkLabelMatchThis (const System sys, const Protocol p, const Role recvrole,
+		     const Roledef recvevent)
 {
   Role sendrole;
   int found;
@@ -2103,13 +2103,13 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
 	{
 	  if (event->type == SEND)
 	    {
-	      if (isTermEqual (event->label, readevent->label))
+	      if (isTermEqual (event->label, recvevent->label))
 		{
 		  // Same labels, so they should match up!
-		  if (!checkEventMatch (event, readevent, p->rolenames))
+		  if (!checkEventMatch (event, recvevent, p->rolenames))
 		    {
 		      globalError++;
-		      eprintf ("error: [%i]", readevent->lineno);
+		      eprintf ("error: [%i]", recvevent->lineno);
 		      if (sys->protocols != NULL)
 			{
 			  if (sys->protocols->next != NULL)
@@ -2124,8 +2124,8 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
 		      eprintf ("error: [%i] ", event->lineno);
 		      roledefPrint (event);
 		      eprintf (" does not match\n");
-		      eprintf ("error: [%i] ", readevent->lineno);
-		      roledefPrint (readevent);
+		      eprintf ("error: [%i] ", recvevent->lineno);
+		      roledefPrint (recvevent);
 		      eprintf ("\n");
 		      error_die ();
 		      globalError--;
@@ -2141,7 +2141,7 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
 			  eprintf (" to match: ");
 			  roledefPrint (event);
 			  eprintf (" <> ");
-			  roledefPrint (readevent);
+			  roledefPrint (recvevent);
 			  eprintf ("\n");
 			}
 #endif
@@ -2160,8 +2160,8 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
   if (found == 0)
     {
       globalError++;
-      eprintf ("error: [%i] for the read event ", readevent->lineno);
-      roledefPrint (readevent);
+      eprintf ("error: [%i] for the recv event ", recvevent->lineno);
+      roledefPrint (recvevent);
       eprintf (" of protocol ");
       termPrint (p->nameterm);
       eprintf
@@ -2175,7 +2175,7 @@ checkLabelMatchThis (const System sys, const Protocol p, const Role readrole,
 void
 checkLabelMatchProtocol (const System sys, const Protocol p)
 {
-  // For each read label the sends should match
+  // For each recv label the sends should match
   Role r;
 
   r = p->roles;
@@ -2186,7 +2186,7 @@ checkLabelMatchProtocol (const System sys, const Protocol p)
       rd = r->roledef;
       while (rd != NULL)
 	{
-	  if (rd->type == READ)
+	  if (rd->type == RECV)
 	    {
 	      // We don't check all, if they start with a bang we ignore them.
 	      Labelinfo li;
