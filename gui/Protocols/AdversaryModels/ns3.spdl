@@ -12,7 +12,7 @@ protocol ns3(I,R)
 		var nr: Nonce;
 
 		send_1(I,R, {ni,I}pk(R) );
-		read_2(R,I, {ni,nr}pk(I) );
+		recv_2(R,I, {ni,nr}pk(I) );
 		send_3(I,R, {nr}pk(R) );
 		claim_i1(I,Secret,ni);
 		claim_i2(I,Secret,nr);
@@ -26,9 +26,9 @@ protocol ns3(I,R)
 		var ni: Nonce;
 		fresh nr: Nonce;
 
-		read_1(I,R, {ni,I}pk(R) );
+		recv_1(I,R, {ni,I}pk(R) );
 		send_2(R,I, {ni,nr}pk(I) );
-		read_3(I,R, {nr}pk(R) );
+		recv_3(I,R, {nr}pk(R) );
 
 		claim_r1(R,Secret,ni);
 		claim_r2(R,Secret,nr);

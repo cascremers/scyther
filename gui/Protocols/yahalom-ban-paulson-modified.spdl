@@ -21,7 +21,7 @@ protocol yahalom-BAN-Paulson-modified(A,B,S)
 		var kab: SessionKey;
 
 		send_1(A,B, A,na);
-		read_3(S,A, nb, {B,kab,na}k(A,S), ticket );
+		recv_3(S,A, nb, {B,kab,na}k(A,S), ticket );
 		send_4(A,B, ticket, {nb}kab );
 		claim_5(A, Secret,kab);
 	}
@@ -33,9 +33,9 @@ protocol yahalom-BAN-Paulson-modified(A,B,S)
 		var ticket: Ticket;
 		var kab: SessionKey;
 
-		read_1(A,B, A,na);
+		recv_1(A,B, A,na);
 		send_2(B,S, B, nb, {A,na}k(B,S) );
-		read_4(A,B, {A,B,kab,nb}k(B,S) , {nb}kab );
+		recv_4(A,B, {A,B,kab,nb}k(B,S) , {nb}kab );
 		claim_6(B, Secret,kab);
 	}
 
@@ -44,7 +44,7 @@ protocol yahalom-BAN-Paulson-modified(A,B,S)
 		const kab: SessionKey;
 		var na,nb: Nonce;
 
-		read_2(B,S, B, nb, {A,na}k(B,S) );
+		recv_2(B,S, B, nb, {A,na}k(B,S) );
 		send_3(S,A, nb, {B,kab,na}k(A,S), {A,B,kab,nb}k(B,S) );
 	}
 }

@@ -40,7 +40,7 @@ Scyther 1.0-beta6
 
 	Other new features:
 
-	* [Backend] Scyther now detects when a read event cannot match
+	* [Backend] Scyther now detects when a recv event cannot match
 	with a send event. This significantly helps in reducing errors
 	in the protocol descriptions.
 	* [Language] Added claim parameter for Reachable claim;

@@ -23,9 +23,9 @@ protocol needhamschroedersk(I,R,S)
         var T: Ticket;
         
         send_1(I,S,(I,R,Ni));
-        read_2(S,I, {Ni,R,Kir,T}k(I,S));
+        recv_2(S,I, {Ni,R,Kir,T}k(I,S));
         send_3(I,R,T);
-        read_4(R,I,{Nr}Kir);
+        recv_4(R,I,{Nr}Kir);
         send_5(I,R,{{Nr}dec}Kir);
         claim_I2(I,Secret,Kir);
         claim_I3(I,Nisynch);
@@ -37,9 +37,9 @@ protocol needhamschroedersk(I,R,S)
         fresh Nr: Nonce;
         var Kir: SessionKey;
         
-        read_3(I,R,{Kir,I}k(R,S));
+        recv_3(I,R,{Kir,I}k(R,S));
         send_4(R,I,{Nr}Kir);
-        read_5(I,R,{{Nr}dec}Kir);
+        recv_5(I,R,{{Nr}dec}Kir);
         claim_R1(R,Secret,Kir);
         claim_R3(R,Nisynch);
         claim_R4(R,Empty,(Fresh,Kir));
@@ -49,7 +49,7 @@ protocol needhamschroedersk(I,R,S)
     {
         var Ni: Nonce;
         fresh Kir: SessionKey;
-        read_1(I,S,(I,R,Ni));
+        recv_1(I,S,(I,R,Ni));
         send_2(S,I,{Ni,R,Kir,{Kir,I}k(R,S)}k(I,S));
     }
 }

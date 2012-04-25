@@ -15,7 +15,7 @@ protocol woolamPi(I,R,S)
         var Nr: Nonce;
 
         send_1(I,R, I); 
-        read_2(R,I, Nr);
+        recv_2(R,I, Nr);
         send_3(I,R, {Nr}k(I,S));
 
     }    
@@ -25,11 +25,11 @@ protocol woolamPi(I,R,S)
         fresh Nr: Nonce;
         var T: Ticket;
 
-        read_1(I,R, I);
+        recv_1(I,R, I);
         send_2(R,I, Nr);
-        read_3(I,R, T);
+        recv_3(I,R, T);
         send_4(R,S, {I, T}k(R,S)); 
-        read_5(S,R, {Nr}k(R,S));
+        recv_5(S,R, {Nr}k(R,S));
         
         claim_R1(R,Nisynch);
     }
@@ -38,7 +38,7 @@ protocol woolamPi(I,R,S)
     {
         var Nr: Nonce;
         
-        read_4(R,S, {I,{Nr}k(I,S)}k(R,S));
+        recv_4(R,S, {I,{Nr}k(I,S)}k(R,S));
         send_5(S,R, {Nr}k(R,S));
     }
 }

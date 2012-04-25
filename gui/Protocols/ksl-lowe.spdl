@@ -23,11 +23,11 @@ protocol ksl-Lowe(I,R,S)
         var Kir: SessionKey;
         
         send_1(I,R, Ni, I);
-        read_4(R,I, { Ni,R,Kir }k(I,S), T, Nc, {R,Ni}Kir );
+        recv_4(R,I, { Ni,R,Kir }k(I,S), T, Nc, {R,Ni}Kir );
         send_5(I,R, { Nc }Kir );
         
         send_6(I,R, Mi,T );
-        read_7(R,I, Mr,{Mi, R}Kir );
+        recv_7(R,I, Mr,{Mi, R}Kir );
         send_8(I,R, {I,Mr}Kir );
 
         claim_I1(I,Secret, Kir);
@@ -45,15 +45,15 @@ protocol ksl-Lowe(I,R,S)
         fresh Tr: TimeStamp;
         var T: Ticket;
         
-        read_1(I,R, Ni, I);
+        recv_1(I,R, Ni, I);
         send_2(R,S, Ni, I, Nr, R );
-        read_3(S,R, { I, Nr, Kir }k(R,S), T );
+        recv_3(S,R, { I, Nr, Kir }k(R,S), T );
         send_4(R,I, T, { Tr, I, Kir }Kbb, Nc, {R, Ni}Kir );
-        read_5(I,R, { Nc }Kir );
+        recv_5(I,R, { Nc }Kir );
         
-        read_6(I,R, Mi,{ Tr, I, Kir }Kbb );
+        recv_6(I,R, Mi,{ Tr, I, Kir }Kbb );
         send_7(R,I, Mr,{Mi,R}Kir );
-        read_8(I,R, {I,Mr}Kir );
+        recv_8(I,R, {I,Mr}Kir );
 
         claim_R1(R,Secret, Kir);
         claim_R2(R,Niagree);
@@ -66,7 +66,7 @@ protocol ksl-Lowe(I,R,S)
         var Ni, Nr: Nonce;
         fresh Kir: SessionKey;
 
-        read_2(R,S, Ni, I, Nr, R );
+        recv_2(R,S, Ni, I, Nr, R );
         send_3(S,R, { I, Nr, Kir }k(R,S), { Ni,R,Kir }k(I,S) );
     }
 }

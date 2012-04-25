@@ -20,7 +20,7 @@ protocol denningSacco(I,R,S)
         var T: TimeStamp;
 
         send_1(I,S, I,R );
-        read_2(S,I, {R, Kir, T, W}k(I,S) );
+        recv_2(S,I, {R, Kir, T, W}k(I,S) );
         send_3(I,R, W);
         claim_I1(I,Niagree);
         claim_I2(I,Nisynch);
@@ -33,7 +33,7 @@ protocol denningSacco(I,R,S)
         var Kir: SessionKey;
         var T: TimeStamp;
 
-        read_3(I,R, {Kir,I,T}k(R,S));
+        recv_3(I,R, {Kir,I,T}k(R,S));
         claim_R1(R,Niagree);
         claim_R2(R,Nisynch);
         claim_R3(R,Secret,Kir);
@@ -46,7 +46,7 @@ protocol denningSacco(I,R,S)
         fresh Kir: SessionKey;
         fresh T: TimeStamp;
 
-        read_1(I,S, I,R );
+        recv_1(I,S, I,R );
         send_2(S,I, {R, Kir, T, {Kir, I,T}k(R,S)}k(I,S));
     }    
 }

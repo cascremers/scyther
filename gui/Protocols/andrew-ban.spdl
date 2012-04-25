@@ -24,9 +24,9 @@ protocol andrew-Ban(I,R)
         var kir: SessionKey;
 
         send_1(I,R, I,{ni}k(I,R) );
-        read_2(R,I, {ni,nr}k(I,R) );
+        recv_2(R,I, {ni,nr}k(I,R) );
         send_3(I,R, {nr}k(I,R) );
-        read_4(R,I, {kir,nr2,ni}k(I,R) );
+        recv_4(R,I, {kir,nr2,ni}k(I,R) );
         claim_I1(I,Nisynch);
         claim_I2(I,Niagree);
         claim_I3(I,SKR, kir);
@@ -39,9 +39,9 @@ protocol andrew-Ban(I,R)
         fresh nr,nr2: Nonce;
         fresh kir: SessionKey;
 
-        read_1(I,R, I,{ni}k(I,R) );
+        recv_1(I,R, I,{ni}k(I,R) );
         send_2(R,I, {ni,nr}k(I,R) );
-        read_3(I,R, {nr}k(I,R) );
+        recv_3(I,R, {nr}k(I,R) );
         send_4(R,I, {kir,nr2,ni}k(I,R) );
         claim_R1(R,Nisynch);
         claim_R2(R,Niagree);

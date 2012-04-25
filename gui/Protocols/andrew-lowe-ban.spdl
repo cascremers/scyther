@@ -9,7 +9,7 @@
 # So it is possile that certain attacks that use this property are not found
 #
 # Note:
-# Read 4 by the Initatior has been placed after the synchronisation claim
+#  4 by the Initatior has been placed after the synchronisation claim
 # as it allows trivial synchronisation attacks otherwise (the message is
 # completely fresh and can therefore always be replaced by an arbitrary value
 # created by the intruder) which are not considered in SPORE
@@ -31,12 +31,12 @@ protocol andrew-LoweBan(I,R)
         var kir: SessionKey;
 
         send_1(I,R, I,ni );
-        read_2(R,I, {ni,kir,R}k(I,R) );
+        recv_2(R,I, {ni,kir,R}k(I,R) );
         send_3(I,R, {ni}kir );
         claim_I1(I,Nisynch);
         claim_I2(I,Secret, kir);
         claim_I3(I,Empty, (Fresh,kir));
-        read_4(R,I, nr );
+        recv_4(R,I, nr );
     }    
     
     role R
@@ -45,9 +45,9 @@ protocol andrew-LoweBan(I,R)
         fresh nr: Nonce;
         fresh kir: SessionKey;
 
-        read_1(I,R, I,ni );
+        recv_1(I,R, I,ni );
         send_2(R,I, {ni,kir,R}k(I,R) );
-        read_3(I,R, {ni}kir );
+        recv_3(I,R, {ni}kir );
         send_4(R,I, nr );
         claim_R1(R,Nisynch);
         claim_R2(R,Secret, kir);

@@ -130,7 +130,7 @@ class SemiTrace(object):
             # Initiations are runs of honest agents
             if (run.intruder):
                 continue
-            # Which contain no reads before the first send
+            # Which contain no recvs before the first send
             for action in run:
                 if (isinstance(action,EventRead)):
                     break
