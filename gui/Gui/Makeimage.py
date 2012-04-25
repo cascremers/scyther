@@ -25,11 +25,12 @@
 import wx
 import os
 import sys
-from subprocess import *
+from subprocess import Popen, PIPE
 
 #---------------------------------------------------------------------------
 
 """ Import scyther components """
+from Scyther import Misc as MiscScyther
 
 """ Import scyther-gui components """
 import Temporary
@@ -127,24 +128,24 @@ def makeImageDot(dotdata,attackthread=None):
     (fd2,fpname2) = Temporary.tempcleaned(ext)
     f = os.fdopen(fd2,'w')
 
+    # Set up command
     cmd = "dot -T%s" % (type)
 
     # execute command
     p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE)
-    (cin,cout) = (p.stdin, p.stdout)
 
 
     if attackthread:
-        writeGraph(attackthread,dotdata,cin)
+        writeGraph(attackthread,dotdata,p.stdin)
     else:
-        cin.write(dotdata)
+        p.stdin.write(dotdata)
 
-    cin.close()
+    p.stdin.close()
 
-    for l in cout.read():
+    for l in p.stdout.read():
         f.write(l)
 
-    cout.close()
+    p.stdout.close()
     f.flush()
     f.close()
 

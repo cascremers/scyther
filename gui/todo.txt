@@ -17,6 +17,7 @@ WOULD LIKE TO HAVE
 - Support for using an external editor.
   - toggle for 'watch file'.
     - toggle for 'auto-verify on change' or something like that.
+- Ideally we somehow color the correct/incorrect tags in the editor.
 - Line numbering is needed for the editor window otherwise you cannot
   interpret attacks. Probably use wx.Py editor things.
 - Scyther executable should be able to be set by means of preferences.

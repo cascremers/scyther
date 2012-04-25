@@ -312,9 +312,6 @@ def protocol (args):
     s += "// Generalized %s protocol for %i parties\n\n" % (opts.protocol,P)
     s += "// " + str(opts) + "\n\n"
     s += "// Variant %i\n" % variant
-    s += "const pk: Function;\n"
-    s += "secret sk: Function;\n"
-    s += "inversekeys (pk,sk);\n"
     
     if opts.protocol == "bke":
         s += "usertype Globalconstant;\n"
@@ -333,13 +330,6 @@ def protocol (args):
         s += roledef(i)
     
     s += "}\n\n"
-
-    s += "const Alice, Bob: Agent;\n\n"
-
-    s += "const Eve: Agent;\n"
-    s += "untrusted Eve;\n"
-    s += "const ne: Nonce;\n"
-    s += "compromised sk(Eve);\n"
 
     s += "\n"
     return s

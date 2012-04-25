@@ -1,6 +1,5 @@
 usertype Sessionkey;
 usertype Macseed;
-secret k: Function;
 const m: Function;
 secret unm: Function;
 const f: Function;
@@ -30,6 +29,8 @@ protocol boyd(I,R,S)
 		send_4 (I,R, m(nr, m(ks,ni,nr)) );
 
 		claim_6 (I, Secret, m(ks,ni,nr) );
+		claim_7 (I, Niagree);
+		claim_8 (I, Nisynch);
 	}	
 	
 	role R
@@ -43,6 +44,8 @@ protocol boyd(I,R,S)
 		read_4 (I,R, m(nr, m(ks,ni,nr)) );
 
 		claim_10 (R, Secret, m(ks,ni,nr));
+		claim_11 (R, Niagree);
+		claim_12 (R, Nisynch);
 	}
 
 	role S
@@ -54,18 +57,4 @@ protocol boyd(I,R,S)
 		send_2 (S,R, { I,R, ks }k(I,S), { I,R, ks }k(R,S), ni );
 	}
 }
-
-const Alice,Bob,Simon,Eve: Agent;
-
-untrusted Eve;
-const ne: Nonce;
-const mcsde: Macseed;
-const ke: Sessionkey;
-compromised k(Eve,Eve);
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Eve,Simon);
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
-compromised k(Simon,Eve);
 

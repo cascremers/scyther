@@ -25,7 +25,7 @@
 
 """ Import externals """
 import os.path
-from subprocess import *
+from subprocess import Popen,PIPE
 
 #---------------------------------------------------------------------------
 
@@ -73,6 +73,7 @@ def cmdpushwrite(cmd,data,fname):
     # execute command
     p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE)
     (cin,cout) = (p.stdin, p.stdout)
+
     cin.write(data)
     cin.close()
     for l in cout.read():

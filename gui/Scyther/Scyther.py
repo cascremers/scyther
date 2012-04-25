@@ -244,14 +244,19 @@ class Scyther(object):
         for arg in arglist:
             self.options += " %s" % (arg)
 
-    def doScytherCommand(self, spdl, args):
+    def doScytherCommand(self, spdl, args, checkKnown=False):
         """
         Cached version of the 'real' below
         """
         global HASHLIB
 
         if not HASHLIB:
-            return self.doScytherCommandReal(spdl,args)
+            if checkKnown == True:
+                # No hashlib, so we don't have it already
+                return False
+            else:
+                # Need to compute
+                return self.doScytherCommandReal(spdl,args)
 
         # So we have the hashing libs
         m = hashlib.sha256()
@@ -292,11 +297,20 @@ class Scyther(object):
             fh2 = open(fname2,"r")
             err = fh2.read()
             fh2.close()
-            return (out,err)
+            if checkKnown == True:
+                # We got to here, so we have it
+                return True
+            else:
+                # Not checking cache, we need the result
+                return (out,err)
         except:
             """
             Something went wrong, do the real thing and cache afterwards
             """
+            if checkKnown == True:
+                # We were only checking, abort
+                return False
+
             (out,err) = self.doScytherCommandReal(spdl,args)
 
             # Store result in cache
@@ -384,8 +398,9 @@ class Scyther(object):
         """ Sanitize some of the input """
         self.options = EnsureString(self.options)
 
-    def verify(self,extraoptions=None):
+    def verify(self,extraoptions=None,checkKnown=False):
         """ Should return a list of results """
+        """ If checkKnown == True, we do not call Scyther, but just check the cache, and return True iff the result is in the cache """
 
         # Cleanup first
         self.sanitize()
@@ -398,6 +413,10 @@ class Scyther(object):
         if extraoptions:
             # extraoptions might need sanitizing
             args += " %s" % EnsureString(extraoptions)
+
+        # Are we only checking the cache?
+        if checkKnown == True:
+            return self.doScytherCommand(self.spdl, args, checkKnown=checkKnown)
 
         # execute
         (output,errors) = self.doScytherCommand(self.spdl, args)
@@ -446,19 +465,21 @@ class Scyther(object):
         else:
             return self.output
 
-    def verifyOne(self,cl=None):
+    def verifyOne(self,cl=None,checkKnown=False):
         """
         Verify just a single claim with an ID retrieved from the
         procedure below, 'scanClaims', or a full claim object
+
+        If checkKnown is True, return if the result is already known (but never recompute).
         """
         if cl:
             # We accept either a claim or a claim id
             if isinstance(cl,Claim.Claim):
                 cl = cl.id
-            return self.verify("--filter=%s" % cl)
+            return self.verify("--filter=%s" % cl, checkKnown=checkKnown)
         else:
             # If no claim, then its just normal verification
-            return self.verify()
+            return self.verify(checkKnown=checkKnown)
 
     def scanClaims(self):
         """
