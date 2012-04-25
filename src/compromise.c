@@ -664,7 +664,7 @@ adaptRoleCompromised (Protocol p, Role r)
     {
       //********************************************************
       // Add seen stuff
-      if (rd->type == SEND || rd->type == READ)
+      if (rd->type == SEND || rd->type == RECV)
 	{
 	  SKRseen = termlistConcat (SKRseen, tuple_to_termlist (rd->message));
 	  SSRseen = termlistConcat (SSRseen, tuple_to_termlist (rd->message));
@@ -691,7 +691,7 @@ adaptRoleCompromised (Protocol p, Role r)
 		      SKRnew = termlistAppend (SKRnew, rd->message);
 		    }
 		}
-	      if (rd->type == SEND || rd->type == READ)
+	      if (rd->type == SEND || rd->type == RECV)
 		{
 		  // Here we actually do inference of keys. 
 		  SKRnew =
@@ -793,7 +793,7 @@ delayCompromiseAtomic (const Protocol p, const Role r)
 	}
       else
 	{
-	  if ((rdnext->type == READ) || (rdnext->type == CLAIM))
+	  if ((rdnext->type == RECV) || (rdnext->type == CLAIM))
 	    {
 	      if (!empty)
 		{

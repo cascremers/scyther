@@ -27,7 +27,7 @@
 #include "states.h"
 
 enum eventtype
-{ READ, SEND, CLAIM, ANYEVENT };
+{ RECV, SEND, CLAIM, ANYEVENT };
 
 enum Comprtype
 { COMPR_NONE = 0,
@@ -95,13 +95,13 @@ struct roledef
 {
   //! flag for internal actions.
   /**
-   * Typically, this is true to signify internal reads (e.g. variable choices)
-   * as opposed to a normal read.
+   * Typically, this is true to signify internal recvs (e.g. variable choices)
+   * as opposed to a normal recv.
    */
   int internal;
   //! Type of event.
   /**
-   *\sa READ, SEND, CLAIM
+   *\sa RECV, SEND, CLAIM
    */
   int type;
   //! Event label.
@@ -116,7 +116,7 @@ struct roledef
   struct roledef *next;
 
   /*
-   * Substructure for reads
+   * Substructure for recvs
    */
   //! Illegal injections for this event.
   /**

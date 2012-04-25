@@ -39,7 +39,7 @@ extern Role I_RRSD;
 extern Role I_RECEIVE;
 
 #define INVALID		-1
-#define isGoal(rd)	(rd->type == READ && !rd->internal)
+#define isGoal(rd)	(rd->type == RECV && !rd->internal)
 #define isBound(rd)	(rd->bound)
 #define length		step
 
@@ -419,7 +419,7 @@ roledefDraw (Roledef rd)
       }
   }
 
-  if (rd->type == READ)
+  if (rd->type == RECV)
     {
       eprintf ("recv");
       optlabel ();
@@ -1125,11 +1125,11 @@ drawClass (const System sys, Binding b)
 	   CHOOSEWEIGHT);
 }
 
-//! Check for regular send/read events
+//! Check for regular send/recv events
 int
-sendReadEvent (Roledef rd)
+sendRecvEvent (Roledef rd)
 {
-  if (rd->type == READ)
+  if (rd->type == RECV)
     {
       return true;
     }
@@ -1172,7 +1172,7 @@ regularModifiedLabel (Binding b)
     }
 
   // Second: agent things
-  if (sendReadEvent (rdfrom) && sendReadEvent (rdto))
+  if (sendRecvEvent (rdfrom) && sendRecvEvent (rdto))
     {
       if (!isTermEqual (rdfrom->from, rdto->from))
 	{
@@ -1475,7 +1475,7 @@ showLocal (const int run, Term told, Term tnew, char *prefix, char *cursep)
     {
       if (termOccursInRun (tnew, run))
 	{
-	  // Variables are mapped, maybe. But then we wonder whether they occur in reads.
+	  // Variables are mapped, maybe. But then we wonder whether they occur in recvs.
 	  eprintf (cursep);
 	  eprintf (prefix);
 	  termPrintRemap (told);
@@ -1740,7 +1740,7 @@ drawRegularRuns (const System sys)
 		   * Collapse into single node
 		   */
 		  // Draw the first box (HEADER)
-		  // This used to be drawn only if done && send_before_read, now we always draw it.
+		  // This used to be drawn only if done && send_before_recv, now we always draw it.
 		  setRunColorBuf (sys, run, colorbuf);
 		  eprintf ("\t\tr%i [label=\"", run);
 		  termPrintRemap (sys->runs[run].protocol->nameterm);
@@ -1817,7 +1817,7 @@ drawRegularRuns (const System sys)
 			    }
 			  eprintf ("label=\"");
 			  if (isHelperProtocol (sys->runs[run].protocol) &&
-			      ((rd->type == READ) || (rd->type == SEND)))
+			      ((rd->type == RECV) || (rd->type == SEND)))
 			    {
 			      termPrintRemap (sys->runs[run].protocol->
 					      nameterm);
@@ -1860,7 +1860,7 @@ drawRegularRuns (const System sys)
 			    {
 			      // index == firstReal
 			      Roledef rd;
-			      int send_before_read;
+			      int send_before_recv;
 			      int done;
 
 			      // Determine if it is an active role or note
@@ -1871,17 +1871,17 @@ drawRegularRuns (const System sys)
 				roledef_shift (sys->runs[run].start,
 					       sys->runs[run].firstReal);
 			      done = 0;
-			      send_before_read = 0;
+			      send_before_recv = 0;
 			      while (!done && rd != NULL)
 				{
-				  if (rd->type == READ)
+				  if (rd->type == RECV)
 				    {
 				      done = 1;
 				    }
 				  if (rd->type == SEND)
 				    {
 				      done = 1;
-				      send_before_read = 1;
+				      send_before_recv = 1;
 				    }
 				  rd = rd->next;
 				}
@@ -1889,7 +1889,7 @@ drawRegularRuns (const System sys)
 			      if (true || !switches.clusters)
 				{
 				  // Draw the first box (HEADER)
-				  // This used to be drawn only if done && send_before_read, now we always draw it.
+				  // This used to be drawn only if done && send_before_recv, now we always draw it.
 				  eprintf ("\t\ts%i [label=\"{ ", run);
 				  printRunExplanation (sys, run, "\\l", "|");
 				  if (sys->runs[run].role->initiator)

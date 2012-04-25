@@ -53,7 +53,7 @@ label_create (const Term label, const Protocol protocol)
   li->label = label;
   li->protocol = protocol;
   li->sendrole = NULL;
-  li->readrole = NULL;
+  li->recvrole = NULL;
   // Should we ignore it?
   li->ignore = false;
   tl = rightMostTerm (label);

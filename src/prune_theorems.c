@@ -69,7 +69,7 @@ correctLocalOrder (const System sys)
 	  e1 = firstOccurrence (sys, r1, t, ANYEVENT);
 	  if (e1 >= 0)
 	    {
-	      if (roledef_shift (sys->runs[r1].start, e1)->type == READ)
+	      if (roledef_shift (sys->runs[r1].start, e1)->type == RECV)
 		{
 		  e2 = firstOccurrence (sys, r2, t, SEND);
 		  if (e2 >= 0)
@@ -84,7 +84,7 @@ correctLocalOrder (const System sys)
 			      eprintf ("Pruned because ordering for term ");
 			      termSubstPrint (t);
 			      eprintf
-				(" cannot be correct: the first send r%ii%i occurs after the read r%ii%i.\n",
+				(" cannot be correct: the first send r%ii%i occurs after the recv r%ii%i.\n",
 				 r2, e2, r1, e1);
 			    }
 			  flag = false;
@@ -109,12 +109,12 @@ correctLocalOrder (const System sys)
 		}
 	      else
 		{
-		  // not a read first? That's definitely impossible (can be caused by choices 
+		  // not a recv first? That's definitely impossible (can be caused by choices 
 		  globalError++;
 		  eprintf ("error: term ");
 		  termSubstPrint (t);
 		  eprintf
-		    (" from run %i should occur in run %i first in a READ event, but it occurs first in event %i.\n",
+		    (" from run %i should occur in run %i first in a RECV event, but it occurs first in event %i.\n",
 		     r2, r1, e1);
 		  eprintf ("It occurs first in ");
 		  roledefPrint (eventRoledef (sys, r1, e1));

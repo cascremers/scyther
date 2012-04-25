@@ -236,8 +236,8 @@ def action (event,label,inrole):
     s += " );\n"
     return s
 
-def read (label,inrole):
-    return action ("read", label,inrole)
+def recv (label,inrole):
+    return action ("recv", label,inrole)
 
 
 def send (label,inrole):
@@ -282,10 +282,10 @@ def roledef (r):
     
     s += "\n"
     if r > 0:
-        # Initial read
-        s += read(r-1,r)
+        # Initial recv
+        s += recv(r-1,r)
     s += send(r,r)
-    s += read(P+r-1,r)
+    s += recv(P+r-1,r)
     if r < (P-1):
         # Final send
         s += send(P+r,r)

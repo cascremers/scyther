@@ -185,14 +185,14 @@ roledef		: /* empty */
  * but that will take a while I guess.
  */
 event		: READT label '(' termlist ')' ';'
-		  {	Tac t = tacCreate(TAC_READ);
+		  {	Tac t = tacCreate(TAC_RECV);
 		  	t->t1.sym = $2;
 			/* TODO test here: tac2 should have at least 3 elements */
 			t->t2.tac = $4;
 			$$ = t;
 		  }
 		| RECVT label '(' termlist ')' ';'
-		  {	Tac t = tacCreate(TAC_READ);
+		  {	Tac t = tacCreate(TAC_RECV);
 		  	t->t1.sym = $2;
 			/* TODO test here: tac2 should have at least 3 elements */
 			t->t2.tac = $4;

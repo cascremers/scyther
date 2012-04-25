@@ -143,17 +143,17 @@ arachneInit (const System mysys)
   add_event (SEND, NULL);
   I_M = add_role ("I_M: Atomic message");
 
-  add_event (READ, NULL);
-  add_event (READ, NULL);
+  add_event (RECV, NULL);
+  add_event (RECV, NULL);
   add_event (SEND, NULL);
   I_RRS = add_role ("I_E: Encrypt");
 
-  add_event (READ, NULL);
-  add_event (READ, NULL);
+  add_event (RECV, NULL);
+  add_event (RECV, NULL);
   add_event (SEND, NULL);
   I_RRSD = add_role ("I_D: Decrypt");
 
-  add_event (READ, NULL);
+  add_event (RECV, NULL);
   I_RECEIVE = add_role ("I_R: Receive");
 
   sys->num_regular_runs = 0;
@@ -181,8 +181,8 @@ arachneDone ()
 
 //! Just a defined integer for invalid
 #define INVALID		-1
-//! can this roledef constitute a read Goal?
-#define isGoal(rd)	(rd->type == READ && !rd->internal)
+//! can this roledef constitute a recv Goal?
+#define isGoal(rd)	(rd->type == RECV && !rd->internal)
 //! is this roledef already bound?
 #define isBound(rd)	(rd->bound)
 
@@ -419,7 +419,7 @@ fixAgentKeylevels (void)
  *@returns The number of goals added (for destructions)
  */
 int
-add_read_goals (const int run, const int oldheight, const int newheight)
+add_recv_goals (const int run, const int oldheight, const int newheight)
 {
   if (newheight <= sys->runs[run].height)
     {
@@ -437,7 +437,7 @@ add_read_goals (const int run, const int oldheight, const int newheight)
       count = 0;
       while (i < newheight && rd != NULL)
 	{
-	  if (rd->type == READ)
+	  if (rd->type == RECV)
 	    {
 	      if (switches.output == PROOF)
 		{
@@ -679,7 +679,7 @@ iterate_role_sends (int (*func) ())
 
 //! Create decryption role instance
 /**
- * Note that this does not add any bindings for the reads.
+ * Note that this does not add any bindings for the recvs.
  *
  *@param term	The term to be decrypted (implies decryption key)
  *@param key	The key that is needed to decrypt the term
@@ -925,9 +925,9 @@ bind_existing_to_goal (const Binding b, const int run, const int index,
 	return true;
       }
     // We need some adapting because the height would increase; we therefore
-    // have to add read goals before we know whether it unifies.
+    // have to add recv goals before we know whether it unifies.
     old_length = sys->runs[run].height;
-    newgoals = add_read_goals (run, old_length, index + 1);
+    newgoals = add_recv_goals (run, old_length, index + 1);
 
     {
       // wrap substitution lists
@@ -978,7 +978,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index,
 		      int r2, e2;
 
 		      r2 = TermRunid (tvar);
-		      e2 = firstOccurrence (sys, r2, tsubst, READ);
+		      e2 = firstOccurrence (sys, r2, tsubst, RECV);
 		      if (e2 >= 0)
 			{
 
@@ -1097,7 +1097,7 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
   {
     int newgoals;
 
-    newgoals = add_read_goals (run, 0, index + 1);
+    newgoals = add_recv_goals (run, 0, index + 1);
     indentDepth++;
     bind_existing_to_goal (b, run, index, true);
     indentDepth--;
@@ -1271,7 +1271,7 @@ bind_goal_new_encrypt (const Binding b)
 
 	    {
 	      int newgoals;
-	      newgoals = add_read_goals (run, 0, index + 1);
+	      newgoals = add_recv_goals (run, 0, index + 1);
 	      {
 
 		indentDepth++;
@@ -2234,7 +2234,7 @@ wrap_iteration_createclaimrun (Claimlist cl, Protocol p, Role r)
     cl->ev = getClaimIndex (run, cl);
 
     proof_suppose_run (run, 0, cl->ev + 1);
-    newgoals = add_read_goals (run, 0, cl->ev + 1);
+    newgoals = add_recv_goals (run, 0, cl->ev + 1);
 
 		    /**
 		     * Add initial knowledge node
@@ -2528,7 +2528,7 @@ arachne ()
  * completely ignores any information on unbound variables, and regards them
  * as bound constants.
  *
- * Because everything is supposed to be bound, we conclude that even 'read'
+ * Because everything is supposed to be bound, we conclude that even 'recv'
  * events imply a certain knowledge.
  *
  * If aftercomplete is 0 or false, we actually check the ordering; otherwise we
@@ -2565,10 +2565,10 @@ knowledgeAtArachne (const System sys, const int myrun, const int myindex,
 	  // Check whether this event precedes myevent
 	  if (aftercomplete || isDependEvent (run, index, myrun, myindex))
 	    {
-	      // If it is a send (trivial) or a read (remarkable, but true
+	      // If it is a send (trivial) or a recv (remarkable, but true
 	      // because of bindings) we can add the message and the agents to
 	      // the knowledge.
-	      if (rd->type == SEND || rd->type == READ)
+	      if (rd->type == SEND || rd->type == RECV)
 		{
 		  knowledgeAddTerm (know, rd->message);
 		  if (rd->from != NULL)

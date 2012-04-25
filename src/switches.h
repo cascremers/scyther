@@ -98,8 +98,8 @@ struct switchdata
   int reportMemory;		//!< Memory display switch.
   int reportTime;		//!< Time display switch.
   int countStates;		//!< Count states
-  int extendNonReads;		//!< Show further events in arachne xml output.
-  int extendTrivial;		//!< Show further events in arachne xml output, based on knowledge underapproximation. (Includes at least the events of the nonreads extension)
+  int extendNonRecvs;		//!< Show further events in arachne xml output.
+  int extendTrivial;		//!< Show further events in arachne xml output, based on knowledge underapproximation. (Includes at least the events of the nonrecvs extension)
   int plain;			//!< Disable color output on terminal
   int monochrome;		//!< Disable colors in dot output
   int lightness;		//!< Lightness increment 0-100

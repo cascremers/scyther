@@ -78,7 +78,7 @@ struct run
   int partner;			//!< Partner to the claim run by some criterion
 
   int prevSymmRun;		//!< Used for symmetry reduction. Either -1, or the previous run with the same role def and at least a single parameter.
-  int firstNonAgentRead;	//!< Used for symmetry reductions for equal agents runs; -1 if there is no candidate.
+  int firstNonAgentRecv;	//!< Used for symmetry reductions for equal agents runs; -1 if there is no candidate.
   int firstReal;		//!< 1 if a choose was inserted, otherwise 0
 };
 

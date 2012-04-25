@@ -41,7 +41,7 @@ void markNoFullProof (const Term tbig, const Term tsmall);
 int semiRunCreate (const Protocol p, const Role r);
 void semiRunDestroy ();
 
-int add_read_goals (const int run, const int oldheight, const int newheight);
+int add_recv_goals (const int run, const int oldheight, const int newheight);
 void proof_suppose_run (const int run, const int oldlength,
 			const int newlength);
 

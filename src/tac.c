@@ -223,8 +223,8 @@ tacPrint (Tac t)
       tacPrint (t->t2.tac);
       printf ("};\n");
       break;
-    case TAC_READ:
-      printf ("read");
+    case TAC_RECV:
+      printf ("recv");
       if (t->t1.sym != NULL)
 	{
 	  printf ("_%s", t->t1.sym->text);

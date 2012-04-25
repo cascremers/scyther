@@ -525,7 +525,7 @@ isEventInteresting (const System sys, const Roledef rd)
 /**
  * run and index will only be output if they are nonnegative.
  * Also prints any bindings, if this events follows some other events
- * (typically when this is a read).
+ * (typically when this is a recv).
  *
  * If run < 0, it is assumed to be a role event, and thus no bindings will be shown.
  */
@@ -542,10 +542,10 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
   eprintf ("<event type=\"");
   switch (rd->type)
     {
-      /* Read or send types are fairly similar.
+      /* Recv or send types are fairly similar.
        * Currently, choose events are not distinguished yet. TODO
        */
-    case READ:
+    case RECV:
       eprintf ("recv");
       break;
     case SEND:
@@ -566,7 +566,7 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
   xmlOutTerm ("label", rd->label);
   if (rd->type != CLAIM)
     {
-      /* read or send */
+      /* recv or send */
       xmlOutTerm ("from", rd->from);
       xmlOutTerm ("to", rd->to);
       xmlOutTerm ("message", rd->message);
@@ -842,9 +842,9 @@ xmlOutRuns (const System sys)
 		}
 	      else
 		{
-		  if (switches.extendTrivial || switches.extendNonReads)
+		  if (switches.extendTrivial || switches.extendNonRecvs)
 		    {
-		      if (rd->type != READ)
+		      if (rd->type != RECV)
 			{
 			  return true;
 			}
@@ -852,7 +852,7 @@ xmlOutRuns (const System sys)
 			{
 			  if (switches.extendTrivial)
 			    {
-			      /* This is a read, and we don't know whether to
+			      /* This is a recv, and we don't know whether to
 			       * include it. Default behaviour would be to jump
 			       * out of the conditions, and return false.
 			       * Instead, we check whether it can be trivially
@@ -927,7 +927,7 @@ xmlOutSemitrace (const System sys)
   eprintf ("<state");
   /* add trace length attribute */
   /* Note that this is the length of the attack leading up to the broken
-   * claim, thus without any run extensions (--extend-nonreads).
+   * claim, thus without any run extensions (--extend-nonrecvs).
    */
   eprintf (" tracelength=\"%i\"", get_semitrace_length ());
   /* add attack id attribute (within this scyther call) */

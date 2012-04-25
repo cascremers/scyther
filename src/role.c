@@ -57,15 +57,15 @@ roledefPrintGeneric (Roledef rd, int print_actor)
       eprintf ("[Empty roledef]");
       return;
     }
-  if (rd->type == READ && rd->internal)
+  if (rd->type == RECV && rd->internal)
     {
-      /* special case: internal read == choose ! */
+      /* special case: internal recv == choose ! */
       eprintf ("CHOOSE(");
       termPrint (rd->message);
       eprintf (")");
       return;
     }
-  if (rd->type == READ)
+  if (rd->type == RECV)
     eprintf ("RECV");
   if (rd->type == SEND)
     {
@@ -121,14 +121,14 @@ roledefPrintGeneric (Roledef rd, int print_actor)
   eprintf ("(");
   if (!(rd->from == NULL && rd->to == NULL))
     {
-      if (print_actor || rd->type == READ)
+      if (print_actor || rd->type == RECV)
 	{
 	  termPrint (rd->from);
 	  eprintf (",");
 	}
       if (rd->type == CLAIM)
 	eprintf (" ");
-      if (print_actor || rd->type != READ)
+      if (print_actor || rd->type != RECV)
 	{
 	  termPrint (rd->to);
 	  eprintf (", ");
@@ -230,11 +230,11 @@ roledefInit (int type, Term label, Term from, Term to, Term msg, Claimlist cl)
   newEvent->from = from;
   newEvent->to = to;
   newEvent->message = msg;
-  newEvent->forbidden = NULL;	// no forbidden stuff, only for reads
-  newEvent->knowPhase = -1;	// we haven't explored any knowledge yet, only for reads
+  newEvent->forbidden = NULL;	// no forbidden stuff, only for recvs
+  newEvent->knowPhase = -1;	// we haven't explored any knowledge yet, only for recvs
   newEvent->claiminfo = cl;	// only for claims
   newEvent->compromisetype = COMPR_NONE;	// compromisetype
-  if (type == READ)
+  if (type == RECV)
     newEvent->bound = 0;	// bound goal (Used for arachne only). Technically involves choose events as well.
   else
     newEvent->bound = 1;	// other stuff does not need to be bound
@@ -344,7 +344,7 @@ roleCreate (Term name)
   r->variables = NULL;
   r->declaredvars = NULL;
   r->declaredconsts = NULL;
-  r->initiator = 1;		//! Will be determined later, if a read is the first action (in compiler.c)
+  r->initiator = 1;		//! Will be determined later, if a recv is the first action (in compiler.c)
   r->singular = false;		// by default, a role is not singular
   r->next = NULL;
   r->knows = NULL;
@@ -475,12 +475,12 @@ roledefSubTerm (Roledef rd, Term tsub)
  * Some stuff directly from the semantics
  */
 
-//! Is a term readable (from some knowledge set)
+//! Is a term recvable (from some knowledge set)
 /**
  * Returns value of predicate
  */
 int
-Readable (Knowledge know, Term t)
+Recvable (Knowledge know, Term t)
 {
   if (isTermVariable (t))
     {
@@ -498,13 +498,13 @@ Readable (Knowledge know, Term t)
 	  both = false;
 	  knowalt = knowledgeDuplicate (know);
 	  knowledgeAddTerm (knowalt, TermOp2 (t));
-	  if (Readable (knowalt, TermOp1 (t)))
+	  if (Recvable (knowalt, TermOp1 (t)))
 	    {
 	      // Yes, left half works
 	      knowledgeDelete (knowalt);
 	      knowalt = knowledgeDuplicate (know);
 	      knowledgeAddTerm (knowalt, TermOp1 (t));
-	      if (Readable (knowalt, TermOp2 (t)))
+	      if (Recvable (knowalt, TermOp2 (t)))
 		{
 		  both = true;
 		}
@@ -532,7 +532,7 @@ Readable (Knowledge know, Term t)
 	      either = false;
 	      if (inKnowledge (know, inv))
 		{
-		  if (Readable (know, TermOp (t)))
+		  if (Recvable (know, TermOp (t)))
 		    {
 		      either = true;
 		    }
@@ -583,9 +583,9 @@ WellFormedEvent (Term role, Knowledge know, Roledef rd)
     {
       return know;
     }
-  if (rd->type == READ)
+  if (rd->type == RECV)
     {
-      // Read
+      // Recv
       if (!isTermEqual (role, rd->to))
 	{
 	  wfeError (know, rd, "Receiving role incorrect.", rd->to, role);
@@ -597,9 +597,9 @@ WellFormedEvent (Term role, Knowledge know, Roledef rd)
 	  return NULL;
 
 	}
-      if (!Readable (know, rd->message))
+      if (!Recvable (know, rd->message))
 	{
-	  wfeError (know, rd, "Cannot read message pattern.", rd->message,
+	  wfeError (know, rd, "Cannot recv message pattern.", rd->message,
 		    NULL);
 	  return NULL;
 	}

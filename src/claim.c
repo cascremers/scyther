@@ -137,14 +137,14 @@ events_match (const System sys, const int i, const int j)
       isTermEqual (rdi->label, rdj->label) &&
       !(rdi->internal || rdj->internal))
     {
-      if (rdi->type == SEND && rdj->type == READ)
+      if (rdi->type == SEND && rdj->type == RECV)
 	{
 	  if (i < j)
 	    return MATCH_ORDER;
 	  else
 	    return MATCH_REVERSE;
 	}
-      if (rdi->type == READ && rdj->type == SEND)
+      if (rdi->type == RECV && rdj->type == SEND)
 	{
 	  if (i > j)
 	    return MATCH_ORDER;
@@ -183,7 +183,7 @@ oki_nisynch_full (const System sys, const Termmap label_to_index)
   return 1;
 }
 
-//! Evaluate claims or internal reads (chooses)
+//! Evaluate claims or internal recvs (chooses)
 __inline__ int
 oki_nisynch_other (const System sys, const int trace_index,
 		   const Termmap role_to_run, const Termmap label_to_index)
@@ -204,13 +204,13 @@ oki_nisynch_other (const System sys, const int trace_index,
   return result;
 }
 
-//! Evaluate reads
+//! Evaluate recvs
 __inline__ int
-oki_nisynch_read (const System sys, const int trace_index,
+oki_nisynch_recv (const System sys, const int trace_index,
 		  const Termmap role_to_run, const Termmap label_to_index)
 {
   /*
-   * Read is only relevant for already involved runs, and labels in prec
+   * Recv is only relevant for already involved runs, and labels in prec
    */
   Termmap role_to_run_scan;
   int result = 7;
@@ -236,7 +236,7 @@ oki_nisynch_read (const System sys, const int trace_index,
 		termmapSet (label_to_index_buf, rd->label, trace_index);
 #ifdef OKIDEBUG
 	      indact ();
-	      eprintf ("Exploring because this (read) run is involved.\n");
+	      eprintf ("Exploring because this (recv) run is involved.\n");
 	      indac++;
 #endif
 	      result =
@@ -256,7 +256,7 @@ oki_nisynch_read (const System sys, const int trace_index,
   // Apparently not involved
 #ifdef OKIDEBUG
   indact ();
-  eprintf ("Exploring further assuming this (read) run is not involved.\n");
+  eprintf ("Exploring further assuming this (recv) run is not involved.\n");
   indac++;
 #endif
   result = oki_nisynch (sys, trace_index - 1, role_to_run, label_to_index);
@@ -313,10 +313,10 @@ oki_nisynch_send (const System sys, const int trace_index,
       // Was not involved yet in a registerd way, or was the correct rid
       partner_index = termmapGet (label_to_index, rd->label);
       // Ordered match needed for this label
-      // So it already needs to be filled by a read
+      // So it already needs to be filled by a recv
       if (partner_index >= 0)
 	{
-	  // There is already a read for it
+	  // There is already a recv for it
 	  if (events_match (sys, partner_index, trace_index) == MATCH_ORDER)
 	    {
 	      // They match in the right order
@@ -393,12 +393,12 @@ oki_nisynch (const System sys, const int trace_index,
 
   if (type == CLAIM || sys->traceEvent[trace_index]->internal)
     return oki_nisynch_other (sys, trace_index, role_to_run, label_to_index);
-  if (type == READ)
-    return oki_nisynch_read (sys, trace_index, role_to_run, label_to_index);
+  if (type == RECV)
+    return oki_nisynch_recv (sys, trace_index, role_to_run, label_to_index);
   if (type == SEND)
     return oki_nisynch_send (sys, trace_index, role_to_run, label_to_index);
   /*
-   * Exception: no claim, no send, no read, what is it?
+   * Exception: no claim, no send, no recv, what is it?
    */
   error ("Unrecognized event type in claim scanner at %i.", trace_index);
   return 0;
@@ -548,8 +548,8 @@ arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs)
   while (flag && labels != NULL)
     {
       // For each label, check whether it matches. Maybe a bit too strict (what about variables?)
-      // Locate roledefs for read & send, and check whether they are before step
-      Roledef rd_send, rd_read;
+      // Locate roledefs for recv & send, and check whether they are before step
+      Roledef rd_send, rd_recv;
       Labelinfo linfo;
 
       Roledef get_label_event (const Term role, const Term label)
@@ -572,8 +572,8 @@ arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs)
 		eprintf ("\n");
 		eprintf ("This label has sendrole ");
 		termPrint (linfo->sendrole);
-		eprintf (" and readrole ");
-		termPrint (linfo->readrole);
+		eprintf (" and recvrole ");
+		termPrint (linfo->recvrole);
 		eprintf ("\n");
 		globalError--;
 		error ("Run mapping is out of bounds.");
@@ -608,9 +608,9 @@ arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs)
       if (!linfo->ignore)
 	{
 	  rd_send = get_label_event (linfo->sendrole, labels->term);
-	  rd_read = get_label_event (linfo->readrole, labels->term);
+	  rd_recv = get_label_event (linfo->recvrole, labels->term);
 
-	  if (rd_send == NULL || rd_read == NULL)
+	  if (rd_send == NULL || rd_recv == NULL)
 	    {
 	      // False!
 	      flag = 0;
@@ -618,7 +618,7 @@ arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs)
 	  else
 	    {
 	      // Compare
-	      if (events_match_rd (rd_send, rd_read) != MATCH_CONTENT)
+	      if (events_match_rd (rd_send, rd_recv) != MATCH_CONTENT)
 		{
 		  // False!
 		  flag = 0;
@@ -1077,7 +1077,7 @@ addFullSession (const System sys, int (*iter) (void))
       if (!li->ignore)
 	{
 	  r1 = termmapGet (f, li->sendrole);
-	  r2 = termmapGet (f, li->readrole);
+	  r2 = termmapGet (f, li->recvrole);
 	  e1 = findLabelInRun (sys, r1, tl->term, true);
 	  e2 = findLabelInRun (sys, r2, tl->term, true);
 	  if ((e1 != -1) && (e2 != -1))
@@ -1273,7 +1273,7 @@ add_claim_specifics (const System sys, const Claimlist cl, const Roledef rd,
 
       irun = semiRunCreate (INTRUDER, I_RECEIVE);
       sys->runs[irun].start->message = termDuplicateUV (rd->message);
-      newgoals = add_read_goals (irun, 0, 1);
+      newgoals = add_recv_goals (irun, 0, 1);
 
       flag = callback ();
 

@@ -188,7 +188,7 @@ arachne_runs_hist_match (const System sys, const Claimlist cl,
   for (labels = cl->prec; labels != NULL; labels = labels->next)
     {
       // For each label, check whether it matches. Maybe a bit too strict (what about variables?)
-      // Locate roledefs for read & send, and check whether they are before step
+      // Locate roledefs for recv & send, and check whether they are before step
       Labelinfo linfo;
 
       Roledef get_label_event (const Term role, const Term label)
@@ -213,8 +213,8 @@ arachne_runs_hist_match (const System sys, const Claimlist cl,
 	    eprintf ("\n");
 	    eprintf ("This label has sendrole ");
 	    termPrint (linfo->sendrole);
-	    eprintf (" and readrole ");
-	    termPrint (linfo->readrole);
+	    eprintf (" and recvrole ");
+	    termPrint (linfo->recvrole);
 	    eprintf ("\n");
 	    globalError--;
 	    error ("Run mapping is out of bounds.");
@@ -236,10 +236,10 @@ arachne_runs_hist_match (const System sys, const Claimlist cl,
       linfo = label_find (sys->labellist, labels->term);
       if (!linfo->ignore)
 	{
-	  Roledef rd_send, rd_read;
+	  Roledef rd_send, rd_recv;
 
-	  rd_read = get_label_event (linfo->readrole, labels->term);
-	  if (rd_read == NULL)
+	  rd_recv = get_label_event (linfo->recvrole, labels->term);
+	  if (rd_recv == NULL)
 	    {
 	      // False!
 	      return 0;
@@ -251,7 +251,7 @@ arachne_runs_hist_match (const System sys, const Claimlist cl,
 	      return 0;
 	    }
 	  // Compare
-	  if (events_hist_match_rd (rd_send, rd_read) != MATCH_CONTENT)
+	  if (events_hist_match_rd (rd_send, rd_recv) != MATCH_CONTENT)
 	    {
 	      // False!
 	      return 0;
@@ -422,16 +422,16 @@ isCompromisePartnerStdTermmap (const int targetrun, const int targetev,
 
       if ((!linfo->ignore) && (linfo->protocol == prot))
 	{
-	  Roledef rd_read;
+	  Roledef rd_recv;
 
-	  // Locate roledefs for read & send, and check whether they are before step
+	  // Locate roledefs for recv & send, and check whether they are before step
 
 	  // Main
 
-	  rd_read =
-	    findComprLabelBefore (runs, linfo->readrole, linfo->label,
+	  rd_recv =
+	    findComprLabelBefore (runs, linfo->recvrole, linfo->label,
 				  targetrun, targetev);
-	  if (rd_read != NULL)
+	  if (rd_recv != NULL)
 	    {
 	      Roledef rd_send;
 
@@ -442,7 +442,7 @@ isCompromisePartnerStdTermmap (const int targetrun, const int targetev,
 		{
 		  // Need only to match as far as they exist
 		  // Compare
-		  if (events_prefix_match_rd (rd_send, rd_read) !=
+		  if (events_prefix_match_rd (rd_send, rd_recv) !=
 		      MATCH_CONTENT)
 		    {
 		      // They are different, so cannot be partners.
@@ -556,12 +556,12 @@ isCompromisePartnerSymm (const int targetrun, const int targetev)
     }
   rdstart = sys->runs[0].start;
   rdsend = nextEventType (rdstart, SEND);
-  rdrecv = nextEventType (rdstart, READ);
+  rdrecv = nextEventType (rdstart, RECV);
   rd = sys->runs[targetrun].start;
 
   for (ev = 0; ev < targetev; ev++)
     {
-      if (rd->type == READ)
+      if (rd->type == RECV)
 	{
 	  // Receive in targetrun must have a matching send in Test
 	  if (rdsend == NULL)
@@ -589,7 +589,7 @@ isCompromisePartnerSymm (const int targetrun, const int targetev)
 		{
 		  return false;
 		}
-	      rdrecv = nextEventType (rdrecv, READ);
+	      rdrecv = nextEventType (rdrecv, RECV);
 	    }
 	}
       rd = rd->next;
@@ -700,7 +700,7 @@ matchingCK2001 (int *partners)
     }
 }
 
-//! Compute mlist for a run for type = READ || SEND
+//! Compute mlist for a run for type = RECV || SEND
 /**
  * Result needs to be deleted afterwards.
  */
@@ -766,7 +766,7 @@ isMListFullMatching (Termlist sendlist, Termlist recvlist, int run)
   result = isTermlistEqual (recvlist, sent);
   if (result)
     {
-      received = getMList (run, READ);
+      received = getMList (run, RECV);
       result = isTermlistEqual (sendlist, received);
       termlistDelete (received);
     }
@@ -799,7 +799,7 @@ isMListMatching (Termlist sendlist, Termlist recvlist, int run)
   result = termlistEqualPrefix (recvlist, sent);
   if (result)
     {
-      received = getMList (run, READ);
+      received = getMList (run, RECV);
       result = termlistEqualPrefix (sendlist, received);
       termlistDelete (received);
     }
@@ -818,7 +818,7 @@ matchingMList (int *partners)
 
   // Hardcoded to claim run
   sendlist = getMList (0, SEND);
-  recvlist = getMList (0, READ);
+  recvlist = getMList (0, RECV);
 
   for (run = 1; run < sys->maxruns; run++)
     {
@@ -845,7 +845,7 @@ matchingeCK (int *partners)
       return;
     }
   sendlist = getMList (0, SEND);
-  recvlist = getMList (0, READ);
+  recvlist = getMList (0, RECV);
 
   for (run = 1; run < sys->maxruns; run++)
     {
