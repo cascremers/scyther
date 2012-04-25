@@ -13,12 +13,15 @@ protocol nsl3(I,R)
 
 		send_1(I,R, {ni,I}pk(R) );
 		recv_2(R,I, {ni,nr,R}pk(I) );
+		claim(I,Running,R,ni,nr);
 		send_3(I,R, {nr}pk(R) );
 
-		claim_i1(I,Secret,ni);
-		claim_i2(I,Secret,nr);
-		claim_i3(I,Niagree);
-		claim_i4(I,Nisynch);
+		claim(I,Secret,ni);
+		claim(I,Secret,nr);
+		claim(I,Alive);
+		claim(I,Commit,R,ni,nr);
+		claim(I,Niagree);
+		claim(I,Nisynch);
 	}	
 	
 	role R
@@ -27,13 +30,16 @@ protocol nsl3(I,R)
 		fresh nr: Nonce;
 
 		recv_1(I,R, {ni,I}pk(R) );
+		claim(R,Running,I,ni,nr);
 		send_2(R,I, {ni,nr,R}pk(I) );
 		recv_3(I,R, {nr}pk(R) );
 
-		claim_r1(R,Secret,ni);
-		claim_r2(R,Secret,nr);
-		claim_r3(R,Niagree);
-		claim_r4(R,Nisynch);
+		claim(R,Secret,ni);
+		claim(R,Secret,nr);
+		claim(R,Alive);
+		claim(R,Commit,I,ni,nr);
+		claim(R,Niagree);
+		claim(R,Nisynch);
 	}
 }
 
