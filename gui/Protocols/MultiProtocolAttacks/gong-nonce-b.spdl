@@ -19,7 +19,7 @@ protocol gongnonceb(I,R,S)
 		var kr: Keypart;
 
 		send_1 (I,S, I,R, { I,S,I, ki, R }k(I,S), ni );
-		read_4 (S,I, { S,I,R,kr,I }k(I,S), { R,I,ni }f(ki,kr), nr );
+		recv_4 (S,I, { S,I,R,kr,I }k(I,S), { R,I,ni }f(ki,kr), nr );
 		send_5 (I,R, { I,R,nr }f(ki,kr) );
 
 		claim_6 (I, Secret, ki);
@@ -35,9 +35,9 @@ protocol gongnonceb(I,R,S)
 		fresh kr: Keypart;
 		var ki: Keypart;
 
-		read_2 (S,R, I,R, { S,R,I, ki, R }k(R,S), ni );
+		recv_2 (S,R, I,R, { S,R,I, ki, R }k(R,S), ni );
 		send_3 (R,S, { R,S,R,kr,I }k(R,S), { R,I, ni }f(ki,kr), nr );
-		read_5 (I,R, { I,R,nr }f(ki,kr) );
+		recv_5 (I,R, { I,R,nr }f(ki,kr) );
 
 		claim_10 (R, Secret, ki);
 		claim_11 (R, Secret, kr);
@@ -51,9 +51,9 @@ protocol gongnonceb(I,R,S)
 		var ki,kr: Keypart;
 		var T;
 
-		read_1 (I,S, I,R, { I,S,I, ki, R }k(I,S), ni );
+		recv_1 (I,S, I,R, { I,S,I, ki, R }k(I,S), ni );
 		send_2 (S,R, I,R, { S,R,I, ki, R }k(R,S), ni );
-		read_3 (R,S, { R,S,R,kr,I }k(R,S), T, nr );
+		recv_3 (R,S, { R,S,R,kr,I }k(R,S), T, nr );
 		send_4 (S,I, { S,I,R,kr,I }k(I,S), T, nr );
 	}
 }

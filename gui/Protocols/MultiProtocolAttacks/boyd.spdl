@@ -25,7 +25,7 @@ protocol boyd(I,R,S)
 		var ks: Macseed;
 
 		send_1 (I,S, I,R, ni );
-		read_3 (R,I, { I,R, ks }k(I,S), m(ni, m(ks,ni,nr)), nr );
+		recv_3 (R,I, { I,R, ks }k(I,S), m(ni, m(ks,ni,nr)), nr );
 		send_4 (I,R, m(nr, m(ks,ni,nr)) );
 
 		claim_6 (I, Secret, m(ks,ni,nr) );
@@ -37,9 +37,9 @@ protocol boyd(I,R,S)
 		fresh nr: Nonce;
 		var ks: Macseed;
 
-		read_2 (S,R, { I,R, ks }k(I,S), { I,R, ks }k(R,S), ni );
+		recv_2 (S,R, { I,R, ks }k(I,S), { I,R, ks }k(R,S), ni );
 		send_3 (R,I, { I,R, ks }k(I,S), m(ni, m(ks,ni,nr)), nr );
-		read_4 (I,R, m(nr, m(ks,ni,nr)) );
+		recv_4 (I,R, m(nr, m(ks,ni,nr)) );
 
 		claim_10 (R, Secret, m(ks,ni,nr));
 	}
@@ -49,7 +49,7 @@ protocol boyd(I,R,S)
 		var ni,nr: Nonce;
 		fresh ks: Macseed;
 
-		read_1 (I,S, I,R, ni );
+		recv_1 (I,S, I,R, ni );
 		send_2 (S,R, { I,R, ks }k(I,S), { I,R, ks }k(R,S), ni );
 	}
 }

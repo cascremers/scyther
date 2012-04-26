@@ -19,7 +19,7 @@ protocol tmn(I,R,S)
         var Kr: SessionKey;
 
         send_1(I,S, R,{Ki}pk(S) );
-        read_4(S,I, R,{Kr}Ki );
+        recv_4(S,I, R,{Kr}Ki );
 
         claim_I1(I,Secret,Kr);
         claim_I2(I,Nisynch);
@@ -30,7 +30,7 @@ protocol tmn(I,R,S)
     {
         fresh Kr: SessionKey;
 
-        read_2(S,R, I );
+        recv_2(S,R, I );
         send_3(R,S, I, { Kr }pk(S) );
 
         claim_R1(R,Secret,Kr);
@@ -42,9 +42,9 @@ protocol tmn(I,R,S)
     {
         var Ki,Kr: SessionKey;
 
-        read_1(I,S, R,{Ki}pk(S) );
+        recv_1(I,S, R,{Ki}pk(S) );
         send_2(S,R, I );
-        read_3(R,S, I, { Kr }pk(S) );
+        recv_3(R,S, I, { Kr }pk(S) );
         send_4(S,I, R,{Kr}Ki );
     }
 }

@@ -34,7 +34,7 @@ protocol wmf(I,R,S)
         var Ts: TimeStamp;
         var Kir: SessionKey;
 
-        read_2(S,R, {S, Ts, I, Kir}k(R,S) );
+        recv_2(S,R, {S, Ts, I, Kir}k(R,S) );
 
         claim_R1(R,Secret,Kir);
         claim_R2(R,Nisynch);
@@ -47,7 +47,7 @@ protocol wmf(I,R,S)
         fresh Ts: TimeStamp;
         var Ti: TimeStamp;
 
-        read_1(I,S, I,{I, Ti, R, Kir}k(I,S) );
+        recv_1(I,S, I,{I, Ti, R, Kir}k(I,S) );
         send_2(S,R, {S, Ts, I, Kir}k(R,S));
     }
 }

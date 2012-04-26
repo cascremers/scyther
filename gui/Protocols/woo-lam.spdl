@@ -19,9 +19,9 @@ protocol woolam(I,R,S)
         var N2: Nonce;
 
         send_1(I,R, I, N1); 
-        read_2(R,I, R, N2);
+        recv_2(R,I, R, N2);
         send_3(I,R, {I, R, N1, N2}k(I,S));
-        read_6(R,I, {R, N1, N2, Kir}k(I,S), {N1,N2}Kir);
+        recv_6(R,I, {R, N1, N2, Kir}k(I,S), {N1,N2}Kir);
         send_7(I,R, {N2}Kir);
         
 
@@ -37,13 +37,13 @@ protocol woolam(I,R,S)
         var Kir: SessionKey;
         var T1,T2: Ticket;
 
-        read_1(I,R, I, N1);
+        recv_1(I,R, I, N1);
         send_2(R,I, R, N2);
-        read_3(I,R, T1);
+        recv_3(I,R, T1);
         send_4(R,S, T1, {I, R, N1, N2}k(R,S));
-        read_5(S,R, T2, {I, N1, N2, Kir}k(R,S));
+        recv_5(S,R, T2, {I, N1, N2, Kir}k(R,S));
         send_6(R,I, T2, {N1,N2}Kir);
-        read_7(I,R, {N2}Kir);
+        recv_7(I,R, {N2}Kir);
         
         claim_R1(R,Secret,Kir);
         claim_R2(R,Nisynch);
@@ -55,8 +55,10 @@ protocol woolam(I,R,S)
         fresh Kir: SessionKey;
         var N1,N2: Nonce;
 
-        read_4(R,S, {I, R, N1, N2}k(I,S), {I, R, N1, N2}k(R,S));
+        recv_4(R,S, {I, R, N1, N2}k(I,S), {I, R, N1, N2}k(R,S));
         send_5(S,R, {R, N1, N2, Kir}k(I,S), {I, N1, N2, Kir}k(R,S));
     }
 }
+
+
 

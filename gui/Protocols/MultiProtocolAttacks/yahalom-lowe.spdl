@@ -17,7 +17,7 @@ protocol yahalom-Lowe(I,R,S)
         var Kir: SessionKey;
 
         send_1(I,R, I,Ni);
-        read_3(S,I, {R,Kir,Ni,Nr}k(I,S) );
+        recv_3(S,I, {R,Kir,Ni,Nr}k(I,S) );
         send_5(I,R, {I, R, S, Nr}Kir );
 
         claim_I1(I, Secret,Kir);
@@ -30,10 +30,10 @@ protocol yahalom-Lowe(I,R,S)
         var Ni: Nonce;
         var Kir: SessionKey;
 
-        read_1(I,R, I,Ni);
+        recv_1(I,R, I,Ni);
         send_2(R,S, {I,Ni,Nr}k(R,S) );
-        read_4(S,R, {I,Kir}k(R,S));
-        read_5(I,R, {I, R, S, Nr}Kir);
+        recv_4(S,R, {I,Kir}k(R,S));
+        recv_5(I,R, {I, R, S, Nr}Kir);
 
         claim_R1(R, Secret,Kir);
         claim_R2(R, Nisynch);
@@ -44,7 +44,7 @@ protocol yahalom-Lowe(I,R,S)
         fresh Kir: SessionKey;
         var Ni,Nr: Nonce;
 
-        read_2(R,S, {I,Ni,Nr}k(R,S) );
+        recv_2(R,S, {I,Ni,Nr}k(R,S) );
         send_3(S,I, {R,Kir,Ni,Nr}k(I,S));
         send_4(S,R, {I,Kir}k(R,S));
     }

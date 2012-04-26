@@ -16,7 +16,7 @@ protocol wmfbrutus(A,B,S)
 	{
 		var kab : SesKey;
 
-		read_2(S,B, { A, kab }k(B,S) );
+		recv_2(S,B, { A, kab }k(B,S) );
 
 		claim_3(B, Secret,kab);
 	}
@@ -25,7 +25,7 @@ protocol wmfbrutus(A,B,S)
 	{
 		var kab : SesKey;
 
-		read_1(A,S, A, { B,kab }k(A,S) );
+		recv_1(A,S, A, { B,kab }k(A,S) );
 		send_2(S,B, { A, kab }k(B,S) );
 	}
 }

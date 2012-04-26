@@ -6,7 +6,7 @@
 # Note:
 # According to SPORE there are no known attacks on this protocol, scyther
 # finds one however this has to do with the unusual assumption that every 
-# agent can recognise and will reject to read messages that it has created
+# agent can recognise and will reject to recv messages that it has created
 # itself.
 
 usertype SessionKey;
@@ -27,7 +27,7 @@ protocol wmf-Lowe(I,R,S)
         var Nr: Nonce;
 
         send_1(I,S, I, {Ti, R, Kir}k(I,S)); 
-        read_3(R,I,{Nr}Kir);
+        recv_3(R,I,{Nr}Kir);
         send_4(I,R,{{Nr}succ}Kir);
 
         claim_I1(I,Secret,Kir);
@@ -41,9 +41,9 @@ protocol wmf-Lowe(I,R,S)
         var Kir: SessionKey;
         fresh Nr: Nonce;
 
-        read_2(S,R, {Ts, I, Kir}k(R,S) );
+        recv_2(S,R, {Ts, I, Kir}k(R,S) );
         send_3(R,I, {Nr}Kir);
-        read_4(I,R, {{Nr}succ}Kir);
+        recv_4(I,R, {{Nr}succ}Kir);
 
         claim_R1(R,Secret,Kir);
         claim_R2(R,Nisynch);
@@ -56,7 +56,7 @@ protocol wmf-Lowe(I,R,S)
         fresh Ts: TimeStamp;
         var Ti: TimeStamp;
 
-        read_1(I,S, I,{Ti, R, Kir}k(I,S) );
+        recv_1(I,S, I,{Ti, R, Kir}k(I,S) );
         send_2(S,R, {Ts, I, Kir}k(R,S));
     }
 }

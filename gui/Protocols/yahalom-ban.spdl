@@ -18,7 +18,7 @@ protocol yahalom-BAN(I,R,S)
         var Kir: SessionKey;
 
         send_1(I,R, I,Ni);
-        read_3(S,I, Nr, {R,Kir,Ni}k(I,S), T );
+        recv_3(S,I, Nr, {R,Kir,Ni}k(I,S), T );
         send_4(I,R, T, {Nr}Kir );
 
         claim_I1(I, Secret,Kir);
@@ -33,9 +33,9 @@ protocol yahalom-BAN(I,R,S)
         var T: Ticket;
         var Kir: SessionKey;
 
-        read_1(I,R, I,Ni);
+        recv_1(I,R, I,Ni);
         send_2(R,S, R, Nr, {I,Ni}k(R,S) );
-        read_4(I,R, {I,Kir,Nr}k(R,S) , {Nr}Kir );
+        recv_4(I,R, {I,Kir,Nr}k(R,S) , {Nr}Kir );
 
         claim_R1(R, Secret,Kir);
         claim_R2(R, Nisynch);
@@ -47,7 +47,7 @@ protocol yahalom-BAN(I,R,S)
         fresh Kir: SessionKey;
         var Ni,Nr: Nonce;
 
-        read_2(R,S, R, Nr, {I,Ni}k(R,S) );
+        recv_2(R,S, R, Nr, {I,Ni}k(R,S) );
         send_3(S,I, Nr, {R,Kir,Ni}k(I,S), {I,Kir,Nr}k(R,S) );
     }
 }

@@ -18,9 +18,9 @@ protocol needhamschroederpk(I,R,S)
         var Nr: Nonce;
 
         send_1(I,S,(I,R));
-        read_2(S,I, {pk(R), R}sk(S));
+        recv_2(S,I, {pk(R), R}sk(S));
         send_3(I,R,{Ni,I}pk(R));
-        read_6(R,I, {Ni, Nr}pk(I));
+        recv_6(R,I, {Ni, Nr}pk(I));
         send_7(I,R, {Nr}pk(R));
         claim_I1(I,Secret,Ni);
         claim_I2(I,Secret,Nr);
@@ -32,11 +32,11 @@ protocol needhamschroederpk(I,R,S)
         fresh Nr: Nonce;
         var Ni: Nonce;
         
-        read_3(I,R,{Ni,I}pk(R));
+        recv_3(I,R,{Ni,I}pk(R));
         send_4(R,S,(R,I));
-        read_5(S,R,{pk(I),I}sk(S));
+        recv_5(S,R,{pk(I),I}sk(S));
         send_6(R,I,{Ni,Nr}pk(I));
-        read_7(I,R,{Nr}pk(R));
+        recv_7(I,R,{Nr}pk(R));
         claim_R1(R,Secret,Nr);
         claim_R2(R,Secret,Ni);
         claim_R3(R,Nisynch);
@@ -44,9 +44,9 @@ protocol needhamschroederpk(I,R,S)
 
     role S
     {
-        read_1(I,S,(I,R));
+        recv_1(I,S,(I,R));
         send_2(S,I,{pk(R),R}sk(S));
-        read_4(R,S,(R,I));
+        recv_4(R,S,(R,I));
         send_5(S,R,{pk(I),I}sk(S));
     }
 }

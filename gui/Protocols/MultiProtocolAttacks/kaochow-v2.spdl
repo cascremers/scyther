@@ -17,7 +17,7 @@ protocol kaochow-2(I,R,S)
         var kir,kt: SessionKey;
 
         send_1 (I,S, I,R,ni);
-        read_3 (R,I, R, {I,R,ni,kir,kt}k(I,S), {ni, kir}kt, nr );
+        recv_3 (R,I, R, {I,R,ni,kir,kt}k(I,S), {ni, kir}kt, nr );
         send_4 (I,R, {nr,kir}kt );
 
         claim_I1 (I, Nisynch);
@@ -33,9 +33,9 @@ protocol kaochow-2(I,R,S)
         var kir,kt: SessionKey;
         var T: Ticket;
 
-        read_2 (S,R, T, { I,R,ni,kir,kt }k(R,S)  ); 
+        recv_2 (S,R, T, { I,R,ni,kir,kt }k(R,S)  ); 
         send_3 (R,I, R, T, {ni, kir}kt, nr );
-        read_4 (I,R, {nr,kir}kt );
+        recv_4 (I,R, {nr,kir}kt );
 
         claim_R1 (R, Nisynch);
         claim_R2 (R, Niagree);
@@ -48,7 +48,7 @@ protocol kaochow-2(I,R,S)
         var ni: Nonce;
         fresh kir, kt: SessionKey;
 
-        read_1 (I,S, I,R,ni);
+        recv_1 (I,S, I,R,ni);
         send_2 (S,R, {I,R,ni,kir,kt}k(I,S), { I,R,ni,kir,kt }k(R,S)  ); 
     }
 }

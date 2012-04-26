@@ -25,7 +25,7 @@ protocol smartright(I,R)
         var VoRi: Nonce;
 
         send_1(I,R, {VoKey,{CW}VoR}k(I,R));
-        read_2(R,I, VoRi);
+        recv_2(R,I, VoRi);
         send_3(I,R, VoR, {{VoRi}hash}VoKey);
     }    
     
@@ -36,9 +36,9 @@ protocol smartright(I,R)
         var VoKey: SessionKey;
         fresh VoRi: Nonce;
 
-        read_1(I,R, {VoKey,T}k(I,R));
+        recv_1(I,R, {VoKey,T}k(I,R));
         send_2(R,I, VoRi);
-        read_3(I,R, VoR,{{VoRi}hash}VoKey);
+        recv_3(I,R, VoR,{{VoRi}hash}VoKey);
 
         claim_R1(R,Nisynch);
     }

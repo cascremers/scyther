@@ -19,7 +19,7 @@ protocol ccitt509-1(I,R)
         fresh Na,Xa,Ya: Nonce;
         send_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
         # claim_2(I,Nisynch);
-        # This claim is useless as there are no preceding read events
+        # This claim is useless as there are no preceding recv events
     }    
     
     role R
@@ -27,7 +27,7 @@ protocol ccitt509-1(I,R)
         var Ta: Timestamp;
         var Na,Xa,Ya: Nonce;
 
-        read_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
+        recv_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
         claim_3(R,Nisynch);
         # There should also be Fresh Xa and Fresh Ya claims here
     }

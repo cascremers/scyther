@@ -19,7 +19,7 @@ protocol otwayrees(I,R,S)
         var Kir : SessionKey;
 
         send_1(I,R, M,I,R,{Ni,M,I,R}k(I,S) );
-        read_4(R,I, M,{Ni,Kir}k(I,S) );
+        recv_4(R,I, M,{Ni,Kir}k(I,S) );
 
         claim_I1(I, Secret,Kir);
         claim_I2(I, Nisynch);
@@ -33,9 +33,9 @@ protocol otwayrees(I,R,S)
         var Kir : SessionKey;
         var T1,T2: Ticket;
 
-        read_1(I,R, M,I,R, T1 );
+        recv_1(I,R, M,I,R, T1 );
         send_2(R,S, M,I,R, T1, { Nr,M,I,R }k(R,S) );
-        read_3(S,R, M, T2, { Nr,Kir }k(R,S) );
+        recv_3(S,R, M, T2, { Nr,Kir }k(R,S) );
         send_4(R,I, M, T2 );
 
         claim_R1(R, Secret,Kir);
@@ -49,7 +49,7 @@ protocol otwayrees(I,R,S)
         var M : String;
         fresh Kir : SessionKey;
         
-        read_2(R,S, M,I,R, { Ni,M,I,R}k(I,S), { Nr,M,I,R }k(R,S) );
+        recv_2(R,S, M,I,R, { Ni,M,I,R}k(I,S), { Nr,M,I,R }k(R,S) );
         send_3(S,R, M, { Ni,Kir }k(I,S) , { Nr,Kir }k(R,S) );
     }
 }

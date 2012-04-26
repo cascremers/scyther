@@ -10,7 +10,7 @@
 # a given term crypted with k(I,R) with k(R,I)
 #
 # Note:
-# Read 4 by the Initatior has been placed after the synchronisation claim
+# Recv 4 by the Initatior has been placed after the synchronisation claim
 # as it allows trivial synchronisation attacks otherwise (the message is 
 # completely fresh and can therefore always be replaced by an arbitrary value 
 # created by the intruder) which are not considered in SPORE
@@ -18,7 +18,6 @@
 
 usertype SessionKey;
 const Fresh: Function;
-const Compromised: Function;
 
 protocol @swapkey(X)
 {
@@ -27,7 +26,7 @@ protocol @swapkey(X)
     {
         var I,R: Agent;
         var T:Ticket;
-        read_!X1(X,X,I,R,{T}k(I,R));
+        recv_!X1(X,X,I,R,{T}k(I,R));
         send_!X2(X,X,{T}k(R,I));
     }
 }
@@ -42,12 +41,12 @@ protocol andrew-Concrete(I,R)
         var kir: SessionKey;
         
         send_1(I,R, I,ni );
-        read_2(R,I, {ni,kir}k(I,R) );
+        recv_2(R,I, {ni,kir}k(I,R) );
         send_3(I,R, {ni}kir);
         claim_I1(I,Secret,kir);
         claim_I2(I,Nisynch);
         claim_I3(I,Empty,(Fresh,kir));
-        read_6(R,I, nr);
+        recv_6(R,I, nr);
     }    
     
     role R
@@ -56,9 +55,9 @@ protocol andrew-Concrete(I,R)
         fresh nr: Nonce;
         fresh kir: SessionKey;
 
-        read_1(I,R, I,ni );
+        recv_1(I,R, I,ni );
         send_2(R,I, {ni,kir}k(I,R) );
-        read_3(I,R, {ni}kir);
+        recv_3(I,R, {ni}kir);
         send_6(R,I, nr);
         claim_R1(R,Secret,kir);
         claim_R2(R,Nisynch);
