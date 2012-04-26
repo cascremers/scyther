@@ -23,21 +23,42 @@
 # Try to get wxPython
 try:
     import wx
-except ImportError:
+except ImportError,err:
     from Scyther import Misc
-    Misc.panic("""
-ERROR:
 
-Could not find the required [wxPython] package.
+    errmsg = "Problem with importing the required [wxPython] package."
+
+    if 'No module' in str(err):
+        errmsg = """Could not find the required [wxPython] package.
 Please install this package in order to use the graphical user
 interface of Scyther.
 The [wxPython] packages can be found at http://www.wxpython.org/
 
 Ubuntu users: the wxPython packages are called 'python-wxgtk' followed by the
-version number.
+version number."""
+    elif '32-bit mode' in str(err):
+        errmsg = """Problem with importing the required [wxPython] package.
+
+Possibly the problem is caused by wxPython only working in 32-bit mode currently.
+You can try the following on the command line:
+
+  $ export VERSIONER_PYTHON_PREFER_32_BIT=yes
+  $ ./scyther-gui.py"""
+    
+    Misc.panic("""
+ERROR:
+
+%s
 
 Note that you can still use the Scyther binaries in the 'Scyther' directory.
-    """)
+
+The exact error was:
+--------------------------------------------------------------------------------
+%s
+--------------------------------------------------------------------------------
+    """ % (errmsg,err))
+
+
 
 #---------------------------------------------------------------------------
 """ import externals """

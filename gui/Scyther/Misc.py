@@ -144,7 +144,7 @@ def panic(text):
     print text
 
     root = Tkinter.Tk()
-    w = Tkinter.Label(root, text=text)
+    w = Tkinter.Label(root, justify=Tkinter.LEFT, padx = 10, text=text)
     w.pack()
     root.mainloop()
 
