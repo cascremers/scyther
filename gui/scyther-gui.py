@@ -20,22 +20,11 @@
 
 
 #---------------------------------------------------------------------------
-
-""" Import externals """
-import sys
-
-#---------------------------------------------------------------------------
-
-""" Import scyther-gui components """
-from Gui import About,Preference,Mainwindow
-from Scyther import Scyther,Misc
-
-#---------------------------------------------------------------------------
 # Try to get wxPython
 try:
     import wx
 except ImportError:
-
+    from Scyther import Misc
     Misc.panic("""
 ERROR:
 
@@ -51,10 +40,17 @@ Note that you can still use the Scyther binaries in the 'Scyther' directory.
     """)
 
 #---------------------------------------------------------------------------
-
+""" import externals """
+import sys
 import os
 from optparse import OptionParser, SUPPRESS_HELP
 from subprocess import *
+
+#---------------------------------------------------------------------------
+
+""" Import scyther-gui components """
+from Scyther import Scyther,Misc
+from Gui import About,Preference,Mainwindow
 
 #---------------------------------------------------------------------------
 
