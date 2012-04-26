@@ -14,7 +14,7 @@ protocol woolam(I,R,S)
 {
     role I
     {
-        const N1: Nonce;
+        fresh N1: Nonce;
         var Kir: SessionKey;
         var N2: Nonce;
 
@@ -32,7 +32,7 @@ protocol woolam(I,R,S)
     
     role R
     {
-        const N2: Nonce;
+        fresh N2: Nonce;
         var N1: Nonce;
         var Kir: SessionKey;
         var T1,T2: Ticket;
@@ -52,7 +52,7 @@ protocol woolam(I,R,S)
 
     role S
     {
-        const Kir: SessionKey;
+        fresh Kir: SessionKey;
         var N1,N2: Nonce;
 
         recv_4(R,S, {I, R, N1, N2}k(I,S), {I, R, N1, N2}k(R,S));

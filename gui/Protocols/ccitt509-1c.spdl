@@ -18,7 +18,7 @@ protocol ccitt509-1c(I,R)
         const Na,Xa,Ya: Nonce;
         send_1(I,R, I,{Ta, Na, R, Xa,{Ya,{hash(Ya)}sk(I)}pk(R)}sk(I));
         # claim_2(I,Nisynch);
-        # This claim is useless as there are no preceding  events
+        # This claim is useless as there are no preceding receive events
     }    
     
     role R

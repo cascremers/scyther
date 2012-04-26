@@ -13,7 +13,7 @@ protocol bke(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 		var kir: SessionKey;
 
@@ -28,8 +28,8 @@ protocol bke(I,R)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
-		const kir: SessionKey;
+		fresh nr: Nonce;
+		fresh kir: SessionKey;
 
 		recv_1 (I,R, { ni,I }pk(R) );
 		send_2 (R,I, { hash(ni),nr,R,kir }pk(I) );

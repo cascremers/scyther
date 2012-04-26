@@ -19,7 +19,7 @@ protocol ccitt509-1(I,R)
         fresh Na,Xa,Ya: Nonce;
         send_1(I,R, I,{Ta, Na, R, Xa,{Ya}pk(R)}sk(I));
         # claim_2(I,Nisynch);
-        # This claim is useless as there are no preceding  events
+        # This claim is useless as there are no preceding recv events
     }    
     
     role R

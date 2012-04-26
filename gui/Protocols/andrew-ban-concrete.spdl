@@ -10,7 +10,7 @@
 # a given term crypted with k(I,R) with k(R,I)
 #
 # Note:
-#  4 by the Initatior has been placed after the synchronisation claim
+# Recv 4 by the Initatior has been placed after the synchronisation claim
 # as it allows trivial synchronisation attacks otherwise (the message is 
 # completely fresh and can therefore always be replaced by an arbitrary value 
 # created by the intruder) which are not considered in SPORE

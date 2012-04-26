@@ -9,7 +9,7 @@
 # So it is possile that certain attacks that use this property are not found
 #
 # Note:
-#  4 by the Initatior has been placed after the synchronisation claim
+# Recv 4 by the Initatior has been placed after the synchronisation claim
 # as it allows trivial synchronisation attacks otherwise (the message is
 # completely fresh and can therefore always be replaced by an arbitrary value
 # created by the intruder) which are not considered in SPORE
