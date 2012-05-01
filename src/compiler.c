@@ -481,6 +481,105 @@ generateFreshClaimlabel (const System sys, const Protocol protocol,
   return label;
 }
 
+//! Check sanity of the parameters occurring in a claim
+/**
+ * Check if all variables have been received before.
+ * If not, aborts with error.
+ */
+void
+checkParameterGround (Claimlist cl)
+{
+  Termlist claimvars;
+  Termlist recvvars;
+  Termlist cli;
+
+  /* Compute received variables and those occurring in the claim parameter */
+  claimvars = termlistAddVariables (NULL, cl->parameter);
+  recvvars = compute_recv_variables (thisRole);
+
+  cli = claimvars;
+  while (cli != NULL)
+    {
+      if (!inTermlist (thisProtocol->rolenames, cli->term))
+	{
+	  /* only if it is not a role */
+	  if (!inTermlist (recvvars, cli->term))
+	    {
+	      /* this claimvar does not occur in the recvs? */
+	      /* abort with error */
+	      error_pre ();
+	      globalError++;
+	      eprintf ("Claim of role ");
+	      termPrint (cl->rolename);
+	      eprintf (" contains a variable ");
+	      termPrint (cli->term);
+	      eprintf
+		(" which is not initialized before (i.e., not received), on line %i.",
+		 cl->lineno);
+	      globalError--;
+	      error_post ("");
+	    }
+	}
+      cli = cli->next;
+    }
+  termlistDelete (claimvars);
+  termlistDelete (recvvars);
+  return;
+}
+
+//! Check if claim is of certain type, then check if meets parameter range, if not abort with error
+void
+checkParameterRange (const Claimlist cl, const Term claimtype, int minargs,
+		     int maxargs)
+{
+  Termlist params;
+  int num;
+
+  if (cl->type != claimtype)
+    {
+      return;
+    }
+
+  params = tuple_to_termlist (cl->parameter);
+  num = termlistLength (params);
+
+  if (minargs == -1)
+    {
+      minargs = num - 1;
+    }
+  if (maxargs == -1)
+    {
+      maxargs = num + 1;
+    }
+
+  if ((num < minargs) || (num > maxargs))
+    {
+      error_pre ();
+      globalError++;
+      termPrint (cl->type);
+      eprintf (" claim of role ");
+      termPrint (cl->rolename);
+      eprintf (" on line %i", cl->lineno);
+      if (maxargs == 0)
+	{
+	  error_post (" does not require any arguments.");
+	}
+      else
+	{
+	  if (num < minargs)
+	    {
+	      eprintf (" requires at least");
+	    }
+	  else
+	    {
+	      eprintf (" requires at most");
+	    }
+	  error_post (" %i arguments.", maxargs);
+	}
+    }
+  termlistDelete (params);
+}
+
 //! Create a claim and add it to the claims list, and add the role event.
 Claimlist
 claimCreate (const System sys, const Protocol protocol, const Role role,
@@ -545,17 +644,19 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
     {
       Termlist claimvars;
       Termlist recvvars;
+      Termlist cli;
 
       /* now check whether the claim contains variables that can actually be influenced by the intruder */
 
-      claimvars = termlistAddVariables (NULL, msg);
+      claimvars = termlistAddVariables (NULL, cl->parameter);
       recvvars = compute_recv_variables (thisRole);
-      while (claimvars != NULL)
+      cli = claimvars;
+      while (cli != NULL)
 	{
-	  if (!inTermlist (protocol->rolenames, claimvars->term))
+	  if (!inTermlist (thisProtocol->rolenames, cli->term))
 	    {
 	      /* only if it is not a role */
-	      if (!inTermlist (recvvars, claimvars->term))
+	      if (!inTermlist (recvvars, cli->term))
 		{
 		  /* this claimvar does not occur in the recvs? */
 		  /* then we should ignore it later */
@@ -564,19 +665,25 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 
 		  /* show a warning for this */
 		  globalError++;
-		  eprintf ("warning: secrecy claim of role ");
+		  warning_pre ();
+		  eprintf ("Secrecy claim of role ");
 		  termPrint (cl->rolename);
 		  eprintf (" contains a variable ");
-		  termPrint (claimvars->term);
+		  termPrint (cli->term);
 		  eprintf
-		    (" which is never recv; therefore the claim will be true.\n");
+		    (" which is never received; therefore the claim will be true.\n");
 		  globalError--;
 		}
 	    }
-	  claimvars = claimvars->next;
+	  cli = cli->next;
 	}
       termlistDelete (claimvars);
       termlistDelete (recvvars);
+    }
+  else
+    {
+      /* If it is NOT a SECRET claim, then check parameters are ground */
+      checkParameterGround (cl);
     }
 
   if ((claim == CLAIM_Commit) || (claim == CLAIM_Running))
@@ -591,14 +698,17 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 	{
 	  /* yield error */
 	  globalError++;
-	  eprintf ("warning: ");
+	  warning_pre ();
 	  termPrint (claim);
 	  eprintf (" claim of role ");
 	  termPrint (cl->rolename);
 	  eprintf
 	    (" requires four arguments. Please specify both the target role and the data to agree on, as in:\n");
+	  warning_pre ();
 	  eprintf ("  claim(R,  Commit,  R', data )\n");
+	  warning_pre ();
 	  eprintf ("and\n");
+	  warning_pre ();
 	  eprintf ("  claim(R', Running, R,  data ).\n");
 	  globalError--;
 	  error
@@ -615,16 +725,20 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 	    {
 	      /* yield error */
 	      globalError++;
-	      eprintf ("warning: ");
+	      warning_pre ();
 	      termPrint (claim);
 	      eprintf (" claim of role ");
 	      termPrint (cl->rolename);
 	      eprintf (" specifies the target role to be '");
 	      termPrint (targetrole);
 	      eprintf ("', which is not a role name.\n");
+	      warning_pre ();
 	      eprintf ("Please use:\n");
+	      warning_pre ();
 	      eprintf ("  claim(R,  Commit,  R', data )\n");
+	      warning_pre ();
 	      eprintf ("and\n");
+	      warning_pre ();
 	      eprintf ("  claim(R', Running, R,  data ).\n");
 	      globalError--;
 	      error
@@ -632,8 +746,16 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 		 lineno);
 	    }
 	}
-
     }
+  checkParameterRange (cl, CLAIM_Secret, 1, -1);
+  checkParameterRange (cl, CLAIM_SKR, 1, -1);
+  checkParameterRange (cl, CLAIM_Alive, 0, 0);
+  checkParameterRange (cl, CLAIM_Weakagree, 0, 0);
+  checkParameterRange (cl, CLAIM_Nisynch, 0, 0);
+  checkParameterRange (cl, CLAIM_Niagree, 0, 0);
+  checkParameterRange (cl, CLAIM_Empty, 0, 0);
+  checkParameterRange (cl, CLAIM_Reachable, 0, 0);
+  checkParameterRange (cl, CLAIM_SID, 1, -1);
 
   return cl;
 }
