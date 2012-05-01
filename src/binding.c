@@ -542,6 +542,30 @@ unique_origination ()
   return true;
 }
 
+//! Determine whether a term is a long-term private key
+/**
+ * Note: assumes t is deVar'd.
+ */
+int
+isLongtermKey (const Term t)
+{
+  if (t != NULL)
+    {
+      if (isTermEncrypt (t))
+	{
+	  /*
+	   * List for SK terms
+	   */
+	  if (isTermEqual (TERM_SK, TermKey (t)) ||
+	      isTermEqual (TERM_K, TermKey (t)))
+	    {
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
 //! Determine whether a binding involves long-term private keys.
 /**
  * Returns the agent name list if true, returns NULL if not true.
@@ -562,19 +586,9 @@ getPrivateKeyAgents (Binding b, Termlist tlold)
     }
 
   t = deVar (b->term);
-  if (t != NULL)
+  if (isLongtermKey (t))
     {
-      if (isTermEncrypt (t))
-	{
-	  /*
-	   * List for SK terms
-	   */
-	  if (isTermEqual (TERM_SK, TermKey (t)) ||
-	      isTermEqual (TERM_K, TermKey (t)))
-	    {
-	      return termlistAddNew (tlold, TermOp (t));
-	    }
-	}
+      return termlistAddNew (tlold, TermOp (t));
     }
   return tlold;
 }
@@ -609,20 +623,127 @@ getAllPrivateKeyAgents (int run, int ev)
   return tl;
 }
 
-//! Prune invalid state w.r.t. <=C minimal requirement
+//! Check for first-origination points
+/**
+ * For the compromise version, we do not want to consider the long-term keys
+ * because for them, timing is critical: changing their first bindings may cause us to lose 
+ * attacks.
+ *
+ * Similarly, a pattern in which a message bound but there exists an earlier
+ * non-regular event (e.g. state-reveal, session-key reveal) then the pattern
+ * is not redundant.
+ *
+ *@returns True, if it's okay. If false, it needs to be pruned.
+ */
+int
+first_origination ()
+{
+  List bl;
+
+  // For all goals
+  bl = sys->bindings;
+  while (bl != NULL)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      // Check for a valid binding; it has to be 'done' and sensibly bound (not as in tuple expanded stuff)
+      if (valid_binding (b))
+	{
+	  Term t;
+
+	  t = deVar (b->term);
+	  // We don't consider long-term keys here
+	  if (!isLongtermKey (t))
+	    {
+	      int run;
+
+	      // Find all preceding events
+	      for (run = 0; run < sys->maxruns; run++)
+		{
+		  int ev;
+		  Roledef rd;
+
+		  rd = sys->runs[run].start;
+
+		  //!@todo hardcoded reference to step, should be length
+		  for (ev = 0; ev < sys->runs[run].step; ev++)
+		    {
+		      if (rd->type == SEND || rd->type == RECV)
+			{
+			  // We don't consider compromise events as possible earlier events for redundancy
+			  if (!isCompromiseEvent (rd))
+			    {
+			      if (isDependEvent
+				  (run, ev, b->run_from, b->ev_from))
+				{
+				  // this node is *before* the from node
+
+				  int occursthere;
+
+				  if (switches.intruder)
+				    {
+				      // intruder: interm bindings should cater for the first occurrence
+				      occursthere =
+					termInTerm (rd->message, t);
+				    }
+				  else
+				    {
+				      // no intruder, then simple test
+				      occursthere =
+					isTermEqual (rd->message, t);
+				    }
+				  if (occursthere)
+				    {
+				      // This term already occurs in a previous node!
+#ifdef DEBUG
+				      if (DEBUGL (4))
+					{
+					  // Report this
+					  indentPrint ();
+					  eprintf ("Binding for ");
+					  termPrint (t);
+					  eprintf
+					    (" at r%i i%i is redundant because it occurred before at r%i i%i in ",
+					     b->run_from, b->ev_from, run,
+					     ev);
+					  termPrint (rd->message);
+					  eprintf ("\n");
+					}
+#endif
+				      return false;
+				    }
+				}
+			    }
+			  else
+			    {
+			      // If this event is not before the target, then the
+			      // next in the run certainly is not either (because
+			      // that would imply that this one is before it)
+			      // Thus, we effectively exit the loop.
+			      break;
+			    }
+			}
+		    }
+		  rd = rd->next;
+		}
+	    }
+	}
+      bl = bl->next;
+    }
+  return true;
+}
+
+//! Determine if pattern is redundant or not
 /**
  * Intuition says this can be done a lot more efficient. Luckily this is the prototype.
  *
  *@returns True, if it's okay. If false, it needs to be pruned.
  */
 int
-bindings_c_minimal ()
+non_redundant ()
 {
-  if (!unique_origination ())
-    {
-      return false;
-    }
-  return true;
+  return (unique_origination () && first_origination ());
 }
 
 //! Count the number of bindings that are done.

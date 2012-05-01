@@ -846,14 +846,14 @@ arachne_claim_commit (const System sys, const int claim_run,
 			      // check parameters
 			      if (isTermlistEqual
 				  (params_a->next, params_b->next))
-		    {
-		      // Claim holds
+				{
+				  // Claim holds
 				  termlistDelete (params_b);
 				  termlistDelete (params_a);
-		      return true;
-		    }
-		}
-	    }
+				  return true;
+				}
+			    }
+			}
 		      termlistDelete (params_b);
 		    }
 		}

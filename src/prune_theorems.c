@@ -322,14 +322,14 @@ prune_theorems (const System sys)
       return true;
     }
 
-  // Check for c-minimality
+  // Check for redundant patterns
   {
-    if (!bindings_c_minimal ())
+    if (!non_redundant ())
       {
 	if (switches.output == PROOF)
 	  {
 	    indentPrint ();
-	    eprintf ("Pruned because this is not <=c-minimal.\n");
+	    eprintf ("Pruned because the pattern is redundant.\n");
 	  }
 	return true;
       }
