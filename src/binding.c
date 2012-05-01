@@ -516,103 +516,105 @@ unique_origination ()
 }
 
 
-//! Prune invalid state w.r.t. <=C minimal requirement
+//! Check for first-origination points
+/**
+ *@returns True, if it's okay. If false, it needs to be pruned.
+ */
+int
+first_origination ()
+{
+  List bl;
+
+  // For all goals
+  bl = sys->bindings;
+  while (bl != NULL)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      // Check for a valid binding; it has to be 'done' and sensibly bound (not as in tuple expanded stuff)
+      if (valid_binding (b))
+	{
+	  int run;
+
+	  // Find all preceding events
+	  for (run = 0; run < sys->maxruns; run++)
+	    {
+	      int ev;
+	      Roledef rd;
+
+	      rd = sys->runs[run].start;
+
+	      //!@todo hardcoded reference to step, should be length
+	      for (ev = 0; ev < sys->runs[run].step; ev++)
+		{
+		  if (rd->type == SEND || rd->type == RECV)
+		    {
+		      if (isDependEvent (run, ev, b->run_from, b->ev_from))
+			{
+			  // this node is *before* the from node
+
+			  int occursthere;
+
+			  if (switches.intruder)
+			    {
+			      // intruder: interm bindings should cater for the first occurrence
+			      occursthere = termInTerm (rd->message, b->term);
+			    }
+			  else
+			    {
+			      // no intruder, then simple test
+			      occursthere =
+				isTermEqual (rd->message, b->term);
+			    }
+			  if (occursthere)
+			    {
+			      // This term already occurs in a previous node!
+#ifdef DEBUG
+			      if (DEBUGL (4))
+				{
+				  // Report this
+				  indentPrint ();
+				  eprintf ("Binding for ");
+				  termPrint (b->term);
+				  eprintf
+				    (" at r%i i%i is not c-minimal because it occurred before at r%i i%i in ",
+				     b->run_from, b->ev_from, run, ev);
+				  termPrint (rd->message);
+				  eprintf ("\n");
+				}
+#endif
+			      return false;
+			    }
+			}
+		      else
+			{
+			  // If this event is not before the target, then the
+			  // next in the run certainly is not either (because
+			  // that would imply that this one is before it)
+			  // Thus, we effectively exit the loop.
+			  break;
+			}
+		    }
+		}
+	      rd = rd->next;
+	    }
+	}
+      bl = bl->next;
+    }
+  return true;
+}
+
+//! Determine if pattern is redundant or not
 /**
  * Intuition says this can be done a lot more efficient. Luckily this is the prototype.
  *
  *@returns True, if it's okay. If false, it needs to be pruned.
  */
 int
-bindings_c_minimal ()
+non_redundant ()
 {
-  if (!unique_origination ())
-    {
-      return false;
-    }
-
-  {
-    List bl;
-
-    // For all goals
-    bl = sys->bindings;
-    while (bl != NULL)
-      {
-	Binding b;
-
-	b = (Binding) bl->data;
-	// Check for a valid binding; it has to be 'done' and sensibly bound (not as in tuple expanded stuff)
-	if (valid_binding (b))
-	  {
-	    int run;
-
-	    // Find all preceding events
-	    for (run = 0; run < sys->maxruns; run++)
-	      {
-		int ev;
-		Roledef rd;
-
-		rd = sys->runs[run].start;
-
-		//!@todo hardcoded reference to step, should be length
-		for (ev = 0; ev < sys->runs[run].step; ev++)
-		  {
-		    if (rd->type == SEND || rd->type == RECV)
-		      {
-			if (isDependEvent (run, ev, b->run_from, b->ev_from))
-			  {
-			    // this node is *before* the from node
-
-			    int occursthere;
-
-			    if (switches.intruder)
-			      {
-				// intruder: interm bindings should cater for the first occurrence
-				occursthere =
-				  termInTerm (rd->message, b->term);
-			      }
-			    else
-			      {
-				// no intruder, then simple test
-				occursthere =
-				  isTermEqual (rd->message, b->term);
-			      }
-			    if (occursthere)
-			      {
-				// This term already occurs in a previous node!
-#ifdef DEBUG
-				if (DEBUGL (4))
-				  {
-				    // Report this
-				    indentPrint ();
-				    eprintf ("Binding for ");
-				    termPrint (b->term);
-				    eprintf
-				      (" at r%i i%i is not c-minimal because it occurred before at r%i i%i in ",
-				       b->run_from, b->ev_from, run, ev);
-				    termPrint (rd->message);
-				    eprintf ("\n");
-				  }
-#endif
-				return false;
-			      }
-			  }
-			else
-			  {
-			    // If this event is not before the target, then the
-			    // next in the run certainly is not either (because
-			    // that would imply that this one is before it)
-			    // Thus, we effectively exit the loop.
-			    break;
-			  }
-		      }
-		  }
-		rd = rd->next;
-	      }
-	  }
-	bl = bl->next;
-      }
-  }
-  return true;
+  return (unique_origination () && first_origination ());
 }
 
 //! Count the number of bindings that are done.

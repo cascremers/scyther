@@ -355,7 +355,7 @@ so technically this is a bug. Don't use.
 
   // Check for c-minimality
   {
-    if (!bindings_c_minimal ())
+    if (!non_redundant ())
       {
 	if (switches.output == PROOF)
 	  {

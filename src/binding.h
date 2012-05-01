@@ -70,7 +70,7 @@ int iterate_bindings (int (*func) (Binding b));
 int iterate_preceding_bindings (const int run, const int ev,
 				int (*func) (Binding b));
 
-int bindings_c_minimal ();
+int non_redundant ();
 int countBindingsDone ();
 
 #endif
