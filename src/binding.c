@@ -493,6 +493,12 @@ unique_origination ()
 			      b->ev_from != b2->ev_from)
 			    {
 			      // Not equal: thus no unique origination.
+
+			      // Cleanup of garbage
+			      termlistDelete (terms2);
+			      termlistDelete (sharedterms);
+			      termlistDelete (terms);
+
 			      return false;
 			    }
 			}
