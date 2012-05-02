@@ -578,7 +578,7 @@ first_origination ()
 				  eprintf ("Binding for ");
 				  termPrint (b->term);
 				  eprintf
-				    (" at r%i i%i is not c-minimal because it occurred before at r%i i%i in ",
+				    (" at r%i i%i is not redundant because it occurred before at r%i i%i in ",
 				     b->run_from, b->ev_from, run, ev);
 				  termPrint (rd->message);
 				  eprintf ("\n");
