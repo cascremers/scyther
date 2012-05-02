@@ -13,7 +13,7 @@ protocol ccitt509(I,R)
 		var yr,xr: Data;
 
 		send_1(I,R, I,{ni, R, xi, {yi}pk(R) }sk(I) );
-		read_2(R,I, R,{nr, I, ni, xr, {yr}pk(I) }sk(R) );
+		recv_2(R,I, R,{nr, I, ni, xr, {yr}pk(I) }sk(R) );
 		send_3(I,R, I,{R,nr}sk(I) );
 
 		claim_4(I,Secret,yi);
@@ -29,9 +29,9 @@ protocol ccitt509(I,R)
 		fresh nr: Nonce;
 		fresh yr,xr: Data;
 
-		read_1(I,R, I,{ni, R, xi, {yi}pk(R) }sk(I) );
+		recv_1(I,R, I,{ni, R, xi, {yi}pk(R) }sk(I) );
 		send_2(R,I, R,{nr, I, ni, xr, {yr}pk(I) }sk(R) );
-		read_3(I,R, I,{R,nr}sk(I) );
+		recv_3(I,R, I,{R,nr}sk(I) );
 
 		claim_8(R,Secret,yi);
 		claim_9(R,Secret,yr);

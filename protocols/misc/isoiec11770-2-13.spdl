@@ -11,7 +11,7 @@ protocol isoiec11770213(I,R,S)
 		var kir: Sessionkey;
 
 		send_1 (I,R, ni);
-		read_4 (R,I, { ni,kir,R }k(I,S) );
+		recv_4 (R,I, { ni,kir,R }k(I,S) );
 
 		claim_5 (I, Secret, kir);
 	}	
@@ -23,9 +23,9 @@ protocol isoiec11770213(I,R,S)
 		fresh kir: Sessionkey;
 		var T;
 
-		read_1 (I,R, ni);
+		recv_1 (I,R, ni);
 		send_2 (R,S, { nr,ni,I,kir }k(R,S) );
-		read_3 (S,R, { nr, I }k(R,S), T );
+		recv_3 (S,R, { nr, I }k(R,S), T );
 		send_4 (R,I, T );
 
 		claim_6 (R, Secret, kir);
@@ -36,7 +36,7 @@ protocol isoiec11770213(I,R,S)
 		var ni,nr: Nonce;
 		var kir: Sessionkey;
 
-		read_2 (R,S, { nr,ni,I,kir }k(R,S) );
+		recv_2 (R,S, { nr,ni,I,kir }k(R,S) );
 		send_3 (S,R, { nr, I }k(R,S), { ni,kir,R }k(I,S) );
 	}
 }

@@ -21,9 +21,9 @@ protocol bkeCE(A,B)
 		fresh na: Nonce;
 		fresh kab: Key;
 
-		read_1 (B,A, B,{ nb,B }pk(A) );
+		recv_1 (B,A, B,{ nb,B }pk(A) );
 		send_2 (A,B, { hash(nb),na,A,kab }pk(B) );
-		read_3 (B,A, { hash(na) }kab );
+		recv_3 (B,A, { hash(na) }kab );
 
 		claim_A1 (A, Secret, na);
 		claim_A2 (A, Secret, nb);
@@ -36,7 +36,7 @@ protocol bkeCE(A,B)
 		var kab: Key;
 
 		send_1 (B,A, B,{ nb,B }pk(A) );
-		read_2 (A,B, { hash(nb),na,A,kab }pk(B) );
+		recv_2 (A,B, { hash(nb),na,A,kab }pk(B) );
 		send_3 (B,A, { hash(na) }kab );
 
 		claim_B1 (B, Secret, na);

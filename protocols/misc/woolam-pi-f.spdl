@@ -18,7 +18,7 @@ protocol woolampif(A,B,S)
 		var Nb: Nonce;
 
 		send_1(A,B, A);
-		read_2(B,A, Nb);
+		recv_2(B,A, Nb);
 		send_3(A,B, { A,B,Nb }k(A,S) );
 	}
 
@@ -27,11 +27,11 @@ protocol woolampif(A,B,S)
 		fresh Nb: Nonce;
 		var T: Ticket;
 
-		read_1(A,B, A);
+		recv_1(A,B, A);
 		send_2(B,A, Nb);
-		read_3(A,B, T);
+		recv_3(A,B, T);
 		send_4(B,S, { A,B,Nb, T }k(B,S) );
-		read_5(S,B, { A,B,Nb }k(B,S) );
+		recv_5(S,B, { A,B,Nb }k(B,S) );
 
 		claim_6(B,Niagree);
 		claim_7(B,Nisynch);
@@ -41,7 +41,7 @@ protocol woolampif(A,B,S)
 	{
 		var Nb: Nonce;
 
-		read_4(B,S, { A,B,Nb, { A,B,Nb }k(A,S) }k(B,S) );
+		recv_4(B,S, { A,B,Nb, { A,B,Nb }k(A,S) }k(B,S) );
 		send_5(S,B, { A,B,Nb }k(B,S) );
 	}
 }

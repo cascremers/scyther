@@ -41,11 +41,11 @@ protocol nssymmetricamended(A,S,B)
 		var nb: Nonce;
 
 		send_1(A,B, A );
-		read_2(B,A, T1 );
+		recv_2(B,A, T1 );
 		send_3(A,S, A,B,na,T1 );
-		read_4(S,A, { na,B,kab,T2 }k(A,S) );
+		recv_4(S,A, { na,B,kab,T2 }k(A,S) );
 		send_5(A,B, T2 );
-		read_6(B,A, { nb }kab );
+		recv_6(B,A, { nb }kab );
 		send_7(A,B, { {nb}succ }kab );
 
 		claim_8(A, Secret, kab);
@@ -59,7 +59,7 @@ protocol nssymmetricamended(A,S,B)
 		var na: Nonce;
 		var nb: Nonce;
 
-		read_3(A,S, A,B,na, { A,nb }k(B,S) );
+		recv_3(A,S, A,B,na, { A,nb }k(B,S) );
 		send_4(S,A, { na,B,kab, { kab,A }k(B,S) }k(A,S) );
 	}
 
@@ -68,11 +68,11 @@ protocol nssymmetricamended(A,S,B)
 		var kab: SessionKey;
 		fresh nb: Nonce;
 
-		read_1(A,B, A );
+		recv_1(A,B, A );
 		send_2(B,A, { A,nb }k(B,S) );
-		read_5(A,B, { kab,A }k(B,S) );
+		recv_5(A,B, { kab,A }k(B,S) );
 		send_6(B,A, { nb }kab );
-		read_7(A,B, { {nb}succ }kab );
+		recv_7(A,B, { {nb}succ }kab );
 
 		claim_9(B, Secret, kab);
 		claim_9a(B, Niagree);

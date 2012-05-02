@@ -12,15 +12,15 @@ protocol nsl3th3(I,R)
 		var nr,nr2: Nonce;
 
 		send_1(I,R, {P1,I,ni}pk(R) );
-		read_1b(R,I, {nr}pk(I) );
-		read_2(R,I, {P1,ni,nr,R}pk(I) );
+		recv_1b(R,I, {nr}pk(I) );
+		recv_2(R,I, {P1,ni,nr,R}pk(I) );
 		send_3(I,R, {P1,nr}pk(R) );
 
 		//claim_i(I,Nisynch);
 
 		send_21(I,R, {P2,I,ni2}pk(R) );
-		read_21b(R,I, {nr2}pk(I) );
-		read_22(R,I, {P2,ni2,nr2,R}pk(I) );
+		recv_21b(R,I, {nr2}pk(I) );
+		recv_22(R,I, {P2,ni2,nr2,R}pk(I) );
 		send_23(I,R, {P2,nr2}pk(R) );
 
 		claim_i2(I,Nisynch);
@@ -31,17 +31,17 @@ protocol nsl3th3(I,R)
 		var ni,ni2: Nonce;
 		fresh nr,nr2: Nonce;
 
-		read_1(I,R, {P1,I,ni}pk(R) );
+		recv_1(I,R, {P1,I,ni}pk(R) );
 		send_1b(R,I, {nr}pk(I) );
 		send_2(R,I, {P1,ni,nr,R}pk(I) );
-		read_3(I,R, {P1,nr}pk(R) );
+		recv_3(I,R, {P1,nr}pk(R) );
 
 		//claim_r(R,Nisynch);
 
-		read_21(I,R, {P2,I,ni2}pk(R) );
+		recv_21(I,R, {P2,I,ni2}pk(R) );
 		send_21b(R,I, {nr2}pk(I) );
 		send_22(R,I, {P2,ni2,nr2,R}pk(I) );
-		read_23(I,R, {P2,nr2}pk(R) );
+		recv_23(I,R, {P2,nr2}pk(R) );
 
 		claim_r2(R,Nisynch);
 	}

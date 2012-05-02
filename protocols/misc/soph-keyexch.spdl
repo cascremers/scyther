@@ -12,7 +12,7 @@ protocol sophkx(I,R)
 		var nr: Nonce;
 
 		send_1(I,R, ni, {I,kir}pk(R) );
-		read_2(R,I, {ni}kir );
+		recv_2(R,I, {ni}kir );
 		claim_4(I,Secret,kir);
 	}	
 	
@@ -22,7 +22,7 @@ protocol sophkx(I,R)
 		var kir: Sessionkey;
 		fresh nr: Nonce;
 
-		read_1(I,R, ni, {I,kir}pk(R) );
+		recv_1(I,R, ni, {I,kir}pk(R) );
 		send_2(R,I, {ni}kir );
 	}
 }

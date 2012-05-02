@@ -16,7 +16,7 @@ protocol ibe(I,R,S)
 	{
 		fresh ni: Nonce;
 
-	        read_1(S,I, param(S) );
+	        recv_1(S,I, param(S) );
 		send_3(I,R, {ni}ibepublic(param(S),R) );
 
 		claim_i1(I,Secret,ni);
@@ -26,8 +26,8 @@ protocol ibe(I,R,S)
 	{
 		var ni: Nonce;
 
-	        read_2(S,R, {ibesecret(param(S),R)}pk(R) );
-		read_3(I,R, {ni}ibepublic(param(S),R) );
+	        recv_2(S,R, {ibesecret(param(S),R)}pk(R) );
+		recv_3(I,R, {ni}ibepublic(param(S),R) );
 
 		claim_r1(R,Secret,ni);
 		//of course this claim is invalid

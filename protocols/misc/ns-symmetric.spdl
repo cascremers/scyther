@@ -39,9 +39,9 @@ protocol nssymmetric(A,S,B)
 		var nb: Nonce;
 
 		send_1(A,S, A,B,na );
-		read_2(S,A, { na,B,kab,T }k(A,S) );
+		recv_2(S,A, { na,B,kab,T }k(A,S) );
 		send_3(A,B, T );
-		read_4(B,A, { nb }kab );
+		recv_4(B,A, { nb }kab );
 		send_5(A,B, { {nb}succ }kab );
 
 		claim_6(A, Secret, kab);
@@ -52,7 +52,7 @@ protocol nssymmetric(A,S,B)
 		fresh kab: SessionKey;
 		var na: Nonce;
 
-		read_1(A,S, A,B,na );
+		recv_1(A,S, A,B,na );
 		send_2(S,A, { na,B,kab, { kab,A }k(B,S) }k(A,S) );
 	}
 
@@ -61,9 +61,9 @@ protocol nssymmetric(A,S,B)
 		var kab: SessionKey;
 		fresh nb: Nonce;
 
-		read_3(A,B, { kab,A }k(B,S) );
+		recv_3(A,B, { kab,A }k(B,S) );
 		send_4(B,A, { nb }kab );
-		read_5(A,B, { {nb}succ }kab );
+		recv_5(A,B, { {nb}succ }kab );
 
 		claim_7(B, Secret, kab);
 	}

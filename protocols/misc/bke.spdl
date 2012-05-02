@@ -15,7 +15,7 @@ protocol bke(I,R)
 		var kir: Key;
 
 		send_1 (I,R, { ni,I }pk(R) );
-		read_2 (R,I, { hash(ni),nr,R,kir }pk(I) );
+		recv_2 (R,I, { hash(ni),nr,R,kir }pk(I) );
 		send_3 (I,R, { hash(nr) }kir );
 		claim_4 (I, Secret, kir );
 		claim_5 (I, Niagree );
@@ -28,9 +28,9 @@ protocol bke(I,R)
 		fresh nr: Nonce;
 		fresh kir: Key;
 
-		read_1 (I,R, { ni,I }pk(R) );
+		recv_1 (I,R, { ni,I }pk(R) );
 		send_2 (R,I, { hash(ni),nr,R,kir }pk(I) );
-		read_3 (I,R, { hash(nr) }kir );
+		recv_3 (I,R, { hash(nr) }kir );
 		claim_7 (R, Secret, kir );
 		claim_8 (R, Niagree );
 		claim_9 (R, Nisynch );

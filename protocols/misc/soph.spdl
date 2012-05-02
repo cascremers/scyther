@@ -9,7 +9,7 @@ protocol soph(I,R)
 		fresh ni: Nonce;
 
 		send_1(I,R, {I,ni}pk(R) );
-		read_2(R,I, ni );
+		recv_2(R,I, ni );
 		claim_3(I,Niagree);
 	}	
 	
@@ -17,7 +17,7 @@ protocol soph(I,R)
 	{
 		var ni: Nonce;
 
-		read_1(I,R, {I,ni}pk(R) );
+		recv_1(I,R, {I,ni}pk(R) );
 		send_2(R,I, ni );
 	}
 }

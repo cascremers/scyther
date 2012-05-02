@@ -20,10 +20,10 @@ protocol lcbreaker(I,R)
 		var x: Nonce;
 
 		send_1(I,R, {I,ni}pk(R) );
-		read_2(R,I, {ni,nr,R}pk(I) );
+		recv_2(R,I, {ni,nr,R}pk(I) );
 		send_3(I,R, {nr,I}pk(R) );
 
-		read_x1(R,I, { x }pk(I) );
+		recv_x1(R,I, { x }pk(I) );
 		send_x2(I,R, { x }ni );
 
 		claim_i1(I,Secret,ni);
@@ -36,12 +36,12 @@ protocol lcbreaker(I,R)
 		fresh nr: Nonce;
 		fresh x: Nonce;
 
-		read_1(I,R, {I,ni}pk(R) );
+		recv_1(I,R, {I,ni}pk(R) );
 		send_2(R,I, {ni,nr,R}pk(I) );
-		read_3(I,R, {nr,I}pk(R) );
+		recv_3(I,R, {nr,I}pk(R) );
 
 		send_x1(R,I, { x }pk(I) );
-		read_x2(I,R, { x }ni );
+		recv_x2(I,R, { x }ni );
 
 		claim_r1(R,Secret,ni);
 		claim_r2(R,Secret,nr);

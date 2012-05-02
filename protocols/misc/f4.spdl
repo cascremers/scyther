@@ -19,9 +19,9 @@ protocol f4(I,R)
 	{
 		var nr: Nonce;
 
-		read_!1(R,I, nr );
+		recv_!1(R,I, nr );
 		send_!2(I,R, { nr }sk(I) );
-		read_!3(R,I, {{{{ nr }sk(R)}sk(R)}sk(R)}sk(R) );
+		recv_!3(R,I, {{{{ nr }sk(R)}sk(R)}sk(R)}sk(R) );
 
 		claim_i1(I,Reachable);
 	}	

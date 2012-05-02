@@ -20,7 +20,7 @@ protocol bkebroken(I,R)
 		var kir: Key;
 
 		send_1 (I,R, { ni,I }pk(R) );
-		read_2 (R,I, { h(ni),nr,kir }pk(I) );
+		recv_2 (R,I, { h(ni),nr,kir }pk(I) );
 		send_3 (I,R, { h(nr),kir }pk(R) );
 		claim_4 (I, Secret, kir );
 	}
@@ -31,9 +31,9 @@ protocol bkebroken(I,R)
 		fresh nr: Nonce;
 		fresh kir: Key;
 
-		read_1 (I,R, { ni,I }pk(R) );
+		recv_1 (I,R, { ni,I }pk(R) );
 		send_2 (R,I, { h(ni),nr,kir }pk(I) );
-		read_3 (I,R, { h(nr),kir }pk(R) );
+		recv_3 (I,R, { h(nr),kir }pk(R) );
 		claim_5 (R, Secret, kir );
 	}
 }

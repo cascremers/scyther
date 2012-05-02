@@ -19,7 +19,7 @@ protocol yahalompaulson(I,R,S)
 		var T: Ticket;
 
 		send_1(I,R, I,ni);
-		read_3(S,I, nr, {R,kir,ni}k(I,S), T );
+		recv_3(S,I, nr, {R,kir,ni}k(I,S), T );
 		send_4(I,R, T, {nr}kir );
 
 		claim_8(I, Secret,kir);
@@ -33,9 +33,9 @@ protocol yahalompaulson(I,R,S)
 		var ni: Nonce;
 		var kir: Sessionkey;
 
-		read_1(I,R, I,ni);
+		recv_1(I,R, I,ni);
 		send_2(R,S, R,nr,{I,ni}k(R,S) );
-		read_4(I,R, {I,R,kir,nr}k(R,S), {nr}kir );
+		recv_4(I,R, {I,R,kir,nr}k(R,S), {nr}kir );
 
 		claim_11(R, Secret,kir);
 		claim_12(R, Nisynch);
@@ -47,7 +47,7 @@ protocol yahalompaulson(I,R,S)
 		fresh kir: Sessionkey;
 		var ni,nr: Nonce;
 
-		read_2(R,S, R,nr, {I,ni}k(R,S) );
+		recv_2(R,S, R,nr, {I,ni}k(R,S) );
 		send_3(S,I, nr, { R,kir,ni }k(I,S), {I,R,kir,nr}k(R,S) );
 	}
 }

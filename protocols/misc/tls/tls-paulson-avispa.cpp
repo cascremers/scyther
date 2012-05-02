@@ -48,13 +48,13 @@ protocol tlspaulson-avispa(a,b)
 		var pb: Params;
 
 		send_1( a,b, a,na,sid,pa );
-		read_2( b,a, nb,sid,pb );
-		read_3( b,a, CERT(b) );
+		recv_2( b,a, nb,sid,pb );
+		recv_3( b,a, CERT(b) );
 		send_4( a,b, CERT(a) );
 		send_5( a,b, { pms }pk(b) );
 		send_6( a,b, { hash(nb,b,pms) }sk(a) );
 		send_7( a,b, { F }CLIENTK );
-		read_8( b,a, { F }SERVERK );
+		recv_8( b,a, { F }SERVERK );
 
 		claim_9a(a, Secret, SERVERK);
 		claim_9b(a, Secret, CLIENTK);
@@ -70,13 +70,13 @@ protocol tlspaulson-avispa(a,b)
 		fresh nb: Nonce;
 		fresh pb: Params;
 
-		read_1( a,b, a,na,sid,pa );
+		recv_1( a,b, a,na,sid,pa );
 		send_2( b,a, nb,sid,pb );
 		send_3( b,a, CERT(b) );
-		read_4( a,b, CERT(a) );
-		read_5( a,b, { pms }pk(b) );
-		read_6( a,b, { hash(nb,b,pms) }sk(a) );
-		read_7( a,b, { F }CLIENTK );
+		recv_4( a,b, CERT(a) );
+		recv_5( a,b, { pms }pk(b) );
+		recv_6( a,b, { hash(nb,b,pms) }sk(a) );
+		recv_7( a,b, { F }CLIENTK );
 		send_8( b,a, { F }SERVERK );
 
 		claim_10a(b, Secret, SERVERK);

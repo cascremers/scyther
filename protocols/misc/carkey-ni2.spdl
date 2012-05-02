@@ -16,8 +16,8 @@ protocol carkeyni2(I,R)
 	{
 		var ni: Nonce;
 
-		read_1(I,R, {R,ni}sk(I) );
-		read_2(I,R, {R,ni}sk(I) );
+		recv_1(I,R, {R,ni}sk(I) );
+		recv_2(I,R, {R,ni}sk(I) );
 		claim_4(R,Nisynch);
 	}
 }

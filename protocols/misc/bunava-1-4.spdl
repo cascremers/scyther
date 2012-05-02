@@ -21,7 +21,7 @@ protocol intruderhelp(Swap)
         var T: Ticket;
 	var A,B: Agent;
 
-	read_!1(Swap,Swap, { T }k(A,B) );
+	recv_!1(Swap,Swap, { T }k(A,B) );
 	send_!2(Swap,Swap, { T }k(B,A) );
     }
 }
@@ -34,7 +34,7 @@ protocol bunava14(A,B,C,D)
 	var rb,rc,rd: Nonce;
 
 	send_1(A,B, ra);
-	read_4(D,A, rd,{D,rc,C,rb,B,ra}k(A,D) );
+	recv_4(D,A, rd,{D,rc,C,rb,B,ra}k(A,D) );
 	send_5(A,B, {A,rd,D,rc,C,rb}k(A,B) );
 
 	claim_A1(A, Niagree);
@@ -46,9 +46,9 @@ protocol bunava14(A,B,C,D)
         fresh rb: Nonce;
 	var ra,rc,rd: Nonce;
 
-	read_1(A,B, ra);
+	recv_1(A,B, ra);
 	send_2(B,C, rb,{B,ra}k(B,C) );
-	read_5(A,B, {A,rd,D,rc,C,rb}k(A,B) );
+	recv_5(A,B, {A,rd,D,rc,C,rb}k(A,B) );
 	send_6(B,C, {B,A,rd,D,rc}k(B,C) );
 
 	claim_B1(B, Niagree);
@@ -60,9 +60,9 @@ protocol bunava14(A,B,C,D)
         fresh rc: Nonce;
 	var ra,rb,rd: Nonce;
 
-	read_2(B,C, rb,{B,ra}k(B,C) );
+	recv_2(B,C, rb,{B,ra}k(B,C) );
 	send_3(C,D, rc,{C,rb,B,ra}k(C,D) );
-	read_6(B,C, {B,A,rd,D,rc}k(B,C) );
+	recv_6(B,C, {B,A,rd,D,rc}k(B,C) );
 	send_7(C,D, {C,B,A,rd}k(C,D) );
 
 	claim_C1(C, Niagree);
@@ -74,9 +74,9 @@ protocol bunava14(A,B,C,D)
         fresh rd: Nonce;
 	var ra,rb,rc: Nonce;
 
-	read_3(C,D, rc,{C,rb,B,ra}k(C,D) );
+	recv_3(C,D, rc,{C,rb,B,ra}k(C,D) );
 	send_4(D,A, rd,{D,rc,C,rb,B,ra}k(A,D) );
-	read_7(C,D, {C,B,A,rd}k(C,D) );
+	recv_7(C,D, {C,B,A,rd}k(C,D) );
 
 	claim_D1(D, Niagree);
 	claim_D2(D, Nisynch);

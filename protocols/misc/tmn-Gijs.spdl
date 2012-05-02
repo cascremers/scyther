@@ -13,7 +13,7 @@ protocol tmn(A,B,S)
 		var Kb: Key;
 
 		send_1(A,S, B,{Ka}pk(S) );
-		read_4(S,A, B,{Kb}Ka );
+		recv_4(S,A, B,{Kb}Ka );
 
 		#claim_5(A,Secret,Ka);
 		#claim_8(A,Secret,Kb);
@@ -23,7 +23,7 @@ protocol tmn(A,B,S)
 	{
 		fresh Kb: Key;
 
-		read_2(S,B, A );
+		recv_2(S,B, A );
 		send_3(B,S, A, { Kb }pk(S) );
 
 		claim_6(B,Secret,Kb);
@@ -33,9 +33,9 @@ protocol tmn(A,B,S)
 	{
 		var Ka,Kb: Key;
 
-		read_1(A,S, B,{Ka}pk(S) );
+		recv_1(A,S, B,{Ka}pk(S) );
 		send_2(S,B, A );
-		read_3(B,S, A, { Kb }pk(S) );
+		recv_3(B,S, A, { Kb }pk(S) );
 		send_4(S,A, B,{Kb}Ka );
 
 		#claim_7(S,Secret,Ka);

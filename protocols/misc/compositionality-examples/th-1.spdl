@@ -11,8 +11,8 @@ protocol nsl3th1(I,R)
 		var nr: Nonce;
 
 		send_1(I,R, {P1,I,ni}pk(R) );
-		read_1b(R,I, {nr}pk(I) );
-		read_2(R,I, {P1,ni,nr,R}pk(I) );
+		recv_1b(R,I, {nr}pk(I) );
+		recv_2(R,I, {P1,ni,nr,R}pk(I) );
 		send_3(I,R, {P1,nr}pk(R) );
 
 		claim_i(I,Nisynch);
@@ -23,10 +23,10 @@ protocol nsl3th1(I,R)
 		var ni: Nonce;
 		fresh nr: Nonce;
 
-		read_1(I,R, {P1,I,ni}pk(R) );
+		recv_1(I,R, {P1,I,ni}pk(R) );
 		send_1b(R,I, {nr}pk(I) );
 		send_2(R,I, {P1,ni,nr,R}pk(I) );
-		read_3(I,R, {P1,nr}pk(R) );
+		recv_3(I,R, {P1,nr}pk(R) );
 
 		claim_r(R,Nisynch);
 	}

@@ -18,7 +18,7 @@ secret k: Function;
 #         var T: Ticket;
 # 	var A,B: Agent;
 # 
-# 	read_1(Swap,Swap, { T }k(A,B) );
+# 	recv_1(Swap,Swap, { T }k(A,B) );
 # 	send_2(Swap,Swap, { T }k(B,A) );
 #     }
 # }
@@ -32,7 +32,7 @@ protocol bunava24(A,B,C,D)
         var Tacd, Tabd: Ticket;
 
 	send_1(A,B, ra);
-	read_4(D,A, rd,
+	recv_4(D,A, rd,
 	    Tacd,
 	    Tabd,
 	    { D, { C, { B,ra }k(A,B) }k(A,C) }k(A,D)
@@ -53,11 +53,11 @@ protocol bunava24(A,B,C,D)
 	var ra,rc,rd: Nonce;
         var Tbad, Tbac: Ticket;
 
-	read_1(A,B, ra);
+	recv_1(A,B, ra);
 	send_2(B,C, rb,
 	    { B,ra }k(A,B)
 	    );
-#	read_5(A,B,
+#	recv_5(A,B,
 #	    Tbad,
 #	    Tbac,
 #	    { A, { D, { C,rb }k(B,C) }k(B,D) }k(A,B)
@@ -77,12 +77,12 @@ protocol bunava24(A,B,C,D)
 	var ra,rb,rd: Nonce;
         var Tcab,Tcbd: Ticket;
 
-	read_2(B,C, rb, Tcab );
+	recv_2(B,C, rb, Tcab );
 	send_3(C,D, rc,
 	    { C, rb }k(B,C),
 	    { C, Tcab }k(A,C)
 	    );
-#	read_6(B,C,
+#	recv_6(B,C,
 #	    Tcbd,
 #	    { B, { A,{ D,rc }k(C,D) }k(A,C) }k(B,C)
 #	    );
@@ -100,13 +100,13 @@ protocol bunava24(A,B,C,D)
 	var ra,rb,rc: Nonce;
         var Tdbc,Tdac: Ticket;
 
-	read_3(C,D, rc, Tdbc, Tdac );
+	recv_3(C,D, rc, Tdbc, Tdac );
 	send_4(D,A, rd,
 	    { D, rc }k(C,D),
 	    { D, Tdbc }k(B,D),
 	    { D, Tdac }k(A,D)
 	    );
-#	read_7(C,D,
+#	recv_7(C,D,
 #	    { C, { B,{ A,rd }k(A,D) }k(B,D) }k(C,D)
 #	    );
 #

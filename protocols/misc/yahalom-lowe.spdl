@@ -18,7 +18,7 @@ protocol yahalomlowe(I,R,S)
 		var kir: Sessionkey;
 
 		send_1(I,R, I,ni);
-		read_3(S,I, {R,kir,ni,nr}k(I,S) );
+		recv_3(S,I, {R,kir,ni,nr}k(I,S) );
 		send_5(I,R, {I,R,S,nr}kir );
 
 		claim_8(I, Secret,kir);
@@ -32,10 +32,10 @@ protocol yahalomlowe(I,R,S)
 		var ni: Nonce;
 		var kir: Sessionkey;
 
-		read_1(I,R, I,ni);
+		recv_1(I,R, I,ni);
 		send_2(R,S, {I,ni,nr}k(R,S) );
-		read_4(S,R, {I,kir}k(R,S) );
-		read_5(I,R, {I,R,S,nr}kir );
+		recv_4(S,R, {I,kir}k(R,S) );
+		recv_5(I,R, {I,R,S,nr}kir );
 		claim_11(R, Secret,kir);
 		claim_12(R, Nisynch);
 		claim_13(R, Niagree);
@@ -46,7 +46,7 @@ protocol yahalomlowe(I,R,S)
 		fresh kir: Sessionkey;
 		var ni,nr: Nonce;
 
-		read_2(R,S, {I,ni,nr}k(R,S) );
+		recv_2(R,S, {I,ni,nr}k(R,S) );
 		send_3(S,I, {R,kir,ni,nr}k(I,S) );
 		send_4(S,R, {I,kir}k(R,S) );
 	}

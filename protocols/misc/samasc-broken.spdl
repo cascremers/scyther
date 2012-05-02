@@ -16,14 +16,14 @@ protocol samascbroken(I,R)
 		fresh nr: Nonce;
 		var kir: Key;
 
-		read_!1a (I,R, { kir,I }pk(R) );
+		recv_!1a (I,R, { kir,I }pk(R) );
 		send_!1b (R,I, {nr,R}pk(I) );
 
 		/* Commenting out these two lines yields an attack: */
-		read_!2a (I,R, { nr }kir );
+		recv_!2a (I,R, { nr }kir );
 		send_!2b (R,I, { I,R,nr }kir );
 
-		read_!3 (I,R, { I,R }kir );
+		recv_!3 (I,R, { I,R }kir );
 
 		claim_4 (R, Secret, kir );
 	}

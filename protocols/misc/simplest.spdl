@@ -8,7 +8,7 @@ protocol simplest(I)
 		var x: Nonce;
 		fresh n: Nonce;
 
-		read_!1(I,I, x);
+		recv_!1(I,I, x);
 		send_!2(I,I, n, {n, x}k );
 		claim_3(I, Secret, n);
 	}

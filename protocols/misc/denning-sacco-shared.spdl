@@ -39,7 +39,7 @@ protocol denningsaccosh(A,S,B)
 		var kab: SessionKey;
 
 		send_1 (A,S, A,S );
-		read_2 (S,A, {B, kab, t, T}k(A,S) );
+		recv_2 (S,A, {B, kab, t, T}k(A,S) );
 		send_3 (A,B, T);
 
 		claim_4 (A, Secret, kab);
@@ -52,7 +52,7 @@ protocol denningsaccosh(A,S,B)
 		fresh t: Time;
 		fresh kab: SessionKey;
 
-		read_1 (A,S, A,S );
+		recv_1 (A,S, A,S );
 		send_2 (S,A, {B, kab, t, { kab, A,t }k(B,S) }k(A,S) );
 	}
 
@@ -61,7 +61,7 @@ protocol denningsaccosh(A,S,B)
 		var t: Time;
 		var kab: SessionKey;
 
-		read_3 (A,B, { kab, A,t }k(B,S) );
+		recv_3 (A,B, { kab, A,t }k(B,S) );
 
 		claim_7 (B, Secret, kab);
 		claim_8 (B, Nisynch);
