@@ -25,7 +25,7 @@ protocol localclaims(I,R)
 	{
 		var ni: Nonce;
 
-		read_1(I,R, {ni}pk(R) );
+		recv_1(I,R, {ni}pk(R) );
 
 		claim_r1(R,Secret,ni);
 	}

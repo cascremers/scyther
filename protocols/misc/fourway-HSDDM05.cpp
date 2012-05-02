@@ -26,9 +26,9 @@ protocol fourway(X,Y)
 		var y: Nonce;
 
 		send_1( X,Y, x,msg1 );
-		read_2( Y,X, y,msg2,hash( ptk,y,msg2 ) );
+		recv_2( Y,X, y,msg2,hash( ptk,y,msg2 ) );
 		send_3( X,Y, x,msg3,hash( ptk,x,msg3 ) );
-		read_4( Y,X, msg4,hash( ptk,msg4 ) );
+		recv_4( Y,X, msg4,hash( ptk,msg4 ) );
 
 		claim_X1( X, Secret, ptk );
 		claim_X2( X, Niagree );
@@ -39,9 +39,9 @@ protocol fourway(X,Y)
 		var x: Nonce;
 		fresh y: Nonce;
 
-		read_1( X,Y, x,msg1 );
+		recv_1( X,Y, x,msg1 );
 		send_2( Y,X, y,msg2,hash( ptk,y,msg2 ) );
-		read_3( X,Y, x,msg3,hash( ptk,x,msg3 ) );
+		recv_3( X,Y, x,msg3,hash( ptk,x,msg3 ) );
 		send_4( Y,X, msg4,hash( ptk,msg4 ) );
 
 		claim_Y1( Y, Secret, ptk );

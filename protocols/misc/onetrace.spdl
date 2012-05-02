@@ -9,9 +9,9 @@ protocol onetrace(I)
 	{
 		var input: String;
 
-		read_!1(I,I, input);
+		recv_!1(I,I, input);
 		send_!2(I,I, Hallo);
-		read_!3(I,I, input);
+		recv_!3(I,I, input);
 		claim_4(I, Secret, input);
 	}
 }

@@ -29,13 +29,13 @@ protocol tlspaulson-avispa(a,b)
   var pb: Params;
 
   send_1( a,b, a,na,sid,pa );
-  read_2( b,a, nb,sid,pb );
-  read_3( b,a, { b,pk(b) }sk(Terence) );
+  recv_2( b,a, nb,sid,pb );
+  recv_3( b,a, { b,pk(b) }sk(Terence) );
   send_4( a,b, { a,pk(a) }sk(Terence) );
   send_5( a,b, { pms }pk(b) );
   send_6( a,b, { hash(nb,b,pms) }sk(a) );
   send_7( a,b, { hash(hash(pms,na,nb),a,na,sid,pa,pb,nb,sid,pb,{ a,pk(a) }sk(Terence),{ b,pk(b) }sk(Terence),{pms}pk(b)) }keygen(a,na,nb,hash(pms,na,nb)) );
-  read_8( b,a, { hash(hash(pms,na,nb),a,na,sid,pa,pb,nb,sid,pb,{ a,pk(a) }sk(Terence),{ b,pk(b) }sk(Terence),{pms}pk(b)) }keygen(b,na,nb,hash(pms,na,nb)) );
+  recv_8( b,a, { hash(hash(pms,na,nb),a,na,sid,pa,pb,nb,sid,pb,{ a,pk(a) }sk(Terence),{ b,pk(b) }sk(Terence),{pms}pk(b)) }keygen(b,na,nb,hash(pms,na,nb)) );
 
   claim_9a(a, Secret, keygen(b,na,nb,hash(pms,na,nb)));
   claim_9b(a, Secret, keygen(a,na,nb,hash(pms,na,nb)));
@@ -51,13 +51,13 @@ protocol tlspaulson-avispa(a,b)
   fresh nb: Nonce;
   fresh pb: Params;
 
-  read_1( a,b, a,na,sid,pa );
+  recv_1( a,b, a,na,sid,pa );
   send_2( b,a, nb,sid,pb );
   send_3( b,a, { b,pk(b) }sk(Terence) );
-  read_4( a,b, { a,pk(a) }sk(Terence) );
-  read_5( a,b, { pms }pk(b) );
-  read_6( a,b, { hash(nb,b,pms) }sk(a) );
-  read_7( a,b, { hash(hash(pms,na,nb),a,na,sid,pa,pb,nb,sid,pb,{ a,pk(a) }sk(Terence),{ b,pk(b) }sk(Terence),{pms}pk(b)) }keygen(a,na,nb,hash(pms,na,nb)) );
+  recv_4( a,b, { a,pk(a) }sk(Terence) );
+  recv_5( a,b, { pms }pk(b) );
+  recv_6( a,b, { hash(nb,b,pms) }sk(a) );
+  recv_7( a,b, { hash(hash(pms,na,nb),a,na,sid,pa,pb,nb,sid,pb,{ a,pk(a) }sk(Terence),{ b,pk(b) }sk(Terence),{pms}pk(b)) }keygen(a,na,nb,hash(pms,na,nb)) );
   send_8( b,a, { hash(hash(pms,na,nb),a,na,sid,pa,pb,nb,sid,pb,{ a,pk(a) }sk(Terence),{ b,pk(b) }sk(Terence),{pms}pk(b)) }keygen(b,na,nb,hash(pms,na,nb)) );
 
   claim_10a(b, Secret, keygen(b,na,nb,hash(pms,na,nb)));

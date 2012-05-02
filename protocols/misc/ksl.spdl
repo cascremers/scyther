@@ -29,11 +29,11 @@ protocol ksl(A,B,S)
 		var Kab: SessionKey;
 		
 		send_1(A,B, Na, A);
-		read_4(B,A, { Na,B,Kab }k(A,S), T, Nc, {Na}Kab );
+		recv_4(B,A, { Na,B,Kab }k(A,S), T, Nc, {Na}Kab );
 		send_5(A,B, { Nc }Kab );
 		
 		send_6(A,B, Ma,T );
-		read_7(B,A, Mb,{Ma}Kab );
+		recv_7(B,A, Mb,{Ma}Kab );
 		send_8(A,B, {Mb}Kab );
 
 		claim_A1(A,Secret, Kab);
@@ -50,15 +50,15 @@ protocol ksl(A,B,S)
 		fresh Tb: GeneralizedTimestamp;
 		var T: Ticket;
 		
-		read_1(A,B, Na, A);
+		recv_1(A,B, Na, A);
 		send_2(B,S, Na, A, Nb, B );
-		read_3(S,B, { Nb, A, Kab }k(B,S), T );
+		recv_3(S,B, { Nb, A, Kab }k(B,S), T );
 		send_4(B,A, T, { Tb, A, Kab }Kbb, Nc, {Na}Kab );
-		read_5(A,B, { Nc }Kab );
+		recv_5(A,B, { Nc }Kab );
 		
-		read_6(A,B, Ma,{ Tb, A, Kab }Kbb );
+		recv_6(A,B, Ma,{ Tb, A, Kab }Kbb );
 		send_7(B,A, Mb,{Ma}Kab );
-		read_8(A,B, {Mb}Kab );
+		recv_8(A,B, {Mb}Kab );
 
 		claim_B1(B,Secret, Kab);
 		claim_B2(B,Niagree);
@@ -70,7 +70,7 @@ protocol ksl(A,B,S)
 		var Na, Nb: Nonce;
 		fresh Kab: SessionKey;
 
-		read_2(B,S, Na, A, Nb, B );
+		recv_2(B,S, Na, A, Nb, B );
 		send_3(S,B, { Nb, A, Kab }k(B,S), { Na,B,Kab }k(A,S) );
 	}
 }

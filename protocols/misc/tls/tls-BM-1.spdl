@@ -35,9 +35,9 @@ protocol tls-bm-1(A,B)
 		var nb: Nonce;
 
 		send_1( A,B, na );
-		read_2( B,A, nb );
+		recv_2( B,A, nb );
 		send_3( A,B, { pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A),{ hash(na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A)) }hash(pmk,na,nb) );
-		read_4( B,A, { na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A),{ hash(na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A)) }hash(pmk,na,nb) }hash(pmk,na,nb) );
+		recv_4( B,A, { na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A),{ hash(na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A)) }hash(pmk,na,nb) }hash(pmk,na,nb) );
 
 		claim_A1( A, Secret, hash(pmk,na,nb) );
 		claim_A2( A, Nisynch );
@@ -49,9 +49,9 @@ protocol tls-bm-1(A,B)
 		var pmk: Nonce;
 		fresh nb: Nonce;
 
-		read_1( A,B, na );
+		recv_1( A,B, na );
 		send_2( B,A, nb );
-		read_3( A,B, { pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A),{ hash(na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A)) }hash(pmk,na,nb) );
+		recv_3( A,B, { pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A),{ hash(na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A)) }hash(pmk,na,nb) );
 		send_4( B,A, { na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A),{ hash(na,nb,{ pmk }pk(B),{ hash(na,nb,{ pmk }pk(B)) }sk(A)) }hash(pmk,na,nb) }hash(pmk,na,nb) );
 
 		claim_B1( B, Secret, hash(pmk,na,nb) );

@@ -10,9 +10,9 @@ protocol andrewBan(I,R)
 		var kir: SessionKey;
 
 		send_1(I,R, I,{ni}k(I,R) );
-		read_2(R,I, {ni,nr}k(I,R) );
+		recv_2(R,I, {ni,nr}k(I,R) );
 		send_3(I,R, {nr}k(I,R) );
-		read_4(R,I, {kir,nr2,ni}k(I,R) );
+		recv_4(R,I, {kir,nr2,ni}k(I,R) );
 		claim_5(I,Nisynch);
 		claim_5b(I,Niagree);
 		claim_6(I,Secret, kir);
@@ -25,9 +25,9 @@ protocol andrewBan(I,R)
 		fresh nr,nr2: Nonce;
 		fresh kir: SessionKey;
 
-		read_1(I,R, I,{ni}k(I,R) );
+		recv_1(I,R, I,{ni}k(I,R) );
 		send_2(R,I, {ni,nr}k(I,R) );
-		read_3(I,R, {nr}k(I,R) );
+		recv_3(I,R, {nr}k(I,R) );
 		send_4(R,I, {kir,nr2,ni}k(I,R) );
 		claim_8(R,Nisynch);
 		claim_8b(R,Niagree);

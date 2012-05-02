@@ -22,7 +22,7 @@ protocol boydNS(I,R)
 		var nr: Nonce;
 
 		send_1(I,R, {ni}pk(R),I );
-		read_2(R,I, {nr}pk(I),hash(ni,R) );
+		recv_2(R,I, {nr}pk(I),hash(ni,R) );
 		send_3(I,R, hash(nr, I,R) );
 		claim_i1(I,Secret,ni);
 		claim_i2(I,Secret,nr);
@@ -35,9 +35,9 @@ protocol boydNS(I,R)
 		var ni: Nonce;
 		fresh nr: Nonce;
 
-		read_1(I,R, {ni}pk(R),I );
+		recv_1(I,R, {ni}pk(R),I );
 		send_2(R,I, {nr}pk(I),hash(ni,R) );
-		read_3(I,R, hash(nr, I,R) );
+		recv_3(I,R, hash(nr, I,R) );
 		claim_r1(R,Secret,ni);
 		claim_r2(R,Secret,nr);
 		claim_r3(R,Niagree);

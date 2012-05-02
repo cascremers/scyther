@@ -35,9 +35,9 @@ protocol tls-bm-1(A,B)
 		var nb: Nonce;
 
 		send_1( A,B, msg1 );
-		read_2( B,A, msg2 );
+		recv_2( B,A, msg2 );
 		send_3( A,B, msg3 );
-		read_4( B,A, msg4 );
+		recv_4( B,A, msg4 );
 
 		claim_A1( A, Secret, kab );
 		claim_A2( A, Nisynch );
@@ -49,9 +49,9 @@ protocol tls-bm-1(A,B)
 		var pmk: Nonce;
 		fresh nb: Nonce;
 
-		read_1( A,B, msg1 );
+		recv_1( A,B, msg1 );
 		send_2( B,A, msg2 );
-		read_3( A,B, msg3 );
+		recv_3( A,B, msg3 );
 		send_4( B,A, msg4 );
 
 		claim_B1( B, Secret, kab );

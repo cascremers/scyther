@@ -11,7 +11,7 @@ protocol unknown2(I,R,S)
 		var T;
 
 		send_1(I,R, ni );
-		read_3(S,I, { I,R,kir,ni,nr }k(I,S), T );
+		recv_3(S,I, { I,R,kir,ni,nr }k(I,S), T );
 		send_4(I,R, T, {nr}kir );
 
 		claim_i1(I,Nisynch);
@@ -25,9 +25,9 @@ protocol unknown2(I,R,S)
 		var ni: Nonce;
 		var kir: SessionKey;
 
-		read_1(I,R, ni );
+		recv_1(I,R, ni );
 		send_2(R,S, { I,R,ni,nr }k(R,S) );
-		read_4(I,R, { I,R,kir,ni,nr }k(R,S), {nr}kir );
+		recv_4(I,R, { I,R,kir,ni,nr }k(R,S), {nr}kir );
 
 		claim_r1(R,Nisynch);
 		claim_r2(R,Niagree);
@@ -39,7 +39,7 @@ protocol unknown2(I,R,S)
 		fresh kir: SessionKey;
 		var ni,nr: Nonce;
 
-		read_2(R,S, { I,R,ni,nr }k(R,S) );
+		recv_2(R,S, { I,R,ni,nr }k(R,S) );
 		send_3(S,I, { I,R,kir,ni,nr }k(I,S), { I,R,kir,ni,nr }k(R,S) );
 
 /*

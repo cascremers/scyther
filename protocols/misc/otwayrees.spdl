@@ -15,7 +15,7 @@ protocol otwayrees(A,B,S)
 		var kab : SesKey;
 
 		send_1(A,B, M,A,B, { na,M,A,B }k(A,S) );
-		read_4(B,A, M, { na,kab }k(A,S) );
+		recv_4(B,A, M, { na,kab }k(A,S) );
 
 		claim_5(A, Secret,kab);
 		claim_5b(A, Niagree);
@@ -29,9 +29,9 @@ protocol otwayrees(A,B,S)
 		var kab : SesKey;
 		var t1,t2;
 
-		read_1(A,B, M,A,B, t1 );
+		recv_1(A,B, M,A,B, t1 );
 		send_2(B,S, M,A,B, t1, { nb,M,A,B }k(B,S) );
-		read_3(S,B, M, t2, { nb,kab }k(B,S) );
+		recv_3(S,B, M, t2, { nb,kab }k(B,S) );
 		send_4(B,A, M, t2 );
 
 		claim_6(B, Secret,kab);
@@ -45,7 +45,7 @@ protocol otwayrees(A,B,S)
 		var M : String;
 		fresh kab : SesKey;
 		
-		read_2(B,S, M,A,B, { na,M,A,B }k(A,S), { nb,M,A,B }k(B,S) );
+		recv_2(B,S, M,A,B, { na,M,A,B }k(A,S), { nb,M,A,B }k(B,S) );
 		send_3(S,B, M, { na,kab }k(A,S) , { nb,kab }k(B,S) );
 	}
 }

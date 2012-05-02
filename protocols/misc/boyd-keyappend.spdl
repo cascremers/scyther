@@ -31,9 +31,9 @@ protocol boyd(I,R,S)
 		fresh y: Nonce;
 
 		send_1 (I,S, I,R, ni );
-		read_3 (R,I, { I,R, ks }k(I,S), m(ni, m(ks,ni,nr)), nr );
+		recv_3 (R,I, { I,R, ks }k(I,S), m(ni, m(ks,ni,nr)), nr );
 		send_4 (I,R, m(nr, m(ks,ni,nr)) );
-		read_5 (R,I, { x }m(ks,ni,nr) );
+		recv_5 (R,I, { x }m(ks,ni,nr) );
 		send_6 (I,R, { I,y }m(ks,ni,nr) );
 
 		claim_Im (I, Secret, m(ks,ni,nr) );
@@ -49,11 +49,11 @@ protocol boyd(I,R,S)
 		fresh x: Nonce;
 		var y: Nonce;
 
-		read_2 (S,R, { I,R, ks }k(I,S), { I,R, ks }k(R,S), ni );
+		recv_2 (S,R, { I,R, ks }k(I,S), { I,R, ks }k(R,S), ni );
 		send_3 (R,I, { I,R, ks }k(I,S), m(ni, m(ks,ni,nr)), nr );
-		read_4 (I,R, m(nr, m(ks,ni,nr)) );
+		recv_4 (I,R, m(nr, m(ks,ni,nr)) );
 		send_5 (R,I, { x }m(ks,ni,nr) );
-		read_6 (I,R, { I,y }m(ks,ni,nr) );
+		recv_6 (I,R, { I,y }m(ks,ni,nr) );
 
 		claim_Rm (R, Secret, m(ks,ni,nr));
 		claim_Rx (R, Secret, x );
@@ -65,7 +65,7 @@ protocol boyd(I,R,S)
 		var ni,nr: Nonce;
 		fresh ks: Macseed;
 
-		read_1 (I,S, I,R, ni );
+		recv_1 (I,S, I,R, ni );
 		send_2 (S,R, { I,R, ks }k(I,S), { I,R, ks }k(R,S), ni );
 	}
 }

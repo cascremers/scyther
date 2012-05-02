@@ -10,9 +10,9 @@ protocol r5bound(I,R)
 		var ni: Nonce;
 		fresh k2: Nonce;
 
-		read_!1 (I,R, ni );
+		recv_!1 (I,R, ni );
 		send_!2 (R,I, { ni }sk(R) );
-		read_!3 (I,R, {{{ {k1}pk(R) }sk(I)}sk(I)}sk(I) );
+		recv_!3 (I,R, {{{ {k1}pk(R) }sk(I)}sk(I)}sk(I) );
 		send_!4 (R,I, {k2}k1 );
 
 		claim_6 (R, Secret, k2);

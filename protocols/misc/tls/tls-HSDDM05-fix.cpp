@@ -44,9 +44,9 @@ protocol tls-HSDDM05(X,Y)
 		var pb: Params;
 
 		send_1( X,Y, msg1 );
-		read_2( Y,X, msg2 );
+		recv_2( Y,X, msg2 );
 		send_3( X,Y, msg3 );
-		read_4( Y,X, msg4 );
+		recv_4( Y,X, msg4 );
 
 		claim_X1( X, Secret, msecret );
 	}	
@@ -59,9 +59,9 @@ protocol tls-HSDDM05(X,Y)
 		fresh Ny: Nonce;
 		fresh pb: Params;
 
-		read_1( X,Y, msg1 );
+		recv_1( X,Y, msg1 );
 		send_2( Y,X, msg2 );
-		read_3( X,Y, msg3 );
+		recv_3( X,Y, msg3 );
 		send_4( Y,X, msg4 );
 
 		claim_Y1( Y, Secret, msecret );

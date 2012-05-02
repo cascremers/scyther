@@ -10,9 +10,9 @@ protocol andrewLoweBan(I,R)
 		var kir: SessionKey;
 
 		send_1(I,R, I,ni );
-		read_2(R,I, {ni,kir,I}k(I,R) );
+		recv_2(R,I, {ni,kir,I}k(I,R) );
 		send_3(I,R, {ni}kir );
-		read_4(R,I, nr );
+		recv_4(R,I, nr );
 		claim_5(I,Nisynch);
 		claim_5b(I,Niagree);
 		claim_6(I,Secret, kir);
@@ -25,9 +25,9 @@ protocol andrewLoweBan(I,R)
 		fresh nr: Nonce;
 		fresh kir: SessionKey;
 
-		read_1(I,R, I,ni );
+		recv_1(I,R, I,ni );
 		send_2(R,I, {ni,kir,I}k(I,R) );
-		read_3(I,R, {ni}kir );
+		recv_3(I,R, {ni}kir );
 		send_4(R,I, nr );
 		claim_8(R,Nisynch);
 		claim_8b(R,Niagree);

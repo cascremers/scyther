@@ -20,13 +20,13 @@ protocol broken1(I,R,S)
 	}	
 	role R
 	{
-		read_3(S, R, {HelloWorld, S, I, R}k );
-		read_1(I, R, PlainSight, {HelloWorld, I, R}k );
+		recv_3(S, R, {HelloWorld, S, I, R}k );
+		recv_1(I, R, PlainSight, {HelloWorld, I, R}k );
 		claim_4(R, Secret, PlainSight);
 	}
 	role S
 	{
-		read_2(I, S, {HelloServer, I, S}k );
+		recv_2(I, S, {HelloServer, I, S}k );
 		send_3(S, R, {HelloWorld, S, I, R}k );
 	}
 }

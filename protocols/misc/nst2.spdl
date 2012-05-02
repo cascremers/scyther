@@ -32,10 +32,10 @@ protocol neustub^Repeat(I,R,S)
 	fresh g: Ticket;
 	var h: Ticket;
 
-	read_!chain(R,I, { R,Tr,Kir }k(I,S), Tb);
+	recv_!chain(R,I, { R,Tr,Kir }k(I,S), Tb);
 
         send_5(I,R,Mi,{I,Kir,Tr}k(R,S),g);
-        read_6(R,I,{Mi,Mr,g,h}Kir);
+        recv_6(R,I,{Mi,Mr,g,h}Kir);
         send_7(I,R,{I,Mr}Kir);
 
         claim_I0(I,Secret, g);
@@ -56,9 +56,9 @@ protocol neustub^Repeat(I,R,S)
 	var g: Ticket;
 	fresh h: Ticket;
         
-        read_5(I,R,Mi,{I,Kir,Tr}k(R,S),g);
+        recv_5(I,R,Mi,{I,Kir,Tr}k(R,S),g);
         send_6(R,I,{Mi,Mr,g,h}Kir);
-        read_7(I,R,{I,Mr}Kir);
+        recv_7(I,R,{I,Mr}Kir);
 
         claim_R1(R,Secret, Kir);
         claim_R5(R,Secret, g);

@@ -17,7 +17,7 @@ protocol @swapkey-ktk(I,R)
         var T:Ticket;
 
 
-        read_!X1(R,I,{T}ktk(I,R));
+        recv_!X1(R,I,{T}ktk(I,R));
         send_!X2(I,R,{T}ktk(R,I));
     }
     role R
@@ -32,7 +32,7 @@ protocol @swapkey-kck(I,R)
         var T:Ticket;
 
 
-        read_!X1(R,I,{T}kck(I,R));
+        recv_!X1(R,I,{T}kck(I,R));
         send_!X2(I,R,{T}kck(R,I));
     }
     role R
@@ -47,7 +47,7 @@ protocol @swapkey-kst(I,R)
         var T:Ticket;
 
 
-        read_!X1(R,I,{T}kst(I,R));
+        recv_!X1(R,I,{T}kst(I,R));
         send_!X2(I,R,{T}kst(R,I));
     }
     role R
@@ -67,17 +67,17 @@ protocol kerberos(C,K,T,S) {
 		fresh t: Text;
 
 		send_1(C,K, C,T,n1);
-		read_2(K,C, tgt, { AKey,n1,T }kck(C,K) );
+		recv_2(K,C, tgt, { AKey,n1,T }kck(C,K) );
 
 		// Stage boundary
 		
 		send_3(C,T, tgt, { C }AKey,C,S,n2 );
-		read_4(T,C, C, st, { SKey, n2, S }AKey );
+		recv_4(T,C, C, st, { SKey, n2, S }AKey );
 		
 		// Stage boundary
 		
 		send_5(C,S, st, { C,t }SKey );
-		read_6(S,C, { t }SKey );
+		recv_6(S,C, { t }SKey );
 
 		// Theorem 5 (a)
                 // If C,K are honest
@@ -96,7 +96,7 @@ protocol kerberos(C,K,T,S) {
 		var n1: Nonce;
 		fresh AKey: Sessionkey;
 
-		read_1(C,K, C,T,n1);
+		recv_1(C,K, C,T,n1);
 		send_2(K,C, { AKey, C }ktk(T,K), { AKey,n1,T }kck(C,K) );
 		// Theorem 6 (a)
 		// If C,K,T are all honest
@@ -108,7 +108,7 @@ protocol kerberos(C,K,T,S) {
 		var n2: Nonce;
 		fresh SKey: Sessionkey;
 
-		read_3(C,T, { AKey, C }ktk(T,K), { C }AKey,C,S,n2 );
+		recv_3(C,T, { AKey, C }ktk(T,K), { C }AKey,C,S,n2 );
 		send_4(T,C, C,{ SKey, C }kst(S,T), { SKey, n2, S }AKey );
 
 		// Theorem 5 (a)
@@ -125,7 +125,7 @@ protocol kerberos(C,K,T,S) {
 		var t: Text;
 		var SKey: Sessionkey;
 
-		read_5(C,S, { SKey, C }kst(S,T), { C,t }SKey );
+		recv_5(C,S, { SKey, C }kst(S,T), { C,t }SKey );
 		send_6(S,C, { t }SKey );
 		// Theorem 7 (b)
 		// If C,K,S,T are honest

@@ -27,7 +27,7 @@ protocol 3PKD(I,R,S)
 		var sesk: SessionKey;
 
 		send_1(I,R, ri );
-		read_3(S,I, { sesk }k(I,S), hash(hk(I,S),I,R,ri,{ sesk }k(I,S)) );
+		recv_3(S,I, { sesk }k(I,S), hash(hk(I,S),I,R,ri,{ sesk }k(I,S)) );
 
 		claim_I(I,SKR,sesk);
 	}	
@@ -38,9 +38,9 @@ protocol 3PKD(I,R,S)
 		fresh rr: Nonce;
 		var sesk: SessionKey;
 
-		read_1(I,R, ri );
+		recv_1(I,R, ri );
 		send_2(R,S, ri,rr );
-		read_4(S,R, { sesk }k(R,S), hash(hk(R,S),I,R,rr,{ sesk }k(R,S)) );
+		recv_4(S,R, { sesk }k(R,S), hash(hk(R,S),I,R,rr,{ sesk }k(R,S)) );
 
 		claim_R(R,SKR,sesk);
 	}
@@ -51,7 +51,7 @@ protocol 3PKD(I,R,S)
 		var rr: Nonce;
 		fresh sesk: SessionKey;
 
-		read_2(R,S, ri,rr );
+		recv_2(R,S, ri,rr );
 		send_3(S,I, { sesk }k(I,S), hash(hk(I,S),I,R,ri,{ sesk }k(I,S)) );
 		send_4(S,R, { sesk }k(R,S), hash(hk(R,S),I,R,rr,{ sesk }k(R,S)) );
 	}

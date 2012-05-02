@@ -21,7 +21,7 @@ protocol bkepkCE2(A,B,testnonce)
 		var kab: Key;
 
 		send_1 (B,A, B,{ nb,B }pk(A) );
-		read_2 (A,B, { hash(nb),na,A,kab }pk(B) );
+		recv_2 (A,B, { hash(nb),na,A,kab }pk(B) );
 		send_3 (B,A, { hash(na) }kab );
 	}
 
@@ -31,16 +31,16 @@ protocol bkepkCE2(A,B,testnonce)
 		fresh na: Nonce;
 		fresh kab: Key;
 
-		read_1 (B,A, B,{ nb,B }pk(A) );
+		recv_1 (B,A, B,{ nb,B }pk(A) );
 		send_2 (A,B, { hash(nb),na,A,kab }pk(B) );
-		read_3 (B,A, { hash(na) }kab );
+		recv_3 (B,A, { hash(na) }kab );
 	}
 
 	role testnonce
 	{
 		var n: Nonce;
 
-		read_!4 (testnonce,testnonce, n);
+		recv_!4 (testnonce,testnonce, n);
 	}
 }
 

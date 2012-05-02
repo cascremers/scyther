@@ -15,7 +15,7 @@ protocol carkeybrokenlim(I,R)
 	{
 		var ni: Nonce;
 
-		read_1(I,R, I,R );
+		recv_1(I,R, I,R );
 		claim_2(R,Nisynch);
 	}
 }

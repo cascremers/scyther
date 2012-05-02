@@ -21,9 +21,9 @@ protocol ibe(I,R,S)
                 var nr: Nonce;
 
 //Note that we are not interested in the order of server messages.
-	        read_!1(S,I, param(S) );
+	        recv_!1(S,I, param(S) );
                 send_3(I,R, {I,ni}ibepublic(param(S),R) );
-                read_4(R,I, {ni,nr,R}ibepublic(param(S),I) );
+                recv_4(R,I, {ni,nr,R}ibepublic(param(S),I) );
                 send_5(I,R, {nr}ibepublic(param(S),R) );
 
 
@@ -38,10 +38,10 @@ protocol ibe(I,R,S)
                 var ni: Nonce;
                 fresh nr: Nonce;
 
-	        read_!2(S,R, {ibesecret(param(S),R)}pk(R) );
-                read_3(I,R, {I,ni}ibepublic(param(S),R) );
+	        recv_!2(S,R, {ibesecret(param(S),R)}pk(R) );
+                recv_3(I,R, {I,ni}ibepublic(param(S),R) );
                 send_4(R,I, {ni,nr,R}ibepublic(param(S),I) );
-                read_5(I,R, {nr}ibepublic(param(S),R) );
+                recv_5(I,R, {nr}ibepublic(param(S),R) );
 
                 claim_r1(R,Secret,ni);
                 claim_r2(R,Secret,nr);
@@ -51,7 +51,7 @@ protocol ibe(I,R,S)
 
 	role S
 	{
-		read_!0(S,S, R,S);			// workaround for the fact that R & S are roles, so Scyther should not jump to conclusions (remove it and see what happens)
+		recv_!0(S,S, R,S);			// workaround for the fact that R & S are roles, so Scyther should not jump to conclusions (remove it and see what happens)
 	        send_!1(S,I, param(S) );
 	        send_!2(S,R, {ibesecret(param(S),R)}pk(R) );
 

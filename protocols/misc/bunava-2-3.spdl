@@ -16,7 +16,7 @@ protocol intruderhelp(Swap)
         var T: Ticket;
 	var R0,R1: Agent;
 
-	read_!1(Swap,Swap, { T }k(R0,R1) );
+	recv_!1(Swap,Swap, { T }k(R0,R1) );
 	send_!2(Swap,Swap, { T }k(R1,R0) );
     }
 }
@@ -30,7 +30,7 @@ protocol bunava23(R0,R1,R2)
         var T0: Ticket;
 
 	send_1(R0,R1, n0);
-	read_3(R2,R0, n2, T0, { R2,{ R1,n0 }k(R0,R1) }k(R0,R2) );
+	recv_3(R2,R0, n2, T0, { R2,{ R1,n0 }k(R0,R1) }k(R0,R2) );
 	send_4(R0,R1, { R0,n2 }k(R0,R2), { R0, T0 }k(R0,R1) );
 
 	claim_A1(R0, Niagree);
@@ -43,9 +43,9 @@ protocol bunava23(R0,R1,R2)
 	var n0,n2: Nonce;
         var T1: Ticket;
 
-	read_1(R0,R1, n0);
+	recv_1(R0,R1, n0);
 	send_2(R1,R2, n1,{R1,n0}k(R1,R2) );
-	read_4(R0,R1, T1, { R0, { R2,n1 }k(R1,R2) }k(R0,R1) );
+	recv_4(R0,R1, T1, { R0, { R2,n1 }k(R1,R2) }k(R0,R1) );
 	send_5(R1,R2, { R1, T1 }k(R1,R2) );
 
 	claim_B1(R1, Niagree);
@@ -58,9 +58,9 @@ protocol bunava23(R0,R1,R2)
 	var n0,n1: Nonce;
         var T2: Ticket;
 
-	read_2(R1,R2, n1, T2 );
+	recv_2(R1,R2, n1, T2 );
 	send_3(R2,R0, n2,{ R2,n1 }k(R1,R2), { R2, T2 }k(R0,R2) );
-	read_5(R1,R2, { R1, { R0,n2 }k(R0,R2) }k(R1,R2) );
+	recv_5(R1,R2, { R1, { R0,n2 }k(R0,R2) }k(R1,R2) );
 
 	claim_C1(R2, Niagree);
 	claim_C2(R2, Nisynch);
