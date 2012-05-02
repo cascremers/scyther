@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Store version number in version.h
+./describe-version.py
+
 # Default flags
 CMFLAGS="-D CMAKE_BUILD_TYPE:STRING=Debug"
 
