@@ -8,7 +8,7 @@ protocol nsl3th3nr(I,R)
 {
 	role I
 	{
-		const ni,ni2: Nonce;
+		fresh ni,ni2: Nonce;
 		var nr,nr: Nonce;
 
 		send_1(I,R, {P1,I,ni}pk(R) );
@@ -29,7 +29,7 @@ protocol nsl3th3nr(I,R)
 	role R
 	{
 		var ni,ni2: Nonce;
-		const nr,nr: Nonce;
+		fresh nr,nr: Nonce;
 
 		read_1(I,R, {P1,I,ni}pk(R) );
 		send_1b(R,I, {nr}pk(I) );
@@ -48,9 +48,5 @@ protocol nsl3th3nr(I,R)
 }
 
 
-const Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 

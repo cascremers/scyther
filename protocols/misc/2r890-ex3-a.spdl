@@ -15,8 +15,8 @@ protocol course2r890year0405ex3(X,Y,I)
 {
 	role I
 	{
-		const nx: Nonce;
-		const ny: Nonce;
+		fresh nx: Nonce;
+		fresh ny: Nonce;
 
 		send_1(I,X, nx );
 		read_2(X,I, { I,nx }sk(X) );
@@ -44,9 +44,5 @@ protocol course2r890year0405ex3(X,Y,I)
 	}
 }
 
-const Alice,Bob,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 

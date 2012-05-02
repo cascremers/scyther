@@ -14,7 +14,7 @@ protocol localclaims(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 
 		send_1(I,R, {ni}pk(R) );
 
@@ -33,13 +33,8 @@ protocol localclaims(I,R)
 
 // The agents in the system
 
-const Alice,Bob: Agent;
 
 // An untrusted agent, with leaked information
 
-const Eve: Agent;
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 
 

@@ -27,7 +27,7 @@ protocol bunava24(A,B,C,D)
 {
     role A
     {
-        const ra: Nonce;
+        fresh ra: Nonce;
 	var rb,rc,rd: Nonce;
         var Tacd, Tabd: Ticket;
 
@@ -49,7 +49,7 @@ protocol bunava24(A,B,C,D)
 
     role B
     {
-        const rb: Nonce;
+        fresh rb: Nonce;
 	var ra,rc,rd: Nonce;
         var Tbad, Tbac: Ticket;
 
@@ -73,7 +73,7 @@ protocol bunava24(A,B,C,D)
 
     role C
     {
-        const rc: Nonce;
+        fresh rc: Nonce;
 	var ra,rb,rd: Nonce;
         var Tcab,Tcbd: Ticket;
 
@@ -96,7 +96,7 @@ protocol bunava24(A,B,C,D)
 
     role D
     {
-        const rd: Nonce;
+        fresh rd: Nonce;
 	var ra,rb,rc: Nonce;
         var Tdbc,Tdac: Ticket;
 
@@ -115,24 +115,7 @@ protocol bunava24(A,B,C,D)
     }
 }
 
-const Alice,Bob,Charlie,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
-compromised k(Charlie,Eve);
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Eve,Charlie);
 
 # General scenario
  
-run bunava24.A(Agent,Agent,Agent,Agent);
-run bunava24.B(Agent,Agent,Agent,Agent);
-run bunava24.C(Agent,Agent,Agent,Agent);
-run bunava24.D(Agent,Agent,Agent,Agent);
-run bunava24.A(Agent,Agent,Agent,Agent);
-run bunava24.B(Agent,Agent,Agent,Agent);
-run bunava24.C(Agent,Agent,Agent,Agent);
-run bunava24.D(Agent,Agent,Agent,Agent);

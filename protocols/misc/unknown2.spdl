@@ -5,7 +5,7 @@ protocol unknown2(I,R,S)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 		var kir: SessionKey;
 		var T;
@@ -21,7 +21,7 @@ protocol unknown2(I,R,S)
 	
 	role R
 	{
-		const nr: Nonce;
+		fresh nr: Nonce;
 		var ni: Nonce;
 		var kir: SessionKey;
 
@@ -36,7 +36,7 @@ protocol unknown2(I,R,S)
 
 	role S
 	{
-		const kir: SessionKey;
+		fresh kir: SessionKey;
 		var ni,nr: Nonce;
 
 		read_2(R,S, { I,R,ni,nr }k(R,S) );
@@ -50,20 +50,6 @@ protocol unknown2(I,R,S)
 	}
 }
 
-const Alice,Bob,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
 const kee: SessionKey;
-compromised k(Eve,Eve);
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
 
-run unknown2.I(Agent,Agent,Agent);
-run unknown2.R(Agent,Agent,Agent);
-run unknown2.S(Agent,Agent,Agent);
-run unknown2.R(Agent,Agent,Agent);
-run unknown2.I(Agent,Agent,Agent);
-run unknown2.S(Agent,Agent,Agent);

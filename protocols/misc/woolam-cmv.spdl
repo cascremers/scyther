@@ -5,16 +5,12 @@
 usertype Server, SessionKey, Token, Ticket;
 secret k: Function;
 
-const Alice, Bob, Charlie, Eve: Agent;
 const Simon: Server;
 
 /* give the intruder something to work with */
 // Scyther finds an attack using basic type flaws
 
-const ne: Nonce;
 const ke: SessionKey;
-untrusted Eve;
-compromised k(Eve,Simon);
 
 const authToken: Token;
 
@@ -22,7 +18,7 @@ protocol woolamcmv(A,B,S)
 {
 	role A
 	{
-		const Na: Nonce;
+		fresh Na: Nonce;
 		var Nb: Nonce;
 		var Kab: SessionKey;
 		var t1,t2;
@@ -41,7 +37,7 @@ protocol woolamcmv(A,B,S)
 	role B
 	{
 		var Na: Nonce;
-		const Nb: Nonce;
+		fresh Nb: Nonce;
 		var Kab: SessionKey;
 		var t1,t2;
 
@@ -61,7 +57,7 @@ protocol woolamcmv(A,B,S)
 	role S
 	{
 		var Na, Nb: Nonce;
-		const Kab: SessionKey;
+		fresh Kab: SessionKey;
 
 		read_4(B,S, { A,B, Na,Nb }k(A,S), { A,B,Na,Nb }k(B,S) );
 		send_5(S,B, { B,Na,Nb,Kab }k(A,S), { A,Na,Nb,Kab }k(B,S) );
@@ -70,6 +66,4 @@ protocol woolamcmv(A,B,S)
 	}
 }
 
-run woolamcmv.B(Alice,Bob,Simon);
-run woolamcmv.B(Alice,Bob,Simon);
 

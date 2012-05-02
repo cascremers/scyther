@@ -1,14 +1,12 @@
 
 secret k: Nonce;
-const Alice,Bob,Charlie: Agent;
-const ne: Nonce;
 
 protocol simplest(I)
 {
 	role I
 	{
 		var x: Nonce;
-		const n: Nonce;
+		fresh n: Nonce;
 
 		read_!1(I,I, x);
 		send_!2(I,I, n, {n, x}k );

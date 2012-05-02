@@ -8,9 +8,9 @@ protocol spliceAS(C,AS,S)
 {
         role C
 	{
-		const N1,N2: Nonce;
-		const T: TimeStamp;
-		const L: LifeTime;
+		fresh N1,N2: Nonce;
+		fresh T: TimeStamp;
+		fresh L: LifeTime;
 
 		send_1(C,AS,  C, S, N1 );
 		read_2(AS,C,  AS, {AS, C, N1, pk(S)}sk(AS) );
@@ -34,13 +34,13 @@ protocol spliceAS(C,AS,S)
 
 	role S
 	{
-		const N3: Nonce;
+		fresh N3: Nonce;
 		var N2: Nonce;
 		var T: TimeStamp;
 		var L: LifeTime;
 
 		var ni: Nonce;
-		const nr: Nonce;
+		fresh nr: Nonce;
 
 		read_3(C,S,   C, S, {C, T, L, {N2}pk(S)}sk(C) );
 		send_4(S,AS,  S, C, N3 );
@@ -53,14 +53,7 @@ protocol spliceAS(C,AS,S)
 	}
 }
 
-const Al,Bo,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 
-run spliceAS.C(Agent,Agent,Agent);
-run spliceAS.AS(Agent,Agent,Agent);
-run spliceAS.S(Agent,Agent,Agent);
 
 

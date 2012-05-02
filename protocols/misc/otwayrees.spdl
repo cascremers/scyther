@@ -1,4 +1,4 @@
-secret const k : Function;
+secret fresh k : Function;
 
 /* Version from the Spore Librairy
    http://www.lsv.ens-cachan.fr/spore/otwayRees.html
@@ -10,8 +10,8 @@ protocol otwayrees(A,B,S)
 {
 	role A
 	{
-		const na : Nonce;
-		const M : String;
+		fresh na : Nonce;
+		fresh M : String;
 		var kab : SesKey;
 
 		send_1(A,B, M,A,B, { na,M,A,B }k(A,S) );
@@ -25,7 +25,7 @@ protocol otwayrees(A,B,S)
 	role B
 	{
 		var M : String;
-		const nb : Nonce;
+		fresh nb : Nonce;
 		var kab : SesKey;
 		var t1,t2;
 
@@ -43,7 +43,7 @@ protocol otwayrees(A,B,S)
 	{
 		var na,nb : Nonce;
 		var M : String;
-		const kab : SesKey;
+		fresh kab : SesKey;
 		
 		read_2(B,S, M,A,B, { na,M,A,B }k(A,S), { nb,M,A,B }k(B,S) );
 		send_3(S,B, M, { na,kab }k(A,S) , { nb,kab }k(B,S) );
@@ -53,14 +53,6 @@ protocol otwayrees(A,B,S)
 const Alice, Bob, Eve: Agent;
 const Simon: Server;
 
-untrusted Eve;
-compromised k(Eve,Simon);
 
-run otwayrees.A(Alice, Agent, Simon);
-run otwayrees.B(Agent, Bob, Simon);
-run otwayrees.S(Agent, Agent, Simon);
 
-run otwayrees.A(Agent, Agent, Simon);
-run otwayrees.B(Agent, Agent, Simon);
-run otwayrees.S(Agent, Agent, Simon);
 

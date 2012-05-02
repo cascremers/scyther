@@ -14,7 +14,7 @@ protocol abreaker(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 
 		send_!1(I,R, {{I,ni}pk(R)}pk(R) );
 
@@ -33,12 +33,7 @@ protocol abreaker(I,R)
 
 // The agents in the system
 
-const Alice,Bob: Agent;
 
 // An untrusted agent, with leaked information
 
-const Eve: Agent;
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 

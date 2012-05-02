@@ -5,19 +5,15 @@
 
 usertype Sessionkey, Ticket;
 
-const Alice,Bob,Simon,Eve : Agent;
 secret k : Function;
 
-untrusted Eve;
-compromised k(Eve,Simon);
-const ne: Nonce;
 const kee: Sessionkey;
 
 protocol yahalompaulson(I,R,S)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 		var kir: Sessionkey;
 		var T: Ticket;
@@ -33,7 +29,7 @@ protocol yahalompaulson(I,R,S)
 
 	role R
 	{
-		const nr: Nonce;
+		fresh nr: Nonce;
 		var ni: Nonce;
 		var kir: Sessionkey;
 
@@ -48,7 +44,7 @@ protocol yahalompaulson(I,R,S)
 
 	role S
 	{
-		const kir: Sessionkey;
+		fresh kir: Sessionkey;
 		var ni,nr: Nonce;
 
 		read_2(R,S, R,nr, {I,ni}k(R,S) );
@@ -56,10 +52,5 @@ protocol yahalompaulson(I,R,S)
 	}
 }
 
-run yahalompaulson.I(Agent,Agent,Simon);
-run yahalompaulson.R(Agent,Agent,Simon);
-run yahalompaulson.S(Agent,Agent,Simon);
 
-run yahalompaulson.I(Agent,Agent,Simon);
-run yahalompaulson.R(Agent,Agent,Simon);
 

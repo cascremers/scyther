@@ -5,7 +5,7 @@ protocol andrewLoweBan(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 		var kir: SessionKey;
 
@@ -22,8 +22,8 @@ protocol andrewLoweBan(I,R)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
-		const kir: SessionKey;
+		fresh nr: Nonce;
+		fresh kir: SessionKey;
 
 		read_1(I,R, I,ni );
 		send_2(R,I, {ni,kir,I}k(I,R) );
@@ -36,18 +36,6 @@ protocol andrewLoweBan(I,R)
 	}
 }
 
-const Alice,Bob,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
 const kee: SessionKey;
-compromised k(Eve,Eve);
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
 
-run andrewLoweBan.I(Agent,Agent);
-run andrewLoweBan.R(Agent,Agent);
-run andrewLoweBan.I(Agent,Agent);
-run andrewLoweBan.R(Agent,Agent);

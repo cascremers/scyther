@@ -11,12 +11,10 @@
 usertype Server, SessionKey, GeneralizedTimestamp, Ticket, TicketKey;
 secret k: Function;
 
-const a, b, e: Agent;
 const s: Server;
 
 /* give the intruder something to work with */
 
-const ne: Nonce;
 const kee: SessionKey;
 untrusted e;
 compromised k(e,s);
@@ -25,7 +23,7 @@ protocol ksl(A,B,S)
 {
 	role A
 	{
-		const Na, Ma: Nonce;
+		fresh Na, Ma: Nonce;
 		var Nc, Mb: Nonce;
 		var T: Ticket;
 		var Kab: SessionKey;
@@ -46,10 +44,10 @@ protocol ksl(A,B,S)
 	role B
 	{
 		var Na,Ma: Nonce;
-		const Nb,Nc,Mb: Nonce;
+		fresh Nb,Nc,Mb: Nonce;
 		var Kab: SessionKey;
-		const Kbb: TicketKey;
-		const Tb: GeneralizedTimestamp;
+		fresh Kbb: TicketKey;
+		fresh Tb: GeneralizedTimestamp;
 		var T: Ticket;
 		
 		read_1(A,B, Na, A);
@@ -70,14 +68,11 @@ protocol ksl(A,B,S)
 	role S
 	{
 		var Na, Nb: Nonce;
-		const Kab: SessionKey;
+		fresh Kab: SessionKey;
 
 		read_2(B,S, Na, A, Nb, B );
 		send_3(S,B, { Nb, A, Kab }k(B,S), { Na,B,Kab }k(A,S) );
 	}
 }
 
-run ksl.A(a,b,s);
-run ksl.B(a,b,s);
-run ksl.S(a,b,s);
 

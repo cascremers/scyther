@@ -12,20 +12,16 @@ usertype Server, SessionKey, TimeStamp, TicketKey;
 usertype ExpiredTimeStamp;
 secret k: Function;
 
-const Alice, Bob, Simon, Eve: Agent;
 const Fresh: Function;
 const Compromised: Function;
 
-const ne: Nonce;
 const kee: SessionKey;
-untrusted Eve;
-compromised k(Eve,Simon);
 
 protocol neustub(I,R,S)
 {
     role I
     {
-        const Ni: Nonce;
+        fresh Ni: Nonce;
         var Nr: Nonce;
         var T: Ticket;
         var Tb: TimeStamp;
@@ -46,12 +42,12 @@ protocol neustub(I,R,S)
     role R
     {
         var Ni,Mi: Nonce;
-        const Nr,Mr: Nonce;
+        fresh Nr,Mr: Nonce;
         var Kir: SessionKey;
-        const Tb: TimeStamp;
+        fresh Tb: TimeStamp;
         var T: Ticket;
 
-	const g: Ticket;
+	fresh g: Ticket;
         
         read_1(I,R, I, Ni);
         send_!2(R,S, R, {I, Ni, Tb, g}k(R,S),Nr);
@@ -67,7 +63,7 @@ protocol neustub(I,R,S)
     role S
     {
         var Ni, Nr: Nonce;
-        const Kir: SessionKey;
+        fresh Kir: SessionKey;
         var Tb: TimeStamp;
 
 	var g: Ticket;

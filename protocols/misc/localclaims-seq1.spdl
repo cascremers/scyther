@@ -15,7 +15,7 @@ protocol lcbreakerS1(I,R)
 {
 	role I
 	{
-		const ni,ni2: Nonce;
+		fresh ni,ni2: Nonce;
 		var nr: Nonce;
 		var x: Nonce;
 
@@ -36,8 +36,8 @@ protocol lcbreakerS1(I,R)
 	role R
 	{
 		var ni,ni2: Nonce;
-		const nr: Nonce;
-		const x: Nonce;
+		fresh nr: Nonce;
+		fresh x: Nonce;
 
 		read_1(I,R, {I,ni}pk(R) );
 		send_2(R,I, {ni,nr,R}pk(I) );
@@ -54,10 +54,6 @@ protocol lcbreakerS1(I,R)
 	}
 }
 
-const Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 
 

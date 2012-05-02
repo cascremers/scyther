@@ -16,7 +16,7 @@ protocol bkepkCE2(A,B,testnonce)
 {
 	role B
 	{
-		const nb: Nonce;
+		fresh nb: Nonce;
 		var na: Nonce;
 		var kab: Key;
 
@@ -28,8 +28,8 @@ protocol bkepkCE2(A,B,testnonce)
 	role A
 	{
 		var nb: Nonce;
-		const na: Nonce;
-		const kab: Key;
+		fresh na: Nonce;
+		fresh kab: Key;
 
 		read_1 (B,A, B,{ nb,B }pk(A) );
 		send_2 (A,B, { hash(nb),na,A,kab }pk(B) );
@@ -46,17 +46,6 @@ protocol bkepkCE2(A,B,testnonce)
 
 const Alice,Bob,Eve;
 
-compromised sk(Eve);
-untrusted Eve;
 
 
-run bkepkCE2.A(Alice,Bob,Alice);
-run bkepkCE2.A(Alice,Bob,Alice);
-run bkepkCE2.A(Alice,Bob,Alice);
-run bkepkCE2.B(Alice,Bob,Alice);
-run bkepkCE2.B(Alice,Bob,Alice);
-run bkepkCE2.B(Alice,Bob,Alice);
 
-run bkepkCE2.testnonce(Alice,Bob,Alice);
-run bkepkCE2.testnonce(Alice,Bob,Alice);
-run bkepkCE2.testnonce(Alice,Bob,Alice);

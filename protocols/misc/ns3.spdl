@@ -14,7 +14,7 @@ protocol ns3(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 
 		send_1(I,R, {I,ni}pk(R) );
@@ -29,7 +29,7 @@ protocol ns3(I,R)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
+		fresh nr: Nonce;
 
 		read_1(I,R, {I,ni}pk(R) );
 		send_2(R,I, {ni,nr}pk(I) );
@@ -43,25 +43,10 @@ protocol ns3(I,R)
 
 // The agents in the system
 
-const Alice,Bob: Agent;
 
 // An untrusted agent, with leaked information
 
-const Eve: Agent;
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 
 // The runs (only needed for the modelchecker algorithm)
 
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
 

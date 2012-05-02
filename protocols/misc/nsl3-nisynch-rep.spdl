@@ -6,7 +6,7 @@ protocol nsl3rep(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 
 		send_1(I,R, {I,ni}pk(R) );
@@ -20,7 +20,7 @@ protocol nsl3rep(I,R)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
+		fresh nr: Nonce;
 
 		read_1(I,R, {I,ni}pk(R) );
 		read_6(I,R, {I,ni}pk(R) );
@@ -31,13 +31,5 @@ protocol nsl3rep(I,R)
 	}
 }
 
-const Alice,Bob,Eve: Agent;
 
-untrusted Eve;
-const nc: Nonce;
-compromised sk(Eve);
 
-run nsl3rep.I(Agent,Agent);
-run nsl3rep.R(Agent,Agent);
-run nsl3rep.I(Agent,Agent);
-run nsl3rep.R(Agent,Agent);

@@ -18,7 +18,7 @@ protocol boydNS(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 
 		send_1(I,R, {ni}pk(R),I );
@@ -33,7 +33,7 @@ protocol boydNS(I,R)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
+		fresh nr: Nonce;
 
 		read_1(I,R, {ni}pk(R),I );
 		send_2(R,I, {nr}pk(I),hash(ni,R) );
@@ -45,11 +45,5 @@ protocol boydNS(I,R)
 	}
 }
 
-const Alice,Bob,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 
-run boydNS.I(Agent,Agent);
-run boydNS.R(Agent,Agent);

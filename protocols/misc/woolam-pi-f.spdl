@@ -7,13 +7,9 @@
 usertype Server, SessionKey, Ticket;
 secret k: Function;
 
-const Alice, Bob, Charlie, Eve: Agent;
 const Simon: Server;
 
-const ne: Nonce;
 const ke: SessionKey;
-untrusted Eve;
-compromised k(Eve,Simon);
 
 protocol woolampif(A,B,S)
 {
@@ -28,7 +24,7 @@ protocol woolampif(A,B,S)
 
 	role B
 	{
-		const Nb: Nonce;
+		fresh Nb: Nonce;
 		var T: Ticket;
 
 		read_1(A,B, A);
@@ -50,6 +46,4 @@ protocol woolampif(A,B,S)
 	}
 }
 
-run woolampif.B(Alice,Bob,Simon);
-run woolampif.B(Alice,Bob,Simon);
 

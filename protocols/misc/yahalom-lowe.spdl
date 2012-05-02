@@ -5,19 +5,15 @@
 
 usertype Sessionkey;
 
-const Alice,Bob,Simon,Eve : Agent;
 secret k : Function;
 
-untrusted Eve;
-compromised k(Eve,Simon);
-const ne: Nonce;
 const kee: Sessionkey;
 
 protocol yahalomlowe(I,R,S)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 		var kir: Sessionkey;
 
@@ -32,7 +28,7 @@ protocol yahalomlowe(I,R,S)
 
 	role R
 	{
-		const nr: Nonce;
+		fresh nr: Nonce;
 		var ni: Nonce;
 		var kir: Sessionkey;
 
@@ -47,7 +43,7 @@ protocol yahalomlowe(I,R,S)
 
 	role S
 	{
-		const kir: Sessionkey;
+		fresh kir: Sessionkey;
 		var ni,nr: Nonce;
 
 		read_2(R,S, {I,ni,nr}k(R,S) );
@@ -56,10 +52,5 @@ protocol yahalomlowe(I,R,S)
 	}
 }
 
-run yahalomlowe.I(Agent,Agent,Simon);
-run yahalomlowe.R(Agent,Agent,Simon);
-run yahalomlowe.S(Agent,Agent,Simon);
 
-run yahalomlowe.I(Agent,Agent,Simon);
-run yahalomlowe.R(Agent,Agent,Simon);
 

@@ -9,7 +9,7 @@ protocol tmn(A,B,S)
 {
 	role A
 	{
-		const Ka: Key;
+		fresh Ka: Key;
 		var Kb: Key;
 
 		send_1(A,S, B,{Ka}pk(S) );
@@ -21,7 +21,7 @@ protocol tmn(A,B,S)
 	
 	role B
 	{
-		const Kb: Key;
+		fresh Kb: Key;
 
 		read_2(S,B, A );
 		send_3(B,S, A, { Kb }pk(S) );
@@ -46,11 +46,7 @@ const Alice,Bob,Eve,Simon: Agent;
 const Ke: Key;
 
 
-untrusted Eve;
-compromised sk(Eve);
 
 # Scenario to recreate an attack in SPORE
-run tmn.B (Alice,Bob,Simon);
-run tmn.S (Alice,Bob,Simon);
 
 

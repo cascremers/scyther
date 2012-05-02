@@ -15,7 +15,7 @@ protocol yahalomBan(A,B,S)
 {
 	role A
 	{
-		const na;
+		fresh na;
 		var nb;
 		var ticket;
 		var kab;
@@ -28,7 +28,7 @@ protocol yahalomBan(A,B,S)
 
 	role B
 	{
-		const nb;
+		fresh nb;
 		var na;
 		var ticket;
 		var kab;
@@ -41,7 +41,7 @@ protocol yahalomBan(A,B,S)
 
 	role S
 	{
-		const kab;
+		fresh kab;
 		var na,nb;
 
 		read_2(B,S, B,nb, {A,na}k(B,S) );

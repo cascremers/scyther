@@ -6,7 +6,7 @@ protocol isoiec11770213(I,R,S)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 		var kir: Sessionkey;
 
@@ -19,8 +19,8 @@ protocol isoiec11770213(I,R,S)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
-		const kir: Sessionkey;
+		fresh nr: Nonce;
+		fresh kir: Sessionkey;
 		var T;
 
 		read_1 (I,R, ni);
@@ -41,23 +41,7 @@ protocol isoiec11770213(I,R,S)
 	}
 }
 
-const Alice,Bob,Simon,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
 const te: Ticket;
 const ke: Sessionkey;
-compromised k(Eve,Eve);
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Eve,Simon);
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
-compromised k(Simon,Eve);
 
-run isoiec11770213.I(Agent,Agent,Simon);
-run isoiec11770213.R(Agent,Agent,Simon);
-run isoiec11770213.S(Agent,Agent,Simon);
-run isoiec11770213.I(Agent,Agent,Simon);
-run isoiec11770213.R(Agent,Agent,Simon);
-run isoiec11770213.S(Agent,Agent,Simon);

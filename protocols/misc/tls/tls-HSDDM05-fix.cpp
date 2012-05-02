@@ -37,9 +37,9 @@ protocol tls-HSDDM05(X,Y)
 {
 	role X
 	{
-		const Nx: Nonce;
-		const msecret: Nonce;
-		const pa: Params;
+		fresh Nx: Nonce;
+		fresh msecret: Nonce;
+		fresh pa: Params;
 		var Ny: Nonce;
 		var pb: Params;
 
@@ -56,8 +56,8 @@ protocol tls-HSDDM05(X,Y)
 		var Nx: Nonce;
 		var msecret: Nonce;
 		var pa: Params;
-		const Ny: Nonce;
-		const pb: Params;
+		fresh Ny: Nonce;
+		fresh pb: Params;
 
 		read_1( X,Y, msg1 );
 		send_2( Y,X, msg2 );
@@ -69,6 +69,4 @@ protocol tls-HSDDM05(X,Y)
 }
 
 
-untrusted Eve;
-compromised sk(Eve);
 
