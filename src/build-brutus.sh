@@ -7,6 +7,9 @@ echo "  module load cmake"
 echo "  module load gcc"
 echo
 
+# Store version number in version.h
+./describe-version.py
+
 # Default flags
 CMFLAGS="-D CMAKE_BUILD_TYPE:STRING=Release"
 
