@@ -12,8 +12,8 @@ then
 else
 	if [ "$PLATFORM" = "Linux" ]
 	then
-		# Build both versions
-		./subbuild-unix-both.sh
+		# Build linux version
+		./subbuild-unix-unix.sh
 	else
 		echo "I don't know platform $PLATFORM, so I won't do anything"
 	fi
