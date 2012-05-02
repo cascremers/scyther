@@ -30,9 +30,9 @@ protocol twoDH-MTencr-fix(I,R)
 {
 	role I
 	{
-		const x: Nonce;
-		const s: Nonce;
-		const Na: Nonce;
+		fresh x: Nonce;
+		fresh s: Nonce;
+		fresh Na: Nonce;
 		var Nb: Nonce;
 		var i: Nonce;
 		var beta: Ticket;
@@ -51,9 +51,9 @@ protocol twoDH-MTencr-fix(I,R)
 	
 	role R
 	{
-		const y: Nonce;
-		const i: Nonce;
-		const Nb: Nonce;
+		fresh y: Nonce;
+		fresh i: Nonce;
+		fresh Nb: Nonce;
 		var alpha: Ticket;
 		var s: Nonce;
 		var Na: Nonce;

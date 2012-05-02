@@ -62,7 +62,7 @@ protocol Okamoto(A,B)
 {
  role A
  {
-  const x1,x2: Nonce;
+  fresh x1,x2: Nonce;
   var Y1,Y2,Y3: Ticket;
 # 82 "Okamoto.cpp"
   send_1(A,B, exp(g1,FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)),exp(g2,FCAS(1,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)),exp(g1,FCAS(2,mult(exp(g1,sk(A,1)),exp(g2,sk(A,2))),mult(exp(g1,sk(A,3)),exp(g2,sk(A,4))),x1,x2)) );
@@ -74,7 +74,7 @@ protocol Okamoto(A,B)
  role B
  {
   var X1,X2,X3: Ticket;
-  const y1,y2: Nonce;
+  fresh y1,y2: Nonce;
 
   recv_1(A,B, X1,X2,X3 );
 

@@ -14,7 +14,7 @@ protocol ibe(I,R,S)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 
 	        read_1(S,I, param(S) );
 		send_3(I,R, {ni}ibepublic(param(S),R) );
@@ -40,11 +40,7 @@ protocol ibe(I,R,S)
 	}
 }
 
-const Alice, Bob, Carol, Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 compromised ibesecret(param(Eve),Alice);
 compromised ibesecret(param(Eve),Bob);
 compromised ibesecret(param(Eve),Carol);

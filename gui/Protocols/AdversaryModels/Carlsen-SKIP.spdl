@@ -2,7 +2,7 @@ protocol CarlsenSKIP(A,B,S)
 {
 	role A
 	{
-		const Na: Nonce;
+		fresh Na: Nonce;
 		var Nb, Nb2: Nonce;
 		var Kab: SessionKey;
 
@@ -15,7 +15,7 @@ protocol CarlsenSKIP(A,B,S)
 	role B
 	{
 		var Na: Nonce;
-		const Nb, Nb2: Nonce;
+		fresh Nb, Nb2: Nonce;
 		var T: Ticket;
 		var Kab: SessionKey;
 
@@ -30,7 +30,7 @@ protocol CarlsenSKIP(A,B,S)
 	role S
 	{
 		var Na,Nb: Nonce;
-		const Kab: SessionKey;
+		fresh Kab: SessionKey;
 
 		recv_2(B,S, A,Na,B,Nb);
 		send_3(S,B, { Kab, Nb, A }k(B,S), { Na, B, Kab }k(A,S));

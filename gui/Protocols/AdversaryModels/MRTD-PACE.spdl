@@ -61,9 +61,9 @@ protocol MRTD-PACE(I,R)
 {
 	role I
 	{
-		const eskI: Nonce;
+		fresh eskI: Nonce;
 		var Y: Ticket;
-		const s: Nonce;
+		fresh s: Nonce;
 
 		send_0(I,R, { s }k(I,R) );
 		send_1(I,R, g1(eskI) );
@@ -76,7 +76,7 @@ protocol MRTD-PACE(I,R)
 	
 	role R
 	{
-		const eskR: Nonce;
+		fresh eskR: Nonce;
 		var X: Ticket;
 		var s: Nonce;
 

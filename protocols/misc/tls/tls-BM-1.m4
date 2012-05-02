@@ -30,8 +30,8 @@ protocol tls-bm-1(A,B)
 {
 	role A
 	{
-		const na: Nonce;
-		const pmk: Nonce;
+		fresh na: Nonce;
+		fresh pmk: Nonce;
 		var nb: Nonce;
 
 		send_1( A,B, msg1 );
@@ -47,7 +47,7 @@ protocol tls-bm-1(A,B)
 	{
 		var na: Nonce;
 		var pmk: Nonce;
-		const nb: Nonce;
+		fresh nb: Nonce;
 
 		read_1( A,B, msg1 );
 		send_2( B,A, msg2 );
@@ -60,6 +60,4 @@ protocol tls-bm-1(A,B)
 }
 
 
-untrusted Eve;
-compromised sk(Eve);
 

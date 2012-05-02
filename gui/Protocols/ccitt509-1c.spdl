@@ -14,8 +14,8 @@ protocol ccitt509-1c(I,R)
 {
     role I
     {
-        const Ta: Timestamp;
-        const Na,Xa,Ya: Nonce;
+        fresh Ta: Timestamp;
+        fresh Na,Xa,Ya: Nonce;
         send_1(I,R, I,{Ta, Na, R, Xa,{Ya,{hash(Ya)}sk(I)}pk(R)}sk(I));
         # claim_2(I,Nisynch);
         # This claim is useless as there are no preceding receive events

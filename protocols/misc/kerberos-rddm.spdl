@@ -58,13 +58,13 @@ protocol @swapkey-kst(I,R)
 protocol kerberos(C,K,T,S) {
 
 	role C {
-		const n1: Nonce;
-		const n2: Nonce;
+		fresh n1: Nonce;
+		fresh n2: Nonce;
 		var tgt: Ticket;
 		var st: Ticket;
 		var AKey: Sessionkey;
 		var SKey: Sessionkey;
-		const t: Text;
+		fresh t: Text;
 
 		send_1(C,K, C,T,n1);
 		read_2(K,C, tgt, { AKey,n1,T }kck(C,K) );
@@ -94,7 +94,7 @@ protocol kerberos(C,K,T,S) {
 	}
 	role K {
 		var n1: Nonce;
-		const AKey: Sessionkey;
+		fresh AKey: Sessionkey;
 
 		read_1(C,K, C,T,n1);
 		send_2(K,C, { AKey, C }ktk(T,K), { AKey,n1,T }kck(C,K) );
@@ -106,7 +106,7 @@ protocol kerberos(C,K,T,S) {
 	role T {
 		var AKey: Sessionkey;
 		var n2: Nonce;
-		const SKey: Sessionkey;
+		fresh SKey: Sessionkey;
 
 		read_3(C,T, { AKey, C }ktk(T,K), { C }AKey,C,S,n2 );
 		send_4(T,C, C,{ SKey, C }kst(S,T), { SKey, n2, S }AKey );
@@ -138,27 +138,14 @@ protocol kerberos(C,K,T,S) {
 }
 
 const Alice,Bob,Charlie,Eve: Agent;
-untrusted Eve;
 
 // C untrusted
-compromised kck(Eve,Alice);
-compromised kck(Alice,Eve);
 
 // K untrusted
-compromised kck(Eve,Alice);
-compromised kck(Alice,Eve);
-compromised ktk(Eve,Alice);
-compromised ktk(Alice,Eve);
 
 // T untrusted
-compromised kst(Alice,Eve);
-compromised kst(Eve,Alice);
-compromised ktk(Eve,Alice);
-compromised ktk(Alice,Eve);
 
 // S untrusted
-compromised kst(Alice,Eve);
-compromised kst(Eve,Alice);
 
 
 

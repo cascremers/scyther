@@ -10,8 +10,8 @@ protocol BoydMathuria-2-8(A,B)
 {
 	role A
 	{
-		const Na: Nonce;
-		const kta: Nonce;
+		fresh Na: Nonce;
+		fresh kta: Nonce;
 		var kab: SessionKey;
 
 		send_1(A,B, pk(kta), Na, { pk(kta), B }sk(A) );
@@ -22,7 +22,7 @@ protocol BoydMathuria-2-8(A,B)
 	{
 		var Na: Nonce;
 		var kta: Nonce;
-		const kab: SessionKey;
+		fresh kab: SessionKey;
 
 		recv_1(A,B, pk(kta), Na, { pk(kta), B }sk(A) );
 		send_2(B,A, { kab }pk(kta), { h(kab),A,Na }sk(B) );

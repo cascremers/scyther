@@ -1,9 +1,10 @@
 /* 
- * SKEME from Boyd-Mathuria book
+ * Modified STS
+ * From Boyd & Mathuria
  */
 
 // Hash functions
-hashfunction MAC,h1,h2,g1,g2,H;
+hashfunction h1,h2,g1,g2;
 
 /*
  * Hack to simulate g^ab = g^ba.
@@ -24,18 +25,17 @@ protocol @exponentiation(RA)
 
 // The protocol description
 
-protocol SKEME(I,R)
+protocol STS-MOD(I,R)
 {
 	role I
 	{
+		fresh s: Nonce;
 		fresh x: Nonce;
-		fresh ni: Nonce;
 		var beta: Ticket;
-		var nr: Nonce;
 
-		send_1(I,R,  {I, ni}pk(R), g1(x) );
-		recv_2(R,I,  {nr}pk(I), beta, MAC(H(ni,nr),g1(x),beta,R,I) );
-		send_3(I,R,  MAC(H(ni,nr),beta,g1(x),I,R) );
+		send_1(I,R, g1(x) );
+		recv_2(R,I, beta, { beta,g1(x),I }sk(R) );
+		send_3(I,R, { g1(x),beta,R }sk(I) );
 
 		claim(I,SKR, g2(beta,x) );
 	}	
@@ -43,13 +43,12 @@ protocol SKEME(I,R)
 	role R
 	{
 		fresh y: Nonce;
-		fresh nr: Nonce;
+		var s: Nonce;
 		var alpha: Ticket;
-		var ni: Nonce;
 
-		recv_1(I,R,  {I, ni}pk(R), alpha );
-		send_2(R,I,  {nr}pk(I), g1(y), MAC(H(ni,nr),alpha,g1(y),R,I) );
-		recv_3(I,R,  MAC(H(ni,nr),g1(y),alpha,I,R) );
+		recv_1(I,R, alpha );
+		send_2(R,I, g1(y), { g1(y),alpha,I }sk(R) );
+		recv_3(I,R, { alpha,g1(y),R }sk(I) );
 
 		claim(R,SKR, g2(alpha,y) );
 	}

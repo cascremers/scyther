@@ -6,7 +6,7 @@ protocol ns3brutus(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 
 		send_1(I,R, {I,ni}pk(R) );
@@ -18,7 +18,7 @@ protocol ns3brutus(I,R)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
+		fresh nr: Nonce;
 
 		read_1(I,R, {I,ni}pk(R) );
 		send_2(R,I, {ni,nr}pk(I) );
@@ -31,20 +31,13 @@ const Alice,Bob,Eve : Agent;
 
 /* something like this will later on all be implied by 'untrusted Eve' */
 
-untrusted Eve;
-/* const nc: Nonce; */
-compromised sk(Eve);
+/* fresh nc: Nonce; */
 
 /* pre-defined 10 runs, limit using --max-runs parameters */
 /* to be nice to brutus, stupid scenario :( */
 
-run ns3brutus.R(Agent,Bob);
   run ns3brutus.I(Alice,Agent);
-run ns3brutus.R(Agent,Bob);
   run ns3brutus.I(Alice,Agent);
-run ns3brutus.R(Agent,Bob);
   run ns3brutus.I(Alice,Agent);
-run ns3brutus.R(Agent,Bob);
   run ns3brutus.I(Alice,Agent);
-run ns3brutus.R(Agent,Bob);
   run ns3brutus.I(Alice,Agent);

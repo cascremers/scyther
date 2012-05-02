@@ -6,7 +6,7 @@ protocol kaochow2(I,R,S)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 		var kir,kt: Sessionkey;
 
@@ -22,7 +22,7 @@ protocol kaochow2(I,R,S)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
+		fresh nr: Nonce;
 		var kir,kt: Sessionkey;
 		var T: Ticket;
 
@@ -38,30 +38,14 @@ protocol kaochow2(I,R,S)
 	role S
 	{
 		var ni: Nonce;
-		const kir, kt: Sessionkey;
+		fresh kir, kt: Sessionkey;
 
 		read_1 (I,S, I,R,ni);
 		send_2 (S,R, {I,R,ni,kir,kt}k(I,S), { I,R,ni,kir,kt }k(R,S)  ); 
 	}
 }
 
-const Alice,Bob,Simon,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
 const te: Ticket;
 const ke: Sessionkey;
-compromised k(Eve,Eve);
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Eve,Simon);
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
-compromised k(Simon,Eve);
 
-run kaochow2.I(Agent,Agent,Simon);
-run kaochow2.R(Agent,Agent,Simon);
-run kaochow2.S(Agent,Agent,Simon);
-run kaochow2.I(Agent,Agent,Simon);
-run kaochow2.R(Agent,Agent,Simon);
-run kaochow2.S(Agent,Agent,Simon);

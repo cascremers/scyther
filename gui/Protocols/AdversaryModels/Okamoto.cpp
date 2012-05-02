@@ -65,7 +65,7 @@ protocol Okamoto(A,B)
 {
 	role A
 	{
-		const x1,x2: Nonce;
+		fresh x1,x2: Nonce;
 		var Y1,Y2,Y3: Ticket;
 
 		#define squig(A) pk1(A),pk2(A)
@@ -112,7 +112,7 @@ protocol Okamoto(A,B)
 	role B
 	{
 		var X1,X2,X3: Ticket;
-		const y1,y2: Nonce;
+		fresh y1,y2: Nonce;
 
 		recv_1(A,B, X1,X2,X3 );
 		/*

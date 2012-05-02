@@ -6,9 +6,9 @@ protocol gongnonce(I,R,S)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
-		const ki: Keypart;
+		fresh ki: Keypart;
 		var kr: Keypart;
 
 		send_1 (I,R, I,R,ni );
@@ -24,8 +24,8 @@ protocol gongnonce(I,R,S)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
-		const kr: Keypart;
+		fresh nr: Nonce;
+		fresh kr: Keypart;
 		var ki: Keypart;
 
 		read_1 (I,R, I,R,ni );
@@ -50,23 +50,7 @@ protocol gongnonce(I,R,S)
 	}
 }
 
-const Alice,Bob,Simon,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
 const kpe: Keypart;
 const ke: Sessionkey;
-compromised k(Eve,Eve);
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Eve,Simon);
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
-compromised k(Simon,Eve);
 
-run gongnonce.I(Agent,Agent,Simon);
-run gongnonce.R(Agent,Agent,Simon);
-run gongnonce.S(Agent,Agent,Simon);
-run gongnonce.I(Agent,Agent,Simon);
-run gongnonce.R(Agent,Agent,Simon);
-run gongnonce.S(Agent,Agent,Simon);

@@ -24,11 +24,11 @@ protocol boyd(I,R,S)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 		var ks: Macseed;
 		var x: Nonce;
-		const y: Nonce;
+		fresh y: Nonce;
 
 		send_1 (I,S, I,R, ni );
 		read_3 (R,I, { I,R, ks }k(I,S), m(ni, m(ks,ni,nr)), nr );
@@ -44,9 +44,9 @@ protocol boyd(I,R,S)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
+		fresh nr: Nonce;
 		var ks: Macseed;
-		const x: Nonce;
+		fresh x: Nonce;
 		var y: Nonce;
 
 		read_2 (S,R, { I,R, ks }k(I,S), { I,R, ks }k(R,S), ni );
@@ -63,7 +63,7 @@ protocol boyd(I,R,S)
 	role S
 	{
 		var ni,nr: Nonce;
-		const ks: Macseed;
+		fresh ks: Macseed;
 
 		read_1 (I,S, I,R, ni );
 		send_2 (S,R, { I,R, ks }k(I,S), { I,R, ks }k(R,S), ni );

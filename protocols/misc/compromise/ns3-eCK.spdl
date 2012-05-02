@@ -16,7 +16,7 @@ protocol ns3-eCK(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var Tnr: Ticket;
 
 		send_1(I,R, {I,hash(sk(I),ni)}pk(R) );
@@ -31,7 +31,7 @@ protocol ns3-eCK(I,R)
 	role R
 	{
 		var Tni: Ticket;
-		const nr: Nonce;
+		fresh nr: Nonce;
 
 		read_1(I,R, {I,Tni}pk(R) );
 		send_2(R,I, {Tni,hash(sk(R),nr)}pk(I) );
@@ -45,25 +45,10 @@ protocol ns3-eCK(I,R)
 
 // The agents in the system
 
-const Alice,Bob: Agent;
 
 // An untrusted agent, with leaked information
 
-const Eve: Agent;
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 
 // The runs (only needed for the modelchecker algorithm)
 
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
-run ns3.I(Agent,Agent);
-run ns3.R(Agent,Agent);
 

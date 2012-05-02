@@ -16,7 +16,7 @@ const l1,l2a,l2b: Tag;
 protocol protocol0(S,R) {
     role S {
         var te: Nonce;        // expiration time
-        const M: Nonce;       // time-limited data
+        fresh M: Nonce;       // time-limited data
         var alpha: Ticket;    // R's public key
 
         // phase 1
@@ -32,8 +32,8 @@ protocol protocol0(S,R) {
     }
 
     role R {
-        const PKR: Nonce;	// P's mid-term public key
-        const te: Nonce;	// expiration time
+        fresh PKR: Nonce;	// P's mid-term public key
+        fresh te: Nonce;	// expiration time
         var M: Nonce;		// time-limited data
 
         // mark session identifier for state-reveal

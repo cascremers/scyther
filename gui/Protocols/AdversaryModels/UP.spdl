@@ -72,7 +72,7 @@ protocol UP(I,R)
 {
 	role I
 	{
-		const x: Nonce;
+		fresh x: Nonce;
 		var Y: Ticket;
 
 		send_1(I,R,  exp(g,x) );
@@ -97,7 +97,7 @@ protocol UP(I,R)
 	
 	role R
 	{
-		const y: Nonce;
+		fresh y: Nonce;
 		var X: Ticket;
 
 		recv_1(I,R,  X );

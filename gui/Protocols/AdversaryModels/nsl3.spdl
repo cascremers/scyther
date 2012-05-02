@@ -2,7 +2,7 @@ protocol nsl3(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 
 		send_1(I,R, {I,ni}pk(R) );
@@ -18,7 +18,7 @@ protocol nsl3(I,R)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
+		fresh nr: Nonce;
 
 		recv_1(I,R, {I,ni}pk(R) );
 		send_2(R,I, {ni,nr,R}pk(I) );

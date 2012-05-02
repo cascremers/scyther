@@ -29,8 +29,8 @@ protocol SKEME-nx(I,R)
 {
 	role I
 	{
-		const x: Nonce;
-		const ni: Nonce;
+		fresh x: Nonce;
+		fresh ni: Nonce;
 		var beta: Ticket;
 		var nr: Nonce;
 
@@ -43,8 +43,8 @@ protocol SKEME-nx(I,R)
 	
 	role R
 	{
-		const y: Nonce;
-		const nr: Nonce;
+		fresh y: Nonce;
+		fresh nr: Nonce;
 		var alpha: Ticket;
 		var ni: Nonce;
 

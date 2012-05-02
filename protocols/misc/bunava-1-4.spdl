@@ -30,7 +30,7 @@ protocol bunava14(A,B,C,D)
 {
     role A
     {
-        const ra: Nonce;
+        fresh ra: Nonce;
 	var rb,rc,rd: Nonce;
 
 	send_1(A,B, ra);
@@ -43,7 +43,7 @@ protocol bunava14(A,B,C,D)
 
     role B
     {
-        const rb: Nonce;
+        fresh rb: Nonce;
 	var ra,rc,rd: Nonce;
 
 	read_1(A,B, ra);
@@ -57,7 +57,7 @@ protocol bunava14(A,B,C,D)
 
     role C
     {
-        const rc: Nonce;
+        fresh rc: Nonce;
 	var ra,rb,rd: Nonce;
 
 	read_2(B,C, rb,{B,ra}k(B,C) );
@@ -71,7 +71,7 @@ protocol bunava14(A,B,C,D)
 
     role D
     {
-        const rd: Nonce;
+        fresh rd: Nonce;
 	var ra,rb,rc: Nonce;
 
 	read_3(C,D, rc,{C,rb,B,ra}k(C,D) );
@@ -83,24 +83,7 @@ protocol bunava14(A,B,C,D)
     }
 }
 
-const Alice,Bob,Charlie,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
-compromised k(Charlie,Eve);
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Eve,Charlie);
 
 # General scenario, 2 parallel runs of the protocol
  
-run bunava14.A(Agent,Agent,Agent,Agent);
-run bunava14.B(Agent,Agent,Agent,Agent);
-run bunava14.C(Agent,Agent,Agent,Agent);
-run bunava14.D(Agent,Agent,Agent,Agent);
-run bunava14.A(Agent,Agent,Agent,Agent);
-run bunava14.B(Agent,Agent,Agent,Agent);
-run bunava14.C(Agent,Agent,Agent,Agent);
-run bunava14.D(Agent,Agent,Agent,Agent);

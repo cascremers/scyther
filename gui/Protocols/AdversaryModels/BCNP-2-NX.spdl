@@ -43,10 +43,10 @@ protocol BCNP-2-NX(I,R)
 {
 	role I
 	{
-		const Kap: Nonce;
+		fresh Kap: Nonce;
 		var Kbp: Ticket;
 		var Y: Ticket;
-		const a: Nonce;
+		fresh a: Nonce;
 
 		send_Compromise(I,I, h(sk(I),Kap));
 
@@ -63,9 +63,9 @@ protocol BCNP-2-NX(I,R)
 	role R
 	{
 		var Kap: Ticket;
-		const Kbp: Nonce;
+		fresh Kbp: Nonce;
 		var X: Ticket;
-		const b: Nonce;
+		fresh b: Nonce;
 
 		send_Compromise(R,R, h(sk(R),Kbp));
 

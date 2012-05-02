@@ -58,7 +58,7 @@ protocol JKL-TS-2-2008(I,R)
 {
 	role I
 	{
-		const ri: Nonce;
+		fresh ri: Nonce;
 		var RN: Ticket;
 
 		send_1(I,R, exp(g,ri) );
@@ -70,7 +70,7 @@ protocol JKL-TS-2-2008(I,R)
 	role R
 	{
 		var RI: Ticket;
-		const rn: Nonce;
+		fresh rn: Nonce;
 
 		recv_1(I,R, RI);
 		send_2(R,I, exp(g,rn));

@@ -43,8 +43,8 @@ protocol email-Sun1(B,S,A)
 {
 	role B
 	{
-		const M: Nonce;
-		const y: Nonce;
+		fresh M: Nonce;
+		fresh y: Nonce;
 		var X: Ticket;
 
 		recv_1b(S,B, TRIG);
@@ -70,7 +70,7 @@ protocol email-Sun1(B,S,A)
 	{
 		var M: Nonce;
 		var k: SessionKey;
-		const x: Nonce;
+		fresh x: Nonce;
 		var Y: Ticket;
 
 		send_1(A,S, { g1(x) }sk(A) );

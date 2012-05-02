@@ -7,8 +7,8 @@ protocol sophkx(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
-		const kir: Sessionkey;
+		fresh ni: Nonce;
+		fresh kir: Sessionkey;
 		var nr: Nonce;
 
 		send_1(I,R, ni, {I,kir}pk(R) );
@@ -20,20 +20,13 @@ protocol sophkx(I,R)
 	{
 		var ni: Nonce;
 		var kir: Sessionkey;
-		const nr: Nonce;
+		fresh nr: Nonce;
 
 		read_1(I,R, ni, {I,kir}pk(R) );
 		send_2(R,I, {ni}kir );
 	}
 }
 
-const Alice,Bob,Eve: Agent;
 
-untrusted Eve;
-const nc: Nonce;
 const ke: Sessionkey;
-compromised sk(Eve);
 
-run sophkx.I(Agent,Agent);
-run sophkx.R(Agent,Agent);
-run sophkx.I(Agent,Agent);

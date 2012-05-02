@@ -13,7 +13,7 @@ protocol yahalom-BAN-Paulson(A,B,S)
 {
 	role A
 	{
-		const na: Nonce;
+		fresh na: Nonce;
 		var nb: Nonce;
 		var ticket: Ticket;
 		var kab: SessionKey;
@@ -26,7 +26,7 @@ protocol yahalom-BAN-Paulson(A,B,S)
 
 	role B
 	{
-		const nb: Nonce;
+		fresh nb: Nonce;
 		var na: Nonce;
 		var ticket: Ticket;
 		var kab: SessionKey;
@@ -39,7 +39,7 @@ protocol yahalom-BAN-Paulson(A,B,S)
 
 	role S
 	{
-		const kab: SessionKey;
+		fresh kab: SessionKey;
 		var na,nb: Nonce;
 
 		recv_2(B,S, B, {A,na,nb}k(B,S) );

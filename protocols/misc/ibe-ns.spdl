@@ -17,7 +17,7 @@ protocol ibe(I,R,S)
 {
 	role I
 	{
-                const ni: Nonce;
+                fresh ni: Nonce;
                 var nr: Nonce;
 
 //Note that we are not interested in the order of server messages.
@@ -36,7 +36,7 @@ protocol ibe(I,R,S)
 	role R
 	{
                 var ni: Nonce;
-                const nr: Nonce;
+                fresh nr: Nonce;
 
 	        read_!2(S,R, {ibesecret(param(S),R)}pk(R) );
                 read_3(I,R, {I,ni}ibepublic(param(S),R) );
@@ -59,11 +59,7 @@ protocol ibe(I,R,S)
 	}
 }
 
-const Alice, Bob, Carol, Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 compromised ibesecret(param(Eve),Alice);
 compromised ibesecret(param(Eve),Bob);
 compromised ibesecret(param(Eve),Carol);

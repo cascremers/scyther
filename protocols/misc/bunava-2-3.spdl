@@ -25,7 +25,7 @@ protocol bunava23(R0,R1,R2)
 {
     role R0
     {
-        const n0: Nonce;
+        fresh n0: Nonce;
 	var n1,n2: Nonce;
         var T0: Ticket;
 
@@ -39,7 +39,7 @@ protocol bunava23(R0,R1,R2)
 
     role R1
     {
-        const n1: Nonce;
+        fresh n1: Nonce;
 	var n0,n2: Nonce;
         var T1: Ticket;
 
@@ -54,7 +54,7 @@ protocol bunava23(R0,R1,R2)
 
     role R2
     {
-        const n2: Nonce;
+        fresh n2: Nonce;
 	var n0,n1: Nonce;
         var T2: Ticket;
 
@@ -67,22 +67,7 @@ protocol bunava23(R0,R1,R2)
     }
 }
 
-const Alice,Bob,Charlie,David,Frodo,Gerard,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
-compromised k(Alice,Eve);
-compromised k(Bob,Eve);
-compromised k(Charlie,Eve);
-compromised k(Eve,Alice);
-compromised k(Eve,Bob);
-compromised k(Eve,Charlie);
 
 # General scenario
  
-run bunava23.R0(Agent,Agent,Agent);
-run bunava23.R1(Agent,Agent,Agent);
-run bunava23.R2(Agent,Agent,Agent);
-run bunava23.R0(Agent,Agent,Agent);
-run bunava23.R1(Agent,Agent,Agent);
-run bunava23.R2(Agent,Agent,Agent);

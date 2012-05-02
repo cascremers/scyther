@@ -25,9 +25,9 @@ protocol BoydMathuria-2-9(A,B,S)
 {
 	role A
 	{
-		const Na: Nonce;
+		fresh Na: Nonce;
 		var kas: SessionKey;
-		const NB: Ticket;
+		fresh NB: Ticket;
 
 		send_1(A,S, A,B);
 		send_2(A,B, A,exp(g,Na) );
@@ -39,7 +39,7 @@ protocol BoydMathuria-2-9(A,B,S)
 	{
 		var NA: Ticket;
 		var kas: SessionKey;
-		const Nb: Nonce;
+		fresh Nb: Nonce;
 
 		recv_2(A,B, A,NA );
 		recv_3(S,B, { A,B,kas }k(B,S) );
@@ -48,7 +48,7 @@ protocol BoydMathuria-2-9(A,B,S)
 	}
 	role S
 	{
-		const kas: SessionKey;
+		fresh kas: SessionKey;
 
 		recv_1(A,S, A,B);
 		send_3(S,B, { A,B,kas }k(B,S) );

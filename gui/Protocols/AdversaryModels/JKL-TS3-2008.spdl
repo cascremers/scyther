@@ -62,7 +62,7 @@ symmetric-role protocol JKL-TS-3-2008(I,R)
 {
 	role I
 	{
-		const ri: Nonce;
+		fresh ri: Nonce;
 		var RN: Ticket;
 
 		send_1(I,R, exp(g,ri), MAC( exp(exp(g,sk(R)),sk(I)), one,two, exp(g,ri) ) );
@@ -74,7 +74,7 @@ symmetric-role protocol JKL-TS-3-2008(I,R)
 	role R
 	{
 		var RI: Ticket;
-		const rn: Nonce;
+		fresh rn: Nonce;
 
 		recv_1(I,R, RI, MAC( exp(exp(g,sk(R)),sk(I)), one,two,RI ) );
 		send_2(R,I, exp(g,rn), MAC( exp(exp(g,sk(R)),sk(I)), two,one,exp(g,rn) ) );

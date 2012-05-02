@@ -34,9 +34,9 @@ protocol protocol0(S,R,P)
 {
 	role S
 	{
-		const rS: Nonce;	// own DH key contribution
-		const te: Nonce;	// expiration time
-		const M: Nonce;		// time-limited data
+		fresh rS: Nonce;	// own DH key contribution
+		fresh te: Nonce;	// expiration time
+		fresh M: Nonce;		// time-limited data
 		var beta: Ticket;	// R's DH key contribution
 
 		// mark T_e as session identifier
@@ -54,9 +54,9 @@ protocol protocol0(S,R,P)
 
 	role R
 	{
-		const rR: Nonce;	// own DH key contribution with S
-		const rR2: Nonce;	// own DH key contribution with P
-		const rR3: Nonce;	// 2. own DH key contribution with P
+		fresh rR: Nonce;	// own DH key contribution with S
+		fresh rR2: Nonce;	// own DH key contribution with P
+		fresh rR3: Nonce;	// 2. own DH key contribution with P
 		var te: Nonce;		// expiration time
 		var M: Nonce;		// time-limited data
 		var alpha: Ticket;	// S's DH key contribution
@@ -90,8 +90,8 @@ protocol protocol0(S,R,P)
 	role P
 	{
 		var te: Nonce;  	// expiration time
-		const rP: Nonce;	// own DH key contribution
-		const rP2: Nonce;	// own DH key contribution
+		fresh rP: Nonce;	// own DH key contribution
+		fresh rP2: Nonce;	// own DH key contribution
 		var gamma1: Ticket;	// R's 1. DH key contribution
 		var gamma2: Ticket;	// R's 2. DH key contribution
 		var K: Ticket;		// The key K

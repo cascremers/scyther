@@ -17,13 +17,11 @@ secret k: Function;
 
 /* agents */
 
-const a,b,e: Agent;
 
 
 /* untrusted e */
 
 untrusted e;
-const ne: Nonce;
 const kee: SessionKey;
 
 compromised k(e,e);
@@ -51,8 +49,8 @@ protocol denningsaccosh(A,S,B)
 
 	role S
 	{
-		const t: Time;
-		const kab: SessionKey;
+		fresh t: Time;
+		fresh kab: SessionKey;
 
 		read_1 (A,S, A,S );
 		send_2 (S,A, {B, kab, t, { kab, A,t }k(B,S) }k(A,S) );

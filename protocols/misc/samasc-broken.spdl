@@ -13,7 +13,7 @@ protocol samascbroken(I,R)
 {
 	role R
 	{
-		const nr: Nonce;
+		fresh nr: Nonce;
 		var kir: Key;
 
 		read_!1a (I,R, { kir,I }pk(R) );
@@ -29,8 +29,6 @@ protocol samascbroken(I,R)
 	}
 }
 
-const a,b,e: Agent;
 
 untrusted e;
 compromised sk(e);
-const ne: Nonce;

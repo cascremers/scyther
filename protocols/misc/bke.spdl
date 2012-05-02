@@ -14,7 +14,7 @@ protocol bke(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 		var kir: Key;
 
@@ -29,8 +29,8 @@ protocol bke(I,R)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
-		const kir: Key;
+		fresh nr: Nonce;
+		fresh kir: Key;
 
 		read_1 (I,R, { ni,I }pk(R) );
 		send_2 (R,I, { hash(ni),nr,R,kir }pk(I) );
@@ -41,22 +41,10 @@ protocol bke(I,R)
 	}
 }
 
-const a,b,e: Agent;
 
 untrusted e;
 compromised sk(e);
-const ne: Nonce;
 
-run bke.I(a,Agent);
-run bke.R(Agent,b);
-run bke.I(a,Agent);
-run bke.R(Agent,b);
 
-run bke.I(a,Agent);
-run bke.R(Agent,b);
-run bke.I(a,Agent);
-run bke.R(Agent,b);
 
-run bke.I(a,Agent);
-run bke.R(Agent,b);
 

@@ -146,7 +146,7 @@ protocol naxos(I,R)
 {
 	role I
 	{
-		const eskI: Nonce;
+		fresh eskI: Nonce;
 		var Y: Ticket;
 
 		send_Compromise(I,I, eskI );
@@ -164,7 +164,7 @@ protocol naxos(I,R)
 	
 	role R
 	{
-		const eskR: Nonce;
+		fresh eskR: Nonce;
 		var X: Ticket;
 
 		send_Compromise(R,R, eskR );

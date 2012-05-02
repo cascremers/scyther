@@ -28,15 +28,11 @@ protocol f5(I,R)
 
 	role R
 	{
-		const nr: Nonce;
+		fresh nr: Nonce;
 		send_!1(R,I, nr );
 	}
 	
 }
 
-const Alice,Bob,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 

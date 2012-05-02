@@ -6,7 +6,6 @@
  */
 
 // Generator of G
-const g: Nonce;
 
 // Hash functions
 hashfunction h,h1,h2,gexp,exp,KDF,LSB;

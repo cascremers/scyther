@@ -15,7 +15,7 @@ protocol ccitt509-ban3(I,R)
 {
     role I
     {
-        const Na,Xa,Ya: Nonce;
+        fresh Na,Xa,Ya: Nonce;
         var Xb,Nb,Yb: Nonce;
 
         send_1(I,R, I,{Na, R, Xa,{Ya}pk(R)}sk(I));
@@ -27,7 +27,7 @@ protocol ccitt509-ban3(I,R)
     role R
     {
         var Na,Xa,Ya: Nonce;
-        const Xb,Yb,Nb: Nonce;
+        fresh Xb,Yb,Nb: Nonce;
 
         recv_1(I,R, I,{Na, R, Xa,{Ya}pk(R)}sk(I));
         send_2(R,I, R,{Nb, I, Na, Xb,{Yb}pk(I)}sk(R));

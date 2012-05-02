@@ -26,7 +26,6 @@ inversekeys(pk,sk);
 inversekeys(hash,unhash);
 
 const pa,pb: Params;
-const Terence: Agent;
 const false,true: Bool;
 
 
@@ -34,9 +33,9 @@ protocol tlspaulson(a,b)
 {
 	role a
 	{
-		const na: Nonce;
-		const sid: SessionID;
-		const pms: Nonce;
+		fresh na: Nonce;
+		fresh sid: SessionID;
+		fresh pms: Nonce;
 		var nb: Nonce;
 		var pb: Params;
 
@@ -59,8 +58,8 @@ protocol tlspaulson(a,b)
 		var na: Nonce;
 		var sid: SessionID;
 		var pms: Nonce;
-		const nb: Nonce;
-		const pb: Params;
+		fresh nb: Nonce;
+		fresh pb: Params;
 
 		read_1( a,b, a,na,sid,pa );
 		send_2( b,a, nb,sid,pb );
@@ -76,20 +75,8 @@ protocol tlspaulson(a,b)
 	}
 }
 
-const Alice, Bob, Eve: Agent;
 
-untrusted Eve;
-compromised sk(Eve);
-const ne: Nonce;
 const side: SessionID;
 const pe: Params;
 
-run tlspaulson.a(Agent,Agent);
-run tlspaulson.b(Agent,Agent);
-run tlspaulson.a(Agent,Agent);
-run tlspaulson.b(Agent,Agent);
-run tlspaulson.a(Agent,Agent);
-run tlspaulson.b(Agent,Agent);
-run tlspaulson.a(Agent,Agent);
-run tlspaulson.b(Agent,Agent);
 

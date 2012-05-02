@@ -152,7 +152,7 @@ protocol naxos-C(I,R)
 {
 	role I
 	{
-		const eskI: Nonce;
+		fresh eskI: Nonce;
 		var YI: Ticket;
 
 		#define xI h1(eskI,sk(I))
@@ -175,7 +175,7 @@ protocol naxos-C(I,R)
 	
 	role R
 	{
-		const eskR: Nonce;
+		fresh eskR: Nonce;
 		var XR: Ticket;
 
 		#define yR h1(eskR,sk(R))

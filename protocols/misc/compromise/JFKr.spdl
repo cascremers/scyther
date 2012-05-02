@@ -83,7 +83,7 @@ protocol JKFr(I,R)
 {
 	role I
 	{
-		const Ni,di: Nonce;
+		fresh Ni,di: Nonce;
 		var Nr: Nonce;
 		var xr: Ticket;
 		var tr: Ticket;
@@ -118,8 +118,8 @@ protocol JKFr(I,R)
 	
 	role R
 	{
-		const Nr,dr: Nonce;
-		const Kr: TempKey;
+		fresh Nr,dr: Nonce;
+		fresh Kr: TempKey;
 		var xi: Ticket;
 		var Ni: Nonce;
 

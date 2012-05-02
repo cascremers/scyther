@@ -15,7 +15,7 @@ protocol bkevariation(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 		var nr: Nonce;
 		var kir: Key;
 
@@ -30,8 +30,8 @@ protocol bkevariation(I,R)
 	role R
 	{
 		var ni: Nonce;
-		const nr: Nonce;
-		const kir: Key;
+		fresh nr: Nonce;
+		fresh kir: Key;
 
 		read_1 (I,R, { ni,I }pk(R) );
 		send_2 (R,I, { hash(ni),nr,kir }pk(I) );
@@ -42,14 +42,8 @@ protocol bkevariation(I,R)
 	}
 }
 
-const a,b,e: Agent;
 
 untrusted e;
 compromised sk(e);
-const ne: Nonce;
 
-run bkevariation.I(a,Agent);
-run bkevariation.R(Agent,b);
-run bkevariation.I(a,Agent);
-run bkevariation.R(Agent,b);
 

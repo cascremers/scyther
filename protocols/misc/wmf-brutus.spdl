@@ -8,7 +8,7 @@ protocol wmfbrutus(A,B,S)
 {
 	role A
 	{
-		const kab : SesKey;
+		fresh kab : SesKey;
 
 		send_1(A,S, A, { B,kab }k(A,S) );
 	}
@@ -34,15 +34,6 @@ protocol wmfbrutus(A,B,S)
 const Alice, Bob, Eve: Agent;
 const Simon: Server;
 
-untrusted Eve;
-compromised k(Eve,Simon);
 
-run wmfbrutus.A(Agent, Agent, Simon);
-run wmfbrutus.B(Agent, Agent, Simon);
-run wmfbrutus.A(Agent, Agent, Simon);
-run wmfbrutus.B(Agent, Agent, Simon);
-run wmfbrutus.A(Agent, Agent, Simon);
-run wmfbrutus.B(Agent, Agent, Simon);
 
-run wmfbrutus.S(Agent, Agent, Simon);
 

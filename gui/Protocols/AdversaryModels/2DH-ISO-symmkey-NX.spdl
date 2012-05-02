@@ -54,7 +54,7 @@ protocol 2DH-symmkey-NX(I,R)
 {
 	role I
 	{
-		const x: Nonce;
+		fresh x: Nonce;
 		var beta: Ticket;
 
 		send_Compromise(I,I, h1(k(I,R),x) );
@@ -67,7 +67,7 @@ protocol 2DH-symmkey-NX(I,R)
 	
 	role R
 	{
-		const y: Nonce;
+		fresh y: Nonce;
 		var alpha: Ticket;
 
 		send_Compromise(R,R, h1(k(I,R),y) );

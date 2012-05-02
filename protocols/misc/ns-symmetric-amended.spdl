@@ -10,13 +10,11 @@ secret k: Function;
 
 /* agents */
 
-const a,b,e: Agent;
 
 
 /* untrusted e */
 
 untrusted e;
-const ne: Nonce;
 const kee: SessionKey;
 
 compromised k(e,e);
@@ -36,7 +34,7 @@ protocol nssymmetricamended(A,S,B)
 {
 	role A
 	{
-		const na: Nonce;
+		fresh na: Nonce;
 		var T1: Ticket;
 		var T2: Ticket;
 		var kab: SessionKey;
@@ -57,7 +55,7 @@ protocol nssymmetricamended(A,S,B)
 
 	role S
 	{
-		const kab: SessionKey;
+		fresh kab: SessionKey;
 		var na: Nonce;
 		var nb: Nonce;
 
@@ -68,7 +66,7 @@ protocol nssymmetricamended(A,S,B)
 	role B
 	{
 		var kab: SessionKey;
-		const nb: Nonce;
+		fresh nb: Nonce;
 
 		read_1(A,B, A );
 		send_2(B,A, { A,nb }k(B,S) );

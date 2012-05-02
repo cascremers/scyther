@@ -8,7 +8,7 @@ protocol tmn(A,B,S)
 {
 	role A
 	{
-		const Ka: Key;
+		fresh Ka: Key;
 		var Kb: Key;
 
 		send_1(A,S, B,{Ka}pk(S) );
@@ -20,7 +20,7 @@ protocol tmn(A,B,S)
 	
 	role B
 	{
-		const Kb: Key;
+		fresh Kb: Key;
 
 		read_2(S,B, A );
 		send_3(B,S, A, { Kb }pk(S) );
@@ -43,14 +43,6 @@ protocol tmn(A,B,S)
 
 const Alice,Bob,Eve,Simon: Agent;
 
-untrusted Eve;
-compromised sk(Eve);
 
-run tmn.A (Agent,Agent,Simon);
-run tmn.A (Agent,Agent,Simon);
-run tmn.B (Agent,Agent,Simon);
-run tmn.B (Agent,Agent,Simon);
-run tmn.S (Agent,Agent,Simon);
-run tmn.S (Agent,Agent,Simon);
 
 

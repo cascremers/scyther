@@ -45,8 +45,8 @@ protocol twoDH-canetti(I,R)
 {
 	role I
 	{
-		const x: Nonce;
-		const s: Nonce;
+		fresh x: Nonce;
+		fresh s: Nonce;
 		var beta: Ticket;
 
 		send_Compromise(I,I, x );
@@ -61,7 +61,7 @@ protocol twoDH-canetti(I,R)
 	
 	role R
 	{
-		const y: Nonce;
+		fresh y: Nonce;
 		var s: Nonce;
 		var alpha: Ticket;
 

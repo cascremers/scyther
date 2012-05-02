@@ -6,7 +6,7 @@ protocol carkeybroken(I,R)
 {
 	role I
 	{
-		const ni: Nonce;
+		fresh ni: Nonce;
 
 		send_1(I,R, {ni}sk(I) );
 	}	
@@ -20,13 +20,5 @@ protocol carkeybroken(I,R)
 	}
 }
 
-const Alice,Bob,Eve: Agent;
 
-untrusted Eve;
-const nc: Nonce;
-compromised sk(Eve);
 
-run carkeybroken.I(Agent,Agent);
-run carkeybroken.R(Agent,Agent);
-run carkeybroken.I(Agent,Agent);
-run carkeybroken.R(Agent,Agent);

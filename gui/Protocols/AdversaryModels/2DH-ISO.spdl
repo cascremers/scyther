@@ -28,7 +28,7 @@ protocol twoDHiso(I,R)
 {
 	role I
 	{
-		const x: Nonce;
+		fresh x: Nonce;
 		var i: Nonce;
 		var beta: Ticket;
 
@@ -42,8 +42,8 @@ protocol twoDHiso(I,R)
 	
 	role R
 	{
-		const y: Nonce;
-		const i: Nonce;
+		fresh y: Nonce;
+		fresh i: Nonce;
 		var alpha: Ticket;
 
 		send_Compromise(R,R, y,i );

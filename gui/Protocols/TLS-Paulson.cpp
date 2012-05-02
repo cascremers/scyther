@@ -33,9 +33,9 @@ protocol tlspaulson(a,b)
 {
 	role a
 	{
-		const na: Nonce;
-		const sid: SessionID;
-		const pms: Nonce;
+		fresh na: Nonce;
+		fresh sid: SessionID;
+		fresh pms: Nonce;
 		var nb: Nonce;
 		var pb: Params;
 
@@ -58,8 +58,8 @@ protocol tlspaulson(a,b)
 		var na: Nonce;
 		var sid: SessionID;
 		var pms: Nonce;
-		const nb: Nonce;
-		const pb: Params;
+		fresh nb: Nonce;
+		fresh pb: Params;
 
 		recv_1( a,b, a,na,sid,pa );
 		send_2( b,a, nb,sid,pb );

@@ -8,7 +8,7 @@ protocol r5bound(I,R)
 	{
 		var k1: Nonce;
 		var ni: Nonce;
-		const k2: Nonce;
+		fresh k2: Nonce;
 
 		read_!1 (I,R, ni );
 		send_!2 (R,I, { ni }sk(R) );
@@ -19,6 +19,4 @@ protocol r5bound(I,R)
 	}
 }
 
-const Alice, Bob: Agent;
-const ne: Nonce;
 

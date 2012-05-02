@@ -22,7 +22,7 @@ protocol fourway(X,Y)
 {
 	role X
 	{
-		const x: Nonce;
+		fresh x: Nonce;
 		var y: Nonce;
 
 		send_1( X,Y, x,msg1 );
@@ -37,7 +37,7 @@ protocol fourway(X,Y)
 	role Y
 	{
 		var x: Nonce;
-		const y: Nonce;
+		fresh y: Nonce;
 
 		read_1( X,Y, x,msg1 );
 		send_2( Y,X, y,msg2,hash( ptk,y,msg2 ) );
@@ -50,9 +50,4 @@ protocol fourway(X,Y)
 }
 
 
-untrusted Eve;
-compromised pmk(Eve,Alice);
-compromised pmk(Eve,Bob);
-compromised pmk(Alice,Eve);
-compromised pmk(Bob,Eve);
 

@@ -1,0 +1,183 @@
+# 1 "naxos-C.cpp"
+# 1 "<built-in>"
+# 1 "<command-line>"
+# 1 "naxos-C.cpp"
+# 21 "naxos-C.cpp"
+const h1,h2,g1,g2: Function;
+secret unh1,unh2,ung1,ung2: Function;
+hashfunction h3;
+hashfunction h2prime;
+
+usertype bit;
+const INIT: bit;
+const RESP: bit;
+
+inversekeys (h1,unh1);
+inversekeys (h2,unh2);
+inversekeys (g1,ung1);
+inversekeys (g2,ung2);
+
+
+
+
+protocol @publickeys(PK)
+{
+ role PK
+ {
+  send_!1(PK,PK, g1(sk(PK)));
+ }
+}
+
+
+
+
+
+
+
+protocol @exponentiation(RA,RB,RC)
+{
+ role RA
+ {
+  var X,Y, T1,T2: Ticket;
+
+  recv_!1(RA,RA, h2(
+    g2(g1(X),Y),
+    T1, T2, RA,RB
+    ));
+  send_!2(RA,RA, h2(
+    g2(g1(Y),X),
+    T1, T2, RA,RB
+    ));
+ }
+ role RB
+ {
+  var X,Y, T1,T2: Ticket;
+
+  recv_!3(RB,RB, h2(
+    T1,
+    g2(g1(X),Y),
+    T2, RA,RB
+    ));
+  send_!4(RB,RB, h2(
+    T1,
+    g2(g1(Y),X),
+    T2, RA,RB
+    ));
+ }
+ role RC
+ {
+  var X,Y, T1,T2: Ticket;
+
+  recv_!5(RC,RC, h2(
+    T1, T2,
+    g2(g1(X),Y),
+    RA,RB
+    ));
+  send_!6(RC,RC, h2(
+    T1, T2,
+    g2(g1(Y),X),
+    RA,RB
+    ));
+ }
+}
+
+protocol @keysymmetry(R1,R2,R3)
+{
+ role R1
+ {
+  var Y,X: Ticket;
+  var Z1,Z2: Ticket;
+
+  recv_!1(R1,R1, h2(
+   g2(g1(Y),X),
+   Z1,Z2,
+   R1,R2));
+  send_!2(R1,R1, h2(
+   g2(g1(X),Y),
+   Z1,Z2,
+   R1,R2));
+ }
+ role R2
+ {
+  var Y,X: Ticket;
+  var Z1,Z2: Ticket;
+
+  recv_!4(R2,R2, h2(
+   Z1,
+   g2(g1(Y),X),
+   Z2,
+   R2,R3));
+  send_!5(R2,R2, h2(
+   Z1,
+   g2(g1(X),Y),
+   Z2,
+   R2,R3));
+ }
+ role R3
+ {
+  var Y,X: Ticket;
+  var Z1,Z2: Ticket;
+
+  recv_!5(R3,R3, h2(
+   g2(g1(Y),X),
+   Z1,
+   Z2,
+   R3,R1));
+  send_!6(R3,R3, h2(
+   g2(g1(X),Y),
+   Z1,
+   Z2,
+   R3,R1));
+ }
+}
+
+
+
+protocol naxos-C(I,R)
+{
+ role I
+ {
+  fresh eskI: Nonce;
+  var YI: Ticket;
+
+
+
+  send_!1(I,R, g1(h1(eskI,sk(I))) );
+
+
+
+
+
+
+
+  recv_!2(R,I, YI, h3(h2prime(I,R,g1(h1(eskI,sk(I))),YI,g2(YI,sk(I)),g2(g1(sk(R)),h1(eskI,sk(I))),g2(YI,h1(eskI,sk(I)))),RESP,R,I,YI,g1(h1(eskI,sk(I)))));
+  claim(I,SID,(g1(h1(eskI,sk(I))),YI));
+
+  send_!3(I,R, g1(h1(eskI,sk(I))),YI,h3(h2prime(I,R,g1(h1(eskI,sk(I))),YI,g2(YI,sk(I)),g2(g1(sk(R)),h1(eskI,sk(I))),g2(YI,h1(eskI,sk(I)))),RESP,R,I,YI,g1(h1(eskI,sk(I)))),h3(h2prime(I,R,g1(h1(eskI,sk(I))),YI,g2(YI,sk(I)),g2(g1(sk(R)),h1(eskI,sk(I))),g2(YI,h1(eskI,sk(I)))),INIT,I,R,g1(h1(eskI,sk(I))),YI));
+
+  claim(I,SKR,h2(I,R,g1(h1(eskI,sk(I))),YI,g2(YI,sk(I)),g2(g1(sk(R)),h1(eskI,sk(I))),g2(YI,h1(eskI,sk(I)))));
+ }
+
+ role R
+ {
+  fresh eskR: Nonce;
+  var XR: Ticket;
+
+
+
+  recv_!1(I,R, XR );
+  claim(R,SID,(XR,g1(h1(eskR,sk(R)))));
+
+
+
+
+
+
+
+  send_!2(R,I, g1(h1(eskR,sk(R))), h3(h2prime(I,R,XR,g1(h1(eskR,sk(R))),g2(g1(sk(I)),h1(eskR,sk(R))),g2(XR,sk(R)),g2(XR,h1(eskR,sk(R)))),RESP,R,I,g1(h1(eskR,sk(R))),XR));
+
+  recv_!3(I,R, XR, g1(h1(eskR,sk(R))), h3(h2prime(I,R,XR,g1(h1(eskR,sk(R))),g2(g1(sk(I)),h1(eskR,sk(R))),g2(XR,sk(R)),g2(XR,h1(eskR,sk(R)))),RESP,R,I,g1(h1(eskR,sk(R))),XR), h3(h2prime(I,R,XR,g1(h1(eskR,sk(R))),g2(g1(sk(I)),h1(eskR,sk(R))),g2(XR,sk(R)),g2(XR,h1(eskR,sk(R)))),INIT,I,R,XR,g1(h1(eskR,sk(R)))));
+
+  claim(R,SKR,h2(I,R,XR,g1(h1(eskR,sk(R))),g2(g1(sk(I)),h1(eskR,sk(R))),g2(XR,sk(R)),g2(XR,h1(eskR,sk(R)))));
+ }
+}

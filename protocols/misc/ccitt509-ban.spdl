@@ -7,8 +7,8 @@ protocol ccitt509(I,R)
 {
 	role I
 	{
-		const xi,yi: Data;
-		const ni: Nonce;
+		fresh xi,yi: Data;
+		fresh ni: Nonce;
 		var nr: Nonce;
 		var yr,xr: Data;
 
@@ -26,8 +26,8 @@ protocol ccitt509(I,R)
 	{
 		var xi,yi: Data;
 		var ni: Nonce;
-		const nr: Nonce;
-		const yr,xr: Data;
+		fresh nr: Nonce;
+		fresh yr,xr: Data;
 
 		read_1(I,R, I,{ni, R, xi, {yi}pk(R) }sk(I) );
 		send_2(R,I, R,{nr, I, ni, xr, {yr}pk(I) }sk(R) );
@@ -40,14 +40,6 @@ protocol ccitt509(I,R)
 	}
 }
 
-const Alice,Bob,Eve: Agent;
 
-untrusted Eve;
-const ne: Nonce;
 const de: Data;
-compromised sk(Eve);
 
-run ccitt509.I(Agent,Agent);
-run ccitt509.R(Agent,Agent);
-run ccitt509.I(Agent,Agent);
-run ccitt509.R(Agent,Agent);

@@ -122,7 +122,7 @@ protocol CMQV-twopass(I,R)
 {
 	role I
 	{
-		const x: Nonce;
+		fresh x: Nonce;
 		var Y: Ticket;
 
 		send_1(I,R, g1(h1(x,sk(I))) );
@@ -133,7 +133,7 @@ protocol CMQV-twopass(I,R)
 	
 	role R
 	{
-		const y: Nonce;
+		fresh y: Nonce;
 		var X: Ticket;
 
 		recv_1(I,R, X );

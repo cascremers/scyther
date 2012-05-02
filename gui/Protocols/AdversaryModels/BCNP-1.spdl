@@ -38,7 +38,7 @@ protocol BCNP-1(I,R)
 {
 	role I
 	{
-		const Kap: Nonce;
+		fresh Kap: Nonce;
 		var Kbp: Nonce;
 
 		send_Compromise(I,I, Kap);
@@ -55,7 +55,7 @@ protocol BCNP-1(I,R)
 	role R
 	{
 		var Kap: Nonce;
-		const Kbp: Nonce;
+		fresh Kbp: Nonce;
 
 		send_Compromise(R,R, Kbp);
 

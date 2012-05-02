@@ -22,7 +22,7 @@ protocol 3PKD(I,R,S)
 {
 	role I
 	{
-		const ri: Nonce;
+		fresh ri: Nonce;
 		var rr: Nonce;
 		var sesk: SessionKey;
 
@@ -35,7 +35,7 @@ protocol 3PKD(I,R,S)
 	role R
 	{
 		var ri: Nonce;
-		const rr: Nonce;
+		fresh rr: Nonce;
 		var sesk: SessionKey;
 
 		read_1(I,R, ri );
@@ -49,7 +49,7 @@ protocol 3PKD(I,R,S)
 	{
 		var ri: Nonce;
 		var rr: Nonce;
-		const sesk: SessionKey;
+		fresh sesk: SessionKey;
 
 		read_2(R,S, ri,rr );
 		send_3(S,I, { sesk }k(I,S), hash(hk(I,S),I,R,ri,{ sesk }k(I,S)) );

@@ -5,8 +5,8 @@ protocol email-normal(B,A)
 {
 	role B
 	{
-		const M: Nonce;
-		const k: SessionKey;
+		fresh M: Nonce;
+		fresh k: SessionKey;
 
 		send_1(B,A, A, { k }pk(A), { M }k );
 		claim(B, Secret, M);

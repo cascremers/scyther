@@ -29,8 +29,8 @@ protocol SIG-DH-UM(I,R)
 {
 	role I
 	{
-		const s: Nonce;
-		const x: Nonce;
+		fresh s: Nonce;
+		fresh x: Nonce;
 		var beta: Ticket;
 
 		claim(I, SID, s);
@@ -43,7 +43,7 @@ protocol SIG-DH-UM(I,R)
 	
 	role R
 	{
-		const y: Nonce;
+		fresh y: Nonce;
 		var s: Nonce;
 		var alpha: Ticket;
 

@@ -6,7 +6,7 @@ protocol BGN-improved(U1,U2)
 {
 	role U1
 	{
-		const N1: Nonce;
+		fresh N1: Nonce;
 		var N2: Nonce;
 
 		send_1(U1,U2, { U1,U2, { N1,U1 }pk(U2) }sk(U1) );
@@ -20,7 +20,7 @@ protocol BGN-improved(U1,U2)
 	role U2
 	{
 		var N1: Nonce;
-		const N2: Nonce;
+		fresh N2: Nonce;
 
 		recv_1(U1,U2, { U1,U2, { N1,U1 }pk(U2) }sk(U1) );
 		recv_2(U1,U2,          { N1,U1 }pk(U2)         );
