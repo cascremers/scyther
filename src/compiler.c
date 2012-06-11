@@ -1051,6 +1051,7 @@ hashfunctions (Tac tcstart)
       knowledgeAddInverse (sys->know, hfuncs->term, hinvs->term);
       hfuncs->term->stype = termlistAdd (NULL, TERM_Function);
       knowledgeAddTerm (sys->know, hfuncs->term);
+      knowledgeAddPublicFunction (sys->know, hfuncs->term);
       hinvs->term->stype = termlistAdd (NULL, TERM_Function);
       hfuncs = hfuncs->next;
       hinvs = hinvs->next;

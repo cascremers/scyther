@@ -114,6 +114,7 @@ specialTermInit (const System sys)
   knowledgeAddTerm (sys->know, TERM_PK);
   knowledgeAddTerm (sys->know, TERM_SK);
   knowledgeAddTerm (sys->know, TERM_K);
+  knowledgeAddPublicFunction (sys->know, TERM_PK);
 
   /* Construct a list of claims that depend on prec being not-empty */
   /* basically all authentication claims */
