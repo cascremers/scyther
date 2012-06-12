@@ -42,6 +42,8 @@ struct knowledge
    * and we need to reconstruct the knowledge set.
    */
   Termlist vars;		// special: denotes unsubstituted variables
+  //! A list of public functions
+  Termlist publicfunctions;
 };
 
 //! Shorthand for knowledge pointer.
@@ -67,6 +69,8 @@ Termlist knowledgeSet (const Knowledge know);
 Termlist knowledgeGetInverses (const Knowledge know);
 int knowledgeSubstNeeded (const Knowledge know);
 Knowledge knowledgeSubstDo (const Knowledge know);
+void knowledgeAddPublicFunction (const Knowledge know, const Term f);
+int isKnowledgePublicFunction (const Knowledge know, const Term f);
 
 //! Harnass macro for recursive procedures.
 #define mindwipe(k,recurse) \

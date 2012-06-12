@@ -83,6 +83,7 @@ emptyKnowledge ()
   know->encrypt = NULL;
   know->inverses = NULL;
   know->vars = NULL;
+  know->publicfunctions = NULL;
   return know;
 }
 
@@ -110,6 +111,7 @@ knowledgeDuplicate (Knowledge know)
   newknow->encrypt = termlistShallow (know->encrypt);
   newknow->vars = termlistShallow (know->vars);
   newknow->inverses = know->inverses;
+  newknow->publicfunctions = termlistShallow (know->publicfunctions);
   return newknow;
 }
 
@@ -126,6 +128,7 @@ knowledgeDelete (Knowledge know)
       termlistDelete (know->basic);
       termlistDelete (know->encrypt);
       termlistDelete (know->vars);
+      termlistDelete (know->publicfunctions);
       free (know);
     }
 }
@@ -145,6 +148,7 @@ knowledgeDestroy (Knowledge know)
       termlistDestroy (know->encrypt);
       termlistDestroy (know->vars);
       // termlistDestroy(know->inverses);
+      termlistDestroy (know->publicfunctions);
       free (know);
     }
 }
@@ -482,4 +486,19 @@ knowledgeSubstDo (const Knowledge know)
 {
   /* otherwise a copy (for deletion) is returned. */
   return knowledgeReconstruction (know);
+}
+
+//! Add public function
+void
+knowledgeAddPublicFunction (const Knowledge know, const Term f)
+{
+  know->publicfunctions = termlistAdd (know->publicfunctions, f);
+  return;
+}
+
+//! Check public function
+int
+isKnowledgePublicFunction (const Knowledge know, const Term f)
+{
+  return inTermlist (know->publicfunctions, f);
 }
