@@ -35,16 +35,47 @@
 #include "hidelevel.h"
 #include "arachne.h"
 #include "error.h"
+#include "knowledge.h"
+
+//! Trivial goal detection
+/**
+ * Detect goals that we do not need to solve because they can be trivially solved.
+ */
+int
+isTrivialGoal (const System sys, const Term t)
+{
+  if (isTermVariable (t))
+    {
+      return true;
+    }
+  else
+    {
+      Term f;
+
+      f = getTermFunction (t);
+      if (f != NULL)
+	{
+	  if (isKnowledgePublicFunction (sys->know, f))
+	    {
+	      return isTrivialGoal (sys, TermOp (t));
+	    }
+	}
+    }
+  return false;
+}
 
 //! Check whether a binding (goal) is selectable
 int
-is_goal_selectable (const Binding b)
+is_goal_selectable (const System sys, const Binding b)
 {
   if (b != NULL)
     {
       if ((!b->blocked) && (!b->done))
 	{
-	  return true;
+	  if (!isTrivialGoal (sys, b->term))
+	    {
+	      return true;
+	    }
 	}
     }
   return false;
@@ -64,7 +95,7 @@ count_selectable_goals (const System sys)
       Binding b;
 
       b = (Binding) bl->data;
-      if (is_goal_selectable (b))
+      if (is_goal_selectable (sys, b))
 	{
 	  n++;
 	}
@@ -78,9 +109,9 @@ count_selectable_goals (const System sys)
  * The return list entry is either NULL, or a selectable goal.
  */
 List
-first_selectable_goal (List bl)
+first_selectable_goal (const System sys, List bl)
 {
-  while (bl != NULL && !is_goal_selectable ((Binding) bl->data))
+  while (bl != NULL && !is_goal_selectable (sys, (Binding) bl->data))
     {
       bl = bl->next;
     }
@@ -393,31 +424,28 @@ select_goal_masked (const System sys)
       b = (Binding) bl->data;
 
       // Only if not done and not blocked
-      if (is_goal_selectable (b))
+      if (is_goal_selectable (sys, b))
 	{
-	  if (!isTermVariable (b->term))
+	  float w;
+
+	  w = computeGoalWeight (sys, b);
+
+	  // Spacing between output
+	  if (switches.output == PROOF && best != NULL)
+	    eprintf (", ");
+
+	  // Better alternative?
+	  if (w <= best_weight)
 	    {
-	      float w;
-
-	      w = computeGoalWeight (sys, b);
-
-	      // Spacing between output
-	      if (switches.output == PROOF && best != NULL)
-		eprintf (", ");
-
-	      // Better alternative?
-	      if (w <= best_weight)
-		{
-		  best_weight = w;
-		  best = b;
-		  if (switches.output == PROOF)
-		    eprintf ("*");
-		}
+	      best_weight = w;
+	      best = b;
 	      if (switches.output == PROOF)
-		{
-		  termPrint (b->term);
-		  eprintf ("<%.2f>", w);
-		}
+		eprintf ("*");
+	    }
+	  if (switches.output == PROOF)
+	    {
+	      termPrint (b->term);
+	      eprintf ("<%.2f>", w);
 	    }
 	}
       bl = bl->next;
@@ -453,7 +481,7 @@ select_goal_random (const System sys)
       bl = sys->bindings;
       while (choice >= 0)
 	{
-	  bl = first_selectable_goal (bl);
+	  bl = first_selectable_goal (sys, bl);
 	  if (bl == NULL)
 	    {
 	      error ("Random chooser selected a NULL goal.");
