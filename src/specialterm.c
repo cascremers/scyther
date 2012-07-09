@@ -30,6 +30,8 @@
 #define langhide(x,y) x = levelConst(symbolSysConst(" _" y "_ "))
 #define langtype(x,y) x->stype = termlistAdd(x->stype,y)
 #define langcons(x,y,z) x = levelConst(symbolSysConst(y)); langtype(x,z)
+#define symmEveKey(a,b) knowledgeAddTerm (sys->know, makeTermEncrypt ( makeTermTuple(a, b), TERM_K ) );
+
 
 /* externally used:
  */
@@ -134,9 +136,13 @@ specialTermInitAfter (const System sys)
   knowledgeAddTerm (sys->know, AGENT_Dave);
   knowledgeAddTerm (sys->know, AGENT_Eve);
 
-  // Make special Eve key and add to initial knowledge
+  // Make special Eve keys and add to initial knowledge
   SKE = makeTermEncrypt (AGENT_Eve, TERM_SK);
   knowledgeAddTerm (sys->know, SKE);
+  symmEveKey (AGENT_Alice, AGENT_Eve);
+  symmEveKey (AGENT_Bob, AGENT_Eve);
+  symmEveKey (AGENT_Charlie, AGENT_Eve);
+  symmEveKey (AGENT_Eve, AGENT_Alice);
   sys->untrusted = termlistAddNew (sys->untrusted, AGENT_Eve);
 }
 
