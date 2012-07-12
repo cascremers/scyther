@@ -1304,7 +1304,7 @@ printRunConstants (const System sys, const int run)
 {
   if (sys->runs[run].constants != NULL)
     {
-      eprintf ("Const ");
+      eprintf ("Fresh ");
       showLocals (run, sys->runs[run].role->declaredconsts,
 		  sys->runs[run].constants, NULL, "", ", ");
       eprintf ("\\l");
