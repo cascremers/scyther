@@ -69,9 +69,30 @@ def getBinDir():
 
 """
 Return Cache prefix path
+Returns None if not existent
 """
 def getCacheDir():
-    return os.path.join(getMyDir(),"Cache")
+    
+    tmpdir = None
+
+    # Check if user chose the path
+    cachedirkey = "SCYTHERCACHEDIR"
+    if cachedirkey in os.environ.keys():
+        tmpdir = os.environ[cachedirkey]
+        if tmpdir == "":
+            # Special value: if the variable is present, but equals the empty string, we disable caching.
+            return None
+    else:
+        # Otherwise take from path
+        tmpdir = tempfile.gettempdir()
+    
+    # If not none, append special name
+    if tmpdir != None:
+        tmpdir = os.path.join(tmpdir,"Scyther-cache")
+
+    return tmpdir
+
+    
 
 #---------------------------------------------------------------------------
 
@@ -247,18 +268,31 @@ class Scyther(object):
     def doScytherCommand(self, spdl, args, checkKnown=False):
         """
         Cached version of the 'real' below
+
+        TODO: CC: One possible problem with the caching is the side-effect, e.g., scyther writing to specific named output files. These are not
+        captured in the cache. I don't have a good solution for that yet.
         """
         global HASHLIB
 
-        if not HASHLIB:
+        # Can we use the cache?
+        canCache = False
+        if HASHLIB:
+            cacheDir = getCacheDir()
+            if cacheDir != None:
+                canCache = True
+        else:
+            cacheDir = None
+
+        # If we cannot use the cache, we either need to compute or, if checking for cache presense,...
+        if not canCache:
             if checkKnown == True:
-                # No hashlib, so we don't have it already
+                # not using the cache, so we don't have it already
                 return False
             else:
                 # Need to compute
                 return self.doScytherCommandReal(spdl,args)
 
-        # So we have the hashing libs
+        # Apparently we are supporsed to be able to use the cache
         m = hashlib.sha256()
         if spdl == None:
             m.update("[spdl:None]")
@@ -280,7 +314,7 @@ class Scyther(object):
         # Possibly we could also decide to store input and arguments in the cache to analyze things later
 
         # Construct: cachePath/uid1/uid2/...
-        path = os.path.join(getCacheDir(),uid1,uid2)
+        path = os.path.join(cacheDir,uid1,uid2)
         name1 = "%s.out" % (uid3)
         name2 = "%s.err" % (uid3)
 
@@ -304,16 +338,19 @@ class Scyther(object):
                 # Not checking cache, we need the result
                 return (out,err)
         except:
-            """
-            Something went wrong, do the real thing and cache afterwards
-            """
-            if checkKnown == True:
-                # We were only checking, abort
-                return False
+            pass
 
-            (out,err) = self.doScytherCommandReal(spdl,args)
+        """
+        Something went wrong, do the real thing and cache afterwards
+        """
+        if checkKnown == True:
+            # We were only checking, abort
+            return False
 
-            # Store result in cache
+        (out,err) = self.doScytherCommandReal(spdl,args)
+
+        try:
+            # Try to store result in cache
             ensurePath(path)
 
             fh1 = open(fname1,"w")
@@ -323,8 +360,10 @@ class Scyther(object):
             fh2 = open(fname2,"w")
             fh2.write(err)
             fh2.close()
+        except:
+            pass
 
-            return (out,err)
+        return (out,err)
 
 
     def doScytherCommandReal(self, spdl, args):
