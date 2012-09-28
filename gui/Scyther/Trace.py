@@ -167,6 +167,150 @@ class SemiTrace(object):
             if run.id == runid:
                 return run
         return None
+
+    def __str__(self,protocoldescr=None):
+        """
+        Visualize the semi-trace
+
+        We have a number of runs with eventlists.
+        We want to linearize and explain them.
+
+        Tuples: runid x index
+
+        If we are given the protocol description, we can say a bit more.
+        """
+
+        # Determine the relevant claim
+        if len(self.runs) > 0:
+            # TODO: Pretty hardcoded stuff, could be much nicer
+            claimev = self.getRun(0).getLastAction()
+        else:
+            claimev = None
+
+        # Determine which events need to be shown
+        done = []
+        todo = []
+        for run in self.runs:
+            for i in range(0,len(run.eventList)):
+                todo.append(self.getEvent((run.id,i)))
+
+        res = ""    # Buffer for the returned result string
+        # Construct table headers
+        res += "Step\tRun\tDescription\n"
+        res += "\n"
+
+        line = 1    # Line counter
+        seen = []   # Runs we have already seen
+        while len(todo) > 0:
+            """
+            Wait until we run out of candidates
+            """
+            # First find out which are the candidates to go first
+            first = []
+            for n1 in todo:
+                canGoFirst = True
+                for n2 in todo:
+                    if n1 != n2:
+                        if self.getOrder(n1,n2) == 1:
+                            canGoFirst = False
+                            break
+                if canGoFirst == True:
+                    first.append(n1)
+
+            # Select a candidate
+            ev = first[0]
+
+            # Append to the output
+            if ev.run in seen:
+                # Already seen before
+                pass
+            else:
+                # Run not seen before
+                seen.append(ev.run)
+                if ev.run.intruder == True:
+                    # Intruder action
+                    # TODO: We probably need Scyther to mark function applications here
+                    # TODO: We need Scyther to mark long-term private keys,state, etc to see reveals or compromise
+                    if "I_E" in str(ev.run.role):
+                        agent = ev.run.getLKRagent()
+                        if agent == None:
+                            # Construction
+                            msg = str(ev.run.eventList[2].message)
+                            res += "%i\t\tThe adversary constructs %s\n" % (line,msg)
+                            line += 1
+                        else:
+                            # Long-term key reveal
+                            msg = str(ev.run.eventList[2].message)
+                            res += "%i\t\tLong-term key reveal of %s\n" % (line,msg)
+                            line += 1
+                    elif "I_D" in str(ev.run.role):
+                        # Deconstruction
+                        msg = str(ev.run.eventList[0].message)
+                        mrs = str(ev.run.eventList[2].message)
+                        res += "%i\t\tThe adversary decrypts %s to obtain %s\n" % (line,msg,mrs)
+                        line += 1
+                    elif "I_M" in str(ev.run.role):
+                        # Initial knowledge
+                        pass
+                    else:
+                        # Unknown
+                        res += "+\t\tRun %i of Protocol %s, role %s\n" % (ev.run.id, ev.run.protocol, ev.run.role)
+                        res += "\t\tintruder: %s\n" % (ev.run.intruder)
+                else:
+                    # Not an intruder run
+                    actor = ev.run.getAgent()
+                    prot = ev.run.protocol
+                    role = ev.run.role
+                    res += "%i\t%i\t%s creates a run of protocol %s in role %s\n" % (line,ev.run.id,actor,prot,role)
+                    line += 1
+
+                    otherroles = ev.run.roleAgents.keys()
+                    otherroles.remove(ev.run.role)
+                    res += "%i\t%i\t%s assumes " % (line,ev.run.id,actor)
+                    for ind in range(0,len(otherroles)):
+                        role = otherroles[ind]
+                        res += "%s->%s" % (role,ev.run.roleAgents[role])
+                        if ind == len(otherroles) - 2:
+                            res += ", and"
+                        elif ind < len(otherroles) - 2:
+                            res += ", "
+                    res += "\n"
+                    line += 1
+                        
+            # Display the concrete event if needed
+            if ev.run.intruder == False:
+                # Normal run
+                if not(str(ev.run.protocol).startswith("@")):
+                    # Not a helper protocol
+                    relevant = True
+                    if str(ev).startswith("CLAIM"):
+                        if ev != claimev:
+                            relevant = False
+
+                    if relevant:
+                        if ev.compromisetype == None:
+                            res += "%i\t%i\t%s\n" % (line,ev.run.id,str(ev))
+                            line += 1
+                        else:
+                            compromiseTypes = { "SSR":"Session-state", "SKR":"Session-key", "RNR":"Random" }
+                            if ev.compromisetype in compromiseTypes.keys():
+                                res += "%i\t%i\t%s reveal of %s\n" % (line,ev.run.id,compromiseTypes[ev.compromisetype],str(ev.message))
+                                line += 1
+                            else:
+                                res += "%i\t%i\tReveal of %s (unknown reveal type)\n" % (line,ev.run.id,str(ev.message))
+                                line += 1
+                else:
+                    # Helper protocol
+                    pass    # skip
+
+
+            # Mark done
+            done.append(ev)
+            todo.remove(ev)
+
+        # Return the result
+        return res
+
             
 class ProtocolDescription(object):
     def __init__(self,protocol):
@@ -216,7 +360,6 @@ class ProtocolDescription(object):
         roles = uniq([x.run.role for x in events])
         return roles
     
-
     def __str__(self):
         s = ''
         for x in self.roledescr.values():
@@ -249,6 +392,16 @@ class Run(object):
     def getLastAction(self):
         return self.eventList[-1]
 
+    def findProtocol(self,pdescr):
+        """
+        Find our protocol in a protocol description set
+        """
+        for prk in pdescr.keys():
+            prot = pdescr[prk]
+            if self.protocol == str(prot.protocol):
+                return prot
+        return None
+
     def collapseIntruder(self):
         """ TODO still working on this. """
         if self.intruder:
@@ -256,14 +409,23 @@ class Run(object):
             for ev in self:
                 return
 
+    def getLKRagent(self):
+        # Determine if this is an LKR reveal. If so, return agent. If not, return None
+        if "I_E" in str(self.role):
+            # Construction
+            if str(self.eventList[1].message) == 'sk':    # TODO hardcoded sk
+                return self.eventList[0].message
+        return None
+
 class Event(object):
-    def __init__(self,index,label,follows):
+    def __init__(self,index,label,follows,compromisetype=None):
         self.index = index
         self.label = label
         self.follows = follows
         self.run = None
         self.preceding = None
         self.rank = None
+        self.compromisetype = compromisetype
     
     def shortLabel(self):
         try:
@@ -281,8 +443,8 @@ class Event(object):
         assert(False)
 
 class EventSend(Event):
-    def __init__(self,index,label,follows,fr,to,message):
-        Event.__init__(self,index,label,follows)
+    def __init__(self,index,label,follows,fr,to,message,compromisetype=None):
+        Event.__init__(self,index,label,follows,compromisetype=compromisetype)
         self.fr = fr
         self.to = to
         self.message = message
@@ -294,8 +456,8 @@ class EventSend(Event):
             return "SEND_%s(%s,%s)" % (self.shortLabel(),self.to,self.message)
 
 class EventRead(Event):
-    def __init__(self,index,label,follows,fr,to,message):
-        Event.__init__(self,index,label,follows)
+    def __init__(self,index,label,follows,fr,to,message,compromisetype=None):
+        Event.__init__(self,index,label,follows,compromisetype=compromisetype)
         self.fr = fr
         self.to = to
         self.message = message
@@ -307,8 +469,8 @@ class EventRead(Event):
             return "READ_%s(%s,%s)" % (self.shortLabel(),self.fr, self.message)
 
 class EventClaim(Event):
-    def __init__(self,index,label,follows,role,type,argument):
-        Event.__init__(self,index,label,follows)
+    def __init__(self,index,label,follows,role,type,argument,compromisetype=None):
+        Event.__init__(self,index,label,follows,compromisetype=compromisetype)
         self.role = role
         self.type = type
         self.argument = argument

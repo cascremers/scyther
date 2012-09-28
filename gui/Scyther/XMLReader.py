@@ -115,6 +115,21 @@ class XMLReader(object):
 
         return claims
 
+    # Read a text from XML, return None if not present
+    def readText(self,xml):
+        if xml == None:
+            return None
+        return xml.text
+
+    # Read an integer from XML, return None if not present
+    def readInteger(self,xml):
+        try:
+            if xml != None:
+                return int(xml.text)
+        except:
+            pass
+        return None
+
     # Read a term from XML
     def readTerm(self,xml):
         # If xml is None the term should also be none
@@ -152,6 +167,7 @@ class XMLReader(object):
     
     def readEvent(self,xml):
         label = self.readTerm(xml.find('label'))
+        compromisetype = self.readText(xml.find('compromisetype'))
         follows = xml.findall('follows')
         followlist = []
         for follow in follows: 
@@ -168,9 +184,9 @@ class XMLReader(object):
             to = self.readTerm(xml.find('to'))
             message = self.readTerm(xml.find('message'))
             if (etype == 'send'):
-                return Trace.EventSend(index,label,followlist,fr,to,message)
+                return Trace.EventSend(index,label,followlist,fr,to,message,compromisetype=compromisetype)
             else:
-                return Trace.EventRead(index,label,followlist,fr,to,message)
+                return Trace.EventRead(index,label,followlist,fr,to,message,compromisetype=compromisetype)
         elif xml.get('type') == 'claim':
             role = self.readTerm(xml.find('role'))
             etype = self.readTerm(xml.find('type'))
@@ -186,7 +202,7 @@ class XMLReader(object):
                     argument = argument[1]
             except:
                 pass
-            return Trace.EventClaim(index,label,followlist,role,etype,argument)
+            return Trace.EventClaim(index,label,followlist,role,etype,argument,compromisetype=compromisetype)
         else:
             raise Trace.InvalidAction, "Invalid action in XML: %s" % (xml.get('type'))
 

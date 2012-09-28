@@ -69,3 +69,7 @@ class Attack(object):
     #    classification.classifyComplexity()
     #    classification.classifyTypeflaws()
     #    return classification
+
+    def __str__(self):
+        return self.semiTrace.__str__(protocoldescr=self.protocoldescr)
+
