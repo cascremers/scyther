@@ -113,6 +113,13 @@ xmlPrint (char *fmt, ...)
   eprintf ("\n");
 }
 
+//! Print a simple string text
+void
+xmlOutText (const char *tag, const char *text)
+{
+  xmlPrint ("<%s>%s</%s>", tag, text, tag);
+}
+
 //! Print a simple integer value element
 void
 xmlOutInteger (const char *tag, const int value)
@@ -564,6 +571,18 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
   eprintf (">\n");
   xmlindent++;
   xmlOutTerm ("label", rd->label);
+  if (rd->compromisetype != COMPR_NONE)
+    {
+      /* annotate with compromise type */
+      if (rd->compromisetype == COMPR_SSR)
+	xmlOutText ("compromisetype", "SSR");
+      else if (rd->compromisetype == COMPR_RNR)
+	xmlOutText ("compromisetype", "RNR");
+      else if (rd->compromisetype == COMPR_SKR)
+	xmlOutText ("compromisetype", "SKR");
+      else
+	xmlOutInteger ("compromisetype", rd->compromisetype);
+    }
   if (rd->type != CLAIM)
     {
       /* recv or send */
