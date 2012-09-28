@@ -23,6 +23,7 @@
 from Misc import *
 import Term
 
+CLAIMRUN = 0    # Hardcoded constant for claiming run
 RUNIDMAP = {}
 
 def SaneRunID(runid):
@@ -107,6 +108,42 @@ class SemiTrace(object):
         event.preceding = preceding
         preceding = filter(lambda x: x not in previous,preceding)
         return preceding
+
+    def hasOutgoingEdges(self,event):
+        """
+        Determine if an event has outgoing edges.
+
+        Currently this is computed in a slow, cumbersome way. We threw away the
+        edges somewhere, so now we reconstruct some of this through the
+        transitive closure on the order.
+
+        This occurs when the event is part of an isbefore set, to which its
+        successor in the run does not belong.
+        """
+        if not(isinstance(event,EventSend)):
+            # Not a send, so can't be.
+            return False
+
+        # Local shortcuts
+        runid = event.run.id
+        idx = event.index
+
+        # Determine successor
+        try:
+            succev = event.run.eventList[idx+1]
+        except:
+            # Has no successor, was added with edge (cannot be claim end)
+            return True
+
+        # Now scan all other runs
+        for run in self.runs:
+            if run.id == runid:
+                continue
+            for ev in run.eventList:
+                if event in ev.follows:
+                    if succev not in ev.follows:
+                        return True
+        return False
     
     # Returns -1 if the first event has to be before the second one
     #         +1 if the second event has to be before the first one
@@ -199,44 +236,65 @@ class SemiTrace(object):
         # Determine the relevant claim
         if len(self.runs) > 0:
             # TODO: Pretty hardcoded stuff, could be much nicer
-            claimev = self.getRun(0).getLastAction()
+            global CLAIMRUN
+
+            claimev = self.getRun(CLAIMRUN).getLastAction()
         else:
             claimev = None
 
         # Determine which events need to be shown
-        myorder = []
         todo = []
         for run in self.runs:
-            for i in range(0,len(run.eventList)):
-                todo.append(self.getEvent((run.id,i)))
+            for ev in run.eventList:
+                todo.append(ev)
 
-        seen = []   # Runs we have already seen
+        myorder = []
         while len(todo) > 0:
             """
-            Wait until we run out of candidates
+            Wait until we run out of candidates.
+            Note we consider non-regular runs to be atomic
             """
             # First find out which are the candidates to go first
             first = []
             for n1 in todo:
+
                 canGoFirst = True
+
+                # Compensate for non-agent run atomicity
+                if n1.run.isAgentRun():
+                    x1 = n1
+                else:
+                    x1 = n1.run.getLastAction()
+
                 for n2 in todo:
-                    if n1 != n2:
-                        if self.getOrder(n1,n2) == 1:
+                    if n1.run.id != n2.run.id:
+
+                        # Compensate for non-agent run atomicity
+                        if self.getOrder(x1,n2) == 1:
                             canGoFirst = False
                             break
+
                 if canGoFirst == True:
                     first.append(n1)
+
+            # One has to be possible
+            assert(len(first) > 0)
 
             # Select a candidate
             ev = first[0]
 
 
-            # The main issue: Append event
-            myorder.append(ev)
+            # The main issue: Append event(s)
+            # Note that we need to deal with atomicity
+            if ev.run.isAgentRun():
+                toadd = [ev]
+            else:
+                toadd = ev.run.eventList
 
-            # Mark done
-            todo.remove(ev)
-
+            for ev in toadd:
+                myorder.append(ev)
+                # Mark done
+                todo.remove(ev)
 
         # Construct sane runidmap
         seen = []
@@ -278,46 +336,55 @@ class SemiTrace(object):
                         if agent == None:
                             # Construction
                             msg = str(ev.run.eventList[2].message)
-                            res += "%i\t\tThe adversary constructs %s\n" % (line,msg)
+                            res += "%i\t\tThe adversary constructs %s.\n" % (line,msg)
                             line += 1
                         else:
                             # Long-term key reveal
                             msg = str(ev.run.eventList[2].message)
-                            res += "%i\t\tLong-term key reveal of %s\n" % (line,msg)
+                            res += "%i\t\tLong-term key reveal of %s.\n" % (line,msg)
                             line += 1
                     elif "I_D" in str(ev.run.role):
                         # Deconstruction
                         msg = str(ev.run.eventList[0].message)
                         mrs = str(ev.run.eventList[2].message)
-                        res += "%i\t\tThe adversary decrypts %s to obtain %s\n" % (line,msg,mrs)
+                        res += "%i\t\tThe adversary decrypts %s to obtain %s.\n" % (line,msg,mrs)
                         line += 1
                     elif "I_M" in str(ev.run.role):
                         # Initial knowledge
                         pass
+                    elif "I_R" in str(ev.run.role):
+                        res += "%i\t\tThe adversary knows %s.\n" % (line,str(ev.run.eventList[0].message))
+                        line += 1
                     else:
                         # Unknown
-                        res += "+\t\tRun %s of Protocol %s, role %s\n" % (ev.run.srid(), ev.run.protocol, ev.run.role)
-                        res += "\t\tintruder: %s\n" % (ev.run.intruder)
+                        res += "%i\t\tProtocol %s, role %s. " % (line,ev.run.srid(), ev.run.protocol, ev.run.role)
+                        res += "'intruder': %s.\n" % (ev.run.intruder)
+                        line += 1
                 else:
                     # Not an intruder run
-                    actor = ev.run.getAgent()
-                    prot = ev.run.protocol
-                    role = ev.run.role
-                    res += "%i\t%s\t%s creates a run of protocol %s in role %s\n" % (line,ev.run.srid(),actor,prot,role)
-                    line += 1
+                    if ev.run.isAgentRun():
+                        # Normal agent run
+                        actor = ev.run.getAgent()
+                        prot = ev.run.protocol
+                        role = ev.run.role
+                        res += "%i\t%s\t%s creates a run of protocol %s in role %s. " % (line,ev.run.srid(),actor,prot,role)
 
-                    otherroles = ev.run.roleAgents.keys()
-                    otherroles.remove(ev.run.role)
-                    res += "%i\t%s\t%s assumes " % (line,ev.run.srid(),actor)
-                    for ind in range(0,len(otherroles)):
-                        role = otherroles[ind]
-                        res += "%s->%s" % (role,ev.run.roleAgents[role])
-                        if ind == len(otherroles) - 2:
-                            res += ", and"
-                        elif ind < len(otherroles) - 2:
-                            res += ", "
-                    res += "\n"
-                    line += 1
+                        otherroles = ev.run.roleAgents.keys()
+                        otherroles.remove(ev.run.role)
+                        res += "%s assumes " % (actor)
+                        for ind in range(0,len(otherroles)):
+                            role = otherroles[ind]
+                            res += "%s->%s" % (role,ev.run.roleAgents[role])
+                            if ind == len(otherroles) - 2:
+                                res += ", and"
+                            elif ind < len(otherroles) - 2:
+                                res += ", "
+                        res += ".\n"
+                        line += 1
+                    elif ev.run.isHelperRun():
+                        # Helper run
+                        msg = ev.run.getLastAction().message
+                        res += "%i\t\tThe adversary derives %s (using helper %s,%s).\n" % (line,msg,ev.run.protocol,ev.run.role)
                         
             # Display the concrete event if needed
             if ev.run.intruder == False:
@@ -331,16 +398,22 @@ class SemiTrace(object):
 
                     if relevant:
                         if ev.compromisetype == None:
-                            res += "%i\t%s\t%s\n" % (line,ev.run.srid(),str(ev))
+                            # Normal event
+                            res += "%i\t%s\t%s.\n" % (line,ev.run.srid(),str(ev))
                             line += 1
                         else:
-                            compromiseTypes = { "SSR":"Session-state", "SKR":"Session-key", "RNR":"Random" }
-                            if ev.compromisetype in compromiseTypes.keys():
-                                res += "%i\t%s\t%s reveal of %s\n" % (line,ev.run.srid(),compromiseTypes[ev.compromisetype],str(ev.message))
-                                line += 1
+                            # Compromise
+                            if self.hasOutgoingEdges(ev):
+                                compromiseTypes = { "SSR":"Session-state", "SKR":"Session-key", "RNR":"Random" }
+                                if ev.compromisetype in compromiseTypes.keys():
+                                    res += "%i\t%s\t%s reveal of %s.\n" % (line,ev.run.srid(),compromiseTypes[ev.compromisetype],str(ev.message))
+                                    line += 1
+                                else:
+                                    res += "%i\t%s\tReveal of %s (unknown reveal type).\n" % (line,ev.run.srid(),str(ev.message))
+                                    line += 1
                             else:
-                                res += "%i\t%s\tReveal of %s (unknown reveal type)\n" % (line,ev.run.srid(),str(ev.message))
-                                line += 1
+                                # Skip because compromise without outgoing edges
+                                pass
                 else:
                     # Helper protocol
                     pass    # skip
