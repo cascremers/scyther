@@ -23,6 +23,18 @@
 import Trace
 from Misc import *
 
+rewriteStack = []
+
+def pushRewriteStack(func):
+    global rewriteStack
+
+    rewriteStack.append(func)
+
+def popRewriteStack():
+    global rewriteStack
+
+    rewriteStack = rewriteStack[:-2]
+
 class InvalidTerm(TypeError):
     "Exception used to indicate that a given term is invalid"
     
@@ -126,6 +138,12 @@ class TermConstant(Term):
     def __init__(self, constant):
         Term.__init__(self)
         self.value = str(constant)
+        dt = str(constant).split("#")
+        self.term = dt[0]
+        if len(dt) > 1:
+            self.runid = dt[1]
+        else:
+            self.runid = None
     
     def deriveTerms(self,knowledge):
         return [self]
@@ -134,7 +152,15 @@ class TermConstant(Term):
         return [self]
     
     def __str__(self):
-        return self.value
+        if self.runid == None:
+            return self.value
+        else:
+            global rewriteStack
+
+            x = self.runid
+            for func in rewriteStack:
+                x = func(x)
+            return "%s#%s" % (self.term,x)
 
 class TermEncrypt(Term):
     def __init__(self, value, key):

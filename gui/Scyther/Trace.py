@@ -21,6 +21,21 @@
 # Trace
 #
 from Misc import *
+import Term
+
+RUNIDMAP = {}
+
+def SaneRunID(runid):
+    """
+    Function to rewrite Scyther's internal run identifiers to something that humans like.
+    """
+    global RUNIDMAP
+
+    k = str(runid)
+    if k in RUNIDMAP.keys():
+        return RUNIDMAP[k]
+    else:
+        return runid
 
 class InvalidAction(TypeError):
     "Exception used to indicate that a given action is invalid"
@@ -179,6 +194,7 @@ class SemiTrace(object):
 
         If we are given the protocol description, we can say a bit more.
         """
+        global RUNIDMAP
 
         # Determine the relevant claim
         if len(self.runs) > 0:
@@ -188,18 +204,12 @@ class SemiTrace(object):
             claimev = None
 
         # Determine which events need to be shown
-        done = []
+        myorder = []
         todo = []
         for run in self.runs:
             for i in range(0,len(run.eventList)):
                 todo.append(self.getEvent((run.id,i)))
 
-        res = ""    # Buffer for the returned result string
-        # Construct table headers
-        res += "Step\tRun\tDescription\n"
-        res += "\n"
-
-        line = 1    # Line counter
         seen = []   # Runs we have already seen
         while len(todo) > 0:
             """
@@ -220,12 +230,44 @@ class SemiTrace(object):
             # Select a candidate
             ev = first[0]
 
-            # Append to the output
+
+            # The main issue: Append event
+            myorder.append(ev)
+
+            # Mark done
+            todo.remove(ev)
+
+
+        # Construct sane runidmap
+        seen = []
+        runid = 1
+        for ev in myorder:
+            if ev.run in seen:
+                continue
+            seen.append(ev.run)
+            if ev.run.isAgentRun():
+                RUNIDMAP[str(ev.run.id)] = runid
+                runid += 1
+
+        Term.pushRewriteStack(SaneRunID)
+
+        # Display events in the chosen order
+        # Construct table headers
+        res = ""    # Buffer for the returned result string
+        res += "Step\tRun\tDescription\n"
+        res += "\n"
+
+        line = 1    # Line counter
+        seen = []   # Runs we have already seen
+
+        for ev in myorder:
+
+            # Display headers for new things
             if ev.run in seen:
                 # Already seen before
                 pass
             else:
-                # Run not seen before
+                # Run not seen before, so store run
                 seen.append(ev.run)
                 if ev.run.intruder == True:
                     # Intruder action
@@ -254,19 +296,19 @@ class SemiTrace(object):
                         pass
                     else:
                         # Unknown
-                        res += "+\t\tRun %i of Protocol %s, role %s\n" % (ev.run.id, ev.run.protocol, ev.run.role)
+                        res += "+\t\tRun %s of Protocol %s, role %s\n" % (ev.run.srid(), ev.run.protocol, ev.run.role)
                         res += "\t\tintruder: %s\n" % (ev.run.intruder)
                 else:
                     # Not an intruder run
                     actor = ev.run.getAgent()
                     prot = ev.run.protocol
                     role = ev.run.role
-                    res += "%i\t%i\t%s creates a run of protocol %s in role %s\n" % (line,ev.run.id,actor,prot,role)
+                    res += "%i\t%s\t%s creates a run of protocol %s in role %s\n" % (line,ev.run.srid(),actor,prot,role)
                     line += 1
 
                     otherroles = ev.run.roleAgents.keys()
                     otherroles.remove(ev.run.role)
-                    res += "%i\t%i\t%s assumes " % (line,ev.run.id,actor)
+                    res += "%i\t%s\t%s assumes " % (line,ev.run.srid(),actor)
                     for ind in range(0,len(otherroles)):
                         role = otherroles[ind]
                         res += "%s->%s" % (role,ev.run.roleAgents[role])
@@ -289,24 +331,21 @@ class SemiTrace(object):
 
                     if relevant:
                         if ev.compromisetype == None:
-                            res += "%i\t%i\t%s\n" % (line,ev.run.id,str(ev))
+                            res += "%i\t%s\t%s\n" % (line,ev.run.srid(),str(ev))
                             line += 1
                         else:
                             compromiseTypes = { "SSR":"Session-state", "SKR":"Session-key", "RNR":"Random" }
                             if ev.compromisetype in compromiseTypes.keys():
-                                res += "%i\t%i\t%s reveal of %s\n" % (line,ev.run.id,compromiseTypes[ev.compromisetype],str(ev.message))
+                                res += "%i\t%s\t%s reveal of %s\n" % (line,ev.run.srid(),compromiseTypes[ev.compromisetype],str(ev.message))
                                 line += 1
                             else:
-                                res += "%i\t%i\tReveal of %s (unknown reveal type)\n" % (line,ev.run.id,str(ev.message))
+                                res += "%i\t%s\tReveal of %s (unknown reveal type)\n" % (line,ev.run.srid(),str(ev.message))
                                 line += 1
                 else:
                     # Helper protocol
                     pass    # skip
 
-
-            # Mark done
-            done.append(ev)
-            todo.remove(ev)
+        Term.popRewriteStack()
 
         # Return the result
         return res
@@ -380,6 +419,22 @@ class Run(object):
 
     def __iter__(self):
         return iter(self.eventList)
+
+    def srid(self):
+        # Sane run id
+        return SaneRunID(self.id)
+
+    def isHelperRun(self):
+        if self.intruder == True:
+            return False
+        if str(self.protocol).startswith("@"):
+            return True
+        return False
+
+    def isAgentRun(self):
+        if self.intruder == True:
+            return False
+        return not self.isHelperRun()
 
     def getAgent(self):
         if self.intruder:
