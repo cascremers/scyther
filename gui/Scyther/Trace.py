@@ -305,6 +305,10 @@ class Matrix(object):
         else:
             return ""
 
+    def getWidth(self):
+        (x,y) = max(self.data.keys(), key=lambda x: x[0])
+        return 1 + x
+
     def getHeight(self):
         (x,y) = max(self.data.keys(), key=lambda x: x[1])
         return 1 + y
