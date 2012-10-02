@@ -25,7 +25,7 @@ import Term
 
 CLAIMRUN = 0    # Hardcoded constant for claiming run
 RUNIDMAP = {}
-MAXTERMSIZE = 6 # Hardcoded constant
+MAXTERMSIZE = 16 # Hardcoded constant
 
 def permuteRuns(runstodo,callback,sequence=None):
     """
@@ -216,6 +216,77 @@ class InvalidEvent(TypeError):
     "Exception used to indicate that a given event is invalid"
 
 
+class AbbrevContext(object):
+    """
+    Used to compute a single abbreviation that helps the most
+    """
+
+    def __init__(self,termlist):
+
+        self.termlist = termlist
+        self.subterms = None
+
+    def setup(self):
+
+        if self.subterms != None:
+            return
+
+        self.subterms = []
+        self.subtermcount = {}
+        for t in self.termlist:
+            stlist = t.subterms()
+            for st in stlist:
+                if str(st) not in self.subtermcount.keys():
+                    self.subterms.append(st)
+                    self.subtermcount[str(st)] = 1
+                else:
+                    self.subtermcount[str(st)] += 1
+
+    def isCandidate(self,term):
+        """
+        True iff we might be abbreviated
+        """
+        global MAXTERMSIZE
+
+        ts = term.size()
+        if ts <= 1:
+            return False
+        if ts > 6:
+            return True
+        if len(str(term)) > MAXTERMSIZE:
+            return True
+        return False
+
+    def valCandidate(self,term):
+        """
+        Higher is better.
+        Currently lexicographic-ish (occurrences, size)
+        """
+        occ = self.subtermcount[str(term)]
+        size = len(str(term))
+        val = (20 * occ) + size
+        return val
+
+    def select(self):
+
+        self.setup()
+
+        bestval = None
+        bestterm = None
+        for term in self.subterms:
+            if self.isCandidate(term):
+                val = self.valCandidate(term)
+                if bestterm == None:
+                    bestval = val
+                    bestterm = term
+                elif val > bestval:
+                    bestval = val
+                    bestterm = term
+
+        return bestterm
+
+
+
 
 class Matrix(object):
 
@@ -368,45 +439,15 @@ class SemiTrace(object):
                     enabled.append(event)
         return enabled
           
-    def subterms(self):
-        # Determine subterms
-        subterms = []
+    def collectTerms(self):
+        # Determine relevant terms
+        terms = []
         for run in self.runs:
             for ev in run.eventList:
                 if not self.ignoreEvent(ev):
                     if ev.message != None:
-                        subterms += ev.message.subterms()
-        return subterms
-
-
-    def abbreviateOne(self,subterms):
-        """
-        Abbreviate one term, return None if not needed.
-        """
-        global MAXTERMSIZE
-
-        # Determine largest size
-        maxterm = max(subterms, key= lambda t: t.size())
-        msize = maxterm.size()
-
-        if msize <= MAXTERMSIZE:
-            return None
-
-        cmap = {}
-        cmax = 0
-        for t in subterms:
-            st = str(t)
-            if t.size() > MAXTERMSIZE:
-                if t in cmap.keys():
-                    cmap[st] += 1
-                else:
-                    cmap[st] = 1
-                if cmax < cmap[st]:
-                    cmax = cmap[st]
-            else:
-                cmap[st] = -1
-
-        return max([t for t in subterms], key = lambda t: cmap[str(t)] * t.size())
+                        terms.append(ev.message)
+        return terms
 
     def newName(self,subterms):
         """
@@ -433,14 +474,16 @@ class SemiTrace(object):
         Abbreviate some stuff
         """
         abbreviations = {}
+        abkeys = []
         while True:
-            ss = self.subterms()
-            #print [str(s) for s in ss]
-            ab = self.abbreviateOne(ss)
+            ss = self.collectTerms()
+            AC = AbbrevContext(ss)
+            ab = AC.select()
             if ab == None:
                 break
 
             nn = self.newName(ss)
+            abkeys.append(nn)
             abbrev = {}
             abbrev[str(ab)] = Term.TermConstant(nn)
             self.replace(abbrev)
@@ -448,7 +491,7 @@ class SemiTrace(object):
                 abbreviations[k] = abbreviations[k].replace(abbrev)
             abbreviations[nn] = ab
         
-        for k in abbreviations.keys():
+        for k in abkeys:
             self.comments += "Abbreviation: %s = %s\n" % (k, str(abbreviations[k]))
 
 
