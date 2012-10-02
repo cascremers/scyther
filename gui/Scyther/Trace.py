@@ -26,6 +26,176 @@ import Term
 CLAIMRUN = 0    # Hardcoded constant for claiming run
 RUNIDMAP = {}
 
+def permuteRuns(runstodo,callback,sequence=None):
+    """
+    Perform callback on all possible permutations of the runs.
+    The callback can return a sequence, these are concatenated.
+
+    Special:
+    - Neighbouring grouped runs are in increasing ID order
+    - Helper runs are omitted
+
+    Sequence == None is a special setup command that gets rid of hidden runs
+
+    run.vistype:
+      "HIDDEN", None (== unique), and grouped names (e.g. "intruder")
+
+    """
+    # Init
+    if sequence == None:
+        seq = [run for run in runstodo if not run.vistype == "HIDDEN"]
+        permuteRuns(seq,callback,[])
+        return
+
+    # Nothing left
+    if len(runstodo) == 0:
+        return callback(sequence)
+
+    for run in runstodo:
+        # Not a hidden run by construction
+        skip = False
+
+        # Ensure neighbouring grouped runs are increasing in run ID
+        if (run.vistype != None) and (run.vistype != "HIDDEN"):
+            if len(sequence) > 0:
+                if sequence[-1].vistype == run.vistype:
+                    if sequence[-1].id > run.id:
+                        skip = True
+
+        # Iterate
+        if skip == False:
+            seq = [r for r in runstodo if r != run]
+            #print "Hi", len(runstodo), len(seq)
+            permuteRuns(seq,callback,sequence=sequence + [run])
+
+    return
+
+
+def permuteMinimalCost(runstodo,callcost,takeFirst=False):
+    global bestseq, bestcost
+
+    bestseq = None
+    bestcost = None
+
+    permuteMinimalCostIterate(runstodo,callcost,takeFirst=takeFirst)
+
+    return bestseq
+
+def permuteMinimalCostIterate(runstodo,callcost,sequence=None,takeFirst=False):
+    """
+    Perform callback on all possible permutations of the runs.
+    Minimizes cost function
+
+    Special:
+    - Neighbouring grouped runs are in increasing ID order
+    - Helper runs are omitted
+
+    Sequence == None is a special setup command that gets rid of hidden runs
+
+    run.vistype:
+      "HIDDEN", None (== unique), and grouped names (e.g. "intruder")
+
+    """
+    global bestseq, bestcost
+
+    # Cutter
+    if (takeFirst == True) and (bestcost != None):
+        return
+
+    # Init
+    if sequence == None:
+        seq = [run for run in runstodo if not run.vistype == "HIDDEN"]
+        permuteMinimalCostIterate(seq,callcost,[])
+        return
+
+    # Still okay?
+    cost = callcost(sequence)
+    
+    # Nothing left
+    if len(runstodo) == 0:
+        better = True
+        if bestcost != None:
+            if cost >= bestcost:
+                better = False
+        if better:
+            bestcost = cost
+            bestseq = [r for r in sequence]
+            print "Cheaper solution with len %i and cost %i" % (len(bestseq),cost)
+
+    # Premature cut?
+    if bestcost != None:
+        if cost >= bestcost:
+            return
+
+    for run in runstodo:
+        # Not a hidden run by construction
+        skip = False
+
+        # Ensure neighbouring grouped runs are increasing in run ID
+        if (run.vistype != None) and (run.vistype != "HIDDEN"):
+            if len(sequence) > 0:
+                if sequence[-1].vistype == run.vistype:
+                    if sequence[-1].id > run.id:
+                        skip = True
+
+        # Iterate
+        if not skip:
+            seq = [r for r in runstodo if r != run]
+            #print "Hi", len(runstodo), len(seq)
+            permuteMinimalCostIterate(seq,callcost,sequence=sequence + [run])
+
+    return
+
+
+def colCompress(sequence):
+    """
+    Turns a sequence of runs into a sequences of run sequences, joining groups and omitting "HIDDEN"
+    """
+    newseq = []
+    column = []
+    for run in sequence:
+        if run.vistype != "HIDDEN":
+            if run.vistype == None:
+                if len(column) > 0:
+                    newseq.append(column)
+                    column = []
+                newseq.append([run])
+            else:
+                # Possibly groupable run
+                if len(column) == 0:
+                    column = [run]
+                else:
+                    # There's something in buf
+                    if run.vistype == column[0].vistype:
+                        # Same type
+                        column.append(run)
+                    else:
+                        # Switch to new type
+                        newseq.append(column)
+                        column = [run]
+    # Flush
+    if len(column) > 0:
+        newseq.append(column)
+
+    return newseq
+            
+
+
+def ridColMap(cseq):
+    """
+    Takes a sequence of sequence of runs and turns them into a map from run ids to columns
+    """
+    ridmap = {}
+    col = 0
+    for clist in cseq:
+        for run in clist:
+            ridmap[run.id] = col
+        col += 1
+    return ridmap
+
+
+
+
 def SaneRunID(runid):
     """
     Function to rewrite Scyther's internal run identifiers to something that humans like.
@@ -43,6 +213,132 @@ class InvalidAction(TypeError):
     
 class InvalidEvent(TypeError):
     "Exception used to indicate that a given event is invalid"
+
+
+
+class Matrix(object):
+
+    def __init__(self,trace):
+        self.width = 0
+        self.data = {}  # Map coordinates (x,y) to elements
+        self.trace = trace
+        self.result = None
+
+    def mset(self,x,y,d):
+        self.data[(x,y)] = d
+
+    def mget(self,x,y):
+        if (x,y) in self.data.keys():
+            return self.data[(x,y)]
+        else:
+            return ""
+
+    def getHeight(self):
+        (x,y) = max(self.data.keys(), key=lambda x: x[1])
+        return 1 + y
+
+    def compute(self):
+        """
+        Experimental matrix output
+        """
+        global checked,bestseq,bestcost
+
+        bestseq = None
+        bestcost = 0
+        checked = 0
+
+        # Mark grouping
+        for run in self.trace.runs:
+            if run.intruder == True:
+                run.vistype = "INTRUDER"
+            else:
+                run.vistype = None
+
+        # Determine best order
+        def checkSolution(sequence):
+            global checked,bestseq,bestcost
+
+            checked += 1
+            cost = self.trace.sequenceCost(sequence)
+            if bestseq != None:
+                if cost >= bestcost:
+                    return
+
+            bestseq = [x for x in sequence]
+            bestcost = cost
+
+        #permuteRuns(self.trace.runs,checkSolution)
+        bestseq = permuteMinimalCost(self.trace.runs,self.trace.sequenceCost,takeFirst=True)
+        print "Checked: %i" % (checked)
+
+        # Compressed columns representation
+        comprCol = colCompress(bestseq)
+        colwidths = {}
+        numcols = len(comprCol)
+        for i in range(0,numcols):
+            mw = 0
+            for run in comprCol[i]:
+                w = run.maxWidth()
+                if w > mw:
+                    mw = w
+            colwidths[i] = mw
+
+        # Construct
+        myorder = self.trace.lineariseTrace()
+
+        # Put in
+        seen = []   # Runs observed
+        my = 0
+        for y in range(0,len(myorder)):
+            ev = myorder[y]
+            x = None
+            for i in range(0,numcols):
+                if ev.run in comprCol[i]:
+                    cell = []
+                    # Header?
+                    if ev.run not in seen:
+                        cell += ev.run.matrixHead()
+                        seen.append(ev.run)
+                    # Append event if needed
+                    skip = False
+                    if ev.compromisetype != None:
+                        if not self.trace.hasOutgoingEdges(ev):
+                            skip = True
+                    if not skip:
+                        cell += [ev.matrix()]
+                    # Store column
+                    x = i
+
+            for j in range(0,len(cell)):
+                if cell[j] != "":
+                    self.mset(x,my,cell[j])
+                    my += 1
+
+        # Current matrix has one element per line
+        #
+        # TODO: We may want to join up some lines
+
+        # Display
+        res = ""
+        for y in range(0,self.getHeight()):
+            for x in range(0,numcols):
+                s = self.mget(x,y)
+                if s != "---":
+                    s = s + " " * (1 + colwidths[x] - len(s))
+                else:
+                    s = ("-" * (colwidths[x])) + " "
+
+                res += s
+            res += "\n"
+        return res
+
+
+    def __str__(self):
+        if self.result == None:
+            self.result = self.compute()
+
+        return self.result
+
 
 class SemiTrace(object):
     def __init__(self):
@@ -220,28 +516,7 @@ class SemiTrace(object):
                 return run
         return None
 
-    def __str__(self,protocoldescr=None):
-        """
-        Visualize the semi-trace
-
-        We have a number of runs with eventlists.
-        We want to linearize and explain them.
-
-        Tuples: runid x index
-
-        If we are given the protocol description, we can say a bit more.
-        """
-        global RUNIDMAP
-
-        # Determine the relevant claim
-        if len(self.runs) > 0:
-            # TODO: Pretty hardcoded stuff, could be much nicer
-            global CLAIMRUN
-
-            claimev = self.getRun(CLAIMRUN).getLastAction()
-        else:
-            claimev = None
-
+    def lineariseTrace(self):
         # Determine which events need to be shown
         todo = []
         for run in self.runs:
@@ -295,6 +570,32 @@ class SemiTrace(object):
                 myorder.append(ev)
                 # Mark done
                 todo.remove(ev)
+
+        return myorder
+
+    def __str__(self,protocoldescr=None):
+        """
+        Visualize the semi-trace
+
+        We have a number of runs with eventlists.
+        We want to linearize and explain them.
+
+        Tuples: runid x index
+
+        If we are given the protocol description, we can say a bit more.
+        """
+        global RUNIDMAP
+
+        # Determine the relevant claim
+        if len(self.runs) > 0:
+            # TODO: Pretty hardcoded stuff, could be much nicer
+            global CLAIMRUN
+
+            claimev = self.getRun(CLAIMRUN).getLastAction()
+        else:
+            claimev = None
+
+        myorder = self.lineariseTrace()
 
         # Construct sane runidmap
         seen = []
@@ -372,13 +673,7 @@ class SemiTrace(object):
                         otherroles = ev.run.roleAgents.keys()
                         otherroles.remove(ev.run.role)
                         res += "%s assumes " % (actor)
-                        for ind in range(0,len(otherroles)):
-                            role = otherroles[ind]
-                            res += "%s->%s" % (role,ev.run.roleAgents[role])
-                            if ind == len(otherroles) - 2:
-                                res += ", and"
-                            elif ind < len(otherroles) - 2:
-                                res += ", "
+                        res += ev.run.getAssumptions()
                         res += ".\n"
                         line += 1
                     elif ev.run.isHelperRun():
@@ -422,6 +717,89 @@ class SemiTrace(object):
 
         # Return the result
         return res
+
+
+    def countCrossings(self,cseq,weightmap={}):
+        """
+        Processes a sequence of sequences of runs (the compressed sequence of columns->run sets)
+
+        For now, we are not supporting "HIDDEN" well.
+        The output of this function is only meaningful if there are no vistype=="HIDDEN" nodes.
+
+        Weightmap assigns weights to vistypes. Note that the weights default to 1.
+        """
+        global crossings
+
+        # Map run id's to columns
+        ridmap = ridColMap(cseq)
+        
+        # Sequence maps indices to non-helper runs
+        crossings = 0
+
+        def countJumps(srccol,dstcol,weightmap):
+            global crossings
+
+            if dstcol > srccol:
+                mincol = srccol
+                maxcol = dstcol
+            else:
+                mincol = dstcol
+                maxcol = srccol
+            for i in range(mincol+1,maxcol):
+                mrun = cseq[i]
+                if mrun.vistype in weightmap.keys():
+                    crossings += weightmap[mrun.vistype]
+                else:
+                    crossings += 1
+        
+        # Iterate over all bindings
+        for clist in cseq:
+            for run in clist:
+                if run.vistype == "HIDDEN":
+                    continue
+                dstcol = ridmap[run.id]
+                for evd in run.eventList:
+                    for x in evd.follows:
+                        evs = self.getEvent(x)
+                        if evs.run == run:
+                            continue
+                        if evs.run.vistype == "HIDDEN":
+                            continue
+                        try:
+                            srccol = ridmap[evs.run.id]
+                            countJumps(srccol,dstcol,weightmap)
+                        except:
+                            pass
+
+        return crossings
+
+    def sequenceCost(self,sequence):
+        """
+        Determine cost based on "islands" and crossings.
+        "islands" are covered by length of the compressed sequence
+        """
+        cseq = colCompress(sequence)
+        weightmap = {}
+        weightmap["INTRUDER"] = 0.2
+        weightmap["HIDDEN"] = 0
+        cost = self.countCrossings(cseq,weightmap)
+        clen = len(cseq)
+
+        return cost + (5 * clen)
+
+
+
+    def matrix(self):
+        """
+        Experimental matrix output
+        """
+
+        m = Matrix(self)
+
+        print str(m)
+                
+
+
 
             
 class ProtocolDescription(object):
@@ -489,6 +867,7 @@ class Run(object):
         self.intruder = False
         self.attack = None
         self.variables = []
+        self.vistype = None     # "HIDDEN", None (== unique), or any string
 
     def __iter__(self):
         return iter(self.eventList)
@@ -520,6 +899,19 @@ class Run(object):
     def getLastAction(self):
         return self.eventList[-1]
 
+    def getAssumptions(self):
+        res = ""
+        otherroles = self.roleAgents.keys()
+        otherroles.remove(self.role)
+        for ind in range(0,len(otherroles)):
+            role = otherroles[ind]
+            res += "%s->%s" % (role,self.roleAgents[role])
+            if ind == len(otherroles) - 2:
+                res += ", and"
+            elif ind < len(otherroles) - 2:
+                res += ", "
+        return res
+
     def findProtocol(self,pdescr):
         """
         Find our protocol in a protocol description set
@@ -545,6 +937,30 @@ class Run(object):
                 return self.eventList[0].message
         return None
 
+    def matrixHead(self):
+        # Return matrix head: array of single lines
+        if not self.isAgentRun():
+            return ["%s" % (self.role)]
+        else:
+            hd = ["---",
+                  "Create run %i" % (self.srid()),
+                  "%s in protocol %s, role %s" % (self.getAgent(),self.protocol,self.role),
+                  "Assumes %s" % (self.getAssumptions()),
+                  "---"
+                    ]
+            return hd
+
+    def maxWidth(self):
+        mw = 0
+        column = self.matrixHead()
+        for ev in self.eventList:
+            column.append(ev.matrix())
+        for l in column:
+            w = len(l)
+            if w > mw:
+                mw = w
+        return mw
+
 class Event(object):
     def __init__(self,index,label,follows,compromisetype=None):
         self.index = index
@@ -559,7 +975,12 @@ class Event(object):
         try:
             return self.label[len(self.label)-1]
         except:
-            return str(self.label)
+            slabel = str(self.label)
+            if "," in slabel:
+                return slabel.split(",")[-1]
+            else:
+                return slabel
+
 
     def getBefore(self):
         result = []
@@ -569,6 +990,15 @@ class Event(object):
             result.append(event)
         # This should never happen
         assert(False)
+
+    def __str__(self):
+        return ""
+
+    def matrix(self):
+        if self.run.isAgentRun():
+            return self.__str__()
+        else:
+            return ""
 
 class EventSend(Event):
     def __init__(self,index,label,follows,fr,to,message,compromisetype=None):
@@ -592,9 +1022,9 @@ class EventRead(Event):
     
     def __str__(self):
         if self.run.intruder:
-            return "READ(%s)" % self.message
+            return "RECV(%s)" % self.message
         else:
-            return "READ_%s(%s,%s)" % (self.shortLabel(),self.fr, self.message)
+            return "RECV_%s(%s,%s)" % (self.shortLabel(),self.fr, self.message)
 
 class EventClaim(Event):
     def __init__(self,index,label,follows,role,type,argument,compromisetype=None):
@@ -623,7 +1053,19 @@ class EventClaim(Event):
             return str(self.argument)
             
     def __str__(self):
-        return "CLAIM_%s(%s, %s)" % (self.shortLabel(),self.type,self.argstr())
+
+        skip = True
+        if self.run != None:
+            if self.run.id == CLAIMRUN:
+                if self.run.getLastAction() == self:
+                    skip = False
+
+        if skip == True:
+            msg = ""
+        else:
+            msg = "CLAIM_%s(%s, %s)" % (self.shortLabel(),self.type,self.argstr())
+        return msg
+
 
 class EventIntruder(Event):
     """
