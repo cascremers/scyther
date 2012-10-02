@@ -819,7 +819,7 @@ class SemiTrace(object):
             # Display the concrete event if needed
             if ev.run.intruder == False:
                 # Normal run
-                if not(str(ev.run.protocol).startswith("@")):
+                if not ev.run.isHelperRun():
                     # Not a helper protocol
                     relevant = True
                     if str(ev).startswith("CLAIM"):
