@@ -255,6 +255,8 @@ class AbbrevContext(object):
             return True
         if len(str(term)) > MAXTERMSIZE:
             return True
+        if (len(str(term)) > 6) and (self.subtermcount[str(term)] > 2):
+            return True
         return False
 
     def valCandidate(self,term):
@@ -318,6 +320,7 @@ class Matrix(object):
         Experimental matrix output
         """
         global checked,bestseq,bestcost
+        global RUNIDMAP
 
         bestseq = None
         bestcost = 0
@@ -325,7 +328,9 @@ class Matrix(object):
 
         # Mark grouping
         for run in self.trace.runs:
-            if run.intruder == True:
+            if run.intruder:
+                run.vistype = "INTRUDER"
+            elif run.isHelperRun():
                 run.vistype = "INTRUDER"
             else:
                 run.vistype = None
@@ -361,6 +366,22 @@ class Matrix(object):
 
         # Construct
         myorder = self.trace.lineariseTrace()
+
+        # Construct sane runidmap
+        seen = []
+        runid = 1
+        for ev in myorder:
+            if ev.run in seen:
+                continue
+            seen.append(ev.run)
+            if ev.run.isAgentRun():
+                RUNIDMAP[str(ev.run.id)] = runid
+                runid += 1
+
+        Term.pushRewriteStack(SaneRunID)
+
+        # Abbreviations
+        self.trace.abbreviate()
 
         # Put in
         seen = []   # Runs observed
@@ -406,6 +427,9 @@ class Matrix(object):
 
                 res += s
             res += "\n"
+
+        Term.popRewriteStack()
+
         return res
 
 
@@ -498,6 +522,13 @@ class SemiTrace(object):
         for k in abkeys:
             self.comments += "Abbreviation: %s = %s\n" % (k, str(abbreviations[k]))
 
+        # For debugging
+        #res = ""
+        #for t in ss:
+        #    res += "%s; " % str(t)
+        #res += "\n"
+        #self.comments += res
+
 
     def ignoreEvent(self,ev):
         global CLAIMRUN
@@ -506,10 +537,18 @@ class SemiTrace(object):
         if isinstance(ev,EventClaim):
             if ev == self.getRun(CLAIMRUN).getLastAction():
                 return True
-        else:
-            if ev.compromisetype != None:
-                if not self.hasOutgoingEdges(ev):
+        elif ev.compromisetype != None:
+            if not self.hasOutgoingEdges(ev):
+                return True
+        elif ev.run.intruder:
+            # Intruder: we ignore some parts of I_E and I_D
+            if "I_E" in ev.run.role:
+                if ev.index != 2:
                     return True
+            if "I_D" in ev.run.role:
+                if ev.index != 0:
+                    return True
+
         return False
 
     # Returns run,index tuples for all connections
@@ -739,6 +778,9 @@ class SemiTrace(object):
                 runid += 1
 
         Term.pushRewriteStack(SaneRunID)
+
+        # Abbreviations
+        self.abbreviate()
 
         # Display events in the chosen order
         # Construct table headers
@@ -1084,7 +1126,12 @@ class Run(object):
     def matrixHead(self):
         # Return matrix head: array of single lines
         if not self.isAgentRun():
-            return ["%s" % (self.role)]
+            if self.intruder:
+                return [""]
+            elif self.isHelperRun():
+                return [""]
+            else:
+                return ["%s" % (self.role)]
         else:
             hd = ["---",
                   "Create run %i" % (self.srid()),
@@ -1141,6 +1188,26 @@ class Event(object):
     def matrix(self):
         if self.run.isAgentRun():
             return self.__str__()
+        elif self.run.isHelperRun():
+            # Helper
+            if self.index == len(self.run.eventList) - 1:
+                return "%s %s" % (self.run.protocol,self.message)
+            else:
+                return ""
+        elif self.run.intruder :
+            # Intruder run
+            realindex = 0
+            text = "Construct"
+            if "I_E" in self.run.role:
+                realindex = 2
+            elif "I_D" in self.run.role:
+                text = "Decrypt"
+            elif "I_M" in self.run.role:
+                text = "Initial knowledge"
+            if self.index == realindex:
+                return "%s %s" % (text,self.message)
+            else:
+                return ""
         else:
             return ""
 

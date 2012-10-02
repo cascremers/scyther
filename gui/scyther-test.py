@@ -57,7 +57,6 @@ if __name__ == '__main__':
             print cl
             print cl.roledescribe()
             for att in cl.attacks:
-                att.semiTrace.abbreviate()
                 print att
                 print att.semiTrace.matrix()
 
