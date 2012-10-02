@@ -61,6 +61,8 @@ class MainWindow(wx.Frame):
         MainInitOnce()
 
         self.filename = 'noname.spdl'
+        self.filepath = ""
+
         self.load = False
 
         # test
@@ -199,8 +201,10 @@ class MainWindow(wx.Frame):
         dialog = wx.FileDialog(self, **dialogOptions)
         if dialog.ShowModal() == wx.ID_OK:
             userProvidedFilename = True
-            self.filename = dialog.GetFilename()
-            self.dirname = dialog.GetDirectory()
+            self.filepath = dialog.GetPath()
+            (p1,p2) = os.path.split(self.filepath)
+            self.dirname = p1
+            self.filename = p2
             self.SetTitle() # Update the window title with the new filename
         else:
             userProvidedFilename = False

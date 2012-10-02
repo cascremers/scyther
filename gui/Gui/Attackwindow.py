@@ -188,7 +188,7 @@ class AttackDisplay(wx.ScrolledWindow):
     def askUserForFilename(self, **dialogOptions):
         dialog = wx.FileDialog(self, **dialogOptions)
         if dialog.ShowModal() == wx.ID_OK:
-            res = "%s/%s" % (dialog.GetDirectory(), dialog.GetFilename())
+            res = dialog.GetPath()
         else:
             res = None
         dialog.Destroy()
