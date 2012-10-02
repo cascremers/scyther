@@ -554,13 +554,6 @@ class SemiTrace(object):
     def hasOutgoingEdges(self,event):
         """
         Determine if an event has outgoing edges.
-
-        Currently this is computed in a slow, cumbersome way. We threw away the
-        edges somewhere, so now we reconstruct some of this through the
-        transitive closure on the order.
-
-        This occurs when the event is part of an isbefore set, to which its
-        successor in the run does not belong.
         """
         if not(isinstance(event,EventSend)):
             # Not a send, so can't be.
@@ -568,22 +561,13 @@ class SemiTrace(object):
 
         # Local shortcuts
         runid = event.run.id
-        idx = event.index
-
-        # Determine successor
-        try:
-            succev = event.run.eventList[idx+1]
-        except:
-            # Has no successor, was added with edge (cannot be claim end)
-            return True
+        evid = (runid,event.index)
 
         # Now scan all other runs
         for run in self.runs:
-            if run.id == runid:
-                continue
-            for ev in run.eventList:
-                if event in ev.follows:
-                    if succev not in ev.follows:
+            if run.id != runid:
+                for ev in run.eventList:
+                    if evid in ev.follows:
                         return True
         return False
     
