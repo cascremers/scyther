@@ -25,6 +25,7 @@ import Term
 
 CLAIMRUN = 0    # Hardcoded constant for claiming run
 RUNIDMAP = {}
+MAXTERMSIZE = 6 # Hardcoded constant
 
 def permuteRuns(runstodo,callback,sequence=None):
     """
@@ -343,6 +344,7 @@ class Matrix(object):
 class SemiTrace(object):
     def __init__(self):
         self.runs = []
+        self.comments = ""
     
     def totalCount(self):
         count = 0
@@ -366,6 +368,103 @@ class SemiTrace(object):
                     enabled.append(event)
         return enabled
           
+    def subterms(self):
+        # Determine subterms
+        subterms = []
+        for run in self.runs:
+            for ev in run.eventList:
+                if not self.ignoreEvent(ev):
+                    if ev.message != None:
+                        subterms += ev.message.subterms()
+        return subterms
+
+
+    def abbreviateOne(self,subterms):
+        """
+        Abbreviate one term, return None if not needed.
+        """
+        global MAXTERMSIZE
+
+        # Determine largest size
+        maxterm = max(subterms, key= lambda t: t.size())
+        msize = maxterm.size()
+
+        if msize <= MAXTERMSIZE:
+            return None
+
+        cmap = {}
+        cmax = 0
+        for t in subterms:
+            st = str(t)
+            if t.size() > MAXTERMSIZE:
+                if t in cmap.keys():
+                    cmap[st] += 1
+                else:
+                    cmap[st] = 1
+                if cmax < cmap[st]:
+                    cmax = cmap[st]
+            else:
+                cmap[st] = -1
+
+        return max([t for t in subterms], key = lambda t: cmap[str(t)] * t.size())
+
+    def newName(self,subterms):
+        """
+        Come up with a new name
+        """
+        pref = "M"
+        cnt = 1
+        
+        substrings = [str(t) for t in subterms]
+
+        while ("%s%i" % (pref,cnt)) in substrings:
+            cnt += 1
+
+        return "%s%i" % (pref,cnt)
+
+    def replace(self,abbrev):
+        for run in self.runs:
+            for ev in run.eventList:
+                if ev.message != None:
+                    ev.message = ev.message.replace(abbrev)
+
+    def abbreviate(self):
+        """
+        Abbreviate some stuff
+        """
+        abbreviations = {}
+        while True:
+            ss = self.subterms()
+            #print [str(s) for s in ss]
+            ab = self.abbreviateOne(ss)
+            if ab == None:
+                break
+
+            nn = self.newName(ss)
+            abbrev = {}
+            abbrev[str(ab)] = Term.TermConstant(nn)
+            self.replace(abbrev)
+            for k in abbreviations.keys():
+                abbreviations[k] = abbreviations[k].replace(abbrev)
+            abbreviations[nn] = ab
+        
+        for k in abbreviations.keys():
+            self.comments += "Abbreviation: %s = %s\n" % (k, str(abbreviations[k]))
+
+
+    def ignoreEvent(self,ev):
+        global CLAIMRUN
+
+        # See if we should ignore this event in the context of this trace
+        if isinstance(ev,EventClaim):
+            if ev == self.getRun(CLAIMRUN).getLastAction():
+                return True
+        else:
+            if ev.compromisetype != None:
+                if not self.hasOutgoingEdges(ev):
+                    return True
+        return False
+
     # Returns run,index tuples for all connections
     def getConnections(self,event,removeIntruder=False):
         if not removeIntruder:
@@ -613,6 +712,11 @@ class SemiTrace(object):
         # Display events in the chosen order
         # Construct table headers
         res = ""    # Buffer for the returned result string
+        # Add initial comments
+        res += self.comments
+        if len(res) > 0:
+            res += "\n"
+
         res += "Step\tRun\tDescription\n"
         res += "\n"
 
@@ -794,9 +898,18 @@ class SemiTrace(object):
         Experimental matrix output
         """
 
+        res = ""
+
+        # Add initial comments
+        res += self.comments
+        if len(res) > 0:
+            res += "\n"
+
         m = Matrix(self)
 
-        print str(m)
+        res += str(m)
+
+        print res
                 
 
 
@@ -1032,6 +1145,7 @@ class EventClaim(Event):
         self.role = role
         self.type = type
         self.argument = argument
+        self.message = argument     # Copy for display and term substitution (abbreviations)
         self.broken = None
     
     # A Claim should be ignored if there is an untrusted agent in the role
@@ -1047,10 +1161,10 @@ class EventClaim(Event):
         return "(%s,%s)" % (self.run.protocol,self.run.role)
     
     def argstr(self):
-        if self.argument == None:
+        if self.message == None:
             return '*'
         else:
-            return str(self.argument)
+            return str(self.message)
             
     def __str__(self):
 

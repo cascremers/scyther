@@ -132,6 +132,15 @@ class Term(object):
     # Two terms are equal when their string rep is equal
     def __cmp__(self,other):
         return cmp(str(self),str(other))
+
+    def subterms(self):
+        return []
+
+    def depth(self):
+        return 0
+
+    def size(self):
+        return self
                 
     
 class TermConstant(Term):   
@@ -162,6 +171,19 @@ class TermConstant(Term):
                 x = func(x)
             return "%s#%s" % (self.term,x)
 
+    def subterms(self):
+        return [self]
+
+    def depth(self):
+        return 1
+
+    def size(self):
+        return 0
+
+    def replace(self,rmap):
+        return self
+                
+
 class TermEncrypt(Term):
     def __init__(self, value, key):
         Term.__init__(self)
@@ -182,6 +204,23 @@ class TermEncrypt(Term):
     def __str__(self):
         return "{%s}%s" % (self.value, self.key)
 
+    def subterms(self):
+        return [self] + self.value.subterms() + self.key.subterms()
+
+    def depth(self):
+        return 1 + max(self.value.depth(),self.key.depth())
+
+    def size(self):
+        return 1 + self.value.size() + self.key.size()
+                
+    def replace(self,rmap):
+        if str(self) in rmap.keys():
+            return rmap[str(self)]
+        else:
+            return TermEncrypt(self.value.replace(rmap),self.key.replace(rmap))
+                
+                
+
 class TermApply(Term):
     def __init__(self, function, argument):
         Term.__init__(self)
@@ -196,6 +235,23 @@ class TermApply(Term):
 
     def __str__(self):
         return "%s(%s)" % (self.function, self.argument)
+
+    def subterms(self):
+        return [self] + self.function.subterms() + self.argument.subterms()
+
+    def depth(self):
+        return 1 + max(self.function.depth(),self.argument.depth())
+
+    def size(self):
+        return 1 + self.function.size() + self.argument.size()
+                
+    def replace(self,rmap):
+        if str(self) in rmap.keys():
+            return rmap[str(self)]
+        else:
+            return TermApply(self.function.replace(rmap),self.argument.replace(rmap))
+                
+                
 
 class TermVariable(Term):
     def __init__(self, name, value):
@@ -224,6 +280,19 @@ class TermVariable(Term):
         else:
             return str(self.name)
 
+    def subterms(self):
+        return [self]
+
+    def depth(self):
+        return 1
+
+    def size(self):
+        return 1
+                
+    def replace(self,rmap):
+        return self
+                
+
 class TermTuple(Term):
     def __init__(self, op1, op2):
         Term.__init__(self)
@@ -247,3 +316,18 @@ class TermTuple(Term):
         else:
             return self.op2.__getitem__(index-1)
 
+    def subterms(self):
+        return [self] + self.op1.subterms() + self.op2.subterms()
+
+    def depth(self):
+        return 1 + max(self.op1.depth(),self.op2.depth())
+
+    def size(self):
+        return 1 + self.op1.size() + self.op2.size()
+                
+    def replace(self,rmap):
+        if str(self) in rmap.keys():
+            return rmap[str(self)]
+        else:
+            return TermTuple(self.op1.replace(rmap),self.op2.replace(rmap))
+                
