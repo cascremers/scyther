@@ -315,6 +315,21 @@ class Matrix(object):
         (x,y) = max(self.data.keys(), key=lambda x: x[1])
         return 1 + y
 
+    def insertAxes(self,comprCol):
+        for x in range(0,len(comprCol)):
+            runs = comprCol[x]
+            if len(runs) == 1:
+                if runs[0].isAgentRun():
+                    for miny in range(0,self.getHeight()):
+                        if self.mget(x,miny) != "":
+                            break
+                    for maxy in range(self.getHeight()-1,-1,-1):
+                        if self.mget(x,maxy) != "":
+                            break
+                    for y in range(miny,maxy+1):
+                        if self.mget(x,y) == "":
+                            self.mset(x,y,"|")
+
     def compute(self):
         """
         Experimental matrix output
@@ -414,6 +429,9 @@ class Matrix(object):
         # Current matrix has one element per line
         #
         # TODO: We may want to join up some lines
+
+        # Insert vertical lines
+        self.insertAxes(comprCol)
 
         # Display
         res = ""
