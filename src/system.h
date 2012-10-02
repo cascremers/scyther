@@ -153,6 +153,7 @@ struct system
   List bindings;		//!< List of bindings
   Claimlist current_claim;	//!< The claim under current investigation
   Termlist trustedRoles;	//!< Roles that should be trusted for this claim (the default, NULL, means all)
+  Termlist proofstate;		//!< State of the proof markers
 };
 
 typedef struct system *System;

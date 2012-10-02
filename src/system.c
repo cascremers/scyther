@@ -128,6 +128,9 @@ systemReset (const System sys)
 
   /* transfer switches */
   sys->maxtracelength = switches.maxtracelength;
+
+  /* proof state */
+  sys->proofstate = NULL;	// list of proof state terms
 }
 
 //! Initialize runtime system (according to cut traces, limited runs)
