@@ -601,14 +601,78 @@ class SemiTrace(object):
                     enabled.append(event)
         return enabled
           
+    def removeRun(self,delrunid):
+        """
+        Remove the entire run with id delrunid
+        Essentially, any binding that goes in, is now rewritten (and duplicated) as a precondition for any following events. A similar procedure holds for the outgoing arrows.
+        """
+        # Collect incoming and outgoing
+        incoming = Set()
+        outgoing = Set()
+        for run in self.runs:
+            for ev in run:
+                evv2 = (run.id,ev.index)
+                for (evv1,l) in ev.bindings:
+                    # We have a labeled edge
+                    if (evv1[0] == delrunid) and (evv2[0] != delrunid):
+                        outgoing.add((evv1,l,evv2))
+                    elif (evv1[0] != delrunid) and (evv2[0] == delrunid):
+                        incoming.add((evv1,l,evv2))
+        # Now we know, we can do it again
+        newtriplets = Set()
+        for run in self.runs:
+            for ev in run:
+                evv2 = (run.id,ev.index)
+                newbindings = Set()
+                for (evv1,l) in ev.bindings:
+                    edge = (evv1,l,evv2)
+                    # We have a labeled edge
+                    if (evv1[0] == delrunid) and (evv2[0] != delrunid):
+                        # from delrun to run evv2[0]
+                        # instead, add edges with the same label from all incoming
+                        for (evv3,l2,evv4) in incoming:
+                            newtriplets.add((evv3,l1,evv2))
+                            newtriplets.add((evv3,l2,evv2))
+                    elif (evv1[0] != delrunid) and (evv2[0] == delrunid):
+                        # from run evv1[0] to delrun
+                        # instead, add edges with the same label to all outgoing
+                        for (evv3,l2,evv4) in outgoing:
+                            newtriplets.add((evv1,l1,evv4))
+                            newtriplets.add((evv1,l2,evv4))
+                    elif (evv1[0] != delrunid) and (evv2[0] != delrunid):
+                        # Relevant, so retain
+                        newbindings.add((evv1,l))
+                ev.bindings = list(newbindings)
+
+        for (evv1,l,evv2) in newtriplets:
+            (rid,index) = evv2
+            tedge = (evv1,l)
+            for run in self.runs:
+                if run.id == rid:
+                    for ev in rin:
+                        if ev.index == index:
+                            if tedge not in ev.bindings:
+                                ev.bindings.append(tedge)
+
+        for run in self.runs:
+            if run.id == delrunid:
+                run.eventList = []
+
+
+
     def removeRunEvent(self,run,index):
         """
         Remove this run event. Its incoming bindings move to the next event (if any)
         """
 
-        assert(len(run.eventList) > 1)
-        assert(index < len(run.eventList))
         assert(index >= 0)
+        assert(index < len(run.eventList))
+
+        if len(run.eventList) == 1:
+            self.removeRun(run.id)
+            return
+
+        assert(len(run.eventList) > 1)
 
         # Rewrite bindings before removal
         for r2 in self.runs:
