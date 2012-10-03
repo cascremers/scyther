@@ -33,6 +33,7 @@ COLORCOMPROMISE = "#ffa010"     # Compromise node color
 COLORCLAIM = "#2080ff"     # Violated claim node color
 COLORADVERSARY = "#ffe020"      # Adversary node color
 COLORCLAIMRUN = "#c0e0f8"     # Test claim node color
+COLORREGULAR = "#008000"        # Regular send & recv
 
 def permuteRuns(runstodo,callback,sequence=None):
     """
@@ -417,12 +418,32 @@ class SemiTrace(object):
         """
         Draw a binding
         """
+        global COLORREGULAR
+
         prev = "r%ii%i" % (fromevv[0],fromevv[1])
         curr = "r%ii%i" % (toevv[0],toevv[1])
 
         args = []
         if self.relevantLabel(fromevv,label,toevv):
             args += ["label=\"%s\"" % str(label)]
+        else:
+            # No point in drawing the label
+            ## Is it from/to a regular agent?
+            fromev = self.getEvent(fromevv)
+            toev = self.getEvent(toevv)
+            if fromev.run.isAgentRun() and toev.run.isAgentRun():
+                if fromev.compromisetype == None and toev.compromisetype == None:
+                    if fromev.message == toev.message:
+                        comments = []
+                        if fromev.to != toev.to:
+                            comments += ["reroute to %s" % toev.to]
+                        if fromev.fr != toev.fr:
+                            comments += ["fake sender %s" % toev.fr]
+                        if len(comments) > 0:
+                            args += ["label=\"%s\"" % "\\n".join(comments)]
+                        else:
+                            args += ["color=\"%s\"" % COLORREGULAR] 
+
 
         res = "%s -> %s [%s]\n" % (prev,curr,",".join(args))
 
