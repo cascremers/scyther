@@ -572,13 +572,13 @@ class SemiTrace(object):
     # Returns run,index tuples for all connections
     def getConnections(self,event,removeIntruder=False):
         if not removeIntruder:
-            return event.follows
+            return [ev for (ev,l) in event.bindings]
         result = []
         if event.run.intruder:
             for before in event.getBefore():
                 result.extend(self.getConnections(before,removeIntruder))
 
-        for x in event.follows:
+        for (x,l) in event.bindings:
             fol = self.getEvent(x)
             # If this is an intruder action descend into it
             if fol.run.intruder:
@@ -599,7 +599,7 @@ class SemiTrace(object):
         for prec in event.getBefore():
             preceding.append(prec)
             preceding.extend(self.getPrecedingEvents(prec))
-        for x in event.follows:
+        for (x,l) in event.bindings:
             fol = self.getEvent(x)
             preceding.append(fol)
             preceding.extend(self.getPrecedingEvents(fol))
@@ -624,7 +624,7 @@ class SemiTrace(object):
         for run in self.runs:
             if run.id != runid:
                 for ev in run.eventList:
-                    if evid in ev.follows:
+                    if evid in [ev for (ev,l) in ev.bindings]:
                         return True
         return False
     
@@ -954,7 +954,7 @@ class SemiTrace(object):
                     continue
                 dstcol = ridmap[run.id]
                 for evd in run.eventList:
-                    for x in evd.follows:
+                    for (x,l) in evd.bindings:
                         evs = self.getEvent(x)
                         if evs.run == run:
                             continue
@@ -1302,9 +1302,10 @@ class EventIntruder(Event):
     """
     Intruder event extensions (allows for collapsing attacks later)
     """
-    def __init__(self,follows,message,key,result):
+    def __init__(self,follows,message,key,result,bindinglist=[]):
         Event.__init__(self,0,None,follows)
         self.follows = follows
+        self.bindings = bindinglist
         self.message = message
         self.key = key
         self.result = result
