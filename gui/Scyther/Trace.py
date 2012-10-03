@@ -612,7 +612,7 @@ class SemiTrace(object):
 
         # Rewrite bindings before removal
         for r2 in self.runs:
-            for ev in r2.eventList:
+            for ev in r2:
                 ev.preceding = None     # Clear ordering cache
                 for i in range(0,len(ev.bindings)):
                     ((rid,idx),label) = ev.bindings[i]
@@ -729,7 +729,7 @@ class SemiTrace(object):
 
         terms = []
         for run in self.runs:
-            for ev in run.eventList:
+            for ev in run:
                 if ev.message != None:
                     terms.append(ev.message)
 
@@ -752,7 +752,7 @@ class SemiTrace(object):
 
     def replace(self,abbrev):
         for run in self.runs:
-            for ev in run.eventList:
+            for ev in run:
                 if ev.message != None:
                     ev.message = ev.message.replace(abbrev)
                 for i in range(0,len(ev.bindings)):
@@ -854,7 +854,7 @@ class SemiTrace(object):
         # Now scan all runs
         outgoing = []
         for run in self.runs:
-            for ev in run.eventList:
+            for ev in run:
                 for (ev,l) in ev.bindings:
                     if evid == ev:
                         outgoing.append((l,(run.id,ev.index)))
@@ -871,7 +871,7 @@ class SemiTrace(object):
 
         # Now scan all other runs
         for run in self.runs:
-            for ev in run.eventList:
+            for ev in run:
                 if evid in [ev for (ev,l) in ev.bindings]:
                     return True
         return False
@@ -955,7 +955,7 @@ class SemiTrace(object):
         # Determine which events need to be shown
         todo = []
         for run in self.runs:
-            for ev in run.eventList:
+            for ev in run:
                 todo.append(ev)
 
         myorder = []
@@ -1192,7 +1192,7 @@ class SemiTrace(object):
                 if run.vistype == "HIDDEN":
                     continue
                 dstcol = ridmap[run.id]
-                for evd in run.eventList:
+                for evd in run:
                     for (x,l) in evd.bindings:
                         evs = self.getEvent(x)
                         if evs.run == run:
@@ -1417,7 +1417,7 @@ class Run(object):
     def maxWidth(self):
         mw = 0
         column = self.matrixHead()
-        for ev in self.eventList:
+        for ev in self:
             column.append(ev.matrix())
         for l in column:
             w = len(l)
