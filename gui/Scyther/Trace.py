@@ -1171,10 +1171,9 @@ class Run(object):
         return mw
 
 class Event(object):
-    def __init__(self,index,label,follows,compromisetype=None,bindinglist=[]):
+    def __init__(self,index,label,compromisetype=None,bindinglist=[]):
         self.index = index
         self.label = label
-        self.follows = follows
         self.run = None
         self.preceding = None
         self.rank = None
@@ -1231,8 +1230,8 @@ class Event(object):
             return ""
 
 class EventSend(Event):
-    def __init__(self,index,label,follows,fr,to,message,compromisetype=None,bindinglist=[]):
-        Event.__init__(self,index,label,follows,compromisetype=compromisetype,bindinglist=bindinglist)
+    def __init__(self,index,label,fr,to,message,compromisetype=None,bindinglist=[]):
+        Event.__init__(self,index,label,compromisetype=compromisetype,bindinglist=bindinglist)
         self.fr = fr
         self.to = to
         self.message = message
@@ -1244,8 +1243,8 @@ class EventSend(Event):
             return "SEND_%s(%s,%s)" % (self.shortLabel(),self.to,self.message)
 
 class EventRead(Event):
-    def __init__(self,index,label,follows,fr,to,message,compromisetype=None,bindinglist=[]):
-        Event.__init__(self,index,label,follows,compromisetype=compromisetype,bindinglist=bindinglist)
+    def __init__(self,index,label,fr,to,message,compromisetype=None,bindinglist=[]):
+        Event.__init__(self,index,label,compromisetype=compromisetype,bindinglist=bindinglist)
         self.fr = fr
         self.to = to
         self.message = message
@@ -1257,8 +1256,8 @@ class EventRead(Event):
             return "RECV_%s(%s,%s)" % (self.shortLabel(),self.fr, self.message)
 
 class EventClaim(Event):
-    def __init__(self,index,label,follows,role,type,argument,compromisetype=None,bindinglist=[]):
-        Event.__init__(self,index,label,follows,compromisetype=compromisetype,bindinglist=bindinglist)
+    def __init__(self,index,label,role,type,argument,compromisetype=None,bindinglist=[]):
+        Event.__init__(self,index,label,compromisetype=compromisetype,bindinglist=bindinglist)
         self.role = role
         self.type = type
         self.argument = argument
@@ -1302,10 +1301,8 @@ class EventIntruder(Event):
     """
     Intruder event extensions (allows for collapsing attacks later)
     """
-    def __init__(self,follows,message,key,result,bindinglist=[]):
-        Event.__init__(self,0,None,follows)
-        self.follows = follows
-        self.bindings = bindinglist
+    def __init__(self,message,key,result,bindinglist=[]):
+        Event.__init__(self,0,None,bindinglist=bindinglist)
         self.message = message
         self.key = key
         self.result = result
