@@ -1273,7 +1273,7 @@ class Run(object):
         # Determine if this is an LKR reveal. If so, return agent. If not, return None
         if "I_E" in str(self.role):
             # Construction
-            term = self.eventList[-1].message
+            term = self.eventList[-1].originalmessage
             if isinstance(term,Term.TermApply):
                 if str(term.function) == 'sk':    # TODO hardcoded sk
                     return term.argument
@@ -1318,6 +1318,7 @@ class Event(object):
         self.rank = None
         self.compromisetype = compromisetype
         self.bindings = bindinglist
+        self.originalmessage = None
     
     def __eq__(self,other):
 
@@ -1361,9 +1362,9 @@ class Event(object):
         elif self.run.isHelperRun():
             # Helper
             if self.index == len(self.run.eventList) - 1:
-                return "%s %s" % (self.run.protocol,self.message)
+                return "Derive %s (%s)" % (self.message,self.run.protocol)
             else:
-                return ""
+                return self.__str__()
         elif self.run.intruder :
             # Intruder run
             realindex = 0
@@ -1374,10 +1375,14 @@ class Event(object):
                 lkragent = self.run.getLKRagent()
                 if lkragent != None:
                     text = "Reveal"
+                elif isinstance(self.run.eventList[realindex].originalmessage,Term.TermEncrypt):
+                    text = "Encrypt"
             elif "I_D" in self.run.role:
                 text = "Decrypt"
             elif "I_M" in self.run.role:
                 text = "Initial knowledge"
+            elif "I_R" in self.run.role:
+                text = "Knows"
             if self.index == realindex:
                 return "%s %s" % (text,self.message)
             else:
@@ -1391,6 +1396,7 @@ class EventSend(Event):
         self.fr = fr
         self.to = to
         self.message = message
+        self.originalmessage = message
 
     def __str__(self):
         if self.compromisetype != None:
@@ -1411,6 +1417,7 @@ class EventRead(Event):
         self.fr = fr
         self.to = to
         self.message = message
+        self.originalmessage = message
     
     def __str__(self):
         if self.run.intruder:
@@ -1425,6 +1432,7 @@ class EventClaim(Event):
         self.type = type
         self.argument = argument
         self.message = argument     # Copy for display and term substitution (abbreviations)
+        self.originalmessage = argument  # Copy for determining type
         self.broken = None
     
     # A Claim should be ignored if there is an untrusted agent in the role
@@ -1458,6 +1466,7 @@ class EventIntruder(Event):
     def __init__(self,message,key,result,bindinglist=[]):
         Event.__init__(self,0,None,bindinglist=bindinglist)
         self.message = message
+        self.originalmessage = message
         self.key = key
         self.result = result
         self.intruder = True
