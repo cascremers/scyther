@@ -485,14 +485,98 @@ class SemiTrace(object):
                     enabled.append(event)
         return enabled
           
+    def removeRunEvent(self,run,index):
+        """
+        Remove this run event. Its incoming bindings move to the next event (if any)
+        """
+
+        assert(len(run.eventList) > 1)
+        assert(index < len(run.eventList))
+        assert(index >= 0)
+
+        # Rewrite bindings before removal
+        for r2 in self.runs:
+            for ev in r2.eventList:
+                ev.preceding = None     # Clear ordering cache
+                for i in range(0,len(ev.bindings)):
+                    ((rid,idx),label) = ev.bindings[i]
+                    # Is this binding affected?
+                    if (rid == run.id) and (idx >= index):
+                        # Indeed, binding comes from collapsing run
+                        # and it is really affected
+                        ev.bindings[i] = ((rid,idx-1),label)
+
+        # Final local remove
+        oldlength = len(run.eventList)
+        if index < len(run.eventList) - 1:
+            run.eventList[index+1].bindings += run.eventList[index].bindings
+        else:
+            run.eventList[index-1].bindings += run.eventList[index].bindings
+        run.eventList = run.eventList[:index] + run.eventList[index+1:]
+        for ev in run.eventList[index:]:
+            ev.index = ev.index - 1
+
+        assert(len(run.eventList) == oldlength - 1)
+
+    def collapseThisRun(self,run,index):
+        """
+        Collapse this run into a single event pointed at by index
+        """
+
+        # Cut postfix
+        for i in range(index+1,len(run.eventList)):
+            self.removeRunEvent(run,index+1)
+        # Chop prefix elements
+        for i in range(0,index):
+            self.removeRunEvent(run,0)
+
+
+    def collapseRuns(self):
+        """
+        Collapse I_E, I_D, and helper runs to single things
+        """
+        cut = []
+        collapsed = []
+        for run in self.runs:
+            # Full collapse candidates
+            index = None
+            if run.isHelperRun():
+                index = len(run.eventList) - 1
+            elif run.intruder:
+                if "I_E" in run.role:
+                    index = len(run.eventList) - 1
+                elif "I_D" in run.role:
+                    index = 0
+
+            # Enforce full collapse
+            if index != None:
+                collapsed.append("%i (%s %s)" % (run.id,str(run.protocol),str(run.role)))
+                self.collapseThisRun(run,index)
+
+            # Maybe partial collapse
+            if run.isAgentRun():
+                idxl = []
+                for ev in run:
+                    if self.ignoreEvent(ev):
+                        idxl.append(ev.index)
+                        cut.append(ev)
+                # Fix compensates for chopping away earlier events
+                fix = 0
+                for idx in idxl:
+                    self.removeRunEvent(run,idx-fix)
+                    fix += 1
+        print "Cut %i events: %s." % (len(cut), [str(ev) for ev in cut])
+        print "Collapsed %i runs: %s." % (len(collapsed), [str(rn) for rn in collapsed])
+
+
+
     def collectTerms(self):
         # Determine relevant terms
         terms = []
         for run in self.runs:
             for ev in run.eventList:
-                if not self.ignoreEvent(ev):
-                    if ev.message != None:
-                        terms.append(ev.message)
+                if ev.message != None:
+                    terms.append(ev.message)
         return terms
 
     def newName(self,subterms):
@@ -514,6 +598,9 @@ class SemiTrace(object):
             for ev in run.eventList:
                 if ev.message != None:
                     ev.message = ev.message.replace(abbrev)
+                for i in range(0,len(ev.bindings)):
+                    ((rid,idx),l) = ev.bindings[i]
+                    ev.bindings[i] = ((rid,idx),l.replace(abbrev))
 
     def abbreviate(self):
         """
@@ -551,21 +638,18 @@ class SemiTrace(object):
     def ignoreEvent(self,ev):
         global CLAIMRUN
 
+        assert(isinstance(ev,Event))
+
         # See if we should ignore this event in the context of this trace
         if isinstance(ev,EventClaim):
-            if ev == self.getRun(CLAIMRUN).getLastAction():
+            if ev.run.id != CLAIMRUN:
                 return True
+            else:
+                if ev.index < len(ev.run.eventList) - 1:
+                    return True
         elif ev.compromisetype != None:
             if not self.hasOutgoingEdges(ev):
                 return True
-        elif ev.run.intruder:
-            # Intruder: we ignore some parts of I_E and I_D
-            if "I_E" in ev.run.role:
-                if ev.index != 2:
-                    return True
-            if "I_D" in ev.run.role:
-                if ev.index != 0:
-                    return True
 
         return False
 
@@ -612,9 +696,6 @@ class SemiTrace(object):
         """
         Determine if an event has outgoing edges.
         """
-        if not(isinstance(event,EventSend)):
-            # Not a send, so can't be.
-            return False
 
         # Local shortcuts
         runid = event.run.id
@@ -721,18 +802,10 @@ class SemiTrace(object):
             for n1 in todo:
 
                 canGoFirst = True
-
-                # Compensate for non-agent run atomicity
-                if n1.run.isAgentRun():
-                    x1 = n1
-                else:
-                    x1 = n1.run.getLastAction()
-
                 for n2 in todo:
-                    if n1.run.id != n2.run.id:
 
-                        # Compensate for non-agent run atomicity
-                        if self.getOrder(x1,n2) == 1:
+                    if n1.run.id != n2.run.id:
+                        if self.getOrder(n1,n2) == 1:
                             canGoFirst = False
                             break
 
@@ -831,19 +904,18 @@ class SemiTrace(object):
                         agent = ev.run.getLKRagent()
                         if agent == None:
                             # Construction
-                            msg = str(ev.run.eventList[2].message)
+                            msg = str(ev.run.eventList[-1].message)
                             res += "%i\t\tThe adversary constructs %s.\n" % (line,msg)
                             line += 1
                         else:
                             # Long-term key reveal
-                            msg = str(ev.run.eventList[2].message)
+                            msg = str(ev.run.eventList[-1].message)
                             res += "%i\t\tLong-term key reveal of %s.\n" % (line,msg)
                             line += 1
                     elif "I_D" in str(ev.run.role):
                         # Deconstruction
                         msg = str(ev.run.eventList[0].message)
-                        mrs = str(ev.run.eventList[2].message)
-                        res += "%i\t\tThe adversary decrypts %s to obtain %s.\n" % (line,msg,mrs)
+                        res += "%i\t\tThe adversary decrypts %s.\n" % (line,msg)
                         line += 1
                     elif "I_M" in str(ev.run.role):
                         # Initial knowledge
@@ -1137,8 +1209,10 @@ class Run(object):
         # Determine if this is an LKR reveal. If so, return agent. If not, return None
         if "I_E" in str(self.role):
             # Construction
-            if str(self.eventList[1].message) == 'sk':    # TODO hardcoded sk
-                return self.eventList[0].message
+            term = self.eventList[-1].message
+            if isinstance(term,Term.TermApply):
+                if str(term.function) == 'sk':    # TODO hardcoded sk
+                    return term.argument
         return None
 
     def matrixHead(self):
@@ -1170,6 +1244,7 @@ class Run(object):
                 mw = w
         return mw
 
+
 class Event(object):
     def __init__(self,index,label,compromisetype=None,bindinglist=[]):
         self.index = index
@@ -1180,6 +1255,19 @@ class Event(object):
         self.compromisetype = compromisetype
         self.bindings = bindinglist
     
+    def __eq__(self,other):
+
+        if (self.run == None) or (other.run == None):
+            return (str(self)==str(other))
+
+        if self.run.id == other.run.id:
+            if self.index == other.index:
+                return True
+        return False
+
+    def __ne__(self,other):
+        return not self.__eq__(other)
+
     def shortLabel(self):
         try:
             return self.label[len(self.label)-1]
@@ -1194,7 +1282,7 @@ class Event(object):
     def getBefore(self):
         result = []
         for event in self.run:
-            if (event == self):
+            if (event.index == self.index):
                 return result
             result.append(event)
         # This should never happen
@@ -1217,7 +1305,11 @@ class Event(object):
             realindex = 0
             text = "Construct"
             if "I_E" in self.run.role:
-                realindex = 2
+                realindex = len(self.run.eventList) - 1
+                # Consider LKR possibility
+                lkragent = self.run.getLKRagent()
+                if lkragent != None:
+                    text = "Reveal"
             elif "I_D" in self.run.role:
                 text = "Decrypt"
             elif "I_M" in self.run.role:
@@ -1225,7 +1317,7 @@ class Event(object):
             if self.index == realindex:
                 return "%s %s" % (text,self.message)
             else:
-                return ""
+                return self.__str__()
         else:
             return ""
 
@@ -1237,6 +1329,13 @@ class EventSend(Event):
         self.message = message
 
     def __str__(self):
+        if self.compromisetype != None:
+            compromiseTypes = { "SSR":"Session-state", "SKR":"Session-key", "RNR":"Random" }
+            if self.compromisetype in compromiseTypes.keys():
+                return "%s reveal %s" % (compromiseTypes[self.compromisetype],str(self.message))
+            else:
+                return "Reveal %s (unknown type)" % (str(self.message))
+
         if self.run.intruder:
             return "SEND(%s)" % self.message
         else:
@@ -1284,16 +1383,7 @@ class EventClaim(Event):
             
     def __str__(self):
 
-        skip = True
-        if self.run != None:
-            if self.run.id == CLAIMRUN:
-                if self.run.getLastAction() == self:
-                    skip = False
-
-        if skip == True:
-            msg = ""
-        else:
-            msg = "CLAIM_%s(%s, %s)" % (self.shortLabel(),self.type,self.argstr())
+        msg = "CLAIM_%s(%s, %s)" % (self.shortLabel(),self.type,self.argstr())
         return msg
 
 
