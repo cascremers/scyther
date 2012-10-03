@@ -314,7 +314,12 @@ class TermVariable(Term):
     
     def __str__(self,myname=False):
         if (myname) or (self.value == None):
-            return str(self.name)
+            vs = str(self.name)
+            i = vs.find("V#")
+            if i >= 0:
+                return vs[:i] + vs[i+1:]
+            else:
+                return vs
         else:
             return str(self.value)
 
