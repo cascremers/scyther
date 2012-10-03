@@ -384,15 +384,14 @@ class Matrix(object):
         myorder = self.trace.lineariseTrace()
 
         # Construct sane runidmap
-        seen = []
+        seen = Set()
         runid = 1
         for ev in myorder:
-            if ev.run in seen:
-                continue
-            seen.append(ev.run)
-            if ev.run.isAgentRun():
-                RUNIDMAP[str(ev.run.id)] = runid
-                runid += 1
+            if ev.run not in seen:
+                seen.add(ev.run)
+                if ev.run.isAgentRun():
+                    RUNIDMAP[str(ev.run.id)] = runid
+                    runid += 1
 
         Term.pushRewriteStack(SaneRunID)
 
@@ -475,24 +474,99 @@ class SemiTrace(object):
         newlist.sort(lambda x,y: self.getOrder(x,y))
         return newlist
 
+
+    # Dot conventions
+    #
+    # rXiY node names for regular events, run X, index Y
+    # hX   node names for headers of run X
+    #
+    def dotBinding(self,fromevv,label,toevv):
+        """
+        Draw a binding
+        """
+        prev = "r%ii%i" % (fromevv[0],fromevv[1])
+        curr = "r%ii%i" % (toevv[0],toevv[1])
+
+        args = ["label=\"%s\"" % str(label)]
+
+        res = "%s -> %s [%s]\n" % (prev,curr,",".join(args))
+
+        return res
+
+    def dotHead(self,run):
+        """
+        Draw head of run, if needed.
+        """
+        label = ""
+        if run.isAgentRun():
+            label = "Header should go here\\nfor run %i" % (run.id)
+
+        if label == "":
+            return ""
+        else:
+            return "h%i [shape=\"box\",label=\"%s\"]\n" % (run.id,label)
+
+    def dotProgress(self,ev):
+        """
+        Draw edge connecting ev to its predecessor.
+        Also draws the heads, if needed.
+        """
+        curr = "r%ii%i" % (ev.run.id,ev.index)
+        if ev.index == 0:
+            res = self.dotHead(ev.run)
+            connect = (res != "")
+            prev = "h%i" % (ev.run.id)
+        else:
+            res = ""
+            prev = "r%ii%i" % (ev.run.id,ev.index-1)
+            connect = True
+
+        if connect:
+            res += "%s -> %s [weight=\"10\",style=\"bold\"]\n" % (prev,curr)
+
+        return res
+
+    def dotEvent(self,ev):
+        """
+        Draw event
+        """
+        curr = "r%ii%i" % (ev.run.id,ev.index)
+
+        label = ev.matrix()
+
+        args = []
+        if ev.run.intruder:
+            args += []
+        else:
+            args += ["shape=\"box\""]
+
+        args.append("label=\"%s\"" % (label))
+
+        res = "%s [%s]\n" % (curr,",".join(args))
+        return res
+
     def dotTest(self):
+
+        # For testing only
+        import commands
 
         fp = open("test.dot","w")
         fp.write("digraph X {\n")
+        res = ""
         for run in self.runs:
             for ev in run:
-                fp.write("r%ii%i [label=\"%s #%i\"]\n" % (run.id,ev.index,str(ev),run.id))
-                for ((rid,idx),label) in ev.bindings:
-                    add = ""
-                    if rid == run.id:
-                        add = ",color=\"#ff0000\""
-                    fp.write("r%ii%i -> r%ii%i [label=\"%s\"%s]\n" % (rid,idx,run.id,ev.index,str(label),add) )
-                if ev.index > 0:
-                    add = "color=\"#ff0000\""
-                    fp.write("r%ii%i -> r%ii%i [%s]\n" % (run.id,ev.index-1,run.id,ev.index,add) )
+                res += self.dotProgress(ev)
+                res += self.dotEvent(ev)
+                for (evv,label) in ev.bindings:
+                    res += self.dotBinding(evv,label,(run.id,ev.index))
 
+        fp.write(res)
         fp.write("}\n")
         fp.close()
+
+        cmd = "dot -Tpng test.dot -o test.png"
+        commands.getoutput(cmd)
+
 
     def getEnabled(self,previous):
         enabled = []
@@ -1271,12 +1345,10 @@ class Run(object):
 
     def getLKRagent(self):
         # Determine if this is an LKR reveal. If so, return agent. If not, return None
-        if "I_E" in str(self.role):
+        if self.intruder and ("I_E" in str(self.role)):
             # Construction
             term = self.eventList[-1].originalmessage
-            if isinstance(term,Term.TermApply):
-                if str(term.function) == 'sk':    # TODO hardcoded sk
-                    return term.argument
+            return term.getSK()
         return None
 
     def matrixHead(self):

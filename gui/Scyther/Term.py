@@ -141,6 +141,9 @@ class Term(object):
 
     def size(self):
         return self
+
+    def getSK(self):
+        return None
                 
     
 class TermConstant(Term):   
@@ -251,6 +254,10 @@ class TermApply(Term):
         else:
             return TermApply(self.function.replace(rmap),self.argument.replace(rmap))
                 
+    def getSK(self):
+        if str(self.function) == 'sk':    # TODO hardcoded sk
+            return self.argument
+        return None
                 
 
 class TermVariable(Term):
