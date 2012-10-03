@@ -27,6 +27,7 @@ from Abbreviations import AbbrevContext
 
 CLAIMRUN = 0    # Hardcoded constant for claiming run
 RUNIDMAP = {}
+RUNIDMAX = 0
 CONSIDERBINDINGS = True     # Makes sense for graphviz, not for ASCII output
 
 COLORCOMPROMISE = "#ffa010"     # Compromise node color
@@ -217,6 +218,33 @@ def SaneRunID(runid):
     else:
         return runid
 
+def intruderConstant(t):
+    """
+    Return true for an intruder term
+    """
+    global RUNIDMAX
+
+    if isinstance(t,Term.TermConstant):
+        return (int(t.runid) > RUNIDMAX)
+    return False
+
+def SaneTerm(x):
+    """
+    Function to rewrite Scyther's internal run identifiers to something that humans like.
+    TODO: duplicates much of intruderConstant
+    """
+    global RUNIDMAX
+
+    if x.count("#") != 1:
+        return x
+
+    dt = x.split("#")
+    runid = int(dt[1])
+    if runid > RUNIDMAX:
+        return "Intruder%s%s" % (dt[0],runid-RUNIDMAX)
+    else:
+        return "%s#%s" % (dt[0],SaneRunID(runid))
+
 class InvalidAction(TypeError):
     "Exception used to indicate that a given action is invalid"
     
@@ -269,7 +297,7 @@ class Matrix(object):
         Experimental matrix output
         """
         global checked,bestseq,bestcost
-        global RUNIDMAP
+        global RUNIDMAP, RUNIDMAX
 
         bestseq = None
         bestcost = 0
@@ -325,8 +353,9 @@ class Matrix(object):
                 if ev.run.isAgentRun():
                     RUNIDMAP[str(ev.run.id)] = runid
                     runid += 1
+                RUNIDMAX = max(RUNIDMAX,ev.run.id)
 
-        Term.pushRewriteStack(SaneRunID)
+        Term.pushRewriteStack(SaneTerm)
 
         # Abbreviations
         self.trace.abbreviate()
@@ -536,6 +565,8 @@ class SemiTrace(object):
 
     def dotTest(self):
 
+        global RUNIDMAP, RUNIDMAX
+
         # For testing only
         import commands
 
@@ -554,8 +585,9 @@ class SemiTrace(object):
             if ev.run.isAgentRun():
                 RUNIDMAP[str(ev.run.id)] = runid
                 runid += 1
+            RUNIDMAX = max(RUNIDMAX,ev.run.id)
 
-        Term.pushRewriteStack(SaneRunID)
+        Term.pushRewriteStack(SaneTerm)
 
         fp = open("test.dot","w")
         fp.write("digraph X {\n")
@@ -1100,7 +1132,7 @@ class SemiTrace(object):
 
         If we are given the protocol description, we can say a bit more.
         """
-        global RUNIDMAP
+        global RUNIDMAP, RUNIDMAX
 
         # Determine the relevant claim
         if len(self.runs) > 0:
@@ -1123,8 +1155,9 @@ class SemiTrace(object):
             if ev.run.isAgentRun():
                 RUNIDMAP[str(ev.run.id)] = runid
                 runid += 1
+            RUNIDMAX = max(RUNIDMAX,ev.run.id)
 
-        Term.pushRewriteStack(SaneRunID)
+        Term.pushRewriteStack(SaneTerm)
 
         # Abbreviations
         self.abbreviate()
@@ -1602,7 +1635,12 @@ class Event(object):
             elif "I_M" in self.run.role:
                 text = "Initial knowledge"
             elif "I_R" in self.run.role:
-                text = "Knows"
+                if intruderConstant(self.originalmessage):
+                    text = "Create"
+                else:
+                    text = "Learn"
+                includeTerm = True
+
             if self.index == realindex:
                 if includeTerm == True:
                     return "%s %s" % (text,message)

@@ -190,10 +190,11 @@ class TermConstant(Term):
         else:
             global rewriteStack
 
-            x = self.runid
+            rid = self.runid
+            x = "%s#%s" % (self.term,rid)
             for func in rewriteStack:
                 x = func(x)
-            return "%s#%s" % (self.term,x)
+            return x
 
     def subterms(self):
         return [self]
