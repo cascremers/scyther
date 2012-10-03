@@ -26,7 +26,9 @@ from sets import Set
 
 CLAIMRUN = 0    # Hardcoded constant for claiming run
 RUNIDMAP = {}
-MAXTERMSIZE = 16 # Hardcoded constant
+#MAXTERMSIZE = 16 # Hardcoded constant (makes sense for ASCII matrices)
+MAXTERMSIZE = 30 # Hardcoded constant (makes sense for graphviz graphs)
+CONSIDERBINDINGS = True     # Makes sense for graphviz, not for ASCII output
 
 def permuteRuns(runstodo,callback,sequence=None):
     """
@@ -228,7 +230,7 @@ class AbbrevContext(object):
         self.subterms = None
 
     def setup(self):
-
+    
         if self.subterms != None:
             return
 
@@ -251,6 +253,9 @@ class AbbrevContext(object):
 
         ts = term.size()
         if ts <= 1:
+            return False
+        if term.getKeyAgents() != None:
+            # We don't abbreviate keys, ever
             return False
         if ts > 6:
             return True
@@ -487,7 +492,9 @@ class SemiTrace(object):
         prev = "r%ii%i" % (fromevv[0],fromevv[1])
         curr = "r%ii%i" % (toevv[0],toevv[1])
 
-        args = ["label=\"%s\"" % str(label)]
+        args = []
+        if self.relevantLabel(fromevv,label,toevv):
+            args += ["label=\"%s\"" % str(label)]
 
         res = "%s -> %s [%s]\n" % (prev,curr,",".join(args))
 
@@ -499,7 +506,7 @@ class SemiTrace(object):
         """
         label = ""
         if run.isAgentRun():
-            label = "Header should go here\\nfor run %i" % (run.id)
+            label = run.dotHead()
 
         if label == "":
             return ""
@@ -532,15 +539,29 @@ class SemiTrace(object):
         """
         curr = "r%ii%i" % (ev.run.id,ev.index)
 
-        label = ev.matrix()
+        label = ev.dot()
 
         args = []
+        xlabel = False
         if ev.run.intruder:
-            args += []
+            args += ["style=filled,fillcolor=\"#ffe020\""]      # Adversary node color
+        elif ev.run.isHelperRun():
+            args += ["shape=\"point\""]
+            args.append("xlabel=\"%s\"" % (label))
+            xlabel = True
         else:
-            args += ["shape=\"box\""]
+            if isinstance(ev,EventClaim):
+                args += ["shape=\"hexagon\""]
+            else:
+                args += ["shape=\"box\""]
 
-        args.append("label=\"%s\"" % (label))
+        if xlabel:
+            args.append("label=\"\"")
+        else:
+            args.append("label=\"%s\"" % (label))
+
+        ## Add tooltip for svg
+        #args.append("tooltip=\"%s\"" % (str(ev.originalmessage)))
 
         res = "%s [%s]\n" % (curr,",".join(args))
         return res
@@ -550,23 +571,77 @@ class SemiTrace(object):
         # For testing only
         import commands
 
+        clustering = True
+        clusterIntruder = False
+
+        myorder = self.lineariseTrace()
+
+        # Construct sane runidmap
+        seen = []
+        runid = 1
+        for ev in myorder:
+            if ev.run in seen:
+                continue
+            seen.append(ev.run)
+            if ev.run.isAgentRun():
+                RUNIDMAP[str(ev.run.id)] = runid
+                runid += 1
+
+        Term.pushRewriteStack(SaneRunID)
+
         fp = open("test.dot","w")
         fp.write("digraph X {\n")
         res = ""
         for run in self.runs:
+
+            if clustering:
+                if run.isAgentRun():
+                    res += "subgraph cluster_run%i {\n" % (run.id)
+                    res += "style=filled\n"
+                    res += "color=\"#e0e0e0\"\n"        # Cluster background color
+                    res += "node [style=filled,fillcolor=\"#ffffff\"]\n"    # Edges background
             for ev in run:
                 res += self.dotProgress(ev)
                 res += self.dotEvent(ev)
+            if clustering:
+                if run.isAgentRun():
+                    res += "}\n"
+
+        if clusterIntruder:
+            res += "subgraph cluster_intruder {\n"
+        for run in self.runs:
+            for ev in run:
                 for (evv,label) in ev.bindings:
                     res += self.dotBinding(evv,label,(run.id,ev.index))
+        if clusterIntruder:
+            res += "}\n"
+
+        # Legend
+        ## If it exists...
+        if len(self.comments) > 0:
+            ## Ensure bottom
+            for run in self.runs:
+                if len(run.eventList) > 0:
+                    if run.id > 0:
+                        prev = "r%ii%i" % (run.id, len(run.eventList)-1)
+                        res += "%s -> comments [style=invis]\n" % (prev)
+            ## Explain
+            res += "subgraph cluster_comments {\n"
+            res += "rank=\"sink\"\n"
+            res += "style=\"invis\"\n"
+            res += "comments [shape=\"box\",label=\"%s\"]\n" % (self.comments.replace("\n","\\l"))
+            res += "}\n"
 
         fp.write(res)
         fp.write("}\n")
         fp.close()
 
         cmd = "dot -Tpng test.dot -o test.png"
-        commands.getoutput(cmd)
+        print commands.getoutput(cmd)
+        cmd = "dot -Tsvg test.dot -o test.svg"
+        print commands.getoutput(cmd)
 
+        Term.popRewriteStack()
 
     def getEnabled(self,previous):
         enabled = []
@@ -689,15 +764,36 @@ class SemiTrace(object):
         print "Cut %i events: %s." % (len(cut), [str(ev) for ev in cut])
         print "Collapsed %i runs: %s." % (len(collapsed), [str(rn) for rn in collapsed])
 
+    def relevantLabel(self,fromevv,label,toevv):
+        # Determine if the label needs to be displayed
+        (r1,i1) = fromevv
+        (r2,i2) = toevv
+
+        if self.runs[r1].isAgentRun() or self.runs[r2].isAgentRun():
+            return False
+
+        return True
 
 
     def collectTerms(self):
         # Determine relevant terms
+        global CONSIDERBINDINGS
+
         terms = []
         for run in self.runs:
             for ev in run.eventList:
                 if ev.message != None:
                     terms.append(ev.message)
+
+                if CONSIDERBINDINGS:
+                    for (evv,l) in ev.bindings:
+                        if self.relevantLabel(evv,l,(run.id,ev.index)):
+                            terms.append(l)
+
+            for v in run.variables:
+                if v.value != None:
+                    terms.append(v.value)
+
         return terms
 
     def newName(self,subterms):
@@ -722,6 +818,8 @@ class SemiTrace(object):
                 for i in range(0,len(ev.bindings)):
                     ((rid,idx),l) = ev.bindings[i]
                     ev.bindings[i] = ((rid,idx),l.replace(abbrev))
+            for i in range(0,len(run.variables)):
+                run.variables[i] = run.variables[i].replace(abbrev)
 
     def abbreviate(self):
         """
@@ -745,8 +843,10 @@ class SemiTrace(object):
                 abbreviations[k] = abbreviations[k].replace(abbrev)
             abbreviations[nn] = ab
         
+        if len(abkeys) > 0:
+            self.comments += "Abbreviations:\n"
         for k in abkeys:
-            self.comments += "Abbreviation: %s = %s\n" % (k, str(abbreviations[k]))
+            self.comments += "%s = %s\n" % (k, str(abbreviations[k]))
 
         # For debugging
         #res = ""
@@ -1361,13 +1461,29 @@ class Run(object):
             else:
                 return ["%s" % (self.role)]
         else:
+            vl = []
+            for v in self.variables:
+                vl.append("Var %s -> %s" % (v.__str__(myname=True),str(v)))
+
             hd = ["---",
                   "Create run %i" % (self.srid()),
                   "%s in protocol %s, role %s" % (self.getAgent(),self.protocol,self.role),
-                  "Assumes %s" % (self.getAssumptions()),
+                  "Assumes %s" % (self.getAssumptions())
+                  ]
+            hd += vl
+            hd += [
                   "---"
                     ]
             return hd
+
+    def dotHead(self):
+        # Return dot head
+        res = ""
+        rl = self.matrixHead()
+        for l in rl:
+            if l != "---":
+                res += "%s\\l" % l
+        return res
 
     def maxWidth(self):
         mw = 0
@@ -1461,6 +1577,9 @@ class Event(object):
                 return self.__str__()
         else:
             return ""
+
+    def dot(self):
+        return self.matrix()
 
 class EventSend(Event):
     def __init__(self,index,label,fr,to,message,compromisetype=None,bindinglist=[]):

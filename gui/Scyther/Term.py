@@ -145,6 +145,27 @@ class Term(object):
     def getSK(self):
         return None
                 
+    def getPK(self):
+        return None
+                
+    def getK(self):
+        return None
+                
+    def getKeyAgents(self):
+        ag = self.real().getK()
+        if ag == None:
+            ag = self.real().getPK()
+            if ag == None:
+                ag = self.real().getSK()
+                if ag == None:
+                    return None
+        return ag.unpair()
+                
+    def real(self):
+        return self
+                
+    def unpair(self):
+        return [self]
     
 class TermConstant(Term):   
     def __init__(self, constant):
@@ -258,7 +279,17 @@ class TermApply(Term):
         if str(self.function) == 'sk':    # TODO hardcoded sk
             return self.argument
         return None
-                
+
+    def getPK(self):
+        if str(self.function) == 'pk':    # TODO hardcoded pk
+            return self.argument
+        return None
+
+    def getK(self):
+        if str(self.function) == 'k':    # TODO hardcoded k
+            return self.argument
+        return None
+
 
 class TermVariable(Term):
     def __init__(self, name, value):
@@ -281,24 +312,44 @@ class TermVariable(Term):
         else:
             return [self,self.name]
     
-    def __str__(self):
-        if (self.value != None):
-            return str(self.value)
-        else:
+    def __str__(self,myname=False):
+        if (myname) or (self.value == None):
             return str(self.name)
+        else:
+            return str(self.value)
 
     def subterms(self):
-        return [self]
+        if self.value == None:
+            return [self]
+        else:
+            return self.value.subterms()
 
     def depth(self):
-        return 1
+        if self.value == None:
+            return 1
+        else:
+            return self.value.depth()
 
     def size(self):
-        return 1
+        if self.value == None:
+            return 1
+        else:
+            return self.value.size()
                 
     def replace(self,rmap):
+        if self.value != None:
+            self.value = self.value.replace(rmap)
         return self
+
+    def real(self):
+        if self.value == None:
+            return self
+        else:
+            return self.value
                 
+    def unpair(self):
+        return [self.real()]
+    
 
 class TermTuple(Term):
     def __init__(self, op1, op2):
@@ -338,3 +389,6 @@ class TermTuple(Term):
         else:
             return TermTuple(self.op1.replace(rmap),self.op2.replace(rmap))
                 
+    def unpair(self):
+        return self.op1.unpair() + self.op2.unpair()
+
