@@ -140,7 +140,8 @@ class XMLReader(object):
             return self.readSubTerm(xml)
         # Otherwise read from it's first child
         children = xml.getchildren()
-        assert(len(children) == 1)
+        ## In case of follows, we are ignoring this
+        #assert(len(children) == 1)
         return self.readSubTerm(children[0])
 
     def readSubTerm(self, tag):
@@ -170,13 +171,19 @@ class XMLReader(object):
         compromisetype = self.readText(xml.find('compromisetype'))
         follows = xml.findall('follows')
         followlist = []
+        bindinglist = []
         for follow in follows: 
-            follow = follow.find('after')
-            if follow == None:
+            follaf = follow.find('after')
+            if follaf == None:
                 # Ignore follow definitions that do not contain after
                 continue
-            follow = (int(follow.get('run')),int(follow.get('index')))
-            followlist.append(follow)
+            follev = (int(follaf.get('run')),int(follaf.get('index')))
+            followlist.append(follev)
+            # Parse and store the binding label
+            blabel = self.readTerm(follow)
+            if blabel != None:
+                binding = (follev,blabel)
+                bindinglist.append(binding)
             
         (etype,index) = (xml.get('type'),int(xml.get('index')))
         if etype in ('send','read','recv'):
@@ -184,9 +191,9 @@ class XMLReader(object):
             to = self.readTerm(xml.find('to'))
             message = self.readTerm(xml.find('message'))
             if (etype == 'send'):
-                return Trace.EventSend(index,label,followlist,fr,to,message,compromisetype=compromisetype)
+                return Trace.EventSend(index,label,followlist,fr,to,message,compromisetype=compromisetype,bindinglist=bindinglist)
             else:
-                return Trace.EventRead(index,label,followlist,fr,to,message,compromisetype=compromisetype)
+                return Trace.EventRead(index,label,followlist,fr,to,message,compromisetype=compromisetype,bindinglist=bindinglist)
         elif xml.get('type') == 'claim':
             role = self.readTerm(xml.find('role'))
             etype = self.readTerm(xml.find('type'))
@@ -202,7 +209,7 @@ class XMLReader(object):
                     argument = argument[1]
             except:
                 pass
-            return Trace.EventClaim(index,label,followlist,role,etype,argument,compromisetype=compromisetype)
+            return Trace.EventClaim(index,label,followlist,role,etype,argument,compromisetype=compromisetype,bindinglist=bindinglist)
         else:
             raise Trace.InvalidAction, "Invalid action in XML: %s" % (xml.get('type'))
 

@@ -1171,7 +1171,7 @@ class Run(object):
         return mw
 
 class Event(object):
-    def __init__(self,index,label,follows,compromisetype=None):
+    def __init__(self,index,label,follows,compromisetype=None,bindinglist=[]):
         self.index = index
         self.label = label
         self.follows = follows
@@ -1179,6 +1179,7 @@ class Event(object):
         self.preceding = None
         self.rank = None
         self.compromisetype = compromisetype
+        self.bindings = bindinglist
     
     def shortLabel(self):
         try:
@@ -1230,8 +1231,8 @@ class Event(object):
             return ""
 
 class EventSend(Event):
-    def __init__(self,index,label,follows,fr,to,message,compromisetype=None):
-        Event.__init__(self,index,label,follows,compromisetype=compromisetype)
+    def __init__(self,index,label,follows,fr,to,message,compromisetype=None,bindinglist=[]):
+        Event.__init__(self,index,label,follows,compromisetype=compromisetype,bindinglist=bindinglist)
         self.fr = fr
         self.to = to
         self.message = message
@@ -1243,8 +1244,8 @@ class EventSend(Event):
             return "SEND_%s(%s,%s)" % (self.shortLabel(),self.to,self.message)
 
 class EventRead(Event):
-    def __init__(self,index,label,follows,fr,to,message,compromisetype=None):
-        Event.__init__(self,index,label,follows,compromisetype=compromisetype)
+    def __init__(self,index,label,follows,fr,to,message,compromisetype=None,bindinglist=[]):
+        Event.__init__(self,index,label,follows,compromisetype=compromisetype,bindinglist=bindinglist)
         self.fr = fr
         self.to = to
         self.message = message
@@ -1256,8 +1257,8 @@ class EventRead(Event):
             return "RECV_%s(%s,%s)" % (self.shortLabel(),self.fr, self.message)
 
 class EventClaim(Event):
-    def __init__(self,index,label,follows,role,type,argument,compromisetype=None):
-        Event.__init__(self,index,label,follows,compromisetype=compromisetype)
+    def __init__(self,index,label,follows,role,type,argument,compromisetype=None,bindinglist=[]):
+        Event.__init__(self,index,label,follows,compromisetype=compromisetype,bindinglist=bindinglist)
         self.role = role
         self.type = type
         self.argument = argument

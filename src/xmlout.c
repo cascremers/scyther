@@ -632,13 +632,13 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 	      xmlPrint ("<follows>");
 
 	      xmlindent++;
+	      xmlIndentPrint ();
+	      xmlTermPrint (b->term);
+	      eprintf ("\n");
 	      if (b->done)
 		xmlRunIndex ("after", b->run_from, b->ev_from);
 	      else
 		xmlPrint ("<unbound />");
-	      xmlIndentPrint ();
-	      xmlTermPrint (b->term);
-	      eprintf ("\n");
 	      xmlindent--;
 
 	      xmlPrint ("</follows>");
