@@ -22,6 +22,7 @@
 #
 from Misc import *
 import Term
+from sets import Set
 
 CLAIMRUN = 0    # Hardcoded constant for claiming run
 RUNIDMAP = {}
@@ -549,6 +550,33 @@ class SemiTrace(object):
         for i in range(0,index):
             self.removeRunEvent(run,0)
 
+    def collapseInitialKnowledge(self):
+        """
+        Remove unused elements from the initial knowledge.
+        Effectively we simply reinsert whatever was bound in outgoing edges.
+        """
+        for run in self.runs:
+            if run.intruder:
+                if "I_M" in run.role:
+                    ev = run.eventList[0]
+                    outbl = self.allOutgoingEdges(ev)
+                    usedterms = Set()
+                    for (l,(evi)) in outbl:
+                        usedterms.add(l)
+
+                    IK = None
+                    for t in usedterms:
+                        if IK == None:
+                            IK = t
+                        else:
+                            IK = Term.TermTuple(IK,t)
+                    
+                    # Store
+                    print "Original IK0: %s" % str(ev.message)
+                    ev.message = IK
+                    print "New IK0: %s" % str(ev.message)
+
+
 
     def collapseRuns(self):
         """
@@ -711,6 +739,24 @@ class SemiTrace(object):
         preceding = filter(lambda x: x not in previous,preceding)
         return preceding
 
+    def allOutgoingEdges(self,event):
+        """
+        Yield all outgoing edges
+        """
+
+        # Local shortcuts
+        runid = event.run.id
+        evid = (runid,event.index)
+
+        # Now scan all runs
+        outgoing = []
+        for run in self.runs:
+            for ev in run.eventList:
+                for (ev,l) in ev.bindings:
+                    if evid == ev:
+                        outgoing.append((l,(run.id,ev.index)))
+        return outgoing
+
     def hasOutgoingEdges(self,event):
         """
         Determine if an event has outgoing edges.
@@ -722,10 +768,9 @@ class SemiTrace(object):
 
         # Now scan all other runs
         for run in self.runs:
-            if run.id != runid:
-                for ev in run.eventList:
-                    if evid in [ev for (ev,l) in ev.bindings]:
-                        return True
+            for ev in run.eventList:
+                if evid in [ev for (ev,l) in ev.bindings]:
+                    return True
         return False
     
     # Returns -1 if the first event has to be before the second one
