@@ -1543,27 +1543,41 @@ class Event(object):
     def __str__(self):
         return ""
 
-    def matrix(self):
+    def matrixDot(self,dot=False):
         if self.run.isAgentRun():
             return self.__str__()
         elif self.run.isHelperRun():
             # Helper
             if self.index == len(self.run.eventList) - 1:
-                return "Derive %s (%s)" % (self.message,self.run.protocol)
+                if dot:
+                    return "Derive %s\\n%s" % (self.message,self.run.protocol)
+                else:
+                    return "Derive %s (%s)" % (self.message,self.run.protocol)
             else:
                 return self.__str__()
         elif self.run.intruder :
             # Intruder run
             realindex = 0
             text = "Construct"
+            message = self.message
+            if dot:
+                includeTerm = False
+            else:
+                includeTerm = True
+
             if "I_E" in self.run.role:
                 realindex = len(self.run.eventList) - 1
                 # Consider LKR possibility
                 lkragent = self.run.getLKRagent()
                 if lkragent != None:
                     text = "Reveal"
+                    includeTerm = True  # Override the parameter for reveal
                 elif isinstance(self.run.eventList[realindex].originalmessage,Term.TermEncrypt):
                     text = "Encrypt"
+                elif isinstance(self.run.eventList[realindex].originalmessage,Term.TermApply):
+                    text = "Apply"
+                    message = self.originalmessage.function
+                    includeTerm = True
             elif "I_D" in self.run.role:
                 text = "Decrypt"
             elif "I_M" in self.run.role:
@@ -1571,14 +1585,20 @@ class Event(object):
             elif "I_R" in self.run.role:
                 text = "Knows"
             if self.index == realindex:
-                return "%s %s" % (text,self.message)
+                if includeTerm == True:
+                    return "%s %s" % (text,message)
+                else:
+                    return "%s" % (text)
             else:
                 return self.__str__()
         else:
             return ""
 
+    def matrix(self):
+        return self.matrixDot()
+
     def dot(self):
-        return self.matrix()
+        return self.matrixDot(dot=True)
 
 class EventSend(Event):
     def __init__(self,index,label,fr,to,message,compromisetype=None,bindinglist=[]):
@@ -1601,6 +1621,14 @@ class EventSend(Event):
         else:
             return "SEND_%s(%s,%s)" % (self.shortLabel(),self.to,self.message)
 
+    def dot(self):
+        if self.compromisetype == None:
+            if self.run.isAgentRun():
+                res = "send_%s to %s\\n%s" % (self.shortLabel(),self.to,self.message)
+                return res
+        return super(EventSend,self).dot()
+
+
 class EventRead(Event):
     def __init__(self,index,label,fr,to,message,compromisetype=None,bindinglist=[]):
         Event.__init__(self,index,label,compromisetype=compromisetype,bindinglist=bindinglist)
@@ -1614,6 +1642,13 @@ class EventRead(Event):
             return "RECV(%s)" % self.message
         else:
             return "RECV_%s(%s,%s)" % (self.shortLabel(),self.fr, self.message)
+
+    def dot(self):
+        if self.compromisetype == None:
+            if self.run.isAgentRun():
+                res = "recv_%s from %s\\n%s" % (self.shortLabel(),self.fr,self.message)
+                return res
+        return super(EventRead,self).dot()
 
 class EventClaim(Event):
     def __init__(self,index,label,role,type,argument,compromisetype=None,bindinglist=[]):
