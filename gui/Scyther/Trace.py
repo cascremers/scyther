@@ -583,9 +583,7 @@ class SemiTrace(object):
         fp.write("}\n")
         fp.close()
 
-        cmd = "dot -Tpng test.dot -o test.png"
-        print commands.getoutput(cmd)
-        cmd = "dot -Tsvg test.dot -o test.svg"
+        cmd = "dot -O -Tpng -Tsvg test.dot"
         print commands.getoutput(cmd)
 
         Term.popRewriteStack()
