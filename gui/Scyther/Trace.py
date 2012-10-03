@@ -29,10 +29,10 @@ CLAIMRUN = 0    # Hardcoded constant for claiming run
 RUNIDMAP = {}
 CONSIDERBINDINGS = True     # Makes sense for graphviz, not for ASCII output
 
-COLORCOMPROMISE = "#ff4010"     # Compromise node color
-COLORCLAIM = "#ff4010"     # Violated claim node color
+COLORCOMPROMISE = "#ffa010"     # Compromise node color
+COLORCLAIM = "#2080ff"     # Violated claim node color
 COLORADVERSARY = "#ffe020"      # Adversary node color
-COLORCLAIMRUN = "#a0d0f0"     # Test claim node color
+COLORCLAIMRUN = "#c0e0f8"     # Test claim node color
 
 def permuteRuns(runstodo,callback,sequence=None):
     """
@@ -432,6 +432,9 @@ class SemiTrace(object):
         """
         Draw head of run, if needed.
         """
+        global COLORCOMPROMISE, COLORADVERSARY, COLORCLAIM, COLORCLAIMRUN
+        global CLAIMRUN
+
         label = ""
         if run.isAgentRun():
             label = run.dotHead()
@@ -439,7 +442,12 @@ class SemiTrace(object):
         if label == "":
             return ""
         else:
-            return "h%i [shape=\"box\",label=\"%s\"]\n" % (run.id,label)
+            args = ["shape=\"box\""]
+            args.append("label=\"%s\"" % (label))
+            if run.id == CLAIMRUN:
+                args.append("style=filled")
+                args.append("fillcolor=\"%s\"" % COLORCLAIMRUN)
+            return "h%i [%s]\n" % (run.id,",".join(args))
 
     def dotProgress(self,ev):
         """
@@ -448,10 +456,12 @@ class SemiTrace(object):
         """
         curr = "r%ii%i" % (ev.run.id,ev.index)
         if ev.index == 0:
+            # Connect to head
             res = self.dotHead(ev.run)
             connect = (res != "")
             prev = "h%i" % (ev.run.id)
         else:
+            # Connect to previous event
             res = ""
             prev = "r%ii%i" % (ev.run.id,ev.index-1)
             connect = True
@@ -484,14 +494,16 @@ class SemiTrace(object):
         else:
             if ev.compromisetype != None:
                 args += ["style=filled,fillcolor=\"%s\"" % COLORCOMPROMISE]
-            if isinstance(ev,EventClaim):
-                args += ["shape=\"hexagon\""]
-                if ev.run.id == CLAIMRUN:
-                    args += ["style=filled,fillcolor=\"%s\"" % COLORCLAIM]
-            else:
-                if ev.run.id == CLAIMRUN:
-                    args += ["style=filled,fillcolor=\"%s\"" % COLORCLAIMRUN]
                 args += ["shape=\"box\""]
+            else:
+                if isinstance(ev,EventClaim):
+                    args += ["shape=\"hexagon\""]
+                    if ev.run.id == CLAIMRUN:
+                        args += ["style=filled,fillcolor=\"%s\"" % COLORCLAIM]
+                else:
+                    if ev.run.id == CLAIMRUN:
+                        args += ["style=filled,fillcolor=\"%s\"" % COLORCLAIMRUN]
+                    args += ["shape=\"box\""]
 
         args.append("label=\"%s\"" % (label))
 
@@ -1383,7 +1395,7 @@ class Run(object):
                 vl.append("Var %s -> %s" % (v.__str__(myname=True),str(v)))
 
             hd = ["---",
-                  "Create run %i" % (self.srid()),
+                  "Run %i" % (self.srid()),
                   "%s in protocol %s, role %s" % (self.getAgent(),self.protocol,self.role),
                   "Assumes %s" % (self.getAssumptions())
                   ]
