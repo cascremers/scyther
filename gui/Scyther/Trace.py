@@ -715,6 +715,7 @@ class SemiTrace(object):
         Remove unused elements from the initial knowledge.
         Effectively we simply reinsert whatever was bound in outgoing edges.
         """
+        toremove = Set()
         for run in self.runs:
             if run.intruder:
                 if "I_M" in run.role:
@@ -736,7 +737,12 @@ class SemiTrace(object):
                     ev.message = IK
                     print "New IK0: %s" % str(ev.message)
 
-                    # TODO: If it is empty, we should remove the entire node
+                    # If it is empty, we should remove the entire node
+                    if IK == None:
+                        toremove.add(run.id)
+
+        for rid in toremove:
+            self.removeRun(rid)
 
 
     def collapseRuns(self):
