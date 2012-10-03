@@ -60,5 +60,6 @@ if __name__ == '__main__':
                 att.semiTrace.collapseRuns()
                 print att
                 print att.semiTrace.matrix()
+                att.semiTrace.dotTest()
 
 

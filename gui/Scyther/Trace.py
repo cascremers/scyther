@@ -474,6 +474,25 @@ class SemiTrace(object):
         newlist.sort(lambda x,y: self.getOrder(x,y))
         return newlist
 
+    def dotTest(self):
+
+        fp = open("test.dot","w")
+        fp.write("digraph X {\n")
+        for run in self.runs:
+            for ev in run:
+                fp.write("r%ii%i [label=\"%s #%i\"]\n" % (run.id,ev.index,str(ev),run.id))
+                for ((rid,idx),label) in ev.bindings:
+                    add = ""
+                    if rid == run.id:
+                        add = ",color=\"#ff0000\""
+                    fp.write("r%ii%i -> r%ii%i [label=\"%s\"%s]\n" % (rid,idx,run.id,ev.index,str(label),add) )
+                if ev.index > 0:
+                    add = "color=\"#ff0000\""
+                    fp.write("r%ii%i -> r%ii%i [%s]\n" % (run.id,ev.index-1,run.id,ev.index,add) )
+
+        fp.write("}\n")
+        fp.close()
+
     def getEnabled(self,previous):
         enabled = []
         for run in self.runs:
