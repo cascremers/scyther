@@ -30,6 +30,11 @@ RUNIDMAP = {}
 MAXTERMSIZE = 30 # Hardcoded constant (makes sense for graphviz graphs)
 CONSIDERBINDINGS = True     # Makes sense for graphviz, not for ASCII output
 
+COLORCOMPROMISE = "#ff4010"     # Compromise node color
+COLORCLAIM = "#ff4010"     # Violated claim node color
+COLORADVERSARY = "#ffe020"      # Adversary node color
+COLORCLAIMRUN = "#a0d0f0"     # Test claim node color
+
 def permuteRuns(runstodo,callback,sequence=None):
     """
     Perform callback on all possible permutations of the runs.
@@ -252,10 +257,13 @@ class AbbrevContext(object):
         global MAXTERMSIZE
 
         ts = term.size()
-        if ts <= 1:
-            return False
         if term.getKeyAgents() != None:
             # We don't abbreviate keys, ever
+            return False
+        if (ts < 16) and isinstance(term.real(),Term.TermTuple):
+            # We don't abbreviate pairs unless they are very large
+            return False
+        if ts <= 1:
             return False
         if ts > 6:
             return True
@@ -272,7 +280,7 @@ class AbbrevContext(object):
         """
         occ = self.subtermcount[str(term)]
         size = len(str(term))
-        val = (20 * occ) + size
+        val = (1000 * occ) + size
         return val
 
     def select(self):
@@ -467,6 +475,7 @@ class SemiTrace(object):
     def __init__(self):
         self.runs = []
         self.comments = ""
+        self.abbreviations = {}
     
     def totalCount(self):
         count = 0
@@ -537,28 +546,35 @@ class SemiTrace(object):
         """
         Draw event
         """
+        global COLORCOMPROMISE, COLORADVERSARY, COLORCLAIM, COLORCLAIMRUN
+        global CLAIMRUN
+        
         curr = "r%ii%i" % (ev.run.id,ev.index)
 
         label = ev.dot()
 
         args = []
-        xlabel = False
         if ev.run.intruder:
-            args += ["style=filled,fillcolor=\"#ffe020\""]      # Adversary node color
-        elif ev.run.isHelperRun():
-            args += ["shape=\"point\""]
-            args.append("xlabel=\"%s\"" % (label))
-            xlabel = True
+            if ev.run.getLKRagent() == None:
+                if "I_R" in ev.run.role:
+                    args += ["style=filled,fillcolor=\"%s\"" % COLORCOMPROMISE]
+                else:
+                    args += ["style=filled,fillcolor=\"%s\"" % COLORADVERSARY]
+            else:
+                args += ["style=filled,fillcolor=\"%s\"" % COLORCOMPROMISE]
         else:
+            if ev.compromisetype != None:
+                args += ["style=filled,fillcolor=\"%s\"" % COLORCOMPROMISE]
             if isinstance(ev,EventClaim):
                 args += ["shape=\"hexagon\""]
+                if ev.run.id == CLAIMRUN:
+                    args += ["style=filled,fillcolor=\"%s\"" % COLORCLAIM]
             else:
+                if ev.run.id == CLAIMRUN:
+                    args += ["style=filled,fillcolor=\"%s\"" % COLORCLAIMRUN]
                 args += ["shape=\"box\""]
 
-        if xlabel:
-            args.append("label=\"\"")
-        else:
-            args.append("label=\"%s\"" % (label))
+        args.append("label=\"%s\"" % (label))
 
         ## Add tooltip for svg
         #args.append("tooltip=\"%s\"" % (str(ev.originalmessage)))
@@ -725,6 +741,7 @@ class SemiTrace(object):
                     ev.message = IK
                     print "New IK0: %s" % str(ev.message)
 
+                    # TODO: If it is empty, we should remove the entire node
 
 
     def collapseRuns(self):
@@ -794,6 +811,12 @@ class SemiTrace(object):
                 if v.value != None:
                     terms.append(v.value)
 
+        for k in self.abbreviations.keys():
+            abt = self.abbreviations[k].constructorTerms()
+            if len(abt) > 1:
+                for t in abt:
+                    terms.append(t)
+
         return terms
 
     def newName(self,subterms):
@@ -804,6 +827,7 @@ class SemiTrace(object):
         cnt = 1
         
         substrings = [str(t) for t in subterms]
+        substrings += self.abbreviations.keys()
 
         while ("%s%i" % (pref,cnt)) in substrings:
             cnt += 1
@@ -825,7 +849,6 @@ class SemiTrace(object):
         """
         Abbreviate some stuff
         """
-        abbreviations = {}
         abkeys = []
         while True:
             ss = self.collectTerms()
@@ -839,14 +862,14 @@ class SemiTrace(object):
             abbrev = {}
             abbrev[str(ab)] = Term.TermConstant(nn)
             self.replace(abbrev)
-            for k in abbreviations.keys():
-                abbreviations[k] = abbreviations[k].replace(abbrev)
-            abbreviations[nn] = ab
+            for k in self.abbreviations.keys():
+                self.abbreviations[k] = self.abbreviations[k].replace(abbrev)
+            self.abbreviations[nn] = ab
         
         if len(abkeys) > 0:
             self.comments += "Abbreviations:\n"
         for k in abkeys:
-            self.comments += "%s = %s\n" % (k, str(abbreviations[k]))
+            self.comments += "%s = %s\n" % (k, str(self.abbreviations[k]))
 
         # For debugging
         #res = ""
