@@ -23,11 +23,10 @@
 from Misc import *
 import Term
 from sets import Set
+from Abbreviations import AbbrevContext
 
 CLAIMRUN = 0    # Hardcoded constant for claiming run
 RUNIDMAP = {}
-#MAXTERMSIZE = 16 # Hardcoded constant (makes sense for ASCII matrices)
-MAXTERMSIZE = 30 # Hardcoded constant (makes sense for graphviz graphs)
 CONSIDERBINDINGS = True     # Makes sense for graphviz, not for ASCII output
 
 COLORCOMPROMISE = "#ff4010"     # Compromise node color
@@ -222,86 +221,6 @@ class InvalidAction(TypeError):
     
 class InvalidEvent(TypeError):
     "Exception used to indicate that a given event is invalid"
-
-
-class AbbrevContext(object):
-    """
-    Used to compute a single abbreviation that helps the most
-    """
-
-    def __init__(self,termlist):
-
-        self.termlist = termlist
-        self.subterms = None
-
-    def setup(self):
-    
-        if self.subterms != None:
-            return
-
-        self.subterms = []
-        self.subtermcount = {}
-        for t in self.termlist:
-            stlist = t.subterms()
-            for st in stlist:
-                if str(st) not in self.subtermcount.keys():
-                    self.subterms.append(st)
-                    self.subtermcount[str(st)] = 1
-                else:
-                    self.subtermcount[str(st)] += 1
-
-    def isCandidate(self,term):
-        """
-        True iff we might be abbreviated
-        """
-        global MAXTERMSIZE
-
-        ts = term.size()
-        if term.getKeyAgents() != None:
-            # We don't abbreviate keys, ever
-            return False
-        if (ts < 16) and isinstance(term.real(),Term.TermTuple):
-            # We don't abbreviate pairs unless they are very large
-            return False
-        if ts <= 1:
-            return False
-        if ts > 6:
-            return True
-        if len(str(term)) > MAXTERMSIZE:
-            return True
-        if (len(str(term)) > 6) and (self.subtermcount[str(term)] > 2):
-            return True
-        return False
-
-    def valCandidate(self,term):
-        """
-        Higher is better.
-        Currently lexicographic-ish (occurrences, size)
-        """
-        occ = self.subtermcount[str(term)]
-        size = len(str(term))
-        val = (1000 * occ) + size
-        return val
-
-    def select(self):
-
-        self.setup()
-
-        bestval = None
-        bestterm = None
-        for term in self.subterms:
-            if self.isCandidate(term):
-                val = self.valCandidate(term)
-                if bestterm == None:
-                    bestval = val
-                    bestterm = term
-                elif val > bestval:
-                    bestval = val
-                    bestterm = term
-
-        return bestterm
-
-
 
 
 class Matrix(object):
@@ -819,21 +738,6 @@ class SemiTrace(object):
 
         return terms
 
-    def newName(self,subterms):
-        """
-        Come up with a new name
-        """
-        pref = "M"
-        cnt = 1
-        
-        substrings = [str(t) for t in subterms]
-        substrings += self.abbreviations.keys()
-
-        while ("%s%i" % (pref,cnt)) in substrings:
-            cnt += 1
-
-        return "%s%i" % (pref,cnt)
-
     def replace(self,abbrev):
         for run in self.runs:
             for ev in run.eventList:
@@ -849,27 +753,17 @@ class SemiTrace(object):
         """
         Abbreviate some stuff
         """
-        abkeys = []
-        while True:
-            ss = self.collectTerms()
-            AC = AbbrevContext(ss)
-            ab = AC.select()
-            if ab == None:
-                break
+        if len(self.abbreviations.keys()) > 0:
+            # Already done
+            return
 
-            nn = self.newName(ss)
-            abkeys.append(nn)
-            abbrev = {}
-            abbrev[str(ab)] = Term.TermConstant(nn)
-            self.replace(abbrev)
-            for k in self.abbreviations.keys():
-                self.abbreviations[k] = self.abbreviations[k].replace(abbrev)
-            self.abbreviations[nn] = ab
-        
-        if len(abkeys) > 0:
+        AC = AbbrevContext(self.abbreviations)
+        self.abbreviations = AC.abbreviateAll(self,self.collectTerms,self.replace)
+
+        if len(self.abbreviations.keys()) > 0:
             self.comments += "Abbreviations:\n"
-        for k in abkeys:
-            self.comments += "%s = %s\n" % (k, str(self.abbreviations[k]))
+        for k in sorted(self.abbreviations.keys()):
+            self.comments += "%s = %s\n" % (k, self.abbreviations[k])
 
         # For debugging
         #res = ""
