@@ -413,6 +413,7 @@ class SemiTrace(object):
         self.comments = ""
         self.abbreviations = {}
         self.protocols = None
+        self.cleaned = False
     
     def getProtocols(self):
 
@@ -682,11 +683,15 @@ class SemiTrace(object):
         """
         Simplify the graph as desired
         """
+        if self.cleaned:
+            return
+
         self.collapseRuns()
         self.collapseIntruderComputations()
         self.collapseBindings()             # Collapse bindings must be after intrudercomputations, which may introduce new bindings
         self.collapseInitialKnowledge()
         self.abbreviate()                   # Must be last, so we know what is already done
+        self.cleaned = True
 
     def createDotFromXML(self):
         """
