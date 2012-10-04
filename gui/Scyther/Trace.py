@@ -532,7 +532,7 @@ class SemiTrace(object):
 
         args = []
         if ev.run.intruder:
-            if ev.run.getLKRagent() == None:
+            if ev.run.getLKRagents() == None:
                 if "I_R" in ev.run.role:
                     args += ["style=filled,fillcolor=\"%s\"" % COLORCOMPROMISE]
                 else:
@@ -1322,8 +1322,8 @@ class SemiTrace(object):
                         # TODO: We probably need Scyther to mark function applications here
                         # TODO: We need Scyther to mark long-term private keys,state, etc to see reveals or compromise
                         if "I_E" in str(ev.run.role):
-                            agent = ev.run.getLKRagent()
-                            if agent == None:
+                            agents = ev.run.getLKRagents()
+                            if agents == None:
                                 # Construction
                                 res += "%i\t\t%s.\n" % (line,str(ev))
                                 line += 1
@@ -1630,13 +1630,19 @@ class Run(object):
             for ev in self:
                 return
 
-    def getLKRagent(self):
-        # Determine if this is an LKR reveal. If so, return agent. If not, return None
+    def getLKRagents(self):
+        # Determine if this is an LKR reveal. If so, return list of agents (one of them must be compromised, not all!). If not, return None
         if self.intruder and ("I_E" in str(self.role)):
             # Construction
             if len(self.eventList) > 0:
                 term = self.eventList[-1].originalmessage
-                return term.getSK()
+                ag = term.getSK()
+                if ag != None:
+                    return [ag]
+                ags = term.getK()
+                if ags != None:
+                    return ags.unpair()
+                    
         return None
 
     def matrixHead(self):
@@ -1762,7 +1768,7 @@ class Event(object):
             if "I_E" in self.run.role:
                 realindex = len(self.run.eventList) - 1
                 # Consider LKR possibility
-                lkragent = self.run.getLKRagent()
+                lkragent = self.run.getLKRagents()
                 if lkragent != None:
                     text = "Reveal"
                     includeTerm = True  # Override the parameter for reveal
