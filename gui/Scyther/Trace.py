@@ -931,9 +931,9 @@ class SemiTrace(object):
                                 IK = Term.TermTuple(IK,t)
                         
                         # Store
-                        print "Original IK0: %s" % str(ev.message)
+                        #print "Original IK0: %s" % str(ev.message)
                         ev.message = IK
-                        print "New IK0: %s" % str(ev.message)
+                        #print "New IK0: %s" % str(ev.message)
 
                         # If it is empty, we should remove the entire node
                         if IK == None:
@@ -977,8 +977,8 @@ class SemiTrace(object):
                 for idx in idxl:
                     self.removeRunEvent(run,idx-fix)
                     fix += 1
-        print "Cut %i events: %s." % (len(cut), [str(ev) for ev in cut])
-        print "Collapsed %i runs: %s." % (len(collapsed), [str(rn) for rn in collapsed])
+        #print "Cut %i events: %s." % (len(cut), [str(ev) for ev in cut])
+        #print "Collapsed %i runs: %s." % (len(collapsed), [str(rn) for rn in collapsed])
 
     def relevantLabel(self,fromevv,label,toevv):
         # Determine if the label needs to be displayed
