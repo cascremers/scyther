@@ -1635,8 +1635,9 @@ class Run(object):
         # Determine if this is an LKR reveal. If so, return agent. If not, return None
         if self.intruder and ("I_E" in str(self.role)):
             # Construction
-            term = self.eventList[-1].originalmessage
-            return term.getSK()
+            if len(self.eventList) > 0:
+                term = self.eventList[-1].originalmessage
+                return term.getSK()
         return None
 
     def matrixHead(self):
