@@ -343,7 +343,7 @@ class Matrix(object):
 
         # Construct
         myorder = self.trace.lineariseTrace()
-        self.createRidmap(myorder)
+        self.trace.createRidmap(myorder)
 
         # Abbreviations
         self.trace.abbreviate()
