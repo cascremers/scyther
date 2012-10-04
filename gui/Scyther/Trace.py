@@ -1295,8 +1295,8 @@ class SemiTrace(object):
 
         self.createRidmap(myorder)
 
-        # Abbreviations
-        self.abbreviate()
+        self.cleanup()
+
 
         # Display events in the chosen order
         # Construct table headers
