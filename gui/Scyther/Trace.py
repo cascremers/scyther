@@ -654,7 +654,7 @@ class SemiTrace(object):
                 ## TODO we want to override the text of the follow-up nodes to "construct"
                 (inev,outev) = self.removeRun(run.id)
                 for ev in outev:
-                    ev.overridetext = "Construct"
+                    ev.collapsedruns.append(run.id)
                 return True
         return False
 
@@ -1669,7 +1669,7 @@ class Event(object):
         self.compromisetype = compromisetype
         self.bindings = bindinglist
         self.originalmessage = None
-        self.overridetext = None
+        self.collapsedruns = []
     
     def __eq__(self,other):
 
@@ -1746,16 +1746,20 @@ class Event(object):
                 text = "Decrypt"
             elif "I_M" in self.run.role:
                 text = "Initial knowledge"
-            elif "I_R" in self.run.role:
+
+            if len(self.collapsedruns) > 0:
+                includeTerm = True
+                text = "Construct"
+
+            if "I_R" in self.run.role:
                 if intruderConstant(self.originalmessage):
                     text = "Create"
                 else:
                     text = "Learn"
                 includeTerm = True
 
-            if self.overridetext != None:
-                includeTerm = True
-                text = self.overridetext
+            if len(self.collapsedruns) > 0:
+                text += "*"
 
             if self.index == realindex:
                 if includeTerm == True:
