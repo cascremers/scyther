@@ -1593,6 +1593,12 @@ class Run(object):
             return None
         return self.roleAgents[self.role]
 
+    def ifManyRoles(self,optyes,optno):
+        if len(self.roleAgents.keys()) <= 2:
+            return optno
+        else:
+            return optyes
+
     def getFirstAction(self):
         return self.eventList[0]
 
@@ -1823,14 +1829,15 @@ class EventSend(Event):
                 return "Reveal %s (unknown type)" % (str(self.message))
 
         if self.run.intruder:
-            return "SEND(%s)" % self.message
+            return "send(%s)" % self.message
         else:
-            return "SEND_%s(%s,%s)" % (self.shortLabel(),self.to,self.message)
+            return "send_%s(%s,%s)" % (self.shortLabel(),self.to,self.message)
 
     def dot(self):
         if self.compromisetype == None:
             if self.run.isAgentRun():
-                res = "send_%s to %s\\n%s" % (self.shortLabel(),self.to,self.message)
+                remark = self.run.ifManyRoles(" to %s" % self.to, "")
+                res = "send_%s%s\\n%s" % (self.shortLabel(),remark,self.message)
                 return res
         return super(EventSend,self).dot()
 
@@ -1845,14 +1852,15 @@ class EventRead(Event):
     
     def __str__(self):
         if self.run.intruder:
-            return "RECV(%s)" % self.message
+            return "recv(%s)" % self.message
         else:
-            return "RECV_%s(%s,%s)" % (self.shortLabel(),self.fr, self.message)
+            return "recv_%s(%s,%s)" % (self.shortLabel(),self.fr, self.message)
 
     def dot(self):
         if self.compromisetype == None:
             if self.run.isAgentRun():
-                res = "recv_%s from %s\\n%s" % (self.shortLabel(),self.fr,self.message)
+                remark = self.run.ifManyRoles(" from %s" % self.fr, "")
+                res = "recv_%s%s\\n%s" % (self.shortLabel(),remark,self.message)
                 return res
         return super(EventRead,self).dot()
 
@@ -1886,7 +1894,7 @@ class EventClaim(Event):
             
     def __str__(self):
 
-        msg = "CLAIM_%s(%s, %s)" % (self.shortLabel(),self.type,self.argstr())
+        msg = "claim_%s(%s,%s, %s)" % (self.shortLabel(),self.run.getAgent(),self.type,self.argstr())
         return msg
 
 
