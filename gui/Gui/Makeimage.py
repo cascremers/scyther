@@ -157,6 +157,7 @@ def makeImage(attack,attackthread=None):
 
     """ This should clearly be a method of 'attack' """
 
+    attack.createDotFromXML()
     (name,type) = makeImageDot(attack.scytherDot,attackthread)
     # if this is done, store and report
     attack.file = name

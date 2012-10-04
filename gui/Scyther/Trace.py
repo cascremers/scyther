@@ -343,19 +343,7 @@ class Matrix(object):
 
         # Construct
         myorder = self.trace.lineariseTrace()
-
-        # Construct sane runidmap
-        seen = Set()
-        runid = 1
-        for ev in myorder:
-            if ev.run not in seen:
-                seen.add(ev.run)
-                if ev.run.isAgentRun():
-                    RUNIDMAP[str(ev.run.id)] = runid
-                    runid += 1
-                RUNIDMAX = max(RUNIDMAX,ev.run.id)
-
-        Term.pushRewriteStack(SaneTerm)
+        self.createRidmap(myorder)
 
         # Abbreviations
         self.trace.abbreviate()
@@ -563,21 +551,18 @@ class SemiTrace(object):
         res = "%s [%s]\n" % (curr,",".join(args))
         return res
 
-    def dotTest(self):
+    def createRidmap(self,myorder):
+        """
+        Create sane runidmap
 
+        Pushes the rewriter onto the stack, so need to call Term.popRewriteStack() to restore afterwards
+        """
         global RUNIDMAP, RUNIDMAX
 
-        # For testing only
-        import commands
-
-        clustering = True
-        clusterIntruder = False
-
-        myorder = self.lineariseTrace()
-
-        # Construct sane runidmap
         seen = []
         runid = 1
+        RUNIDMAX = 0
+        RUNIDMAP = {}
         for ev in myorder:
             if ev.run in seen:
                 continue
@@ -586,20 +571,35 @@ class SemiTrace(object):
                 RUNIDMAP[str(ev.run.id)] = runid
                 runid += 1
             RUNIDMAX = max(RUNIDMAX,ev.run.id)
-
         Term.pushRewriteStack(SaneTerm)
 
-        fp = open("test.dot","w")
-        fp.write("digraph X {\n")
+
+    def createDotFromXML(self):
+        """
+        Return graphviz output from XML
+        """
+        self.collapseInitialKnowledge()
+        self.collapseRuns()
+
+        clustering = True
+        clusterIntruder = False
+
+        myorder = self.lineariseTrace()
+        self.createRidmap(myorder)
+
+        # Abbreviations
+        self.abbreviate()
+
         res = ""
+        res += "digraph X {\n"
         for run in self.runs:
 
             if clustering:
                 if run.isAgentRun():
                     res += "subgraph cluster_run%i {\n" % (run.id)
-                    res += "style=filled\n"
-                    res += "color=\"#e0e0e0\"\n"        # Cluster background color
-                    res += "node [style=filled,fillcolor=\"#ffffff\"]\n"    # Edges background
+                    res += "style=filled;\n"
+                    res += "color=\"#e0e0e0\";\n"        # Cluster background color
+                    res += "node [style=filled,fillcolor=\"#ffffff\"];\n"    # Edges background
             for ev in run:
                 res += self.dotProgress(ev)
                 res += self.dotEvent(ev)
@@ -624,22 +624,35 @@ class SemiTrace(object):
                 if len(run.eventList) > 0:
                     if run.id > 0:
                         prev = "r%ii%i" % (run.id, len(run.eventList)-1)
-                        res += "%s -> comments [style=invis]\n" % (prev)
+                        res += "%s -> comments [style=invis];\n" % (prev)
             ## Explain
             res += "subgraph cluster_comments {\n"
-            res += "rank=\"sink\"\n"
-            res += "style=\"invis\"\n"
-            res += "comments [shape=\"box\",label=\"%s\"]\n" % (self.comments.replace("\n","\\l"))
+            res += "rank=\"sink\";\n"
+            res += "style=\"invis\";\n"
+            res += "comments [shape=\"box\",label=\"%s\"];\n" % (self.comments.replace("\n","\\l"))
             res += "}\n"
 
+        res += "}\n"
+
+        Term.popRewriteStack()
+
+        return res
+
+
+    def dotTest(self):
+        """
+        Write dot output to temp file
+        """
+        # For testing only
+        import commands
+
+        res = self.createDotFromXML()
+        fp = open("test.dot","w")
         fp.write(res)
-        fp.write("}\n")
         fp.close()
 
         cmd = "dot -O -Tpng -Tsvg test.dot"
         print commands.getoutput(cmd)
-
-        Term.popRewriteStack()
 
     def getEnabled(self,previous):
         enabled = []
@@ -1145,19 +1158,7 @@ class SemiTrace(object):
 
         myorder = self.lineariseTrace()
 
-        # Construct sane runidmap
-        seen = []
-        runid = 1
-        for ev in myorder:
-            if ev.run in seen:
-                continue
-            seen.append(ev.run)
-            if ev.run.isAgentRun():
-                RUNIDMAP[str(ev.run.id)] = runid
-                runid += 1
-            RUNIDMAX = max(RUNIDMAX,ev.run.id)
-
-        Term.pushRewriteStack(SaneTerm)
+        self.createRidmap(myorder)
 
         # Abbreviations
         self.abbreviate()

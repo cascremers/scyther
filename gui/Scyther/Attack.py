@@ -73,3 +73,6 @@ class Attack(object):
     def __str__(self):
         return self.semiTrace.__str__(protocoldescr=self.protocoldescr)
 
+    def createDotFromXML(self):
+        self.scytherDot = self.semiTrace.createDotFromXML()
+
