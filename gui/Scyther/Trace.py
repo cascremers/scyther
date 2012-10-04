@@ -156,7 +156,6 @@ def permuteMinimalCostIterate(runstodo,callcost,sequence=None,takeFirst=False):
 
     return
 
-
 def colCompress(sequence):
     """
     Turns a sequence of runs into a sequences of run sequences, joining groups and omitting "HIDDEN"
@@ -329,9 +328,6 @@ class Matrix(object):
         bestseq = permuteMinimalCost(self.trace.runs,self.trace.sequenceCost,takeFirst=True)
         print "Checked: %i" % (checked)
 
-        # Cleanup anyway
-        self.trace.cleanup()
-
         # Compressed columns representation
         comprCol = colCompress(bestseq)
         colwidths = {}
@@ -348,8 +344,8 @@ class Matrix(object):
         myorder = self.trace.lineariseTrace()
         self.trace.createRidmap(myorder)
 
-        # Abbreviations
-        self.trace.abbreviate()
+        # Cleanup anyway
+        self.trace.cleanup()
 
         # Put in
         seen = []   # Runs observed
@@ -687,7 +683,7 @@ class SemiTrace(object):
         self.collapseRuns()
         self.collapseIntruderComputations()
         self.collapseBindings()             # Collapse bindings must be after intrudercomputations, which may introduce new bindings
-        self.abbreviate()
+        self.abbreviate()                   # Must be last, so we know what is already done
 
     def createDotFromXML(self):
         """
@@ -1011,11 +1007,11 @@ class SemiTrace(object):
                 if v.value != None:
                     terms.append(v.value)
 
-        for k in self.abbreviations.keys():
-            abt = self.abbreviations[k].constructorTerms()
-            if len(abt) > 1:
-                for t in abt:
-                    terms.append(t)
+        #for k in self.abbreviations.keys():
+        #    abt = self.abbreviations[k].constructorTerms()
+        #    if len(abt) > 1:
+        #        for t in abt:
+        #            terms.append(t)
 
         return terms
 
