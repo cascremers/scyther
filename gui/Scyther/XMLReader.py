@@ -342,6 +342,7 @@ class XMLReader(object):
                 for runxml in event:
                     run = self.readRun(runxml)
                     run.attack = attack
+                    run.trace = attack.semiTrace
                     attack.semiTrace.runs.append(run)
 
             elif event.tag == 'dot':

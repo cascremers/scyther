@@ -416,7 +416,18 @@ class SemiTrace(object):
         self.runs = []
         self.comments = ""
         self.abbreviations = {}
+        self.protocols = None
     
+    def getProtocols(self):
+
+        if self.protocols == None:
+            self.protocols = Set()
+            for run in self.runs:
+                if run.isAgentRun():
+                    self.protocols.add(str(run.protocol))
+
+        return list(self.protocols)
+
     def totalCount(self):
         count = 0
         for run in self.runs:
@@ -1544,6 +1555,7 @@ class Run(object):
         self.attack = None
         self.variables = []
         self.vistype = None     # "HIDDEN", None (== unique), or any string
+        self.trace = None       # We need to set this early
 
     def __iter__(self):
         return iter(self.eventList)
@@ -1627,9 +1639,13 @@ class Run(object):
             for v in self.variables:
                 vl.append("Var %s -> %s" % (v.__str__(myname=True),str(v)))
 
+            if len(self.trace.getProtocols()) > 1:
+                protspec = "protocol %s, " % self.protocol
+            else:
+                protspec = ""
             hd = ["---",
                   "Run %i" % (self.srid()),
-                  "%s in protocol %s, role %s" % (self.getAgent(),self.protocol,self.role),
+                  "%s in %srole %s" % (self.getAgent(),protspec,self.role),
                   "Assumes %s" % (self.getAssumptions())
                   ]
             hd += vl
