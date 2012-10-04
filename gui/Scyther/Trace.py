@@ -655,7 +655,7 @@ class SemiTrace(object):
         Try to collapse one intruder computations
         """
         for run in self.runs:
-            if self.isIntruderInternal(run):
+            if self.isIntruderInternal(run) and (run.getLKRagents() == None):
                 # We can get rid of this one
                 ## TODO we want to override the text of the follow-up nodes to "construct"
                 (inev,outev) = self.removeRun(run.id)
