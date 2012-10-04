@@ -656,7 +656,6 @@ class SemiTrace(object):
         """
         for run in self.runs:
             if self.isIntruderInternal(run):
-                print "Run %i is an internal intruder run! %s" % (run.id,run.eventList[0])
                 # We can get rid of this one
                 ## TODO we want to override the text of the follow-up nodes to "construct"
                 (inev,outev) = self.removeRun(run.id)
