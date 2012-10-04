@@ -289,7 +289,7 @@ class Matrix(object):
                             break
                     for y in range(miny,maxy+1):
                         if self.mget(x,y) == "":
-                            self.mset(x,y,"|")
+                            self.mset(x,y," |")
 
     def compute(self):
         """
