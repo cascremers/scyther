@@ -693,6 +693,8 @@ class SemiTrace(object):
         """
         Return graphviz output from XML
         """
+        global CLAIMRUN
+
         self.cleanup()
 
         clustering = True
@@ -703,11 +705,23 @@ class SemiTrace(object):
 
         res = ""
         res += "digraph X {\n"
+        
+        #Label
+        crun = self.getRun(CLAIMRUN)
+        cprot = str(crun.protocol)
+        if len(crun.eventList) > 0:
+            cclaim = str(crun.eventList[-1])
+        else:
+            cclaim = "unknown claim."
+
+        res += "label = \"Scyther pattern graph for protocol %s, %s\";\n" % (cprot,cclaim)
+
         for run in self.runs:
 
             if clustering:
                 if run.isAgentRun():
                     res += "subgraph cluster_run%i {\n" % (run.id)
+                    res += "label=\"\";\n"
                     res += "style=filled;\n"
                     res += "color=\"#e0e0e0\";\n"        # Cluster background color
                     res += "node [style=filled,fillcolor=\"#ffffff\"];\n"    # Edges background
