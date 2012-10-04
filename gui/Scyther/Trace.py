@@ -1612,7 +1612,7 @@ class Run(object):
             role = otherroles[ind]
             res += "%s->%s" % (role,self.roleAgents[role])
             if ind == len(otherroles) - 2:
-                res += ", and"
+                res += ", and "
             elif ind < len(otherroles) - 2:
                 res += ", "
         return res
