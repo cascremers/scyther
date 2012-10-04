@@ -589,6 +589,10 @@ class SemiTrace(object):
         """
         for run in self.runs:
             for ev in run:
+                if run.getLKRagents() != None:
+                    ev.bindings = []
+                    continue
+
                 newbnd = {}
                 for ((evv,l)) in ev.bindings:
 
