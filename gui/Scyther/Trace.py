@@ -612,6 +612,61 @@ class SemiTrace(object):
                     newbindings.add((evv,newl))
                 ev.bindings = list(newbindings)
 
+    def isIntruderInternal(self,runi):
+        """
+        Determine if this an intruder-internal run, i.e., unconnected to any agentRun node
+        """
+        if runi.isAgentRun():
+            return False
+
+        hasOutgoing = False
+        for run in self.runs:
+            for ev in run:
+                toevv = (run.id,ev.index)
+                if run.id == runi.id:
+                    if len(ev.bindings) == 0:
+                        # No incoming edges, so not internal
+                        return False
+                    for (fromevv,l) in ev.bindings:
+                        # Incoming edges
+                        if self.getRun(fromevv[0]).isAgentRun():
+                            return False
+                for (fromevv,l) in ev.bindings:
+                    if fromevv[0] == runi.id:
+                        # Outgoing edges
+                        hasOutgoing = True
+                        if self.getRun(toevv[0]).isAgentRun():
+                            return False
+        if hasOutgoing:
+            return True
+        else:
+            return False
+
+
+    def collapseOneIntruderComputation(self):
+        """
+        Try to collapse one intruder computations
+        """
+        for run in self.runs:
+            if self.isIntruderInternal(run):
+                print "Run %i is an internal intruder run! %s" % (run.id,run.eventList[0])
+                # We can get rid of this one
+                ## TODO we want to override the text of the follow-up nodes to "construct"
+                (inev,outev) = self.removeRun(run.id)
+                for ev in outev:
+                    ev.overridetext = "Construct"
+                return True
+        return False
+
+    def collapseIntruderComputations(self):
+        """
+        Try to collapse intruder computations
+        Note that this diverges quite a bit from the Scyther semantics in terms of representation.
+        """
+        flag = True
+        while flag:
+            flag = self.collapseOneIntruderComputation()
+
 
     def cleanup(self):
         """
@@ -619,7 +674,8 @@ class SemiTrace(object):
         """
         self.collapseInitialKnowledge()
         self.collapseRuns()
-        self.collapseBindings()
+        self.collapseIntruderComputations()
+        self.collapseBindings()             # Collapse bindings must be after intrudercomputations, which may introduce new bindings
         self.abbreviate()
 
     def createDotFromXML(self):
@@ -713,10 +769,14 @@ class SemiTrace(object):
         """
         Remove the entire run with id delrunid
         Essentially, any binding that goes in, is now rewritten (and duplicated) as a precondition for any following events. A similar procedure holds for the outgoing arrows.
+
+        Returns a pair (incoming event set, outgoing event set)
         """
         # Collect incoming and outgoing
         incoming = Set()
         outgoing = Set()
+        inev = Set()
+        outev = Set()
         for run in self.runs:
             for ev in run:
                 evv2 = (run.id,ev.index)
@@ -724,16 +784,18 @@ class SemiTrace(object):
                     # We have a labeled edge
                     if (evv1[0] == delrunid) and (evv2[0] != delrunid):
                         outgoing.add((evv1,l,evv2))
+                        outev.add(self.getEvent(evv2))
                     elif (evv1[0] != delrunid) and (evv2[0] == delrunid):
                         incoming.add((evv1,l,evv2))
+                        inev.add(self.getEvent(evv1))
         # Now we know, we can do it again
         newtriplets = Set()
         for run in self.runs:
             for ev in run:
                 evv2 = (run.id,ev.index)
                 newbindings = Set()
-                for (evv1,l) in ev.bindings:
-                    edge = (evv1,l,evv2)
+                for (evv1,l1) in ev.bindings:
+                    edge = (evv1,l1,evv2)
                     # We have a labeled edge
                     if (evv1[0] == delrunid) and (evv2[0] != delrunid):
                         # from delrun to run evv2[0]
@@ -749,7 +811,7 @@ class SemiTrace(object):
                             newtriplets.add((evv1,l2,evv4))
                     elif (evv1[0] != delrunid) and (evv2[0] != delrunid):
                         # Relevant, so retain
-                        newbindings.add((evv1,l))
+                        newbindings.add((evv1,l1))
                 ev.bindings = list(newbindings)
 
         for (evv1,l,evv2) in newtriplets:
@@ -757,7 +819,7 @@ class SemiTrace(object):
             tedge = (evv1,l)
             for run in self.runs:
                 if run.id == rid:
-                    for ev in rin:
+                    for ev in run:
                         if ev.index == index:
                             if tedge not in ev.bindings:
                                 ev.bindings.append(tedge)
@@ -766,6 +828,7 @@ class SemiTrace(object):
             if run.id == delrunid:
                 run.eventList = []
 
+        return (inev,outev)
 
 
     def removeRunEvent(self,run,index):
@@ -1604,6 +1667,7 @@ class Event(object):
         self.compromisetype = compromisetype
         self.bindings = bindinglist
         self.originalmessage = None
+        self.overridetext = None
     
     def __eq__(self,other):
 
@@ -1673,8 +1737,8 @@ class Event(object):
                 elif isinstance(self.run.eventList[realindex].originalmessage,Term.TermEncrypt):
                     text = "Encrypt"
                 elif isinstance(self.run.eventList[realindex].originalmessage,Term.TermApply):
-                    text = "Apply"
-                    message = self.originalmessage.function
+                    text = "Construct"
+                    #message = self.originalmessage.function
                     includeTerm = True
             elif "I_D" in self.run.role:
                 text = "Decrypt"
@@ -1686,6 +1750,10 @@ class Event(object):
                 else:
                     text = "Learn"
                 includeTerm = True
+
+            if self.overridetext != None:
+                includeTerm = True
+                text = self.overridetext
 
             if self.index == realindex:
                 if includeTerm == True:
