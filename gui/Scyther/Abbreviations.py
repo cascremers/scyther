@@ -20,6 +20,7 @@
 # Abbreviations
 #
 #
+MINTERMSIZE = 10 # Hardcoded constant; but hard to enforce due to subterm replacements later
 #MAXTERMSIZE = 16 # Hardcoded constant (makes sense for ASCII matrices)
 MAXTERMSIZE = 30 # Hardcoded constant (makes sense for graphviz graphs)
 MAXREPLACE = 7  # Not more than 7 replacements
@@ -89,12 +90,14 @@ class AbbrevContext(object):
         """
         True iff we might be abbreviated
         """
-        global MAXTERMSIZE
+        global MAXTERMSIZE,MINTERMSIZE
 
-        ts = term.size()
+        if len(str(term)) < MINTERMSIZE:
+            return False
         if term.getKeyAgents() != None:
             # We don't abbreviate keys, ever
             return False
+        ts = term.size()
         if (ts < 16) and isinstance(term.real(),Term.TermTuple):
             # We don't abbreviate pairs unless they are very large
             return False
