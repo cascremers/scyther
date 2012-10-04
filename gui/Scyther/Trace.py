@@ -627,10 +627,10 @@ class SemiTrace(object):
                     if len(ev.bindings) == 0:
                         # No incoming edges, so not internal
                         return False
-                    for (fromevv,l) in ev.bindings:
-                        # Incoming edges
-                        if self.getRun(fromevv[0]).isAgentRun():
-                            return False
+                    #for (fromevv,l) in ev.bindings:
+                    #    # Incoming edges
+                    #    if self.getRun(fromevv[0]).isAgentRun():
+                    #        return False
                 for (fromevv,l) in ev.bindings:
                     if fromevv[0] == runi.id:
                         # Outgoing edges
