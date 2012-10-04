@@ -329,6 +329,9 @@ class Matrix(object):
         bestseq = permuteMinimalCost(self.trace.runs,self.trace.sequenceCost,takeFirst=True)
         print "Checked: %i" % (checked)
 
+        # Cleanup anyway
+        self.trace.cleanup()
+
         # Compressed columns representation
         comprCol = colCompress(bestseq)
         colwidths = {}
@@ -573,22 +576,63 @@ class SemiTrace(object):
             RUNIDMAX = max(RUNIDMAX,ev.run.id)
         Term.pushRewriteStack(SaneTerm)
 
+    def collapseBindings(self):
+        """
+        Collapse or remove bindings where needed
+        """
+        for run in self.runs:
+            for ev in run:
+                newbnd = {}
+                for ((evv,l)) in ev.bindings:
+
+                    # Remove edges
+                    remove = False
+                    if run.isAgentRun():
+                        if self.getEvent(evv).run.isAgentRun():
+                            remove = True
+
+                    # Combine remaining edges
+                    ## Note we may be adding 'None'
+                    if not remove:
+                        if evv in newbnd.keys():
+                            newbnd[evv].add(l)
+                        else:
+                            newbnd[evv] = Set([l])
+
+                # Recombine
+                newbindings = Set()
+                for evv in newbnd.keys():
+                    newl = None
+                    for l in newbnd[evv]:
+                        if l != None:
+                            if newl == None:
+                                newl = l
+                            else:
+                                newl = Term.TermTuple(newl,l)
+                    newbindings.add((evv,newl))
+                ev.bindings = list(newbindings)
+
+
+    def cleanup(self):
+        """
+        Simplify the graph as desired
+        """
+        self.collapseInitialKnowledge()
+        self.collapseRuns()
+        self.collapseBindings()
+        self.abbreviate()
 
     def createDotFromXML(self):
         """
         Return graphviz output from XML
         """
-        self.collapseInitialKnowledge()
-        self.collapseRuns()
+        self.cleanup()
 
         clustering = True
         clusterIntruder = False
 
         myorder = self.lineariseTrace()
         self.createRidmap(myorder)
-
-        # Abbreviations
-        self.abbreviate()
 
         res = ""
         res += "digraph X {\n"
