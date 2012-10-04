@@ -588,7 +588,7 @@ class SemiTrace(object):
                     # Remove edges
                     remove = False
                     if run.isAgentRun():
-                        if self.getEvent(evv).run.isAgentRun():
+                        if self.getEvent(evv).run.id == run.id:
                             remove = True
 
                     # Combine remaining edges
