@@ -783,27 +783,28 @@ class SemiTrace(object):
         for run in self.runs:
             if run.intruder:
                 if "I_M" in run.role:
-                    ev = run.eventList[0]
-                    outbl = self.allOutgoingEdges(ev)
-                    usedterms = Set()
-                    for (l,(evi)) in outbl:
-                        usedterms.add(l)
+                    if len(run.eventList) > 0:
+                        ev = run.eventList[0]
+                        outbl = self.allOutgoingEdges(ev)
+                        usedterms = Set()
+                        for (l,(evi)) in outbl:
+                            usedterms.add(l)
 
-                    IK = None
-                    for t in usedterms:
+                        IK = None
+                        for t in usedterms:
+                            if IK == None:
+                                IK = t
+                            else:
+                                IK = Term.TermTuple(IK,t)
+                        
+                        # Store
+                        print "Original IK0: %s" % str(ev.message)
+                        ev.message = IK
+                        print "New IK0: %s" % str(ev.message)
+
+                        # If it is empty, we should remove the entire node
                         if IK == None:
-                            IK = t
-                        else:
-                            IK = Term.TermTuple(IK,t)
-                    
-                    # Store
-                    print "Original IK0: %s" % str(ev.message)
-                    ev.message = IK
-                    print "New IK0: %s" % str(ev.message)
-
-                    # If it is empty, we should remove the entire node
-                    if IK == None:
-                        toremove.add(run.id)
+                            toremove.add(run.id)
 
         for rid in toremove:
             self.removeRun(rid)
