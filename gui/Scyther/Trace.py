@@ -1321,57 +1321,55 @@ class SemiTrace(object):
             else:
                 # Run not seen before, so store run
                 seen.append(ev.run)
-                if ev.run.intruder == True:
-                    # Intruder action
-                    # TODO: We probably need Scyther to mark function applications here
-                    # TODO: We need Scyther to mark long-term private keys,state, etc to see reveals or compromise
-                    if "I_E" in str(ev.run.role):
-                        agent = ev.run.getLKRagent()
-                        if agent == None:
-                            # Construction
-                            msg = str(ev.run.eventList[-1].message)
-                            res += "%i\t\tThe adversary constructs %s.\n" % (line,msg)
+                if len(ev.run.eventList) > 0:
+                    if ev.run.intruder == True:
+                        # Intruder action
+                        # TODO: We probably need Scyther to mark function applications here
+                        # TODO: We need Scyther to mark long-term private keys,state, etc to see reveals or compromise
+                        if "I_E" in str(ev.run.role):
+                            agent = ev.run.getLKRagent()
+                            if agent == None:
+                                # Construction
+                                res += "%i\t\t%s.\n" % (line,str(ev))
+                                line += 1
+                            else:
+                                # Long-term key reveal
+                                res += "%i\t\t%s.\n" % (line,str(ev))
+                                line += 1
+                        elif "I_D" in str(ev.run.role):
+                            # Deconstruction
+                            res += "%i\t\t%s.\n" % (line,str(ev))
+                            line += 1
+                        elif "I_M" in str(ev.run.role):
+                            # Initial knowledge
+                            pass
+                        elif "I_R" in str(ev.run.role):
+                            res += "%i\t\t%s.\n" % (line,str(ev))
                             line += 1
                         else:
-                            # Long-term key reveal
-                            msg = str(ev.run.eventList[-1].message)
-                            res += "%i\t\tLong-term key reveal of %s.\n" % (line,msg)
+                            # Unknown
+                            res += "%i\t\tProtocol %s, role %s. " % (line,ev.run.srid(), ev.run.protocol, ev.run.role)
+                            res += "'intruder': %s.\n" % (ev.run.intruder)
                             line += 1
-                    elif "I_D" in str(ev.run.role):
-                        # Deconstruction
-                        msg = str(ev.run.eventList[0].message)
-                        res += "%i\t\tThe adversary decrypts %s.\n" % (line,msg)
-                        line += 1
-                    elif "I_M" in str(ev.run.role):
-                        # Initial knowledge
-                        pass
-                    elif "I_R" in str(ev.run.role):
-                        res += "%i\t\tThe adversary knows %s.\n" % (line,str(ev.run.eventList[0].message))
-                        line += 1
                     else:
-                        # Unknown
-                        res += "%i\t\tProtocol %s, role %s. " % (line,ev.run.srid(), ev.run.protocol, ev.run.role)
-                        res += "'intruder': %s.\n" % (ev.run.intruder)
-                        line += 1
-                else:
-                    # Not an intruder run
-                    if ev.run.isAgentRun():
-                        # Normal agent run
-                        actor = ev.run.getAgent()
-                        prot = ev.run.protocol
-                        role = ev.run.role
-                        res += "%i\t%s\t%s creates a run of protocol %s in role %s. " % (line,ev.run.srid(),actor,prot,role)
+                        # Not an intruder run
+                        if ev.run.isAgentRun():
+                            # Normal agent run
+                            actor = ev.run.getAgent()
+                            prot = ev.run.protocol
+                            role = ev.run.role
+                            res += "%i\t%s\t%s creates a run of protocol %s in role %s. " % (line,ev.run.srid(),actor,prot,role)
 
-                        otherroles = ev.run.roleAgents.keys()
-                        otherroles.remove(ev.run.role)
-                        res += "%s assumes " % (actor)
-                        res += ev.run.getAssumptions()
-                        res += ".\n"
-                        line += 1
-                    elif ev.run.isHelperRun():
-                        # Helper run
-                        msg = ev.run.getLastAction().message
-                        res += "%i\t\tThe adversary derives %s (using helper %s,%s).\n" % (line,msg,ev.run.protocol,ev.run.role)
+                            otherroles = ev.run.roleAgents.keys()
+                            otherroles.remove(ev.run.role)
+                            res += "%s assumes " % (actor)
+                            res += ev.run.getAssumptions()
+                            res += ".\n"
+                            line += 1
+                        elif ev.run.isHelperRun():
+                            # Helper run
+                            msg = ev.run.getLastAction().message
+                            res += "%i\t\tThe adversary derives %s (using helper %s,%s).\n" % (line,msg,ev.run.protocol,ev.run.role)
                         
             # Display the concrete event if needed
             if ev.run.intruder == False:
