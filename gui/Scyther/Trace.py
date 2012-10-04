@@ -768,7 +768,9 @@ class SemiTrace(object):
     def removeRun(self,delrunid):
         """
         Remove the entire run with id delrunid
-        Essentially, any binding that goes in, is now rewritten (and duplicated) as a precondition for any following events. A similar procedure holds for the outgoing arrows.
+        Essentially, any binding that goes in, is now rewritten (and duplicated) as a precondition for any following events. 
+        
+        In an older version, a similar procedure was performed for the outgoing arrows, but this did not correspond to the intuition of merging the node into its successors.
 
         Returns a pair (incoming event set, outgoing event set)
         """
@@ -801,14 +803,14 @@ class SemiTrace(object):
                         # from delrun to run evv2[0]
                         # instead, add edges with the same label from all incoming
                         for (evv3,l2,evv4) in incoming:
-                            newtriplets.add((evv3,l1,evv2))
+                            #newtriplets.add((evv3,l1,evv2))
                             newtriplets.add((evv3,l2,evv2))
                     elif (evv1[0] != delrunid) and (evv2[0] == delrunid):
                         # from run evv1[0] to delrun
                         # instead, add edges with the same label to all outgoing
                         for (evv3,l2,evv4) in outgoing:
                             newtriplets.add((evv1,l1,evv4))
-                            newtriplets.add((evv1,l2,evv4))
+                            #newtriplets.add((evv1,l2,evv4))
                     elif (evv1[0] != delrunid) and (evv2[0] != delrunid):
                         # Relevant, so retain
                         newbindings.add((evv1,l1))
