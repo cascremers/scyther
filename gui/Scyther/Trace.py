@@ -36,6 +36,25 @@ COLORADVERSARY = "#ffe020"      # Adversary node color
 COLORCLAIMRUN = "#c0e0f8"     # Test claim node color
 COLORREGULAR = "#008000"        # Regular send & recv
 
+def drawBox(seq):
+    """
+    Draw an ascii box around the non-empty sequence and return
+    """
+    mw = 0
+    for l in seq:
+        mw = max(mw,len(l))
+    if mw == 0:
+        return []
+
+    line = "-" * (mw+2)
+    box = [line]
+    for l in seq:
+        box.append("|%s|" % (l + " " * (mw - len(l))) )
+    box.append(line)
+
+    return box
+
+
 def permuteRuns(runstodo,callback,sequence=None):
     """
     Perform callback on all possible permutations of the runs.
@@ -1654,13 +1673,13 @@ class Run(object):
                     
         return None
 
-    def matrixHead(self):
-        # Return matrix head: array of single lines
+    def sequenceHead(self):
+        # Return sequence head: array of single lines
         if not self.isAgentRun():
             if self.intruder:
-                return [""]
+                return []
             elif self.isHelperRun():
-                return [""]
+                return []
             else:
                 return ["%s" % (self.role)]
         else:
@@ -1672,24 +1691,25 @@ class Run(object):
                 protspec = "protocol %s, " % self.protocol
             else:
                 protspec = ""
-            hd = ["---",
-                  "Run %i" % (self.srid()),
+            hd = ["Run %i" % (self.srid()),
                   "%s in %srole %s" % (self.getAgent(),protspec,self.role),
                   "Assumes %s" % (self.getAssumptions())
                   ]
             hd += vl
-            hd += [
-                  "---"
-                    ]
             return hd
+
+    def matrixHead(self):
+        # Return matrix head: array of single lines, but now with box
+        seq = self.sequenceHead()
+        return drawBox(seq)
+        
 
     def dotHead(self):
         # Return dot head
         res = ""
-        rl = self.matrixHead()
+        rl = self.sequenceHead()
         for l in rl:
-            if l != "---":
-                res += "%s\\l" % l
+            res += "%s\\l" % l
         return res
 
     def maxWidth(self):
