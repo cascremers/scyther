@@ -698,7 +698,7 @@ class SemiTrace(object):
             flag = self.collapseOneIntruderComputation()
 
 
-    def cleanup(self):
+    def cleanup(self,parameters={}):
         """
         Simplify the graph as desired
         """
@@ -706,7 +706,8 @@ class SemiTrace(object):
             return
 
         self.collapseRuns()
-        self.collapseIntruderComputations()
+        if not "intrudernodes" in parameters.keys():
+            self.collapseIntruderComputations()
         self.collapseBindings()             # Collapse bindings must be after intrudercomputations, which may introduce new bindings
         self.collapseInitialKnowledge()
         self.abbreviate()                   # Must be last, so we know what is already done
@@ -719,7 +720,7 @@ class SemiTrace(object):
         global CLAIMRUN
 
         if "noclean" not in parameters.keys():
-            self.cleanup()
+            self.cleanup(parameters)
 
         clustering = True
         clusterIntruder = False

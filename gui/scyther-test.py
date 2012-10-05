@@ -62,7 +62,6 @@ if __name__ == '__main__':
                 att2 = copy.deepcopy(att)
                 att2.semiTrace.dotTest({"filename":"clean"})
                 att3 = copy.deepcopy(att)
-                att3.semiTrace.collapseRuns()
-                att3.semiTrace.dotTest({"noclean":True, "filename":"noclean"})
+                att3.semiTrace.dotTest({"intrudernodes":True, "filename":"noclean"})
 
 
