@@ -57,10 +57,12 @@ if __name__ == '__main__':
             print cl
             print cl.roledescribe()
             for att in cl.attacks:
-                att.semiTrace.collapseInitialKnowledge()
-                att.semiTrace.collapseRuns()
-                print att
-                print att.semiTrace.matrix()
-                att.semiTrace.dotTest()
+                import copy
+
+                att2 = copy.deepcopy(att)
+                att2.semiTrace.dotTest({"filename":"clean"})
+                att3 = copy.deepcopy(att)
+                att3.semiTrace.collapseRuns()
+                att3.semiTrace.dotTest({"noclean":True, "filename":"noclean"})
 
 

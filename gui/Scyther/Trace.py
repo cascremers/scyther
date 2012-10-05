@@ -712,13 +712,14 @@ class SemiTrace(object):
         self.abbreviate()                   # Must be last, so we know what is already done
         self.cleaned = True
 
-    def createDotFromXML(self):
+    def createDotFromXML(self,parameters={}):
         """
         Return graphviz output from XML
         """
         global CLAIMRUN
 
-        self.cleanup()
+        if "noclean" not in parameters.keys():
+            self.cleanup()
 
         clustering = True
         clusterIntruder = False
@@ -787,19 +788,24 @@ class SemiTrace(object):
         return res
 
 
-    def dotTest(self):
+    def dotTest(self,parameters={}):
         """
         Write dot output to temp file
         """
         # For testing only
         import commands
 
-        res = self.createDotFromXML()
-        fp = open("test.dot","w")
+        res = self.createDotFromXML(parameters=parameters)
+        fn = "test.dot"
+        if "filename" in parameters.keys():
+            fn = parameters["filename"]
+            if not "." in fn:
+                fn += ".dot"
+        fp = open(fn,"w")
         fp.write(res)
         fp.close()
 
-        cmd = "dot -O -Tpng -Tsvg test.dot"
+        cmd = "dot -O -Tpng -Tsvg %s" % (fn)
         print commands.getoutput(cmd)
 
     def getEnabled(self,previous):
