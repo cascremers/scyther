@@ -1,2 +1,6 @@
 [Wed May  2 09:20:55 2012]	./test-adversary-models.py --paper
 [Wed May  2 10:08:27 2012]	./test-adversary-models.py --paper
+[Fri Oct  5 11:50:22 2012]	./test-adversary-models.py Protocols/AdversaryModels/2DH-ISO.spdl Protocols/AdversaryModels/STS-mod.spdl Protocols/AdversaryModels/CF.spdl
+[Fri Oct  5 12:03:49 2012]	./test-adversary-models.py Protocols/AdversaryModels/2DH-ISO.spdl Protocols/AdversaryModels/STS-mod.spdl Protocols/AdversaryModels/CF.spdl Protocols/AdversaryModels/UM.spdl
+[Fri Oct  5 12:06:09 2012]	./test-adversary-models.py -g Protocols/AdversaryModels/2DH-ISO.spdl Protocols/AdversaryModels/STS-mod.spdl Protocols/AdversaryModels/CF.spdl Protocols/AdversaryModels/UM.spdl
+[Fri Oct  5 15:54:02 2012]	./test-adversary-models.py -g Protocols/AdversaryModels/2DH-ISO.spdl Protocols/AdversaryModels/STS-mod.spdl Protocols/AdversaryModels/CF.spdl Protocols/AdversaryModels/UM.spdl
