@@ -1094,6 +1094,10 @@ class SemiTrace(object):
         # See if we should ignore this event in the context of this trace
         if isinstance(ev,EventClaim):
             if ev.run.id != CLAIMRUN:
+                # We should ignore other claims. One exception is running claims when we are inspecting a commit claim.
+                if str(self.runs[CLAIMRUN].eventList[-1].type) == "Commit":
+                    if str(ev.type) == "Running":
+                        return False
                 return True
             else:
                 if ev.index < len(ev.run.eventList) - 1:
