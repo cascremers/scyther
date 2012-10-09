@@ -140,7 +140,7 @@ class Term(object):
         return 0
 
     def size(self):
-        return self
+        return 0
 
     def getSK(self):
         return None
@@ -203,7 +203,7 @@ class TermConstant(Term):
         return 1
 
     def size(self):
-        return 0
+        return 1
 
     def replace(self,rmap):
         return self
