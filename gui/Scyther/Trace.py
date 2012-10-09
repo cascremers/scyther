@@ -36,6 +36,28 @@ COLORADVERSARY = "#ffe020"      # Adversary node color
 COLORCLAIMRUN = "#c0e0f8"     # Test claim node color
 COLORREGULAR = "#008000"        # Regular send & recv
 
+def simpleSubSet(bigset,smallset):
+    """
+    Returns true iff it is 'easy to see' how smallset relates to bigset (e.g. because they are equal)
+    """
+    big = Set([str(x) for x in bigset.unpair()])
+    small = Set([str(x) for x in smallset.unpair()])
+    if not small <= big:
+        return False
+    else:
+        diff = big - small
+        if len(diff) > 2:
+            return False
+        delta = 0
+        for t in diff:
+            delta += 1 + len(t)
+        if delta > 8:
+            return False
+        else:
+            return True
+
+
+
 def drawBox(seq):
     """
     Draw an ascii box around the non-empty sequence and return
@@ -1042,8 +1064,14 @@ class SemiTrace(object):
         (r1,i1) = fromevv
         (r2,i2) = toevv
 
-        if self.runs[r1].isAgentRun() or self.runs[r2].isAgentRun():
-            return False
+        run1 = self.runs[r1]
+        run2 = self.runs[r2]
+        if run1.isAgentRun():
+            if simpleSubSet(run1.eventList[i1].message,label):
+                return False
+        if run2.isAgentRun():
+            if simpleSubSet(run2.eventList[i2].message,label):
+                return False
 
         return True
 
