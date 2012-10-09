@@ -23,9 +23,24 @@
 MINTERMSIZE = 10 # Hardcoded constant; but hard to enforce due to subterm replacements later
 #MAXTERMSIZE = 16 # Hardcoded constant (makes sense for ASCII matrices)
 MAXTERMSIZE = 30 # Hardcoded constant (makes sense for graphviz graphs)
-MAXREPLACE = 7  # Not more than 7 replacements
+MAXREPLACE = 7  # More than 7 replacements need quadratic justification
+REPLACECON = 2    # Constant for quadratic penalty
 
 import Term
+
+def threshold(n):
+    """
+    threshold used to determine the threshold value for a given number of replacements n.
+    """
+    global MAXREPLACE, REPLACECON
+
+    x = n - MAXREPLACE
+    if x < 0:
+        y = 0
+    else:
+        y = REPLACECON * (x**2)
+    return y
+    
 
 class AbbrevContext(object):
     """
@@ -42,6 +57,8 @@ class AbbrevContext(object):
         """
         Return false if we ran out of options
         """
+        global MAXREPLACE
+
         self.termlist = termlist
 
         self.subterms = []
@@ -55,8 +72,13 @@ class AbbrevContext(object):
                 else:
                     self.subtermcount[str(st)] += 1
 
-        ab = self.select()
+        (ab,val) = self.select()
         if ab == None:
+            return False
+
+        # Now dermine of we can do it
+        if val <= threshold(len(self.abbreviations.keys())):
+            # Not worth the cost
             return False
 
         nn = self.newName()
@@ -95,7 +117,7 @@ class AbbrevContext(object):
         if len(str(term)) < MINTERMSIZE:
             return False
         if term.getKeyAgents() != None:
-            # We don't abbreviate keys, ever
+            # We don't abbreviate simple keys, ever
             return False
         ts = term.size()
         if (ts < 16) and isinstance(term.real(),Term.TermTuple):
@@ -103,7 +125,7 @@ class AbbrevContext(object):
             return False
         if ts <= 1:
             return False
-        if ts > 6:
+        if ts > 5:
             return True
         if len(str(term)) > MAXTERMSIZE:
             return True
@@ -113,29 +135,26 @@ class AbbrevContext(object):
 
     def valCandidate(self,term):
         """
-        Higher is better.
+        Higher is more likely to be abbreviated.
         Currently lexicographic-ish (occurrences, size)
         """
         occ = self.subtermcount[str(term)]
         size = len(str(term))
-        val = (1000 * occ) + size
+        val = (occ**2) * size
         return val
 
     def select(self):
 
-        bestval = None
-        bestterm = None
+        self.bestval = None
+        self.bestterm = None
         for term in self.subterms:
             if self.isCandidate(term):
                 val = self.valCandidate(term)
-                if bestterm == None:
-                    bestval = val
-                    bestterm = term
-                elif val > bestval:
-                    bestval = val
-                    bestterm = term
+                if (self.bestterm == None) or (val > self.bestval):
+                    self.bestterm = term
+                    self.bestval = max(self.bestval,val)
 
-        return bestterm
+        return (self.bestterm,self.bestval)
 
     def newName(self):
         """
