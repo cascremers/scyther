@@ -1801,6 +1801,7 @@ class Event(object):
             # Intruder run
             realindex = 0
             text = "Construct"
+            important = False
             message = self.message
             if dot:
                 includeTerm = False
@@ -1813,6 +1814,7 @@ class Event(object):
                 lkragent = self.run.getLKRagents()
                 if lkragent != None:
                     text = "Reveal"
+                    important = True
                     includeTerm = True  # Override the parameter for reveal
                 elif isinstance(self.run.eventList[realindex].originalmessage,Term.TermEncrypt):
                     text = "Encrypt"
@@ -1825,9 +1827,10 @@ class Event(object):
             elif "I_M" in self.run.role:
                 text = "Initial knowledge"
 
-            if len(self.collapsedruns) > 0:
-                includeTerm = True
-                text = "Construct"
+            if not important:
+                if len(self.collapsedruns) > 0:
+                    includeTerm = True
+                    text = "Construct"
 
             if "I_R" in self.run.role:
                 if intruderConstant(self.originalmessage):
@@ -1836,8 +1839,9 @@ class Event(object):
                     text = "Learn"
                 includeTerm = True
 
-            if len(self.collapsedruns) > 0:
-                text += "*"
+            if not important:
+                if len(self.collapsedruns) > 0:
+                    text += "*"
 
             if self.index == realindex:
                 if includeTerm == True:
