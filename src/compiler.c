@@ -741,8 +741,8 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 	      warning_pre ();
 	      eprintf ("  claim(R', Running, R,  data ).\n");
 	      globalError--;
-	      error
-		("Incorrect target role in Commit/Running claim at line %i.",
+	      warning
+		("Possibly incorrect target role in Commit/Running claim at line %i.",
 		 lineno);
 	    }
 	}
