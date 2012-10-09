@@ -710,7 +710,9 @@ class SemiTrace(object):
             self.collapseIntruderComputations()
         self.collapseBindings()             # Collapse bindings must be after intrudercomputations, which may introduce new bindings
         self.collapseInitialKnowledge()
+
         self.abbreviate()                   # Must be last, so we know what is already done
+
         self.cleaned = True
 
     def createDotFromXML(self,parameters={}):
@@ -719,14 +721,14 @@ class SemiTrace(object):
         """
         global CLAIMRUN
 
-        if "noclean" not in parameters.keys():
-            self.cleanup(parameters)
-
         clustering = True
         clusterIntruder = False
 
         myorder = self.lineariseTrace()
         self.createRidmap(myorder)
+
+        if "noclean" not in parameters.keys():
+            self.cleanup(parameters)
 
         res = ""
         res += "digraph X {\n"
