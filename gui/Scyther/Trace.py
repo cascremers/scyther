@@ -643,49 +643,73 @@ class SemiTrace(object):
                     newbindings.add((evv,newl))
                 ev.bindings = list(newbindings)
 
+    def runOutgoingEdges(self,runi):
+        """
+        Returns a set (uncommon)
+
+        (l,evv) elements
+        """
+        allout = []
+        for ev in runi:
+            allout += self.allOutgoingEdges(ev)
+        return Set(allout)
+
+
     def isIntruderInternal(self,runi):
         """
-        Determine if this an intruder-internal run, i.e., unconnected to any agentRun node
+        Determine if this an intruder-internal run, i.e., unconnected to any agentRun node that precedes its intruder-successors
+
+        We effectively want to push this into its intruder successors
         """
-        if runi.isAgentRun():
+        if len(runi.eventList) == 0:
+            # Not relevant
             return False
 
-        hasOutgoing = False
-        for run in self.runs:
-            for ev in run:
-                toevv = (run.id,ev.index)
-                if run.id == runi.id:
-                    if len(ev.bindings) == 0:
-                        # No incoming edges, so not internal
-                        return False
-                    #for (fromevv,l) in ev.bindings:
-                    #    # Incoming edges
-                    #    if self.getRun(fromevv[0]).isAgentRun():
-                    #        return False
-                for (fromevv,l) in ev.bindings:
-                    if fromevv[0] == runi.id:
-                        # Outgoing edges
-                        hasOutgoing = True
-                        if self.getRun(toevv[0]).isAgentRun():
-                            return False
-        if hasOutgoing:
+        if runi.isAgentRun():
+            # Not an intruder/helper run
+            return False
+
+        # Outgoing edges (needed to determine intruder/helper runs)
+        allout = self.runOutgoingEdges(runi)
+        nextIntruderRuns = Set([ self.getRun(rid) for (l,(rid,idx)) in allout if (rid != runi.id) and (not self.getRun(rid).isAgentRun()) ])
+        if len(nextIntruderRuns) == 0:
+            # There has to be at least one intruder run to collapse into
+            return False
+
+        # SIMPLIFIED
+        ### If there is a successor agent, we can't collapse
+        nextAgentRuns = Set([ self.getRun(rid) for (l,(rid,idx)) in allout if (rid != runi.id) and (self.getRun(rid).isAgentRun()) ])
+        if len(nextAgentRuns) == 0:
             return True
         else:
             return False
 
+        # Determine if there is an agent run 'in between' us and the successors.
+        for run in nextIntruderRuns:
+            if len(run.eventList) > 0:
+                precagev = Set([ ev for ev in self.getPrecedingEvents(run.eventList[-1]) if ev.run.isAgentRun() ])
+                for ev in precagev:
+                    # Agent event that precedes a successor
+                    if runi.eventList[0] in self.getPrecedingEvents(ev):
+                        # But we precede it..
+                        return False
+
+        return True
+
 
     def collapseOneIntruderComputation(self):
         """
-        Try to collapse one intruder computations
+        Try to collapse one intruder computation into its successors
         """
         for run in self.runs:
-            if self.isIntruderInternal(run) and (run.getLKRagents() == None):
-                # We can get rid of this one
-                ## TODO we want to override the text of the follow-up nodes to "construct"
-                (inev,outev) = self.removeRun(run.id)
-                for ev in outev:
-                    ev.collapsedruns.append(run.id)
-                return True
+            if len(run.eventList) > 0:
+                if self.isIntruderInternal(run) and (run.getLKRagents() == None):
+                    # We can get rid of this one
+                    ## TODO we want to override the text of the follow-up nodes to "construct"
+                    (inev,outev) = self.removeRun(run.id)
+                    for ev in outev:
+                        ev.collapsedruns.append(run.id)
+                    return True
         return False
 
     def collapseIntruderComputations(self):
