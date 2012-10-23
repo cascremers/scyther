@@ -30,6 +30,32 @@ int yylex(void);
 
 List letlist=NULL;
 
+List findLetDefinition(Symbol s)
+{
+	List l;
+
+	if (s == NULL)
+	  {
+	     return NULL;
+	  }
+	/* Now check if it is in the list
+	 * already */
+	for (l = list_rewind(letlist); l != NULL; l = l->next)
+	  {
+	    Tac tlet;
+	    Symbol sl;
+	    Tac tl;
+		
+	    tlet = (Tac) l->data;
+	    sl = (tlet->t1.tac)->t1.sym;	// The symbol
+	    if (strcmp (sl->text, s->text) == 0)
+	      {
+	        return l;
+	      }
+	  }
+	return NULL;
+}
+
 %}
 
 %union{
@@ -237,17 +263,28 @@ knowsdecl	: KNOWS termlist ';'
 		;
 
 letdecl		: LET basicterm '=' termlist ';'
-		  {	Tac t = tacCreate(TAC_LET);
-		  	/* Add to let declaration list.
-			 * Alternates over
-			 * - Basicterm tac
-			 * - Term tac
-			 * Note: needs to be append to maintain order
-			 * TAC_LET don't show up in the compiler though.
-			 */
-			t->t1.tac = $2;
-			t->t2.tac = tacTuple($4);
-			letlist = list_append(letlist, t);
+		  {	
+			List l;
+
+			l = findLetDefinition($2->t1.sym);
+			if (l == NULL)
+			  {
+		  	    Tac t;
+		  	    /* Add to let declaration list.
+			     * TAC_LET doesn't show up in the compiler though.  */
+			    t = tacCreate(TAC_LET);
+			    t->t1.tac = $2;
+			    t->t2.tac = tacTuple($4);
+			    letlist = list_append(letlist, t);
+			  }
+			else
+			  {
+			    /* Already defined. We can consider this
+			     * a bug or we can define it to
+			     * overwrite.
+			     */
+			    //yyerror("let symbol already defined earlier.");
+			  }
 			$$ = NULL;
 		  }
 		;
@@ -351,28 +388,20 @@ basicterm	: ID
 			List l;
 			Tac t;
 
-			t = NULL;
-			/* Now check if it is in the list
+			/* check if it is in the list
 			 * already */
-			for (l = list_rewind(letlist); l != NULL; l = l->next)
+			l = findLetDefinition($1);
+			if (l == NULL)
 			  {
-			    Tac tlet;
-			    Symbol sl;
-			    Tac tl;
-				
-			    tlet = (Tac) l->data;
-			    sl = (tlet->t1.tac)->t1.sym;	// The symbol
-			    tl = tlet->t2.tac;			// The term to replace the symbol
-			    if (strcmp (sl->text, $1->text) == 0)
-			      {
-			        t = tl;
-				break;
-			      }
-			  }
-			if (t == NULL)
-			  {
-			    t= tacCreate(TAC_STRING);
+			    t = tacCreate(TAC_STRING);
 			    t->t1.sym = $1;
+			  }
+			else
+			  {
+			    Tac lettac;
+
+			    lettac = (Tac) l->data;
+			    t = lettac->t2.tac;
 			  }
 			$$ = t;
 		  }
