@@ -21,11 +21,14 @@
 #include "pheading.h"
 #include "tac.h"
 #include "error.h"
+#include "list.h"
 
 struct tacnode*	spdltac;
 
 int yyerror(char *s);
 int yylex(void);
+
+List letlist=NULL;
 
 %}
 
@@ -58,6 +61,7 @@ int yylex(void);
 %token		KNOWS
 %token		TRUSTED
 %token 		SYMMETRICROLE
+%token 		LET
 
 %type	<tac>	spdlcomplete
 %type	<tac>	spdlrep
@@ -77,6 +81,7 @@ int yylex(void);
 %type	<tac>	key
 %type	<tac>	roleref
 %type	<tac>	knowsdecl
+%type	<tac>	letdecl
 
 %type   <value>	symmrole
 %type   <value>	singular
@@ -178,6 +183,8 @@ roledef		: /* empty */
 		  {	$$ = tacCat($1,$2); }
 		| knowsdecl roledef
 		  {	$$ = tacCat($1,$2); }
+		| letdecl roledef
+		  {	$$ = tacCat($1,$2); }
 		;
 
 /*
@@ -229,6 +236,22 @@ knowsdecl	: KNOWS termlist ';'
 		  }
 		;
 
+letdecl		: LET basicterm '=' termlist ';'
+		  {	Tac t = tacCreate(TAC_LET);
+		  	/* Add to let declaration list.
+			 * Alternates over
+			 * - Basicterm tac
+			 * - Term tac
+			 * Note: needs to be append to maintain order
+			 * TAC_LET don't show up in the compiler though.
+			 */
+			t->t1.tac = $2;
+			t->t2.tac = tacTuple($4);
+			letlist = list_append(letlist, t);
+			$$ = NULL;
+		  }
+		;
+
 declaration	: secretpref CONST basictermlist typeinfo1 ';'
 		  {	Tac t = tacCreate(TAC_CONST);
 		  	t->t1.tac = $3; // names
@@ -273,6 +296,10 @@ declaration	: secretpref CONST basictermlist typeinfo1 ';'
 			t->t3.tac = NULL;	// Not secret: public
 			$$ = t;
 		  }
+		| letdecl
+		  {
+		  	$$ = $1;
+		  }
 		;
 
 secretpref	: /* empty */
@@ -291,10 +318,9 @@ typeinfo1	: /* empty */
 		  	Tac t = tacCreate(TAC_UNDEF);
 			$$ = t;
 		  }
-		| ':' ID
-		  {	Tac t = tacCreate(TAC_STRING);
-		  	t->t1.sym = $2;
-			$$ = t;
+		| ':' basicterm
+		  {	
+			$$ = $2;
 		  }
 		;
 
@@ -322,8 +348,32 @@ optlabel        : /* empty */
 
 basicterm	: ID
 		  {
-		  	Tac t = tacCreate(TAC_STRING);
-			t->t1.sym = $1;
+			List l;
+			Tac t;
+
+			t = NULL;
+			/* Now check if it is in the list
+			 * already */
+			for (l = list_rewind(letlist); l != NULL; l = l->next)
+			  {
+			    Tac tlet;
+			    Symbol sl;
+			    Tac tl;
+				
+			    tlet = (Tac) l->data;
+			    sl = (tlet->t1.tac)->t1.sym;	// The symbol
+			    tl = tlet->t2.tac;			// The term to replace the symbol
+			    if (strcmp (sl->text, $1->text) == 0)
+			      {
+			        t = tl;
+				break;
+			      }
+			  }
+			if (t == NULL)
+			  {
+			    t= tacCreate(TAC_STRING);
+			    t->t1.sym = $1;
+			  }
 			$$ = t;
 		  }
 		;
