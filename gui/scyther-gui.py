@@ -37,13 +37,45 @@ The [wxPython] packages can be found at http://www.wxpython.org/
 Ubuntu users: the wxPython packages are called 'python-wxgtk' followed by the
 version number."""
     elif '32-bit mode' in str(err):
-        errmsg = """Problem with importing the required [wxPython] package.
+        import os
 
-Possibly the problem is caused by wxPython only working in 32-bit mode currently.
-You can try the following on the command line:
+        key = "VERSIONER_PYTHON_PREFER_32_BIT"
+        data = "yes"
 
-  $ export VERSIONER_PYTHON_PREFER_32_BIT=yes
-  $ ./scyther-gui.py"""
+        keyfound = False
+        try:
+            if sys.environment[key] == data:
+                keyfound = True
+        except:
+            pass
+
+        if keyfound:
+            """
+            We already tried to set the environment variable, but it is still not working.
+            """
+            import sys
+            #print "Key found. good job. no success."
+
+            errmsg = """Problem with importing the required [wxPython] package.
+
+    Possibly the problem is caused by wxPython only working in 32-bit mode currently.
+    You can try the following on the command line:
+
+      $ export VERSIONER_PYTHON_PREFER_32_BIT=yes
+      $ ./scyther-gui.py"""
+
+        else:
+            """
+            Key not found. Try if that works.
+            """
+            import sys
+            from subprocess import call
+
+            #print "Key not found. Trying to set it now."
+            # TODO: check for MAC's if we need something like 'pythonw'
+            call(sys.argv, shell=True, env={key: data})
+            sys.exit(0)
+
     
     Misc.panic("""
 ERROR:
