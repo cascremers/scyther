@@ -28,9 +28,9 @@ struct tacnode*	spdltac;
 int yyerror(char *s);
 int yylex(void);
 
-List letlist=NULL;
+List macrolist=NULL;
 
-List findLetDefinition(Symbol s)
+List findMacroDefinition(Symbol s)
 {
 	List l;
 
@@ -40,14 +40,14 @@ List findLetDefinition(Symbol s)
 	  }
 	/* Now check if it is in the list
 	 * already */
-	for (l = list_rewind(letlist); l != NULL; l = l->next)
+	for (l = list_rewind(macrolist); l != NULL; l = l->next)
 	  {
-	    Tac tlet;
+	    Tac tmacro;
 	    Symbol sl;
 	    Tac tl;
 		
-	    tlet = (Tac) l->data;
-	    sl = (tlet->t1.tac)->t1.sym;	// The symbol
+	    tmacro = (Tac) l->data;
+	    sl = (tmacro->t1.tac)->t1.sym;	// The symbol
 	    if (strcmp (sl->text, s->text) == 0)
 	      {
 	        return l;
@@ -87,7 +87,7 @@ List findLetDefinition(Symbol s)
 %token		KNOWS
 %token		TRUSTED
 %token 		SYMMETRICROLE
-%token 		LET
+%token 		MACRO
 
 %type	<tac>	spdlcomplete
 %type	<tac>	spdlrep
@@ -108,7 +108,7 @@ List findLetDefinition(Symbol s)
 %type	<tac>	key
 %type	<tac>	roleref
 %type	<tac>	knowsdecl
-%type	<tac>	letdecl
+%type	<tac>	macrodecl
 
 %type   <value>	symmrole
 %type   <value>	singular
@@ -210,7 +210,7 @@ roledef		: /* empty */
 		  {	$$ = tacCat($1,$2); }
 		| knowsdecl roledef
 		  {	$$ = tacCat($1,$2); }
-		| letdecl roledef
+		| macrodecl roledef
 		  {	$$ = tacCat($1,$2); }
 		;
 
@@ -263,20 +263,20 @@ knowsdecl	: KNOWS termlist ';'
 		  }
 		;
 
-letdecl		: LET basicterm '=' termlist ';'
+macrodecl	: MACRO basicterm '=' termlist ';'
 		  {	
 			List l;
 
-			l = findLetDefinition($2->t1.sym);
+			l = findMacroDefinition($2->t1.sym);
 			if (l == NULL)
 			  {
 		  	    Tac t;
-		  	    /* Add to let declaration list.
-			     * TAC_LET doesn't show up in the compiler though.  */
-			    t = tacCreate(TAC_LET);
+		  	    /* Add to macro declaration list.
+			     * TAC_MACRO doesn't show up in the compiler though.  */
+			    t = tacCreate(TAC_MACRO);
 			    t->t1.tac = $2;
 			    t->t2.tac = tacTuple($4);
-			    letlist = list_append(letlist, t);
+			    macrolist = list_append(macrolist, t);
 			  }
 			else
 			  {
@@ -284,7 +284,7 @@ letdecl		: LET basicterm '=' termlist ';'
 			     * a bug or we can define it to
 			     * overwrite.
 			     */
-			    //yyerror("let symbol already defined earlier.");
+			    //yyerror("macro symbol already defined earlier.");
 			  }
 			$$ = NULL;
 		  }
@@ -334,7 +334,7 @@ declaration	: secretpref CONST basictermlist typeinfo1 ';'
 			t->t3.tac = NULL;	// Not secret: public
 			$$ = t;
 		  }
-		| letdecl
+		| macrodecl
 		  {
 		  	$$ = $1;
 		  }
@@ -401,7 +401,7 @@ basicormacro	: ID
 
 			/* check if it is in the list
 			 * already */
-			l = findLetDefinition($1);
+			l = findMacroDefinition($1);
 			if (l == NULL)
 			  {
 			    t = tacCreate(TAC_STRING);
@@ -409,10 +409,10 @@ basicormacro	: ID
 			  }
 			else
 			  {
-			    Tac lettac;
+			    Tac macrotac;
 
-			    lettac = (Tac) l->data;
-			    t = lettac->t2.tac;
+			    macrotac = (Tac) l->data;
+			    t = macrotac->t2.tac;
 			  }
 			$$ = t;
 		  }

@@ -4,10 +4,9 @@
 
 // The protocol description
 
-let m1 = {ni,I}pk(R);
-let m2 = {ni,nr}pk(I);
-let m3 = {nr}pk(R);
-let m1 = bla;
+macro m1 = {ni,I}pk(R);
+macro m2 = {ni,nr}pk(I);
+macro m3 = {nr}pk(R);
 
 protocol ns3(I,R)
 {

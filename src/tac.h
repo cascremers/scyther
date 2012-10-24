@@ -51,6 +51,7 @@ enum tactypes
   TAC_UNTRUSTED,
   TAC_COMPROMISED,
   TAC_USERTYPE,
+  TAC_MACRO,
   TAC_LET
 };
 
