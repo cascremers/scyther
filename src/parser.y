@@ -102,6 +102,7 @@ List findLetDefinition(Symbol s)
 %type	<tac>	typeinfoN
 %type	<tac>	term
 %type	<tac>	basicterm
+%type	<tac>	basicormacro
 %type	<tac>	termlist
 %type	<tac>	basictermlist
 %type	<tac>	key
@@ -385,6 +386,16 @@ optlabel        : /* empty */
 
 basicterm	: ID
 		  {
+			Tac t;
+
+			t = tacCreate(TAC_STRING);
+			t->t1.sym = $1;
+			$$ = t;
+		  }
+		;
+
+basicormacro	: ID
+		  {
 			List l;
 			Tac t;
 
@@ -407,9 +418,7 @@ basicterm	: ID
 		  }
 		;
 
-term  		: basicterm
-	          { }
-		| ID '(' termlist ')'
+term  		: ID '(' termlist ')'
 		  {
 		  	Tac t = tacCreate(TAC_STRING);
 			t->t1.sym = $1;
@@ -423,6 +432,8 @@ term  		: basicterm
 		  { 
 		  	$$ = tacTuple($2);
 		  }
+		| basicormacro
+		  { }
 		;
 
 termlist	: term
