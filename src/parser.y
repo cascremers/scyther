@@ -334,10 +334,6 @@ declaration	: secretpref CONST basictermlist typeinfo1 ';'
 			t->t3.tac = NULL;	// Not secret: public
 			$$ = t;
 		  }
-		| macrodecl
-		  {
-		  	$$ = $1;
-		  }
 		;
 
 secretpref	: /* empty */
