@@ -24,6 +24,7 @@ from Misc import *
 import Term
 from sets import Set
 from Abbreviations import AbbrevContext
+from TermDot import *
 
 CLAIMRUN = 0    # Hardcoded constant for claiming run
 RUNIDMAP = {}
@@ -285,6 +286,10 @@ def SaneTerm(x):
     else:
         return "%s#%s" % (dt[0],SaneRunID(runid))
 
+def colorargs(colorcode):
+    stfill = Attribute("style","filled")
+    return [stfill,Attribute("fillcolor",colorcode)]
+
 class InvalidAction(TypeError):
     "Exception used to indicate that a given action is invalid"
     
@@ -494,7 +499,7 @@ class SemiTrace(object):
 
         args = []
         if self.relevantLabel(fromevv,label,toevv):
-            args += ["label=\"%s\"" % str(label)]
+            args.append(Attribute("label",label))
         else:
             # No point in drawing the label
             ## Is it from/to a regular agent?
@@ -505,18 +510,15 @@ class SemiTrace(object):
                     if fromev.message == toev.message:
                         comments = []
                         if fromev.to != toev.to:
-                            comments += ["reroute to %s" % toev.to]
+                            comments += ["reroute to %s" % (toev.to)]
                         if fromev.fr != toev.fr:
-                            comments += ["fake sender %s" % toev.fr]
+                            comments += ["fake sender %s" % (toev.fr)]
                         if len(comments) > 0:
-                            args += ["label=\"%s\"" % "\\n".join(comments)]
+                            args += [Attribute("label","\\n".join(comments))]
                         else:
-                            args += ["color=\"%s\"" % COLORREGULAR] 
+                            args += [Attribute("color",COLORREGULAR)]
 
-
-        res = "%s -> %s [%s]\n" % (prev,curr,",".join(args))
-
-        return res
+        return Edge(prev,curr,args)
 
     def dotHead(self,run):
         """
@@ -530,14 +532,13 @@ class SemiTrace(object):
             label = run.dotHead()
 
         if label == "":
-            return ""
+            return None
         else:
-            args = ["shape=\"box\""]
-            args.append("label=\"%s\"" % (label))
+            args = [Attribute("shape","box")]
+            args.append(Attribute("label",label))
             if run.id == CLAIMRUN:
-                args.append("style=filled")
-                args.append("fillcolor=\"%s\"" % COLORCLAIMRUN)
-            return "h%i [%s]\n" % (run.id,",".join(args))
+                args += colorargs(COLORCLAIMRUN)
+            return Node("h%i" % (run.id), args)
 
     def dotProgress(self,ev):
         """
@@ -545,21 +546,26 @@ class SemiTrace(object):
         Also draws the heads, if needed.
         """
         curr = "r%ii%i" % (ev.run.id,ev.index)
+        nodes = []
+        edges = []
         if ev.index == 0:
             # Connect to head
-            res = self.dotHead(ev.run)
-            connect = (res != "")
-            prev = "h%i" % (ev.run.id)
+            node = self.dotHead(ev.run)
+            if node == None:
+                connect = False
+            else:
+                connect = True
+                prev = "h%i" % (ev.run.id)
+                nodes.append(node)
         else:
             # Connect to previous event
-            res = ""
             prev = "r%ii%i" % (ev.run.id,ev.index-1)
             connect = True
 
         if connect:
-            res += "%s -> %s [weight=\"10\",style=\"bold\"]\n" % (prev,curr)
+            edges.append(Edge(prev,curr,[Attribute("weight","10"),Attribute("style","bold")]))
 
-        return res
+        return (nodes,edges)
 
     def dotEvent(self,ev):
         """
@@ -572,36 +578,37 @@ class SemiTrace(object):
 
         label = ev.dot()
 
+
         args = []
+
         if ev.run.intruder:
             if ev.run.getLKRagents() == None:
                 if "I_R" in ev.run.role:
-                    args += ["style=filled,fillcolor=\"%s\"" % COLORCOMPROMISE]
+                    args += colorargs(COLORCOMPROMISE)
                 else:
-                    args += ["style=filled,fillcolor=\"%s\"" % COLORADVERSARY]
+                    args += colorargs(COLORADVERSARY)
             else:
-                args += ["style=filled,fillcolor=\"%s\"" % COLORCOMPROMISE]
+                args += colorargs(COLORCOMPROMISE)
         else:
             if ev.compromisetype != None:
-                args += ["style=filled,fillcolor=\"%s\"" % COLORCOMPROMISE]
-                args += ["shape=\"box\""]
+                args += colorargs(COLORCOMPROMISE)
+                args += [Attribute("shape","box")]
             else:
                 if isinstance(ev,EventClaim):
-                    args += ["shape=\"hexagon\""]
+                    args += [Attribute("shape","hexagon")]
                     if ev.run.id == CLAIMRUN:
-                        args += ["style=filled,fillcolor=\"%s\"" % COLORCLAIM]
+                        args += colorargs(COLORCLAIM)
                 else:
                     if ev.run.id == CLAIMRUN:
-                        args += ["style=filled,fillcolor=\"%s\"" % COLORCLAIMRUN]
-                    args += ["shape=\"box\""]
+                        args += colorargs(COLORCLAIMRUN)
+                    args += [Attribute("shape","box")]
 
-        args.append("label=\"%s\"" % (label))
+        args.append(Attribute("label",label))
 
         ## Add tooltip for svg
         #args.append("tooltip=\"%s\"" % (str(ev.originalmessage)))
 
-        res = "%s [%s]\n" % (curr,",".join(args))
-        return res
+        return Node(curr,args)
 
     def createRidmap(self,myorder):
         """
@@ -776,43 +783,48 @@ class SemiTrace(object):
         if "noclean" not in parameters.keys():
             self.cleanup(parameters)
 
-        res = ""
-        res += "digraph X {\n"
-        
         #Label
         crun = self.getRun(CLAIMRUN)
-        cprot = str(crun.protocol)
+        cprot = crun.protocol
         if len(crun.eventList) > 0:
             cclaim = str(crun.eventList[-1])
         else:
             cclaim = "unknown claim."
 
-        res += "label = \"Scyther pattern graph for protocol %s, %s\";\n" % (cprot,cclaim)
+        G = Graph(name="ScytherPattern")
+        G.attr.append(Attribute("label",EString("Scyther pattern graph for protocol %%, %%",[cprot,cclaim])))
 
         for run in self.runs:
 
-            if clustering:
-                if run.isAgentRun():
-                    res += "subgraph cluster_run%i {\n" % (run.id)
-                    res += "label=\"\";\n"
-                    res += "style=filled;\n"
-                    res += "color=\"#e0e0e0\";\n"        # Cluster background color
-                    res += "node [style=filled,fillcolor=\"#ffffff\"];\n"    # Edges background
-            for ev in run:
-                res += self.dotProgress(ev)
-                res += self.dotEvent(ev)
-            if clustering:
-                if run.isAgentRun():
-                    res += "}\n"
+            # A (potential) cluster for each run
 
-        if clusterIntruder:
-            res += "subgraph cluster_intruder {\n"
+            C = Cluster("cluster_run%i" % (run.id))
+            C.display = False
+
+            if clustering:
+                if run.isAgentRun():
+                    C.display = True
+
+            C.attr.append(Attribute("label",""))
+            C.attr += colorargs("#e0e0e0")
+            C.lines.append("node [style=filled,fillcolor=\"#ffffff\"]")
+
+            for ev in run:
+                (nodes,edges) = self.dotProgress(ev) ## TODO returns nodes,edges; either may be none
+                C.nodes += nodes
+                C.edges += edges
+                C.edges.append(self.dotEvent(ev))
+
+            G.clusters.append(C)
+
+        CI = Cluster("cluster_intruder")
+        CI.display = (clusterIntruder == True)
         for run in self.runs:
             for ev in run:
                 for (evv,label) in ev.bindings:
-                    res += self.dotBinding(evv,label,(run.id,ev.index))
-        if clusterIntruder:
-            res += "}\n"
+                    CI.edges.append(self.dotBinding(evv,label,(run.id,ev.index)))
+
+        G.clusters.append(CI)
 
         # Legend
         ## If it exists...
@@ -822,19 +834,20 @@ class SemiTrace(object):
                 if len(run.eventList) > 0:
                     if run.id > 0:
                         prev = "r%ii%i" % (run.id, len(run.eventList)-1)
-                        res += "%s -> comments [style=invis];\n" % (prev)
-            ## Explain
-            res += "subgraph cluster_comments {\n"
-            res += "rank=\"sink\";\n"
-            res += "style=\"invis\";\n"
-            res += "comments [shape=\"box\",label=\"%s\"];\n" % (self.comments.replace("\n","\\l"))
-            res += "}\n"
+                        G.edges.append(Edge(prev,"comments",[Attribute("style","invis")]))
 
-        res += "}\n"
+            ## Explain
+            CL = Cluster("comments")
+            CL.attr.append(Attribute("rank","sink"))
+            CL.attr.append(Attribute("style","invis"))
+            CL.lines.append("[shape=\"box\",label=\"%s\"];" % (self.comments.replace("\n","\\l")))  ## TODO this still has to be recast using terms
+            
+            G.clusters.append(CL)
+
 
         Term.popRewriteStack()
 
-        return res
+        return str(G)
 
 
     def dotTest(self,parameters={}):
