@@ -25,6 +25,7 @@ import Term
 from sets import Set
 from Abbreviations import AbbrevContext
 from TermDot import *
+import copy
 
 CLAIMRUN = 0    # Hardcoded constant for claiming run
 RUNIDMAP = {}
@@ -456,7 +457,7 @@ class Matrix(object):
 class SemiTrace(object):
     def __init__(self):
         self.runs = []
-        self.comments = ""
+        self.comments = EString()
         self.abbreviations = {}
         self.protocols = None
         self.cleaned = False
@@ -499,7 +500,7 @@ class SemiTrace(object):
 
         args = []
         if self.relevantLabel(fromevv,label,toevv):
-            args.append(Attribute("label",label))
+            args.append(Attribute("label",EString(label)))
         else:
             # No point in drawing the label
             ## Is it from/to a regular agent?
@@ -510,11 +511,11 @@ class SemiTrace(object):
                     if fromev.message == toev.message:
                         comments = []
                         if fromev.to != toev.to:
-                            comments += ["reroute to %s" % (toev.to)]
+                            comments += [EString("reroute to %s" ,[toev.to])]
                         if fromev.fr != toev.fr:
-                            comments += ["fake sender %s" % (toev.fr)]
+                            comments += [EString("fake sender %s" , [toev.fr])]
                         if len(comments) > 0:
-                            args += [Attribute("label","\\n".join(comments))]
+                            args += [Attribute("label",EString().joinlist(comments,"\\n"))]
                         else:
                             args += [Attribute("color",COLORREGULAR)]
 
@@ -527,11 +528,11 @@ class SemiTrace(object):
         global COLORCOMPROMISE, COLORADVERSARY, COLORCLAIM, COLORCLAIMRUN
         global CLAIMRUN
 
-        label = ""
+        label = EString()
         if run.isAgentRun():
             label = run.dotHead()
 
-        if label == "":
+        if len(label) == 0:
             return None
         else:
             args = [Attribute("shape","box")]
@@ -764,7 +765,7 @@ class SemiTrace(object):
         self.collapseBindings()             # Collapse bindings must be after intrudercomputations, which may introduce new bindings
         self.collapseInitialKnowledge()
 
-        self.abbreviate()                   # Must be last, so we know what is already done
+        #self.abbreviate()                   # Must be last, so we know what is already done
 
         self.cleaned = True
 
@@ -792,31 +793,39 @@ class SemiTrace(object):
             cclaim = "unknown claim."
 
         G = Graph(name="ScytherPattern")
-        G.attr.append(Attribute("label",EString("Scyther pattern graph for protocol %%, %%",[cprot,cclaim])))
+        G.attr.append(Attribute("label",EString("Scyther pattern graph for protocol %s, %s",[cprot,cclaim])))
 
         for run in self.runs:
+            if len(run.eventList) > 0:
+                # A (potential) cluster for each run
 
-            # A (potential) cluster for each run
+                C = Cluster("cluster_run%i" % (run.id))
+                C.display = False
+                nodes = []
+                edges = []
 
-            C = Cluster("cluster_run%i" % (run.id))
-            C.display = False
+                args = []
 
-            if clustering:
-                if run.isAgentRun():
-                    C.display = True
+                if clustering:
+                    if run.isAgentRun():
+                        C.display = True
 
-            C.attr.append(Attribute("label",""))
-            C.attr += colorargs("#e0e0e0")
-            C.lines.append("node [style=filled,fillcolor=\"#ffffff\"]")
+                args.append(Attribute("label",""))
+                args += colorargs("#e0e0e0")
+                C.lines = ["node [style=filled,fillcolor=\"#ffffff\"]"]
 
-            for ev in run:
-                (nodes,edges) = self.dotProgress(ev) ## TODO returns nodes,edges; either may be none
-                C.nodes += nodes
-                C.edges += edges
-                C.edges.append(self.dotEvent(ev))
+                for ev in Set(run):
+                    (pnodes,pedges) = self.dotProgress(ev) ## TODO returns nodes,edges; either may be none
+                    nodes += Set(pnodes)
+                    edges += Set(pedges)
+                    nodes.append(self.dotEvent(ev))
 
-            G.clusters.append(C)
+                C.attr = args
+                C.nodes = nodes
+                C.edges = edges
+                (G.clusters).append(C)
 
+        ## TODO: something is wrong here, should check for intruder runs (?) compare with previous
         CI = Cluster("cluster_intruder")
         CI.display = (clusterIntruder == True)
         for run in self.runs:
@@ -825,24 +834,6 @@ class SemiTrace(object):
                     CI.edges.append(self.dotBinding(evv,label,(run.id,ev.index)))
 
         G.clusters.append(CI)
-
-        # Legend
-        ## If it exists...
-        if len(self.comments) > 0:
-            ## Ensure bottom
-            for run in self.runs:
-                if len(run.eventList) > 0:
-                    if run.id > 0:
-                        prev = "r%ii%i" % (run.id, len(run.eventList)-1)
-                        G.edges.append(Edge(prev,"comments",[Attribute("style","invis")]))
-
-            ## Explain
-            CL = Cluster("comments")
-            CL.attr.append(Attribute("rank","sink"))
-            CL.attr.append(Attribute("style","invis"))
-            CL.lines.append("[shape=\"box\",label=\"%s\"];" % (self.comments.replace("\n","\\l")))  ## TODO this still has to be recast using terms
-            
-            G.clusters.append(CL)
 
 
         Term.popRewriteStack()
@@ -1127,28 +1118,6 @@ class SemiTrace(object):
             for i in range(0,len(run.variables)):
                 run.variables[i] = run.variables[i].replace(abbrev)
 
-    def abbreviate(self):
-        """
-        Abbreviate some stuff
-        """
-        if len(self.abbreviations.keys()) > 0:
-            # Already done
-            return
-
-        AC = AbbrevContext(self.abbreviations)
-        self.abbreviations = AC.abbreviateAll(self,self.collectTerms,self.replace)
-
-        if len(self.abbreviations.keys()) > 0:
-            self.comments += "Abbreviations:\n"
-        for k in sorted(self.abbreviations.keys()):
-            self.comments += "%s = %s\n" % (k, self.abbreviations[k])
-
-        # For debugging
-        #res = ""
-        #for t in ss:
-        #    res += "%s; " % str(t)
-        #res += "\n"
-        #self.comments += res
 
 
     def ignoreEvent(self,ev):
@@ -1707,12 +1676,12 @@ class Run(object):
         return self.eventList[-1]
 
     def getAssumptions(self):
-        res = ""
+        res = EString()
         otherroles = self.roleAgents.keys()
         otherroles.remove(self.role)
         for ind in range(0,len(otherroles)):
             role = otherroles[ind]
-            res += "%s->%s" % (role,self.roleAgents[role])
+            res += EString("%s->%s" , [role,self.roleAgents[role]])
             if ind == len(otherroles) - 2:
                 res += ", and "
             elif ind < len(otherroles) - 2:
@@ -1759,19 +1728,19 @@ class Run(object):
             elif self.isHelperRun():
                 return []
             else:
-                return ["%s" % (self.role)]
+                return [EString(self.role)]
         else:
             vl = []
             for v in self.variables:
-                vl.append("Var %s -> %s" % (v.__str__(myname=True),str(v)))
+                vl.append(EString("Var %s -> %s" , [v.__str__(myname=True),v]))
 
             if len(self.trace.getProtocols()) > 1:
-                protspec = "protocol %s, " % self.protocol
+                protspec = EString("protocol %s, " , [self.protocol])
             else:
                 protspec = ""
-            hd = ["Run %i" % (self.srid()),
-                  "%s in %srole %s" % (self.getAgent(),protspec,self.role),
-                  "Assumes %s" % (self.getAssumptions())
+            hd = [EString("Run %s" % (self.srid())),
+                  EString("%s in %srole %s" , [self.getAgent(),protspec,self.role]),
+                  EString("Assumes %s" , [self.getAssumptions()])
                   ]
             hd += vl
             return hd
@@ -1784,10 +1753,10 @@ class Run(object):
 
     def dotHead(self):
         # Return dot head
-        res = ""
+        res = EString()
         rl = self.sequenceHead()
         for l in rl:
-            res += "%s\\l" % l
+            res += l + "\\l"
         return res
 
     def maxWidth(self):
@@ -1831,6 +1800,8 @@ class Event(object):
         try:
             return self.label[len(self.label)-1]
         except:
+            if isinstance(self.label,Term.Term):
+                return self.label.unpair()[-1]
             slabel = str(self.label)
             if "," in slabel:
                 return slabel.split(",")[-1]
@@ -1847,8 +1818,12 @@ class Event(object):
         # This should never happen
         assert(False)
 
+    def estr(self):
+
+        return EString("")
+
     def __str__(self):
-        return ""
+        return str(self.estr())
 
     def matrixDot(self,dot=False):
         if self.run.isAgentRun():
@@ -1910,11 +1885,11 @@ class Event(object):
 
             if self.index == realindex:
                 if includeTerm == True:
-                    return "%s %s" % (text,message)
+                    return EString("%s %s",[text,message])
                 else:
-                    return "%s" % (text)
+                    return EString(text)
             else:
-                return self.__str__()
+                return self.estr()
         else:
             return ""
 
@@ -1936,20 +1911,20 @@ class EventSend(Event):
         if self.compromisetype != None:
             compromiseTypes = { "SSR":"Session-state", "SKR":"Session-key", "RNR":"Random" }
             if self.compromisetype in compromiseTypes.keys():
-                return "%s reveal %s" % (compromiseTypes[self.compromisetype],str(self.message))
+                return EString("%s reveal %s", [compromiseTypes[self.compromisetype],self.message])
             else:
-                return "Reveal %s (unknown type)" % (str(self.message))
+                return EString("Reveal %s (unknown type)" , [self.message])
 
         if self.run.intruder:
-            return "send(%s)" % self.message
+            return EString("send(%s)" , [self.message])
         else:
-            return "send_%s(%s,%s)" % (self.shortLabel(),self.to,self.message)
+            return EString("send_%s(%s,%s)" , [self.shortLabel(),self.to,self.message])
 
     def dot(self):
         if self.compromisetype == None:
             if self.run.isAgentRun():
-                remark = self.run.ifManyRoles(" to %s" % self.to, "")
-                res = "send_%s%s\\n%s" % (self.shortLabel(),remark,self.message)
+                remark = self.run.ifManyRoles(EString(" to %s" , [self.to]), "")
+                res = EString("send_%s%s\\n%s" , [self.shortLabel(),remark,self.message])
                 return res
         return super(EventSend,self).dot()
 
@@ -1962,17 +1937,17 @@ class EventRead(Event):
         self.message = message
         self.originalmessage = message
     
-    def __str__(self):
+    def estr(self):
         if self.run.intruder:
-            return "recv(%s)" % self.message
+            return EString("recv(%s)",[self.message])
         else:
-            return "recv_%s(%s,%s)" % (self.shortLabel(),self.fr, self.message)
+            return EString("recv_%s(%s,%s)", [self.shortLabel(),self.fr, self.message])
 
     def dot(self):
         if self.compromisetype == None:
             if self.run.isAgentRun():
-                remark = self.run.ifManyRoles(" from %s" % self.fr, "")
-                res = "recv_%s%s\\n%s" % (self.shortLabel(),remark,self.message)
+                remark = self.run.ifManyRoles(EString(" from %s" , [self.fr]), "")
+                res = EString("recv_%s%s\\n%s" , [self.shortLabel(),remark,self.message])
                 return res
         return super(EventRead,self).dot()
 
@@ -1996,18 +1971,18 @@ class EventClaim(Event):
         
     # Return (protocol,role)
     def protocolRole(self):
-        return "(%s,%s)" % (self.run.protocol,self.run.role)
+        return EString("(%s,%s)",[self.run.protocol,self.run.role])
     
     def argstr(self):
         if self.message == None:
             return '*'
         else:
-            return str(self.message)
+            return EString("%s",[self.message])
             
-    def __str__(self):
-
-        msg = "claim_%s(%s,%s, %s)" % (self.shortLabel(),self.run.getAgent(),self.type,self.argstr())
+    def estr(self):
+        msg = EString("claim_%s(%s,%s, %s)",[self.shortLabel(),self.run.getAgent(),self.type,self.argstr()])
         return msg
+
 
 
 class EventIntruder(Event):

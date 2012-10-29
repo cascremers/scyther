@@ -18,27 +18,43 @@
 """
 
 #
-# Dot-like graphs, but using printf-like strings with terms
+# Dot-like graphs, but using printf-like EStrings with terms
 #
 
 import Term
 from sets import Set
 from Misc import *
+from EString import *
+from Abbreviations import AbbrevContext
+import copy
 
-def seqstr(seq,postfix="\n",debug=False):
+def seqstr(seq,postfix="\n",prefix="",debug=False,comment=None):
     res = ""
     i = 1
+    if (comment != None) and (len(seq) > 0):
+        res += "%s%s" % (prefix,comment)
+    if debug:
+        res += "%s/* Start of sequence: %i elements */\n" % (prefix,len(seq))
     for x in seq:
         if debug:
             if "\n" in postfix:
-                res += "// Element %i of %i: %s\n" % (i,len(S),x)
+                res += "%s/* Element %i of %i: %s */\n" % (prefix,i,len(S),x)
                 i += 1
-        res += "%s%s" % (x,postfix)
+        res += "%s%s%s" % (prefix,x,postfix)
+    if debug:
+        res += "%s/* End of sequence */\n" % (prefix)
     return res
+
+def seqterms(seq):
+    l = []
+    for x in seq:
+        if not isinstance(x,basestring):
+            l += x.terms()
+    return l
 
 class Dot(object):
 
-    def __init__(self,graphs):
+    def __init__(self,graphs=[]):
 
         self.graphs = graphs
 
@@ -59,51 +75,127 @@ class Graph(object):
         self.attr = []
         self.name = name
         self.lines = []
+        self.abbreviations = {}
+        self.mapper = {}
 
-    def __str__(self):
+    def abbrevTerms(abbrev):
+        print abbrev
+        #self.abbreviations = abbrev
+        return self.terms()
+
+    def ComputeAbbreviations(self):
+        """
+        Compute abbreviations
+
+        Stores the result in self.abbreviations
+        Returns (edges,cluster) to display
+        """
+
+        AC = AbbrevContext()
+        self.abbreviations = AC.abbreviateAll(self.terms())
+
+        comments = EString()
+        if len(self.abbreviations.keys()) > 0:
+            comments += "Abbreviations:\n"
+        for k in sorted(self.abbreviations.keys()):
+            comments += EString("%s = %s\n" , [k, self.abbreviations[k]])
+
+        # Legend
+        ## If it exists...
+        if len(comments) > 0:
+            legendname = "comments"
+            edges = []
+            ## Ensure bottom
+            for c in self.clusters:
+                if len(c.nodes) > 0:
+                    prev = c.nodes[-1].name
+                    edges.append(Edge(prev,legendname,[Attribute("style","invis")]))
+
+            ## Explain
+            CL = Cluster("Cluster_comments")
+            cattr = []
+            cattr.append(Attribute("rank","sink"))
+            cattr.append(Attribute("style","invis"))
+            CL.attr = cattr
+
+            attr = [ Attribute("shape","box") ]
+            
+            cms = EString(comments)
+            cms.string = cms.string.replace("\n","\\l")
+            attr.append(Attribute("label",cms))
+
+            ce = Node(legendname)
+            ce.attr = copy.copy(attr)
+            CL.nodes = [ce]
+        else:
+            CL = None
+
+        return (edges,CL)
+
+
+        # For debugging
+        #res = ""
+        #for t in ss:
+        #    res += "%s; " % str(t)
+        #res += "\n"
+        #self.comments += res
+
+    def ComputeMapper(self):
+        """
+        Maybe this should be in Abbreviations.py
+        """
+        self.mapper = {}
+        for k in self.abbreviations.keys():
+            dest = self.abbreviations[k]
+            mk = str(dest)
+            assert (not mk in self.mapper.keys())
+            self.mapper[mk] = Term.TermConstant(k)
+
+
+    def __str__(self,abbreviate=True):
+
+        if abbreviate:
+            (CLedges,CL) = self.ComputeAbbreviations()
+        else:
+            CL = None
+            CLedges = []
+        
+        self.ComputeMapper()
+        PushEStringProcess((lambda t: t.replace(self.mapper)))
 
         res = "digraph %s {\n" % (self.name)
         # Attributes
     
         # Edges, nodes, clusters
-        res += seqstr(self.attr)
-        res += seqstr(self.lines)
+        res += seqstr(self.lines,postfix=";\n")
+        res += seqstr(self.attr,postfix=";\n")
         res += seqstr(self.clusters)
         res += seqstr(self.nodes)
         res += seqstr(self.edges)
 
+        res += seqstr(CLedges)
+
+        # Done with mapping
+        PopEStringProcess()
+
+        # Comments are *not* mapped
+        if CL != None:
+            res += str(CL)
+
         res += "}\n"
+
+        #print "All terms in graph:"
+        #print [str(t) for t in self.terms()]
+
         return res
 
-class EString(object):
-    """
-    Extended string
-    """
-    def __init__(self,string,termlist=[]):
-        self.string = string
-        self.termlist = termlist
-
-    def __str__(self):
-        i = 0
-        j = 0
-        res = ""
-        macro = "%%"
-        while i < len(self.string):
-            if self.string[i:].startswith(macro):
-                # Replace and skip
-                if j >= len(self.termlist):
-                    assert(False,"Too many macro occurrences in EString or too few term arguments.")
-                res += "<<%s>>" % (self.termlist[j])
-                j += 1
-                i += len(macro)
-            else:
-                res += self.string[i]
-                i += 1
-        return res
-
-    def __add__(self,other):
-        return Estring(self.string + other.string, self.termlist + other.termlist)
-
+    def terms(self):
+        l = seqterms(self.attr)
+        l += seqterms(self.lines)
+        l += seqterms(self.clusters)
+        l += seqterms(self.nodes)
+        l += seqterms(self.edges)
+        return l
 
 class Attribute(object):
     """
@@ -114,45 +206,59 @@ class Attribute(object):
         self.text = estring
 
     def __str__(self):
-        return "%s=\"%s\"" % (self.name,self.text)
+        res = "%s=\"%s\"" % (self.name,self.text)
+        return res
 
+    def terms(self):
+        if isinstance(self.text,EString):
+            return self.text.terms()
+        elif isinstance(self.text,Term.Term):
+            return [self.text]
+        else:
+            return []
 
 class Cluster(object):
     """
     A cluster contains a bunch of nodes
     """
 
-    def __init__(self,name,nodes=[],edges=[],attrlist=[],display=True):
+    def __init__(self,name):
         self.name = name
-        self.nodes = nodes
-        self.edges = edges
-        self.attr = attrlist
-        self.display = display
+        self.nodes = []
+        self.edges = []
+        self.attr = []
+        self.display = True
         self.lines = []
 
     def __str__(self):
 
         res = ""
-        res += "// Start of cluster '%s'\n" % (self.name)
+        res += "/* Start of cluster '%s' */\n" % (self.name)
         if self.display:
             res += "subgraph %s {\n" % (self.name)
-            res += "// Cluster attributes\n"
-            res += seqstr(self.attr)
+            comment = "/* Cluster attributes */\n"
+            res += seqstr(self.attr,prefix="\t",postfix=";\n",comment=comment)
         else:
-            res += "// Not displaying cluster, hence skipping attributes\n"
+            res += "\t/* Not displaying this cluster, hence skipping attributes */\n"
 
-        res += "// Cluster nodes\n"
-        res += seqstr(self.nodes)
-        res += "// Cluster edges\n"
-        res += seqstr(self.edges)
-        res += "// Cluster misc. lines\n"
-        res += seqstr(self.lines)
+        comment = "/* Cluster misc. lines */\n"
+        res += seqstr(self.lines,prefix="\t",postfix=";\n",comment=comment)
+        comment = "/* Cluster nodes */\n"
+        res += seqstr(self.nodes,prefix="\t",comment=comment)
+        comment = "/* Cluster edges */\n"
+        res += seqstr(self.edges,prefix="\t",comment=comment)
 
         if self.display:
             res += "}\n"
-        res += "// End of cluster '%s'\n" % (self.name)
+        #res += "/* End of cluster '%s' */\n" % (self.name)
         return res
         
+    def terms(self):
+        l = seqterms(self.attr)
+        l += seqterms(self.lines)
+        l += seqterms(self.nodes)
+        l += seqterms(self.edges)
+        return l
 
 class Node(object):
     """
@@ -163,13 +269,19 @@ class Node(object):
         self.attr = attrlist
 
     def __str__(self):
+        res = ""
         if len(self.attr) == 0:
-            return str(self.name)
+            res = str(self.name)
         else:
             l = []
             for x in self.attr:
                 l.append(str(x))
-            return "%s [%s]" % (self.name,",".join(l))
+            res = "%s [%s]" % (self.name,",".join(l))
+        res += ";"
+        return res
+
+    def terms(self):
+        return seqterms(self.attr)
 
 class Edge(object):
     """
@@ -187,7 +299,12 @@ class Edge(object):
             for x in self.attr:
                 l.append(str(x))
             res += " [%s]" % (",".join(l))
+        res += ";"
         return res
+
+    def terms(self):
+        return seqterms(self.attr)
+
 
     
 

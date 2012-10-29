@@ -206,7 +206,10 @@ class TermConstant(Term):
         return 1
 
     def replace(self,rmap):
-        return self
+        if str(self) in rmap.keys():
+            return rmap[str(self)]
+        else:
+            return self
                 
 
 class TermEncrypt(Term):

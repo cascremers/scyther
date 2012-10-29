@@ -47,19 +47,17 @@ class AbbrevContext(object):
     Used to compute a single abbreviation that helps the most
     """
 
-    def __init__(self,abbreviations={}):
+    def __init__(self):
 
-        self.abbreviations = abbreviations
-        self.trace = None
-        self.termlist = None
+        self.abbreviations = {}
+        self.termlist = []
 
-    def abbreviate(self,termlist,replacefunc):
+    def abbreviate(self):
         """
         Return false if we ran out of options
         """
         global MAXREPLACE
-
-        self.termlist = termlist
+        import copy
 
         self.subterms = []
         self.subtermcount = {}
@@ -84,8 +82,9 @@ class AbbrevContext(object):
         nn = self.newName()
         abbrev = {}
         abbrev[str(ab)] = Term.TermConstant(nn)
-        # Replace propagation
-        replacefunc(abbrev)
+        # Replace termlist
+        ot = copy.copy(self.termlist)
+        self.termlist = [t.replace(abbrev) for t in ot]
         # Replace our own terms
         for k in self.abbreviations.keys():
             self.abbreviations[k] = self.abbreviations[k].replace(abbrev)
@@ -93,17 +92,20 @@ class AbbrevContext(object):
 
         return True
 
-    def abbreviateAll(self,trace,tlfunc,replacefunc):
+    def abbreviateAll(self,termlist):
         """
         Repeatedly replace best candidate
+
+        tlfunc: Function from abbreviations to termlist
+        replacefunc: Prodcedure to post-process an abbreviation (e.g. propagation)
         """
         global MAXREPLACE
 
-        self.trace = trace
+        self.abbreviations = {}
+        self.termlist = termlist
+
         while len(self.abbreviations.keys()) < MAXREPLACE:
-            termlist = tlfunc()
-            flag = self.abbreviate(termlist,replacefunc)
-            if flag == False:
+            if self.abbreviate() == False:
                 break
 
         return self.abbreviations
