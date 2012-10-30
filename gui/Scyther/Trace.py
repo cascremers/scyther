@@ -2010,4 +2010,6 @@ class EventEncr(EventIntruder):
     def __str__(self):
         return "ENCR(%s, %s, %s)" % (self.message, self.key, self.result)
 
+#---------------------------------------------------------------------------
 
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:

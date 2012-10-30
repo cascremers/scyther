@@ -377,3 +377,6 @@ class XMLReader(object):
                 print >>sys.stderr,"Warning unknown tag in attack: %s" % event.tag
         return attack
 
+#---------------------------------------------------------------------------
+
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:

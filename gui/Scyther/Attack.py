@@ -76,3 +76,6 @@ class Attack(object):
     def createDotFromXML(self):
         self.scytherDot = self.semiTrace.createDotFromXML()
 
+#---------------------------------------------------------------------------
+
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:

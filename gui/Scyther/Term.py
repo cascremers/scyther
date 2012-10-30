@@ -419,3 +419,6 @@ class TermTuple(Term):
     def leaves(self):
         return self.op1.leaves() + self.op2.leaves()
     
+#---------------------------------------------------------------------------
+
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:

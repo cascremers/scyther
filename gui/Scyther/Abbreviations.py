@@ -283,3 +283,6 @@ class AbbrevContext(object):
         return "%s%i" % (prefix,cnt)
 
 
+#---------------------------------------------------------------------------
+
+# vim: set ts=4 sw=4 et list lcs=tab\:>-:
