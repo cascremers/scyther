@@ -87,7 +87,8 @@ class Graph(object):
         self.clusters = []
         self.attr = []
         self.name = name
-        self.lines = []
+        #self.lines = ["concentrate=true"]  ## Coredumps be here
+        self.lines = ["nodesep=0.10","remincross=true"]
         self.abbreviations = {}
         self.mapper = {}
 
@@ -120,11 +121,11 @@ class Graph(object):
         if len(comments) > 0:
             legendname = "comments"
             edges = []
-            ## Ensure bottom
-            for c in self.clusters:
-                if len(c.nodes) > 0:
-                    prev = c.nodes[-1].name
-                    edges.append(Edge(prev,legendname,[Attribute("style","invis")]))
+            ### Ensure legend is at bottom
+            #for c in self.clusters:
+            #    if len(c.nodes) > 0:
+            #        prev = c.nodes[-1].name
+            #        edges.append(Edge(prev,legendname,[Attribute("style","invis")]))
 
             ## Explain
             CL = Cluster("Cluster_comments")

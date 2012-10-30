@@ -35,9 +35,9 @@ def threshold(n):
     threshold used to determine the threshold value for a given number of replacements n.
     """
     if n < 0:
-        return 0
+        return [0,0,0]
     else:
-        return 0.1 * (n**2)
+        return [0.5 * (n**2),0,0]
     
 
 class AbbrevContext(object):
@@ -114,29 +114,56 @@ class AbbrevContext(object):
     def findOrder(self):
         """
         Determine an order on the abbreviation keys
+
+        Currently it works pretty well
         """
-        unorderedkeys = self.abbreviations.keys()[:]
-        orderedkeys = []
+        unorderedkeys = set(self.abbreviations.keys())
+
+        # Pre-compute dependencies
+        depends = {}
+        for k in self.abbreviations.keys():
+            depends[k] = set([ str(t) for t in self.abbreviations[k].subterms() if str(t) in self.abbreviations.keys() ])
+
+        # Partition the macros into layers.
+        # Things in a layer only depend on things in previous layers.
+        layers = []
+        previouslayers = set()
         while len(unorderedkeys) > 0:
-            # Still some left: there must be one that has no dependencies on unseen keys
-            candidate = None
-            #print "--- New round"
-            #print "ordered keys:   ", orderedkeys
-            #print "unordered keys: ", unorderedkeys
+            layer = set()
             for k in unorderedkeys:
-                # Collect dependencies
-                depends = set([ str(t) for t in self.abbreviations[k].subterms() if str(t) in self.abbreviations.keys() ])
-                #print k, self.abbreviations[k]
-                #print [str(t) for t in depends]
-                #print [str(t) for t in orderedkeys]
-                delta = set(depends) - set(orderedkeys)
-                #print "Depends also on", [str(t) for t in delta]
-                if len(delta) == 0:
-                    candidate = k
-                    break
-            assert(candidate != None)
-            orderedkeys.append(k)
-            unorderedkeys.remove(k)
+                if len(depends[k]-previouslayers) == 0:
+                    layer.add(k)
+
+            # Store layer
+            layers.append(layer)
+            previouslayers |= layer
+
+            # Remove from todo list
+            for k in layer:
+                unorderedkeys.remove(k)
+
+        # We now have things in layers, need to decide how to order inside a layer
+        # Idea: 
+        # - check how many things depend on them, delay things with more outgoing edges. 
+        # - things with more dependencies have precedence
+        #   (because a reader needs to backtrack further more often otherwise)
+
+        orderedkeys = []
+        for i in range(0,len(layers)):
+            layer = layers[i]
+            laternodes = set()
+
+            kl = []
+            for k in layer:
+                # Compute outgoing
+                outgoing = 0
+                for ll in layers[(i+1):]:
+                    outgoing += len([ n for n in ll if k in depends[n] ])
+                kl.append([[-len(depends[k]),outgoing,self.abbreviations[k]],k])
+            kl.sort()
+
+            orderedkeys += [ k for [m,k] in kl ]
+
         return orderedkeys
 
 
@@ -177,11 +204,12 @@ class AbbrevContext(object):
         th = threshold(len(self.abbreviations.keys()))
 
         ## For debugging only
-        #print "Candidate list for threshold %i" % th
+        #print "Candidate list for threshold %s" % th
         #candlist.sort()
-        #for [val,term,replterm] in candlist:
-        #    print "  %i:\t%s" % (val,str(term))
+        #for [val,term] in candlist:
+        #    print "  %s:\t%s" % (val,str(term))
 
+        #print th
         vallist = [ [val,term] for [val,term] in candlist if val > th ]
         vallist.sort()
         if len(vallist) > 0:
@@ -191,7 +219,7 @@ class AbbrevContext(object):
             bigtermString = str(bigterm)
 
             # New string
-            abbreviationTerm = Term.TermConstant(self.newName(prefix="MACRO"))
+            abbreviationTerm = Term.TermConstant(self.newName(prefix="TMP"))
             abbreviationString = str(abbreviationTerm)
 
             # Store folding
