@@ -21,25 +21,23 @@
 #
 #
 MINTERMSIZE = 10 # Hardcoded constant; but hard to enforce due to subterm replacements later
+MINSTRUCTSIZE = 5 # Hardcoded constant for minimal size
 #MAXTERMSIZE = 16 # Hardcoded constant (makes sense for ASCII matrices)
 MAXTERMSIZE = 30 # Hardcoded constant (makes sense for graphviz graphs)
-MAXREPLACE = 7  # More than 7 replacements need quadratic justification
+MAXREPLACE = 30  # More than 7 replacements need quadratic justification
 REPLACECON = 2    # Constant for quadratic penalty
 
 import Term
+import Misc
 
 def threshold(n):
     """
     threshold used to determine the threshold value for a given number of replacements n.
     """
-    global MAXREPLACE, REPLACECON
-
-    x = n - MAXREPLACE
-    if x < 0:
-        y = 0
+    if n < 0:
+        return 0
     else:
-        y = REPLACECON * (x**2)
-    return y
+        return 0.1 * (n**2)
     
 
 class AbbrevContext(object):
@@ -50,128 +48,238 @@ class AbbrevContext(object):
     def __init__(self):
 
         self.abbreviations = {}
+        self.mapper = {}
         self.termlist = []
+        self.subtermcount = []
+
+    def isAbbrevCandidate(self,term):
+        """
+        True iff we might be abbreviated
+        """
+        global MAXTERMSIZE,MINTERMSIZE,MINSTRUCTSIZE
+
+        if len(str(term)) < MINTERMSIZE:
+            return False
+
+        if term.getKeyAgents() != None:
+            # We don't abbreviate simple keys, ever
+            return False
+
+        occ = self.subtermcount[str(term)]
+        if occ > 1:
+            return True
+
+        if len(term.leaves()) < MINSTRUCTSIZE:
+            return False
+
+        return True
+
+    def valAbbrevCandidate(self,term):
+        """
+        Higher is more likely to be abbreviated.
+        Currently lexicographic-ish (occurrences, size)
+        Returns n == -1 for non-candidates
+        Returns n >= 0  for candidates
+        """
+        
+        if not self.isAbbrevCandidate(term):
+            return -1
+
+        # Main criterion: string size * occurrences^2
+        size = len(str(term))
+        occ = self.subtermcount[str(term)]
+        t1 = (occ**2) * size
+
+        # Second criterion: structure size
+        t2 = term.size()
+
+        # Third criterion: tuples bad
+        if isinstance(term,Term.TermTuple):
+            t3 = 1
+        else:
+            t3 = 0
+
+        return [t1,t2,t3]
+
+    def termUnfold(self,term):
+        """
+        Undo abbreviations in the given term
+        """
+        last = None
+        while last != str(term):
+            last = str(term)
+            term = term.replace(self.unfold)
+        return term
+
+    def findOrder(self):
+        """
+        Determine an order on the abbreviation keys
+        """
+        unorderedkeys = self.abbreviations.keys()[:]
+        orderedkeys = []
+        while len(unorderedkeys) > 0:
+            # Still some left: there must be one that has no dependencies on unseen keys
+            candidate = None
+            #print "--- New round"
+            #print "ordered keys:   ", orderedkeys
+            #print "unordered keys: ", unorderedkeys
+            for k in unorderedkeys:
+                # Collect dependencies
+                depends = set([ str(t) for t in self.abbreviations[k].subterms() if str(t) in self.abbreviations.keys() ])
+                #print k, self.abbreviations[k]
+                #print [str(t) for t in depends]
+                #print [str(t) for t in orderedkeys]
+                delta = set(depends) - set(orderedkeys)
+                #print "Depends also on", [str(t) for t in delta]
+                if len(delta) == 0:
+                    candidate = k
+                    break
+            assert(candidate != None)
+            orderedkeys.append(k)
+            unorderedkeys.remove(k)
+        return orderedkeys
+
+
+    def replaceMap(self,k,newterm):
+        """
+        Replace k (string) name by new term
+        """
+        # Store new abbreviation
+        self.abbreviations[str(newterm)] = self.abbreviations[k]
+        del self.abbreviations[k]
+
+        # Update
+        renamer = {}
+        renamer[k] = newterm
+        # Update abbreviations
+        for abk in self.abbreviations.keys():
+            self.abbreviations[abk] = self.abbreviations[abk].replace(renamer)
+        # Update mapper
+        for mapk in self.mapper.keys():
+            self.mapper[mapk] = self.mapper[mapk].replace(renamer)
+
 
     def abbreviate(self):
         """
+        Try to abbreviate the 'worst' term.
         Return false if we ran out of options
         """
         global MAXREPLACE
-        import copy
 
-        self.subterms = []
-        self.subtermcount = {}
+        stlist = []
         for t in self.termlist:
-            stlist = t.subterms()
-            for st in stlist:
-                if str(st) not in self.subtermcount.keys():
-                    self.subterms.append(st)
-                    self.subtermcount[str(st)] = 1
-                else:
-                    self.subtermcount[str(st)] += 1
+            stlist += t.subterms()
 
-        (ab,val) = self.select()
-        if ab == None:
+        self.subterms = Misc.uniqstr(stlist)
+        self.subtermcount = Misc.multiset(stlist)
+
+        candlist = [ [self.valAbbrevCandidate(term.replace(self.mapper)),term ] for term in self.subterms ]
+        th = threshold(len(self.abbreviations.keys()))
+
+        ## For debugging only
+        #print "Candidate list for threshold %i" % th
+        #candlist.sort()
+        #for [val,term,replterm] in candlist:
+        #    print "  %i:\t%s" % (val,str(term))
+
+        vallist = [ [val,term] for [val,term] in candlist if val > th ]
+        vallist.sort()
+        if len(vallist) > 0:
+            val = vallist[-1][0]
+            bigterm = vallist[-1][1]
+
+            bigtermString = str(bigterm)
+
+            # New string
+            abbreviationTerm = Term.TermConstant(self.newName(prefix="MACRO"))
+            abbreviationString = str(abbreviationTerm)
+
+            # Store folding
+            self.mapper[str(self.termUnfold(bigterm))] = abbreviationTerm
+            # Store unfolding
+            self.unfold[str(abbreviationTerm)] = bigterm
+
+            # Local replacements
+            abbrev = {}
+            abbrev[bigtermString] = abbreviationTerm
+            # Replace termlist
+            ot = self.termlist[:]
+            self.termlist = [t.replace(abbrev) for t in ot]
+            ## Replace also in abbreviations
+            for k in self.abbreviations.keys():
+                self.abbreviations[k] = self.abbreviations[k].replace(abbrev)
+            self.abbreviations[abbreviationString] = bigterm
+
+            ## Add to termlist too
+            #self.termlist += [bigterm]
+
+            return True
+        else:
             return False
-
-        # Now dermine of we can do it
-        if val <= threshold(len(self.abbreviations.keys())):
-            # Not worth the cost
-            return False
-
-        nn = self.newName()
-        abbrev = {}
-        abbrev[str(ab)] = Term.TermConstant(nn)
-        # Replace termlist
-        ot = copy.copy(self.termlist)
-        self.termlist = [t.replace(abbrev) for t in ot]
-        # Replace our own terms
-        for k in self.abbreviations.keys():
-            self.abbreviations[k] = self.abbreviations[k].replace(abbrev)
-        self.abbreviations[nn] = ab
-
-        return True
 
     def abbreviateAll(self,termlist):
         """
         Repeatedly replace best candidate
-
-        tlfunc: Function from abbreviations to termlist
-        replacefunc: Prodcedure to post-process an abbreviation (e.g. propagation)
         """
         global MAXREPLACE
 
         self.abbreviations = {}
-        self.termlist = termlist
+        self.termlist = termlist[:]
+        self.unfold = {}
+        self.mapper = {}
 
-        while len(self.abbreviations.keys()) < MAXREPLACE:
+        while True:
             if self.abbreviate() == False:
                 break
+        
+        ## For debugging only
+        #print "Mapper:"
+        #for k in self.mapper.keys():
+        #    print "%s -> %s" % (k,self.mapper[k])
+        
+        # The macros are now named/numbered in the order of their creation, which typically is different from
+        # the order in which they appear in a trace. What's worse, M1 may have M3 as a subterm.
+        # In order to avoid at least the latter case, we rename the macros at least in such a way that later macros only
+        # depend on their predecessors.
+        #
+        # Find suitable order
+        okl = self.findOrder()
+        #print okl
+
+        # Propagate order to numbererd naming scheme
+        for k in okl:
+            nn = self.newName()
+            self.replaceMap(k,Term.TermConstant(nn))
 
         return self.abbreviations
-
-    def isCandidate(self,term):
-        """
-        True iff we might be abbreviated
-        """
-        global MAXTERMSIZE,MINTERMSIZE
-
-        if len(str(term)) < MINTERMSIZE:
-            return False
-        if term.getKeyAgents() != None:
-            # We don't abbreviate simple keys, ever
-            return False
-        ts = term.size()
-        if (ts < 16) and isinstance(term.real(),Term.TermTuple):
-            # We don't abbreviate pairs unless they are very large
-            return False
-        if ts <= 1:
-            return False
-        if ts > 5:
-            return True
-        if len(str(term)) > MAXTERMSIZE:
-            return True
-        if (len(str(term)) > 6) and (self.subtermcount[str(term)] > 2):
-            return True
-        return False
-
-    def valCandidate(self,term):
-        """
-        Higher is more likely to be abbreviated.
-        Currently lexicographic-ish (occurrences, size)
-        """
-        occ = self.subtermcount[str(term)]
-        size = len(str(term))
-        val = (occ**2) * size
-        return val
 
     def select(self):
 
         self.bestval = None
         self.bestterm = None
         for term in self.subterms:
-            if self.isCandidate(term):
-                val = self.valCandidate(term)
+            occ = self.subtermcount[str(term)]
+            val = self.valAbbrevCandidate(term)
+            if val != None:
                 if (self.bestterm == None) or (val > self.bestval):
                     self.bestterm = term
                     self.bestval = max(self.bestval,val)
 
         return (self.bestterm,self.bestval)
 
-    def newName(self):
+    def newName(self,prefix="M"):
         """
         Come up with a new name
         """
 
-        pref = "M"
         cnt = 1
         
         substrings = [str(t) for t in self.subterms]
         substrings += self.abbreviations.keys()
 
-        while ("%s%i" % (pref,cnt)) in substrings:
+        while ("%s%i" % (prefix,cnt)) in substrings:
             cnt += 1
 
-        return "%s%i" % (pref,cnt)
+        return "%s%i" % (prefix,cnt)
 
 

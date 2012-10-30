@@ -51,11 +51,30 @@ def forall(func,list):
     return len(filter(func,list)) == len(list)    
 
 def uniq(li):
-    result = []
-    for elem in li:
-        if (not elem in result):
-            result.append(elem)
-    return result
+    return list(set(li))
+
+def uniqstr(li):
+    res = []
+    ress = []
+    for x in li:
+        s = str(x)
+        if not str(x) in ress:
+            res.append(x)
+            ress.append(s)
+    return res
+
+def multiset(seq):
+    """
+    Return a dictonary mapping string interpretations of the elements of seq to their occurrence count
+    """
+    D = {}
+    sseq = [str(x) for x in seq]
+    for s in sseq:
+        if s not in D.keys():
+            D[s] = 0
+        D[s] += 1
+    return D
+
 
 # Return a sorted copy of a list
 def sorted(li):

@@ -25,6 +25,7 @@ import Term
 from sets import Set
 from Misc import *
 from EString import *
+import re
 from Abbreviations import AbbrevContext
 import copy
 
@@ -51,6 +52,18 @@ def seqterms(seq):
         if not isinstance(x,basestring):
             l += x.terms()
     return l
+
+def tryintstring(l):
+    try:
+        return int(l)
+    except:
+        pass
+    return l
+    
+def natural_key(k):
+    return [ tryintstring(l) for l in re.split('([0-9]+)', k) ]
+
+
 
 class Dot(object):
 
@@ -97,7 +110,9 @@ class Graph(object):
         comments = EString()
         if len(self.abbreviations.keys()) > 0:
             comments += "Abbreviations:\n"
-        for k in sorted(self.abbreviations.keys()):
+        l = self.abbreviations.keys()[:]
+        l.sort(key=natural_key)
+        for k in l:
             comments += EString("%s = %s\n" , [k, self.abbreviations[k]])
 
         # Legend
@@ -127,10 +142,10 @@ class Graph(object):
             ce = Node(legendname)
             ce.attr = copy.copy(attr)
             CL.nodes = [ce]
-        else:
-            CL = None
 
-        return (edges,CL)
+            return (AC,edges,CL)
+        else:
+            return (AC,[],None)
 
 
         # For debugging
@@ -140,28 +155,18 @@ class Graph(object):
         #res += "\n"
         #self.comments += res
 
-    def ComputeMapper(self):
-        """
-        Maybe this should be in Abbreviations.py
-        """
-        self.mapper = {}
-        for k in self.abbreviations.keys():
-            dest = self.abbreviations[k]
-            mk = str(dest)
-            assert (not mk in self.mapper.keys())
-            self.mapper[mk] = Term.TermConstant(k)
-
 
     def __str__(self,abbreviate=True):
 
         if abbreviate:
-            (CLedges,CL) = self.ComputeAbbreviations()
+            (AC,CLedges,CL) = self.ComputeAbbreviations()
         else:
+            AC = None
             CL = None
             CLedges = []
         
-        self.ComputeMapper()
-        PushEStringProcess((lambda t: t.replace(self.mapper)))
+        if AC != None:
+            PushEStringProcess((lambda t: t.replace(AC.mapper)))
 
         res = "digraph %s {\n" % (self.name)
         # Attributes
@@ -176,7 +181,8 @@ class Graph(object):
         res += seqstr(CLedges)
 
         # Done with mapping
-        PopEStringProcess()
+        if AC != None:
+            PopEStringProcess()
 
         # Comments are *not* mapped
         if CL != None:

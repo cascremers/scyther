@@ -134,7 +134,7 @@ class Term(object):
         return cmp(str(self),str(other))
 
     def subterms(self):
-        return []
+        return [self]
 
     def depth(self):
         return 0
@@ -165,6 +165,9 @@ class Term(object):
         return self
                 
     def unpair(self):
+        return [self]
+
+    def leaves(self):
         return [self]
     
 class TermConstant(Term):   
@@ -247,6 +250,9 @@ class TermEncrypt(Term):
         else:
             return TermEncrypt(self.value.replace(rmap),self.key.replace(rmap))
                 
+    def leaves(self):
+        return self.value.leaves() + self.key.leaves()
+    
                 
 
 class TermApply(Term):
@@ -294,6 +300,9 @@ class TermApply(Term):
             return self.argument
         return None
 
+    def leaves(self):
+        return self.function.leaves() + self.argument.leaves()
+    
 
 class TermVariable(Term):
     def __init__(self, name, value):
@@ -359,6 +368,12 @@ class TermVariable(Term):
     def unpair(self):
         return [self.real()]
     
+    def leaves(self):
+        if self.value == None:
+            return self
+        else:
+            return self.valueunction.leaves()
+    
 
 class TermTuple(Term):
     def __init__(self, op1, op2):
@@ -401,3 +416,6 @@ class TermTuple(Term):
     def unpair(self):
         return self.op1.unpair() + self.op2.unpair()
 
+    def leaves(self):
+        return self.op1.leaves() + self.op2.leaves()
+    

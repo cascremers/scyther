@@ -507,6 +507,7 @@ class SemiTrace(object):
             fromev = self.getEvent(fromevv)
             toev = self.getEvent(toevv)
             if fromev.run.isAgentRun() and toev.run.isAgentRun():
+                #args += [Attribute("weight","0.1")]
                 if fromev.compromisetype == None and toev.compromisetype == None:
                     if fromev.message == toev.message:
                         comments = []
@@ -604,7 +605,7 @@ class SemiTrace(object):
                         args += colorargs(COLORCLAIMRUN)
                     args += [Attribute("shape","box")]
 
-        args.append(Attribute("label",label))
+        args += [Attribute("label",label)]
 
         ## Add tooltip for svg
         #args.append("tooltip=\"%s\"" % (str(ev.originalmessage)))
@@ -788,12 +789,12 @@ class SemiTrace(object):
         crun = self.getRun(CLAIMRUN)
         cprot = crun.protocol
         if len(crun.eventList) > 0:
-            cclaim = str(crun.eventList[-1])
+            cclaim = EString("claim %s", [crun.eventList[-1].label])
         else:
-            cclaim = "unknown claim."
+            cclaim = "unknown claim"
 
         G = Graph(name="ScytherPattern")
-        G.attr.append(Attribute("label",EString("Scyther pattern graph for protocol %s, %s",[cprot,cclaim])))
+        G.attr.append(Attribute("label",EString("Scyther pattern graph for the %s protocol, %s in role %s.",[cprot,cclaim,crun.role])))
 
         for run in self.runs:
             if len(run.eventList) > 0:
@@ -835,10 +836,13 @@ class SemiTrace(object):
 
         G.clusters.append(CI)
 
+        # Render graph to string
+        res = str(G)
 
+        # Has to be after rendering to a string
         Term.popRewriteStack()
 
-        return str(G)
+        return res
 
 
     def dotTest(self,parameters={}):
@@ -1832,9 +1836,9 @@ class Event(object):
             # Helper
             if self.index == len(self.run.eventList) - 1:
                 if dot:
-                    return "Derive %s\\n%s" % (self.message,self.run.protocol)
+                    return EString("Derive %s\\n%s" , [self.message,self.run.protocol])
                 else:
-                    return "Derive %s (%s)" % (self.message,self.run.protocol)
+                    return EString("Derive %s (%s)" , [self.message,self.run.protocol])
             else:
                 return self.__str__()
         elif self.run.intruder :
@@ -1975,15 +1979,16 @@ class EventClaim(Event):
     
     def argstr(self):
         if self.message == None:
-            return '*'
+            return EString("*")
         else:
             return EString("%s",[self.message])
             
     def estr(self):
-        msg = EString("claim_%s(%s,%s, %s)",[self.shortLabel(),self.run.getAgent(),self.type,self.argstr()])
-        return msg
+        res = EString("claim_%s(%s,%s, %s)",[self.shortLabel(),self.run.getAgent(),self.type,self.argstr()])
+        return res
 
-
+    def dot(self):
+        return self.estr()
 
 class EventIntruder(Event):
     """
