@@ -1,0 +1,128 @@
+# 1 "ikev1-pk-a12.cpp"
+# 1 "<command-line>"
+# 1 "ikev1-pk-a12.cpp"
+# 17 "ikev1-pk-a12.cpp"
+# 1 "common.h" 1
+
+
+
+
+ hashfunction prf, KDF;
+
+
+
+
+
+
+const g, h: Function;
+
+
+
+
+
+
+
+hashfunction H;
+# 97 "common.h"
+protocol @oracle (DH, SWAP) {
+
+
+
+
+
+
+
+ role DH {
+  var i, r: Nonce;
+
+  recv_!DH1( DH, DH, h(g(r),i) );
+  send_!DH2( DH, DH, h(g(i),r) );
+ }
+
+
+
+
+ role SWAP {
+  var i, r, Ni, Nr: Nonce;
+
+
+  var Ci, Cr: Nonce;
+# 150 "common.h"
+  recv_!SWAP1( SWAP, SWAP, KDF(Ni, Nr, h(g(r),i), Ci, Cr) );
+  send_!SWAP2( SWAP, SWAP, KDF(Ni, Nr, h(g(i),r), Ci, Cr) );
+
+ }
+
+
+}
+# 18 "ikev1-pk-a12.cpp" 2
+# 27 "ikev1-pk-a12.cpp"
+usertype String;
+const list, algo: String;
+
+
+
+
+
+
+
+protocol @executability(O) {
+
+
+ role O {
+  var i, r, Ni, Nr, Ci, Cr: Nonce;
+  var I, R: Agent;
+
+
+  recv_!O1( O, O, prf(Ni, Nr, h(g(i),r), g(r), g(i), Cr, Ci, list, R) );
+  send_!O2( O, O, prf(Ni, Nr, h(g(r),i), g(r), g(i), Cr, Ci, list, R) );
+
+
+  recv_!O3( O, O, {prf(Ni, Nr, h(g(r),i), g(i), g(r), Ci, Cr, list, I)}KDF(Ni, Nr, h(g(r),i), Ci, Cr) );
+  send_!O4( O, O, {prf(Ni, Nr, h(g(i),r), g(i), g(r), Ci, Cr, list, I)}KDF(Ni, Nr, h(g(i),r), Ci, Cr) );
+
+ }
+
+
+}
+
+protocol ikev1-pk-a12(I, R)
+{
+ role I {
+  fresh i, Ni, Ci: Nonce;
+  var Nr, Cr: Nonce;
+  var Gr: Ticket;
+
+  send_1( I, R, Ci, list, g(i), {I}pk(R), {Ni}pk(R) );
+  recv_!2( R, I, Ci, Cr, algo, Gr, {R}pk(I), {Nr}pk(I), prf(Ni, Nr, h(Gr,i), Gr, g(i), Cr, Ci, list, R) );
+  claim( I, Running, R, g(i),Gr,Ci,Cr,Ni,Nr );
+  send_!3( I, R, Ci, Cr, {prf(Ni, Nr, h(Gr,i), g(i), Gr, Ci, Cr, list, I)}KDF(Ni, Nr, h(Gr,i), Ci, Cr) );
+
+
+  claim( I, SKR, KDF(Ni, Nr, h(Gr,i), Ci, Cr) );
+
+  claim( I, Alive );
+  claim( I, Weakagree );
+  claim( I, Commit, R, g(i),Gr,Ci,Cr,Ni,Nr );
+
+ }
+
+ role R {
+  fresh r, Nr, Cr: Nonce;
+  var Ni, Ci: Nonce;
+  var Gi: Ticket;
+
+  recv_1( I, R, Ci, list, Gi, {I}pk(R), {Ni}pk(R) );
+  claim( R, Running, I, Gi,g(r),Ci,Cr,Ni,Nr );
+  send_!2( R, I, Ci, Cr, algo, g(r), {R}pk(I), {Nr}pk(I), prf(Ni, Nr, h(Gi,r), g(r), Gi, Cr, Ci, list, R) );
+  recv_!3( I, R, Ci, Cr, {prf(Ni, Nr, h(Gi,r), Gi, g(r), Ci, Cr, list, I)}KDF(Ni, Nr, h(Gi,r), Ci, Cr) );
+
+
+  claim( R, SKR, KDF(Ni, Nr, h(Gi,r), Ci, Cr) );
+
+  claim( R, Alive );
+  claim( R, Weakagree );
+  claim( R, Commit, I, Gi,g(r),Ci,Cr,Ni,Nr );
+
+ }
+}

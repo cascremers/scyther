@@ -1,0 +1,88 @@
+# 1 "jfki-core.cpp"
+# 1 "<command-line>"
+# 1 "jfki-core.cpp"
+# 15 "jfki-core.cpp"
+# 1 "common.h" 1
+
+
+
+
+ hashfunction prf, KDF;
+
+
+
+
+
+
+const g, h: Function;
+# 60 "common.h"
+hashfunction H;
+# 97 "common.h"
+protocol @oracle (DH, SWAP) {
+
+
+
+
+
+
+
+ role DH {
+  var i, r: Nonce;
+
+  recv_!DH1( DH, DH, h(g(r),i) );
+  send_!DH2( DH, DH, h(g(i),r) );
+ }
+
+
+
+
+ role SWAP {
+  var i, r, Ni, Nr: Nonce;
+# 150 "common.h"
+  recv_!SWAP1( SWAP, SWAP, KDF(h(g(r),i), Ni, Nr) );
+  send_!SWAP2( SWAP, SWAP, KDF(h(g(i),r), Ni, Nr) );
+
+ }
+
+
+}
+# 16 "jfki-core.cpp" 2
+
+
+
+protocol jfki-core(I, R)
+{
+ role I {
+  fresh i, Ni: Nonce;
+  var Nr: Nonce;
+  var Gr: Ticket;
+
+  send_1( I, R, Ni, I, g(i) );
+  recv_2( R, I, Nr, Ni, R, Gr, {Nr, Ni, Gr, g(i), I}sk(R) );
+  send_3( I, R, Nr, Ni, {Nr, Ni, Gr, g(i), R}sk(I) );
+
+
+  claim( I, SKR, KDF(h(Gr,i), Ni, Nr) );
+
+  claim( I, Alive );
+  claim( I, Weakagree );
+
+ }
+
+ role R {
+  fresh r, Nr: Nonce;
+  var Ni: Nonce;
+  var Gi: Ticket;
+
+  recv_1( I, R, Ni, I, Gi );
+  send_2( R, I, Nr, Ni, R, g(r), {Nr, Ni, g(r), Gi, I}sk(R) );
+  recv_3( I, R, Nr, Ni, {Nr, Ni, g(r), Gi, R}sk(I) );
+
+
+  claim( R, SKR, KDF(h(Gi,r), Ni, Nr) );
+
+  claim( R, Alive );
+  claim( R, Weakagree );
+
+ }
+}

@@ -1,0 +1,121 @@
+# 1 "ikev2-child.cpp"
+# 1 "<command-line>"
+# 1 "ikev2-child.cpp"
+# 15 "ikev2-child.cpp"
+# 1 "common.h" 1
+
+
+
+
+ hashfunction prf, KDF;
+
+
+
+
+
+
+const g, h: Function;
+# 97 "common.h"
+protocol @oracle (DH, SWAP) {
+
+
+
+
+
+
+
+ role DH {
+  var i, r: Nonce;
+
+  recv_!DH1( DH, DH, h(g(r),i) );
+  send_!DH2( DH, DH, h(g(i),r) );
+ }
+
+
+
+
+ role SWAP {
+  var i, r, Ni, Nr: Nonce;
+# 135 "common.h"
+  var I, R: Agent;
+# 150 "common.h"
+  recv_!SWAP1( SWAP, SWAP, KDF(k(I,R),h(g(r),i),Ni,Nr) );
+  send_!SWAP2( SWAP, SWAP, KDF(k(R,I),h(g(i),r),Ni,Nr) );
+
+ }
+
+
+}
+# 16 "ikev2-child.cpp" 2
+
+
+
+usertype SecurityAssociation;
+const SA1 ,SA2, SA3: SecurityAssociation;
+
+
+
+
+
+
+protocol @executability(O) {
+
+
+ role O {
+  var i, r, Ni, Nr: Nonce;
+  var I, R: Agent;
+
+
+  recv_!O1( O, O, {SA3, Ni, g(i)}k(I,R) );
+  send_!O2( O, O, {SA3, Ni, g(i)}k(R,I) );
+
+
+  recv_!O3( O, O, {SA3, Nr, g(r)}k(R,I) );
+  send_!O4( O, O, {SA3, Nr, g(r)}k(I,R) );
+
+ }
+
+
+}
+
+
+
+protocol ikev2-child(I, R)
+{
+
+ role I {
+  fresh i, Ni: Nonce;
+  var Nr: Nonce;
+  var Gr: Ticket;
+
+
+  claim( I, Running, R,Ni,g(i) );
+  send_!1( I, R, {SA3, Ni, g(i)}k(I,R) );
+  recv_!2( R, I, {SA3, Nr, Gr}k(I,R) );
+
+
+  claim( I, SKR, KDF(k(I,R),h(Gr,i),Ni,Nr) );
+
+  claim( I, Alive );
+  claim( I, Weakagree );
+  claim( I, Commit, R,Ni,g(i),Nr,Gr );
+
+ }
+
+ role R {
+  fresh r, Nr: Nonce;
+  var Ni: Nonce;
+  var Gi: Ticket;
+
+  recv_!1( I, R, {SA3, Ni, Gi}k(R,I) );
+  claim( R, Running, I,Ni,Gi,Nr,g(r) );
+  send_!2( R, I, {SA3, Nr, g(r)}k(R,I) );
+
+
+  claim( R, SKR, KDF(k(R,I),h(Gi,r),Ni,Nr) );
+
+  claim( R, Alive );
+  claim( R, Weakagree );
+  claim( R, Commit, I,Ni,Gi );
+ }
+}

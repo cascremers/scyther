@@ -1,0 +1,91 @@
+# 1 "ikev1-quick.cpp"
+# 1 "<command-line>"
+# 1 "ikev1-quick.cpp"
+# 16 "ikev1-quick.cpp"
+# 1 "common.h" 1
+
+
+
+
+ hashfunction prf, KDF;
+
+
+
+
+
+
+const g, h: Function;
+# 97 "common.h"
+protocol @oracle (DH, SWAP) {
+
+
+
+
+
+
+
+ role DH {
+  var i, r: Nonce;
+
+  recv_!DH1( DH, DH, h(g(r),i) );
+  send_!DH2( DH, DH, h(g(i),r) );
+ }
+
+
+
+
+ role SWAP {
+  var i, r, Ni, Nr: Nonce;
+# 126 "common.h"
+  var I, R: Agent;
+# 150 "common.h"
+  recv_!SWAP1( SWAP, SWAP, KDF(k(I,R),h(g(r),i),Ni,Nr) );
+  send_!SWAP2( SWAP, SWAP, KDF(k(R,I),h(g(i),r),Ni,Nr) );
+
+ }
+
+
+}
+# 17 "ikev1-quick.cpp" 2
+# 28 "ikev1-quick.cpp"
+protocol ikev1-quick(I, R)
+{
+ role I {
+  fresh i, Ni, Ci, mid, list: Nonce;
+  var Nr, Cr, algo: Nonce;
+  var Gr: Ticket;
+
+  send_!1( I, R, mid, {prf(k(I,R), mid, list, Ni, g(i), I, R), list, Ni, g(i), I, R}k(I,R) );
+  recv_!2( R, I, mid, {prf(k(I,R), mid, Ni, algo, Nr, Gr, I, R), algo, Nr, Gr, I, R}k(I,R) );
+  claim( I, Running, R, Ni, Nr, g(i), Gr );
+  send_!3( I, R, mid, {prf(k(I,R), mid, Ni, Nr)}k(I,R) );
+
+
+  claim( I, SKR, KDF(k(I,R),h(Gr,i),Ni,Nr) );
+
+  claim( I, Alive );
+  claim( I, Weakagree );
+  claim( I, Commit, R, Ni, Nr, g(i), Gr );
+
+ }
+
+ role R {
+  fresh r, Nr, Cr, algo: Nonce;
+  var Ni, Ci, mid, list: Nonce;
+  var Gi: Ticket;
+
+  recv_!1( I, R, mid, {prf(k(R,I), mid, list, Ni, Gi, I, R), list, Ni, Gi, I, R}k(I,R) );
+  claim( R, Running, I, Ni, Nr, Gi, g(r) );
+  send_!2( R, I, mid, {prf(k(R,I), mid, Ni, algo, Nr, g(r), I, R), algo, Nr, g(r), I, R}k(I,R) );
+  recv_!3( I, R, mid, {prf(k(R,I), mid, Ni, Nr)}k(I,R) );
+
+
+
+  claim( R, SKR, KDF(k(R,I),h(Gi,r),Ni,Nr) );
+
+  claim( R, Alive );
+  claim( R, Weakagree );
+  claim( R, Commit, I, Ni, Nr, Gi, g(r) );
+
+ }
+}
