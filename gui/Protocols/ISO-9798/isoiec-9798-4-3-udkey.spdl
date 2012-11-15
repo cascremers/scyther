@@ -1,0 +1,50 @@
+/*
+ * Modeled from ISO/IEC 9798
+ * Modeler: Cas Cremers, Dec. 2010
+ *
+ * ccf
+ * two-pass
+ * mutual
+ *
+ * Unidirectional key version.
+ * 
+ * Modeling notes:
+ *
+ * - The keyed CCF (f_kab(x)) is modeled as f(x,kab)
+ */
+hashfunction f;
+
+protocol isoiec-9798-4-3-udkey(A,B)
+{
+	role A
+	{
+		fresh Text1,Text2: Ticket;
+		var Text3,Text4: Ticket;
+		fresh TNa: Nonce;
+		var TNb: Nonce;
+
+		claim(A,Running,B,TNa,Text1);
+		send_1(A,B, TNa, Text2, f(TNa,Text1, k(A,B) ) );
+		recv_2(B,A, TNb, Text4, f(TNb,Text3, k(B,A) ) );
+
+		claim(A,Commit,B,TNb,Text3);
+		claim(A,Alive);
+		claim(A,Weakagree);
+	}
+	role B
+	{
+		var TNa: Nonce;
+		fresh TNb: Nonce;
+		var Text1,Text2: Ticket;
+		fresh Text3,Text4: Ticket;
+
+		recv_1(A,B, TNa, Text2, f(TNa,Text1, k(A,B) ) );
+		claim(B,Running,A,TNb,Text3);
+		send_2(B,A, TNb, Text4, f(TNb,Text3, k(B,A) ) );
+
+		claim(B,Commit,A,TNa,Text1);
+		claim(B,Alive);
+		claim(B,Weakagree);
+	}
+}
+

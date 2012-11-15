@@ -1,0 +1,66 @@
+/*
+ * Modeled from ISO standard
+ *
+ * signature
+ * ttp
+ * five-pass
+ * mutual
+ *
+ * B initiates and A communicates with T
+ *
+ * parameters:
+ *
+ * 	NAME
+ * 	IA
+ * 	IB
+ * 	ResA
+ * 	ResB
+ * 	TokenAB
+ * 	TokenBA (although identical in both cases)
+ * 	TokenTA
+ *
+ */
+protocol isoiec-9798-3-7-1(A,B,T)
+{
+ role A
+ {
+  fresh Ra,Rpa: Nonce;
+  var Rb: Nonce;
+  var Text1,Text3,Text4,Text5,Text8,Text9: Ticket;
+  fresh Text2,Text6,Text7: Ticket;
+
+  recv_1(B,A, Rb,B,Text1 );
+  send_2(A,T, Rpa,Rb,A,Text2 );
+  recv_3(T,A, Text5, A,pk(A),B,pk(B),{Rpa,B,pk(B),Text4}sk(T),{Rb,A,pk(A),Text3}sk(T) );
+  claim(A,Running,B,Ra,Rb,Text6);
+  send_4(A,B, A, Text7,Ra,A,pk(A),{Rb,A,pk(A),Text3}sk(T),{Rb,Ra,B,A,Text6}sk(A) );
+  recv_5(B,A, Ra,Rb,Text9,{A,Ra,Rb,B,Text8}sk(B) );
+
+  claim(A,Commit,B,Ra,Rb,Text8);
+  claim(A,Alive);
+ }
+ role B
+ {
+  fresh Text1,Text8,Text9: Ticket;
+  fresh Rb: Nonce;
+  var Text3,Text4,Text6,Text7: Ticket;
+  var Ra,Rpa: Nonce;
+
+  send_1(B,A, Rb,B,Text1 );
+  recv_4(A,B, A, Text7,Ra,A,pk(A),{Rb,A,pk(A),Text3}sk(T),{Rb,Ra,B,A,Text6}sk(A) );
+  claim(B,Running,A,Ra,Rb,Text8);
+  send_5(B,A, Ra,Rb,Text9,{A,Ra,Rb,B,Text8}sk(B) );
+
+  claim(B,Commit,A,Ra,Rb,Text6);
+  claim(B,Alive);
+ }
+ role T
+ {
+  var Rpa,Rb: Nonce;
+  var Text2: Ticket;
+  fresh Text3,Text4,Text5: Ticket;
+
+  recv_2(A,T, Rpa,Rb,A,Text2 );
+  send_3(T,A, Text5, A,pk(A),B,pk(B),{Rpa,B,pk(B),Text4}sk(T),{Rb,A,pk(A),Text3}sk(T) );
+ }
+}

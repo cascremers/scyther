@@ -1,0 +1,67 @@
+/*
+ * Modeled from ISO/IEC 9798
+ * Modeler: Cas Cremers, Dec. 2010
+ *
+ * symmetric
+ * two-pass
+ * mutual
+ *
+ * Note: the identity inside the encryption may be ommitted, if
+ *   (a) the environment disallows such attacks, or
+ *   (b) a unidirectional key is used
+ *
+ */
+protocol @keysymm-23(A,B)
+{
+	role A
+	{
+		var T: Nonce;
+		var Text: Ticket;
+
+		recv_!1(B,A, { T, A, Text }k(A,B) );
+		send_!2(A,B, { T, A, Text }k(B,A) );
+	}
+	role B
+	{
+		var T: Nonce;
+		var Text: Ticket;
+
+		recv_!3(A,B, { T, B, Text }k(A,B) );
+		send_!4(B,A, { T, B, Text }k(B,A) );
+	}
+}
+
+protocol isoiec-9798-2-3(A,B)
+{
+	role A
+	{
+		fresh TNA: Nonce;
+		var TNB: Nonce;
+		fresh Text1,Text2: Ticket;
+		var Text3,Text4: Ticket;
+
+		claim(A,Running,B,TNA,Text1);
+		send_1(A,B, Text2, { TNA, B, Text1 }k(A,B) );
+		recv_2(B,A, Text4, { TNB, A, Text3 }k(A,B) );
+
+		claim(A,Commit,B,TNB,Text3);
+		claim(A,Alive);
+		claim(A,Weakagree);
+	}
+	role B
+	{
+		var TNA: Nonce;
+		fresh TNB: Nonce;
+		var Text1,Text2: Ticket;
+		fresh Text3,Text4: Ticket;
+
+		recv_1(A,B, Text2, { TNA, B, Text1 }k(A,B) );
+		claim(B,Running,A,TNB,Text3);
+		send_2(B,A, Text4, { TNB, A, Text3 }k(A,B) );
+
+		claim(B,Commit,A,TNA,Text1);
+		claim(B,Alive);
+		claim(B,Weakagree);
+	}
+}
+

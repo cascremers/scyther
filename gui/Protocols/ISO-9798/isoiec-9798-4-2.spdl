@@ -1,0 +1,62 @@
+/*
+ * Modeled from ISO/IEC 9798
+ * Modeler: Cas Cremers, Dec. 2010, Feb. 2011.
+ *
+ * History:
+ * 
+ * - v2.0, Feb. 2011:
+ *   Added key symmetry emulation protocol.
+ *
+ * ccf
+ * unilateral
+ * two-pass
+ * 
+ * The identifier B is optional and may be omitted if the key is unidirectional.
+ * 
+ * Modeling notes:
+ *
+ * - The keyed CCF (f_kab(x)) is modeled as f(x,kab)
+ */
+hashfunction f;
+
+protocol @keysymm-42(A,B)
+{
+	role A
+	{
+		var X,Y,Z: Ticket;
+
+		recv_!1(B,A, f(X,Y,Z, k(A,B) ) );
+		send_!2(A,B, f(X,Y,Z, k(B,A) ) );
+	}
+	role B
+	{
+	}
+}
+
+protocol isoiec-9798-4-2(A,B)
+{
+	role A
+	{
+		var Rb: Nonce;
+		var Text1: Ticket;
+		fresh Text2,Text3: Ticket;
+
+		recv_1(B,A, Rb,Text1 );
+		claim(A,Running,B,Rb,Text2);
+		send_2(A,B, Text3, f( Rb, B, Text2, k(A,B)) );
+	}
+	role B
+	{
+		fresh Rb: Nonce;
+		fresh Text1: Ticket;
+		var Text2,Text3: Ticket;
+
+		send_1(B,A, Rb,Text1 );
+		recv_2(A,B, Text3, f( Rb, B, Text2, k(A,B)) );
+
+		claim(B,Commit,A,Rb,Text2);
+		claim(B,Alive);
+		claim(B,Weakagree);
+	}
+}
+
