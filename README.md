@@ -62,7 +62,7 @@ Protocol Models
 The protocol models have the extension `.spdl` and can be found in the following directories:
 
   * `./gui/Protocols`, containing the officially released models, and
-  * `./testing/protocols`, containing models currently under development.
+  * `./testing`, containing models currently under development.
 
 License
 -------
