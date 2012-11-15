@@ -1,0 +1,109 @@
+# 1 "skeme-psk.cpp"
+# 1 "<command-line>"
+# 1 "skeme-psk.cpp"
+# 20 "skeme-psk.cpp"
+# 1 "common.h" 1
+
+
+
+
+ hashfunction prf, KDF;
+
+
+
+
+
+
+const g, h: Function;
+# 97 "common.h"
+protocol @oracle (DH, SWAP) {
+
+
+
+
+
+
+
+ role DH {
+  var i, r: Nonce;
+
+  recv_!DH1( DH, DH, h(g(r),i) );
+  send_!DH2( DH, DH, h(g(i),r) );
+ }
+
+
+
+
+ role SWAP {
+  var i, r, Ni, Nr: Nonce;
+# 150 "common.h"
+  recv_!SWAP1( SWAP, SWAP, KDF(h(g(r),i)) );
+  send_!SWAP2( SWAP, SWAP, KDF(h(g(i),r)) );
+
+ }
+
+
+}
+# 21 "skeme-psk.cpp" 2
+
+
+
+
+
+
+
+protocol @executability(O) {
+
+
+ role O {
+  var i, r: Nonce;
+  var I, R: Agent;
+
+
+  recv_!O1( O, O, prf(k(R,I), g(i), g(r), R, I) );
+  send_!O2( O, O, prf(k(I,R), g(i), g(r), R, I) );
+
+
+  recv_!O3( O, O, prf(k(I,R), g(r), g(i), I, R) );
+  send_!O4( O, O, prf(k(R,I), g(r), g(i), I, R) );
+
+ }
+
+
+}
+
+
+protocol skeme-psk(I, R)
+{
+ role I {
+  fresh i: Nonce;
+  var Gr: Ticket;
+
+  send_1( I, R, g(i) );
+  recv_!2( R, I, Gr, prf(k(I,R), g(i), Gr, R, I) );
+  send_!3( I, R, prf(k(I,R), Gr, g(i), I, R) );
+
+
+  claim( I, SKR, KDF(h(Gr,i)) );
+
+  claim( I, Alive );
+  claim( I, Weakagree );
+
+ }
+
+ role R {
+  fresh r: Nonce;
+  var Gi: Ticket;
+
+  recv_1( I, R, Gi );
+  send_!2( R, I, g(r), prf(k(R,I), Gi, g(r), R, I) );
+  recv_!3( I, R, prf(k(R,I), g(r), Gi, I, R) );
+
+
+  claim( R, SKR, KDF(h(Gi,r)) );
+
+  claim( R, Alive );
+  claim( R, Weakagree );
+
+ }
+}

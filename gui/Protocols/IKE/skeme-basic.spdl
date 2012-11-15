@@ -1,0 +1,87 @@
+# 1 "skeme-basic.cpp"
+# 1 "<command-line>"
+# 1 "skeme-basic.cpp"
+# 21 "skeme-basic.cpp"
+# 1 "common.h" 1
+
+
+
+
+ hashfunction prf, KDF;
+
+
+
+
+
+
+const g, h: Function;
+# 97 "common.h"
+protocol @oracle (DH, SWAP) {
+
+
+
+
+
+
+
+ role DH {
+  var i, r: Nonce;
+
+  recv_!DH1( DH, DH, h(g(r),i) );
+  send_!DH2( DH, DH, h(g(i),r) );
+ }
+
+
+
+
+ role SWAP {
+  var i, r, Ni, Nr: Nonce;
+# 150 "common.h"
+  recv_!SWAP1( SWAP, SWAP, KDF(h(g(r),i)) );
+  send_!SWAP2( SWAP, SWAP, KDF(h(g(i),r)) );
+
+ }
+
+
+}
+# 22 "skeme-basic.cpp" 2
+
+
+
+
+protocol skeme-basic(I, R)
+{
+ role I {
+  fresh i, Ni: Nonce;
+  var Nr: Nonce;
+  var Gr: Ticket;
+
+  send_1( I, R, {I, Ni}pk(R), g(i) );
+  recv_2( R, I, {Nr}pk(I), Gr, prf(prf(Ni,Nr), g(i), Gr, R, I) );
+  send_3( I, R, prf(prf(Ni,Nr), Gr, g(i), I, R) );
+
+
+  claim( I, SKR, KDF(h(Gr,i)) );
+
+  claim( I, Alive );
+  claim( I, Weakagree );
+
+ }
+
+ role R {
+  fresh r, Nr: Nonce;
+  var Ni: Nonce;
+  var Gi: Ticket;
+
+  recv_1( I, R, {I, Ni}pk(R), Gi );
+  send_2( R, I, {Nr}pk(I), g(r), prf(prf(Ni,Nr), Gi, g(r), R, I) );
+  recv_3( I, R, prf(prf(Ni,Nr), g(r), Gi, I, R) );
+
+
+  claim( R, SKR, KDF(h(Gi,r)) );
+
+  claim( R, Alive );
+  claim( R, Weakagree );
+
+ }
+}

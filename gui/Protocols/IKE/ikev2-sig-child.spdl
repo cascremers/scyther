@@ -1,0 +1,165 @@
+# 1 "ikev2-sig-child.cpp"
+# 1 "<command-line>"
+# 1 "ikev2-sig-child.cpp"
+# 15 "ikev2-sig-child.cpp"
+# 1 "common.h" 1
+
+
+
+
+ hashfunction prf, KDF;
+
+
+
+
+
+
+const g, h: Function;
+# 43 "common.h"
+hashfunction MAC;
+# 97 "common.h"
+protocol @oracle (DH, SWAP) {
+
+
+
+
+
+
+
+ role DH {
+  var i, r: Nonce;
+
+  recv_!DH1( DH, DH, h(g(r),i) );
+  send_!DH2( DH, DH, h(g(i),r) );
+ }
+
+
+
+
+ role SWAP {
+  var i, r, Ni, Nr: Nonce;
+# 132 "common.h"
+  var SPIi, SPIr: Nonce;
+# 150 "common.h"
+  recv_!SWAP1( SWAP, SWAP, KDF(Ni,Nr,h(g(r),i),SPIi,SPIr) );
+  send_!SWAP2( SWAP, SWAP, KDF(Ni,Nr,h(g(i),r),SPIi,SPIr) );
+
+ }
+
+
+}
+# 16 "ikev2-sig-child.cpp" 2
+# 26 "ikev2-sig-child.cpp"
+usertype Number, SecurityAssociation, TrafficSelector;
+const O: Number;
+const SA1 ,SA2, SA3: SecurityAssociation;
+const TSi, TSr: TrafficSelector;
+
+
+
+
+
+
+protocol @executability(E) {
+
+
+ role E {
+  var i, j, r, t, Mi, Ni, Mr, Nr, SPIi, SPIr: Nonce;
+  var I, R: Agent;
+
+
+  recv_!E1( E, E, {I, R, {SPIi, O, SA1, g(i), Ni, Nr, prf(KDF(Ni,Nr,h(g(r),i),SPIi,SPIr), I)}sk(I), SA2, TSi, TSr}KDF(Ni,Nr,h(g(r),i),SPIi,SPIr) );
+  send_!E2( E, E, {I, R, {SPIi, O, SA1, g(i), Ni, Nr, prf(KDF(Ni,Nr,h(g(i),r),SPIi,SPIr), I)}sk(I), SA2, TSi, TSr}KDF(Ni,Nr,h(g(i),r),SPIi,SPIr) );
+
+
+  recv_!E3( E, E, {R, {SPIi, SPIr, SA1, g(r), Nr, Ni, prf(KDF(Ni,Nr,h(g(i),r),SPIi,SPIr), R)}sk(R), SA2, TSi, TSr}KDF(Ni,Nr,h(g(i),r),SPIi,SPIr) );
+  send_!E4( E, E, {R, {SPIi, SPIr, SA1, g(r), Nr, Ni, prf(KDF(Ni,Nr,h(g(r),i),SPIi,SPIr), R)}sk(R), SA2, TSi, TSr}KDF(Ni,Nr,h(g(r),i),SPIi,SPIr) );
+
+
+  recv_!E5( E, E, {SA3, Mi, g(j), TSi, TSr}KDF(Ni,Nr,h(g(r),i),SPIi,SPIr) );
+  send_!E6( E, E, {SA3, Mi, g(j), TSi, TSr}KDF(Ni,Nr,h(g(i),r),SPIi,SPIr) );
+
+
+  recv_!E7( E, E, {SA3, Mr, g(t), TSi, TSr}KDF(Ni,Nr,h(g(i),r),SPIi,SPIr) );
+  send_!E8( E, E, {SA3, Mr, g(t), TSi, TSr}KDF(Ni,Nr,h(g(i),r),SPIi,SPIr) );
+ }
+
+
+}
+protocol @ora(S) {
+
+
+
+
+ role S {
+  var i, j, r, t, Mi, Ni, Mr, Nr, SPIi, SPIr: Nonce;
+
+  recv_!S1( S, S, KDF(Ni, Nr, h(g(r),i), h(g(t),j), Mi, Mr) );
+  send_!S2( S, S, KDF(Ni, Nr, h(g(i),r), h(g(j),t), Mi, Mr) );
+ }
+
+
+
+
+}
+
+
+protocol ikev2-sig-child(I, R)
+{
+ role I {
+  fresh i, j, Ni, Mi, SPIi: Nonce;
+  var Nr, Mr, SPIr: Nonce;
+  var Gr, Gt: Ticket;
+
+
+
+  send_1( I, R, SPIi, O, SA1, g(i), Ni );
+  recv_2( R, I, (SPIi,SPIr), SA1, Gr, Nr );
+
+
+  send_!3( I, R, (SPIi,SPIr), {I, R, {SPIi, O, SA1, g(i), Ni, Nr, prf(KDF(Ni,Nr,h(Gr,i),SPIi,SPIr), I)}sk(I), SA2, TSi, TSr}KDF(Ni,Nr,h(Gr,i),SPIi,SPIr) );
+  recv_!4( R, I, (SPIi,SPIr), {R, {SPIi, SPIr, SA1, Gr, Nr, Ni, prf(KDF(Ni,Nr,h(Gr,i),SPIi,SPIr), R)}sk(R), SA2, TSi, TSr}KDF(Ni,Nr,h(Gr,i),SPIi,SPIr) );
+
+
+  claim( I, Running, R,g(i),g(j),Gr );
+  send_!5( I, R, (SPIi,SPIr), {SA3, Mi, g(j), TSi, TSr}KDF(Ni,Nr,h(Gr,i),SPIi,SPIr) );
+  recv_!6( R, I, (SPIi,SPIr), {SA3, Mr, Gt, TSi, TSr}KDF(Ni,Nr,h(Gr,i),SPIi,SPIr) );
+
+
+  claim( I, SKR, KDF(Ni,Nr,h(Gr,i),SPIi,SPIr) );
+  claim( I, SKR, KDF(Ni, Nr, h(Gr,i), h(Gt,j), Mi, Mr) );
+
+  claim( I, Alive );
+  claim( I, Weakagree );
+  claim( I, Commit, R,g(i),g(j),Gr,Gt );
+
+ }
+
+ role R {
+  fresh r, t, Nr, Mr, SPIr: Nonce;
+  var Ni, Mi, SPIi: Nonce;
+  var Gi, Gj: Ticket;
+
+
+
+  recv_1( I, R, SPIi, O, SA1, Gi, Ni );
+  send_2( R, I, (SPIi,SPIr), SA1, g(r), Nr );
+
+
+  recv_!3( I, R, (SPIi,SPIr), {I, R, {SPIi, O, SA1, Gi, Ni, Nr, prf(KDF(Ni,Nr,h(Gi,r),SPIi,SPIr), I)}sk(I), SA2, TSi, TSr}KDF(Ni,Nr,h(Gi,r),SPIi,SPIr) );
+  send_!4( R, I, (SPIi,SPIr), {R, {SPIi, SPIr, SA1, g(r), Nr, Ni, prf(KDF(Ni,Nr,h(Gi,r),SPIi,SPIr), R)}sk(R), SA2, TSi, TSr}KDF(Ni,Nr,h(Gi,r),SPIi,SPIr) );
+
+
+  recv_!5( I, R, (SPIi,SPIr), {SA3, Mi, Gj, TSi, TSr}KDF(Ni,Nr,h(Gi,r),SPIi,SPIr) );
+  claim( R, Running, I,Gi,Gj,g(r),g(t) );
+  send_!6( R, I, (SPIi,SPIr), {SA3, Mr, g(t), TSi, TSr}KDF(Ni,Nr,h(Gi,r),SPIi,SPIr) );
+
+
+  claim( R, SKR, KDF(Ni,Nr,h(Gi,r),SPIi,SPIr) );
+  claim( R, SKR, KDF(Ni, Nr, h(Gi,r), h(Gi,t), Mi, Mr) );
+
+  claim( R, Alive );
+  claim( R, Weakagree );
+  claim( R, Commit, I,Gi,Gj,g(r) );
+ }
+}

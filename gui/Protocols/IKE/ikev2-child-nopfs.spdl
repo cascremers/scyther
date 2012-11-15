@@ -1,0 +1,112 @@
+# 1 "ikev2-child-nopfs.cpp"
+# 1 "<command-line>"
+# 1 "ikev2-child-nopfs.cpp"
+# 15 "ikev2-child-nopfs.cpp"
+# 1 "common.h" 1
+
+
+
+
+ hashfunction prf, KDF;
+
+
+
+
+
+
+const g, h: Function;
+# 97 "common.h"
+protocol @oracle (DH, SWAP) {
+
+
+
+
+
+
+
+ role DH {
+  var i, r: Nonce;
+
+  recv_!DH1( DH, DH, h(g(r),i) );
+  send_!DH2( DH, DH, h(g(i),r) );
+ }
+
+
+
+
+ role SWAP {
+  var i, r, Ni, Nr: Nonce;
+# 138 "common.h"
+  var I, R: Agent;
+# 150 "common.h"
+  recv_!SWAP1( SWAP, SWAP, KDF(k(I,R),Ni,Nr) );
+  send_!SWAP2( SWAP, SWAP, KDF(k(R,I),Ni,Nr) );
+
+ }
+
+
+}
+# 16 "ikev2-child-nopfs.cpp" 2
+
+
+const SA3: Nonce;
+
+
+
+
+
+
+protocol @executability(O) {
+ role O {
+  var Ni, Nr: Nonce;
+  var I, R: Agent;
+
+
+  recv_!O1( O, O, {SA3, Ni}k(I,R) );
+  send_!O2( O, O, {SA3, Ni}k(R,I) );
+
+
+  recv_!O3( O, O, {SA3, Nr}k(R,I) );
+  send_!O4( O, O, {SA3, Nr}k(I,R) );
+
+ }
+}
+
+
+protocol ikev2-child-nopfs(I, R)
+{
+
+ role I {
+  fresh Ni: Nonce;
+  var Nr: Nonce;
+
+
+  claim( I, Running, R,Ni );
+  send_!1( I, R, {SA3, Ni}k(I,R) );
+  recv_!2( R, I, {SA3, Nr}k(I,R) );
+
+
+  claim( I, SKR, KDF(k(I,R),Ni,Nr) );
+
+  claim( I, Alive );
+  claim( I, Weakagree );
+  claim( I, Commit, R,Ni,Nr );
+
+ }
+
+ role R {
+  fresh Nr: Nonce;
+  var Ni: Nonce;
+
+  recv_!1( I, R, {SA3, Ni}k(R,I) );
+  claim( R, Running, I,Ni,Nr );
+  send_!2( R, I, {SA3, Nr}k(R,I) );
+
+
+  claim( R, SKR, KDF(k(R,I),Ni,Nr) );
+
+  claim( R, Alive );
+  claim( R, Weakagree );
+  claim( R, Commit, I,Ni );
+ }
+}

@@ -1,0 +1,118 @@
+# 1 "jfki.cpp"
+# 1 "<command-line>"
+# 1 "jfki.cpp"
+# 15 "jfki.cpp"
+# 1 "common.h" 1
+
+
+
+
+ hashfunction prf, KDF;
+
+
+
+
+
+
+const g, h: Function;
+# 66 "common.h"
+hashfunction H;
+# 97 "common.h"
+protocol @oracle (DH, SWAP) {
+
+
+
+
+
+
+
+ role DH {
+  var i, r: Nonce;
+
+  recv_!DH1( DH, DH, h(g(r),i) );
+  send_!DH2( DH, DH, h(g(i),r) );
+ }
+
+
+
+
+ role SWAP {
+  var i, r, Ni, Nr: Nonce;
+# 150 "common.h"
+  recv_!SWAP1( SWAP, SWAP, KDF(h(g(r),i), H(Ni), Nr) );
+  send_!SWAP2( SWAP, SWAP, KDF(h(g(i),r), H(Ni), Nr) );
+
+ }
+
+
+}
+# 16 "jfki.cpp" 2
+
+
+
+
+
+
+
+protocol @executability(O) {
+
+
+ role O {
+  var i, r, Ni, Nr, SAi, SAr: Nonce;
+  var I, R: Agent;
+
+
+  recv_!O1( O, O, {I, SAi, {H(Ni), Nr, g(i), g(r), R, SAi}sk(I)}KDF(h(g(r),i), H(Ni), Nr) );
+  send_!O2( O, O, {I, SAi, {H(Ni), Nr, g(i), g(r), R, SAi}sk(I)}KDF(h(g(i),r), H(Ni), Nr) );
+
+
+  recv_!O3( O, O, {{H(Ni), Nr, g(i), g(r), I, SAi, SAr}sk(R), SAr}KDF(h(g(i),r), H(Ni), Nr) );
+  send_!O4( O, O, {{H(Ni), Nr, g(i), g(r), I, SAi, SAr}sk(R), SAr}KDF(h(g(r),i), H(Ni), Nr) );
+
+ }
+
+
+}
+
+
+
+protocol jfki(I, R)
+{
+ role I {
+  fresh i, Ni, SAi: Nonce;
+  var Nr, SAr: Nonce;
+  var Gr, TH: Ticket;
+
+  send_1( I, R, H(Ni), g(i) );
+  recv_2( R, I, H(Ni), Nr, Gr, R, {Gr}sk(R), TH );
+  send_!3( I, R, Ni, Nr, g(i), Gr, TH, {I, SAi, {H(Ni), Nr, g(i), Gr, R, SAi}sk(I)}KDF(h(Gr,i), H(Ni), Nr) );
+  recv_!4( R, I, {{H(Ni), Nr, g(i), Gr, I, SAi, SAr}sk(R), SAr}KDF(h(Gr,i), H(Ni), Nr) );
+
+
+  claim( I, SKR, KDF(h(Gr,i), H(Ni), Nr) );
+
+  claim( I, Alive );
+  claim( I, Weakagree );
+
+ }
+
+ role R {
+  fresh r, Nr, SAr, HKr: Nonce;
+  var Ni, SAi: Nonce;
+  var Gi, HNi: Ticket;
+
+  recv_1( I, R, HNi, Gi );
+  send_2( R, I, HNi, Nr, g(r), R, {g(r)}sk(R), H(HKr, g(r), Nr, HNi) );
+
+  recv_!3( I, R, Ni, Nr, Gi, g(r), H(HKr, g(r), Nr, H(Ni)), {I, SAi, {H(Ni), Nr, Gi, g(r), R, SAi}sk(I)}KDF(h(Gi,r), H(Ni), Nr) );
+        send_!4( R, I, {{H(Ni), Nr, Gi, g(r), I, SAi, SAr}sk(R), SAr}KDF(h(Gi,r), H(Ni), Nr) );
+
+
+  claim( R, Secret, HKr );
+  claim( R, SKR, KDF(h(Gi,r), H(Ni), Nr) );
+
+  claim( R, Alive );
+  claim( R, Weakagree );
+
+ }
+}

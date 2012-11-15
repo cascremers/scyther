@@ -1,0 +1,112 @@
+# 1 "sts-mac.cpp"
+# 1 "<command-line>"
+# 1 "sts-mac.cpp"
+# 16 "sts-mac.cpp"
+# 1 "common.h" 1
+
+
+
+
+ hashfunction prf, KDF;
+
+
+
+
+
+
+const g, h: Function;
+# 94 "common.h"
+hashfunction MAC;
+
+
+protocol @oracle (DH, SWAP) {
+
+
+
+
+
+
+
+ role DH {
+  var i, r: Nonce;
+
+  recv_!DH1( DH, DH, h(g(r),i) );
+  send_!DH2( DH, DH, h(g(i),r) );
+ }
+
+
+
+
+ role SWAP {
+  var i, r, Ni, Nr: Nonce;
+# 150 "common.h"
+  recv_!SWAP1( SWAP, SWAP, KDF(h(g(r),i)) );
+  send_!SWAP2( SWAP, SWAP, KDF(h(g(i),r)) );
+
+ }
+
+
+}
+# 17 "sts-mac.cpp" 2
+
+
+
+
+
+
+
+protocol @executability(O) {
+
+
+ role O {
+  var i, r: Nonce;
+
+
+  recv_!O1( O, O, MAC(h(g(i),r), g(r), g(i)) );
+  send_!O2( O, O, MAC(h(g(r),i), g(r), g(i)) );
+
+
+  recv_!O3( O, O, MAC(h(g(r),i), g(i), g(r)) );
+  send_!O4( O, O, MAC(h(g(i),r), g(i), g(r)) );
+
+ }
+
+
+}
+
+
+
+protocol sts-mac(I, R)
+{
+ role I {
+  fresh i: Nonce;
+  var Gr: Ticket;
+
+  send_1( I, R, g(i) );
+  recv_!2( R, I, Gr, {Gr, g(i)}sk(R), MAC(h(Gr,i), Gr, g(i)) );
+  send_!3( I, R, {g(i), Gr}sk(I), MAC(h(Gr,i), g(i), Gr) );
+
+
+  claim( I, SKR, KDF(h(Gr,i)) );
+
+  claim( I, Alive );
+  claim( I, Weakagree );
+
+ }
+
+ role R {
+  fresh r: Nonce;
+  var Gi: Ticket;
+
+  recv_1( I, R, Gi );
+  send_!2( R, I, Gi, {g(r), Gi}sk(R), MAC(h(Gi,r), g(r), Gi) );
+  recv_!3( I, R, {Gi, g(r)}sk(I), MAC(h(Gi,r), Gi, g(r)) );
+
+
+  claim( R, SKR, KDF(h(Gi,r)) );
+
+  claim( R, Alive );
+  claim( R, Weakagree );
+
+ }
+}

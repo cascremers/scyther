@@ -1,0 +1,91 @@
+# 1 "oakley-a.cpp"
+# 1 "<command-line>"
+# 1 "oakley-a.cpp"
+# 18 "oakley-a.cpp"
+# 1 "common.h" 1
+
+
+
+
+ hashfunction prf, KDF;
+
+
+
+
+
+
+const g, h: Function;
+# 97 "common.h"
+protocol @oracle (DH, SWAP) {
+
+
+
+
+
+
+
+ role DH {
+  var i, r: Nonce;
+
+  recv_!DH1( DH, DH, h(g(r),i) );
+  send_!DH2( DH, DH, h(g(i),r) );
+ }
+
+
+
+
+ role SWAP {
+  var i, r, Ni, Nr: Nonce;
+# 141 "common.h"
+  var Ci, Cr: Nonce;
+# 150 "common.h"
+  recv_!SWAP1( SWAP, SWAP, KDF(Ni, Nr, h(g(r),i), Ci, Cr) );
+  send_!SWAP2( SWAP, SWAP, KDF(Ni, Nr, h(g(i),r), Ci, Cr) );
+
+ }
+
+
+}
+# 19 "oakley-a.cpp" 2
+
+
+
+usertype String;
+const list, algo: String;
+
+protocol oakley-a(I, R)
+{
+ role I {
+  fresh i, Ni, Ci: Nonce;
+  var Nr, Cr: Nonce;
+  var Gr: Ticket;
+
+  send_1( I, R, Ci, g(i), list, I, R, Ni, {I, R, Ni, g(i), list}sk(I) );
+  recv_2( R, I, Cr, Ci, Gr, algo, R, I, Nr, Ni, {R, I, Nr, Ni, g(i), Gr, algo}sk(R) );
+  send_3( I, R, Ci, Cr, g(i), algo, I, R, Ni, Nr, {I, R, Ni, Nr, g(i), Gr, algo}sk(I) );
+
+
+  claim( I, SKR, KDF(Ni, Nr, h(Gr,i), Ci, Cr) );
+
+  claim( I, Alive );
+  claim( I, Weakagree );
+
+ }
+
+ role R {
+  fresh r, Nr, Cr: Nonce;
+  var Ni, Ci: Nonce;
+  var Gi: Ticket;
+
+  recv_1( I, R, Ci, Gi, list, I, R, Ni, {I, R, Ni, Gi, list}sk(I) );
+  send_2( R, I, Cr, Ci, g(r), algo, R, I, Nr, Ni, {R, I, Nr, Ni, Gi, g(r), algo}sk(R) );
+  recv_3( I, R, Ci, Cr, Gi, algo, I, R, Ni, Nr, {I, R, Ni, Nr, Gi, g(r), algo}sk(I) );
+
+
+  claim( R, SKR, KDF(Ni, Nr, h(Gi,r), Ci, Cr) );
+
+  claim( R, Alive );
+  claim( R, Weakagree );
+
+ }
+}
