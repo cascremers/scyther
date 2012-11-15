@@ -1,0 +1,69 @@
+/*
+ * Modeled from ISO/IEC 9798
+ * Modeler: Cas Cremers, Dec. 2010, Feb. 2011.
+ *
+ * History:
+ * 
+ * - v2.0, Feb. 2011:
+ *   Added key symmetry emulation protocol.
+ *
+ * ccf
+ * two-pass
+ * mutual
+ *
+ * The identifiers B,A are optional and may be (independently) be omitted if the key is unidirectional.
+ * 
+ * Modeling notes:
+ *
+ * - The keyed CCF (f_kab(x)) is modeled as f(x,kab)
+ */
+hashfunction f;
+
+protocol @keysymm-43(A,B)
+{
+	role A
+	{
+		var X,Y,Z: Ticket;
+
+		recv_!1(B,A, f(X,Y,Z, k(A,B) ) );
+		send_!2(A,B, f(X,Y,Z, k(B,A) ) );
+	}
+	role B
+	{
+	}
+}
+
+protocol isoiec-9798-4-3(A,B)
+{
+	role A
+	{
+		fresh Text1,Text2: Ticket;
+		var Text3,Text4: Ticket;
+		fresh TNa: Nonce;
+		var TNb: Nonce;
+
+		claim(A,Running,B,TNa,Text1);
+		send_1(A,B, TNa, Text2, f(TNa,B,Text1, k(A,B) ) );
+		recv_2(B,A, TNb, Text4, f(TNb,A,Text3, k(A,B) ) );
+
+		claim(A,Commit,B,TNb,Text3);
+		claim(A,Alive);
+		claim(A,Weakagree);
+	}
+	role B
+	{
+		var TNa: Nonce;
+		fresh TNb: Nonce;
+		var Text1,Text2: Ticket;
+		fresh Text3,Text4: Ticket;
+
+		recv_1(A,B, TNa, Text2, f(TNa,B,Text1, k(A,B) ) );
+		claim(B,Running,A,TNb,Text3);
+		send_2(B,A, TNb, Text4, f(TNb,A,Text3, k(A,B) ) );
+
+		claim(B,Commit,A,TNa,Text1);
+		claim(B,Alive);
+		claim(B,Weakagree);
+	}
+}
+

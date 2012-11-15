@@ -1,0 +1,78 @@
+/*
+ * Modeled from ISO/IEC 9798
+ * Modeler: Cas Cremers, Dec. 2010
+ *
+ * symmetric
+ * ttp
+ * four-pass
+ * mutual
+ *
+ * Modeling notes:
+ * - The use of TNb in message 4, as specified by the ISO standard, is
+ *   different from other models, in which it was TNa.
+ */
+usertype SessionKey;
+usertype Tag;
+
+const t1,t2a,t2b,t3,t4,t5: Tag;
+
+protocol isoiec-9798-2-5(A,B,P)
+{
+	role A
+	{
+		fresh TVPa: Nonce;
+		var T: Ticket;
+		fresh TNa: Nonce;
+		var TNb: Nonce;
+		var Kab: SessionKey;
+		fresh Text1,Text5,Text6: Ticket;
+		var Text3,Text4,Text7,Text8: Ticket;
+
+		send_1(A,P, TVPa, B, Text1);
+		recv_2(P,A, Text4, { t2a, TVPa, Kab, B, Text3 }k(A,P), T );
+		claim(A,Running,B,Kab,Text5);
+		send_3(A,B, Text6, T, { t3, TNa, B, Text5 }Kab );
+		recv_4(B,A, Text8, { t4, TNb, A, Text7 }Kab );
+
+		claim(A,Commit,B,Kab,Text5,Text7);
+		claim(A,Secret,Kab);
+		claim(A,Secret,Text5);
+		claim(A,Secret,Text7);
+		claim(A,Alive);
+		claim(A,Weakagree);
+	}
+	role B
+	{
+		var TNp: Nonce;
+		var TNa: Nonce;
+		fresh TNb: Nonce;
+		var Kab: SessionKey;
+		fresh Text7,Text8: Ticket;
+		var Text2,Text5,Text6: Ticket;
+
+		recv_3(A,B, Text6, { t2b, TNp, Kab, A, Text2  }k(B,P), {
+		t3, TNa, B, Text5 }Kab );
+		claim(B,Running,A,Kab,Text5,Text7);
+		send_4(B,A, Text8, { t4, TNb, A, Text7 }Kab );
+
+		claim(B,Commit,A,Kab,Text5);
+		claim(B,Secret,Kab);
+		claim(B,Secret,Text5);
+		claim(B,Secret,Text7);
+		claim(B,Alive);
+		claim(B,Weakagree);
+	}
+	role P
+	{
+		var TVPa: Nonce;
+		fresh TNp: Nonce;
+		fresh Kab: SessionKey;
+		fresh Text2,Text3,Text4: Ticket;
+		var Text1: Ticket;
+
+		recv_1(A,P, TVPa, B, Text1);
+		send_2(P,A, Text4, { t2a, TVPa, Kab, B, Text3 }k(A,P),
+				  { t2b, TNp, Kab, A, Text2  }k(B,P) );
+	}
+}
+

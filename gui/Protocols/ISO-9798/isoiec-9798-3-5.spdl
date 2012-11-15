@@ -1,0 +1,49 @@
+/*
+ * Modeled from ISO/IEC 9798
+ * Modeler: Cas Cremers, Dec. 2010
+ *
+ * signature
+ * two-pass
+ * mutual
+ * parallel
+ */
+const Cert: Function;
+
+protocol isoiec-9798-3-5(A,B)
+{
+	role A
+	{
+		fresh RA: Nonce;
+		var RB: Nonce;
+		fresh Text1,Text3,Text4: Ticket;
+		var Text2,Text5,Text6: Ticket;
+		
+		send_1(A,B, Cert(A), RA,Text1 );
+		recv_2(B,A, Cert(B), RB,Text2 );
+		recv_3(B,A, RB,RA,A,Text6, { RB, RA, A, Text5 }sk(B) );
+		claim(A,Running,B,RA,RB,Text3,Text5);
+		send_4(A,B, RA,RB,B,Text4, { RA, RB, B, Text3 }sk(A) );
+
+		claim(A,Commit,B,RA,RB,Text5);
+		claim(A,Alive);
+		claim(A,Weakagree);
+	}
+	role B
+	{
+		var RA: Nonce;
+		fresh RB: Nonce;
+		var Text1,Text3,Text4: Ticket;
+		fresh Text2,Text5,Text6: Ticket;
+
+		recv_1(A,B, Cert(A), RA,Text1 );
+		send_2(B,A, Cert(B), RB,Text2 );
+		claim(B,Running,A,RA,RB,Text5);
+		send_3(B,A, RB,RA,A,Text6, { RB, RA, A, Text5 }sk(B) );
+		recv_4(A,B, RA,RB,B,Text4, { RA, RB, B, Text3 }sk(A) );
+
+		claim(B,Commit,A,RA,RB,Text3,Text5);
+		claim(B,Alive);
+		claim(B,Weakagree);
+	}
+}
+

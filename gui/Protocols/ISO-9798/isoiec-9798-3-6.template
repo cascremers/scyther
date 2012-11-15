@@ -1,0 +1,68 @@
+/*
+ * Modeled from ISO standard
+ *
+ * signature
+ * ttp
+ * five-pass
+ * mutual
+ *
+ * A initiates and also communicates with T
+ *
+ * parameters:
+ *
+ * 	NAME
+ * 	IA
+ * 	IB
+ * 	ResA
+ * 	ResB
+ * 	TokenAB
+ * 	TokenBA (although identical in both cases)
+ * 	TokenTA
+ *
+ */
+protocol NAME(A,B,T)
+{
+	role A
+	{
+		fresh Ra,Rpa: Nonce;
+		fresh Text1,Text4,Text8,Text9: Ticket;
+		var Rb: Nonce;
+		var Text2,Text3;
+		var Text5,Text6,Text7: Ticket;
+
+		send_1(A,B, Ra,IA,Text1);
+		recv_2(B,A, IB,TokenBA);
+		send_3(A,T, Rpa,Rb,IA,IB,Text4);
+		recv_4(T,A, Text7,TokenTA);
+		claim(A,Running,B,Ra,Rb,Text8);
+		send_5(A,B, TokenAB);
+
+		claim(A,Commit,B,Ra,Rb,Text2);
+		claim(A,Alive);
+	}
+	role B
+	{
+		var Ra,Rpa: Nonce;
+		var Text1,Text5,Text8,Text9: Ticket;
+		fresh Text2,Text3,Text4: Ticket;
+		fresh Rb: Nonce;
+
+		recv_1(A,B, Ra,IA,Text1);
+		claim(B,Running,A,Ra,Rb,Text2);
+		send_2(B,A, IB,TokenBA);
+		recv_5(A,B, TokenAB);
+
+		claim(B,Commit,A,Ra,Rb,Text8);
+		claim(B,Alive);
+	}
+	role T
+	{
+		var Rpa, Rb: Nonce;
+		var Text4: Ticket;
+		fresh Text5,Text6,Text7: Ticket;
+
+		recv_3(A,T, Rpa,Rb,IA,IB,Text4);
+		send_4(T,A, Text7,TokenTA);
+	}
+}
+

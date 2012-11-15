@@ -1,0 +1,90 @@
+/*
+ * Modeled from ISO/IEC 9798
+ * Modeler: Cas Cremers, Dec. 2010
+ *
+ * symmetric
+ * ttp
+ * five-pass
+ * mutual
+ *
+ * MPA Attack reported by Mathuria:
+ * - Type flaw MPA when in parallel with Abadi-Needham protocol.
+ *
+ */
+protocol isoiec-9798-2-6(A,B,P)
+{
+	role A
+	{
+		var Rb: Nonce;
+		fresh Ra,Rpa: Nonce;
+		var Kab: SessionKey;
+		var T: Ticket;
+		fresh Text2,Text6,Text7: Ticket;
+		var Text1,Text4,Text5,Text8,Text9: Ticket;
+
+		recv_1(B,A, Rb, Text1);
+		send_2(A,P, Ra, Rb, B, Text2);
+		recv_3(P,A, Text5, {Ra,Kab,B,Text4}k(A,P), T );
+		claim(A,Running,B,Kab,Text6);
+		send_4(A,B, Text7, T, {Rpa,Rb,Text6}Kab );
+		recv_5(B,A, Text9, {Rb,Rpa,Text8}Kab );
+
+		claim(A,Commit,B,Kab,Text6,Text8);
+		claim(A,Secret,Kab);
+		claim(A,Secret,Text6);
+		claim(A,Secret,Text8);
+		claim(A,Alive);
+		claim(A,Weakagree);
+	}
+	role B
+	{
+		fresh Rb: Nonce;
+		var Rpa: Nonce;
+		var Kab: SessionKey;
+		fresh Text1,Text8,Text9: Ticket;
+		var Text3,Text6,Text7: Ticket;
+
+		send_1(B,A, Rb, Text1);
+		recv_4(A,B, Text7, {Rb,Kab,A,Text3}k(B,P), {Rpa,Rb,Text6}Kab );
+		claim(B,Running,A,Kab,Text6,Text8);
+		send_5(B,A, Text9, {Rb,Rpa,Text8}Kab );
+		
+		claim(B,Commit,A,Kab,Text6);
+		claim(B,Secret,Kab);
+		claim(B,Secret,Text6);
+		claim(B,Secret,Text8);
+		claim(B,Alive);
+		claim(B,Weakagree);
+	}
+	role P
+	{
+		var Ra, Rb: Nonce;
+		fresh Kab: SessionKey;
+		fresh Text3,Text4,Text5: Ticket;
+		var Text2: Ticket;
+
+		recv_2(A,P, Ra, Rb, B, Text2);
+		send_3(P,A, Text5, {Ra,Kab,B,Text4}k(A,P),
+				  {Rb,Kab,A,Text3}k(B,P) );
+	}
+}
+
+protocol @keysymm26(A,B,P)
+{
+	role A
+	{
+		var TVPN: Nonce;
+		var Kab: SessionKey;
+		var Text: Ticket;
+
+		recv_!1(B,A, { TVPN, Kab, B, Text }k(P,A) );
+		send_!2(A,B, { TVPN, Kab, B, Text }k(A,P) );
+	}
+	role B
+	{
+	}
+	role P
+	{
+	}
+}
+

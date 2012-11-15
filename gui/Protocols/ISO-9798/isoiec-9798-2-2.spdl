@@ -1,0 +1,59 @@
+/*
+ * Modeled from ISO/IEC 9798
+ * Modeler: Cas Cremers, Dec. 2010
+ *
+ * symmetric
+ * two-pass
+ * unilateral
+ *
+ * Note: the identity A may be ommitted, if
+ *   (a) the environment disallows such attacks, or
+ *   (b) a unidirectional key is used
+ */
+protocol @keysymm-22(A,B)
+{
+	role A
+	{
+		var T: Nonce;
+		var Text: Ticket;
+
+		recv_!1(B,A, { T, A, Text }k(A,B) );
+		send_!2(A,B, { T, A, Text }k(B,A) );
+	}
+	role B
+	{
+		var T: Nonce;
+		var Text: Ticket;
+
+		recv_!3(A,B, { T, B, Text }k(A,B) );
+		send_!4(B,A, { T, B, Text }k(B,A) );
+	}
+}
+
+protocol isoiec-9798-2-2(A,B)
+{
+	role A
+	{
+		var RB: Nonce;
+		var Text1: Ticket;
+		fresh Text2,Text3: Ticket;
+
+		recv_1(B,A, RB,Text1 );
+		claim(A,Running,B,RB,Text2);
+		send_2(A,B, Text3, { RB, B, Text2 }k(B,A) );
+	}
+	role B
+	{
+		fresh RB: Nonce;
+		fresh Text1: Ticket;
+		var Text2,Text3: Ticket;
+
+		send_1(B,A, RB,Text1 );
+		recv_2(A,B, Text3, { RB, B, Text2 }k(B,A) );
+
+		claim(B,Commit,A,RB,Text2);
+		claim(B,Alive);
+		claim(B,Weakagree);
+	}
+}
+

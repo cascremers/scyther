@@ -1,0 +1,40 @@
+/*
+ * Modeled from ISO/IEC 9798
+ * Modeler: Cas Cremers, Dec. 2010
+ *
+ * symmetric
+ * two-pass
+ * unilateral
+ *
+ * Note: the identity A may be ommitted, if
+ *   (a) the environment disallows such attacks, or
+ *   (b) a unidirectional key is used
+ *
+ */
+protocol isoiec-9798-2-2-udkey(A,B)
+{
+	role A
+	{
+		var RB: Nonce;
+		var Text1: Ticket;
+		fresh Text2,Text3: Ticket;
+
+		recv_1(B,A, RB,Text1 );
+		claim(A,Running,B,RB,Text2);
+		send_2(A,B, Text3, { RB, Text2 }k(B,A) );
+	}
+	role B
+	{
+		fresh RB: Nonce;
+		fresh Text1: Ticket;
+		var Text2,Text3: Ticket;
+
+		send_1(B,A, RB,Text1 );
+		recv_2(A,B, Text3, { RB, Text2 }k(B,A) );
+
+		claim(B,Commit,A,RB,Text2);
+		claim(B,Alive);
+		claim(B,Weakagree);
+	}
+}
+

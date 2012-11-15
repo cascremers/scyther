@@ -1,0 +1,88 @@
+/*
+ * Modeled from ISO/IEC 9798
+ * Modeler: Cas Cremers, Dec. 2010
+ *
+ * symmetric
+ * three-pass
+ * mutual
+ *
+ * Note: the identity inside the encryption may be ommitted, if
+ *   (a) the environment disallows such attacks, or
+ *   (b) a unidirectional key is used
+ */
+protocol @keysymm-24a(A,B)
+{
+	role A
+	{
+		var T1,T2: Nonce;
+		var Text: Ticket;
+
+		recv_!1(B,A, { T1, T2, A, Text }k(A,B) );
+		send_!2(A,B, { T1, T2, A, Text }k(B,A) );
+	}
+	role B
+	{
+		var T1,T2: Nonce;
+		var Text: Ticket;
+
+		recv_!3(A,B, { T1, T2, B, Text }k(A,B) );
+		send_!4(B,A, { T1, T2, B, Text }k(B,A) );
+	}
+}
+
+protocol @keysymm-24b(A,B)
+{
+	role A
+	{
+		var T1,T2: Nonce;
+		var Text: Ticket;
+
+		recv_!1(B,A, { T1, T2, Text }k(A,B) );
+		send_!2(A,B, { T1, T2, Text }k(B,A) );
+	}
+	role B
+	{
+		var T1,T2: Nonce;
+		var Text: Ticket;
+
+		recv_!3(A,B, { T1, T2, Text }k(A,B) );
+		send_!4(B,A, { T1, T2, Text }k(B,A) );
+	}
+}
+
+protocol isoiec-9798-2-4(A,B)
+{
+	role A
+	{
+		var RB: Nonce;
+		fresh RA: Nonce;
+		var Text1,Text4,Text5: Ticket;
+		fresh Text2,Text3: Ticket;
+
+		recv_1(B,A, RB,Text1 );
+		claim(A,Running,B,RA,RB,Text2);
+		send_2(A,B, Text3, { RA, RB, B, Text2 }k(A,B) );
+		recv_3(B,A, Text5, { RB, RA, Text4 }k(A,B) );
+
+		claim(A,Commit,B,RA,RB,Text2,Text4);
+		claim(A,Alive);
+		claim(A,Weakagree);
+	}
+	role B
+	{
+		fresh RB: Nonce;
+		var RA: Nonce;
+		fresh Text1,Text4,Text5: Ticket;
+		var Text2,Text3: Ticket;
+
+		send_1(B,A, RB,Text1 );
+		recv_2(A,B, Text3, { RA, RB, B, Text2 }k(A,B) );
+		claim(B,Running,A,RA,RB,Text2,Text4);
+		send_3(B,A, Text5, { RB, RA, Text4 }k(A,B) );
+
+		claim(B,Commit,A,RA,RB,Text2);
+		claim(B,Alive);
+		claim(B,Weakagree);
+	}
+}
+

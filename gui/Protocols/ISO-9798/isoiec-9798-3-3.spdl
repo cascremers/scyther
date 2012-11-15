@@ -1,0 +1,44 @@
+/*
+ * Modeled from ISO/IEC 9798
+ * Modeler: Cas Cremers, Dec. 2010
+ *
+ * signature
+ * two-pass
+ * mutual
+ */
+const Cert: Function;
+
+protocol isoiec-9798-3-3(A,B)
+{
+	role A
+	{
+		fresh TNA: Nonce;
+		var TNB: Nonce;
+		fresh Text1,Text2: Ticket;
+		var Text3,Text4: Ticket;
+
+		claim(A,Running,B,TNA,Text1);
+		send_1(A,B, Cert(A), TNA, B,Text2, { TNA, B, Text1 }sk(A) );
+		recv_2(B,A, Cert(B), TNB, A,Text4, { TNB, A, Text3 }sk(B) );
+
+		claim(A,Commit,B,TNB,Text3);
+		claim(A,Alive);
+		claim(A,Weakagree);
+	}
+	role B
+	{
+		var TNA: Nonce;
+		fresh TNB: Nonce;
+		var Text1,Text2: Ticket;
+		fresh Text3,Text4: Ticket;
+
+		recv_1(A,B, Cert(A), TNA, B,Text2, { TNA, B, Text1 }sk(A) );
+		claim(B,Running,A,TNB,Text3);
+		send_2(B,A, Cert(B), TNB, A,Text4, { TNB, A, Text3 }sk(B) );
+
+		claim(B,Commit,A,TNA,Text1);
+		claim(B,Alive);
+		claim(B,Weakagree);
+	}
+}
+
