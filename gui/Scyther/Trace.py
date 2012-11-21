@@ -1136,6 +1136,9 @@ class SemiTrace(object):
                 if str(self.runs[CLAIMRUN].eventList[-1].type) == "Commit":
                     if str(ev.type) == "Running":
                         return False
+                # Another exception is inequality claims
+                if str(ev.type) == "NotEqual":
+                    return False
                 return True
             else:
                 if ev.index < len(ev.run.eventList) - 1:

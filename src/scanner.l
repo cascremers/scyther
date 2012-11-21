@@ -161,6 +161,7 @@ read		{ return READT; }
 recv		{ return RECVT; }
 send		{ return SENDT; }
 match		{ return MATCH; }
+not		{ return NOT; }
 macro		{ return MACRO; }
 var		{ return VAR; }
 const		{ return CONST; }

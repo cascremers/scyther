@@ -51,6 +51,7 @@ extern Term CLAIM_SID;
 extern Term CLAIM_SKR;
 extern Term CLAIM_Commit;
 extern Term CLAIM_Running;
+extern Term CLAIM_Notequal;
 
 extern Term AGENT_Alice;
 extern Term AGENT_Bob;
