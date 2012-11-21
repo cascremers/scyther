@@ -71,6 +71,8 @@ Term TERM_PK;
 Term TERM_SK;
 Term TERM_K;
 
+Term LABEL_Match;
+
 Termlist CLAIMS_dep_prec;
 
 //! Init special terms
@@ -117,6 +119,9 @@ specialTermInit (const System sys)
   langcons (TERM_K, "k", TERM_Function);
   knowledgeAddInverse (sys->know, TERM_PK, TERM_SK);
   knowledgeAddTerm (sys->know, TERM_PK);
+
+  /* Define a prefix for labels for the match function */
+  langcons (LABEL_Match, "!Match", TERM_Hidden);
 
   /* Construct a list of claims that depend on prec being not-empty */
   /* basically all authentication claims */

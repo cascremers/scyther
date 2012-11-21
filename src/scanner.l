@@ -160,6 +160,7 @@ role		{ return ROLE; }
 read		{ return READT; }
 recv		{ return RECVT; }
 send		{ return SENDT; }
+match		{ return MATCH; }
 var		{ return VAR; }
 const		{ return CONST; }
 fresh		{ return FRESH; }

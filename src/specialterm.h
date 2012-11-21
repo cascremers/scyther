@@ -63,6 +63,8 @@ extern Term TERM_PK;
 extern Term TERM_SK;
 extern Term TERM_K;
 
+extern Term LABEL_Match;
+
 extern Termlist CLAIMS_dep_prec;
 
 void specialTermInit (const System sys);
