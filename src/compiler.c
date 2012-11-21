@@ -817,6 +817,27 @@ matchEvent (Tac tc)
   markLastRoledef (thisRole->roledef, tc->lineno);
 }
 
+//! Parse a non-match event, and add role definitions for it
+/**
+ * Currently implemented by introducing a special claim.
+ *
+ * Claim(R,NotEqual,(pat,term) );
+ *
+ * This special claim, notequal, is later used for pruning.
+ */
+void
+nonMatchEvent (Tac tc)
+{
+  Term msg;
+  Term mpat;
+  Term mmsg;
+
+  mpat = tacTerm (tc->t1.tac);
+  mmsg = tacTerm (tc->t2.tac);
+  msg = makeTermTuple(mpat,mmsg);
+  claimCreate (sys, thisProtocol, thisRole, CLAIM_Notequal, NULL, msg, tc->lineno);
+}
+
 //! Parse a communication event tc of type event, and add a role definition event for it.
 void
 commEvent (int event, Tac tc)
@@ -1239,7 +1260,14 @@ roleCompile (Term nameterm, Tac tc)
 	    commEvent (SEND, tc);
 	    break;
 	  case TAC_MATCH:
-	    matchEvent (tc);
+	    if (tc->t3.value == true)
+	      {
+	        matchEvent (tc);
+	      }
+	    else 
+	      {
+    	        nonMatchEvent (tc);
+	      }
 	    break;
 	  case TAC_CLAIM:
 	    commEvent (CLAIM, tc);

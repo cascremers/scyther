@@ -61,6 +61,7 @@ Term CLAIM_SID;
 Term CLAIM_SKR;
 Term CLAIM_Commit;
 Term CLAIM_Running;
+Term CLAIM_Notequal;
 
 Term AGENT_Alice;
 Term AGENT_Bob;
@@ -106,6 +107,7 @@ specialTermInit (const System sys)
   langcons (CLAIM_Niagree, "Niagree", TERM_Claim);
   langcons (CLAIM_Empty, "Empty", TERM_Claim);
   langcons (CLAIM_Reachable, "Reachable", TERM_Claim);
+  langcons (CLAIM_Notequal, "NotEqual", TERM_Claim);
 
   langcons (CLAIM_SID, "SID", TERM_Claim);	// claim specifying session ID
   langcons (CLAIM_SKR, "SKR", TERM_Claim);	// claim specifying session key : doubles as secrecy claim

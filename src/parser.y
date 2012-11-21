@@ -58,6 +58,7 @@ int yylex(void);
 %token		KNOWS
 %token		TRUSTED
 %token 		MATCH
+%token 		NOT
 
 %type	<tac>	spdlcomplete
 %type	<tac>	spdlrep
@@ -204,6 +205,17 @@ event		: READT label '(' termlist ')' ';'
 		  	Tac t= tacCreate(TAC_MATCH);
 			t->t1.tac = $3;
 			t->t2.tac = $5;
+			t->t3.value = true;
+			$$ = t;
+		  }
+		| NOT MATCH '(' term ',' term ')' ';'
+		  {
+		  	/* first argument is pattern, second should be
+			 * ground term */
+		  	Tac t= tacCreate(TAC_MATCH);
+			t->t1.tac = $4;
+			t->t2.tac = $6;
+			t->t3.value = false;
 			$$ = t;
 		  }
 		| CLAIMT optlabel '(' termlist ')' ';'
