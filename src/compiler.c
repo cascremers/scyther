@@ -773,6 +773,80 @@ isCompromiseSymbol (Symbol s)
   return false;
 }
 
+//! Parse a match event, and add role definitions for it
+/**
+ * Implemented as pure syntactic sugar:
+ *
+ *   match(pattern,term)
+ *
+ * is essentially replaced by:
+ *
+ *   fresh XX;
+ *   send( {term}XX );
+ *   recv( {pattern}XX );
+ *
+ */
+void
+matchEvent (Tac tc)
+{
+  Term myrole;
+  Term msg1, msg2;
+  Term tvar;
+  Term mmsg;
+  Term mpat;
+  Symbol nsymb;
+  Term label1;
+  Labelinfo linfo;
+
+  /* Create fresh Nonce variable */
+  nsymb = symbolNextFree(TermSymb(TERM_Hidden));
+  tvar = symbolDeclare(nsymb,false);
+  //tvar->stype = termlistAdd(NULL,TERM_Nonce);
+
+  /* Make the concrete messages */
+  mpat = tacTerm (tc->t1.tac);
+  mmsg = tacTerm (tc->t2.tac);
+  msg1 = makeTermEncrypt(mmsg,tvar);
+  msg2 = makeTermEncrypt(mpat,tvar);
+
+  /* Declare the const */
+  thisRole->declaredconsts = termlistAdd(thisRole->declaredconsts, tvar);
+
+  /* And send & recv combo (implementing the syntactic sugar) */
+  label1 = freshTermPrefix(LABEL_Match);
+  linfo = label_create (label1, thisProtocol);
+  sys->labellist = list_append (sys->labellist, linfo);
+  myrole = thisRole->nameterm;
+
+  /* add send event */
+  thisRole->roledef = roledefAdd (thisRole->roledef, SEND, label1, myrole, myrole, msg1, NULL);
+  markLastRoledef (thisRole->roledef, tc->lineno);
+  /* add recv event */
+  thisRole->roledef = roledefAdd (thisRole->roledef, RECV, label1, myrole, myrole, msg2, NULL);
+  markLastRoledef (thisRole->roledef, tc->lineno);
+}
+
+//! Parse a non-match event, and add role definitions for it
+/**
+ * Currently implemented by introducing a special claim.
+ *
+ * Claim(R,NotEqual,(pat,term) );
+ *
+ * This special claim, notequal, is later used for pruning.
+ */
+void
+nonMatchEvent (Tac tc)
+{
+  Term msg;
+  Term mpat;
+  Term mmsg;
+
+  mpat = tacTerm (tc->t1.tac);
+  mmsg = tacTerm (tc->t2.tac);
+  msg = makeTermTuple(mpat,mmsg);
+  claimCreate (sys, thisProtocol, thisRole, CLAIM_Notequal, NULL, msg, tc->lineno);
+}
+
 //! Parse a communication event tc of type event, and add a role definition event for it.
 void
 commEvent (int event, Tac tc)
@@ -1191,6 +1265,16 @@ roleCompile (Term nameterm, Tac tc)
 	  break;
 	case TAC_SEND:
 	  commEvent (SEND, tc);
+	  break;
+	case TAC_MATCH:
+	  if (tc->t3.value == true)
+	    {
+	      matchEvent (tc);
+	    }
+	  else 
+	    {
+    	      nonMatchEvent (tc);
+	    }
 	  break;
 	case TAC_CLAIM:
 	  commEvent (CLAIM, tc);

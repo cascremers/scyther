@@ -51,6 +51,7 @@ extern Term CLAIM_SID;
 extern Term CLAIM_SKR;
 extern Term CLAIM_Commit;
 extern Term CLAIM_Running;
+extern Term CLAIM_Notequal;
 
 extern Term AGENT_Alice;
 extern Term AGENT_Bob;
@@ -60,6 +61,8 @@ extern Term AGENT_Eve;
 extern Term TERM_PK;
 extern Term TERM_SK;
 extern Term TERM_K;
+
+extern Term LABEL_Match;
 
 extern Termlist CLAIMS_dep_prec;
 

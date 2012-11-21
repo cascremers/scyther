@@ -1675,5 +1675,9 @@ isClaimSignal (const Claimlist cl)
     {
       return true;
     }
+  if (isTermEqual (cl->type, CLAIM_Notequal))
+    {
+      return true;
+    }
   return false;
 }

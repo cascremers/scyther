@@ -57,6 +57,7 @@ Term CLAIM_SID;
 Term CLAIM_SKR;
 Term CLAIM_Commit;
 Term CLAIM_Running;
+Term CLAIM_Notequal;
 
 Term AGENT_Alice;
 Term AGENT_Bob;
@@ -66,6 +67,8 @@ Term AGENT_Eve;
 Term TERM_PK;
 Term TERM_SK;
 Term TERM_K;
+
+Term LABEL_Match;
 
 Termlist CLAIMS_dep_prec;
 
@@ -99,6 +102,7 @@ specialTermInit (const System sys)
   langcons (CLAIM_Nisynch, "Nisynch", TERM_Claim);
   langcons (CLAIM_Empty, "Empty", TERM_Claim);
   langcons (CLAIM_Reachable, "Reachable", TERM_Claim);
+  langcons (CLAIM_Notequal, "NotEqual", TERM_Claim);
 
   langcons (CLAIM_SID, "SID", TERM_Claim);	// claim specifying session ID
   langcons (CLAIM_SKR, "SKR", TERM_Claim);	// claim specifying session key : doubles as secrecy claim
@@ -115,6 +119,9 @@ specialTermInit (const System sys)
   knowledgeAddTerm (sys->know, TERM_SK);
   knowledgeAddTerm (sys->know, TERM_K);
   knowledgeAddPublicFunction (sys->know, TERM_PK);
+
+  /* Define a prefix for labels for the match function */
+  langcons (LABEL_Match, "!Match", TERM_Hidden);
 
   /* Construct a list of claims that depend on prec being not-empty */
   /* basically all authentication claims */

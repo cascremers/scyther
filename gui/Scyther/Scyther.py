@@ -265,7 +265,7 @@ class Scyther(object):
         for arg in arglist:
             self.options += " %s" % (arg)
 
-    def doScytherCommand(self, spdl, args, checkKnown=False):
+    def doScytherCommand(self, spdl, args, checkKnown=False,useCache=True):
         """
         Cached version of the 'real' below
 
@@ -283,6 +283,10 @@ class Scyther(object):
         else:
             cacheDir = None
 
+        # But if the users says no, it's no
+        if useCache == False:
+            canCache = False
+
         # If we cannot use the cache, we either need to compute or, if checking for cache presense,...
         if not canCache:
             if checkKnown == True:
@@ -292,7 +296,7 @@ class Scyther(object):
                 # Need to compute
                 return self.doScytherCommandReal(spdl,args)
 
-        # Apparently we are supporsed to be able to use the cache
+        # Apparently we are supposed to be able to use the cache
         m = hashlib.sha256()
         if spdl == None:
             m.update("[spdl:None]")
@@ -437,9 +441,12 @@ class Scyther(object):
         """ Sanitize some of the input """
         self.options = EnsureString(self.options)
 
-    def verify(self,extraoptions=None,checkKnown=False):
-        """ Should return a list of results """
-        """ If checkKnown == True, we do not call Scyther, but just check the cache, and return True iff the result is in the cache """
+    def verify(self,extraoptions=None,checkKnown=False,useCache=True):
+        """ Should return a list of results.
+
+            If checkKnown == True, we do not call Scyther, but just check the cache, and return True iff the result is in the cache.
+            If useCache == False, don't use the cache at all.
+        """
 
         # Cleanup first
         self.sanitize()
@@ -455,10 +462,10 @@ class Scyther(object):
 
         # Are we only checking the cache?
         if checkKnown == True:
-            return self.doScytherCommand(self.spdl, args, checkKnown=checkKnown)
+            return self.doScytherCommand(self.spdl, args, checkKnown=checkKnown,useCache=useCache)
 
         # execute
-        (output,errors) = self.doScytherCommand(self.spdl, args)
+        (output,errors) = self.doScytherCommand(self.spdl, args, useCache=useCache)
         self.run = True
 
         # process errors
