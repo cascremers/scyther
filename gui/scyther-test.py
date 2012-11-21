@@ -41,10 +41,10 @@ def usage():
     x.verify()
     return x
 
-def simpleRun(args):
+def simpleRun(args,useCache=True):
     x = Scyther.Scyther()
     x.options = args
-    x.verify()
+    x.verify(useCache=useCache)
     return x
 
 if __name__ == '__main__':
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     if len(pars) == 0:
         print usage()
     else:
-        x = simpleRun(" ".join(pars))
+        x = simpleRun(" ".join(pars), useCache=False)
         for cl in x.claims:
             print cl
             print cl.roledescribe()
