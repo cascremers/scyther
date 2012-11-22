@@ -281,6 +281,7 @@ list_length (List list)
 {
   int n;
 
+  n = 0;
   while (list != NULL)
     {
       n++;
