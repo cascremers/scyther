@@ -165,6 +165,10 @@ spdl		: UNTRUSTED termlist ';'
 		  {
 		  	$$ = $1;
 		  }
+		| macrodecl 
+		  {	
+		  	$$ = $1;
+		  }
 		;
 
 roles		: /* empty */
@@ -211,8 +215,6 @@ roledef		: /* empty */
 		| declaration roledef
 		  {	$$ = tacCat($1,$2); }
 		| knowsdecl roledef
-		  {	$$ = tacCat($1,$2); }
-		| macrodecl roledef
 		  {	$$ = tacCat($1,$2); }
 		;
 
