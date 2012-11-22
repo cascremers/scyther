@@ -21,11 +21,40 @@
 #include "pheading.h"
 #include "tac.h"
 #include "error.h"
+#include "list.h"
 
 struct tacnode*	spdltac;
 
 int yyerror(char *s);
 int yylex(void);
+
+List macrolist=NULL;
+
+List findMacroDefinition(Symbol s)
+{
+	List l;
+
+	if (s == NULL)
+	  {
+	     return NULL;
+	  }
+	/* Now check if it is in the list
+	 * already */
+	for (l = list_rewind(macrolist); l != NULL; l = l->next)
+	  {
+	    Tac tmacro;
+	    Symbol sl;
+	    Tac tl;
+		
+	    tmacro = (Tac) l->data;
+	    sl = (tmacro->t1.tac)->t1.sym;	// The symbol
+	    if (strcmp (sl->text, s->text) == 0)
+	      {
+	        return l;
+	      }
+	  }
+	return NULL;
+}
 
 %}
 
@@ -59,6 +88,7 @@ int yylex(void);
 %token		TRUSTED
 %token 		MATCH
 %token 		NOT
+%token 		MACRO
 
 %type	<tac>	spdlcomplete
 %type	<tac>	spdlrep
@@ -73,11 +103,13 @@ int yylex(void);
 %type	<tac>	typeinfoN
 %type	<tac>	term
 %type	<tac>	basicterm
+%type	<tac>	basicormacro
 %type	<tac>	termlist
 %type	<tac>	basictermlist
 %type	<tac>	key
 %type	<tac>	roleref
 %type	<tac>	knowsdecl
+%type	<tac>	macrodecl
 
 %type   <value>	singular
 
@@ -128,6 +160,10 @@ spdl		: UNTRUSTED termlist ';'
 		  }
 		| declaration
 		  {
+		  	$$ = $1;
+		  }
+		| macrodecl 
+		  {	
 		  	$$ = $1;
 		  }
 		;
@@ -242,6 +278,33 @@ knowsdecl	: KNOWS termlist ';'
 		  }
 		;
 
+macrodecl	: MACRO basicterm '=' termlist ';'
+		  {	
+			List l;
+
+			l = findMacroDefinition($2->t1.sym);
+			if (l == NULL)
+			  {
+		  	    Tac t;
+		  	    /* Add to macro declaration list.
+			     * TAC_MACRO doesn't show up in the compiler though.  */
+			    t = tacCreate(TAC_MACRO);
+			    t->t1.tac = $2;
+			    t->t2.tac = tacTuple($4);
+			    macrolist = list_append(macrolist, t);
+			  }
+			else
+			  {
+			    /* Already defined. We can consider this
+			     * a bug or we can define it to
+			     * overwrite.
+			     */
+			    //yyerror("macro symbol already defined earlier.");
+			  }
+			$$ = NULL;
+		  }
+		;
+
 declaration	: secretpref CONST basictermlist typeinfo1 ';'
 		  {	Tac t = tacCreate(TAC_CONST);
 		  	t->t1.tac = $3; // names
@@ -304,10 +367,9 @@ typeinfo1	: /* empty */
 		  	Tac t = tacCreate(TAC_UNDEF);
 			$$ = t;
 		  }
-		| ':' ID
-		  {	Tac t = tacCreate(TAC_STRING);
-		  	t->t1.sym = $2;
-			$$ = t;
+		| ':' basicterm
+		  {	
+			$$ = $2;
 		  }
 		;
 
@@ -335,15 +397,39 @@ optlabel        : /* empty */
 
 basicterm	: ID
 		  {
-		  	Tac t = tacCreate(TAC_STRING);
+			Tac t;
+
+			t = tacCreate(TAC_STRING);
 			t->t1.sym = $1;
 			$$ = t;
 		  }
 		;
 
-term  		: basicterm
-	          { }
-		| ID '(' termlist ')'
+basicormacro	: ID
+		  {
+			List l;
+			Tac t;
+
+			/* check if it is in the list
+			 * already */
+			l = findMacroDefinition($1);
+			if (l == NULL)
+			  {
+			    t = tacCreate(TAC_STRING);
+			    t->t1.sym = $1;
+			  }
+			else
+			  {
+			    Tac macrotac;
+
+			    macrotac = (Tac) l->data;
+			    t = macrotac->t2.tac;
+			  }
+			$$ = t;
+		  }
+		;
+
+term  		: ID '(' termlist ')'
 		  {
 		  	Tac t = tacCreate(TAC_STRING);
 			t->t1.sym = $1;
@@ -357,6 +443,8 @@ term  		: basicterm
 		  { 
 		  	$$ = tacTuple($2);
 		  }
+		| basicormacro
+		  { }
 		;
 
 termlist	: term

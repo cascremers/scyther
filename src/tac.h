@@ -51,7 +51,8 @@ enum tactypes
   TAC_UNTRUSTED,
   TAC_COMPROMISED,
   TAC_USERTYPE,
-  TAC_MATCH
+  TAC_MATCH,
+  TAC_MACRO
 };
 
 //! Structure to hold the compilation tree nodes

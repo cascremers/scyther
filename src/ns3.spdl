@@ -1,0 +1,51 @@
+/* 
+ * Needham-Schroeder protocol
+ */
+
+// The protocol description
+
+macro m1 = {ni,I}pk(R);
+macro m2 = {ni,nr}pk(I);
+macro m3 = {nr}pk(R);
+
+protocol ns3(I,R)
+{
+	role I
+	{
+		fresh ni: Nonce;
+		var nr: Nonce;
+
+		send_1(I,R, m1 );
+		recv_2(R,I, m2 );
+		claim(I,Running,R,ni,nr);
+		send_3(I,R, m3 );
+
+		claim(I,Secret,ni);
+		claim(I,Secret,nr);
+		claim(I,Alive);
+		claim(I,Weakagree);
+		claim(I,Commit,R,ni,nr);
+		claim(I,Niagree);
+		claim(I,Nisynch);
+	}	
+	
+	role R
+	{
+		var ni: Nonce;
+		fresh nr: Nonce;
+
+		recv_1(I,R, m1 );
+		claim(R,Running,I,ni,nr);
+		send_2(R,I, m2 );
+		recv_3(I,R, m3 );
+
+		claim(R,Secret,ni);
+		claim(R,Secret,nr);
+		claim(R,Alive);
+		claim(R,Weakagree);
+		claim(R,Commit,I,ni,nr);
+		claim(R,Niagree);
+		claim(R,Nisynch);
+	}
+}
+
