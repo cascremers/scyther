@@ -4,11 +4,6 @@
 # Author:	Cas Cremers
 ################################################################
 
-# Add target for Universal Binary when needed
-if (APPLE)
-	include (UniversalBinary.cmake)
-endif (APPLE)
-
 # Retrieve Source_OS, Destination_OS (from -DTARGET)
 include (GetOS.cmake)
 

@@ -8,7 +8,7 @@ PLATFORM=`uname`
 echo $PLATFORM
 if [ "$PLATFORM" = "Darwin" ]
 then
-	./subbuild-mac-universal.sh
+	./subbuild-mac-intel.sh
 else
 	if [ "$PLATFORM" = "Linux" ]
 	then
