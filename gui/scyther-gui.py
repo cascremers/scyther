@@ -36,7 +36,7 @@ The [wxPython] packages can be found at http://www.wxpython.org/
 
 Ubuntu users: the wxPython packages are called 'python-wxgtk' followed by the
 version number."""
-    elif '32-bit mode' in str(err):
+    elif ('32-bit mode' in str(err)) or ('no matching architecture' in str(err)):
         import os
 
         key = "VERSIONER_PYTHON_PREFER_32_BIT"
