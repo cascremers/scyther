@@ -44,7 +44,6 @@ List findMacroDefinition(Symbol s)
 	  {
 	    Tac tmacro;
 	    Symbol sl;
-	    Tac tl;
 		
 	    tmacro = (Tac) l->data;
 	    sl = (tmacro->t1.tac)->t1.sym;	// The symbol
@@ -162,10 +161,6 @@ spdl		: UNTRUSTED termlist ';'
 		  {
 		  	$$ = $1;
 		  }
-		| macrodecl 
-		  {	
-		  	$$ = $1;
-		  }
 		;
 
 roles		: /* empty */
@@ -281,26 +276,32 @@ knowsdecl	: KNOWS termlist ';'
 macrodecl	: MACRO basicterm '=' termlist ';'
 		  {	
 			List l;
+		        Tac t;
 
 			l = findMacroDefinition($2->t1.sym);
-			if (l == NULL)
-			  {
-		  	    Tac t;
-		  	    /* Add to macro declaration list.
-			     * TAC_MACRO doesn't show up in the compiler though.  */
-			    t = tacCreate(TAC_MACRO);
-			    t->t1.tac = $2;
-			    t->t2.tac = tacTuple($4);
-			    macrolist = list_append(macrolist, t);
-			  }
-			else
+			if (l != NULL)
 			  {
 			    /* Already defined. We can consider this
 			     * a bug or we can define it to
 			     * overwrite.
+			     *
+			     * For now, we decide to overwrite. This
+			     * will also aid in straightforward file
+			     * composition, if both files contain
+			     * macros.
 			     */
+			    macrolist = list_delete(l);
+			    // Alternative:
 			    //yyerror("macro symbol already defined earlier.");
 			  }
+
+			// Now we know that l does not occur in macrolist
+		        /* Add to macro declaration list.
+		         * TAC_MACRO doesn't show up in the compiler though.  */
+		        t = tacCreate(TAC_MACRO);
+		        t->t1.tac = $2;
+		        t->t2.tac = tacTuple($4);
+		        macrolist = list_append(macrolist, t);
 			$$ = NULL;
 		  }
 		;
@@ -348,6 +349,10 @@ declaration	: secretpref CONST basictermlist typeinfo1 ';'
 		  	t->t2.tac = tacCreate(TAC_UNDEF);
 			t->t3.tac = NULL;	// Not secret: public
 			$$ = t;
+		  }
+		| macrodecl 
+		  {	
+		  	$$ = $1;
 		  }
 		;
 
