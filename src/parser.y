@@ -22,6 +22,7 @@
 #include "tac.h"
 #include "error.h"
 #include "list.h"
+#include "string.h"
 
 struct tacnode*	spdltac;
 

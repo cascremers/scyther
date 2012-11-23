@@ -37,6 +37,7 @@
 #include "mymalloc.h"
 #include "specialterm.h"
 #include "trusted.h"
+#include "compromise.h"
 
 static System sys;		//!< local storage of system pointer
 
