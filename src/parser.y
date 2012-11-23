@@ -433,7 +433,7 @@ basicormacro	: ID
 			    Tac macrotac;
 
 			    macrotac = (Tac) l->data;
-			    t = macrotac->t2.tac;
+			    t = tacCopy(macrotac->t2.tac);
 			  }
 			$$ = t;
 		  }
