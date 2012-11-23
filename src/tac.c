@@ -52,6 +52,22 @@ tacDone (void)
     }
 }
 
+//! Copy a tac
+Tac 
+tacCopy(Tac c)
+{
+  Tac newTac;
+
+  newTac = (Tac) malloc (sizeof (struct tacnode));
+  memcpy (newTac, c, sizeof (struct tacnode));
+
+  // Store in taclist
+  newTac->allnext = allocatedTacs;
+  allocatedTacs = newTac;
+
+  return newTac;
+}
+
 //! Create a tac node of some type
 Tac
 tacCreate (int op)
