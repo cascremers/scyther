@@ -1,0 +1,46 @@
+/* 
+ * PKMv2-RSA
+ *
+ * Initial model by:	Sjouke Mauw, Sasa Radomirovic (2007)
+ * Model changes:	Cas Cremers (Nov 2012)
+ *
+ * Analysed in:		"A framework for compositional verification of security protocols"
+ * 			With S. Andova, K. Gjosteen, S. Mauw, S. Mjolsnes, and S. Radomirovic.
+ * 			Information and Computation, Special issue on Computer Security: 
+ * 			Foundations and Automated Reasoning, Volume 206, Issues 2-4, pp. 425-459,
+ * 			Elsevier, 2008. 
+ */
+
+// The protocol description
+
+protocol pkmv2rsa(MS,BS)
+{
+	role MS
+	{
+		fresh msrand, said: Nonce;
+		var prepak, bsrand: Nonce;
+
+		send_rsa1(MS,BS, {msrand, said, MS}sk(MS) );
+		recv_rsa2(BS,MS, {msrand, bsrand,{prepak,MS}pk(MS),BS}sk(BS) );
+		send_rsa3(MS,BS, {bsrand}sk(MS) );
+
+		claim_rsai3(MS,Niagree);
+		claim_rsai4(MS,Nisynch);
+		claim_rsai5(MS,SKR,prepak);
+	}	
+	
+	role BS
+	{
+		var msrand, said: Nonce;
+		fresh prepak, bsrand: Nonce;
+
+		recv_rsa1(MS,BS, {msrand, said, MS}sk(MS) );
+		send_rsa2(BS,MS, {msrand, bsrand,{prepak,MS}pk(MS),BS}sk(BS) );
+		recv_rsa3(MS,BS, {bsrand}sk(MS) );
+
+		claim_rsar3(BS,Niagree);
+		claim_rsar4(BS,Nisynch);
+		claim_rsar5(BS,SKR,prepak);
+	}
+}
+

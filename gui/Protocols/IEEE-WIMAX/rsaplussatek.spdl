@@ -1,0 +1,74 @@
+/* 
+ * PKMv2-RSA
+ *
+ * Initial model by:	Sjouke Mauw, Sasa Radomirovic (2007)
+ * Model changes:	Cas Cremers (Nov 2012)
+ *
+ * Analysed in:		"A framework for compositional verification of security protocols"
+ * 			With S. Andova, K. Gjosteen, S. Mauw, S. Mjolsnes, and S. Radomirovic.
+ * 			Information and Computation, Special issue on Computer Security: 
+ * 			Foundations and Automated Reasoning, Volume 206, Issues 2-4, pp. 425-459,
+ * 			Elsevier, 2008. 
+ */
+
+// Setup
+
+hashfunction hash;
+hashfunction prepak;
+const akid;
+const u,d;
+
+// The protocol description
+
+protocol rsaplussatek(MS,BS)
+
+{
+  role MS
+  {
+    fresh msrand, msrand', said: Nonce;
+    var prepak, bsrand, bsrand', tek0, tek1: Nonce;
+
+    send_rsa1(MS,BS, {msrand, said, MS}sk(MS) );
+    recv_rsa2(BS,MS, {msrand, bsrand,{prepak,MS}pk(MS),BS}sk(BS) );
+    send_rsa3(MS,BS, {bsrand}sk(MS) );
+
+    recv_satek1(BS,MS, bsrand',akid,
+      hash(d,prepak,BS,MS,bsrand',akid) );
+    send_satek2(MS,BS, msrand',bsrand',akid,
+      hash(u,prepak,BS,MS,msrand',bsrand',akid) );
+    recv_satek3(BS,MS,
+    msrand',bsrand',akid,{tek0,tek1}hash(prepak),
+      hash(d,prepak,msrand',bsrand',akid,{tek0,tek1}hash(prepak)));
+
+    claim_rsai3(MS,Niagree);
+    claim_rsai4(MS,Nisynch);
+//    claim_rsai5(MS,SKR,prepak);
+//    claim_rsai6(MS,SKR,tek0);
+//    claim_rsai7(MS,SKR,tek1);
+  } 
+  
+  role BS
+  {
+    var msrand, msrand', said: Nonce;
+    fresh prepak, bsrand, bsrand', tek0, tek1: Nonce;
+
+    recv_rsa1(MS,BS, {msrand, said, MS}sk(MS) );
+    send_rsa2(BS,MS, {msrand, bsrand,{prepak,MS}pk(MS),BS}sk(BS) );
+    recv_rsa3(MS,BS, {bsrand}sk(MS) );
+
+    send_satek1(BS,MS, bsrand',akid,
+      hash(d,prepak,BS,MS,bsrand',akid) );
+    recv_satek2(MS,BS, msrand',bsrand',akid,
+      hash(u,prepak,BS,MS,msrand',bsrand',akid) );
+    send_satek3(BS,MS,
+    msrand',bsrand',akid,{tek0,tek1}hash(prepak),
+      hash(d,prepak,msrand',bsrand',akid,{tek0,tek1}hash(prepak)));
+
+    claim_rsar3(BS,Niagree);
+    claim_rsar4(BS,Nisynch);
+//    claim_rsar5(BS,SKR,prepak);
+//    claim_rsar6(BS,SKR,tek0);
+//    claim_rsar7(BS,SKR,tek1);
+  }
+}
+
