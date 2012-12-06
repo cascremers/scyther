@@ -2263,62 +2263,74 @@ checkUnusedVariables (const System sys)
     }
 }
 
-//! Is a complete role well-formed
+//! Is a role well-formed?
+/**
+ * In line with the 2012 book, we check only that variables occur first in
+ * receives. This is needed to guarantee that the instantiated terms are ground
+ * (and hence, traces contain run terms).
+ *
+ * Returns true if the role is well-formed, false otherwise.
+ *
+ * The function outputs its own error messages, but does not (sys.)exit. This
+ * should be done by the calling function, in order to collect a complete error
+ * report for all roles.
+ */
 int
 WellFormedRole (const System sys, Protocol p, Role r)
 {
-  Knowledge know;
-  int okay;
-  Roledef rd;
+  Termlist tl;
+  int allOkay;
 
-  okay = true;
-  know = emptyKnowledge ();
-  // Transfer inverses
-  know->inverses = sys->know->inverses;
-  // Add role knowledge
-  knowledgeAddTermlist (know, r->knows);
-  // Add role names
-  //@TODO this is not in the semantics as such, often implicit
-  knowledgeAddTermlist (know, p->rolenames);
-  // Add local constants
-  //@TODO this is not in the semantics as such, often implicit
-  knowledgeAddTermlist (know, r->declaredconsts);
-
-  // Test
-  rd = r->roledef;
-  while (rd != NULL)
+  allOkay = true;
+  for (tl = r->variables; tl != NULL; tl = tl->next)
     {
-      Knowledge knowres;
+      if (!inTermlist (p->rolenames, tl->term))
+	{
+	  Roledef rd;
 
-      knowres = WellFormedEvent (r->nameterm, know, rd);
-      if (knowres == NULL)
-	{
-	  okay = false;
-	  break;
-	}
-      else
-	{
-	  know = knowres;
-	  rd = rd->next;
+	  rd = firstEventWithTerm (r->roledef, tl->term);
+	  if (rd->type != RECV)
+	    {
+	      // Not well-formed
+	      globalError++;
+	      error_pre ();
+	      eprintf ("Protocol ");
+	      termPrint (p->nameterm);
+	      eprintf (", role ");
+	      termPrint (r->nameterm);
+	      eprintf (" is not well-formed: the variable '");
+	      termPrint (tl->term);
+	      eprintf ("' should occur first in a receive event.\n");
+	      globalError--;
+
+	      // Store
+	      allOkay = false;
+	    }
 	}
     }
-
-  // clean up
-  knowledgeDelete (know);
-  return okay;
+  return allOkay;
 }
 
 //! Well-formedness check
 void
 checkWellFormed (const System sys)
 {
+  int allOkay;
+
+  allOkay = true;
+
   int thisRole (Protocol p, Role r)
   {
-    WellFormedRole (sys, p, r);
+    allOkay = allOkay && WellFormedRole (sys, p, r);
     return true;
   }
 
   iterateRoles (sys, thisRole);
+  if (allOkay == false)
+    {
+      error
+	("The protocol specification does not meet the well-formedness condition.");
+    }
 }
 
 //! Check matching role defs
@@ -2542,10 +2554,5 @@ preprocess (const System sys)
   /*
    * Check well-formedness
    */
-  /* TODO Temporarily disabled wellformedness check (well-formedness) after Simon bug reporting.
-     if (sys->knowledgedefined)
-     {
-     checkWellFormed (sys);
-     }
-   */
+  checkWellFormed (sys);
 }

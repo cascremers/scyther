@@ -459,76 +459,17 @@ wfeError (Knowledge know, Roledef rd, char *errorstring, Term was,
 }
 
 
-//! Is an event well-formed
-/**
- * Returns the new knowledge or NULL if it was not well-formed.
- */
-Knowledge
-WellFormedEvent (Term role, Knowledge know, Roledef rd)
+//! Return the first event (or NULL) in which a term occurs
+Roledef
+firstEventWithTerm (Roledef rd, Term t)
 {
-  if (rd == NULL)
+  while (rd != NULL)
     {
-      return know;
+      if (termSubTerm (rd->message, t))
+	{
+	  return rd;
+	}
+      rd = rd->next;
     }
-  if (rd->type == RECV)
-    {
-      // Read
-      if (!isTermEqual (role, rd->to))
-	{
-	  wfeError (know, rd, "Receiving role incorrect.", rd->to, role);
-	  return NULL;
-	}
-      if (!inKnowledge (know, rd->from))
-	{
-	  wfeError (know, rd, "Unknown sender role.", rd->from, NULL);
-	  return NULL;
-
-	}
-      if (!Readable (know, rd->message))
-	{
-	  wfeError (know, rd, "Cannot read message pattern.", rd->message,
-		    NULL);
-	  return NULL;
-	}
-      knowledgeAddTerm (know, rd->message);
-      return know;
-    }
-  if (rd->type == SEND)
-    {
-      // Send
-      if (!isTermEqual (role, rd->from))
-	{
-	  wfeError (know, rd, "Sending role incorrect.", rd->from, role);
-	  return NULL;
-	}
-      if (!inKnowledge (know, rd->to))
-	{
-	  wfeError (know, rd, "Unknown receiving role.", rd->to, NULL);
-	  return NULL;
-
-	}
-      if (!inKnowledge (know, rd->message))
-	{
-	  wfeError (know, rd, "Unable to construct message.", rd->message,
-		    NULL);
-	  return NULL;
-	}
-      return know;
-    }
-  if (rd->type == CLAIM)
-    {
-      // Claim
-      if (!isTermEqual (role, rd->from))
-	{
-	  wfeError (know, rd, "Claiming role incorrect.", rd->from, role);
-	  return NULL;
-	}
-      return know;
-    }
-  // Unknown, false
-  globalError++;
-  roledefPrint (rd);
-  globalError--;
-  error ("I don't know this event");
   return NULL;
 }
