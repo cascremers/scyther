@@ -265,6 +265,14 @@ def InitRestricted(models=None):
     namedmodels["SnP10rules"] = MS  # Rules as in S&P 2010 submission
     namedmodels["7rules"] = MS  # Rules as in S&P 2010 submission
 
+    MS = []
+    for model in Traverse(unrestricted=True):
+        if model.vector[4] > 0:
+            # We don't consider the SSR rule
+            continue
+        MS.append(model.copy())
+    namedmodels["6rules"] = MS  # 6 rules: all except SSR (session-state-reveal).
+
     RESTRICTEDMODELS = None
     MS = []
     for model in Traverse(unrestricted=True):
