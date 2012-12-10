@@ -215,22 +215,24 @@ inequalityConstraints (const System sys)
 	  Roledef rd;
 
 	  rd = sys->runs[run].start;
-          for (e = 0; e < sys->runs[run].step; e++)
+	  for (e = 0; e < sys->runs[run].step; e++)
 	    {
 	      if (rd->type == CLAIM)
 		{
 		  // It's a claim
-	          if (isTermEqual (rd->claiminfo->type, CLAIM_Notequal))
+		  if (isTermEqual (rd->claiminfo->type, CLAIM_Notequal))
 		    {
 		      // TODO ASSERT: Message should be a pair for NotEqual claims
-		      if (isTermEqual (TermOp1(rd->message),TermOp2(rd->message)))
+		      if (isTermEqual
+			  (TermOp1 (rd->message), TermOp2 (rd->message)))
 			{
 			  // Inequality violated, no solution exists that makes them inequal anymore.
 			  if (switches.output == PROOF)
 			    {
 			      indentPrint ();
-			      eprintf ("Pruned because the pattern violates an inequality constraint based on the term ");
-			      termPrint (TermOp1(rd->message));
+			      eprintf
+				("Pruned because the pattern violates an inequality constraint based on the term ");
+			      termPrint (TermOp1 (rd->message));
 			      eprintf (".\n");
 			    }
 

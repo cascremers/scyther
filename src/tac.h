@@ -91,7 +91,7 @@ typedef struct tacnode *Tac;
 
 void tacInit (void);
 void tacDone (void);
-Tac tacCopy(Tac c);
+Tac tacCopy (Tac c);
 Tac tacCreate (int op);
 Tac tacSymb (char *s);
 Tac tacJoin (int op, Tac t1, Tac t2, Tac t3);

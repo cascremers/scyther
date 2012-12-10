@@ -53,8 +53,8 @@ tacDone (void)
 }
 
 //! Copy a tac
-Tac 
-tacCopy(Tac c)
+Tac
+tacCopy (Tac c)
 {
   Tac newTac;
 
