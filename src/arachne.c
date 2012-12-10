@@ -65,6 +65,7 @@
 #include "xmlout.h"
 #include "heuristic.h"
 #include "tempfile.h"
+#include "trusted.h"
 
 extern int *graph;
 extern int nodes;
@@ -2110,6 +2111,13 @@ iterate ()
     {
       if (!doAgentUnfolding (sys))
 	return flag;
+    }
+
+  // check unfolding/rewriting for compromising adversaries
+  // If it returns true, it called iterate itself.
+  if (iterateTrusted (sys))
+    {
+      return flag;
     }
 
   if (!prune_bounds (sys))

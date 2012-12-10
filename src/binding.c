@@ -64,6 +64,7 @@ binding_create (Term term, int run_to, int ev_to)
   b->ev_to = ev_to;
   b->term = term;
   b->level = 0;
+  b->LKRactor = 0;
   return b;
 }
 
@@ -570,7 +571,7 @@ isLongtermKey (const Term t)
 //! Determine whether a binding involves long-term private keys.
 /**
  * Returns the agent name list if true, returns NULL if not true.
- * A term in the last may be a tuple too (k(A,B) would yield (A,B) in the list).
+ * A term in the list may be a tuple too (k(A,B) would yield (A,B) in the list).
  */
 Termlist
 getPrivateKeyAgents (Binding b, Termlist tlold)

@@ -29,5 +29,6 @@
 #include "system.h"
 
 int pruneTrusted (const System sys, int *partners);
+int iterateTrusted (const System sys);
 
 #endif

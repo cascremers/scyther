@@ -40,6 +40,7 @@ struct binding
 
   Term term;			//!< Binding term
   int level;			//!< For keys, the priority level (needed for the heuristic)
+  int LKRactor;			//!< Helper for compromising adversaries (LKRactor) 0: unchecked. 1: explored as LKRactor in this branch. 2: explored as non-LKRactor.
 };
 
 typedef struct binding *Binding;	//!< pointer to binding structure

@@ -37,6 +37,7 @@
 #include "depend.h"
 #include "compromise.h"
 #include "type.h"
+#include "mgu.h"
 
 extern Protocol INTRUDER;	// from arachne.c
 
@@ -55,31 +56,26 @@ isCompromiseAllowed (const System sys, int *partners, Binding b, Term a)
     }
   if (switches.LKRactor)
     {
-      // Is it the agent the actor of run 0,...
-      if (isTermEqual (a, agentOfRun (sys, 0)))
+      if (b->LKRactor == 1)
 	{
-	  // ... but not of the other roles 
-	  Termlist agents;
-	  Term claimrole;
-	  int allgood;
+	  /**
+	   * LKRactor of sk(a) is enabled if a is the actor of the claim run, but
+	   * does not occur in any other role.
+	   * 
+	   * A naive implementation would return true (possibly okay) for
+	   * isTermVariable(a). However, even if it is a variable, we can already
+	   * exclude that it is justified by LKRactor if the variable occurs more
+	   * than once in rho. In such cases, even later instantiations will not
+	   * make the premise of LKRactor true. This allows for correct pruning,
+	   * because only now will any (disjoint) instantiation of the variables
+	   * lead to a correct solution.
+	   */
+	  int count;
 
-	  claimrole = sys->runs[0].role->nameterm;
-	  allgood = true;
-	  for (agents = sys->runs[0].rho; agents != NULL;
-	       agents = agents->next)
+	  count = termlistCount (sys->runs[0].rho, a);
+	  if (count <= 1)
 	    {
-	      if (TermSymb (claimrole) != TermSymb (agents->term))
-		{
-		  if (isTermEqual (a, agents->term))
-		    {
-		      allgood = false;
-		      break;
-		    }
-		}
-	    }
-	  if (allgood)
-	    {
-	      // It was the actor, but not assigned to any of the other roles
+	      // Does not occur in another role
 	      return true;
 	    }
 	}
@@ -236,5 +232,87 @@ pruneTrusted (const System sys, int *partners)
 	}
     }
   // All fine, don't prune.
+  return false;
+}
+
+//! Find Unsplit LKRactor candidate
+/**
+ * Return true if we found (and explored) one
+ */
+int
+splitLKRactorCandidate (const System sys)
+{
+  List bl;
+
+  // Scan all bindings to find the private keys
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (b->LKRactor == 0)
+	{
+	  // Not assigned yet
+	  Termlist tl;		// Termlists need deletion later on (if not NULL)
+
+	  tl = getPrivateKeyAgents (b, NULL);
+	  if (tl != NULL)
+	    {
+	      // Okay, it is a candidate
+	      // But it may be a pair too; all of them can be the actor
+	      Termlist tl2;
+	      Termlist tls;
+	      Term actor;
+
+	      actor = agentOfRun (sys, 0);	// retrieve actor of test run for later iteration
+
+	      // Branch 1: consider all options in the binding as actor, i.e., LKRactor caused the LKR reveal.
+	      tl2 = tuple_to_termlist (tl->term);
+	      b->LKRactor = 1;	// Mark that we are considering this as the actor now
+	      for (tls = tl2; tls != NULL; tls = tls->next)
+		{
+		  int calliter (Termlist tl)
+		  {
+		    iterate ();
+		    return true;
+		  }
+		  unify (tls->term, actor, NULL, calliter);
+		}
+	      // Branch 2: LKRactor did not cause this LKR reveal
+	      b->LKRactor = 2;	// Mark that we are considering this as a non-actor
+	      iterate ();
+
+	      b->LKRactor = 0;	// Restore state precisely to previous state
+
+	      termlistDelete (tl2);	// cleanup
+	      termlistDelete (tl);	// cleanup
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
+
+//! Rewrite a state if needed
+/**
+ * This is essentially a constraint system rewrite rule (a la Tamarin) that
+ * performs a case distinction in case long-term keys are revealed and the
+ * LKRactor rule is enabled.
+ *
+ * This is called directly from the body of the iterate() call, before any
+ * pruning is performed.
+ *
+ * Return true if the state been rewritten and iterated already. In this case, the calling iterate() instance will not continue and instead return.
+ * Return false if nothing happened. The calling iterate() instance will proceed as usual.
+ */
+int
+iterateTrusted (const System sys)
+{
+  if (switches.LKRactor)
+    {
+      // Currently only splitting for LKRactor
+      return splitLKRactorCandidate (sys);
+    }
   return false;
 }
