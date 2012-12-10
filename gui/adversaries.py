@@ -492,6 +492,8 @@ class SecModel(object):
         if s.startswith("--"):
             if s.endswith("=1"):
                 return s[2:-2]
+            elif s.endswith("=0"):
+                return ""
             else:
                 return s[2:]
         return ""
