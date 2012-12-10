@@ -86,6 +86,7 @@ Termlist termlistMinusTermlist (const Termlist tlbig, const Termlist tlsmall);
 Termlist termlistNotIn (Termlist tlpos, Termlist tlneg);
 Termlist termlistReverse (Termlist tl);
 int termlistEqualPrefix (Termlist tl1, Termlist tl2);
+int termlistCount (Termlist tl, Term t);
 
 #define TERMLISTADD(l,t)	l = termlistAdd (l,t)
 #define TERMLISTAPPEND(l,t)	l = termlistAppend (l,t)

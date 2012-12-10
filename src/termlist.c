@@ -1122,3 +1122,21 @@ termlistEqualPrefix (Termlist tl1, Termlist tl2)
     }
   return true;
 }
+
+//! Count the number of occurrences of a term in a termlist
+int
+termlistCount (Termlist tl, Term t)
+{
+  int n;
+
+  n = 0;
+  while (tl != NULL)
+    {
+      if (isTermEqual (tl->term, t))
+	{
+	  n++;
+	}
+      tl = tl->next;
+    }
+  return n;
+}
