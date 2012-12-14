@@ -48,7 +48,7 @@ char *lastfoundprefix = NULL;
 
 // Forward declarations
 void process_environment (void);
-void process_switches (int commandline);
+int process_switches (int commandline);
 
 //! Init switches
 /**
@@ -1556,42 +1556,51 @@ switcher (const int process, int index, int commandline)
     }
 
   // If the option is not recognized, it means a file name.
-  if (!process)
+  // But we only consider this for the command line
+  if (commandline)
     {
-      helptext ("FILE", "input file ('-' for stdin)");
-    }
-  else
-    {
-      if (!strcmp (this_arg, "-") && commandline)
+      if (!process)
 	{
-	  // '-' input: Leave input to stdin
+	  helptext ("FILE", "input file ('-' for stdin)");
 	}
       else
 	{
-	  // not '-' input: change stdin to come from this file
-	  if (!openFileStdin (this_arg))
+	  if (!strcmp (this_arg, "-"))
 	    {
-	      // The file was not found. We have two options...
-	      if (this_arg[0] == '-')
-		{
-		  printfstderr ("Unknown switch '%s'.\n", this_arg);
-		}
-	      else
-		{
-		  printfstderr ("Could not open input file '%s'.\n",
-				this_arg);
-		}
-	      exit (1);
+	      // '-' input: Leave input to stdin
 	    }
-	  return index + 1;
+	  else
+	    {
+	      // not '-' input: change stdin to come from this file
+	      if (!openFileStdin (this_arg))
+		{
+		  // The file was not found. We have two options...
+		  if (this_arg[0] == '-')
+		    {
+		      printfstderr ("Unknown switch '%s'.\n", this_arg);
+		    }
+		  else
+		    {
+		      printfstderr ("Could not open input file '%s'.\n",
+				    this_arg);
+		    }
+		  exit (1);
+		}
+	      return index + 1;
+	    }
 	}
+    }
+  else
+    {
+      // Unrecognized option.
+      error ("Could not parse argument \"%s\".\n", this_arg);
     }
 
   // Now show the environment variables
   if (!process)
     {
       printf
-	("\nThere are two environment variables that influence the behaviour of Scyther.\n");
+	("\nThere are two environment variables that influence the behaviour of the Scyther command-line tool.\n");
       printf
 	("  SCYTHERFLAGS    Put any default command-line options here, syntax as on the command line.\n");
       printf
@@ -1603,22 +1612,22 @@ switcher (const int process, int index, int commandline)
   return 0;
 }
 
-//! Process environment
+//! Process a single buffer as a potential switch
+/**
+ * This is a public function. It is used for the environment variables but also for the in-specification defines.
+ */
 void
-process_environment (void)
+process_switch_buffer (char *buf)
 {
-  char *flags;
-
-  flags = getenv ("SCYTHERFLAGS");
-  if (flags != NULL)
+  if (buf != NULL)
     {
       int slen;
 
-      slen = strlen (flags);
+      slen = strlen (buf);
       if (slen > 0)
 	{
 	  /**
-	   * We scan the flags here, but assume a stupid upper limit of 100 pieces, otherwise this all becomes fairly vague.
+	   * We scan the buf here, but assume a stupid upper limit of 100 pieces, otherwise this all becomes fairly vague.
 	   */
 	  int max = 100;
 	  char *argv[100];
@@ -1629,7 +1638,7 @@ process_environment (void)
 
 	  /* make a safe copy */
 	  args = (char *) malloc (slen + 1);
-	  memcpy (args, flags, slen + 1);
+	  memcpy (args, buf, slen + 1);
 
 	  /* warning */
 	  /*
@@ -1678,8 +1687,26 @@ process_environment (void)
     }
 }
 
-//! Process switches
+//! Process environment
 void
+process_environment (void)
+{
+  char *flags;
+
+  flags = getenv ("SCYTHERFLAGS");
+  process_switch_buffer (flags);
+}
+
+//! Process switches
+/**
+ * The 'commandline' boolean argument is set to true if called with input from the command line.
+ * If true:
+ * - Generate help info if empty
+ * - Accept input file argument
+ *
+ * Returns false if an error occurred.
+ */
+int
 process_switches (int commandline)
 {
   int index;
@@ -1695,7 +1722,7 @@ process_switches (int commandline)
 	}
       else
 	{
-	  return;
+	  return true;
 	}
     }
 
@@ -1704,4 +1731,10 @@ process_switches (int commandline)
     {
       index = switcher (1, index, commandline);
     }
+  if (index < 0)
+    {
+      // An error occurred: return false.
+      return false;
+    }
+  return true;
 }
