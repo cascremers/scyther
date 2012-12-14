@@ -447,7 +447,7 @@ switcher (const int process, int index, int commandline)
 	    arg_pointer = argv[index];
 	  }
       }
-    // Allright, this is the right option
+    // Alright, this is the right option
     // Enough arguments left?
     return enough_arguments_left (args, shortopt, longopt);
   }
@@ -1448,7 +1448,7 @@ switcher (const int process, int index, int commandline)
 	  if (switches.expert)
 	    {
 	      helptext ("    --one-role-per-agent",
-			"agents are disallowd from performing multiple roles");
+			"agents are disallowed from performing multiple roles");
 	    }
 	}
       else
