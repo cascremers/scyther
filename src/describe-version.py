@@ -38,10 +38,11 @@ def getDescription():
         import sys
         import subprocess
         res = subprocess.check_output(["git","describe","--tags","--dirty"]+sys.argv[1:])
+        res = res.strip()
     except:
         res = None
 
-    return res.strip()
+    return res
 
 
 if __name__ == '__main__':
