@@ -254,7 +254,7 @@ prune_theorems (const System sys)
 	{
 	  indentPrint ();
 	  eprintf
-	    ("Pruned because some local variable was incorrectly subsituted.\n");
+	    ("Pruned because some local variable was incorrectly substituted.\n");
 	}
       return true;
     }
@@ -473,7 +473,7 @@ so technically this is a bug. Don't use.
 	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();
-	      eprintf ("Pruned because intruder can never construnct ");
+	      eprintf ("Pruned because intruder can never construct ");
 	      termPrint (b->term);
 	      eprintf ("\n");
 	    }
