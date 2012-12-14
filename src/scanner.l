@@ -179,6 +179,23 @@ hashfunction	{ return HASHFUNCTION; }
 knows		{ return KNOWS; }
 trusted		{ return TRUSTED; }
 symmetric-role	{ return SYMMETRICROLE; }
+option 		{ return OPTION; }
+{text} 		{ 
+			if (strlen(yytext) >= 2)
+			{
+			  // Make a copy without the surrounding
+			  // double-quotes.
+			  // TODO: Allow to unescape quotes inside string if
+			  // needed later.
+			  yylval.str = strndup(yytext+1,strlen(yytext)-2);	
+			}
+			else
+			{
+			  // If only one character, then simply copy
+			  yylval.str = strdup(yytext);
+			}
+			return TEXT; 
+		}
 {id}		{	
 			yylval.symb = mkstring(yytext);
 			return ID;

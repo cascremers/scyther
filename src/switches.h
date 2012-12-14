@@ -112,5 +112,6 @@ struct switchdata
 extern struct switchdata switches;	//!< pointer to switchdata structure
 
 FILE *openFileSearch (char *filename, FILE * reopener);
+void process_switch_buffer (char *buf);	//!< Process buffer for switches
 
 #endif

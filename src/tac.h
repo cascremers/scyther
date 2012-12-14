@@ -41,6 +41,7 @@ enum tactypes
   TAC_FUNC,
   TAC_STRING,
   TAC_ROLE,
+
   TAC_PROTOCOL,
   TAC_KNOWS,
   TAC_RUN,

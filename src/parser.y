@@ -23,6 +23,7 @@
 #include "error.h"
 #include "list.h"
 #include "string.h"
+#include "switches.h"
 
 struct tacnode*	spdltac;
 
@@ -66,6 +67,8 @@ List findMacroDefinition(Symbol s)
 }
 
 %token 	<symb>	ID
+%token  <str> 	TEXT
+
 %token 		PROTOCOL
 %token 		ROLE
 %token 		READT
@@ -87,6 +90,7 @@ List findMacroDefinition(Symbol s)
 %token		KNOWS
 %token		TRUSTED
 %token 		SYMMETRICROLE
+%token 		OPTION
 %token 		MACRO
 %token 		MATCH
 %token 		NOT
@@ -111,6 +115,7 @@ List findMacroDefinition(Symbol s)
 %type	<tac>	roleref
 %type	<tac>	knowsdecl
 %type	<tac>	macrodecl
+%type	<tac>	options
 
 %type   <value>	symmrole
 %type   <value>	singular
@@ -164,6 +169,18 @@ spdl		: UNTRUSTED termlist ';'
 		| declaration
 		  {
 		  	$$ = $1;
+		  }
+		| options
+		  {
+		  	$$ = $1;
+		  }
+		;
+
+options		: OPTION TEXT optclosing
+		  {
+		  	// Process 'option' as command-line options.
+		  	process_switch_buffer($2);
+			$$ = NULL;
 		  }
 		;
 
