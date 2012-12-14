@@ -70,6 +70,7 @@ switchesInit (int argc, char **argv)
   switches.filterLabel = NULL;	// default check all claims
   switches.maxAttacks = 0;	// no maximum default
   switches.maxOfRole = 0;	// no maximum default
+  switches.oneRolePerAgent = 0;	// agents can perform multiple roles
 
   // Arachne
   switches.heuristic = 674;	// default goal selection method (used to be 162)
@@ -1228,6 +1229,23 @@ switcher (const int process, int index, int commandline)
 	    {
 	      switches.maxOfRole = arg;
 	    }
+	  return index;
+	}
+    }
+
+  if (detect (' ', "one-role-per-agent", 0))
+    {
+      if (!process)
+	{
+	  if (switches.expert)
+	    {
+	      helptext ("    --one-role-per-agent",
+			"agents are disallowd from performing multiple roles");
+	    }
+	}
+      else
+	{
+	  switches.oneRolePerAgent = 1;
 	  return index;
 	}
     }

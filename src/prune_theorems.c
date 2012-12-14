@@ -234,6 +234,65 @@ inequalityConstraints (const System sys)
   return true;
 }
 
+//! Prune if agents perform multiple roles
+/**
+ * Return true if should be pruned
+ *
+ * The termlist 'agentrole' contains subsequences of length 2, the first of which is a agent name, and the second is the role it is performing.
+ * The idea is that once the agent name is assigned, it should not occur again for a different role.
+ * E.g. [ alice, initiator, bob, responder, charlie, ... ]
+ */
+int
+multipleRolePrune (const System sys)
+{
+  Termlist agentrole;
+  int run;
+  int flag;
+
+  flag = false;
+  agentrole = NULL;
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      Protocol p;
+
+      p = sys->runs[run].protocol;
+      if ((p != INTRUDER) && (!isHelperProtocol (p)))
+	{
+	  Role r;
+
+	  for (r = p->roles; r != NULL; r = r->next)
+	    {
+	      Term role, agent;
+	      Termlist tl;
+
+	      // Find mapping role->agent
+	      role = r->nameterm;
+	      agent = agentOfRunRole (sys, run, role);
+
+	      // Does this agent already occur yet in the list?
+	      for (tl = agentrole; tl != NULL; tl = (tl->next)->next)
+		{
+		  if (isTermEqual (agent, tl->term))
+		    {
+		      if (!isTermEqual (role, (tl->next)->term))
+			{
+			  // Same agent, but different role! This is not allowed.
+			  termlistDelete (agentrole);	// cleanup
+			  return true;
+			}
+		    }
+		}
+	      // Does not occur yet, so add
+	      // Note we add the elements in front, so we need to reverse the order
+	      agentrole = termlistPrepend (agentrole, role);
+	      agentrole = termlistPrepend (agentrole, agent);
+	    }
+	}
+    }
+  termlistDelete (agentrole);
+  return false;
+}
+
 //! Prune determination because of theorems
 /**
  * When something is pruned because of this function, the state space is still
@@ -257,6 +316,21 @@ prune_theorems (const System sys)
 	    ("Pruned because some local variable was incorrectly substituted.\n");
 	}
       return true;
+    }
+
+  // Prune if agents are disallowed from performing multiple roles
+  if (switches.oneRolePerAgent != 0)
+    {
+      if (multipleRolePrune (sys))
+	{
+	  if (switches.output == PROOF)
+	    {
+	      indentPrint ();
+	      eprintf
+		("Pruned because an agent may not perform multiple roles.\n");
+	    }
+	  return true;
+	}
     }
 
   // Prune if any initiator run talks to itself
