@@ -268,7 +268,7 @@ prune_theorems (const System sys)
 	{
 	  indentPrint ();
 	  eprintf
-	    ("Pruned because some local variable was incorrectly subsituted.\n");
+	    ("Pruned because some local variable was incorrectly substituted.\n");
 	}
       return true;
     }
@@ -375,7 +375,7 @@ prune_theorems (const System sys)
 	}
     }
 
-  // Prune wrong agents type for initators
+  // Prune wrong agents type for initiators
   if (!initiatorAgentsType (sys))
     {
       if (switches.output == PROOF)
@@ -442,7 +442,7 @@ prune_theorems (const System sys)
 	  if (switches.output == PROOF)
 	    {
 	      indentPrint ();
-	      eprintf ("Pruned because intruder can never construnct ");
+	      eprintf ("Pruned because intruder can never construct ");
 	      termPrint (b->term);
 	      eprintf ("\n");
 	    }
