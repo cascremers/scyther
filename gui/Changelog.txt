@@ -1,67 +1,120 @@
----------------------
-- Scyther changelog -
----------------------
+Scyther changelog
+===============================
 
-Next release:
+Scyther 1.1
+-------------------------------
 
-	Bugfixes:
+Major new features:
 
-	* Python 2.5 has integrated (c)elementtree into the core.
-	Unfortunaly, this broke our previous import attempts.
+ * [Language] Added support for `macro Term1 = Term2;` definitions, which greatly
+ simplifies many specifications.
+ * [Language] Added support for `match(T1,T2);` events in roles, which
+ can be used for e.g. a straightforward modeling of delayed decryption.
+ * [Language] Added support for `not match(T1,T2);` events in roles.
+ This can be useful for, e.g., modeling protocol restrictions (such as
+ `A != B`).
+ * [Language] Added support for `option "COMMANDLINE_OPTIONS";` in
+ specifications. This provides full access to the command-line options
+ of the Scyther backend to the protocol specifications. An example of
+ its use is `option "--one-role-per-agent";`.
+ * [Mac OS X] Dropped support for PPC in Scyther distributions, only
+ supporting Intel for now. Note that installing from source may still
+ work fine with a minor tweak to the build script.
+
+Additional protocol models:
+
+See <http://people.inf.ethz.ch/cremersc/tools/protocols.html> for a
+more high-level overview of selected protocol models.
+
+ * IEEE 802.16e/WIMAX: PKMv2rsa and variants
+ * IKEv1 and IKEv2 protocol suites
+
+Other new features:
+
+ * `SCYTHERCACHEDIR` environment variable can be set to override the
+ internal cache path.
+ * [Backend] The command-line tool now supports the option
+ `--one-role-per-agent`. This disallows agents from performing more than
+ one role in a single trace. This effectively partitions the agents into
+ role sets, i.e., each role can only be performed by agents from one of
+ these sets.
+ * [Documentation] Added the first incomplete version of the new manual.
+ 
+There are also various minor bugfixes and installation improvements.
+
+Scyther 1.0
+-------------------------------
+
+Major new features:
+
+ * [Language] Support for weak agreement
+ * [Language] Support for non-injective data agreement through `Commit`
+ and `Running` signals.
+
+Bugfixes:
+
+ * Python 2.5 has integrated (c)elementtree into the core.
+   Unfortunaly, this broke our previous import attempts. This has now
+   been fixed.
 
 Scyther 1.0-beta7.1
+-------------------------------
 
-	Bugfixes:
+Bugfixes:
 
-	* Windows Vista fix broke Windows XP support.
+ * Windows Vista fix broke Windows XP support.
 
 Scyther 1.0-beta7
+-------------------------------
 
-	Bugfixes:
+Bugfixes:
 
-	* Windows Vista causes a number of problems. The biggest problem
-	is now fixed, which is the bad implementation of the tmpfile() C
-	function, causing no attack output, for which there is a
-	workaround now.
+ * Windows Vista causes a number of problems. The biggest problem
+   is now fixed, which is the bad implementation of the tmpfile() C
+   function, causing no attack output, for which there is a
+   workaround now.
 
 Scyther 1.0-beta6 
-	
-	Big new features:
+-------------------------------
+   
+Major new features:
 
-	* [Gui] Added Mac support (added universal binary)
-	* [Gui] Switched to Scintilla editor component, providing undo
-	and line numbering, and highlighting of error lines.
+ * [Gui] Added Mac support (added universal binary)
+ * [Gui] Switched to Scintilla editor component, providing undo
+   and line numbering, and highlighting of error lines.
 
-	Other new features:
+Other new features:
 
-	* [Backend] Scyther now detects when a recv event cannot match
-	with a send event. This significantly helps in reducing errors
-	in the protocol descriptions.
-	* [Language] Added claim parameter for Reachable claim;
-	Reachable,R means that role R should be trusted (as well as the
-	actor), but not any other role. This can be useful for showing
-	stronger authentication properties of protocols with more than
-	two parties.
-	* [Backend] Added '--max-of-role=N' switch (to narrow scenarios)
-	* [Backend] Added '--scan-claims' switch (allows for retrieving
-	a list of claims)
-	* [Scripting] Added 'verifyOne' and 'scanClaims' methods to
-	Scyther object, to help with singular claim testing.
+ * [Backend] Scyther now detects when a recv event cannot match
+   with a send event. This significantly helps in reducing errors
+   in the protocol descriptions.
+ * [Language] Added claim parameter for Reachable claim;
+   Reachable,R means that role R should be trusted (as well as the
+   actor), but not any other role. This can be useful for showing
+   stronger authentication properties of protocols with more than
+   two parties.
+ * [Backend] Added '--max-of-role=N' switch (to narrow scenarios)
+ * [Backend] Added '--scan-claims' switch (allows for retrieving
+   a list of claims)
+ * [Scripting] Added 'verifyOne' and 'scanClaims' methods to
+   Scyther object, to help with singular claim testing.
 
-	Bugfixes:
+   Bugfixes:
 
-	* [Scripting] Fixed bug in python interface backend (e.g. with mpa.py)
+ * [Scripting] Fixed bug in python interface backend (e.g. with mpa.py)
 
 Scyther 1.0-beta5 
+-------------------------------
 
-	* Change of switch semantics.  '--max-attacks=N' now defines the
-	  maximum number of attacks per claim.  Previously this was a
-	  global maximum for all claims combined.
-	* Improved attack graph output.
-	* added switch '--errors=FILE' to redirect standard error output
-	  to a file.
-	* Rewrote parts of the gui code for improved stability.
+ * Change of switch semantics.  '--max-attacks=N' now defines the
+     maximum number of attacks per claim.  Previously this was a
+     global maximum for all claims combined.
+ * Improved attack graph output.
+ * added switch '--errors=FILE' to redirect standard error output
+     to a file.
+ * Rewrote parts of the gui code for improved stability.
 
 Scyther 1.0-beta4 
+-------------------------------
 
-	* (Changelog starts after the release of Scyther 1.0-beta4)
+ * (Changelog starts after the release of Scyther 1.0-beta4)
