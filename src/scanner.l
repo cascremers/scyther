@@ -23,6 +23,7 @@
 /* scanner for security protocols language */
 
 #include <strings.h>
+#include <string.h>
 #include "pheading.h"
 #include "tac.h"
 #include "switches.h"
@@ -180,19 +181,31 @@ knows		{ return KNOWS; }
 trusted		{ return TRUSTED; }
 option 		{ return OPTION; }
 {text} 		{ 
+			int len;
+			char *dest;
+			char *src;
+			
 			if (strlen(yytext) >= 2)
 			{
 			  // Make a copy without the surrounding
 			  // double-quotes.
 			  // TODO: Allow to unescape quotes inside string if
 			  // needed later.
-			  yylval.str = strndup(yytext+1,strlen(yytext)-2);	
+			  len = strlen(yytext)-2;
+			  src = yytext+1;
 			}
 			else
 			{
 			  // If only one character, then simply copy
-			  yylval.str = strdup(yytext);
+			  len = strlen(yytext);
+			  src = yytext;
 			}
+			// Copy
+			dest = (char *)malloc(len+1);
+			strncpy(dest,src,len);
+			dest[len] = EOS;
+			yylval.str = dest;
+
 			return TEXT; 
 		}
 {id}		{	
