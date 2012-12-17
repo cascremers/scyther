@@ -8,7 +8,7 @@ DEFOUT="protocol-security-hierarchy.pdf"
 IGN=""
 MDS=" --models=7rules"
 DEF=" --PSH $MDS \
-      --max-runs=0 \
+      --max-runs=4 \
       "
 APROTS=""
 APROTS="$APROTS ns3.spdl nsl3.spdl"
