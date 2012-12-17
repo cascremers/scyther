@@ -55,7 +55,7 @@ Manual
 We are currently rewriting the manual. The current (incomplete) snapshot
 of the manual can be found here:
 
-  * `./doc/scyther-manual.pdf
+  * `./gui/scyther-manual.pdf`
 
 
 Protocol Models
