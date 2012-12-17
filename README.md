@@ -8,8 +8,8 @@ protocol modelers. For installation and usage instructions of the
 Scyther tool see:
 <http://people.inf.ethz.ch/cremersc/scyther/index.html>.
 
-Developing
-----------
+Installing from source
+----------------------
 
 We use Linux during the development of Scyther, but development on
 Windows and MAC OS X should be equally feasible. Note that the below
@@ -52,8 +52,10 @@ us a pull request.
 Manual
 ------
 
-We are currently rewriting the manual. Bear with us for a second and
-have a look at the example protocol models.
+We are currently rewriting the manual. The current (incomplete) snapshot
+of the manual can be found here:
+
+  * `./doc/scyther-manual.pdf
 
 
 Protocol Models
