@@ -493,6 +493,11 @@ checkParameterGround (Claimlist cl)
   Termlist recvvars;
   Termlist cli;
 
+  if (!switches.checkClaimSanity)
+    {
+      return;
+    }
+
   /* Compute received variables and those occurring in the claim parameter */
   claimvars = termlistAddVariables (NULL, cl->parameter);
   recvvars = compute_recv_variables (thisRole);
@@ -686,42 +691,17 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
       checkParameterGround (cl);
     }
 
-  if ((claim == CLAIM_Commit) || (claim == CLAIM_Running))
+  if (switches.checkClaimSanity)
     {
-      /* Check that Claim syntax is role,commit,role,data
-       */
-      Termlist params;
-
-      params = tuple_to_termlist (cl->parameter);
-
-      if (termlistLength (params) < 2)
+      if ((claim == CLAIM_Commit) || (claim == CLAIM_Running))
 	{
-	  /* yield error */
-	  globalError++;
-	  warning_pre ();
-	  termPrint (claim);
-	  eprintf (" claim of role ");
-	  termPrint (cl->rolename);
-	  eprintf
-	    (" requires four arguments. Please specify both the target role and the data to agree on, as in:\n");
-	  warning_pre ();
-	  eprintf ("  claim(R,  Commit,  R', data )\n");
-	  warning_pre ();
-	  eprintf ("and\n");
-	  warning_pre ();
-	  eprintf ("  claim(R', Running, R,  data ).\n");
-	  globalError--;
-	  error
-	    ("Incorrect number of arguments in Commit/Running claim at line %i.",
-	     lineno);
-	}
-      else
-	{
-	  // The length is at least two, so we can obtain the first element
-	  Term targetrole;
+	  /* Check that Claim syntax is role,commit,role,data
+	   */
+	  Termlist params;
 
-	  targetrole = params->term;
-	  if (!inTermlist (protocol->rolenames, targetrole))
+	  params = tuple_to_termlist (cl->parameter);
+
+	  if (termlistLength (params) < 2)
 	    {
 	      /* yield error */
 	      globalError++;
@@ -729,11 +709,8 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 	      termPrint (claim);
 	      eprintf (" claim of role ");
 	      termPrint (cl->rolename);
-	      eprintf (" specifies the target role to be '");
-	      termPrint (targetrole);
-	      eprintf ("', which is not a role name.\n");
-	      warning_pre ();
-	      eprintf ("Please use:\n");
+	      eprintf
+		(" requires four arguments. Please specify both the target role and the data to agree on, as in:\n");
 	      warning_pre ();
 	      eprintf ("  claim(R,  Commit,  R', data )\n");
 	      warning_pre ();
@@ -741,9 +718,40 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
 	      warning_pre ();
 	      eprintf ("  claim(R', Running, R,  data ).\n");
 	      globalError--;
-	      warning
-		("Possibly incorrect target role in Commit/Running claim at line %i.",
+	      error
+		("Incorrect number of arguments in Commit/Running claim at line %i.",
 		 lineno);
+	    }
+	  else
+	    {
+	      // The length is at least two, so we can obtain the first element
+	      Term targetrole;
+
+	      targetrole = params->term;
+	      if (!inTermlist (protocol->rolenames, targetrole))
+		{
+		  /* yield error */
+		  globalError++;
+		  warning_pre ();
+		  termPrint (claim);
+		  eprintf (" claim of role ");
+		  termPrint (cl->rolename);
+		  eprintf (" specifies the target role to be '");
+		  termPrint (targetrole);
+		  eprintf ("', which is not a role name.\n");
+		  warning_pre ();
+		  eprintf ("Please use:\n");
+		  warning_pre ();
+		  eprintf ("  claim(R,  Commit,  R', data )\n");
+		  warning_pre ();
+		  eprintf ("and\n");
+		  warning_pre ();
+		  eprintf ("  claim(R', Running, R,  data ).\n");
+		  globalError--;
+		  warning
+		    ("Possibly incorrect target role in Commit/Running claim at line %i.",
+		     lineno);
+		}
 	    }
 	}
     }

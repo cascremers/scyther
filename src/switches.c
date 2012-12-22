@@ -86,6 +86,7 @@ switchesInit (int argc, char **argv)
   switches.partnerDefinition = 1;	// 0: temporally close, 1: matching histories [default], 2: SID based, 3: close to CK-HMQV, 4: matching histories (crypto filtering), 5: CK2001
   switches.requireSynch = false;	// default no synch required for attacks, but maybe we do
   switches.checkMatchingLabels = true;	// default is to check matching labels
+  switches.checkClaimSanity = true;	//!< default is to check claim sanity
 
   // Adversary type
   switches.LKRothers = true;	//!< default is anybody outside the group
@@ -1093,6 +1094,21 @@ switcher (const int process, int index, int commandline)
       else
 	{
 	  switches.checkMatchingLabels = false;
+	  return index;
+	}
+    }
+
+  if (detect (' ', "no-claim-check", 0))
+    {
+      if (!process)
+	{
+	  /*
+	   * Disable claim sanity checks
+	   */
+	}
+      else
+	{
+	  switches.checkClaimSanity = false;
 	  return index;
 	}
     }

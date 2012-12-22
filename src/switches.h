@@ -62,6 +62,7 @@ struct switchdata
   int partnerDefinition;	//!< 0: temporally close, 1: matching histories, 2: SID definition, 3: CK_HMQV
   int requireSynch;		//!< 0: it's not an attack if you don't synchronize
   int checkMatchingLabels;	//!< default is to check matching labels
+  int checkClaimSanity;		//!< default is to check claim sanity
 
   // Adversary type
   int LKRothers;		//!< anybody outside the group
