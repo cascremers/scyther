@@ -430,7 +430,10 @@ termlistRemoveTerm (Termlist tlhead, Term t)
 	  if (tlprev == NULL)
 	    {
 	      tlhead = tl->next;
-	      tlhead->prev = NULL;
+	      if (tlhead != NULL)
+		{
+		  tlhead->prev = NULL;
+		}
 	    }
 	  else
 	    {
