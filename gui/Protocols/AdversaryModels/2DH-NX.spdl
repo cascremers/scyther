@@ -23,13 +23,7 @@
  */
 
 // Hash functions
-const h1,h2,g1,g2: Function;
-secret unh1,unh2,ung1,ung2: Function;
-
-inversekeys (h1,unh1);
-inversekeys (h2,unh2);
-inversekeys (g1,ung1);
-inversekeys (g2,ung2);
+hashfunction h1,h2,g1,g2;
 
 /*
  * Hack to simulate g^ab = g^ba.

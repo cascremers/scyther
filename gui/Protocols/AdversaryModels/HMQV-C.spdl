@@ -4,17 +4,7 @@
  */
 
 // Hash functions
-const h1,h2,g1,g2,exp,KDF,LSB,MAC: Function;
-secret unh1,unh2,ung1,ung2,unexp,unKDF,unLSB,unMAC: Function;
-
-inversekeys (h1,unh1);
-inversekeys (h2,unh2);
-inversekeys (g1,ung1);
-inversekeys (g2,ung2);
-inversekeys (exp,unexp);
-inversekeys (KDF,unKDF);
-inversekeys (LSB,unLSB);
-inversekeys (MAC,unMAC);
+hashfunction h1,h2,g1,g2,exp,KDF,LSB,MAC;
 
 // Addition, multiplication
 // For now, simply hashes

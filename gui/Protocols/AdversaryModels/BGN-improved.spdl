@@ -1,6 +1,4 @@
-const H: Function;
-secret UNH: Function;
-inversekeys (H,UNH);
+hashfunction H;
 
 protocol BGN-improved(U1,U2)
 {
