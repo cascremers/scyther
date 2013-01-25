@@ -121,11 +121,12 @@ class Graph(object):
         if len(comments) > 0:
             legendname = "comments"
             edges = []
+
             ### Ensure legend is at bottom
-            #for c in self.clusters:
-            #    if len(c.nodes) > 0:
-            #        prev = c.nodes[-1].name
-            #        edges.append(Edge(prev,legendname,[Attribute("style","invis")]))
+            for c in self.clusters:
+                if len(c.nodes) > 0:
+                    prev = c.nodes[-1].name
+                    edges.append(Edge(prev,legendname,[Attribute("style","invis")]))
 
             ## Explain
             CL = Cluster("Cluster_comments")
