@@ -1,0 +1,6 @@
+claim	needhamschroederpk,I	Secret_I1	Ni	Ok	[no attack within bounds]
+claim	needhamschroederpk,I	Secret_I2	Nr	Ok	[no attack within bounds]
+claim	needhamschroederpk,I	Nisynch_I3	-	Fail	[at least 3 attacks]
+claim	needhamschroederpk,R	Secret_R1	Nr	Fail	[at least 7 attacks]
+claim	needhamschroederpk,R	Secret_R2	Ni	Fail	[at least 7 attacks]
+claim	needhamschroederpk,R	Nisynch_R3	-	Fail	[at least 3 attacks]

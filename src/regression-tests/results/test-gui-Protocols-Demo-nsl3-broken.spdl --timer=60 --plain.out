@@ -1,0 +1,8 @@
+claim	nsl3-broken,I	Secret_i1	ni	Fail	[at least 1 attack]
+claim	nsl3-broken,I	Secret_i2	nr	Fail	[at least 1 attack]
+claim	nsl3-broken,I	Niagree_i3	-	Fail	[at least 1 attack]
+claim	nsl3-broken,I	Nisynch_i4	-	Fail	[at least 1 attack]
+claim	nsl3-broken,R	Secret_r1	ni	Fail	[at least 1 attack]
+claim	nsl3-broken,R	Secret_r2	nr	Ok	[proof of correctness]
+claim	nsl3-broken,R	Niagree_r3	-	Ok	[proof of correctness]
+claim	nsl3-broken,R	Nisynch_r4	-	Ok	[proof of correctness]

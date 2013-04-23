@@ -1,0 +1,4 @@
+claim	yahalom-Paulson,I	Secret_I1	Kir	Ok	[no attack within bounds]
+claim	yahalom-Paulson,I	Nisynch_I2	-	Fail	[at least 1 attack]
+claim	yahalom-Paulson,R	Secret_R1	Kir	Ok	[no attack within bounds]
+claim	yahalom-Paulson,R	Nisynch_R2	-	Fail	[at least 1 attack]

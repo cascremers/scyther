@@ -1,0 +1,6 @@
+claim	neustub-Hwang,I	Secret_I1	Kir	Ok	[no attack within bounds]	time=60
+claim	neustub-Hwang,I	Niagree_I2	-	Ok	[does not occur]	time=60
+claim	neustub-Hwang,I	Nisynch_I3	-	Ok	[does not occur]	time=60
+claim	neustub-Hwang,R	Secret_R1	Kir	Ok	[no attack within bounds]	time=60
+claim	neustub-Hwang,R	Niagree_R2	-	Ok	[does not occur]	time=60
+claim	neustub-Hwang,R	Nisynch_R3	-	Ok	[does not occur]	time=60

@@ -1,0 +1,4 @@
+claim	tmn,I	Secret_I1	Kr	Fail	[at least 4 attacks]
+claim	tmn,I	Nisynch_I2	-	Fail	[at least 2 attacks]
+claim	tmn,R	Secret_R1	Kr	Fail	[at least 2 attacks]
+claim	tmn,R	Nisynch_R2	-	Fail	[exactly 1 attack]

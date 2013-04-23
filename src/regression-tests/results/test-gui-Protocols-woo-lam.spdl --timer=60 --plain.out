@@ -1,0 +1,4 @@
+claim	woolam,I	Secret_I1	Kir	Ok	[no attack within bounds]
+claim	woolam,I	Nisynch_I2	-	Fail	[at least 2 attacks]
+claim	woolam,R	Secret_R1	Kir	Ok	[no attack within bounds]
+claim	woolam,R	Nisynch_R2	-	Fail	[at least 2 attacks]

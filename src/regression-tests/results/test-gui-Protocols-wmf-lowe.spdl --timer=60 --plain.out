@@ -1,0 +1,4 @@
+claim	wmf-Lowe,I	Secret_I1	Kir	Ok	[no attack within bounds]
+claim	wmf-Lowe,I	Nisynch_I2	-	Fail	[at least 3 attacks]
+claim	wmf-Lowe,R	Secret_R1	Kir	Ok	[no attack within bounds]
+claim	wmf-Lowe,R	Nisynch_R2	-	Fail	[at least 3 attacks]

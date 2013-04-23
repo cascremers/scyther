@@ -1,0 +1,316 @@
+# Test file for scyther
+#
+# Essentially contains argument lines for the tool, where the first
+# argument is the file name, relative to the base directory of the
+# repository.
+#
+# For each, we then record the output.
+#
+# Empty lines or lines starting with '%' or '#' are not considered.
+# Lines with '=' set the "global" concatenation.
+#
+= --timer=60 --plain
+# testing/bke.spdl 
+# testing/bke-one.spdl
+# testing/ibe.spdl
+# testing/otwayrees.spdl
+# testing/ns-symmetric.spdl
+# testing/bkepk-ce.spdl
+# testing/unknown2.spdl
+# testing/splice-as.spdl
+# testing/nst2.spdl
+# testing/boyd.spdl
+testing/ksl.spdl -r3
+# testing/andrew-ban.spdl
+# testing/tmn.spdl
+# testing/carkey-broken-limited.spdl
+# testing/bunava-1-4.spdl
+# testing/soph.spdl
+# testing/kaochow-v2.spdl
+# testing/2r890-ex3-a.spdl
+# testing/tmn-Gijs.spdl
+# testing/nsl3-nisynch-rep.spdl
+# testing/ns3.spdl
+# testing/yahalom-paulson.spdl
+# testing/localclaims-seq1.spdl
+# testing/bke-variation.spdl
+# testing/localclaims.spdl
+# testing/carkey-ni2.spdl
+# testing/broken1.spdl
+# testing/gong-nonce-b.spdl
+# testing/isoiec11770-2-13.spdl
+# testing/ccitt509-ban.spdl
+# testing/bunava-2-3.spdl
+# testing/wmf-brutus.spdl
+# testing/five-run-bound.spdl
+# testing/tls/tls-BM-1.spdl
+# testing/tls/tls-HSDDM05-2.spdl
+# testing/tls/tls-HSDDM05-fix.spdl
+# testing/tls/tls-HSDDM05.spdl
+# testing/tls/tls-paulson.spdl
+# testing/tls/tls-paulson-avispa.spdl
+# testing/ns-symmetric-amended.spdl
+# testing/bunava-2-4.spdl
+# testing/soph-keyexch.spdl
+# testing/gong-nonce.spdl
+# testing/splice-as-hc.spdl
+# testing/onetrace.spdl
+# testing/woolam-pi-f.spdl
+# testing/nst1.spdl
+# testing/nsl3.spdl
+# testing/andrew-lowe-ban.spdl
+# testing/kaochow-palm.spdl
+# testing/yahalom-lowe.spdl
+# testing/speedtest.spdl
+# testing/carkey-ni.spdl
+# testing/woolam-cmv.spdl
+# testing/compositionality-examples/th-1.spdl
+# testing/compositionality-examples/th-1seq2-rename-ni.spdl
+# testing/compositionality-examples/th-1seq2-rename-nr.spdl
+# testing/compositionality-examples/th-2.spdl
+# testing/compositionality-examples/th-1seq2.spdl
+# testing/compositionality-examples/th-1par2.spdl
+# testing/samasc-broken.spdl
+# testing/kaochow.spdl
+# testing/splice-as-hc-cj.spdl
+# testing/2r890-ex3-b.spdl
+# testing/carkey-broken.spdl
+# testing/denning-sacco-shared.spdl
+# testing/kaochow-v3.spdl
+# testing/fourway-HSDDM05.spdl
+# testing/bke-broken.spdl
+# testing/simplest.spdl
+# testing/kerberos-rddm.spdl
+# testing/f5.spdl
+# testing/yahalom-ban.spdl
+# testing/ns3-brutus.spdl
+# testing/ibe-ns.spdl
+# testing/boyd-nsl-fix.spdl
+# testing/localclaims-breaker.spdl
+# testing/helloworld.spdl
+# testing/bkepk-ce2.spdl
+# testing/bunava-1-3.spdl
+# testing/athena-breaker.spdl
+# testing/f4.spdl
+# gui/yhl.spdl
+# gui/Protocols-reachable/reach_yahalom-lowe.spdl
+# gui/Protocols-reachable/reach_woo-lam-pi-f.spdl
+# gui/Protocols-reachable/reach_splice-as.spdl
+# gui/Protocols-reachable/reach_kaochow-v2.spdl
+# gui/Protocols-reachable/reach_wmf-lowe.spdl
+# gui/Protocols-reachable/reach_woo-lam-pi-1.spdl
+# gui/Protocols-reachable/reach_needham-schroeder-sk.spdl
+# gui/Protocols-reachable/reach_neumannstub-guttman.spdl
+# gui/Protocols-reachable/reach_splice-as-hc.spdl
+# gui/Protocols-reachable/reach_tmn.spdl
+# gui/Protocols-reachable/reach_needham-schroeder-lowe.spdl
+# gui/Protocols-reachable/reach_woo-lam-pi.spdl
+# gui/Protocols-reachable/reach_yahalom-ban-paulson.spdl
+# gui/Protocols-reachable/reach_ccitt509-3.spdl
+# gui/Protocols-reachable/reach_woo-lam-pi-2.spdl
+# gui/Protocols-reachable/reach_kaochow-v3.spdl
+# gui/Protocols-reachable/reach_neumannstub-guttman-hwang.spdl
+# gui/Protocols-reachable/reach_denning-sacco.spdl
+# gui/Protocols-reachable/reach_yahalom.spdl
+# gui/Protocols-reachable/reach_kaochow.spdl
+# gui/Protocols-reachable/reach_andrew-lowe-ban.spdl
+# gui/Protocols-reachable/reach_woo-lam.spdl
+# gui/Protocols-reachable/reach_neumannstub-keycompromise.spdl
+# gui/Protocols-reachable/reach_wmf.spdl
+# gui/Protocols-reachable/reach_ccitt509-1c.spdl
+# gui/Protocols-reachable/reach_ccitt509-ban3.spdl
+# gui/Protocols-reachable/reach_neumannstub-hwang.spdl
+# gui/Protocols-reachable/reach_needham-schroeder-sk-amend.spdl
+# gui/Protocols-reachable/reach_splice-as-cj.spdl
+# gui/Protocols-reachable/reach_BKE.spdl
+# gui/Protocols-reachable/reach_andrew-ban-concrete.spdl
+# gui/Protocols-reachable/reach_andrew-ban.spdl
+# gui/Protocols-reachable/reach_otwayrees.spdl
+# gui/Protocols-reachable/reach_andrew.spdl
+# gui/Protocols-reachable/reach_denning-sacco-lowe.spdl
+# gui/Protocols-reachable/reach_yahalom-paulson.spdl
+# gui/Protocols-reachable/reach_neumannstub.spdl
+# gui/Protocols-reachable/reach_TLS-Paulson.spdl
+# gui/Protocols-reachable/reach_yahalom-ban.spdl
+# gui/Protocols-reachable/reach_ccitt509-1.spdl
+# gui/Protocols-reachable/reach_needham-schroeder.spdl
+# gui/Protocols-reachable/reach_smartright.spdl
+# gui/Protocols-reachable/reach_woo-lam-pi-3.spdl
+# gui/ns3.spdl
+# gui/nsl3-ibake.spdl
+# gui/Protocols/otwayrees.spdl
+# gui/Protocols/splice-as-cj.spdl
+# gui/Protocols/MultiProtocolAttacks/otwayrees.spdl
+# gui/Protocols/MultiProtocolAttacks/splice-as-cj.spdl
+# gui/Protocols/MultiProtocolAttacks/splice-as.spdl
+# gui/Protocols/MultiProtocolAttacks/boyd.spdl
+# gui/Protocols/MultiProtocolAttacks/ksl.spdl
+# gui/Protocols/MultiProtocolAttacks/andrew-ban.spdl
+# gui/Protocols/MultiProtocolAttacks/denning-sacco-lowe.spdl
+# gui/Protocols/MultiProtocolAttacks/needham-schroeder-sk-amend.spdl
+# gui/Protocols/MultiProtocolAttacks/tmn.spdl
+# gui/Protocols/MultiProtocolAttacks/soph.spdl
+# gui/Protocols/MultiProtocolAttacks/kaochow-v2.spdl
+# gui/Protocols/MultiProtocolAttacks/ns3.spdl
+# gui/Protocols/MultiProtocolAttacks/woo-lam-pi-2.spdl
+# gui/Protocols/MultiProtocolAttacks/woo-lam-pi-3.spdl
+# gui/Protocols/MultiProtocolAttacks/gong-nonce-b.spdl
+# gui/Protocols/MultiProtocolAttacks/woo-lam-pi-1.spdl
+# gui/Protocols/MultiProtocolAttacks/ccitt509-ban3.spdl
+# gui/Protocols/MultiProtocolAttacks/isoiec11770-2-13.spdl
+# gui/Protocols/MultiProtocolAttacks/denning-sacco.spdl
+# gui/Protocols/MultiProtocolAttacks/wmf-lowe.spdl
+# gui/Protocols/MultiProtocolAttacks/wmf-brutus.spdl
+# gui/Protocols/MultiProtocolAttacks/wmf.spdl
+# gui/Protocols/MultiProtocolAttacks/yahalom.spdl
+# gui/Protocols/MultiProtocolAttacks/gong-nonce.spdl
+# gui/Protocols/MultiProtocolAttacks/splice-as-hc.spdl
+# gui/Protocols/MultiProtocolAttacks/needham-schroeder-sk.spdl
+# gui/Protocols/MultiProtocolAttacks/BKE.spdl
+# gui/Protocols/MultiProtocolAttacks/yahalom-ban-paulson.spdl
+# gui/Protocols/MultiProtocolAttacks/woo-lam.spdl
+# gui/Protocols/MultiProtocolAttacks/nsl3.spdl
+# gui/Protocols/MultiProtocolAttacks/andrew-lowe-ban.spdl
+# gui/Protocols/MultiProtocolAttacks/andrew-ban-concrete.spdl
+# gui/Protocols/MultiProtocolAttacks/yahalom-lowe.spdl
+# gui/Protocols/MultiProtocolAttacks/kaochow.spdl
+# gui/Protocols/MultiProtocolAttacks/woo-lam-pi-f.spdl
+# gui/Protocols/MultiProtocolAttacks/kaochow-v3.spdl
+# gui/Protocols/MultiProtocolAttacks/yahalom-ban.spdl
+gui/Protocols/splice-as.spdl
+gui/Protocols/ksl.spdl -r3
+gui/Protocols/andrew-ban.spdl
+gui/Protocols/denning-sacco-lowe.spdl
+gui/Protocols/needham-schroeder-sk-amend.spdl
+gui/Protocols/tmn.spdl
+gui/Protocols/andrew.spdl
+gui/Protocols/neumannstub-guttman.spdl
+gui/Protocols/kaochow-v2.spdl
+gui/Protocols/ccitt509-1.spdl
+gui/Protocols/ccitt509-1c.spdl
+gui/Protocols/yahalom-paulson.spdl
+gui/Protocols/woo-lam-pi-2.spdl
+gui/Protocols/Demo/ns3.spdl
+gui/Protocols/Demo/nsl3-updated-both.spdl
+gui/Protocols/Demo/nsl3.spdl
+gui/Protocols/Demo/nsl3-broken.spdl
+gui/Protocols/woo-lam-pi-3.spdl
+gui/Protocols/woo-lam-pi.spdl
+gui/Protocols/needham-schroeder-lowe.spdl
+gui/Protocols/woo-lam-pi-1.spdl
+gui/Protocols/ccitt509-ban3.spdl
+gui/Protocols/denning-sacco.spdl
+gui/Protocols/wmf-lowe.spdl
+gui/Protocols/wmf.spdl
+# gui/Protocols/IEEE-WIMAX/rsaplussatek.spdl
+# gui/Protocols/IEEE-WIMAX/pkmv2rsa-noid.spdl
+# gui/Protocols/IEEE-WIMAX/rsaplussatekcorrected.spdl
+# gui/Protocols/IEEE-WIMAX/pkmv2rsa.spdl
+# gui/Protocols/IEEE-WIMAX/pkmv2rsacorrected.spdl
+# gui/Protocols/IEEE-WIMAX/pkmv2satek.spdl
+# gui/Protocols/IEEE-WIMAX/pqr.spdl
+gui/Protocols/neumannstub-hwang.spdl
+gui/Protocols/yahalom.spdl
+gui/Protocols/splice-as-hc.spdl
+# gui/Protocols/needham-schroeder-sk.spdl
+gui/Protocols/ISO-9798/isoiec-9798-3-7-1.spdl
+gui/Protocols/ISO-9798/isoiec-9798-2-4.spdl
+gui/Protocols/ISO-9798/isoiec-9798-3-6-2.spdl
+gui/Protocols/ISO-9798/isoiec-9798-4-2-udkey.spdl
+gui/Protocols/ISO-9798/isoiec-9798-2-2.spdl
+gui/Protocols/ISO-9798/isoiec-9798-4-3.spdl
+gui/Protocols/ISO-9798/isoiec-9798-3-1.spdl
+gui/Protocols/ISO-9798/isoiec-9798-4-4.spdl
+gui/Protocols/ISO-9798/isoiec-9798-2-6.spdl
+gui/Protocols/ISO-9798/isoiec-9798-3-2.spdl
+gui/Protocols/ISO-9798/isoiec-9798-3-5.spdl
+gui/Protocols/ISO-9798/isoiec-9798-3-4.spdl
+gui/Protocols/ISO-9798/iso26-tag.spdl
+gui/Protocols/ISO-9798/isoiec-9798-4-3-udkey.spdl
+gui/Protocols/ISO-9798/isoiec-9798-2-1-udkey.spdl
+gui/Protocols/ISO-9798/isoiec-9798-2-2-udkey.spdl
+gui/Protocols/ISO-9798/isoiec-9798-2-4-udkey.spdl
+gui/Protocols/ISO-9798/iso25-tag.spdl
+gui/Protocols/ISO-9798/isoiec-9798-4-2.spdl
+gui/Protocols/ISO-9798/isoiec-9798-2-1.spdl
+gui/Protocols/ISO-9798/isoiec-9798-2-3-udkey.spdl
+gui/Protocols/ISO-9798/isoiec-9798-3-7-2.spdl
+gui/Protocols/ISO-9798/isoiec-9798-2-3.spdl
+gui/Protocols/ISO-9798/isoiec-9798-4-1.spdl
+gui/Protocols/ISO-9798/isoiec-9798-2-5.spdl
+gui/Protocols/ISO-9798/isoiec-9798-4-1-udkey.spdl
+gui/Protocols/ISO-9798/isoiec-9798-3-3.spdl
+gui/Protocols/ISO-9798/isoiec-9798-3-6-1.spdl
+gui/Protocols/ISO-9798/isoiec-9798-4-4-udkey.spdl
+gui/Protocols/neumannstub.spdl
+gui/Protocols/neumannstub-guttman-hwang.spdl
+gui/Protocols/woo-lam.spdl
+gui/Protocols/andrew-lowe-ban.spdl
+gui/Protocols/andrew-ban-concrete.spdl
+gui/Protocols/yahalom-lowe.spdl
+gui/Protocols/needham-schroeder.spdl
+gui/Protocols/kaochow.spdl
+gui/Protocols/ccitt509-3.spdl
+gui/Protocols/ksl-lowe.spdl -r3
+gui/Protocols/woo-lam-pi-f.spdl
+gui/Protocols/smartright.spdl
+gui/Protocols/kaochow-v3.spdl
+gui/Protocols/yahalom-ban.spdl
+gui/Protocols/neumannstub-keycompromise.spdl
+# gui/Protocols/IKE/ikev1-pk2-m.spdl
+# gui/Protocols/IKE/ikev1-quick-nopfs.spdl
+# gui/Protocols/IKE/ikev2-sig-child2-composed.spdl
+# gui/Protocols/IKE/ikev1-pk2-a2.spdl
+# gui/Protocols/IKE/ikev1-psk-a.spdl
+# gui/Protocols/IKE/sts-mac.spdl
+# gui/Protocols/IKE/ikev2-eap2.spdl
+# gui/Protocols/IKE/oakley-a.spdl
+# gui/Protocols/IKE/jfkr.spdl
+# gui/Protocols/IKE/jfki-core.spdl
+# gui/Protocols/IKE/ikev2-child-nopfs.spdl
+# gui/Protocols/IKE/ikev1-psk-m-perlman.spdl
+# gui/Protocols/IKE/ikev2-sig-child-composed.spdl
+# gui/Protocols/IKE/ikev2-sig-child2.spdl
+# gui/Protocols/IKE/ikev2-mac2.spdl
+# gui/Protocols/IKE/oakley-c.spdl
+# gui/Protocols/IKE/ikev1-pk-a12.spdl
+# gui/Protocols/IKE/ikev1-quick.spdl
+# gui/Protocols/IKE/sts-main.spdl
+# gui/Protocols/IKE/ikev1-quick-noid.spdl
+# gui/Protocols/IKE/ikev1-pk-a1.spdl
+# gui/Protocols/IKE/ikev2-sigtomac.spdl
+# gui/Protocols/IKE/ikev1-pk2-a.spdl
+# gui/Protocols/IKE/jfkr-core.spdl
+# gui/Protocols/IKE/oakley-alt.spdl
+# gui/Protocols/IKE/ikev1-pk-m.spdl
+# gui/Protocols/IKE/ikev1-sig-m-perlman.spdl
+# gui/Protocols/IKE/ikev1-sig-a-perlman2.spdl
+# gui/Protocols/IKE/ikev1-sig-m.spdl
+# gui/Protocols/IKE/jfki.spdl
+# gui/Protocols/IKE/ikev1-sig-a1.spdl
+# gui/Protocols/IKE/skeme-rekey.spdl
+# gui/Protocols/IKE/skeme-basic.spdl
+# gui/Protocols/IKE/ikev2-sig-child.spdl
+# gui/Protocols/IKE/skeme-psk.spdl
+# gui/Protocols/IKE/ikev1-pk-a22.spdl
+# gui/Protocols/IKE/ikev2-child.spdl
+# gui/Protocols/IKE/ikev2-mac.spdl
+# gui/Protocols/IKE/ikev2-eap.spdl
+# gui/Protocols/IKE/sts-modified.spdl
+# gui/Protocols/IKE/ikev1-sig-a-perlman1.spdl
+# gui/Protocols/IKE/ikev2-mactosig.spdl
+# gui/Protocols/IKE/ikev1-psk-m.spdl
+# gui/Protocols/IKE/ikev1-pk-a2.spdl
+# gui/Protocols/IKE/ikev2-sig.spdl
+# gui/Protocols/IKE/ikev2-sigtomac2.spdl
+# gui/Protocols/IKE/ikev1-pk2-m2.spdl
+# gui/Protocols/IKE/ikev1-sig-a2.spdl
+# gui/Protocols/IKE/ikev2-sig2.spdl
+# gui/Protocols/IKE/ikev2-mactosig2.spdl
+# gui/Protocols/IKE/ikev1-pk-m2.spdl
+gui/nsl3.spdl
+gui/mpa.spdl
+gui/nsl3-broken.spdl
+src/ns3.spdl
+
+

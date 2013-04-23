@@ -1,0 +1,6 @@
+claim	isoiec-9798-4-3-udkey,A	Commit_A2	(B,TNb,Text3)	Fail	[at least 1 attack]
+claim	isoiec-9798-4-3-udkey,A	Alive_A3	-	Ok	[no attack within bounds]
+claim	isoiec-9798-4-3-udkey,A	Weakagree_A4	-	Ok	[no attack within bounds]
+claim	isoiec-9798-4-3-udkey,B	Commit_B2	(A,TNa,Text1)	Fail	[at least 3 attacks]
+claim	isoiec-9798-4-3-udkey,B	Alive_B3	-	Ok	[no attack within bounds]
+claim	isoiec-9798-4-3-udkey,B	Weakagree_B4	-	Ok	[no attack within bounds]

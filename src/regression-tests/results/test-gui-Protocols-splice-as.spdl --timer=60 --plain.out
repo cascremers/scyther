@@ -1,0 +1,6 @@
+claim	spliceAS,I	Secret_7	N2	Ok	[no attack within bounds]	time=60
+claim	spliceAS,I	Niagree_9	-	Ok	[does not occur]	time=60
+claim	spliceAS,I	Nisynch_10	-	Ok	[does not occur]	time=60
+claim	spliceAS,R	Secret_8	N2	Ok	[no attack within bounds]	time=60
+claim	spliceAS,R	Niagree_11	-	Ok	[does not occur]	time=60
+claim	spliceAS,R	Nisynch_12	-	Ok	[does not occur]	time=60

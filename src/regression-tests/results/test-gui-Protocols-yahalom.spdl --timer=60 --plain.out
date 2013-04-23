@@ -1,0 +1,4 @@
+claim	yahalom,I	Secret_I1	Kir	Ok	[no attack within bounds]
+claim	yahalom,R	Secret_R1	Kir	Ok	[no attack within bounds]
+claim	yahalom,S	Secret_S1	Ni	Fail	[at least 1 attack]
+claim	yahalom,S	Secret_S2	Nr	Ok	[no attack within bounds]

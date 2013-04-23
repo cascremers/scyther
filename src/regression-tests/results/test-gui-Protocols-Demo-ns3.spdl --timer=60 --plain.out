@@ -1,0 +1,8 @@
+claim	ns3,I	Secret_i1	ni	Ok	[proof of correctness]
+claim	ns3,I	Secret_i2	nr	Ok	[proof of correctness]
+claim	ns3,I	Niagree_i3	-	Ok	[proof of correctness]
+claim	ns3,I	Nisynch_i4	-	Ok	[proof of correctness]
+claim	ns3,R	Secret_r1	ni	Fail	[at least 1 attack]
+claim	ns3,R	Secret_r2	nr	Fail	[at least 1 attack]
+claim	ns3,R	Niagree_r3	-	Fail	[at least 1 attack]
+claim	ns3,R	Nisynch_r4	-	Fail	[at least 1 attack]

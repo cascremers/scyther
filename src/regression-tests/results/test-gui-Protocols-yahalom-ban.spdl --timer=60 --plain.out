@@ -1,0 +1,4 @@
+claim	yahalom-BAN,I	Secret_I1	Kir	Ok	[no attack within bounds]
+claim	yahalom-BAN,I	Nisynch_I2	-	Fail	[at least 1 attack]
+claim	yahalom-BAN,R	Secret_R1	Kir	Ok	[no attack within bounds]
+claim	yahalom-BAN,R	Nisynch_R2	-	Fail	[at least 2 attacks]

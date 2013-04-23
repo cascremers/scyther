@@ -1,0 +1,4 @@
+claim	isoiec-9798-3-7-2,A	Commit_A2	(B,Ra,Rb,Text8)	Ok	[no attack within bounds]
+claim	isoiec-9798-3-7-2,A	Alive_A3	-	Ok	[no attack within bounds]
+claim	isoiec-9798-3-7-2,B	Commit_B2	(A,Ra,Rb,Text6)	Ok	[no attack within bounds]
+claim	isoiec-9798-3-7-2,B	Alive_B3	-	Ok	[no attack within bounds]

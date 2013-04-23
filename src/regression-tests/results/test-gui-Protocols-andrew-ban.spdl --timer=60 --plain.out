@@ -1,0 +1,8 @@
+claim	andrew-Ban,I	Nisynch_I1	-	Ok	[proof of correctness]
+claim	andrew-Ban,I	Niagree_I2	-	Ok	[proof of correctness]
+claim	andrew-Ban,I	Secret_I3	kir	Ok	[proof of correctness]
+claim	andrew-Ban,I	Secret_I4	k(I,R)	Ok	[proof of correctness]
+claim	andrew-Ban,R	Nisynch_R1	-	Ok	[proof of correctness]
+claim	andrew-Ban,R	Niagree_R2	-	Ok	[proof of correctness]
+claim	andrew-Ban,R	Secret_R3	kir	Ok	[proof of correctness]
+claim	andrew-Ban,R	Secret_R4	k(I,R)	Ok	[proof of correctness]

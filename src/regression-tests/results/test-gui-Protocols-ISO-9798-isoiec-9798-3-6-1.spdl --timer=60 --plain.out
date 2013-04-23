@@ -1,0 +1,4 @@
+claim	isoiec-9798-3-6-1,A	Commit_A2	(B,Ra,Rb,Text2)	Ok	[no attack within bounds]	time=60
+claim	isoiec-9798-3-6-1,A	Alive_A3	-	Ok	[does not occur]	time=60
+claim	isoiec-9798-3-6-1,B	Commit_B2	(A,Ra,Rb,Text8)	Ok	[does not occur]	time=60
+claim	isoiec-9798-3-6-1,B	Alive_B3	-	Ok	[does not occur]	time=60

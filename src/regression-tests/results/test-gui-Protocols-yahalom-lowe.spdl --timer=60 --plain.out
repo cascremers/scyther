@@ -1,0 +1,4 @@
+claim	yahalom-Lowe,I	Secret_I1	Kir	Ok	[proof of correctness]
+claim	yahalom-Lowe,I	Nisynch_I2	-	Ok	[proof of correctness]
+claim	yahalom-Lowe,R	Secret_R1	Kir	Ok	[proof of correctness]
+claim	yahalom-Lowe,R	Nisynch_R2	-	Ok	[proof of correctness]
