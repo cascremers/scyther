@@ -151,8 +151,7 @@ class EString(object):
         while i < len(self.string):
             if self.string[i:].startswith(ESINS):
                 # Replace and skip
-                if j >= len(self.termlist):
-                    assert(False,"Too many parameter-marker occurrences in EString or too few term arguments.")
+                assert(j < len(self.termlist))
                 t = self.termlist[j]
                 for f in PROCESS:
                     t = f(t)
