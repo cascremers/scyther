@@ -33,10 +33,7 @@
 
 usertype Params, String;
 
-const pk,hash: Function;
-secret sk,unhash: Function;
-inversekeys(pk,sk);
-inversekeys(hash,unhash);
+hashfunction hash;
 
 const clientstring,serverstring: String;
 

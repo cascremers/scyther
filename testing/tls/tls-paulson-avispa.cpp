@@ -24,10 +24,7 @@
 
 usertype Params, Bool, SessionID;
 
-const pk,hash: Function;
-secret sk,unhash: Function;
-inversekeys(pk,sk);
-inversekeys(hash,unhash);
+hashfunction hash;
 
 const keygen: Function;
 secret unkeygen: Function;
@@ -35,6 +32,7 @@ inversekeys(keygen, unkeygen);
 
 const pa,pb: Params;
 const false,true: Bool;
+const Terence: Agent;
 
 
 protocol tlspaulson-avispa(a,b)

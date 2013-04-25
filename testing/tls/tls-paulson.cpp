@@ -20,13 +20,11 @@
 
 usertype Params, Bool, SessionID;
 
-const pk,hash: Function;
-secret sk,unhash: Function;
-inversekeys(pk,sk);
-inversekeys(hash,unhash);
+hashfunction hash;
 
 const pa,pb: Params;
 const false,true: Bool;
+const Terence: Agent;
 
 
 protocol tlspaulson(a,b)
