@@ -372,7 +372,7 @@ class TermVariable(Term):
         if self.value == None:
             return self
         else:
-            return self.valueunction.leaves()
+            return self.value.leaves()
     
 
 class TermTuple(Term):
