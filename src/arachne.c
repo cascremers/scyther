@@ -787,7 +787,7 @@ createDecryptionChain (const Binding b, const int run, const int index,
       indentDepth++;
 
       tdecr = keylist->term;
-      tkey = inverseKey (sys->know->inverses, TermKey (tdecr));
+      tkey = inverseKey (sys->know, TermKey (tdecr));
       smallrun = create_decryptor (tdecr, tkey);
       {
 	Roledef rddecrypt;

@@ -82,6 +82,7 @@ List findMacroDefinition(Symbol s)
 %token 		SECRET
 %token 		COMPROMISED
 %token 		INVERSEKEYS
+%token 		INVERSEKEYFUNCTIONS
 %token 		UNTRUSTED
 %token 		USERTYPE
 %token		SINGULAR
@@ -356,6 +357,12 @@ declaration	: secretpref CONST basictermlist typeinfo1 ';'
 			t->t2.tac = $5;
 			$$ = t;
 		  }
+		| INVERSEKEYFUNCTIONS '(' term ',' term ')' ';'
+		  {	Tac t = tacCreate(TAC_INVERSEKEYFUNCTIONS);
+			t->t1.tac = $3;
+			t->t2.tac = $5;
+			$$ = t;
+		  }
 		| COMPROMISED termlist ';'
 		  {	Tac t = tacCreate(TAC_COMPROMISED);
 		  	t->t1.tac= $2;
@@ -456,7 +463,7 @@ term  		: ID '(' termlist ')'
 		  {
 		  	Tac t = tacCreate(TAC_STRING);
 			t->t1.sym = $1;
-			$$ = tacJoin(TAC_ENCRYPT,tacTuple($3),t,NULL);
+			$$ = tacJoin(TAC_FCALL,tacTuple($3),t,NULL);
 		  }
 		| '{' termlist '}' key
 		  {

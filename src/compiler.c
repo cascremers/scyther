@@ -1101,7 +1101,7 @@ hashfunctions (Tac tcstart)
 	  error
 	    ("Bug in hashfunction generation code. Please contact the authors.\n");
 	}
-      knowledgeAddInverse (sys->know, hfuncs->term, hinvs->term);
+      knowledgeAddInverseKeys (sys->know, hfuncs->term, hinvs->term);
       hfuncs->term->stype = termlistAdd (NULL, TERM_Function);
       hinvs->term->stype = termlistAdd (NULL, TERM_Function);
       hfuncs = hfuncs->next;
@@ -1157,8 +1157,12 @@ normalDeclaration (Tac tc)
       knowledgeAddTermlist (sys->know, tacTermlist (tc->t1.tac));
       break;
     case TAC_INVERSEKEYS:
-      knowledgeAddInverse (sys->know, tacTerm (tc->t1.tac),
-			   tacTerm (tc->t2.tac));
+      knowledgeAddInverseKeys (sys->know, tacTerm (tc->t1.tac),
+			       tacTerm (tc->t2.tac));
+      break;
+    case TAC_INVERSEKEYFUNCTIONS:
+      knowledgeAddInverseKeyFunctions (sys->know, tacTerm (tc->t1.tac),
+				       tacTerm (tc->t2.tac));
       break;
     case TAC_HASHFUNCTION:
       hashfunctions (tc);
@@ -1568,8 +1572,14 @@ tacProcess (Tac tc)
 Term
 tacTerm (Tac tc)
 {
+  Term t;
+
   switch (tc->op)
     {
+    case TAC_FCALL:
+      t = makeTermEncrypt (tacTerm (tc->t1.tac), tacTerm (tc->t2.tac));
+      t->helper.fcall = true;
+      return t;
     case TAC_ENCRYPT:
       return makeTermEncrypt (tacTerm (tc->t1.tac), tacTerm (tc->t2.tac));
     case TAC_TUPLE:

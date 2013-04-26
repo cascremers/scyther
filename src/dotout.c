@@ -96,7 +96,7 @@ isIntruderChoice (const Term t)
 	{
 	  // Chosen by intruder
 	  // However, if it is a rolename, this is not really what we mean
-	  if (!(t->roleVar || isAgentType (t->stype)))
+	  if (!(t->helper.roleVar || isAgentType (t->stype)))
 	    {
 	      // Not a role variable, and chosen by the intruder: that's it
 	      return true;
@@ -187,12 +187,12 @@ explainVariable (Term t)
   if (realTermVariable (t))
     {
       eprintf ("any ");
-      if (t->roleVar)
+      if (t->helper.roleVar)
 	{
 	  eprintf ("agent ");
 	}
       termPrintRemap (t);
-      if (!t->roleVar)
+      if (!t->helper.roleVar)
 	{
 	  if (switches.match == 0 && t->stype != NULL)
 	    {

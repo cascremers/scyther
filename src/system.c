@@ -504,7 +504,7 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 	newt = makeTermType (GLOBAL, TermSymb (oldt), rid);
       }
     newt->stype = oldt->stype;	// copy list of types
-    newt->roleVar = isrole;	// set role status
+    newt->helper.roleVar = isrole;	// set role status
 
     // Add to copy list
     TERMLISTADD (fromlist, oldt);

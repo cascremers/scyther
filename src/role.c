@@ -415,7 +415,7 @@ Readable (Knowledge know, Term t)
 		  return true;
 		}
 	      // Right disjunct
-	      inv = inverseKey (know->inverses, TermKey (t));
+	      inv = inverseKey (know, TermKey (t));
 	      either = false;
 	      if (inKnowledge (know, inv))
 		{

@@ -33,8 +33,10 @@ struct knowledge
   Termlist basic;
   //! A list of terms encrypted, such that the inverse is not in the knowledge set.
   Termlist encrypt;
-  //! List of inverse pairs (thus length of list is even)
-  Termlist inverses;
+  //! List of inverse pairs (thus length of list is even) (add,sub)
+  Termlist inversekeys;
+  //! List of inverse pairs (thus length of list is even) (pk,sk)
+  Termlist inversekeyfunctions;
   //! List of open variables in the knowledge set.
   /**
    * This list is used to determine whether the knowledge needs to be rewritten.
@@ -42,7 +44,7 @@ struct knowledge
    * and we need to reconstruct the knowledge set.
    */
   Termlist vars;		// special: denotes unsubstituted variables
-  //! A list of public functions
+  //! A list of hash functions
   Termlist publicfunctions;
 };
 
@@ -58,19 +60,19 @@ void knowledgeDelete (Knowledge know);
 void knowledgeDestroy (Knowledge know);
 int knowledgeAddTerm (Knowledge know, Term term);
 int knowledgeAddTermlist (Knowledge know, Termlist tl);
-void knowledgeAddInverse (Knowledge know, Term t1, Term t2);
-void knowledgeSetInverses (Knowledge know, Termlist tl);
+void knowledgeAddInverseKeys (Knowledge know, Term t1, Term t2);
+void knowledgeAddInverseKeyFunctions (Knowledge know, Term t1, Term t2);
+int inKnowledgeSet (const Knowledge know, Term t);
 void knowledgeSimplify (Knowledge know, Term decryptkey);
 int inKnowledge (const Knowledge know, Term term);
 void knowledgePrint (Knowledge know);
 void knowledgePrintShort (const Knowledge know);
-void knowledgeInversesPrint (Knowledge know);
 Termlist knowledgeSet (const Knowledge know);
-Termlist knowledgeGetInverses (const Knowledge know);
 int knowledgeSubstNeeded (const Knowledge know);
 Knowledge knowledgeSubstDo (const Knowledge know);
 void knowledgeAddPublicFunction (const Knowledge know, const Term f);
 int isKnowledgePublicFunction (const Knowledge know, const Term f);
+Term inverseKey (Knowledge know, Term key);
 
 //! Harnass macro for recursive procedures.
 #define mindwipe(k,recurse) \

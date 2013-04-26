@@ -438,7 +438,7 @@ xmlInverses (const System sys)
 
   xmlPrint ("<inversekeys>");
   xmlindent++;
-  invlist = sys->know->inverses;
+  invlist = sys->know->inversekeys;
   while (invlist != NULL && invlist->next != NULL)
     {
       xmlPrint ("<keypair>");
@@ -452,6 +452,23 @@ xmlInverses (const System sys)
     }
   xmlindent--;
   xmlPrint ("</inversekeys>");
+
+  xmlPrint ("<inversekeyfunctions>");
+  xmlindent++;
+  invlist = sys->know->inversekeyfunctions;
+  while (invlist != NULL && invlist->next != NULL)
+    {
+      xmlPrint ("<keypair>");
+      xmlindent++;
+      xmlOutTerm (NULL, invlist->term);
+      xmlOutTerm (NULL, invlist->next->term);
+      xmlindent--;
+      xmlPrint ("</keypair>");
+
+      invlist = invlist->next->next;
+    }
+  xmlindent--;
+  xmlPrint ("</inversekeyfunctions>");
 }
 
 //! Show initial knowledge

@@ -119,7 +119,7 @@ specialTermInit (const System sys)
   langcons (TERM_PK, "pk", TERM_Function);
   langcons (TERM_SK, "sk", TERM_Function);
   langcons (TERM_K, "k", TERM_Function);
-  knowledgeAddInverse (sys->know, TERM_PK, TERM_SK);
+  knowledgeAddInverseKeyFunctions (sys->know, TERM_PK, TERM_SK);
   knowledgeAddTerm (sys->know, TERM_PK);
 
   /* Define a prefix for labels for the match function */

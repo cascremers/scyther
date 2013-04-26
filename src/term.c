@@ -84,6 +84,9 @@ makeTerm ()
 
 //! Create a fresh encrypted term from two existing terms.
 /**
+ * The first argument is the message,
+ * the second argument is the key.
+ *
  *@return A pointer to the new term.
  */
 Term
@@ -92,9 +95,30 @@ makeTermEncrypt (Term t1, Term t2)
   Term term = makeTerm ();
   term->type = ENCRYPT;
   term->stype = NULL;
+  term->helper.fcall = false;
+  term->subst = NULL;
   TermOp (term) = t1;
   TermKey (term) = t2;
   return term;
+}
+
+Term
+makeTermFcall (Term t1, Term t2)
+//! Create a fresh function application term from two existing terms.
+/**
+ * The first argument is the function argument,
+ * the second argument is the function (name).
+ *
+ * These behave like encryptions in most cases.
+ *
+ *@return A pointer to the new term.
+ */
+{
+  Term t;
+
+  t = makeTermEncrypt (t1, t2);
+  t->helper.fcall = true;
+  return t;
 }
 
 //! Create a fresh term tuple from two existing terms.
@@ -128,7 +152,8 @@ makeTermTuple (Term t1, Term t2)
   tt = makeTerm ();
   tt->type = TUPLE;
   tt->stype = NULL;
-  tt->roleVar = 0;
+  tt->helper.roleVar = 0;
+  tt->subst = NULL;
   TermOp1 (tt) = t1;
   TermOp2 (tt) = t2;
   return tt;
@@ -145,7 +170,16 @@ makeTermType (const int type, const Symbol symb, const int runid)
   Term term = makeTerm ();
   term->type = type;
   term->stype = NULL;
-  term->roleVar = 0;
+  if ((type == ENCRYPT) || (type == TUPLE))
+    {
+      // Non-leaf
+      term->helper.fcall = false;
+    }
+  else
+    {
+      // Leaf
+      term->helper.roleVar = 0;
+    }
   term->subst = NULL;
   TermSymb (term) = symb;
   TermRunid (term) = runid;
@@ -381,8 +415,7 @@ termPrintCustom (Term term, char *leftvar, char *rightvar, char *lefttup,
     }
   if (realTermEncrypt (term))
     {
-      if (isTermLeaf (TermKey (term))
-	  && inTermlist (TermKey (term)->stype, TERM_Function))
+      if (term->helper.fcall)
 	{
 	  /* function application */
 	  termPrintCustom (TermKey (term), leftvar, rightvar, lefttup,
@@ -695,8 +728,12 @@ termRunid (Term term, int runid)
       /* anything else, recurse */
       if (realTermEncrypt (term))
 	{
-	  return makeTermEncrypt (termRunid (TermOp (term), runid),
-				  termRunid (TermKey (term), runid));
+	  Term t;
+
+	  t = makeTermEncrypt (termRunid (TermOp (term), runid),
+			       termRunid (TermKey (term), runid));
+	  t->helper.fcall = term->helper.fcall;
+	  return t;
 	}
       else
 	{
@@ -1159,22 +1196,23 @@ term_encryption_level (const Term term)
       }
     else
       {
+	int l, r;
+
 	if (realTermTuple (t))
 	  {
-	    int l, r;
-
 	    l = iter_maxencrypt (TermOp1 (t));
 	    r = iter_maxencrypt (TermOp2 (t));
-	    if (l > r)
-	      return l;
-	    else
-	      return r;
 	  }
 	else
 	  {
 	    // encrypt
-	    return 1 + iter_maxencrypt (TermOp (t));
+	    l = 1 + iter_maxencrypt (TermOp (t));
+	    r = iter_maxencrypt (TermKey (t));
 	  }
+	if (l > r)
+	  return l;
+	else
+	  return r;
       }
   }
 
@@ -1418,9 +1456,9 @@ Term
 getTermFunction (Term t)
 {
   t = deVar (t);
-  if (t != NULL)
+  if (realTermEncrypt (t))
     {
-      if (realTermEncrypt (t) && isTermFunctionName (TermKey (t)))
+      if (t->helper.fcall)
 	{
 	  return TermKey (t);
 	}
