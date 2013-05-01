@@ -60,7 +60,11 @@ def sorted(li):
 def mypath(file):
     """ Construct a file path relative to the scyther-gui main directory
     """
-    basedir = os.path.dirname(__file__)
+    import os, inspect
+
+    # Determine base directory (taking symbolic links into account)
+    cmd_file = os.path.realpath(os.path.abspath(inspect.getfile( inspect.currentframe() )))
+    basedir = os.path.split(cmd_file)[0]
     return os.path.join(basedir,file)
 
 # commands: push data in, get fp.write out

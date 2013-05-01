@@ -103,7 +103,9 @@ def ensurePath(pt):
 def mypath(file):
     """ Construct a file path relative to the scyther-gui main directory
     """
-    basedir = os.path.dirname(__file__)
+    # Determine base directory (taking symbolic links into account)
+    cmd_file = os.path.realpath(os.path.abspath(inspect.getfile( inspect.currentframe() )))
+    basedir = os.path.split(cmd_file)[0]
     return os.path.join(basedir,file)
 
 def getShell():

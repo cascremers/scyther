@@ -179,11 +179,15 @@ def isSplashNeeded(opts):
 
 class ScytherApp(wx.App):
     def OnInit(self):
+        import os, inspect
 
         wx.GetApp().SetAppName("Scyther-gui")
 
+        # Determine base directory (taking symbolic links into account)
+        cmd_file = os.path.realpath(os.path.abspath(inspect.getfile( inspect.currentframe() )))
+        basedir = os.path.split(cmd_file)[0]
+
         # Parse arguments
-        basedir = os.path.abspath(os.path.dirname(sys.argv[0]))
         (opts,args) = parseArgs()
 
         # License option may abort here
