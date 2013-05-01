@@ -35,7 +35,12 @@ import Misc
 
 def ScytherIcon(window):
         """ Set a nice Scyther icon """
-        basedir = os.path.abspath(os.path.dirname(sys.argv[0]))
+        import os,inspect
+
+        # Determine base directory (taking symbolic links into account)
+        cmd_file = os.path.realpath(os.path.abspath(inspect.getfile( inspect.currentframe() )))
+        basedir = os.path.split(cmd_file)[0]
+
         path = os.path.join(basedir,"Images")
         iconfile = Misc.mypath(os.path.join(path,"scyther-gui-32.ico"))
         if os.path.isfile(iconfile):
