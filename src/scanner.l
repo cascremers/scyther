@@ -171,6 +171,7 @@ claim		{ return CLAIMT; }
 run		{ return RUN; }
 secret		{ return SECRET; }
 inversekeys	{ return INVERSEKEYS; }
+inversekeyfunctions	{ return INVERSEKEYFUNCTIONS; }
 untrusted	{ return UNTRUSTED; }
 compromised	{ return COMPROMISED; }
 usertype	{ return USERTYPE; }

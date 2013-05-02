@@ -69,7 +69,6 @@ Termlist termlistAddBasic (Termlist tl, Term t);
 Termlist termlistAddBasics (Termlist tl, Termlist scan);
 Termlist termlistMinusTerm (Termlist tl, Term t);
 int termlistLength (Termlist tl);
-Term inverseKey (Termlist inverses, Term key);
 Term termLocal (const Term t, Termlist fromlist, Termlist tolist);
 Termlist termlistLocal (Termlist tl, const Termlist fromlist,
 			const Termlist tolist);

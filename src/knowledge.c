@@ -30,19 +30,10 @@
 #include "system.h"
 #include "debug.h"
 #include "error.h"
+#include "specialterm.h"
 
 /*
  * Knowledge stuff
- *
- * Note that a really weird thing is going on involving unpropagated substitutions.
- * Idea:
- *
- * 1. Substitute terms by filling in ->subst.
- * Now, either:
- * 2a. Undo this by knowledgeUndo.
- * 2b. Propagate it, modifying the knowledge beyond repair by knowledgeSubstDo. Now inKnowledge works again.
- * 2c. inKnowledge/knowledgeSet if something is in the knowledge: this does not consider the substitutions!, and 
- *     they now have some overhead.
  */
 
 //! Open knowledge code.
@@ -81,7 +72,8 @@ emptyKnowledge ()
   know = makeKnowledge ();
   know->basic = NULL;
   know->encrypt = NULL;
-  know->inverses = NULL;
+  know->inversekeys = NULL;
+  know->inversekeyfunctions = NULL;
   know->vars = NULL;
   know->publicfunctions = NULL;
   return know;
@@ -110,7 +102,8 @@ knowledgeDuplicate (Knowledge know)
   newknow->basic = termlistShallow (know->basic);
   newknow->encrypt = termlistShallow (know->encrypt);
   newknow->vars = termlistShallow (know->vars);
-  newknow->inverses = know->inverses;
+  newknow->inversekeys = know->inversekeys;
+  newknow->inversekeyfunctions = know->inversekeyfunctions;
   newknow->publicfunctions = termlistShallow (know->publicfunctions);
   return newknow;
 }
@@ -147,7 +140,8 @@ knowledgeDestroy (Knowledge know)
       termlistDestroy (know->basic);
       termlistDestroy (know->encrypt);
       termlistDestroy (know->vars);
-      // termlistDestroy(know->inverses);
+      // termlistDestroy(know->inversekeys);
+      // termlistDestroy(know->inversekeyfunctions);
       termlistDestroy (know->publicfunctions);
       free (know);
     }
@@ -195,7 +189,7 @@ knowledgeAddTerm (Knowledge know, Term term)
     }
   if (term->type == ENCRYPT)
     {
-      Term invkey = inverseKey (know->inverses, TermKey (term));
+      Term invkey = inverseKey (know, TermKey (term));
       if (inKnowledge (know, invkey))
 	{
 	  /* we can decrypt it */
@@ -227,7 +221,7 @@ knowledgeSimplify (Knowledge know, Term key)
 {
   Termlist tldecrypts = NULL;
   Termlist scan = know->encrypt;
-  Term invkey = inverseKey (know->inverses, key);
+  Term invkey = inverseKey (know, key);
 
   while (scan != NULL)
     {
@@ -266,21 +260,18 @@ knowledgeAddTermlist (Knowledge know, Termlist tl)
 
 //! Add an inverse pair to the knowledge
 void
-knowledgeAddInverse (Knowledge know, Term t1, Term t2)
+knowledgeAddInverseKeys (Knowledge know, Term t1, Term t2)
 {
-  know->inverses = termlistAdd (know->inverses, t1);
-  know->inverses = termlistAdd (know->inverses, t2);
-  return;
+  know->inversekeys = termlistAdd (know->inversekeys, t1);
+  know->inversekeys = termlistAdd (know->inversekeys, t2);
 }
 
-//! Set an inverse pair list for the knowledge.
-/**
- * List pointer is simply copied, so don't delete it later!
- */
+//! Add an inverse pair to the knowledge
 void
-knowledgeSetInverses (Knowledge know, Termlist tl)
+knowledgeAddInverseKeyFunctions (Knowledge know, Term t1, Term t2)
 {
-  know->inverses = tl;
+  know->inversekeyfunctions = termlistAdd (know->inversekeyfunctions, t1);
+  know->inversekeyfunctions = termlistAdd (know->inversekeyfunctions, t2);
 }
 
 //! Is a term a part of the knowledge?
@@ -342,8 +333,14 @@ knowledgePrint (Knowledge know)
   eprintf (" [Vars]: ");
   termlistPrint (know->vars);
   eprintf ("\n");
-  eprintf (" [Inverses]: ");
-  termlistPrint (know->inverses);
+  eprintf (" [Inversekeys]: ");
+  termlistPrint (know->inversekeys);
+  eprintf ("\n");
+  eprintf (" [Inversekeyfunctions]: ");
+  termlistPrint (know->inversekeyfunctions);
+  eprintf ("\n");
+  eprintf (" [Publicfunctions]: ");
+  termlistPrint (know->publicfunctions);
   eprintf ("\n");
 }
 
@@ -372,43 +369,6 @@ knowledgePrintShort (const Knowledge know)
     }
 }
 
-//! Print the inverses list of a knowledge set.
-void
-knowledgeInversesPrint (Knowledge know)
-{
-  Termlist tl;
-  int after = 0;
-
-  if (know == NULL)
-    {
-      eprintf ("Empty knowledge.");
-      return;
-    }
-
-  tl = knowledgeGetInverses (know);
-  if (tl == NULL)
-    {
-      eprintf ("None.");
-    }
-  else
-    {
-      while (tl != NULL && tl->next != NULL)
-	{
-	  if (after)
-	    {
-	      eprintf (",");
-	    }
-	  eprintf ("(");
-	  termPrint (tl->term);
-	  eprintf (",");
-	  termPrint (tl->next->term);
-	  eprintf (")");
-	  after = 1;
-	  tl = tl->next->next;
-	}
-    }
-}
-
 //! Yield the set of representatives for the knowledge.
 /**
  * Note: this is a shallow copy, and needs to be termlistDelete'd.
@@ -429,19 +389,6 @@ int
 inKnowledgeSet (const Knowledge know, Term t)
 {
   return (inTermlist (know->basic, t) || inTermlist (know->encrypt, t));
-}
-
-//! Get the inverses pointer of the knowledge.
-/**
- * Essentially the inverse function of knowledgeSetInverses()
- */
-Termlist
-knowledgeGetInverses (const Knowledge know)
-{
-  if (know == NULL)
-    return NULL;
-  else
-    return know->inverses;
 }
 
 //! check whether any substitutions where made in a knowledge set.
@@ -468,37 +415,6 @@ knowledgeSubstNeeded (const Knowledge know)
   return 0;
 }
 
-//! Reconstruct a knowledge set.
-/**
- * This is useful after e.g. substitutions.
- * Just rebuilds the knowledge in a new (shallow) copy.
- *@return The pointer to the new knowledge.
- *\sa knowledgeSubstNeeded()
- */
-Knowledge
-knowledgeReconstruction (const Knowledge know)
-{
-  Knowledge newknow = emptyKnowledge ();
-
-  newknow->inverses = know->inverses;
-  knowledgeAddTermlist (newknow, know->basic);
-  knowledgeAddTermlist (newknow, know->encrypt);
-  return newknow;
-}
-
-//! Propagate any substitutions just made.
-/**
- * This usually involves reconstruction of the complete knowledge, which is
- * 'cheaper' than a thorough analysis, so we always make a copy.
- *\sa knowledgeReconstruction()
- */
-Knowledge
-knowledgeSubstDo (const Knowledge know)
-{
-  /* otherwise a copy (for deletion) is returned. */
-  return knowledgeReconstruction (know);
-}
-
 //! Add public function
 void
 knowledgeAddPublicFunction (const Knowledge know, const Term f)
@@ -512,4 +428,64 @@ int
 isKnowledgePublicFunction (const Knowledge know, const Term f)
 {
   return inTermlist (know->publicfunctions, f);
+}
+
+//! Give the inverse key term of a term.
+/**
+ * Gives a duplicate of the inverse Key of some term (which is used to encrypt something), as is defined
+ * by the termlist, which is a list of key1,key1inv, key2, key2inv, etc...
+ *@param inverses The list of inverses, typically from the knowledge.
+ *@param key Any term of which the inverse will be determined.
+ *@return A pointer to a duplicate of the inverse key term. Use termDelete to remove it.
+ *\sa termDuplicate(), knowledge::inverses
+ */
+
+Term
+inverseKey (Knowledge know, Term key)
+{
+  Term f;
+
+  key = deVar (key);
+
+  /* inverse key function? */
+  f = getTermFunction (key);
+  if (f != NULL)
+    {
+      Termlist tl;
+
+      Term funKey (Term orig, Term f)
+      {
+	/* in: f'{op}, f
+	 * out: f{op'} */
+	return makeTermFcall (termDuplicate (TermOp (orig)),
+			      termDuplicate (f));
+      }
+
+      tl = know->inversekeyfunctions;
+      while (tl != NULL && tl->next != NULL)
+	{
+	  if (isTermEqual (TermKey (key), tl->term))
+	    return funKey (key, tl->next->term);
+	  if (isTermEqual (TermKey (key), tl->next->term))
+	    return funKey (key, tl->term);
+	  tl = tl->next->next;
+	}
+    }
+  else
+    {
+      /* scanning for a direct inverse */
+      Termlist tl;
+
+      /* scan the list */
+      tl = know->inversekeys;
+      while (tl != NULL && tl->next != NULL)
+	{
+	  if (isTermEqual (key, tl->term))
+	    return termDuplicate (tl->next->term);
+	  if (isTermEqual (key, tl->next->term))
+	    return termDuplicate (tl->term);
+	  tl = tl->next->next;
+	}
+    }
+  return termDuplicate (key);	/* defaults to symmetrical */
 }

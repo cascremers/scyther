@@ -48,7 +48,11 @@ struct term
   //! Data Type termlist (e.g. agent or nonce)
   /** Only for leaves. */
   void *stype;			// list of types
-  int roleVar;			//!< only for leaf, arachne engine: role variable flag
+  union
+  {
+    int roleVar;		//!< only for leaf, arachne engine: role variable flag
+    int fcall;			//!< only for 'encryption' to mark actual function call f(t)
+  } helper;
 
   //! Substitution term.
   /**
@@ -97,6 +101,7 @@ typedef struct term *Term;
 void termsInit (void);
 void termsDone (void);
 Term makeTermEncrypt (Term t1, Term t2);
+Term makeTermFcall (Term t1, Term t2);
 Term makeTermTuple (Term t1, Term t2);
 Term makeTermType (const int type, const Symbol symb, const int runid);
 __inline__ Term deVarScan (Term t);

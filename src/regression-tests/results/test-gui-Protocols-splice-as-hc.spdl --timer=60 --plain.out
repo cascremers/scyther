@@ -1,6 +1,6 @@
-claim	spliceAS-HC,I	Secret_7	N2	Ok	[no attack within bounds]
+claim	spliceAS-HC,I	Secret_7	N2	Fail	[at least 4 attacks]
 claim	spliceAS-HC,I	Niagree_9	-	Fail	[at least 1 attack]
 claim	spliceAS-HC,I	Nisynch_10	-	Fail	[at least 1 attack]
-claim	spliceAS-HC,R	Secret_8	N2	Ok	[no attack within bounds]
+claim	spliceAS-HC,R	Secret_8	N2	Fail	[at least 3 attacks]
 claim	spliceAS-HC,R	Niagree_11	-	Fail	[at least 2 attacks]
 claim	spliceAS-HC,R	Nisynch_12	-	Fail	[at least 2 attacks]

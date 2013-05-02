@@ -24,6 +24,7 @@
 #include "debug.h"
 #include "error.h"
 #include "switches.h"
+#include "knowledge.h"
 
 /*
  * Shared stuff
@@ -698,68 +699,6 @@ termlistLength (Termlist tl)
       i++;
     }
   return i;
-}
-
-//! Give the inverse key term of a term.
-/**
- * Gives a duplicate of the inverse Key of some term (which is used to encrypt something), as is defined
- * by the termlist, which is a list of key1,key1inv, key2, key2inv, etc...
- *@param inverses The list of inverses, typically from the knowledge.
- *@param key Any term of which the inverse will be determined.
- *@return A pointer to a duplicate of the inverse key term. Use termDelete to remove it.
- *\sa termDuplicate(), knowledge::inverses
- */
-
-Term
-inverseKey (Termlist inverses, Term key)
-{
-  key = deVar (key);
-
-  /* is this a function application? i.e. hash? */
-  if (isTermLeaf (key) && inTermlist (key->stype, TERM_Function))
-    {
-      /* functions cannot be inverted by default */
-      return termDuplicate (TERM_Hidden);
-    }
-  /* check for the special case first: when it is effectively a function application  */
-  if (isTermEncrypt (key) && isTermLeaf (TermKey (key))
-      && inTermlist (deVar (TermKey (key))->stype, TERM_Function))
-    {
-      /* we are scanning for functions */
-      /* scan the list */
-      /* key is function application kk(op), or {op}kk */
-      Term funKey (Term orig, Term newk)
-      {
-	/* in: {op}kk, nk
-	 * out: {op'}nk */
-	return makeTermEncrypt (termDuplicate (TermOp (orig)),
-				termDuplicate (newk));
-      }
-      while (inverses != NULL && inverses->next != NULL)
-	{
-
-	  if (isTermEqual (TermKey (key), inverses->term))
-	    return funKey (key, inverses->next->term);
-	  if (isTermEqual (TermKey (key), inverses->next->term))
-	    return funKey (key, inverses->term);
-	  inverses = inverses->next->next;
-	}
-    }
-  else
-    {
-      /* scanning for a direct inverse */
-
-      /* scan the list */
-      while (inverses != NULL && inverses->next != NULL)
-	{
-	  if (isTermEqual (key, inverses->term))
-	    return termDuplicate (inverses->next->term);
-	  if (isTermEqual (key, inverses->next->term))
-	    return termDuplicate (inverses->term);
-	  inverses = inverses->next->next;
-	}
-    }
-  return termDuplicate (key);	/* defaults to symmetrical */
 }
 
 //! Create a term local to a run.

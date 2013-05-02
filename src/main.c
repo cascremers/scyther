@@ -152,9 +152,6 @@ main (int argc, char **argv)
       termlistPrint (sys->untrusted);
       printf ("\n");
       knowledgePrint (sys->know);
-      printf ("inverses: ");
-      knowledgeInversesPrint (sys->know);
-      printf ("\n");
       locVarPrint (sys->locals);
       protocolsPrint (sys->protocols);
 
