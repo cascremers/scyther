@@ -1,0 +1,6 @@
+claim	kaochow,I	Nisynch_I1	-	Fail	[at least 2 attacks]
+claim	kaochow,I	Niagree_I2	-	Fail	[at least 2 attacks]
+claim	kaochow,I	Secret_I3	kir	Ok	[no attack within bounds]
+claim	kaochow,R	Nisynch_R1	-	Fail	[at least 2 attacks]
+claim	kaochow,R	Niagree_R2	-	Fail	[at least 2 attacks]
+claim	kaochow,R	Secret_R3	kir	Ok	[no attack within bounds]

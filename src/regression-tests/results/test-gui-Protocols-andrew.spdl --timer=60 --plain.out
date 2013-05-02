@@ -1,0 +1,6 @@
+claim	andrew,I	Secret_I1	kir	Ok	[no attack within bounds]
+claim	andrew,I	Nisynch_I2	-	Fail	[at least 1 attack]
+claim	andrew,I	Niagree_I3	-	Fail	[at least 1 attack]
+claim	andrew,R	Secret_R1	kir	Ok	[no attack within bounds]
+claim	andrew,R	Nisynch_R2	-	Ok	[no attack within bounds]
+claim	andrew,R	Niagree_R3	-	Ok	[no attack within bounds]

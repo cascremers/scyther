@@ -1,0 +1,4 @@
+claim	andrew-Concrete,I	Secret_I1	kir	Ok	[no attack within bounds]
+claim	andrew-Concrete,I	Nisynch_I2	-	Fail	[at least 1 attack]
+claim	andrew-Concrete,R	Secret_R1	kir	Ok	[no attack within bounds]
+claim	andrew-Concrete,R	Nisynch_R2	-	Fail	[at least 1 attack]

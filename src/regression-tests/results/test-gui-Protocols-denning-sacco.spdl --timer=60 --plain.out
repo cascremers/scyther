@@ -1,0 +1,6 @@
+claim	denningSacco,I	Niagree_I1	-	Ok	[no attack within bounds]
+claim	denningSacco,I	Nisynch_I2	-	Fail	[at least 1 attack]
+claim	denningSacco,I	Secret_I3	Kir	Ok	[no attack within bounds]
+claim	denningSacco,R	Niagree_R1	-	Ok	[no attack within bounds]
+claim	denningSacco,R	Nisynch_R2	-	Fail	[at least 1 attack]
+claim	denningSacco,R	Secret_R3	Kir	Ok	[no attack within bounds]

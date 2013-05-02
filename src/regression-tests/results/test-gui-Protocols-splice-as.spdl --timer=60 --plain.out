@@ -1,0 +1,6 @@
+claim	spliceAS,I	Secret_7	N2	Ok	[no attack within bounds]
+claim	spliceAS,I	Niagree_9	-	Fail	[at least 1 attack]
+claim	spliceAS,I	Nisynch_10	-	Fail	[at least 1 attack]
+claim	spliceAS,R	Secret_8	N2	Ok	[no attack within bounds]
+claim	spliceAS,R	Niagree_11	-	Fail	[at least 2 attacks]
+claim	spliceAS,R	Nisynch_12	-	Fail	[at least 2 attacks]

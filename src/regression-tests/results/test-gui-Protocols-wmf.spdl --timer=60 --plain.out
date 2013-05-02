@@ -1,0 +1,3 @@
+claim	wmf,I	Secret_I1	Kir	Ok	[no attack within bounds]
+claim	wmf,R	Secret_R1	Kir	Ok	[no attack within bounds]
+claim	wmf,R	Nisynch_R2	-	Fail	[at least 3 attacks]

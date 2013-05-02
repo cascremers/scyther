@@ -1,0 +1,6 @@
+claim	ccitt509-3,I	Nisynch_I1	-	Ok	[proof of correctness]
+claim	ccitt509-3,I	Secret_I2	Ya	Ok	[proof of correctness]
+claim	ccitt509-3,I	Secret_I3	Yb	Ok	[proof of correctness]
+claim	ccitt509-3,R	Nisynch_R1	-	Fail	[at least 3 attacks]
+claim	ccitt509-3,R	Secret_R2	Ya	Ok	[no attack within bounds]
+claim	ccitt509-3,R	Secret_R3	Yb	Ok	[no attack within bounds]

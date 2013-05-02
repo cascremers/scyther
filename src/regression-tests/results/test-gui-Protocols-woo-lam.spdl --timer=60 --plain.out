@@ -1,0 +1,4 @@
+claim	woolam,I	SKR_I1	Kir	Ok	[no attack within bounds]
+claim	woolam,I	Nisynch_I2	-	Fail	[at least 2 attacks]
+claim	woolam,R	SKR_R1	Kir	Ok	[no attack within bounds]	time=60
+claim	woolam,R	Nisynch_R2	-	Ok	[does not occur]	time=60
