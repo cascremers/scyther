@@ -370,7 +370,7 @@ class TermVariable(Term):
     
     def leaves(self):
         if self.value == None:
-            return self
+            return [self]
         else:
             return self.value.leaves()
     
