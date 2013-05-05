@@ -20,8 +20,23 @@
 # 2.   lines with macros contain nothing else
 # 3.   macros are defined on a single line
 #
+import sys
+from optparse import OptionParser
+
 CPPDEF = "#define"
 
+def parseArgs():
+    usage = "usage: %s [options] [inputfiles]" % sys.argv[0]
+    description = "cpp2macro.py is a program to convert scyther spdl descriptions specified as .cpp files into pure .spdl files."
+    parser = OptionParser(usage=usage,description=description)
+
+    # command
+    parser.add_option("-R","--replace",dest="replace",default=False,action="store_true",
+            help="By default we generate .mspdl files. If this option is specified, we generate .spdl files and overwrite any existing ones.")
+    parser.add_option("-G","--git",dest="git",default=False,action="store_true",
+            help="Try to propagate changes to git by performing 'git rm X.cpp' and 'git add X.spdl'. Implies '--replace'.")
+
+    return parser.parse_args()
 
 def tempName(ext=""):
 
@@ -307,6 +322,7 @@ def checkSameResult(fncpp,fnspdl):
     import subprocess
     import os.path
 
+    result = False
     out = subprocess.check_output(["cpp",fncpp])
 
     fn = tempName("checksame-"+ os.path.basename(fncpp))
@@ -318,24 +334,18 @@ def checkSameResult(fncpp,fnspdl):
     if x:
         print "Ok."
         #print "The spdl file %s yields the same result as running cpp on the original file %s." % (fnspdl,fncpp)
+        result = True
     else:
         print "Mismatch!"
         print "The spdl file %s does not yield the same result as running cpp on the original file %s." % (fnspdl,fncpp)
 
     tf.close()
+    return result
 
 
-
-def main():
-    import sys
-    import subprocess
+def convertOne(opts,fn):
     import os.path
-
-    fn = None
-    if len(sys.argv) > 1:
-        fn = sys.argv[1]
-    else:
-        fn = "TLS-DH-attack.cpp"
+    import subprocess
 
     i = fn.rfind(".")
     if i >= 0:
@@ -384,14 +394,64 @@ def main():
         fp.write(l)
     fp.close()
 
-
+    result = False
     try:
-        checkSameResult(fn1,fn2)
+        result = checkSameResult(fn1,fn2)
     except:
         print "Failed at comparing", fn1, "to", fn2
         pass
 
     fp.close()
+
+    if result and opts.replace:
+        # Move fn2 to the .spdl file.
+        oldext = ".mspdl"
+        newext = ".spdl"
+        if fn2.endswith(oldext):
+            dest = fn2[:-len(oldext)] + newext
+            subprocess.check_call(["mv",fn2,dest])
+
+            if opts.git:
+                # Propagate to git
+                subprocess.check_call(["git","rm",fn])
+                subprocess.check_call(["git","add",dest])
+
+    return result
+
+
+def main():
+
+    # Parse arguments
+    (opts,args) = parseArgs()
+
+    # Git switch implies replace
+    if opts.git:
+        opts.replace = True
+
+    good = []
+    bad = []
+    for fn in args:
+        res = False
+        try:
+            res = convertOne(opts,fn)
+        except:
+            res = False
+            pass
+
+        if res:
+            good.append(fn)
+        else:
+            bad.append(fn)
+
+    if opts.replace:
+        action = "replacement"
+    else:
+        action = "conversion"
+
+    print "Successful %s: %s" % (action, good)
+    if len(bad) > 0:
+        print "Failed %s: %s" % (action, bad)
+
 
 
 if __name__ == '__main__':
