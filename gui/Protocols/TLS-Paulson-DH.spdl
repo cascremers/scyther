@@ -11,12 +11,13 @@
  * This allows for macro expansion, as seen in the next part.
  *
  */
-#define CERT(a) { a,pk(a) }sk(Terence)
-#define MSG a,na,sid,pa,pb,nb,sid,pb,CERT(a),CERT(b),{pms}pk(b) 
-#define M hash(pms,na,nb)
-#define F hash(M,MSG)
-#define CLIENTK hash(sid,M,na,pa,a,nb,pb,b,false)
-#define SERVERK hash(sid,M,na,pa,a,nb,pb,b,true)
+macro CERT-b = { b,pk(b) }sk(Terence);
+macro CERT-a = { a,pk(a) }sk(Terence);
+macro MSG = a,na,sid,pa,pb,nb,sid,pb,CERT-a,CERT-b,{pms}pk(b);
+macro M = hash(pms,na,nb);
+macro F = hash(M,MSG);
+macro CLIENTK = hash(sid,M,na,pa,a,nb,pb,b,false);
+macro SERVERK = hash(sid,M,na,pa,a,nb,pb,b,true);
 
 usertype Params, Bool, SessionID;
 
@@ -41,8 +42,8 @@ protocol tlspaulson-DH(a,b)
 
 		send_1( a,b, a,na,sid,pa );
 		recv_2( b,a, nb,sid,pb );
-		recv_3( b,a, CERT(b) );
-		send_4( a,b, CERT(a) );
+		recv_3( b,a, CERT-b );
+		send_4( a,b, CERT-a );
 		send_5( a,b, { pms }pk(b) );
 		send_6( a,b, { hash(nb,b,pms) }sk(a) );
 		send_7( a,b, { F }CLIENTK );
@@ -63,8 +64,8 @@ protocol tlspaulson-DH(a,b)
 
 		recv_1( a,b, a,na,sid,pa );
 		send_2( b,a, nb,sid,pb );
-		send_3( b,a, CERT(b) );
-		recv_4( a,b, CERT(a) );
+		send_3( b,a, CERT-b );
+		recv_4( a,b, CERT-a );
 		recv_5( a,b, { pms }pk(b) );
 		recv_6( a,b, { hash(nb,b,pms) }sk(a) );
 		recv_7( a,b, { F }CLIENTK );

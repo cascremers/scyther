@@ -1,8 +1,23 @@
-# 1 "naxos-C.cpp"
-# 1 "<built-in>"
-# 1 "<command-line>"
-# 1 "naxos-C.cpp"
-# 21 "naxos-C.cpp"
+/* 
+ * NAXOS AKE (Authenticated Key Exchange) protocol
+ *
+ * From "Stronger Security of Authenticated Key Exchange"
+ * LaMacchia Lauter Mityagin 2006
+ *
+ * It's not really NAXOS in the sense that we don't have the group
+ * exponentiations. These are emulated by the exponentiation protocol,
+ * which simulates the g^ab = g^ba relation inside of the generated key
+ * term. This is of course an underapproximation of the algebraic
+ * properties but because we are here only looking for attacks, it seems
+ * to be no problem.
+ *
+ * Attacks:
+ * 
+ * For full-compromise (generated) and matching partners, we find
+ * attacks for both the initiator and responder roles.
+ */
+
+// Hash functions
 const h1,h2,g1,g2: Function;
 secret unh1,unh2,ung1,ung2: Function;
 hashfunction h3;
@@ -17,167 +32,168 @@ inversekeys (h2,unh2);
 inversekeys (g1,ung1);
 inversekeys (g2,ung2);
 
-
-
-
+/*
+ * Hack to simulate public knowledge of public keys.
+ */
 protocol @publickeys(PK)
 {
- role PK
- {
-  send_!1(PK,PK, g1(sk(PK)));
- }
+	role PK
+	{
+		send_!1(PK,PK, g1(sk(PK)));
+	}
 }
-
-
-
-
-
-
-
+		
+/*
+ * Hack to simulate g^ab = g^ba inside terms.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
 protocol @exponentiation(RA,RB,RC)
 {
- role RA
- {
-  var X,Y, T1,T2: Ticket;
+	role RA
+	{
+		var X,Y, T1,T2: Ticket;
 
-  recv_!1(RA,RA, h2(
-    g2(g1(X),Y),
-    T1, T2, RA,RB
-    ));
-  send_!2(RA,RA, h2(
-    g2(g1(Y),X),
-    T1, T2, RA,RB
-    ));
- }
- role RB
- {
-  var X,Y, T1,T2: Ticket;
+		recv_!1(RA,RA, h2(
+		  g2(g1(X),Y),
+		  T1, T2, RA,RB
+		  ));
+		send_!2(RA,RA, h2(
+		  g2(g1(Y),X),
+		  T1, T2, RA,RB
+		  ));
+	}
+	role RB
+	{
+		var X,Y, T1,T2: Ticket;
 
-  recv_!3(RB,RB, h2(
-    T1,
-    g2(g1(X),Y),
-    T2, RA,RB
-    ));
-  send_!4(RB,RB, h2(
-    T1,
-    g2(g1(Y),X),
-    T2, RA,RB
-    ));
- }
- role RC
- {
-  var X,Y, T1,T2: Ticket;
+		recv_!3(RB,RB, h2(
+		  T1,
+		  g2(g1(X),Y),
+		  T2, RA,RB
+		  ));
+		send_!4(RB,RB, h2(
+		  T1,
+		  g2(g1(Y),X),
+		  T2, RA,RB
+		  ));
+	}
+	role RC
+	{
+		var X,Y, T1,T2: Ticket;
 
-  recv_!5(RC,RC, h2(
-    T1, T2,
-    g2(g1(X),Y),
-    RA,RB
-    ));
-  send_!6(RC,RC, h2(
-    T1, T2,
-    g2(g1(Y),X),
-    RA,RB
-    ));
- }
+		recv_!5(RC,RC, h2(
+		  T1, T2,
+		  g2(g1(X),Y),
+		  RA,RB
+		  ));
+		send_!6(RC,RC, h2(
+		  T1, T2,
+		  g2(g1(Y),X),
+		  RA,RB
+		  ));
+	}
 }
 
 protocol @keysymmetry(R1,R2,R3)
 {
- role R1
- {
-  var Y,X: Ticket;
-  var Z1,Z2: Ticket;
+	role R1
+	{
+		var Y,X: Ticket;
+		var Z1,Z2: Ticket;
 
-  recv_!1(R1,R1, h2(
-   g2(g1(Y),X),
-   Z1,Z2,
-   R1,R2));
-  send_!2(R1,R1, h2(
-   g2(g1(X),Y),
-   Z1,Z2,
-   R1,R2));
- }
- role R2
- {
-  var Y,X: Ticket;
-  var Z1,Z2: Ticket;
+		recv_!1(R1,R1, h2( 
+			g2(g1(Y),X),
+			Z1,Z2,
+			R1,R2));
+		send_!2(R1,R1, h2( 
+			g2(g1(X),Y), 
+			Z1,Z2,
+			R1,R2));
+	}
+	role R2
+	{
+		var Y,X: Ticket;
+		var Z1,Z2: Ticket;
 
-  recv_!4(R2,R2, h2(
-   Z1,
-   g2(g1(Y),X),
-   Z2,
-   R2,R3));
-  send_!5(R2,R2, h2(
-   Z1,
-   g2(g1(X),Y),
-   Z2,
-   R2,R3));
- }
- role R3
- {
-  var Y,X: Ticket;
-  var Z1,Z2: Ticket;
+		recv_!4(R2,R2, h2( 
+			Z1,
+			g2(g1(Y),X),
+			Z2,
+			R2,R3));
+		send_!5(R2,R2, h2( 
+			Z1,
+			g2(g1(X),Y), 
+			Z2,
+			R2,R3));
+	}
+	role R3
+	{
+		var Y,X: Ticket;
+		var Z1,Z2: Ticket;
 
-  recv_!5(R3,R3, h2(
-   g2(g1(Y),X),
-   Z1,
-   Z2,
-   R3,R1));
-  send_!6(R3,R3, h2(
-   g2(g1(X),Y),
-   Z1,
-   Z2,
-   R3,R1));
- }
+		recv_!5(R3,R3, h2( 
+			g2(g1(Y),X),
+			Z1,
+			Z2,
+			R3,R1));
+		send_!6(R3,R3, h2( 
+			g2(g1(X),Y), 
+			Z1,
+			Z2,
+			R3,R1));
+	}
 }
 
-
+// The protocol description
 
 protocol naxos-C(I,R)
 {
- role I
- {
-  fresh eskI: Nonce;
-  var YI: Ticket;
+	role I
+	{
+		fresh eskI: Nonce;
+		var YI: Ticket;
 
+macro xI = h1(eskI,sk(I));
+macro XI = g1(xI);
+		send_!1(I,R, XI );
 
+macro kbaseI = I,R,XI,YI,g2(YI,sk(I)),g2(g1(sk(R)),xI),g2(YI,xI);
+macro kI = h2(kbaseI);
+macro kprimeI = h2prime(kbaseI);
+macro tAI = h3(kprimeI,INIT,I,R,XI,YI);
+macro tBI = h3(kprimeI,RESP,R,I,YI,XI);
 
-  send_!1(I,R, g1(h1(eskI,sk(I))) );
+		recv_!2(R,I, YI, tBI);
+		claim(I,SID,(XI,YI));
 
+		send_!3(I,R, XI,YI,tBI,tAI);
 
+		claim(I,SKR,kI);
+	}	
+	
+	role R
+	{
+		fresh eskR: Nonce;
+		var XR: Ticket;
 
+macro yR = h1(eskR,sk(R));
+macro YR = g1(yR);
+		recv_!1(I,R, XR );
+		claim(R,SID,(XR,YR));
 
+macro kbaseR = I,R,XR,YR,g2(g1(sk(I)),yR),g2(XR,sk(R)),g2(XR,yR);
+macro kR = h2(kbaseR);
+macro kprimeR = h2prime(kbaseR);
+macro tAR = h3(kprimeR,INIT,I,R,XR,YR);
+macro tBR = h3(kprimeR,RESP,R,I,YR,XR);
 
+		send_!2(R,I, YR, tBR);
 
+		recv_!3(I,R, XR, YR, tBR, tAR);
 
-  recv_!2(R,I, YI, h3(h2prime(I,R,g1(h1(eskI,sk(I))),YI,g2(YI,sk(I)),g2(g1(sk(R)),h1(eskI,sk(I))),g2(YI,h1(eskI,sk(I)))),RESP,R,I,YI,g1(h1(eskI,sk(I)))));
-  claim(I,SID,(g1(h1(eskI,sk(I))),YI));
-
-  send_!3(I,R, g1(h1(eskI,sk(I))),YI,h3(h2prime(I,R,g1(h1(eskI,sk(I))),YI,g2(YI,sk(I)),g2(g1(sk(R)),h1(eskI,sk(I))),g2(YI,h1(eskI,sk(I)))),RESP,R,I,YI,g1(h1(eskI,sk(I)))),h3(h2prime(I,R,g1(h1(eskI,sk(I))),YI,g2(YI,sk(I)),g2(g1(sk(R)),h1(eskI,sk(I))),g2(YI,h1(eskI,sk(I)))),INIT,I,R,g1(h1(eskI,sk(I))),YI));
-
-  claim(I,SKR,h2(I,R,g1(h1(eskI,sk(I))),YI,g2(YI,sk(I)),g2(g1(sk(R)),h1(eskI,sk(I))),g2(YI,h1(eskI,sk(I)))));
- }
-
- role R
- {
-  fresh eskR: Nonce;
-  var XR: Ticket;
-
-
-
-  recv_!1(I,R, XR );
-  claim(R,SID,(XR,g1(h1(eskR,sk(R)))));
-
-
-
-
-
-
-
-  send_!2(R,I, g1(h1(eskR,sk(R))), h3(h2prime(I,R,XR,g1(h1(eskR,sk(R))),g2(g1(sk(I)),h1(eskR,sk(R))),g2(XR,sk(R)),g2(XR,h1(eskR,sk(R)))),RESP,R,I,g1(h1(eskR,sk(R))),XR));
-
-  recv_!3(I,R, XR, g1(h1(eskR,sk(R))), h3(h2prime(I,R,XR,g1(h1(eskR,sk(R))),g2(g1(sk(I)),h1(eskR,sk(R))),g2(XR,sk(R)),g2(XR,h1(eskR,sk(R)))),RESP,R,I,g1(h1(eskR,sk(R))),XR), h3(h2prime(I,R,XR,g1(h1(eskR,sk(R))),g2(g1(sk(I)),h1(eskR,sk(R))),g2(XR,sk(R)),g2(XR,h1(eskR,sk(R)))),INIT,I,R,XR,g1(h1(eskR,sk(R)))));
-
-  claim(R,SKR,h2(I,R,XR,g1(h1(eskR,sk(R))),g2(g1(sk(I)),h1(eskR,sk(R))),g2(XR,sk(R)),g2(XR,h1(eskR,sk(R)))));
- }
+		claim(R,SKR,kR);
+	}
 }
+

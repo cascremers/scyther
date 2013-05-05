@@ -1,12 +1,29 @@
-# 1 "FHMQV.cpp"
-# 1 "<built-in>"
-# 1 "<command-line>"
-# 1 "FHMQV.cpp"
 /* 
  * FHMQV two pass version
  *
  */
-# 27 "FHMQV.cpp"
+
+macro a = sk(I);
+macro A = exp(g1(a));
+macro b = sk(R);
+macro B = exp(g1(b));
+
+macro dA = H(g1(x),Y,I,R);
+macro eA = H(Y,g1(x),I,R);
+macro dB = H(X,g1(y),I,R);
+macro eB = H(g1(y),X,I,R);
+
+macro sA = add(x,mult(dA,a));
+macro baseA = mult(Y,exp(B,eA));
+macro sigmaA = exp(baseA,sA);
+macro keyA = KDF(sigmaA,I,R,g1(x),Y);
+
+macro sB = add(y,mult(eB,b));
+macro baseB = mult(X,exp(A,dB));
+macro sigmaB = exp(baseB,sB);
+macro keyB = KDF(sigmaB,I,R,X,g1(y));
+
+
 // Hash functions
 hashfunction h1,h2,g1,g2,KDF,LSB,H;
 
@@ -19,12 +36,12 @@ hashfunction mult,add,exp;
  */
 protocol @publickeys(PK)
 {
- role PK
- {
-  send_!1(PK,PK, g1(sk(PK)));
- }
+	role PK
+	{
+		send_!1(PK,PK, g1(sk(PK)));
+	}
 }
-
+		
 /*
  * Hack to simulate g^ab = g^ba inside terms.
  * '@' prefix of protocol name denotes helper protocol, which is used by
@@ -33,67 +50,67 @@ protocol @publickeys(PK)
  */
 protocol @exponentiation(RA,RB,RC)
 {
- role RA
- {
-  var X,Y, T1,T2: Ticket;
+	role RA
+	{
+		var X,Y, T1,T2: Ticket;
 
-  recv_!1(RA,RA, h2(
-    g2(g1(X),Y),
-    T1, T2, RA,RB
-    ));
-  send_!2(RA,RA, h2(
-    g2(g1(Y),X),
-    T1, T2, RA,RB
-    ));
- }
- role RB
- {
-  var X,Y, T1,T2: Ticket;
+		recv_!1(RA,RA, h2(
+		  g2(g1(X),Y),
+		  T1, T2, RA,RB
+		  ));
+		send_!2(RA,RA, h2(
+		  g2(g1(Y),X),
+		  T1, T2, RA,RB
+		  ));
+	}
+	role RB
+	{
+		var X,Y, T1,T2: Ticket;
 
-  recv_!3(RB,RB, h2(
-    T1,
-    g2(g1(X),Y),
-    T2, RA,RB
-    ));
-  send_!4(RB,RB, h2(
-    T1,
-    g2(g1(Y),X),
-    T2, RA,RB
-    ));
- }
- role RC
- {
-  var X,Y, T1,T2: Ticket;
+		recv_!3(RB,RB, h2(
+		  T1,
+		  g2(g1(X),Y),
+		  T2, RA,RB
+		  ));
+		send_!4(RB,RB, h2(
+		  T1,
+		  g2(g1(Y),X),
+		  T2, RA,RB
+		  ));
+	}
+	role RC
+	{
+		var X,Y, T1,T2: Ticket;
 
-  recv_!5(RC,RC, h2(
-    T1, T2,
-    g2(g1(X),Y),
-    RA,RB
-    ));
-  send_!6(RC,RC, h2(
-    T1, T2,
-    g2(g1(Y),X),
-    RA,RB
-    ));
- }
+		recv_!5(RC,RC, h2(
+		  T1, T2,
+		  g2(g1(X),Y),
+		  RA,RB
+		  ));
+		send_!6(RC,RC, h2(
+		  T1, T2,
+		  g2(g1(Y),X),
+		  RA,RB
+		  ));
+	}
 }
 
 protocol @addmult(I,R)
 {
- role I
- {
-  var X,Y: Ticket;
+	role I
+	{
+		var X,Y: Ticket;
 
-  recv_!1(I,I, add(X,Y) );
-  send_!2(I,I, add(Y,X) );
- }
- role R
- {
-  var X,Y: Ticket;
+		recv_!1(I,I, add(X,Y) );
+		send_!2(I,I, add(Y,X) );
+	}
+	role R
+	{
+		var X,Y: Ticket;
 
-  recv_!3(R,R, mult(X,Y) );
-  send_!4(R,R, mult(Y,X) );
- }
+		recv_!3(R,R, mult(X,Y) );
+		send_!4(R,R, mult(Y,X) );
+	}
 }
 
 //protocol @keyswap(I,R)
@@ -112,47 +129,48 @@ protocol @addmult(I,R)
 
 protocol FHMQV(I,R)
 {
- role I
- {
-  fresh x: Nonce;
-  var Y: Ticket;
+	role I
+	{
+		fresh x: Nonce;
+		var Y: Ticket;
 
-  send_1(I,R, g1(x) );
+		send_1(I,R, g1(x) );
 
-  send_Compromise(I,I, x ) ;
+		send_Compromise(I,I, x ) ;
 
-  recv_2(R,I, Y );
+		recv_2(R,I, Y );
 
-  //send_Compromise(I,I, LSB(g1(x),R) ) ;
-  //send_Compromise(I,I, mult(LSB(g1(x),R),sk(I)) ) ;
-  //send_Compromise(I,I, add(x,mult(LSB(g1(x),R),sk(I))) ) ;
-  //send_Compromise(I,I, LSB(Y,I) ) ;
-  //send_Compromise(I,I, exp(g1(sk(R)),LSB(Y,I)) ) ;
-  //send_Compromise(I,I, mult(Y,exp(g1(sk(R)),LSB(Y,I))) ) ;
-  //send_Compromise(I,I, exp(mult(Y,exp(g1(sk(R)),LSB(Y,I))),add(x,mult(LSB(g1(x),R),sk(I)))) ) ;
+		//send_Compromise(I,I, LSB(g1(x),R) ) ;
+		//send_Compromise(I,I, mult(LSB(g1(x),R),sk(I)) ) ;
+		//send_Compromise(I,I, add(x,mult(LSB(g1(x),R),sk(I))) ) ;
+		//send_Compromise(I,I, LSB(Y,I) ) ;
+		//send_Compromise(I,I, exp(g1(sk(R)),LSB(Y,I)) ) ;
+		//send_Compromise(I,I, mult(Y,exp(g1(sk(R)),LSB(Y,I))) ) ;
+		//send_Compromise(I,I, exp(mult(Y,exp(g1(sk(R)),LSB(Y,I))),add(x,mult(LSB(g1(x),R),sk(I)))) ) ;
 
-  claim(I,SKR, KDF(exp(mult(Y,exp(exp(g1(sk(R))),H(Y,g1(x),I,R))),add(x,mult(H(g1(x),Y,I,R),sk(I)))),I,R,g1(x),Y));
- }
+		claim(I,SKR, keyA);
+	}	
+	
+	role R
+	{
+		fresh y: Nonce;
+		var X: Ticket;
 
- role R
- {
-  fresh y: Nonce;
-  var X: Ticket;
+		recv_1(I,R, X );
 
-  recv_1(I,R, X );
+		send_Compromise(R,R, y );
 
-  send_Compromise(R,R, y );
+		send_2(R,I, g1(y) );
 
-  send_2(R,I, g1(y) );
+		//send_Compromise(R,R, LSB(g1(y),I) );
+		//send_Compromise(R,R, mult(LSB(g1(y),I),sk(R)) );
+		//send_Compromise(R,R, add(y,mult(LSB(g1(y),I),sk(R))) );
+		//send_Compromise(R,R, LSB(X,R) );
+		//send_Compromise(R,R, exp(g1(sk(I)),LSB(X,R)) );
+		//send_Compromise(R,R, mult(X,exp(g1(sk(I)),LSB(X,R))) );
+		//send_Compromise(R,R, exp(mult(X,exp(g1(sk(I)),LSB(X,R))),add(y,mult(LSB(g1(y),I),sk(R)))) );
 
-  //send_Compromise(R,R, LSB(g1(y),I) );
-  //send_Compromise(R,R, mult(LSB(g1(y),I),sk(R)) );
-  //send_Compromise(R,R, add(y,mult(LSB(g1(y),I),sk(R))) );
-  //send_Compromise(R,R, LSB(X,R) );
-  //send_Compromise(R,R, exp(g1(sk(I)),LSB(X,R)) );
-  //send_Compromise(R,R, mult(X,exp(g1(sk(I)),LSB(X,R))) );
-  //send_Compromise(R,R, exp(mult(X,exp(g1(sk(I)),LSB(X,R))),add(y,mult(LSB(g1(y),I),sk(R)))) );
-
-  claim(R,SKR, KDF(exp(mult(X,exp(exp(g1(sk(I))),H(X,g1(y),I,R))),add(y,mult(H(g1(y),X,I,R),sk(R)))),I,R,X,g1(y)));
- }
+		claim(R,SKR, keyB);
+	}
 }
+
