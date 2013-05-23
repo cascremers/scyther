@@ -757,8 +757,8 @@ claimCreate (const System sys, const Protocol protocol, const Role role,
     }
   checkParameterRange (cl, CLAIM_Secret, 1, -1);
   checkParameterRange (cl, CLAIM_SKR, 1, -1);
-  checkParameterRange (cl, CLAIM_Alive, 0, 0);
-  checkParameterRange (cl, CLAIM_Weakagree, 0, 0);
+  checkParameterRange (cl, CLAIM_Alive, 0, 1);
+  checkParameterRange (cl, CLAIM_Weakagree, 0, 1);
   checkParameterRange (cl, CLAIM_Nisynch, 0, 0);
   checkParameterRange (cl, CLAIM_Niagree, 0, 0);
   checkParameterRange (cl, CLAIM_Reachable, 0, 0);
