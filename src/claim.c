@@ -727,6 +727,29 @@ arachne_claim_nisynch (const System sys, const int claim_run,
   return arachne_claim_authentications (sys, claim_run, claim_index, 1);
 }
 
+//! Test weak agreement with a single agent
+int
+has_weakagree_agent (const System sys, const int claim_run, const Term agent)
+{
+  int run;
+
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      if (!isHelperProtocol (sys->runs[run].protocol))
+	{
+	  if (isTermEqual (agent, agentOfRun (sys, run)))
+	    {
+	      if (isTermlistSetEqual
+		  (sys->runs[run].rho, sys->runs[claim_run].rho))
+		{
+		  return true;
+		}
+	    }
+	}
+    }
+  return false;
+}
+
 //! Test weak agreement
 int
 arachne_claim_weakagree (const System sys, const int claim_run,
@@ -736,41 +759,31 @@ arachne_claim_weakagree (const System sys, const int claim_run,
    * Runs for each supposed agent, with matching *sets* for rho.
    * (so we can skip the actor)
    */
-  Termlist tl;
-
-  for (tl = sys->runs[claim_run].rho; tl != NULL; tl = tl->next)
+  if (sys->current_claim->parameter == NULL)
     {
-      Term agent;
+      // No parameter: need agents for all roles
+      Termlist tl;
 
-      agent = tl->term;
-      if (!isTermEqual (agent, agentOfRun (sys, claim_run)))
+      for (tl = sys->runs[claim_run].rho; tl != NULL; tl = tl->next)
 	{
-	  int run;
-	  int agentokay;
+	  Term agent;
 
-	  agentokay = false;
-	  for (run = 0; run < sys->maxruns; run++)
-	    {
-	      if (run != claim_run)
-		{
-		  if (isTermEqual (agent, agentOfRun (sys, run)))
-		    {
-		      if (isTermlistSetEqual
-			  (sys->runs[run].rho, sys->runs[claim_run].rho))
-			{
-			  agentokay = true;
-			  break;
-			}
-		    }
-		}
-	    }
-	  if (!agentokay)
+	  agent = tl->term;
+	  if (!has_weakagree_agent (sys, claim_run, agent))
 	    {
 	      return false;
 	    }
 	}
+      return true;
     }
-  return true;
+  else
+    {
+      // Parameter for role
+      Term agent;
+
+      agent = agentOfRunRole (sys, claim_run, sys->current_claim->parameter);
+      return has_weakagree_agent (sys, claim_run, agent);
+    }
 }
 
 //! Test commit(X) => running(X)
@@ -861,6 +874,25 @@ arachne_claim_commit (const System sys, const int claim_run,
   return false;
 }
 
+//! Test aliveness of agent
+int
+is_agent_alive (const System sys, const Term agent)
+{
+  int run;
+
+  for (run = 0; run < sys->maxruns; run++)
+    {
+      if (!isHelperProtocol (sys->runs[run].protocol))
+	{
+	  if (isTermEqual (agent, agentOfRun (sys, run)))
+	    {
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
 //! Test aliveness
 int
 arachne_claim_alive (const System sys, const int claim_run,
@@ -870,28 +902,28 @@ arachne_claim_alive (const System sys, const int claim_run,
    * Fairly simple claim: there must exist runs for each agent involved.
    * We don't even consider the roles.
    */
-  Termlist tl;
-
-  for (tl = sys->runs[claim_run].rho; tl != NULL; tl = tl->next)
+  if (sys->current_claim->parameter == NULL)
     {
-      int run;
-      int principalLives;
+      // No parameter: check for all roles
+      Termlist tl;
 
-      principalLives = false;
-      for (run = 0; run < sys->maxruns; run++)
+      for (tl = sys->runs[claim_run].rho; tl != NULL; tl = tl->next)
 	{
-	  if (isTermEqual (tl->term, agentOfRun (sys, run)))
+	  if (!is_agent_alive (sys, tl->term))
 	    {
-	      principalLives = true;
-	      break;
+	      return false;
 	    }
 	}
-      if (!principalLives)
-	{
-	  return false;
-	}
+      return true;
     }
-  return true;
+  else
+    {
+      // Parameter: check for agent in that role
+      Term agent;
+
+      agent = agentOfRunRole (sys, claim_run, sys->current_claim->parameter);
+      return is_agent_alive (sys, agent);
+    }
 }
 
 //! Determine good height for full session
