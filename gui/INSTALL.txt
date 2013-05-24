@@ -3,12 +3,13 @@ Installation and usage of the Scyther tool
 ========================================================================
 
 ------------------------------------------------------------------------
-1. Requirements
+Requirements
 ------------------------------------------------------------------------
 
-To be able to use Scyther, you need the following things:
+To be able to use Scyther, you need the following three things:
 
-1.1. The GraphViz library.
+
+1. The GraphViz library.
 
   This library is used by the Scyther tool to draw graphs. It can be
   freely downloaded from:
@@ -17,37 +18,54 @@ To be able to use Scyther, you need the following things:
 
   Download the latest stable release and install it.
 
-1.2. Python and wxPython libraries.
-
-  The graphical user interface of Scyther is written in the Python
-  language. Consequently, the following things are required:
-
-  	Name:			Where to download:
-
-  	Python			http://www.python.org/download/
-	wxPython (*1)		http://www.wxpython.org/download.php
-
-  *1: Note that there are many different wxPython packages. Any package
-  that matches your Python version (e.g., 2.4 or 2.6) will do just fine.
 
 
-1.3. Obsolete requirements.
+The graphical user interface of Scyther is written in the Python
+language. Therefore, the GUI requires the following two items:
 
-  Older versions of Python required cElementtree, but this should not be
-  necessary anymore. If the program complains, you can get it here:
 
-	cElementtree		http://effbot.org/zone/celementtree.htm
+2. Python 
+
+  Stable releases of the Python interpreter are available from:
+
+  	http://www.python.org/download/
+
+  Scyther does not support Python 3. You are therefore recommended to
+  choose the latest production release of Python 2, e.g., Python 2.7.
+
+
+3. wxPython libraries.
+
+  The GUI user interface uses the wxPython libraries.
+
+	http://www.wxpython.org/download.php
+
+  There are many different wxPython packages. You should choose a 32-bit
+  package that matches your Python version (e.g., 2.7). It is
+  recommended to select the unicode version from the stable releases.
+
+  As of writing (May 2013) the following links lead to the appropriate
+  wxPython packages for Python 2.7:
+
+  Windows:
+  	http://downloads.sourceforge.net/wxpython/wxPython2.8-win32-unicode-2.8.12.1-py27.exe
+
+  Mac OS X:
+  	http://downloads.sourceforge.net/wxpython/wxPython2.8-osx-unicode-2.8.12.1-universal-py2.7.dmg
+
+  Ubuntu/Debian Linux:
+  	http://wiki.wxpython.org/InstallingOnUbuntuOrDebian
 
 
 ------------------------------------------------------------------------
-2. Running Scyther
+Running Scyther
 ------------------------------------------------------------------------
 
 
-  Start Scyther by executing the file
+Start Scyther by executing the file
 
   	scyther-gui.py
 
-  in the directory where you found this file.
+in the directory where you found this file.
 
 
