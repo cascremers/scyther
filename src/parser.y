@@ -368,11 +368,11 @@ declaration	: secretpref CONST basictermlist typeinfo1 ';'
 		  	t->t1.tac= $2;
 			$$ = t;
 		  }
-		| HASHFUNCTION basictermlist ';'
+		| secretpref funcORhash basictermlist ';'
 		  {	Tac t = tacCreate(TAC_HASHFUNCTION);
-		  	t->t1.tac = $2;
+		  	t->t1.tac = $3;
 		  	t->t2.tac = tacCreate(TAC_UNDEF);
-			t->t3.tac = NULL;	// Not secret: public
+			t->t3.tac = $1;	// secret or not
 			$$ = t;
 		  }
 		| macrodecl 
@@ -380,6 +380,12 @@ declaration	: secretpref CONST basictermlist typeinfo1 ';'
 		  	$$ = $1;
 		  }
 		;
+
+funcORhash	: FUNCTION
+	          { }
+	        | HASHFUNCTION
+	          { }
+	        ;
 
 secretpref	: /* empty */
 		  {	
