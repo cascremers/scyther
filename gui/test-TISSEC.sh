@@ -10,8 +10,6 @@ DEFOUT="protocol-security-hierarchy.pdf"
 # Protocols for secrecy
 SPROTS=""
 SPROTS="$SPROTS \
-        Protocols/ccitt509-1.spdl
-        Protocols/ccitt509-3.spdl
         Protocols/AdversaryModels/2DH-ISO-C.spdl \
         Protocols/AdversaryModels/2DH-ISO.spdl \
 	Protocols/AdversaryModels/BCNP-1.spdl \
@@ -29,11 +27,11 @@ SPROTS="$SPROTS \
 	Protocols/AdversaryModels/JKL-TS3-2008.spdl \
         Protocols/AdversaryModels/kea-plus.spdl \
         Protocols/AdversaryModels/naxos.spdl \
+        Protocols/AdversaryModels/sig-naxos.spdl \
         Protocols/AdversaryModels/ns3 \
         Protocols/AdversaryModels/nsl3 \
 	Protocols/AdversaryModels/sOAKE.spdl \
 	Protocols/AdversaryModels/UM.spdl \
-	Protocols/AdversaryModels/UP.spdl \
         Protocols/AdversaryModels/yahalom-ban-paulson.spdl \
 	Protocols/AdversaryModels/YAK.spdl \
 	"
@@ -50,7 +48,7 @@ MDS=" --models=paper"
 DEF=" --PSH $MDS \
       --max-runs=4 \
       "
-./test-adversary-models.py $DEF --secrecy        $SPROTS $IGN
+./test-adversary-models.py $DEF --secrecy        $SPROTS $IGN >table-TISSEC.txt
 cp $DEFOUT psh-TISSEC-simple.pdf
 
 
