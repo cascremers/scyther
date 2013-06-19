@@ -2203,5 +2203,5 @@ dotSemiState (const System mysys)
   free (ranks);			// ranks
 
   // close graph
-  eprintf ("};\n\n");
+  eprintf ("}\n\n");
 }
