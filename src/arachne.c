@@ -1086,48 +1086,48 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
 
 //! Proof markers
 void
-proof_go_down(const Term label, const Term t)
+proof_go_down (const Term label, const Term t)
 {
   Termlist l;
   int depth;
   int len;
 
   if (switches.output != PROOF)
-      return;
+    return;
   // Prepend the terms (the list is in reverse)
-  TERMLISTPREPEND(sys->proofstate,label);
-  TERMLISTPREPEND(sys->proofstate,t);
-  len = termlistLength(sys->proofstate) / 2;
+  TERMLISTPREPEND (sys->proofstate, label);
+  TERMLISTPREPEND (sys->proofstate, t);
+  len = termlistLength (sys->proofstate) / 2;
   // Display state
-  eprintf("Proof state: branch at level %i\n", len);
-  l = termlistForward(sys->proofstate);
+  eprintf ("Proof state: branch at level %i\n", len);
+  l = termlistForward (sys->proofstate);
   depth = 0;
   while (l != NULL)
     {
       int i;
-      eprintf("Proof state: ");
+      eprintf ("Proof state: ");
 
       for (i = 0; i < depth; i++)
 	{
-	  eprintf("  ");
+	  eprintf ("  ");
 	}
-      termPrint(l->prev->term);
-      eprintf("(");
-      termPrint(l->term);
-      eprintf("); ");
+      termPrint (l->prev->term);
+      eprintf ("(");
+      termPrint (l->term);
+      eprintf ("); ");
       l = l->prev->prev;
-      eprintf("\n");
+      eprintf ("\n");
       depth++;
     }
 }
 
 void
-proof_go_up(void)
+proof_go_up (void)
 {
   if (switches.output != PROOF)
-      return;
-  sys->proofstate = termlistDelTerm(sys->proofstate);
-  sys->proofstate = termlistDelTerm(sys->proofstate);
+    return;
+  sys->proofstate = termlistDelTerm (sys->proofstate);
+  sys->proofstate = termlistDelTerm (sys->proofstate);
   return;
 }
 
@@ -1429,16 +1429,16 @@ bind_goal_regular_run (const Binding b)
 #ifdef DEBUG
 	debug (5, "Trying to bind to existing run.");
 #endif
-	proof_go_down(TERM_DeEx,b->term);
+	proof_go_down (TERM_DeEx, b->term);
 	sflag = bind_existing_run (b, p, r, index);
-	proof_go_up();
+	proof_go_up ();
 	// bind to new run
 #ifdef DEBUG
 	debug (5, "Trying to bind to new run.");
 #endif
-	proof_go_down(TERM_DeNew,b->term);
+	proof_go_down (TERM_DeNew, b->term);
 	sflag = sflag && bind_new_run (b, p, r, index);
-	proof_go_up();
+	proof_go_up ();
 
 	indentDepth--;
 	return sflag;
@@ -1634,21 +1634,21 @@ bind_goal_all_options (const Binding b)
 	  if (know_only)
 	    {
 	      // Special case: only from intruder
-	      proof_go_down(TERM_CoOld,b->term);
+	      proof_go_down (TERM_CoOld, b->term);
 	      flag = flag && bind_goal_old_intruder_run (b);
 	      //flag = flag && bind_goal_new_intruder_run (b);
-	      proof_go_up();
+	      proof_go_up ();
 	    }
 	  else
 	    {
 	      // Normal case
-              flag = bind_goal_regular_run (b);
-	      proof_go_down(TERM_CoOld,b->term);
+	      flag = bind_goal_regular_run (b);
+	      proof_go_down (TERM_CoOld, b->term);
 	      flag = flag && bind_goal_old_intruder_run (b);
-	      proof_go_up();
-	      proof_go_down(TERM_CoNew,b->term);
+	      proof_go_up ();
+	      proof_go_down (TERM_CoNew, b->term);
 	      flag = flag && bind_goal_new_intruder_run (b);
-	      proof_go_up();
+	      proof_go_up ();
 	    }
 	  proofDepth--;
 

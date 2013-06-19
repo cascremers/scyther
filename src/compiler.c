@@ -790,30 +790,32 @@ matchEvent (Tac tc)
   Labelinfo linfo;
 
   /* Create fresh Nonce variable */
-  nsymb = symbolNextFree(TermSymb(TERM_Hidden));
-  tvar = symbolDeclare(nsymb,false);
+  nsymb = symbolNextFree (TermSymb (TERM_Hidden));
+  tvar = symbolDeclare (nsymb, false);
   //tvar->stype = termlistAdd(NULL,TERM_Nonce);
 
   /* Make the concrete messages */
   mpat = tacTerm (tc->t1.tac);
   mmsg = tacTerm (tc->t2.tac);
-  msg1 = makeTermEncrypt(mmsg,tvar);
-  msg2 = makeTermEncrypt(mpat,tvar);
+  msg1 = makeTermEncrypt (mmsg, tvar);
+  msg2 = makeTermEncrypt (mpat, tvar);
 
   /* Declare the const */
-  thisRole->declaredconsts = termlistAdd(thisRole->declaredconsts, tvar);
+  thisRole->declaredconsts = termlistAdd (thisRole->declaredconsts, tvar);
 
   /* And send & recv combo (implementing the syntactic sugar) */
-  label1 = freshTermPrefix(LABEL_Match);
+  label1 = freshTermPrefix (LABEL_Match);
   linfo = label_create (label1, thisProtocol);
   sys->labellist = list_append (sys->labellist, linfo);
   myrole = thisRole->nameterm;
 
   /* add send event */
-  thisRole->roledef = roledefAdd (thisRole->roledef, SEND, label1, myrole, myrole, msg1, NULL);
+  thisRole->roledef =
+    roledefAdd (thisRole->roledef, SEND, label1, myrole, myrole, msg1, NULL);
   markLastRoledef (thisRole->roledef, tc->lineno);
   /* add recv event */
-  thisRole->roledef = roledefAdd (thisRole->roledef, RECV, label1, myrole, myrole, msg2, NULL);
+  thisRole->roledef =
+    roledefAdd (thisRole->roledef, RECV, label1, myrole, myrole, msg2, NULL);
   markLastRoledef (thisRole->roledef, tc->lineno);
 }
 
@@ -834,8 +836,9 @@ nonMatchEvent (Tac tc)
 
   mpat = tacTerm (tc->t1.tac);
   mmsg = tacTerm (tc->t2.tac);
-  msg = makeTermTuple(mpat,mmsg);
-  claimCreate (sys, thisProtocol, thisRole, CLAIM_Notequal, NULL, msg, tc->lineno);
+  msg = makeTermTuple (mpat, mmsg);
+  claimCreate (sys, thisProtocol, thisRole, CLAIM_Notequal, NULL, msg,
+	       tc->lineno);
 }
 
 //! Parse a communication event tc of type event, and add a role definition event for it.
@@ -1272,11 +1275,11 @@ roleCompile (Term nameterm, Tac tc)
 	  case TAC_MATCH:
 	    if (tc->t3.value == true)
 	      {
-	        matchEvent (tc);
+		matchEvent (tc);
 	      }
-	    else 
+	    else
 	      {
-    	        nonMatchEvent (tc);
+		nonMatchEvent (tc);
 	      }
 	    break;
 	  case TAC_CLAIM:
