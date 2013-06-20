@@ -20,6 +20,12 @@
 
 """
 Generate attacks for each claim
+
+To also generate resource usage details on linux, use something like:
+
+    xargs -a protocols.txt -n 1 -I {} /usr/bin/time -v -o {}.times ./generate-attack-graphs.py {}
+
+where 'protocols.txt' contains a protocol file per line.
 """
 
 #---------------------------------------------------------------------------
