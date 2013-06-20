@@ -78,7 +78,7 @@ def render_dot(fn,gtype):
         base_name = base_name[:i]
 
     cmd = ["dot","-T" + gtype,"-o%s.%s" % (base_name,gtype),fn]
-    print cmd
+    #print cmd
 
     call(cmd)
 
@@ -96,10 +96,11 @@ def render_best_attack(fn,cid):
     pref = create_file_prefix(fn,cid)
 
     for cl in x.claims:
+        cln = cl.claimtype
+        if cln == "Commit":
+            cln = "Data_agree"
+
         if len(cl.attacks) > 0:
-            cln = cl.claimtype
-            if cln == "Commit":
-                cln = "Data_agree"
             dotfile = "attack-%s-%s.dot" % (pref,cln)
             fp = open(dotfile,'w')
             fp.write(cl.attacks[-1].scytherDot)
@@ -107,6 +108,8 @@ def render_best_attack(fn,cid):
 
             render_dot(dotfile,"png")
             render_dot(dotfile,"pdf")
+
+        print "%s; %s" % (fn,cl)
 
 def main():
 
@@ -116,7 +119,6 @@ def main():
     
     for fn in set(cl):
         for cid in cl[fn]:
-            print fn,cid
 
             render_best_attack(fn,cid)
 
