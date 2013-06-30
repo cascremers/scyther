@@ -265,7 +265,7 @@ class Scyther(object):
         for arg in arglist:
             self.options += " %s" % (arg)
 
-    def doScytherCommand(self, spdl, args, checkKnown=False):
+    def doScytherCommand(self, spdl, args, checkKnown=False, storePopen=None):
         """
         Cached version of the 'real' below
 
@@ -290,7 +290,7 @@ class Scyther(object):
                 return False
             else:
                 # Need to compute
-                return self.doScytherCommandReal(spdl,args)
+                return self.doScytherCommandReal(spdl,args, storePopen=storePopen)
 
         # Apparently we are supporsed to be able to use the cache
         m = hashlib.sha256()
@@ -347,7 +347,7 @@ class Scyther(object):
             # We were only checking, abort
             return False
 
-        (out,err) = self.doScytherCommandReal(spdl,args)
+        (out,err) = self.doScytherCommandReal(spdl,args, storePopen=storePopen)
 
         try:
             # Try to store result in cache
@@ -366,13 +366,14 @@ class Scyther(object):
         return (out,err)
 
 
-    def doScytherCommandReal(self, spdl, args):
+    def doScytherCommandReal(self, spdl, args, storePopen=None):
         """ 
         Run Scyther backend on the input
         
         Arguments:
             spdl -- string describing the spdl text
             args -- arguments for the command-line
+            storePopen -- callback function to register Popen objects (used for process kill by other threads)
         Returns:
             (output,errors)
             output -- string which is the real output
@@ -415,7 +416,7 @@ class Scyther(object):
         ##print self.cmd
 
         # Start the process
-        safeCommand(self.cmd)
+        safeCommand(self.cmd, storePopen=storePopen)
 
         # reseek
         fhe = os.fdopen(fde)
@@ -437,7 +438,7 @@ class Scyther(object):
         """ Sanitize some of the input """
         self.options = EnsureString(self.options)
 
-    def verify(self,extraoptions=None,checkKnown=False):
+    def verify(self,extraoptions=None,checkKnown=False,storePopen=None):
         """ Should return a list of results """
         """ If checkKnown == True, we do not call Scyther, but just check the cache, and return True iff the result is in the cache """
 
@@ -455,10 +456,10 @@ class Scyther(object):
 
         # Are we only checking the cache?
         if checkKnown == True:
-            return self.doScytherCommand(self.spdl, args, checkKnown=checkKnown)
+            return self.doScytherCommand(self.spdl, args, checkKnown=checkKnown, storePopen=storePopen)
 
         # execute
-        (output,errors) = self.doScytherCommand(self.spdl, args)
+        (output,errors) = self.doScytherCommand(self.spdl, args, storePopen=storePopen)
         self.run = True
 
         # process errors
@@ -504,7 +505,7 @@ class Scyther(object):
         else:
             return self.output
 
-    def verifyOne(self,cl=None,checkKnown=False):
+    def verifyOne(self,cl=None,checkKnown=False,storePopen=None):
         """
         Verify just a single claim with an ID retrieved from the
         procedure below, 'scanClaims', or a full claim object
@@ -515,10 +516,10 @@ class Scyther(object):
             # We accept either a claim or a claim id
             if isinstance(cl,Claim.Claim):
                 cl = cl.id
-            return self.verify("--filter=%s" % cl, checkKnown=checkKnown)
+            return self.verify("--filter=%s" % cl, checkKnown=checkKnown,storePopen=storePopen)
         else:
             # If no claim, then its just normal verification
-            return self.verify(checkKnown=checkKnown)
+            return self.verify(checkKnown=checkKnown,storePopen=storePopen)
 
     def scanClaims(self):
         """

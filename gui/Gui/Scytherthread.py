@@ -56,7 +56,20 @@ class ScytherThread(threading.Thread):
         self.options = options
         self.callback = callback
         self.mode = mode
+        self.popenList = []
         threading.Thread.__init__ ( self )
+
+    def storePopen(self,p):
+        self.popenList.append(p)
+
+    def cleanExit(self):
+        # Cleanup of spawned processes
+        for index,p in enumerate(self.popenList):
+            try:
+                p.kill()
+            except:
+                pass
+        self.popenList = []
 
     def run(self):
 
@@ -100,7 +113,7 @@ class ScytherThread(threading.Thread):
 
         # verification start
         try:
-            claims = scyther.verify()
+            claims = scyther.verify(storePopen=self.storePopen)
         except Scyther.Error.ScytherError, el:
             claims = None
             pass
@@ -184,6 +197,9 @@ class VerificationWindow(wx.Dialog):
 
         self.SetSizer(sizer)
         sizer.Fit(self)
+
+        self.Center()
+        self.Show(True)
 
 #---------------------------------------------------------------------------
 
@@ -398,7 +414,6 @@ class ResultWindow(wx.Frame):
 
 #---------------------------------------------------------------------------
 
-
 class ScytherRun(object):
 
     def __init__(self,mainwin,mode,spdl,errorcallback=None):
@@ -409,7 +424,22 @@ class ScytherRun(object):
         self.verified = False
         self.options = mainwin.settings.ScytherArguments(mode)
         self.errorcallback=errorcallback
+        self.SThread = None
+
         self.main()
+
+    def closer(self,ev):
+        # Triggered when the window is closed/verification cancelled
+        t = self.SThread
+        if t != None:
+            self.SThread = None
+            t.cleanExit()
+        try:
+            self.verifywin.Destroy()
+        except:
+            pass
+        self.verifywin = None
+        ev.Skip()
 
     def main(self):
         """
@@ -422,8 +452,6 @@ class ScytherRun(object):
         # if the thread terminames, it should close the window normally, and we end up here as well.
         #val = self.verifywin.ShowModal()
         self.verifywin = VerificationWindow(self.mainwin,title)
-        self.verifywin.Center()
-        self.verifywin.Show(True)
 
         # Check sanity of Scyther thing here (as opposed to the thread)
         # which makes error reporting somewhat easier
@@ -435,10 +463,13 @@ class ScytherRun(object):
             Error.ShowAndExit(text)
         
         # start the thread
-        
         self.verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
-        t = ScytherThread(self.spdl, self.options, self.verificationDone, self.mode)
-        t.start()
+        self.verifywin.Bind(wx.EVT_CLOSE, self.closer)
+        self.verifywin.Bind(wx.EVT_WINDOW_DESTROY, self.closer)
+        self.verifywin.Bind(wx.EVT_BUTTON, self.closer, id=wx.ID_CANCEL)
+
+        self.SThread = ScytherThread(self.spdl, self.options, self.verificationDone, self.mode)
+        self.SThread.start()
 
         # after verification, we proceed to the callback below...
 
@@ -446,6 +477,9 @@ class ScytherRun(object):
         """
         This is where we end up after a callback from the thread, stating that verification succeeded.
         """
+
+        if self.verifywin == None:
+            return
 
         self.scyther = scyther
         self.claims = claims

@@ -26,6 +26,7 @@
 """ Import externals """
 import sys
 import os.path
+import shlex
 try:
     from subprocess import Popen,PIPE
 except:
@@ -89,35 +90,26 @@ def mypath(file):
     basedir = os.path.split(cmd_file)[0]
     return os.path.join(basedir,file)
 
-def getShell():
-    """
-    Determine if we want a shell for Popen
-    """
-    if sys.platform.startswith("win"):
-        shell=False
-    else:
-        # Needed to handle the string input correctly (as opposed to a sequence where the first element is the executable)
-        # This is not needed on Windows, where it has a different effect altogether.
-        # See http://docs.python.org/library/subprocess.html?highlight=subprocess#module-subprocess
-        shell=True
-    return shell
-
-def safeCommandOutput(cmd):
+def safeCommandOutput(cmd, storePopen=None):
     """ Execute a command and return (sts,sout,serr).
     Meant for short outputs, as output is stored in memory and
     not written to a file.
     """
-    p = Popen(cmd, shell=getShell(), stdout=PIPE, stderr=PIPE)
+    p = Popen(shlex.split(cmd), shell=False, stdout=PIPE, stderr=PIPE)
+    if storePopen != None:
+        storePopen(p)
     (sout,serr) = p.communicate()
 
     return (p.returncode,sout,serr)
 
-def safeCommand(cmd):
+def safeCommand(cmd, storePopen=None):
     """ Execute a command with some arguments. Safe cross-platform
     version, I hope. """
 
     try:
-        p = Popen(cmd, shell=getShell())
+        p = Popen(shlex.split(cmd), shell=False)
+        if storePopen != None:
+            storePopen(p)
         sts = p.wait()
     except KeyboardInterrupt, EnvironmentError:
         raise
