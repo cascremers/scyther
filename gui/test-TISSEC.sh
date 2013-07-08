@@ -10,8 +10,8 @@ DEFOUT="protocol-security-hierarchy.pdf"
 # Protocols for secrecy
 SPROTS=""
 SPROTS="$SPROTS \
-        Protocols/AdversaryModels/2DH-ISO-C.spdl \
-        Protocols/AdversaryModels/2DH-ISO.spdl \
+        Protocols/AdversaryModels/DH-GS-C.spdl \
+        Protocols/AdversaryModels/DH-GS.spdl \
 	Protocols/AdversaryModels/BCNP-1.spdl \
 	Protocols/AdversaryModels/BCNP-2.spdl \
         Protocols/AdversaryModels/BKE.spdl \

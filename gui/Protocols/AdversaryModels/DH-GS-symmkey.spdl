@@ -1,5 +1,5 @@
 /* 
- * Two-move Diffie-Hellman ISO-9798-3 according to Shmatikov, Gupta
+ * Two-move Diffie-Hellman according to Shmatikov, Gupta
  */
 
 // Hash functions
@@ -24,7 +24,7 @@ protocol @exponentiation(RA)
 
 // The protocol description
 
-protocol twoDHiso-symmkey(I,R)
+protocol DH-GS-symmkey(I,R)
 {
 	role I
 	{

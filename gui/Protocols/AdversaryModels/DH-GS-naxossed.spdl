@@ -1,5 +1,6 @@
 /* 
- * Two-move Diffie-Hellman ISO-9798-3 according to Shmatikov, Gupta
+ * Two-move Diffie-Hellman according to Shmatikov, Gupta
+ * Naxossed
  */
 
 // Hash functions
@@ -24,7 +25,7 @@ protocol @exponentiation(RA)
 
 // The protocol description
 
-protocol twoDHiso(I,R)
+protocol DH-GS-naxos(I,R)
 {
 	role I
 	{
@@ -32,12 +33,12 @@ protocol twoDHiso(I,R)
 		var i: Nonce;
 		var beta: Ticket;
 
-		send_Compromise(I,I, x );
+		send_Compromise(I,I, h1(sk(I),x) );
 
-		send_1(I,R,  g1(x),R,         { g1(x),R }sk(I)        );
-		recv_2(R,I,  g1(x),beta,i,I,  { g1(x),beta,i,I }sk(R) );
+		send_1(I,R,  g1(h1(sk(I),x)),R,         { g1(h1(sk(I),x)),R }sk(I)        );
+		recv_2(R,I,  g1(h1(sk(I),x)),beta,i,I,  { g1(h1(sk(I),x)),beta,i,I }sk(R) );
 
-		claim(I,SKR, g2(beta,x) );
+		claim(I,SKR, g2(beta,h1(sk(I),x)) );
 	}	
 	
 	role R
@@ -46,12 +47,12 @@ protocol twoDHiso(I,R)
 		fresh i: Nonce;
 		var alpha: Ticket;
 
-		send_Compromise(R,R, y,i );
+		send_Compromise(R,R, h1(sk(R),y),i );
 
 		recv_1(I,R,  alpha,R,          { alpha,R }sk(I)         );
-		send_2(R,I,  alpha,g1(y),i,I,  { alpha,g1(y),i,I }sk(R) );
+		send_2(R,I,  alpha,g1(h1(sk(R),y)),i,I,  { alpha,g1(h1(sk(R),y)),i,I }sk(R) );
 
-		claim(R,SKR, g2(alpha,y) );
+		claim(R,SKR, g2(alpha,h1(sk(R),y)) );
 	}
 }
 

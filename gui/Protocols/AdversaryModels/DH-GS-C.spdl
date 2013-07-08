@@ -1,5 +1,5 @@
 /* 
- * Two-move Diffie-Hellman ISO-9798-3 
+ * Two-move Diffie-Hellman 
  *
  * Modeled the same way as done before by Shmatikov and Gupta in "Key
  * confirmation and adaptive corruptions in the protocol security
@@ -30,7 +30,7 @@ protocol @exponentiation(RA)
 
 // The protocol description
 
-protocol twoDHiso-C(I,R)
+protocol DH-GS-C(I,R)
 {
 	role I
 	{
