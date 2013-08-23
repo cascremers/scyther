@@ -4,8 +4,11 @@
 # http://www.lsv.ens-cachan.fr/spore/denningSaccoLowe.html
 #
 # Note:
-# According to SPORE there are no attacks on this protocol, scyther
-# finds one however. This has to be investigated further.
+# According to SPORE there are no attacks on this protocol. Scyther
+# finds a straightforward pre-play attack on the first message, which
+# violates synchronisation. However, this does not seem to be a
+# practical attack unless consistency is required, e.g., for logging or
+# auditing.
 
 usertype Key;
 usertype SessionKey;
