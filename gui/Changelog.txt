@@ -1,6 +1,28 @@
 Scyther changelog
 ===============================
 
+Scyther 1.1.1
+-------------------------------
+
+This is mostly a bugfix release.
+
+New features:
+
+ * [Language] Weakagree and Alive claims now also allow for an optional role
+ parameter, which can be useful for protocols with more than two roles.
+ * [Misc] Added Python script to dump attack outputs for large sets of files.
+ * [Gui] Canceling verification now also kills back-end thread.
+
+Regression fixes:
+
+ * [Regression-fix] Reintroduced option for specifying alternative PKI.
+
+Bug fixes:
+
+ * [Bugfix] Fixed rare bug in some cases where hashes were used as symmetric keys.
+ * [Bugfix] Invoking Scyther scripts from non-standard directories or using symlinks should work consistently now.
+ * [Bugfix] Improving compatibility with recent versions of Graphviz (>2.26)
+
 Scyther 1.1
 -------------------------------
 
