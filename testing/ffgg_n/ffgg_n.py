@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007 Cas Cremers
+	Copyright (C) 2007-2013 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -16,6 +16,13 @@
 	You should have received a copy of the GNU General Public License
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""
+
+"""
+    This program generates arbitrary members of the ffgg protocol family, as proposed
+    by Jonathan Millen in the paper "A Necessarily Parallel Attack".
+    By providing a number n as the input, the program outputs on stdout the
+    corresponding protocol ffgg_n.
 """
 
 import sys
@@ -36,12 +43,6 @@ def ffgg(n):
  * ffgg%i protocol
  */
 
-// PKI infrastructure
-
-const pk: Function;
-secret sk: Function;
-inversekeys (pk,sk);
-
 // The protocol description
 
 protocol ffgg%i(A,B)
@@ -58,7 +59,7 @@ protocol ffgg%i(A,B)
     rconst = nonces1
 
     s += """
-		const M: Nonce;
+		fresh M: Nonce;
 		var %s: Nonce;
 
 		send_1(A,B, A );
@@ -72,7 +73,7 @@ protocol ffgg%i(A,B)
 	role B
 	{
 		var M,%s: Nonce;
-		const %s: Nonce;
+		fresh %s: Nonce;
 
 		read_1(A,B, A );
 		send_2(B,A, B,%s );
@@ -80,17 +81,6 @@ protocol ffgg%i(A,B)
 		send_4(B,A, n1,n2b,{%s,M,n1}pk(B) );
 	}
 }
-
-// The agents in the system
-
-const Alice,Bob: Agent;
-
-// An untrusted agent, with leaked information
-
-const Eve: Agent;
-untrusted Eve;
-const ne: Nonce;
-compromised sk(Eve);
 
     """ % (ivar,nonces1,nonces1,nonces1b,rvar,rconst,nonces1,nonces2,nonces2)
 
