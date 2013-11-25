@@ -759,7 +759,7 @@ class SemiTrace(object):
         """
         if self.cleaned:
             return
-
+        self.explicitInitialKnowledge()
         self.collapseRuns()
         if not "intrudernodes" in parameters.keys():
             self.collapseIntruderComputations()
@@ -993,6 +993,95 @@ class SemiTrace(object):
         # Chop prefix elements
         for i in range(0,index):
             self.removeRunEvent(run,0)
+
+    def newRunID(self):
+        """
+        Create a new run identifier bigger than all others
+        """
+        newrid = -1
+        for run in self.runs:
+            if run.id >= newrid:
+                newrid = run.id + 1
+        return newrid
+
+    def addKnowledgeEdge(self,t,recv):
+        """
+        Add an edge from I_M to recv for t
+        """
+        # Should we add I_M?
+        sendrun = None
+        for run in self.runs:
+            if run.intruder:
+                if "I_M" in run.role:
+                    if len(run.eventList) > 0:
+                        send = run.eventList[0]
+                        sendrun = run
+                        break
+
+        # Okay, add I_M if needed
+        if sendrun == None:
+            run = Trace.Run()
+            run.id = self.newRunID()
+            run.protocol = "intruder"
+            run.intruder = True
+            run.role = "I_M"
+            send = Trace.EventSend(0,None,None,None,t)
+            send.run = run
+            run.eventList = [send]
+            self.runs.append(run)
+
+        # Now bind
+        recv.bindings.append(((run.id,0),t))
+
+        # Add to I_M sent messages if needed
+        if t not in send.message.unpair():
+            send.message = Term.TermTuple(send.message,t)
+
+
+    def explicitInitialReceiveKnowledge(self,recv,previous=set()):
+        """
+        Make initial knowledge nodes explicit for this event.
+        
+        Open variables in goals were never explicitly bound before. This can be confusing for users,
+        so we now explicitly reconstruct the required edges.
+        """
+        # What do we have to account for?
+        S = set(recv.message.unpair())
+        T = previous
+        #print "Inspecting %s" % (recv)
+        # Remove everything for which we have a binding
+        for ((r,i),l) in recv.bindings:
+            m = self.runs[r].eventList[i].message
+            T |= set(m.unpair())
+        #for t in T:
+        #    print "  Existing binding for: '%s'" % (t)
+        # Add nodes and edges for the remaining parts
+        for s in S:
+            todo = True
+            for t in T:
+                if s == t:
+                    todo = False
+                    break
+            if todo:
+                #print "    Still need to account for '%s' in %s" % (s,recv)
+                self.addKnowledgeEdge(s,recv)
+
+    def explicitInitialKnowledge(self):
+        """
+        Make all initial knowledge nodes explicit.
+        
+        Open variables in goals were never explicitly bound before. This can be confusing for users,
+        so we now explicitly reconstruct the required edges. We skip terms that had been sent or received
+        before.
+        """
+        for run in self.runs:
+            S = set()
+            for ev in run.eventList:
+                if (isinstance(ev,EventRead)):
+                    self.explicitInitialReceiveKnowledge(ev,previous=S)
+                if isinstance(ev,EventRead) or isinstance(ev,EventSend):
+                    S |= set(ev.message.unpair())
+
 
     def collapseInitialKnowledge(self):
         """
@@ -1881,7 +1970,7 @@ class Event(object):
 
             if "I_R" in self.run.role:
                 if intruderConstant(self.originalmessage):
-                    text = "Create"
+                    text = "Know"
                 else:
                     text = "Learn"
                 includeTerm = True
