@@ -169,8 +169,21 @@ class Term(object):
 
     def leaves(self):
         return [self]
+
+    def isLeaf(self):
+        return True
     
-class TermConstant(Term):   
+class TermLeaf(Term):
+    pass
+
+
+class TermNode(Term):
+
+    def isLeaf(self):
+        return False
+
+
+class TermConstant(TermLeaf):   
     def __init__(self, constant):
         Term.__init__(self)
         self.value = str(constant)
@@ -215,7 +228,7 @@ class TermConstant(Term):
             return self
                 
 
-class TermEncrypt(Term):
+class TermEncrypt(TermNode):
     def __init__(self, value, key):
         Term.__init__(self)
         self.value = value
@@ -253,9 +266,8 @@ class TermEncrypt(Term):
     def leaves(self):
         return self.value.leaves() + self.key.leaves()
     
-                
 
-class TermApply(Term):
+class TermApply(TermNode):
     def __init__(self, function, argument):
         Term.__init__(self)
         self.function = function
@@ -373,9 +385,15 @@ class TermVariable(Term):
             return [self]
         else:
             return self.value.leaves()
+
+    def isLeaf(self):
+        if self.value == None:
+            return True
+        else:
+            return self.value.isLeaf()
     
 
-class TermTuple(Term):
+class TermTuple(TermNode):
     def __init__(self, op1, op2):
         Term.__init__(self)
         self.op1 = op1

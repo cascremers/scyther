@@ -65,6 +65,10 @@ class AbbrevContext(object):
             # We don't abbreviate simple keys, ever
             return False
 
+        if term.isLeaf() == True:
+            # We do not abbreviate leaves
+            return False
+
         occ = self.subtermcount[str(term)]
         if occ > 1:
             return True
