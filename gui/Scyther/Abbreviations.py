@@ -223,7 +223,7 @@ class AbbrevContext(object):
             bigtermString = str(bigterm)
 
             # New string
-            abbreviationTerm = Term.TermConstant(self.newName(prefix="TMP"))
+            abbreviationTerm = Term.TermConstant(self.newName(prefix=" TMP "))
             abbreviationString = str(abbreviationTerm)
 
             # Store folding
