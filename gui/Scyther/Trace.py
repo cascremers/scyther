@@ -33,7 +33,7 @@ RUNIDMAX = 0
 CONSIDERBINDINGS = True     # Makes sense for graphviz, not for ASCII output
 
 COLORCOMPROMISE = "#ffa010"     # Compromise node color
-COLORCLAIM = "#2080ff"     # Violated claim node color
+COLORCLAIM = "#000000"     # Violated claim node color
 COLORADVERSARY = "#ffe020"      # Adversary node color
 COLORCLAIMRUN = "#c0e0f8"     # Test claim node color
 COLORREGULAR = "#008000"        # Regular send & recv
@@ -600,6 +600,7 @@ class SemiTrace(object):
                     args += [Attribute("shape","hexagon")]
                     if ev.run.id == CLAIMRUN:
                         args += colorargs(COLORCLAIM)
+                        args += [Attribute("fontcolor","#FFFFFF")]
                 else:
                     if ev.run.id == CLAIMRUN:
                         args += colorargs(COLORCLAIMRUN)
