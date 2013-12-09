@@ -90,12 +90,25 @@ def mypath(file):
     basedir = os.path.split(cmd_file)[0]
     return os.path.join(basedir,file)
 
+def getShell():
+    """
+    Determine if we want a shell for Popen
+    """
+    if sys.platform.startswith("win"):
+        shell=False
+    else:
+        # Needed to handle the string input correctly (as opposed to a sequence where the first element is the executable)
+        # This is not needed on Windows, where it has a different effect altogether.
+        # See http://docs.python.org/library/subprocess.html?highlight=subprocess#module-subprocess
+        shell=True
+    return shell
+
 def safeCommandOutput(cmd, storePopen=None):
     """ Execute a command and return (sts,sout,serr).
     Meant for short outputs, as output is stored in memory and
     not written to a file.
     """
-    p = Popen(shlex.split(cmd), shell=False, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=getShell(), stdout=PIPE, stderr=PIPE)
     if storePopen != None:
         storePopen(p)
     (sout,serr) = p.communicate()
@@ -107,7 +120,7 @@ def safeCommand(cmd, storePopen=None):
     version, I hope. """
 
     try:
-        p = Popen(shlex.split(cmd), shell=False)
+        p = Popen(cmd, shell=getShell())
         if storePopen != None:
             storePopen(p)
         sts = p.wait()
