@@ -31,6 +31,7 @@ from subprocess import Popen, PIPE
 
 """ Import scyther components """
 from Scyther import Misc as MiscScyther
+from Scyther import FindDot
 
 """ Import scyther-gui components """
 import Temporary
@@ -124,12 +125,15 @@ def makeImageDot(dotdata,attackthread=None):
         type = "png"
         ext = ".png"
 
+    # Retrieve dot command path
+    dotcommand = FindDot.findDot()
+
     # command to write to temporary file
     (fd2,fpname2) = Temporary.tempcleaned(ext)
     f = os.fdopen(fd2,'w')
 
     # Set up command
-    cmd = "dot -T%s" % (type)
+    cmd = "%s -T%s" % (dotcommand,type)
 
     # execute command
     p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE)
