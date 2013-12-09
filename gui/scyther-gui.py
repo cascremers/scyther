@@ -230,24 +230,9 @@ def CheckRequirements():
     """ Check for any required programs """
 
     """ We need 'dot', in the graphviz package """
-    failed = False
-    try:
-        (sts,sout,serr) = Misc.safeCommandOutput("dot -V")
-        output = (sout + serr).lower()
-        if output.find("graphviz") == -1:
-            failed = True
-    except OSError, ImportError:
-        failed = True
-    if failed:
-        Misc.panic("""
-Could not find the required 'dot' program, which is part of the graphviz suite.
-Please install it from http://www.graphviz.org/
+    from Scyther import FindDot
 
-Ubuntu users: install the 'graphviz' package.
-
-Restarting your system may be needed for Scyther to locate any newly installed
-programs.
-""")
+    FindDot.findDot()   # If Graphviz is not found, this function will call panic to complain.
 
 #---------------------------------------------------------------------------
 
