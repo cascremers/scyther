@@ -26,7 +26,6 @@
 """ Import externals """
 import sys
 import os.path
-import shlex
 try:
     from subprocess import Popen,PIPE
 except:
