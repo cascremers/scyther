@@ -4,10 +4,23 @@ Requirements expressed as Ubuntu packages where [name][location]
 
 Needed:
 	
-  gcc
-  	If you don't know what this is, please stop reading.
-  cmake
+  [gcc]
+  	The C compiler.
+  	Note that the current default C compiler on Mac OS X, "clang",
+  	will not work. The reason is that Scyther uses nested function
+  	definitions, which are not supported by clang.
+
+  [flex]
+  [bison]
+  	Two tools for the generation of parsers.
+
+  [build-essential]
+  	This meta-package includes several development tools used by
+  	Scyther.
+
+  [cmake]
 	A Makefile generator, available on almost any platform.
+
 
 For cross-compilation (Windows):
 
