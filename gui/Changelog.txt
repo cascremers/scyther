@@ -1,6 +1,23 @@
 Scyther changelog
 ===============================
 
+Scyther 1.1.2
+-------------------------------
+
+Minor:
+
+ * Updated installation instructions.
+ * Updated 'ffgg' protocol generator for new conventions.
+ * Windows users recently had to manually set the Graphviz path. Added a
+ hack to avoid this inconvenience in most (but not all) cases.
+ * Minor manual update.
+
+Bug fixes:
+
+ * [Bugfix] Reverted use of shlex. This breaks the "abort backend
+ thread" functionality again, but it was causing too much trouble on
+ Windows.
+
 Scyther 1.1.1
 -------------------------------
 
