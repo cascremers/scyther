@@ -2,6 +2,42 @@ Scyther changelog
 ===============================
 
 
+Compromise 0.9.1
+-------------------------------
+
+Minor:
+
+ * Updated installation instructions.
+ * Updated 'ffgg' protocol generator for new conventions.
+ * Windows users recently had to manually set the Graphviz path. Added a
+ hack to avoid this inconvenience in most (but not all) cases.
+ * Various improvements to the attack renderer.
+ * Minor manual update.
+
+Compromise 0.9
+-------------------------------
+
+New features:
+
+ * The 'Weakagree' and 'Alive' claims now also accept an optional role
+ parameter. This can be useful to narrow down the claim for protocols
+ with more than two roles.
+ * Added '--no-claim-check' option to disable sanity checks on claims.
+
+Minor:
+
+ * Updated installation instructions.
+ * Improved some scripts.
+ * Started work on consistent regression testing.
+
+Bugfixes:
+
+ * Improved hash function handling.
+ * Fixed Windows compilation.
+ * Fixed Graphviz code generation for Graphviz versions after 2.26.
+ * Improving handling of symlinking the scyther-gui.py script.
+ * Various minor fixes.
+
 Compromise 0.8
 -------------------------------
 
