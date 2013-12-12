@@ -73,10 +73,6 @@ BUILDDIR=$TMPDIR/$ARCHNAME
 # Archive destination file without extension
 DESTFILE=$DESTDIR/$ARCHNAME
 
-# Internal locations
-DOCDIR=$SRCDIR/doc/manual
-MANUAL=scyther-manual.pdf
-
 rm -rf $SRCDIR
 rm -rf $BUILDDIR
 
@@ -92,9 +88,6 @@ echo "SCYTHER_GUI_VERSION = \"$TAG\"" >$BUILDDIR/Gui/Version.py
 # Prepare version.h with the correct flag (tag)
 echo "#define TAGVERSION \"$TAG\"" >$SRCDIR/src/version.h
 echo "" >>$SRCDIR/src/version.h
-
-# Manual
-cp $DOCDIR/$MANUAL $BUILDDIR
 
 # Change into sources directory
 cd $SRCDIR/src
