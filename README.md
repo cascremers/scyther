@@ -53,7 +53,7 @@ Manual
 ------
 
 We are currently rewriting the manual. The current (incomplete) snapshot
-of the manual can be found here:
+of the manual can be found in the following location:
 
   * [./gui/scyther-manual.pdf](gui/scyther-manual.pdf)
 
