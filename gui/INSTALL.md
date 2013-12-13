@@ -1,6 +1,12 @@
 Installation and usage of the Scyther tool
 ==========================================
 
+Download
+--------
+
+Downloads of binary archives of Scyther for all main platforms can be
+found at http://users.ox.ac.uk/~coml0529/scyther/index.html
+
 Requirements
 ------------
 
@@ -74,6 +80,7 @@ from the command line) then you need only the first.
 Running Scyther
 ---------------
 
+Extract the Scyther archive and navigate to the extracted directory.
 
 Start Scyther by executing the file
 
