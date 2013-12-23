@@ -65,8 +65,8 @@ class AboutScyther(wx.Dialog):
     </p>
     <p>
         For news and updates visit the Scyther pages at 
-        <a target="_blank" href="http://people.inf.ethz.ch/cremersc/scyther/index.html">
-        http://people.inf.ethz.ch/cremersc/scyther/index.html</a>
+        <a target="_blank" href="http://www.cs.ox.ac.uk/people/cas.cremers/scyther/index.html">
+        http://www.cs.ox.ac.uk/people/cas.cremers/scyther/index.html</a>
     </p>
     <h5>License</h5>
     <p>
