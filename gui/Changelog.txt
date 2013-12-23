@@ -60,7 +60,7 @@ Major new features:
 
 Additional protocol models:
 
-See <http://people.inf.ethz.ch/cremersc/tools/protocols.html> for a
+See <http://www.cs.ox.ac.uk/people/cas.cremers/tools/protocols.html> for a
 more high-level overview of selected protocol models.
 
  * IEEE 802.16e/WIMAX: PKMv2rsa and variants
