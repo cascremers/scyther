@@ -7,7 +7,7 @@ developed by Cas Cremers, and is available from
 
 The below instructions apply only to the *distribution version* of
 the Scyther tool. If you are working from the source files, some paths may be
-slightly different, and it is recommended to follow the instructions in '../README.md'.
+slightly different, and it is recommended to follow the instructions in [../README.md](../README.md).
 
 Running the scyther tool
 ------------------------
@@ -48,7 +48,7 @@ Manual
 We are currently rewriting the manual. The current (incomplete)
 distribution version of the manual can be found here:
 
-  * `./scyther-manual.pdf`
+  * [./scyther-manual.pdf](scyther-manual.pdf)
 
 
 Protocol Models
@@ -56,7 +56,7 @@ Protocol Models
 
 The protocol models have the extension `.spdl` and can be found in the following directories:
 
-  * `./Protocols` and its subdirectories.
+  * [./Protocols](Protocols) and its subdirectories.
 
 License
 -------

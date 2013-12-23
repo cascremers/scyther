@@ -1,10 +1,8 @@
-========================================================================
 Installation and usage of the Scyther tool
-========================================================================
+==========================================
 
-------------------------------------------------------------------------
 Requirements
-------------------------------------------------------------------------
+------------
 
 To be able to use Scyther, you need the following three things:
 
@@ -28,7 +26,7 @@ language. Therefore, the GUI requires the following two items:
 
   Stable releases of the Python interpreter are available from:
 
-  	http://www.python.org/download/
+  	<a href="http://www.python.org/download/">
 
   Scyther does not support Python 3. You are therefore recommended to
   choose the latest production release of Python 2, e.g., Python 2.7.
@@ -45,7 +43,7 @@ language. Therefore, the GUI requires the following two items:
 
   The GUI user interface uses the wxPython libraries.
 
-	http://www.wxpython.org/download.php
+	<a href="http://www.wxpython.org/download.php">
 
   There are many different wxPython packages. You should choose a 32-bit
   package that matches your Python version (e.g., 2.7). It is
@@ -55,10 +53,10 @@ language. Therefore, the GUI requires the following two items:
   wxPython packages for Python 2.7:
 
   Windows:
-  	http://downloads.sourceforge.net/wxpython/wxPython2.8-win32-unicode-2.8.12.1-py27.exe
+  	<a href="http://downloads.sourceforge.net/wxpython/wxPython2.8-win32-unicode-2.8.12.1-py27.exe">
 
   Mac OS X:
-  	http://downloads.sourceforge.net/wxpython/wxPython2.8-osx-unicode-2.8.12.1-universal-py2.7.dmg
+  	<a href="http://downloads.sourceforge.net/wxpython/wxPython2.8-osx-unicode-2.8.12.1-universal-py2.7.dmg">
 
 	Note that this package is in an old format and you will probably
 	get a warning "Package is damaged". This can be resolved by:
@@ -66,12 +64,11 @@ language. Therefore, the GUI requires the following two items:
   	 $ sudo installer -pkg /Volume/.../wxPython2.8-osx-unicode-universal-py2.7.pkg/ -target /
 
   Ubuntu/Debian Linux:
-  	http://wiki.wxpython.org/InstallingOnUbuntuOrDebian
+  	<a href="http://wiki.wxpython.org/InstallingOnUbuntuOrDebian">
 
 
-------------------------------------------------------------------------
 Running Scyther
-------------------------------------------------------------------------
+---------------
 
 
 Start Scyther by executing the file

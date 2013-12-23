@@ -53,9 +53,9 @@ Manual
 ------
 
 We are currently rewriting the manual. The current (incomplete) snapshot
-of the manual can be found here:
+of the manual can be found in the following location:
 
-  * `./gui/scyther-manual.pdf`
+  * [./gui/scyther-manual.pdf](gui/scyther-manual.pdf)
 
 
 Protocol Models
@@ -63,8 +63,8 @@ Protocol Models
 
 The protocol models have the extension `.spdl` and can be found in the following directories:
 
-  * `./gui/Protocols`, containing the officially released models, and
-  * `./testing`, containing models currently under development.
+  * [./gui/Protocols](gui/Protocols), containing the officially released models, and
+  * [./testing](testing), containing models currently under development.
 
 License
 -------
