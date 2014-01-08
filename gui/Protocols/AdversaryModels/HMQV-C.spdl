@@ -8,11 +8,7 @@ hashfunction h1,h2,g1,g2,exp,KDF,LSB,MAC;
 
 // Addition, multiplication
 // For now, simply hashes
-const mult,add: Function;
-secret unmult,unadd: Function;
-
-inversekeys(mult,unmult);
-inversekeys(add,unadd);
+hashfunction mult,add;
 
 // Constants
 usertype Bit;
