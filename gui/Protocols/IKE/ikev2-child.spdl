@@ -14,7 +14,7 @@
 
 
 
-const g, h: Function;
+hashfunction g, h;
 # 97 "common.h"
 protocol @oracle (DH, SWAP) {
 

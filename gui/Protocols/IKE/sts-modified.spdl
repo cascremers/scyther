@@ -14,7 +14,7 @@
 
 
 
-const g, h: Function;
+hashfunction g, h;
 # 94 "common.h"
 hashfunction MAC;
 
