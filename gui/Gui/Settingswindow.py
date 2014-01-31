@@ -57,7 +57,7 @@ class MyGrid(wx.GridBagSizer):
             self.lineAdd()
         self.ypos += 1
         txt = wx.StaticText(self.parent,-1,title)
-        font = wx.Font(12,wx.DEFAULT,wx.NORMAL,wx.BOLD)
+        font = wx.Font(12,wx.FONTFAMILY_DEFAULT,wx.FONTSTYLE_NORMAL,wx.FONTWEIGHT_BOLD)
         txt.SetFont(font)
         self.Add(txt,pos=(self.ypos,0),span=(1,2),flag=wx.ALIGN_LEFT)
         self.ypos += 1

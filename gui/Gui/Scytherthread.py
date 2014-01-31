@@ -298,7 +298,7 @@ class ResultWindow(wx.Frame):
 
         def titlebar(x,title,width=1):
             txt = wx.StaticText(self,-1,title)
-            font = wx.Font(14,wx.NORMAL,wx.NORMAL,wx.BOLD)
+            font = wx.Font(14,wx.FONTFAMILY_DEFAULT,wx.FONTSTYLE_NORMAL,wx.FONTWEIGHT_BOLD)
             txt.SetFont(font)
             grid.Add(txt,(0,x),(1,width),wx.ALL,10)
 
@@ -376,7 +376,7 @@ class ResultWindow(wx.Frame):
             rankc = cl.getColour()
             rankt = cl.getOkay()
             txt = wx.StaticText(self,-1,rankt)
-            font = wx.Font(11,wx.NORMAL,wx.NORMAL,wx.BOLD)
+            font = wx.Font(11,wx.FONTFAMILY_DEFAULT,wx.FONTSTYLE_NORMAL,wx.FONTWEIGHT_BOLD)
             txt.SetFont(font)
             txt.SetForegroundColour(rankc)
             grid.Add(txt,(ypos,xpos),(1,1),wx.ALL,10)
