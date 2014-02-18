@@ -35,10 +35,11 @@ The build process depends on the following
   * `build-essential`
   * `flex`
   * `bison`
+  * `gcc-multilib`
 
 If you are using Ubuntu, installing these may be as simple as running
 
-`sudo apt-get install cmake build-essential flex bison`
+`sudo apt-get install cmake build-essential flex bison gcc-multilib`
 
 In case you also want to be able to compile Windows binaries from Linux,
 you also need:
