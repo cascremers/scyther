@@ -15,7 +15,7 @@ set (CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)	# to get rid of -rdynamic
 set (CMAKE_C_FLAGS "-DFORWINDOWS")
 
 # Static where possible (i.e. only not on the APPLE)
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -m32")
 
 set (scythername "scyther-w32.exe")
 add_executable (${scythername} ${Scyther_sources})
