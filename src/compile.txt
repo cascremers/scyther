@@ -21,6 +21,9 @@ Needed:
   [cmake]
 	A Makefile generator, available on almost any platform.
 
+  [gcc-multilib]
+	Some 64-bit platforms need this to enable 32-bit compilation.
+
 
 For cross-compilation (Windows):
 
