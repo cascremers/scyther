@@ -419,7 +419,6 @@ check_claim_nisynch (const System sys, const int i)
   int result;
   int rid;
   Termmap f, g;
-  Term label;
   Claimlist cl;
   Termlist tl;
 
@@ -431,7 +430,6 @@ check_claim_nisynch (const System sys, const int i)
 
   // map all labels in prec to LABEL_TODO
   g = NULL;
-  label = rd->label;
 
   tl = cl->prec;
   while (tl != NULL)
@@ -479,7 +477,6 @@ check_claim_niagree (const System sys, const int i)
   int result;
   int rid;
   Termmap f, g;
-  Term label;
   Claimlist cl;
   Termlist tl;
 
@@ -491,7 +488,6 @@ check_claim_niagree (const System sys, const int i)
 
   // map all labels in prec to LABEL_TODO
   g = NULL;
-  label = rd->label;
 
   tl = cl->prec;
   while (tl != NULL)

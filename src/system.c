@@ -167,14 +167,11 @@ systemRuns (const System sys)
 void
 systemDone (const System sys)
 {
-  int s;
-
   /* done others */
   partnerDone ();
 
   /* clear globals, which were defined in systemStart */
 
-  s = sys->maxtracelength + 1;
   free (sys->traceEvent);
   free (sys->traceRun);
   free (sys->traceKnow);

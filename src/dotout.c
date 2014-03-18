@@ -1719,13 +1719,11 @@ void
 drawRegularRuns (const System sys)
 {
   int run;
-  int rcnum;
   char *colorbuf;
 
   // two buffers, eight chars each
   colorbuf = malloc (16 * sizeof (char));
 
-  rcnum = 0;
   for (run = 0; run < sys->maxruns; run++)
     {
       if (sys->runs[run].length > 0)

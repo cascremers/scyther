@@ -260,9 +260,7 @@ multipleRolePrune (const System sys)
 {
   Termlist agentrole;
   int run;
-  int flag;
 
-  flag = false;
   agentrole = NULL;
   for (run = 0; run < sys->maxruns; run++)
     {
