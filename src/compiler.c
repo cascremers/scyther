@@ -37,6 +37,7 @@
 #include "intruderknowledge.h"
 #include "error.h"
 #include "mgu.h"
+#include "type.h"
 
 /*
    Simple sys pointer as a global. Yields cleaner code although it's against programming standards.

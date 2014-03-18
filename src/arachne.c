@@ -59,6 +59,7 @@
 #include "depend.h"
 #include "xmlout.h"
 #include "heuristic.h"
+#include "tempfile.h"
 
 extern int *graph;
 extern int nodes;

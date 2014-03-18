@@ -40,6 +40,7 @@
 #include "cost.h"
 #include "timer.h"
 #include "compiler.h"
+#include "depend.h"
 
 //! When none of the runs match
 #define MATCH_NONE 0
