@@ -4,6 +4,10 @@
 
 // The protocol description
 
+macro msg1 = { ni, I }pk(R) ;
+macro msg2 = { ni, nr, R }pk(I) ;
+macro msg3 = { nr }pk(R) ;
+
 protocol nsl3(I,R)
 {
 	role I
@@ -11,10 +15,10 @@ protocol nsl3(I,R)
 		fresh ni: Nonce;
 		var nr: Nonce;
 
-		send_1(I,R, {ni,I}pk(R) );
-		recv_2(R,I, {ni,nr,R}pk(I) );
+		send_1(I,R, msg1);
+		recv_2(R,I, msg2);
 		claim(I,Running,R,ni,nr);
-		send_3(I,R, {nr}pk(R) );
+		send_3(I,R, msg3);
 
 		claim(I,Secret,ni);
 		claim(I,Secret,nr);
@@ -30,10 +34,10 @@ protocol nsl3(I,R)
 		var ni: Nonce;
 		fresh nr: Nonce;
 
-		recv_1(I,R, {ni,I}pk(R) );
+		recv_1(I,R, msg1);
 		claim(R,Running,I,ni,nr);
-		send_2(R,I, {ni,nr,R}pk(I) );
-		recv_3(I,R, {nr}pk(R) );
+		send_2(R,I, msg2);
+		recv_3(I,R, msg3);
 
 		claim(R,Secret,ni);
 		claim(R,Secret,nr);
