@@ -1617,73 +1617,59 @@ switcher (const int process, int index, int commandline)
  * This is a public function. It is used for the environment variables but also for the in-specification defines.
  */
 void
-process_switch_buffer (char *buf)
+process_switch_buffer (char *args_source)
 {
-  if (buf != NULL)
+  int arg_string_len;
+
+  if (args_source == NULL)
     {
-      int slen;
+      return;
+    }
 
-      slen = strlen (buf);
-      if (slen > 0)
+  arg_string_len = strlen (args_source);
+  if (arg_string_len > 0)
+    {
+	/**
+	* We scan the args_source here, but assume a stupid upper limit of 100 pieces, otherwise this all becomes fairly vague.
+	*/
+      int max_args = 100;
+      char **args_array;
+      int args_count;
+      char *args_copy;
+      char *scanflag;
+      char *next_arg;
+      int i;
+
+      /* make a safe copy */
+      args_array = malloc (sizeof (char *) * max_args);
+      args_copy = (char *) malloc (arg_string_len + 1);
+      memcpy (args_copy, args_source, arg_string_len + 1);
+
+      for (i = 0; i < max_args; i++)
 	{
-	  /**
-	   * We scan the buf here, but assume a stupid upper limit of 100 pieces, otherwise this all becomes fairly vague.
-	   */
-	  int max = 100;
-	  char *argv[100];
-	  int count;
-	  char *args;
-	  char *scanflag;
-	  char *argn;
-
-	  /* make a safe copy */
-	  args = (char *) malloc (slen + 1);
-	  memcpy (args, buf, slen + 1);
-
-	  /* warning */
-	  /*
-	     globalError++;
-	     eprintf ("warning: using environment variable SVNSCYTHER ('%s')\n",
-	     args);
-	     globalError--;
-	   */
-
-	  {
-	    int i;
-
-	    i = 0;
-	    while (i < max)
-	      {
-		argv[i] = "";
-		i++;
-	      }
-	  }
-
-	  scanflag = args;
-	  count = 0;
-	  /* ugly use of assignment in condition */
-	  while (count < max)
-	    {
-	      argn = strtok (scanflag, "\t ");
-	      scanflag = NULL;
-	      if (argn != NULL)
-		{
-		  count++;
-		  argv[count] = argn;
-		}
-	      else
-		{
-		  break;
-		}
-	    }
-	  /*
-	     warning ("found %i arguments in SCYTHERFLAGS\n", count);
-	   */
-
-	  switches.argc = count + 1;
-	  switches.argv = argv;
-	  process_switches (false);
+	  args_array[i] = "";
 	}
+
+      scanflag = args_copy;
+      args_count = 0;
+      /* ugly use of assignment in condition */
+      while (args_count < (max_args - 1))
+	{
+	  next_arg = strtok (scanflag, "\t ");
+	  scanflag = NULL;	// needed for strtok() to work properly
+	  if (next_arg != NULL)
+	    {
+	      args_count++;
+	      args_array[args_count] = next_arg;
+	    }
+	  else
+	    {
+	      break;
+	    }
+	}
+      switches.argc = args_count + 1;
+      switches.argv = args_array;
+      process_switches (false);
     }
 }
 
