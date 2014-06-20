@@ -269,35 +269,30 @@ multipleRolePrune (const System sys)
       p = sys->runs[run].protocol;
       if ((p != INTRUDER) && (!isHelperProtocol (p)))
 	{
-	  Role r;
+	  Term rolename;
+	  Term agent;
+	  Termlist tl;
 
-	  for (r = p->roles; r != NULL; r = r->next)
+	  rolename = sys->runs[run].role->nameterm;
+	  agent = agentOfRun (sys, run);
+
+	  // Does this agent already occur yet in the list?
+	  for (tl = agentrole; tl != NULL; tl = (tl->next)->next)
 	    {
-	      Term role, agent;
-	      Termlist tl;
-
-	      // Find mapping role->agent
-	      role = r->nameterm;
-	      agent = agentOfRunRole (sys, run, role);
-
-	      // Does this agent already occur yet in the list?
-	      for (tl = agentrole; tl != NULL; tl = (tl->next)->next)
+	      if (isTermEqual (agent, tl->term))
 		{
-		  if (isTermEqual (agent, tl->term))
+		  if (!isTermEqual (rolename, (tl->next)->term))
 		    {
-		      if (!isTermEqual (role, (tl->next)->term))
-			{
-			  // Same agent, but different role! This is not allowed.
-			  termlistDelete (agentrole);	// cleanup
-			  return true;
-			}
+		      // Same agent, but different role! This is not allowed.
+		      termlistDelete (agentrole);	// cleanup
+		      return true;
 		    }
 		}
-	      // Does not occur yet, so add
-	      // Note we add the elements in front, so we need to reverse the order
-	      agentrole = termlistPrepend (agentrole, role);
-	      agentrole = termlistPrepend (agentrole, agent);
 	    }
+	  // Does not occur yet, so add
+	  // Note we add the elements in front, so we need to reverse the order
+	  agentrole = termlistPrepend (agentrole, rolename);
+	  agentrole = termlistPrepend (agentrole, agent);
 	}
     }
   termlistDelete (agentrole);
