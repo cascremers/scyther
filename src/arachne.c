@@ -1849,12 +1849,12 @@ chooseBestCandidate (Termlist candidatelist, Term var)
  * - seen is a termlist that contains newly generated terms (usage: seen = createNewTerm(seen,.. )
  * - typeterm is the type name term (e.g., "Agent" term, "Data" in case not clear.)
  * - isagent is a boolean that is true iff we are looking for an agent name from the initial knowledge for a role
- * - var is the variable term
+ * - var is the variable term of which we use the name
  *
  * Output: the first element of the returned list, which is otherwise equal to seen.
  */
 Termlist
-createNewTerm (Termlist seen, Term typeterm, int isagent, Term var)
+createNewTerm (Termlist seen, Term typeterm, int isagent, Term nameterm)
 {
   /* Does if have an explicit type?
    * If so, we try to find a fresh name from the intruder knowledge first.
@@ -1868,7 +1868,7 @@ createNewTerm (Termlist seen, Term typeterm, int isagent, Term var)
 	{
 	  Term t;
 
-	  t = chooseBestCandidate (candidatelist, var);
+	  t = chooseBestCandidate (candidatelist, nameterm);
 	  termlistDelete (candidatelist);
 	  return termlistPrepend (seen, t);
 	}
@@ -1943,7 +1943,8 @@ makeTraceConcrete (const System sys)
 		}
 	      // We should turn this into an actual term
 	      tlnew =
-		createNewTerm (tlnew, name, isAgentType (var->stype), var);
+		createNewTerm (tlnew, name, isAgentType (var->stype),
+			       tl->term);
 	      var->subst = tlnew->term;
 
 	      // Store for undo later
