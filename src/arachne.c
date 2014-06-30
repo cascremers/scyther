@@ -1849,12 +1849,12 @@ chooseBestCandidate (Termlist candidatelist, Term var)
  * - seen is a termlist that contains newly generated terms (usage: seen = createNewTerm(seen,.. )
  * - typeterm is the type name term (e.g., "Agent" term, "Data" in case not clear.)
  * - isagent is a boolean that is true iff we are looking for an agent name from the initial knowledge for a role
- * - var is the variable term
+ * - var is the variable term of which we use the name
  *
  * Output: the first element of the returned list, which is otherwise equal to seen.
  */
 Termlist
-createNewTerm (Termlist seen, Term typeterm, int isagent, Term var)
+createNewTerm (Termlist seen, Term typeterm, int isagent, Term nameterm)
 {
   /* Does if have an explicit type?
    * If so, we try to find a fresh name from the intruder knowledge first.
@@ -1868,7 +1868,7 @@ createNewTerm (Termlist seen, Term typeterm, int isagent, Term var)
 	{
 	  Term t;
 
-	  t = chooseBestCandidate (candidatelist, var);
+	  t = chooseBestCandidate (candidatelist, nameterm);
 	  termlistDelete (candidatelist);
 	  return termlistPrepend (seen, t);
 	}
@@ -1912,24 +1912,27 @@ makeTraceConcrete (const System sys)
 
   changedvars = NULL;
   tlnew = findUsedConstants (sys);
-  run = 0;
 
-  while (run < sys->maxruns)
+  for (run = 0; run < sys->maxruns; run++)
     {
       Termlist tl;
 
-      tl = sys->runs[run].locals;
-      while (tl != NULL)
+      for (tl = termlistForward (sys->runs[run].locals); tl != NULL;
+	   tl = tl->prev)
 	{
+	  Term basevar;
+
+	  basevar = tl->term;
+
 	  /* variable, and of some run? */
-	  if (isTermVariable (tl->term) && TermRunid (tl->term) >= 0)
+	  if (isTermVariable (basevar) && TermRunid (basevar) >= 0)
 	    {
 	      Term var;
 	      Term name;
 	      Termlist vartype;
 
-	      var = deVar (tl->term);
-	      vartype = var->stype;
+	      var = deVar (basevar);
+	      vartype = basevar->stype;
 	      // Determine class name
 	      if (vartype != NULL)
 		{
@@ -1943,15 +1946,14 @@ makeTraceConcrete (const System sys)
 		}
 	      // We should turn this into an actual term
 	      tlnew =
-		createNewTerm (tlnew, name, isAgentType (var->stype), var);
+		createNewTerm (tlnew, name, isAgentType (var->stype),
+			       basevar);
 	      var->subst = tlnew->term;
 
 	      // Store for undo later
-	      changedvars = termlistAdd (changedvars, var);
+	      TERMLISTADD (changedvars, var);
 	    }
-	  tl = tl->next;
 	}
-      run++;
     }
   termlistDelete (tlnew);
   return changedvars;
