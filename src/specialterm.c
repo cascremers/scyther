@@ -64,6 +64,8 @@ Term AGENT_Bob;
 Term AGENT_Charlie;
 Term AGENT_Dave;
 Term AGENT_Eve;
+Term AGENT_Simon;
+Term AGENT_Pete;
 Term TERM_PK;
 Term TERM_SK;
 Term TERM_K;
@@ -140,12 +142,16 @@ specialTermInitAfter (const System sys)
   langcons (AGENT_Charlie, "Charlie", TERM_Agent);
   langcons (AGENT_Dave, "Dave", TERM_Agent);
   langcons (AGENT_Eve, "Eve", TERM_Agent);
+  langcons (AGENT_Simon, "Simon", TERM_Agent);
+  langcons (AGENT_Pete, "Pete", TERM_Agent);
 
   knowledgeAddTerm (sys->know, AGENT_Alice);
   knowledgeAddTerm (sys->know, AGENT_Bob);
   knowledgeAddTerm (sys->know, AGENT_Charlie);
   knowledgeAddTerm (sys->know, AGENT_Dave);
   knowledgeAddTerm (sys->know, AGENT_Eve);
+  knowledgeAddTerm (sys->know, AGENT_Simon);
+  knowledgeAddTerm (sys->know, AGENT_Pete);
 
   sys->untrusted = termlistAddNew (sys->untrusted, AGENT_Eve);
 }
