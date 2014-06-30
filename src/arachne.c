@@ -1734,53 +1734,148 @@ findUsedConstants (const System sys)
   return tlconst;
 }
 
+//! Retrieve a list of agent name candidates
+Termlist
+getAgentCandidates (Termlist seen)
+{
+  Termlist knowlist;
+  Termlist candidatelist;
+  Termlist li;			// list loop pointer
+
+  knowlist = knowledgeSet (sys->know);
+  candidatelist = NULL;
+  for (li = knowlist; li != NULL; li = li->next)
+    {
+      Term t;
+
+      t = li->term;
+      if (isAgentType (t->stype))
+	{
+	  /* agent */
+	  /* We don'typeterm want to instantiate untrusted agents. */
+	  if (!inTermlist (sys->untrusted, t))
+	    {
+	      /* trusted agent */
+	      if (!inTermlist (seen, t))
+		{
+		  /* This agent name is not in the list yet, so could be chosen */
+		  candidatelist = termlistPrepend (candidatelist, t);
+		}
+	    }
+	}
+    }
+  termlistDelete (knowlist);
+  return candidatelist;
+}
+
+//! Get to string of term
+const char *
+getTermString (Term t)
+{
+  if (t != NULL)
+    {
+      if (TermSymb (t) != NULL)
+	{
+	  return (TermSymb (t)->text);
+	}
+    }
+  return NULL;
+}
+
+//! Check the first character of two terms
+int
+isFirstCharEqual (Term t1, Term t2)
+{
+  const char *c1, *c2;
+
+  c1 = getTermString (t1);
+  c2 = getTermString (t2);
+  if ((c1 == NULL) || (c2 == NULL))
+    {
+      return false;
+    }
+  else
+    {
+      return (c1[0] == c2[0]);
+    }
+}
+
+//! Choose the best term from the (non-null) candidate list for the variable var
+Term
+chooseBestCandidate (Termlist candidatelist, Term var)
+{
+  Term last;
+  Termlist li;			// list loop pointer
+
+  // See if we have a candidate that starts with the same first character
+  for (li = candidatelist; li != NULL; li = li->next)
+    {
+      last = li->term;
+      if (isFirstCharEqual (last, var))
+	{
+	  return last;
+	}
+    }
+  // If not, we may still want to invoke heuristics (Alice initiates, Bob responds)
+  if (li == NULL)
+    {
+      // li==null happens if we did not break out of the loop, i.e., found nothing
+      const char *c;
+
+      c = getTermString (var);
+      if (c != NULL)
+	{
+	  // Check if name starts with common prefix, resort to common name if still a candidate
+	  if (strchr ("Ii", *c) && inTermlist (candidatelist, AGENT_Alice))
+	    {
+	      return AGENT_Alice;
+	    }
+	  if (strchr ("Rr", *c) && inTermlist (candidatelist, AGENT_Bob))
+	    {
+	      return AGENT_Bob;
+	    }
+	}
+    }
+  return last;
+}
+
 //! Create a new term with incremented run rumber, starting at sys->maxruns.
 /**
  * This is a rather intricate function that tries to generate new terms of a
  * certain type. It first looks up things in the initial knowledge, checking
  * whether they are used already. After that, new ones are generated.
  *
- * Output: the first element of the returned list.
+ * Input:
+ * - seen is a termlist that contains newly generated terms (usage: seen = createNewTerm(seen,.. )
+ * - typeterm is the type name term (e.g., "Agent" term, "Data" in case not clear.)
+ * - isagent is a boolean that is true iff we are looking for an agent name from the initial knowledge for a role
+ * - var is the variable term
+ *
+ * Output: the first element of the returned list, which is otherwise equal to seen.
  */
 Termlist
-createNewTerm (Termlist tl, Term t, int isagent)
+createNewTerm (Termlist seen, Term typeterm, int isagent, Term var)
 {
   /* Does if have an explicit type?
    * If so, we try to find a fresh name from the intruder knowledge first.
    */
   if (isagent)
     {
-      Termlist knowlist;
-      Termlist kl;
+      Termlist candidatelist;
 
-      knowlist = knowledgeSet (sys->know);
-      kl = knowlist;
-      while (kl != NULL)
+      candidatelist = getAgentCandidates (seen);
+      if (candidatelist != NULL)
 	{
-	  Term k;
+	  Term t;
 
-	  k = kl->term;
-	  if (isAgentType (k->stype))
-	    {
-	      /* agent */
-	      /* We don't want to instantiate untrusted agents. */
-	      if (!inTermlist (sys->untrusted, k))
-		{
-		  /* trusted agent */
-		  if (!inTermlist (tl, k))
-		    {
-		      /* This agent name is not in the list yet. */
-		      return termlistPrepend (tl, k);
-		    }
-		}
-	    }
-	  kl = kl->next;
+	  t = chooseBestCandidate (candidatelist, var);
+	  termlistDelete (candidatelist);
+	  return termlistPrepend (seen, t);
 	}
-      termlistDelete (knowlist);
     }
 
   /* Not an agent or no free one found */
-  return createNewTermGeneric (tl, t);
+  return createNewTermGeneric (seen, typeterm);
 }
 
 //! Delete a term made in the previous constructions
@@ -1802,7 +1897,7 @@ deleteNewTerm (Term t)
 //! Make a trace concrete
 /**
  * People find reading variables in attack outputs difficult.
- * Thus, we instantiate them in a sensible way to make things more readable.
+ * Thus, we instantiate open variables in a sensible way to make things more readable.
  *
  * This happens after sys->maxruns is fixed. Intruder constants thus are numbered from sys->maxruns onwards.
  *
@@ -1847,7 +1942,8 @@ makeTraceConcrete (const System sys)
 		  name = TERM_Data;
 		}
 	      // We should turn this into an actual term
-	      tlnew = createNewTerm (tlnew, name, isAgentType (var->stype));
+	      tlnew =
+		createNewTerm (tlnew, name, isAgentType (var->stype), var);
 	      var->subst = tlnew->term;
 
 	      // Store for undo later

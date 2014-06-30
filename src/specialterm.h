@@ -60,6 +60,8 @@ extern Term AGENT_Bob;
 extern Term AGENT_Charlie;
 extern Term AGENT_Dave;
 extern Term AGENT_Eve;
+extern Term AGENT_Simon;
+extern Term AGENT_Pete;
 extern Term TERM_PK;
 extern Term TERM_SK;
 extern Term TERM_K;
