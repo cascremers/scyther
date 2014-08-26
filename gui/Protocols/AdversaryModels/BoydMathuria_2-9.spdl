@@ -27,11 +27,11 @@ protocol BoydMathuria-2-9(A,B,S)
 	{
 		fresh Na: Nonce;
 		var kas: SessionKey;
-		fresh NB: Ticket;
+		var NB: Ticket;
 
 		send_1(A,S, A,B);
 		send_2(A,B, A,exp(g,Na) );
-		recv_4(S,A, { A,B,kas }k(B,S) );
+		recv_4(S,A, { A,B,kas }k(A,S) );
 		recv_5(B,A, B,NB );
 		claim(A, SKR, exp(exp(Na,NB),kas) );
 	}

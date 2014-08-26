@@ -6,6 +6,8 @@
  */
 
 // Generator of G
+usertype Generator;
+const g:Generator;
 
 // Hash functions
 hashfunction h,exp,KDF;
