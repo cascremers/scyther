@@ -44,6 +44,7 @@ version number."""
 
         keyfound = False
         try:
+            import sys
             if sys.environment[key] == data:
                 keyfound = True
         except:
