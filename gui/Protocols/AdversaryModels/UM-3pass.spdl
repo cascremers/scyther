@@ -65,7 +65,7 @@ protocol @exponentiation(RA,RB,RC)
 
 // The protocol description
 
-symmetric-role protocol UM(I,R)
+symmetric-role protocol UM-3pass(I,R)
 {
 	role I
 	{
