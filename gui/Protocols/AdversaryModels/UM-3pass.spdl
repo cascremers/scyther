@@ -1,0 +1,95 @@
+/* 
+ * UM 3-Pass
+ *
+ * http://cacr.uwaterloo.ca/techreports/2007/cacr2007-35.pdf
+ *
+ */
+
+// Hash functions
+hashfunction h1,h2,Gexp,exp;
+hashfunction KDF,MAC;
+usertype String;
+const TxI: String;
+const TxR: String;
+const Tx1: String;
+const Tx2: String;
+
+macro ek1 = Gexp(x);
+macro ek2 = Gexp(y);
+
+macro seskalt = KDF(Tx1, exp(Gexp(x),y),exp(Gexp(sk(R)),sk(I)),I,R );
+macro sesk    = KDF(Tx2, exp(Gexp(x),y),exp(Gexp(sk(R)),sk(I)),I,R );
+
+macro msg1 = ek1;
+macro msg2 = ek1,ek2,MAC(seskalt, TxR, I,R,ek1,ek2);
+macro msg3 = ek1,ek2,MAC(seskalt, TxI, I,R,ek1,ek2);
+
+protocol @publickeys(RA)
+{
+	role RA
+	{
+		send_!1(RA,RA, Gexp(sk(RA)));
+	}
+}
+
+/*
+ * Hack to simulate g^ab = g^ba.
+ * '@' prefix of protocol name denotes helper protocol, which is used by
+ * Scyther for displaying, and such protocols are ignored in
+ * auto-generation of protocol modifiers.
+ */
+protocol @exponentiation(RA,RB,RC)
+{
+	role RA
+	{
+		var X,Y, T1,T2: Ticket;
+
+		recv_!1(RA,RA, exp(Gexp(T1),T2) );
+		send_!2(RA,RA, exp(Gexp(T2),T1) );
+	}
+	role RB
+	{
+		var X,Y, T1,T2,T3: Ticket;
+
+		recv_!3(RB,RB, KDF( exp(Gexp(T1),T2),T3) );
+		send_!4(RB,RB, KDF( exp(Gexp(T2),T1),T3) );
+	}
+	role RC
+	{
+		var X,Y, T1,T2,T3: Ticket;
+
+		recv_!5(RC,RC, KDF( T3,exp(Gexp(T1),T2) ) );
+		send_!6(RC,RC, KDF( T3,exp(Gexp(T2),T1) ) );
+	}
+}
+
+// The protocol description
+
+symmetric-role protocol UM(I,R)
+{
+	role I
+	{
+		fresh x: Nonce;
+		var y: Nonce;
+
+		send_1(I,R,  msg1 );
+		recv_2(R,I,  msg2 );
+		send_3(I,R,  msg3 );
+
+		claim(I,SKR, sesk);
+	}	
+	
+	role R
+	{
+		fresh y: Nonce;
+		var x: Nonce;
+
+		recv_1(I,R,  msg1 );
+		send_2(R,I,  msg2 );
+		recv_3(I,R,  msg3 );
+
+		claim(R,SKR, sesk);
+	}
+}
+
+
