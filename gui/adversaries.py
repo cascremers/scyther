@@ -314,6 +314,7 @@ def InitRestricted(models=None):
     namedmodels["square"] = [eck1,eck2, ck2001hmqvrnr,ck2001rnr,pfs]   # Square restriction
     namedmodels["triangleSSR"] = [eck1,eck2, ck2001hmqv,ck2001,ck2001hmqvrnr,ck2001rnr]         # Triangle restriction but allow state-reveal too
     namedmodels["triangleExtravert"] = [eck1,eck2,ck2001hmqv,ck2001,ck2001hmqvextravert,ck2001extravert]         # Triangle restriction but allow state-reveal too, and extravert
+    namedmodels["kcipfs"] = [kci, wpfs, pfs]   # For relation between these.
 
     # Propagate choice
     if models in namedmodels.keys():

@@ -1,8 +1,10 @@
 /* 
- * UM 3-Pass
+ * UM 3-Pass reduced
  *
  * http://cacr.uwaterloo.ca/techreports/2007/cacr2007-35.pdf
  *
+ * Reduction to a two-pass protocol by removing the ephemeral parts from
+ * the MAC keys, which now essentially turn into static-DH keys.
  */
 
 // Hash functions
@@ -17,12 +19,11 @@ const Tx2: String;
 macro ek1 = Gexp(x);
 macro ek2 = Gexp(y);
 
-macro seskalt = KDF(Tx1, exp(Gexp(x),y),exp(Gexp(sk(R)),sk(I)),I,R );
+macro seskalt = KDF(Tx1, exp(Gexp(sk(R)),sk(I)),I,R );
 macro sesk    = KDF(Tx2, exp(Gexp(x),y),exp(Gexp(sk(R)),sk(I)),I,R );
 
-macro msg1 = ek1;
+macro msg1 = ek1, MAC(seskalt, TxI, I,R,ek1);
 macro msg2 = ek1,ek2,MAC(seskalt, TxR, I,R,ek1,ek2);
-macro msg3 = ek1,ek2,MAC(seskalt, TxI, I,R,ek1,ek2);
 
 protocol @publickeys(RA)
 {
@@ -65,7 +66,7 @@ protocol @exponentiation(RA,RB,RC)
 
 // The protocol description
 
-protocol UM-3pass(I,R)
+protocol UM-3pass-reduced(I,R)
 {
 	role I
 	{
@@ -74,7 +75,6 @@ protocol UM-3pass(I,R)
 
 		send_1(I,R,  msg1 );
 		recv_2(R,I,  msg2 );
-		send_3(I,R,  msg3 );
 
 		claim(I,SKR, sesk);
 	}	
@@ -86,7 +86,6 @@ protocol UM-3pass(I,R)
 
 		recv_1(I,R,  msg1 );
 		send_2(R,I,  msg2 );
-		recv_3(I,R,  msg3 );
 
 		claim(R,SKR, sesk);
 	}
