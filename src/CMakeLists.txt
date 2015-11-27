@@ -25,6 +25,10 @@ set (Scyther_sources
 # If we are in a debug mode we want to be strict
 set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -DDEBUG")
 
+# c11 standard has different inline semantics, yields warning.
+# Since c11 is the default for gcc 5, we explicitly include the switch.
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu89")
+
 # Make scanner and parser
 include (ScannerParser.cmake)
 
