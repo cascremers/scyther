@@ -247,7 +247,14 @@ class ResultWindow(wx.Frame):
 
         self.parent = parent
         self.thread = None
+        aTable = wx.AcceleratorTable([
+                                      (wx.ACCEL_CTRL, ord('W'), wx.ID_CLOSE),
+                                      (wx.ACCEL_NORMAL, wx.WXK_ESCAPE, wx.ID_CLOSE),
+                                      ])
+        self.SetAcceleratorTable(aTable)
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
+        self.Bind(wx.EVT_MENU, self.onCloseWindow, id=wx.ID_CLOSE)
+
 
         self.CreateStatusBar()
         self.BuildTable()
