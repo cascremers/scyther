@@ -159,6 +159,7 @@ class MainWindow(wx.Frame):
     def CreateMenus(self):
         menuBar = wx.MenuBar()
         self.CreateMenu(menuBar, '&File', [
+             (wx.ID_NEW, '&New\tCTRL-N', 'Create a new file', self.OnNew),
              (wx.ID_OPEN, '&Open\tCTRL-O', 'Open a new file', self.OnOpen),
              (wx.ID_SAVE, '&Save\tCTRL-S', 'Save the current file', self.OnSave),
              (wx.ID_SAVEAS, 'Save &As', 'Save the file under a different name',
@@ -264,6 +265,14 @@ class MainWindow(wx.Frame):
     def OnExit(self, event):
         if self.ConfirmLoss("Exit"):
             self.Close()  # Close the main window.
+            return True
+        return False
+
+    def OnNew(self, event):
+        if self.ConfirmLoss("Open"):
+            self.editor.SetText('')
+            self.filename = ''
+            self.editor.SetOpened()
             return True
         return False
 
