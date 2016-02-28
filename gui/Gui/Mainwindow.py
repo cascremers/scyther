@@ -84,6 +84,7 @@ class MainWindow(wx.Frame):
 
         aTable = wx.AcceleratorTable([
                                       (wx.ACCEL_CTRL, ord('Q'), wx.ID_EXIT),
+                                      (wx.ACCEL_CTRL, ord('W'), wx.ID_EXIT),
                                       (wx.ACCEL_NORMAL, wx.WXK_F1,
                                           ID_VERIFY),
                                       (wx.ACCEL_NORMAL, wx.WXK_F2,
