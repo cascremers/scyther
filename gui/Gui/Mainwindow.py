@@ -60,7 +60,7 @@ class MainWindow(wx.Frame):
 
         MainInitOnce()
 
-        self.filename = 'noname.spdl'
+        self.filename = ''
         self.filepath = ""
 
         self.load = False
@@ -268,11 +268,14 @@ class MainWindow(wx.Frame):
         return False
 
     def OnSave(self, event):
-        textfile = open(os.path.join(self.dirname, self.filename), 'w')
-        textfile.write(self.editor.GetText())
-        textfile.close()
-        self.editor.SetSaved()
-        return True
+        if self.filename=='':
+            return self.OnSaveAs(event)
+        else:
+            textfile = open(os.path.join(self.dirname, self.filename), 'w')
+            textfile.write(self.editor.GetText())
+            textfile.close()
+            self.editor.SetSaved()
+            return True
 
     def OnOpen(self, event):
         if self.ConfirmLoss("Open"):
