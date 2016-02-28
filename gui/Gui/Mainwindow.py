@@ -159,8 +159,8 @@ class MainWindow(wx.Frame):
     def CreateMenus(self):
         menuBar = wx.MenuBar()
         self.CreateMenu(menuBar, '&File', [
-             (wx.ID_OPEN, '&Open', 'Open a new file', self.OnOpen),
-             (wx.ID_SAVE, '&Save', 'Save the current file', self.OnSave),
+             (wx.ID_OPEN, '&Open\tCTRL-O', 'Open a new file', self.OnOpen),
+             (wx.ID_SAVE, '&Save\tCTRL-S', 'Save the current file', self.OnSave),
              (wx.ID_SAVEAS, 'Save &As', 'Save the file under a different name',
                 self.OnSaveAs),
              (None, None, None, None),
