@@ -60,7 +60,7 @@ class MainWindow(wx.Frame):
 
         MainInitOnce()
 
-        self.filename = 'noname.spdl'
+        self.filename = ''
         self.filepath = ""
 
         self.load = False
@@ -84,6 +84,7 @@ class MainWindow(wx.Frame):
 
         aTable = wx.AcceleratorTable([
                                       (wx.ACCEL_CTRL, ord('Q'), wx.ID_EXIT),
+                                      (wx.ACCEL_CTRL, ord('W'), wx.ID_EXIT),
                                       (wx.ACCEL_NORMAL, wx.WXK_F1,
                                           ID_VERIFY),
                                       (wx.ACCEL_NORMAL, wx.WXK_F2,
@@ -158,8 +159,9 @@ class MainWindow(wx.Frame):
     def CreateMenus(self):
         menuBar = wx.MenuBar()
         self.CreateMenu(menuBar, '&File', [
-             (wx.ID_OPEN, '&Open', 'Open a new file', self.OnOpen),
-             (wx.ID_SAVE, '&Save', 'Save the current file', self.OnSave),
+             (wx.ID_NEW, '&New\tCTRL-N', 'Create a new file', self.OnNew),
+             (wx.ID_OPEN, '&Open\tCTRL-O', 'Open a new file', self.OnOpen),
+             (wx.ID_SAVE, '&Save\tCTRL-S', 'Save the current file', self.OnSave),
              (wx.ID_SAVEAS, 'Save &As', 'Save the file under a different name',
                 self.OnSaveAs),
              (None, None, None, None),
@@ -266,12 +268,23 @@ class MainWindow(wx.Frame):
             return True
         return False
 
+    def OnNew(self, event):
+        if self.ConfirmLoss("Open"):
+            self.editor.SetText('')
+            self.filename = ''
+            self.editor.SetOpened()
+            return True
+        return False
+
     def OnSave(self, event):
-        textfile = open(os.path.join(self.dirname, self.filename), 'w')
-        textfile.write(self.editor.GetText())
-        textfile.close()
-        self.editor.SetSaved()
-        return True
+        if self.filename=='':
+            return self.OnSaveAs(event)
+        else:
+            textfile = open(os.path.join(self.dirname, self.filename), 'w')
+            textfile.write(self.editor.GetText())
+            textfile.close()
+            self.editor.SetSaved()
+            return True
 
     def OnOpen(self, event):
         if self.ConfirmLoss("Open"):
