@@ -16,7 +16,7 @@ Windows and MAC OS X should be equally feasible. Note that the below
 instructions are written from a Linux/Ubuntu perspective, and probably
 need modifications for other platforms.
 
-Scyther is written partly in Python (for the GUI, using wxPython) and
+Scyther is written partly in Python 2 (for the GUI, using wxPython) and
 partly in C (for the backend). 
 
 In order to run the tool from a repository checkout, it is required to
@@ -36,10 +36,11 @@ The build process depends on the following
   * `flex`
   * `bison`
   * `gcc-multilib`
+  * `python-minimal`
 
 If you are using Ubuntu, installing these may be as simple as running
 
-`sudo apt-get install cmake build-essential flex bison gcc-multilib`
+`sudo apt-get install cmake build-essential flex bison gcc-multilib python-minimal`
 
 In case you also want to be able to compile Windows binaries from Linux,
 you also need:
