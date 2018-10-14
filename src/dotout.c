@@ -721,6 +721,63 @@ isApplicationM0 (const System sys, const int run)
   return false;
 }
 
+//! Helper for graph_ranks
+/**
+ * Name & documentation might be off; TODO later.
+ * This is for now just a refactoring to get rid of trampolines.
+ */
+int preceventPossible (const System sys, const int rank, const int run, const int rank2, const int run2, const int ev2)
+{
+  // regular preceding event
+
+  if (rank2 > rank)
+    {
+      // higher rank, this cannot be done
+      return false;
+    }
+  if (rank2 == rank)
+    {
+      // equal rank: only if different run
+      if ((sys->runs[run].protocol != INTRUDER)
+        && (run2 == run))
+      {
+        return false;
+      }
+    }
+  return true;
+}
+
+//! Helper for graph_ranks
+/**
+ * Name & documentation might be off; TODO later.
+ * This is for now just a refactoring to get rid of trampolines.
+ */
+int
+iteratePrecedingRole(const System sys, const int *ranks, const int run, const int ev, const int rank)
+{
+  int run2;
+
+  for (run2 = 0; run2 < sys->maxruns; run2++)
+    {
+      int ev2;
+
+      for (ev2 = 0; ev2 < sys->runs[run2].step; ev2++)
+	{
+	  if (isDependEvent (run2, ev2, run, ev))
+	    {
+	      int rank2;
+
+              rank2 = ranks[eventNode (run2, ev2)];
+	      if (!preceventPossible (sys, rank, run, rank2, run2, ev2))
+		{
+		  return false;
+		}
+	    }
+	}
+    }
+  return true;
+}
+
 //! Determine ranks for all nodes
 /**
  * Some crude algorithm I sketched on the blackboard.
@@ -731,16 +788,7 @@ graph_ranks (int *ranks, int nodes)
   int done;
   int rank;
   int changes;
-
-  int getrank (int run, int ev)
-  {
-    return ranks[eventNode (run, ev)];
-  }
-
-  void setrank (int run, int ev, int rank)
-  {
-    ranks[eventNode (run, ev)] = rank;
-  }
+  int i;
 
 #ifdef DEBUG
   if (hasCycle ())
@@ -749,68 +797,17 @@ graph_ranks (int *ranks, int nodes)
     }
 #endif
 
-  {
-    int i;
-
-    for (i = 0; i < nodes; i++)
-      {
-	ranks[i] = INT_MAX;
-      }
-  }
+  for (i = 0; i < nodes; i++)
+    {
+      ranks[i] = INT_MAX;
+    }
 
   rank = 0;
   done = false;
   changes = true;
   while (!done)
     {
-      int checkCanEventHappenNow (int run, Roledef rd, int ev)
-      {
-	//if (sys->runs[run].protocol != INTRUDER)
-	{
-	  if (getrank (run, ev) == INT_MAX)
-	    {
-	      // Allright, this regular event is not assigned yet
-	      int precevent (int run2, int ev2)
-	      {
-		//if (sys->runs[run2].protocol != INTRUDER)
-		{
-		  // regular preceding event
-		  int rank2;
-
-		  rank2 = getrank (run2, ev2);
-		  if (rank2 > rank)
-		    {
-		      // higher rank, this cannot be done
-		      return false;
-		    }
-		  if (rank2 == rank)
-		    {
-		      // equal rank: only if different run
-		      if ((sys->runs[run].protocol != INTRUDER)
-			  && (run2 == run))
-			{
-			  return false;
-			}
-		    }
-		}
-		return true;
-	      }
-
-	      if (iteratePrecedingEvents (sys, precevent, run, ev))
-		{
-		  // we can do it!
-		  changes = true;
-		  setrank (run, ev, rank);
-		}
-	      else
-		{
-		  done = false;
-		}
-	    }
-	}
-	return true;
-      }
-
+      int run;
 
       if (!changes)
 	{
@@ -824,7 +821,35 @@ graph_ranks (int *ranks, int nodes)
 	}
       done = true;
       changes = false;
-      iterateAllEvents (sys, checkCanEventHappenNow);
+
+      for (run = 0; run < sys->maxruns; run++)
+        {
+          Roledef rd;
+          int ev;
+
+          rd = sys->runs[run].start;
+          for (ev = 0; ev < sys->runs[run].step; ev++)
+            {
+              if (rd != NULL)	// Shouldn't be needed (step should maintain invariant) but good to be safe
+		{
+                  if ( ranks[eventNode (run, ev)] == INT_MAX)
+                    {
+                      if (iteratePrecedingRole (sys, ranks, run, ev, rank))
+                        {
+                          // we can do it!
+                          changes = true;
+                          ranks[eventNode (run, ev)] = rank;
+                        }
+                      else
+                        {
+                          done = false;
+                        }
+                    }
+                  rd = rd->next;
+		}
+            }
+        }
+
     }
   return rank;
 }
