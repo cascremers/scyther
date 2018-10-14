@@ -124,21 +124,20 @@ compilerDone (void)
 Termlist
 compute_recv_variables (const Role r)
 {
-  Termlist tl;
+  Termlist tl = NULL;
+  Roledef rd;
 
-  int process_event (Roledef rd)
-  {
-    if (rd->type == RECV)
-      {
-	tl = termlistAddVariables (tl, rd->from);
-	tl = termlistAddVariables (tl, rd->to);
-	tl = termlistAddVariables (tl, rd->message);
-      }
-    return 1;
-  }
-
-  tl = NULL;
-  roledef_iterate_events (r->roledef, process_event);
+  rd = r->roledef;
+  while (rd != NULL)
+    {
+      if (rd->type == RECV)
+        {
+	  tl = termlistAddVariables (tl, rd->from);
+	  tl = termlistAddVariables (tl, rd->to);
+	  tl = termlistAddVariables (tl, rd->message);
+        }
+      rd = rd->next;
+    }
   return tl;
 }
 
