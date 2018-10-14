@@ -415,16 +415,22 @@ int
 iterate_preceding_bindings (const int run, const int ev,
 			    int (*func) (Binding b))
 {
-  int precs (Binding b)
-  {
-    if (isDependEvent (b->run_to, b->ev_to, run, ev))
-      {
-	return func (b);
-      }
-    return true;
-  }
+  List bl;
 
-  return iterate_bindings (precs);
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (isDependEvent (b->run_to, b->ev_to, run, ev))
+	{
+          if (!func (b))
+	    {
+	      return false;
+	    }
+	}
+    }
+  return true;
 }
 
 
