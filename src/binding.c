@@ -630,17 +630,19 @@ int
 countBindingsDone ()
 {
   int count;
+  List bl;
 
-  int countDone (Binding b)
-  {
-    if ((!b->blocked) && b->done)
-      {
-	count++;
-      }
-    return true;
-  }
 
   count = 0;
-  iterate_bindings (countDone);
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if ((!b->blocked) && b->done)
+        {
+	  count++;
+        }
+    }
   return count;
 }
