@@ -193,6 +193,29 @@ goal_unbind (const Binding b)
     }
 }
 
+//! Check if term,run,ev already occurs in binding
+int
+is_new_binding(const Term term, const int run, const int ev)
+{
+  List bl = sys->bindings;
+
+  while (bl != NULL)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (isTermEqual (b->term, term))
+	{
+	  if (run == b->run_to && ev == b->ev_to)
+	    {
+	      return false;
+	    }
+	}
+      bl = bl->next;
+    }
+  return true;
+}
+
 //! Add a goal
 /**
  * The int parameter 'level' is just to store additional info. Here, it stores priorities for a goal.
@@ -229,28 +252,7 @@ goal_add (Term term, const int run, const int ev, const int level)
   else
     {
       // Determine whether we already had it
-      int createnew;
-
-      int testSame (void *data)
-      {
-	Binding b;
-
-	b = (Binding) data;
-	if (isTermEqual (b->term, term))
-	  {
-	    // binding of same term
-	    if (run == b->run_to && ev == b->ev_to)
-	      {
-		// identical binding 
-		createnew = false;
-	      }
-	  }
-	return true;
-      }
-
-      createnew = true;
-      list_iterate (sys->bindings, testSame);
-      if (createnew)
+      if (is_new_binding(term, run, ev))
 	{
 	  // Add a new binding
 	  Binding b;
