@@ -319,15 +319,15 @@ roledef_iterate_events (Roledef rd, int (*func) ())
  * but this just shows the use of the iteration.
  */
 int
-roledef_length (const Roledef rd)
+roledef_length (Roledef rd)
 {
   int count = 0;
-  int countplus (Roledef rd)
-  {
-    count++;
-    return 1;
-  }
-  roledef_iterate_events (rd, countplus);
+
+  while (rd != NULL)
+    {
+      count++;
+      rd = rd->next;
+    }
   return count;
 }
 
