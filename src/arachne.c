@@ -645,20 +645,38 @@ iterate_role_events (int (*func) ())
 int
 iterate_role_sends (int (*func) ())
 {
-  int send_wrapper (Protocol p, Role r, Roledef rd, int i)
-  {
-    if (rd->type == SEND)
-      {
-	return func (p, r, rd, i);
-      }
-    else
-      {
-	return 1;
-      }
-  }
+  Protocol p;
 
-  return iterate_role_events (send_wrapper);
+  p = sys->protocols;
+  while (p != NULL)
+    {
+      Role r;
+
+      r = p->roles;
+      while (r != NULL)
+	{
+	  Roledef rd;
+	  int index;
+
+	  rd = r->roledef;
+	  index = 0;
+	  while (rd != NULL)
+	    {
+              if (rd->type == SEND)
+		{
+		  if (!func (p, r, rd, index))
+                    return 0;
+		}
+	      index++;
+	      rd = rd->next;
+	    }
+	  r = r->next;
+	}
+      p = p->next;
+    }
+  return 1;
 }
+
 
 //! Create decryption role instance
 /**
