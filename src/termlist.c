@@ -629,14 +629,18 @@ termlistLength (Termlist tl)
  *\sa termlistLocal()
  */
 Term
-termLocal (const Term t, Termlist fromlist, Termlist tolist)
+termLocal (const Term tPre, Termlist fromlist, Termlist tolist)
 {
-  if (t == NULL)
+  Term t;
+
+  if (tPre == NULL)
     return NULL;
+
+  t = deVar(tPre);
 
   if (realTermLeaf (t))
     {
-      while (fromlist != NULL && tolist != NULL)
+      while ((fromlist != NULL) && (tolist != NULL))
 	{
 	  if (isTermEqual (fromlist->term, t))
 	    {
@@ -650,7 +654,9 @@ termLocal (const Term t, Termlist fromlist, Termlist tolist)
     }
   else
     {
-      Term newt = termNodeDuplicate (t);
+      Term newt;
+      
+      newt = termNodeDuplicate (t);
       if (realTermTuple (t))
 	{
 	  TermOp1 (newt) = termLocal (TermOp1 (t), fromlist, tolist);
@@ -658,8 +664,11 @@ termLocal (const Term t, Termlist fromlist, Termlist tolist)
 	}
       else
 	{
-	  TermOp (newt) = termLocal (TermOp (t), fromlist, tolist);
-	  TermKey (newt) = termLocal (TermKey (t), fromlist, tolist);
+	  if (realTermEncrypt (t))
+	    {
+	      TermOp (newt) = termLocal (TermOp (t), fromlist, tolist);
+	      TermKey (newt) = termLocal (TermKey (t), fromlist, tolist);
+	    }
 	}
       return newt;
     }

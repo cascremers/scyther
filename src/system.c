@@ -453,12 +453,15 @@ run_localize (const System sys, const int rid, Termlist fromlist,
       Term t;
 
       t = substlist->term;
-      if (t->subst != NULL)
+      if (t != NULL)
 	{
-	  t->subst = termLocal (t->subst, fromlist, tolist);
-	  sys->runs[rid].substitutions =
-	    termlistAdd (sys->runs[rid].substitutions, t);
-	}
+          if (t->subst != NULL)
+    	    {
+    	      t->subst = termLocal (t->subst, fromlist, tolist);
+    	      sys->runs[rid].substitutions =
+    	        termlistAdd (sys->runs[rid].substitutions, t);
+    	    }
+        }
       substlist = substlist->next;
     }
 }
