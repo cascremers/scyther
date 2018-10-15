@@ -1081,16 +1081,19 @@ iterateAllEvents (const System sys,
 {
   int run;
 
-  int callwrapper (Roledef rd, int ev)
-  {
-    return callback (run, rd, ev);
-  }
-
   for (run = 0; run < sys->maxruns; run++)
     {
-      if (!iterateEvents (sys, run, callwrapper))
+      int e;
+      Roledef rd;
+
+      rd = sys->runs[run].start;
+      for (e = 0; e < sys->runs[run].step; e++)
 	{
-	  return false;
+	  if (!callback (run, rd, e))
+	    {
+	      return false;
+	    }
+	  rd = rd->next;
 	}
     }
   return true;
