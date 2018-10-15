@@ -195,7 +195,7 @@ goal_unbind (const Binding b)
 
 //! Check if term,run,ev already occurs in binding
 int
-is_new_binding(const Term term, const int run, const int ev)
+is_new_binding (const Term term, const int run, const int ev)
 {
   List bl = sys->bindings;
 
@@ -252,7 +252,7 @@ goal_add (Term term, const int run, const int ev, const int level)
   else
     {
       // Determine whether we already had it
-      if (is_new_binding(term, run, ev))
+      if (is_new_binding (term, run, ev))
 	{
 	  // Add a new binding
 	  Binding b;
@@ -424,7 +424,7 @@ iterate_preceding_bindings (const int run, const int ev,
       b = (Binding) bl->data;
       if (isDependEvent (b->run_to, b->ev_to, run, ev))
 	{
-          if (!func (b))
+	  if (!func (b))
 	    {
 	      return false;
 	    }
@@ -640,9 +640,9 @@ countBindingsDone ()
 
       b = (Binding) bl->data;
       if ((!b->blocked) && b->done)
-        {
+	{
 	  count++;
-        }
+	}
     }
   return count;
 }

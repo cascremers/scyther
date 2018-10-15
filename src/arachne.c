@@ -662,10 +662,10 @@ iterate_role_sends (int (*func) ())
 	  index = 0;
 	  while (rd != NULL)
 	    {
-              if (rd->type == SEND)
+	      if (rd->type == SEND)
 		{
 		  if (!func (p, r, rd, index))
-                    return 0;
+		    return 0;
 		}
 	      index++;
 	      rd = rd->next;

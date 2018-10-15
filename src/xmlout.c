@@ -539,13 +539,15 @@ isEventInteresting (const System sys, const Roledef rd)
 }
 
 //! Refactoring code from below
-void xmlRunIndex (char *desc, const int run, const int index)
+void
+xmlRunIndex (char *desc, const int run, const int index)
 {
   xmlPrint ("<%s run=\"%i\" index=\"%i\" />", desc, run, index);
 }
 
 //! Refactoring code from below
-void xmlShowThisBinding(const Binding b)
+void
+xmlShowThisBinding (const Binding b)
 {
   if (isTermVariable (b->term) && !b->done)
     {
@@ -647,18 +649,18 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
     // Only if real run, and not a roledef
     if (run >= 0)
       {
-      	List bl;
+	List bl;
 
-      	for (bl = sys->bindings; bl != NULL; bl = bl->next)
+	for (bl = sys->bindings; bl != NULL; bl = bl->next)
 	  {
 	    Binding b;
 
 	    b = (Binding) bl->data;
-            if (b->run_to == run && b->ev_to == index)
+	    if (b->run_to == run && b->ev_to == index)
 	      {
-	      	xmlShowThisBinding(b);
+		xmlShowThisBinding (b);
 	      }
-          }
+	  }
       }
     xmlindent--;
   }

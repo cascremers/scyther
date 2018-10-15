@@ -636,7 +636,7 @@ termLocal (const Term tPre, Termlist fromlist, Termlist tolist)
   if (tPre == NULL)
     return NULL;
 
-  t = deVar(tPre);
+  t = deVar (tPre);
 
   if (realTermLeaf (t))
     {
@@ -655,7 +655,7 @@ termLocal (const Term tPre, Termlist fromlist, Termlist tolist)
   else
     {
       Term newt;
-      
+
       newt = termNodeDuplicate (t);
       if (realTermTuple (t))
 	{

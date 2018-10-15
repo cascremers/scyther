@@ -726,7 +726,9 @@ isApplicationM0 (const System sys, const int run)
  * Name & documentation might be off; TODO later.
  * This is for now just a refactoring to get rid of trampolines.
  */
-int preceventPossible (const System sys, const int rank, const int run, const int rank2, const int run2, const int ev2)
+int
+preceventPossible (const System sys, const int rank, const int run,
+		   const int rank2, const int run2, const int ev2)
 {
   // regular preceding event
 
@@ -738,11 +740,10 @@ int preceventPossible (const System sys, const int rank, const int run, const in
   if (rank2 == rank)
     {
       // equal rank: only if different run
-      if ((sys->runs[run].protocol != INTRUDER)
-        && (run2 == run))
-      {
-        return false;
-      }
+      if ((sys->runs[run].protocol != INTRUDER) && (run2 == run))
+	{
+	  return false;
+	}
     }
   return true;
 }
@@ -753,7 +754,8 @@ int preceventPossible (const System sys, const int rank, const int run, const in
  * This is for now just a refactoring to get rid of trampolines.
  */
 int
-iteratePrecedingRole(const System sys, const int *ranks, const int run, const int ev, const int rank)
+iteratePrecedingRole (const System sys, const int *ranks, const int run,
+		      const int ev, const int rank)
 {
   int run2;
 
@@ -767,7 +769,7 @@ iteratePrecedingRole(const System sys, const int *ranks, const int run, const in
 	    {
 	      int rank2;
 
-              rank2 = ranks[eventNode (run2, ev2)];
+	      rank2 = ranks[eventNode (run2, ev2)];
 	      if (!preceventPossible (sys, rank, run, rank2, run2, ev2))
 		{
 		  return false;
@@ -823,32 +825,32 @@ graph_ranks (int *ranks, int nodes)
       changes = false;
 
       for (run = 0; run < sys->maxruns; run++)
-        {
-          Roledef rd;
-          int ev;
+	{
+	  Roledef rd;
+	  int ev;
 
-          rd = sys->runs[run].start;
-          for (ev = 0; ev < sys->runs[run].step; ev++)
-            {
-              if (rd != NULL)	// Shouldn't be needed (step should maintain invariant) but good to be safe
+	  rd = sys->runs[run].start;
+	  for (ev = 0; ev < sys->runs[run].step; ev++)
+	    {
+	      if (rd != NULL)	// Shouldn't be needed (step should maintain invariant) but good to be safe
 		{
-                  if ( ranks[eventNode (run, ev)] == INT_MAX)
-                    {
-                      if (iteratePrecedingRole (sys, ranks, run, ev, rank))
-                        {
-                          // we can do it!
-                          changes = true;
-                          ranks[eventNode (run, ev)] = rank;
-                        }
-                      else
-                        {
-                          done = false;
-                        }
-                    }
-                  rd = rd->next;
+		  if (ranks[eventNode (run, ev)] == INT_MAX)
+		    {
+		      if (iteratePrecedingRole (sys, ranks, run, ev, rank))
+			{
+			  // we can do it!
+			  changes = true;
+			  ranks[eventNode (run, ev)] = rank;
+			}
+		      else
+			{
+			  done = false;
+			}
+		    }
+		  rd = rd->next;
 		}
-            }
-        }
+	    }
+	}
 
     }
   return rank;

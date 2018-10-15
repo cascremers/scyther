@@ -131,11 +131,11 @@ compute_recv_variables (const Role r)
   while (rd != NULL)
     {
       if (rd->type == RECV)
-        {
+	{
 	  tl = termlistAddVariables (tl, rd->from);
 	  tl = termlistAddVariables (tl, rd->to);
 	  tl = termlistAddVariables (tl, rd->message);
-        }
+	}
       rd = rd->next;
     }
   return tl;
