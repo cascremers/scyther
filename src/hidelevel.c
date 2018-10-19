@@ -258,23 +258,30 @@ unsigned int
 hidelevelFlag (const System sys, const Term goalterm)
 {
   unsigned int flag;
-
-  int getflag (unsigned int l, unsigned int lmin, unsigned int lprot,
-	       unsigned int lknow)
-  {
-    // Determine new flag
-    flag = flag | hidelevelParamFlag (l, lmin, lprot, lknow);
-
-    // Should we proceed?
-    if (flag == HLFLAG_NONE)
-      {
-	// abort iteration: it cannot get worse
-	return false;
-      }
-    return true;
-  }
+  Hiddenterm ht;
 
   flag = HLFLAG_BOTH;
-  iterate_interesting (sys, goalterm, getflag);
+
+  for (ht = sys->hidden; ht != NULL; ht = ht->next)
+    {
+      unsigned int l;
+      // Test the goalterm for occurrences of this
+
+      l = termHidelevel (ht->term, goalterm);
+      if (l < INT_MAX)
+	{
+	  flag =
+	    flag | hidelevelParamFlag (l, ht->hideminimum, ht->hideprotocol,
+				       ht->hideknowledge);
+
+	  // Should we proceed?
+	  if (flag == HLFLAG_NONE)
+	    {
+	      // abort iteration: it cannot get worse
+	      return flag;
+	    }
+	}
+    }
+
   return flag;
 }
