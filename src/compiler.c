@@ -2216,21 +2216,19 @@ checkRoleVariables (const System sys, const Protocol p, const Role r)
 {
   Termlist vars;
   Termlist declared;
-
-  int process_event (Roledef rd)
-  {
-    if (rd->type == RECV)
-      {
-	vars = termlistAddVariables (vars, rd->from);
-	vars = termlistAddVariables (vars, rd->to);
-	vars = termlistAddVariables (vars, rd->message);
-      }
-    return 1;
-  }
+  Roledef rd;
 
   /* Gather all variables occurring in the recvs */
   vars = NULL;
-  roledef_iterate_events (r->roledef, process_event);
+  for (rd = r->roledef; rd != NULL; rd = rd->next)
+    {
+      if (rd->type == RECV)
+	{
+	  vars = termlistAddVariables (vars, rd->from);
+	  vars = termlistAddVariables (vars, rd->to);
+	  vars = termlistAddVariables (vars, rd->message);
+	}
+    }
 
   /* Now, all variables for this role should be in the recvs */
   declared = r->declaredvars;
