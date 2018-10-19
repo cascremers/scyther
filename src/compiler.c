@@ -1638,17 +1638,16 @@ compute_role_variables (const System sys, Protocol p, Role r)
     {
       // Not computed before, for some reason
       Termlist tl;
+      Roledef rd;
 
-      int process_event (Roledef rd)
-      {
-	tl = termlistAddVariables (tl, rd->from);
-	tl = termlistAddVariables (tl, rd->to);
-	tl = termlistAddVariables (tl, rd->message);
-	return 1;
-      }
 
       tl = NULL;
-      roledef_iterate_events (r->roledef, process_event);
+      for (rd = r->roledef; rd != NULL; rd = rd->next)
+	{
+	  tl = termlistAddVariables (tl, rd->from);
+	  tl = termlistAddVariables (tl, rd->to);
+	  tl = termlistAddVariables (tl, rd->message);
+	}
       r->variables = tl;
 
       /*
