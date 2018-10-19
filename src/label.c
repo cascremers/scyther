@@ -78,28 +78,22 @@ label_destroy (Labelinfo linfo)
 Labelinfo
 label_find (List labellist, const Term label)
 {
-  Labelinfo linfo;
+  List ll;
 
-  int label_find_scan (void *data)
-  {
-    Labelinfo linfo_scan;
-
-    linfo_scan = (Labelinfo) data;
-    if (isTermEqual (label, linfo_scan->label))
-      {
-	linfo = linfo_scan;
-	return 0;
-      }
-    else
-      {
-	return 1;
-      }
-  }
-
-  linfo = NULL;
-  if (label != NULL)
+  if (label == NULL)
     {
-      list_iterate (labellist, label_find_scan);
+      return NULL;
     }
-  return linfo;
+
+  for (ll = labellist; ll != NULL; ll = ll->next)
+    {
+      Labelinfo linfo;
+
+      linfo = (Labelinfo) ll->data;
+      if (isTermEqual (label, linfo->label))
+	{
+	  return linfo;
+	}
+    }
+  return NULL;
 }
