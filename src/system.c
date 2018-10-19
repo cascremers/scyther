@@ -1189,41 +1189,43 @@ iterateRoles (const System sys, int (*callback) (Protocol p, Role r))
 }
 
 //! Get first recv/send occurrence (event index) of term t in run r
+/**
+ * ..or -1 if it does not occor
+ */
 int
 firstOccurrence (const System sys, const int r, Term t, int evtype)
 {
-  int firste;
+  int e;
+  Roledef rd;
 
-  int checkOccurs (Roledef rd, int e)
-  {
-    if (termSubTerm (rd->message, t) || termSubTerm (rd->from, t)
-	|| termSubTerm (rd->to, t))
-      {
-	firste = e;
-	return false;
-      }
-    return true;
-  }
+  rd = sys->runs[r].start;
+  for (e = 0; e < sys->runs[r].step; e++)
+    {
+      if (evtype == ANYEVENT || rd->type == evtype)
+	{
+	  if (termSubTerm (rd->message, t) || termSubTerm (rd->from, t)
+	      || termSubTerm (rd->to, t))
+	    {
+	      return e;
+	    }
+	}
+      rd = rd->next;
+    }
 
-  firste = -1;
-  iterateEventsType (sys, r, evtype, checkOccurs);
 #ifdef DEBUG
   if (DEBUGL (3))
     {
-      if (firste == -1)
-	{
-	  globalError++;
-	  eprintf ("Warning: Desired term ");
-	  termPrint (t);
-	  eprintf (" does not occur");
-	  eprintf (" in run %i in event type %i.\n", r, evtype);
-	  runPrint (sys->runs[r].start);
-	  eprintf ("\n");
-	  globalError--;
-	}
+      globalError++;
+      eprintf ("Warning: Desired term ");
+      termPrint (t);
+      eprintf (" does not occur");
+      eprintf (" in run %i in event type %i.\n", r, evtype);
+      runPrint (sys->runs[r].start);
+      eprintf ("\n");
+      globalError--;
     }
 #endif
-  return firste;
+  return -1;
 }
 
 //! Get the roledef of an event
