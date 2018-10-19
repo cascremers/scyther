@@ -1724,47 +1724,7 @@ order_label_roles (const Claimlist cl)
   distance = 0;
   while (roles_remaining != NULL)
     {
-      int scan_label (void *data)
-      {
-	Labelinfo linfo;
-	Termlist tl;
-
-	linfo = (Labelinfo) data;
-	if (linfo == NULL)
-	  return 1;
-	tl = cl->prec;
-	if (inTermlist (tl, linfo->label))
-	  {
-	    if (linfo->protocol == cl->protocol)
-	      {
-		// If it's not the same protocol, the labels can't match
-
-		// This function checks whether the newrole can connect to the connectedrole, and whether they fulfil their requirements.
-		void roles_test (const Term connectedrole, const Term newrole)
-		{
-		  if (inTermlist (roles_ordered, connectedrole) &&
-		      inTermlist (roles_remaining, newrole))
-		    {
-#ifdef DEBUG
-		      if (DEBUGL (4))
-			{
-			  eprintf (" ");
-			  termPrint (newrole);
-			}
-#endif
-		      roles_ordered = termlistAppend (roles_ordered, newrole);
-		      roles_remaining =
-			termlistDelTerm (termlistFind
-					 (roles_remaining, newrole));
-		    }
-		}
-
-		roles_test (linfo->sendrole, linfo->recvrole);
-		roles_test (linfo->recvrole, linfo->sendrole);
-	      }
-	  }
-	return 1;
-      }
+      List ll;
 
       distance++;
 #ifdef DEBUG
@@ -1773,7 +1733,51 @@ order_label_roles (const Claimlist cl)
 	  eprintf (" %i:", distance);
 	}
 #endif
-      list_iterate (sys->labellist, scan_label);
+      for (ll = sys->labellist; ll != NULL; ll = ll->next)
+	{
+	  Labelinfo linfo;
+
+	  linfo = (Labelinfo) ll->data;
+	  if (linfo != NULL)
+	    {
+	      Termlist tl;
+
+	      tl = cl->prec;
+	      if (inTermlist (tl, linfo->label))
+		{
+		  if (linfo->protocol == cl->protocol)
+		    {
+		      // If it's not the same protocol, the labels can't match
+
+		      // This function checks whether the newrole can connect to the connectedrole, and whether they fulfil their requirements.
+		      void roles_test (const Term connectedrole,
+				       const Term newrole)
+		      {
+			if (inTermlist (roles_ordered, connectedrole) &&
+			    inTermlist (roles_remaining, newrole))
+			  {
+#ifdef DEBUG
+			    if (DEBUGL (4))
+			      {
+				eprintf (" ");
+				termPrint (newrole);
+			      }
+#endif
+			    roles_ordered =
+			      termlistAppend (roles_ordered, newrole);
+			    roles_remaining =
+			      termlistDelTerm (termlistFind
+					       (roles_remaining, newrole));
+			  }
+		      }
+
+		      roles_test (linfo->sendrole, linfo->recvrole);
+		      roles_test (linfo->recvrole, linfo->sendrole);
+		    }
+		}
+	    }
+	}
+
     }
   cl->roles = roles_ordered;
 #ifdef DEBUG
