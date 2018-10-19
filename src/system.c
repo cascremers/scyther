@@ -1110,16 +1110,22 @@ int
 iterateEventsType (const System sys, const int run, const int evtype,
 		   int (*callback) (Roledef rd, int ev))
 {
-  int selectEvent (Roledef rd, int e)
-  {
-    if (evtype == ANYEVENT || rd->type == evtype)
-      {
-	return callback (rd, e);
-      }
-    return true;
-  }
+  int e;
+  Roledef rd;
 
-  return iterateEvents (sys, run, selectEvent);
+  rd = sys->runs[run].start;
+  for (e = 0; e < sys->runs[run].step; e++)
+    {
+      if (evtype == ANYEVENT || rd->type == evtype)
+	{
+	  if (!callback (rd, e))
+	    {
+	      return false;
+	    }
+	}
+      rd = rd->next;
+    }
+  return true;
 }
 
 // Iterate over all 'others': local variables of a run that are instantiated and contain some term of another run.
