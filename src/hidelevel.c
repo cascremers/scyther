@@ -31,15 +31,15 @@
 
 extern Term TERM_Hidden;
 
-//! hide level within protocol
+//! Helper for HideLevel
 unsigned int
-protocolHidelevel (const System sys, const Term t)
+minlevel_itsends (const Protocol p, const Role r, const Term t)
 {
+  Roledef rd;
   unsigned int minlevel;
 
-  int itsends (const Protocol p, const Role r)
-  {
-    int sends (Roledef rd)
+  minlevel = UINT_MAX;
+  for (rd = r->roledef; rd != NULL; rd = rd->next)
     {
       if (rd->type == SEND)
 	{
@@ -55,15 +55,33 @@ protocolHidelevel (const System sys, const Term t)
 	  if (l < minlevel)
 	    minlevel = l;
 	}
-      return true;
     }
+  return minlevel;
+}
 
-    roledef_iterate_events (r->roledef, sends);
-    return true;
-  }
+//! hide level within protocol
+unsigned int
+protocolHidelevel (const System sys, const Term t)
+{
+  unsigned int minlevel;
+  Protocol p;
 
-  minlevel = INT_MAX;
-  iterateRoles (sys, itsends);
+  minlevel = UINT_MAX;
+  for (p = sys->protocols; p != NULL; p = p->next)
+    {
+      Role r;
+
+      for (r = p->roles; r != NULL; r = r->next)
+	{
+	  unsigned int ml;
+
+	  ml = minlevel_itsends (p, r, t);
+	  if (ml < minlevel)
+	    {
+	      minlevel = ml;
+	    }
+	}
+    }
 
   return minlevel;
 }
