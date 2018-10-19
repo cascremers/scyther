@@ -2332,16 +2332,19 @@ void
 checkWellFormed (const System sys)
 {
   int allOkay;
+  Protocol p;
 
   allOkay = true;
+  for (p = sys->protocols; p != NULL; p = p->next)
+    {
+      Role r;
 
-  int thisRole (Protocol p, Role r)
-  {
-    allOkay = allOkay && WellFormedRole (sys, p, r);
-    return true;
-  }
+      for (r = p->roles; r != NULL; r = r->next)
+	{
+	  allOkay = allOkay && WellFormedRole (sys, p, r);
+	}
+    }
 
-  iterateRoles (sys, thisRole);
   if (allOkay == false)
     {
       error
