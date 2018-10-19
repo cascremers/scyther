@@ -1039,16 +1039,19 @@ iterateRuns (const System sys, int (*callback) (int r))
 int
 iterateRegularRuns (const System sys, int (*callback) (int r))
 {
-  int regular (int r)
-  {
-    if (sys->runs[r].protocol != INTRUDER)
-      {
-	return callback (r);
-      }
-    return true;
-  }
+  int r;
 
-  return iterateRuns (sys, regular);
+  for (r = 0; r < sys->maxruns; r++)
+    {
+      if (sys->runs[r].protocol != INTRUDER)
+	{
+	  if (!callback (r))
+	    {
+	      return false;
+	    }
+	}
+    }
+  return true;
 }
 
 // Iterate over events in a certain run (increasing through role)
