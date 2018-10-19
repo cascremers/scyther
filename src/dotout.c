@@ -930,6 +930,32 @@ termOccursInRun (Term t, int run)
   return false;
 }
 
+
+//! Iterate over preceding bindings and check if term occurs there.
+int
+occurs_in_previous_binding (const System sys, const int run, const int ev,
+			    const Term t)
+{
+  List bl;
+
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (isDependEvent (b->run_to, b->ev_to, run, ev))
+	{
+	  if (isTermEqual (b->term, t))
+	    {
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
+
+
 //! Draw a class choice
 /**
  * \rho classes are already dealt with in the headers, so we should ignore them.
@@ -938,12 +964,6 @@ void
 drawClass (const System sys, Binding b)
 {
   Term varterm;
-
-  // now check in previous things whether we saw that term already
-  int notSameTerm (Binding b2)
-  {
-    return (!isTermEqual (varterm, b2->term));
-  }
 
   varterm = deVar (b->term);
 
@@ -968,14 +988,11 @@ drawClass (const System sys, Binding b)
   }
 
   // Seen before?
-  if (!iterate_preceding_bindings (b->run_to, b->ev_to, notSameTerm))
+  if (occurs_in_previous_binding (sys, b->run_to, b->ev_to, varterm))
     {
       // We saw the same term before. Exit.
       return;
     }
-
-
-
 
   // not seen before: choose class
   eprintf ("\t");
@@ -1092,15 +1109,9 @@ drawBinding (const System sys, Binding b)
        */
       if (1 == 1 || sys->runs[b->run_from].role == I_M)
 	{
-	  // now check in previous things whether we saw that term already
-	  int notSameTerm (Binding b2)
-	  {
-	    return (!isTermEqual (b->term, b2->term));
-	  }
-
-	  if (!iterate_preceding_bindings (b->run_to, b->ev_to, notSameTerm))
+	  // now check in previous things whether we saw that term already, if so exit
+	  if (occurs_in_previous_binding (sys, b->run_to, b->ev_to, b->term))
 	    {
-	      // We saw the same term before. Exit.
 	      return;
 	    }
 	}
