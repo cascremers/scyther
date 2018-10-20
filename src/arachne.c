@@ -1444,6 +1444,38 @@ proof_term_match_none (const Binding b, const int found)
     }
 }
 
+//! Process good candidate
+int
+process_good_candidate (const Protocol p, const Role r, const Roledef rd,
+			const int index, const Binding b, const int found)
+{
+  int sflag;
+
+  // A good candidate
+  proof_term_match_first (found, b);
+  proof_term_match (p, r, rd, index, found);
+
+  indentDepth++;
+
+  // Bind to existing run
+#ifdef DEBUG
+  debug (5, "Trying to bind to existing run.");
+#endif
+  proof_go_down (TERM_DeEx, b->term);
+  sflag = bind_existing_run (b, p, r, index);
+  proof_go_up ();
+  // bind to new run
+#ifdef DEBUG
+  debug (5, "Trying to bind to new run.");
+#endif
+  proof_go_down (TERM_DeNew, b->term);
+  sflag = sflag && bind_new_run (b, p, r, index);
+  proof_go_up ();
+
+  indentDepth--;
+  return sflag;
+}
+
 //! Bind a regular goal
 /**
  * Problem child. Valgrind does not like it.
@@ -1471,32 +1503,9 @@ bind_goal_regular_run (const Binding b)
     if (!subtermUnify
 	(rd->message, b->term, NULL, NULL, test_sub_unification))
       {
-	int sflag;
-
 	// A good candidate
 	found++;
-	proof_term_match_first (found, b);
-	proof_term_match (p, r, rd, index, found);
-
-	indentDepth++;
-
-	// Bind to existing run
-#ifdef DEBUG
-	debug (5, "Trying to bind to existing run.");
-#endif
-	proof_go_down (TERM_DeEx, b->term);
-	sflag = bind_existing_run (b, p, r, index);
-	proof_go_up ();
-	// bind to new run
-#ifdef DEBUG
-	debug (5, "Trying to bind to new run.");
-#endif
-	proof_go_down (TERM_DeNew, b->term);
-	sflag = sflag && bind_new_run (b, p, r, index);
-	proof_go_up ();
-
-	indentDepth--;
-	return sflag;
+	return process_good_candidate (p, r, rd, index, b, found);
       }
     else
       {
