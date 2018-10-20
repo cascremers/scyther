@@ -1375,12 +1375,73 @@ bind_goal_new_intruder_run (const Binding b)
   return flag;
 }
 
+//! Debug information?
+void
+debug_send_candidate (const Protocol p, const Role r, const Roledef rd,
+		      const int index)
+{
+#ifdef DEBUG
+  indentPrint ();
+  eprintf ("Checking send candidate with message ");
+  termPrint (rd->message);
+  eprintf (" from ");
+  termPrint (p->nameterm);
+  eprintf (", ");
+  termPrint (r->nameterm);
+  eprintf (", index %i\n", index);
+#endif
+}
+
 //! Dummy helper function for iterator; abort if sub-unification found
 int
 test_sub_unification (Termlist substlist, Termlist keylist)
 {
   // A unification exists; return the signal
   return false;
+}
+
+//! Proof output for first match
+void
+proof_term_match_first (const int found, const Binding b)
+{
+  if (switches.output == PROOF && found == 1)
+    {
+      indentPrint ();
+      eprintf ("The term ", found);
+      termPrint (b->term);
+      eprintf (" matches patterns from the role definitions. Investigate.\n");
+    }
+}
+
+//! Proof output for any match
+void
+proof_term_match (const Protocol p, const Role r, const Roledef rd,
+		  const int index, const int found)
+{
+  if (switches.output == PROOF)
+    {
+      indentPrint ();
+      eprintf ("%i. It matches the pattern ", found);
+      termPrint (rd->message);
+      eprintf (" from ");
+      termPrint (p->nameterm);
+      eprintf (", ");
+      termPrint (r->nameterm);
+      eprintf (", at %i\n", index);
+    }
+}
+
+//! Proof output for no match
+void
+proof_term_match_none (const Binding b, const int found)
+{
+  if (switches.output == PROOF && found == 0)
+    {
+      indentPrint ();
+      eprintf ("The term ");
+      termPrint (b->term);
+      eprintf (" does not match any pattern from the role definitions.\n");
+    }
 }
 
 //! Bind a regular goal
@@ -1405,19 +1466,8 @@ bind_goal_regular_run (const Binding b)
       }
 
     // Test for interm unification
-#ifdef DEBUG
-    if (DEBUGL (5))
-      {
-	indentPrint ();
-	eprintf ("Checking send candidate with message ");
-	termPrint (rd->message);
-	eprintf (" from ");
-	termPrint (p->nameterm);
-	eprintf (", ");
-	termPrint (r->nameterm);
-	eprintf (", index %i\n", index);
-      }
-#endif
+    debug_send_candidate (p, r, rd, index);
+
     if (!subtermUnify
 	(rd->message, b->term, NULL, NULL, test_sub_unification))
       {
@@ -1425,25 +1475,9 @@ bind_goal_regular_run (const Binding b)
 
 	// A good candidate
 	found++;
-	if (switches.output == PROOF && found == 1)
-	  {
-	    indentPrint ();
-	    eprintf ("The term ", found);
-	    termPrint (b->term);
-	    eprintf
-	      (" matches patterns from the role definitions. Investigate.\n");
-	  }
-	if (switches.output == PROOF)
-	  {
-	    indentPrint ();
-	    eprintf ("%i. It matches the pattern ", found);
-	    termPrint (rd->message);
-	    eprintf (" from ");
-	    termPrint (p->nameterm);
-	    eprintf (", ");
-	    termPrint (r->nameterm);
-	    eprintf (", at %i\n", index);
-	  }
+	proof_term_match_first (found, b);
+	proof_term_match (p, r, rd, index, found);
+
 	indentDepth++;
 
 	// Bind to existing run
@@ -1474,13 +1508,8 @@ bind_goal_regular_run (const Binding b)
   // Bind to all possible sends of regular runs
   found = 0;
   flag = iterate_role_sends (bind_this_role_send);
-  if (switches.output == PROOF && found == 0)
-    {
-      indentPrint ();
-      eprintf ("The term ");
-      termPrint (b->term);
-      eprintf (" does not match any pattern from the role definitions.\n");
-    }
+
+  proof_term_match_none (b, found);
   return flag;
 }
 
