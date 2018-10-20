@@ -1375,6 +1375,14 @@ bind_goal_new_intruder_run (const Binding b)
   return flag;
 }
 
+//! Dummy helper function for iterator; abort if sub-unification found
+int
+test_sub_unification (Termlist substlist, Termlist keylist)
+{
+  // A unification exists; return the signal
+  return false;
+}
+
 //! Bind a regular goal
 /**
  * Problem child. Valgrind does not like it.
@@ -1390,12 +1398,6 @@ bind_goal_regular_run (const Binding b)
    */
   int bind_this_role_send (Protocol p, Role r, Roledef rd, int index)
   {
-    int test_sub_unification (Termlist substlist, Termlist keylist)
-    {
-      // A unification exists; return the signal
-      return false;
-    }
-
     if (p == INTRUDER)
       {
 	// No intruder roles here
