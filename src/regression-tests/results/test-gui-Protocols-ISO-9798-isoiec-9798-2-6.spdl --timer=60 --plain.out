@@ -7,6 +7,6 @@ claim	isoiec-9798-2-6,A	Weakagree_A7	-	Fail	[at least 2 attacks]
 claim	isoiec-9798-2-6,B	Commit_B2	(A,Kab,Text6)	Fail	[at least 2 attacks]
 claim	isoiec-9798-2-6,B	Secret_B3	Kab	Ok	[no attack within bounds]
 claim	isoiec-9798-2-6,B	Secret_B4	Text6	Ok	[no attack within bounds]
-claim	isoiec-9798-2-6,B	Secret_B5	Text8	Ok	[no attack within bounds]	time=60
-claim	isoiec-9798-2-6,B	Alive_B6	-	Ok	[does not occur]	time=60
-claim	isoiec-9798-2-6,B	Weakagree_B7	-	Ok	[does not occur]	time=60
+claim	isoiec-9798-2-6,B	Secret_B5	Text8	Ok	[no attack within bounds]
+claim	isoiec-9798-2-6,B	Alive_B6	-	Fail	[at least 2 attacks]
+claim	isoiec-9798-2-6,B	Weakagree_B7	-	Fail	[at least 2 attacks]

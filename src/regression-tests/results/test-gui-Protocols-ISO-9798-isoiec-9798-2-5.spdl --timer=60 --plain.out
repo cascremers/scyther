@@ -6,7 +6,7 @@ claim	isoiec-9798-2-5,A	Alive_A6	-	Fail	[at least 3 attacks]
 claim	isoiec-9798-2-5,A	Weakagree_A7	-	Fail	[at least 3 attacks]
 claim	isoiec-9798-2-5,B	Commit_B2	(A,Kab,Text5)	Fail	[at least 5 attacks]
 claim	isoiec-9798-2-5,B	Secret_B3	Kab	Ok	[no attack within bounds]
-claim	isoiec-9798-2-5,B	Secret_B4	Text5	Ok	[no attack within bounds]	time=60
-claim	isoiec-9798-2-5,B	Secret_B5	Text7	Ok	[no attack within bounds]	time=60
-claim	isoiec-9798-2-5,B	Alive_B6	-	Ok	[does not occur]	time=60
-claim	isoiec-9798-2-5,B	Weakagree_B7	-	Ok	[does not occur]	time=60
+claim	isoiec-9798-2-5,B	Secret_B4	Text5	Ok	[no attack within bounds]
+claim	isoiec-9798-2-5,B	Secret_B5	Text7	Ok	[no attack within bounds]
+claim	isoiec-9798-2-5,B	Alive_B6	-	Fail	[at least 3 attacks]
+claim	isoiec-9798-2-5,B	Weakagree_B7	-	Fail	[at least 2 attacks]
