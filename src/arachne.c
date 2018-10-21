@@ -61,6 +61,12 @@
 #include "heuristic.h"
 #include "tempfile.h"
 
+struct brsstate
+{
+  Binding binding;
+  int found;
+};
+
 extern int *graph;
 extern int nodes;
 extern int graph_uordblks;
@@ -1520,50 +1526,51 @@ process_good_candidate (const Protocol p, const Role r, const Roledef rd,
   return sflag;
 }
 
+//! Helper for the next function bind_regular_goal
+int
+bind_this_role_send (Protocol p, Role r, Roledef rd, int index,
+		     struct brsstate *bs)
+{
+  if (p == INTRUDER)
+    {
+      // No intruder roles here
+      return true;
+    }
+
+  // Test for interm unification
+  debug_send_candidate (p, r, rd, index);
+
+  if (!subtermUnify
+      (rd->message, (bs->binding)->term, NULL, NULL, test_sub_unification))
+    {
+      // A good candidate
+      bs->found++;
+      return process_good_candidate (p, r, rd, index, bs->binding, bs->found);
+    }
+  else
+    {
+      return true;
+    }
+}
+
 //! Bind a regular goal
 /**
- * Problem child. Valgrind does not like it.
+ * Problem child. Valgrind did not like it. 
+ * TODO maybe better since last rewrite; need to check again.
  */
 int
 bind_goal_regular_run (const Binding b)
 {
   int flag;
-  int found;
-
-  /*
-   * This is a local function so we have access to goal
-   */
-  int bind_this_role_send (Protocol p, Role r, Roledef rd, int index,
-			   void *state)
-  {
-    if (p == INTRUDER)
-      {
-	// No intruder roles here
-	return true;
-      }
-
-    // Test for interm unification
-    debug_send_candidate (p, r, rd, index);
-
-    if (!subtermUnify
-	(rd->message, b->term, NULL, NULL, test_sub_unification))
-      {
-	// A good candidate
-	found++;
-	return process_good_candidate (p, r, rd, index, b, found);
-      }
-    else
-      {
-	return true;
-      }
-  }
-
+  struct brsstate bs;
 
   // Bind to all possible sends of regular runs
-  found = 0;
-  flag = iterate_state_role_sends (bind_this_role_send, NULL);
+  bs.found = 0;
+  bs.binding = b;
 
-  proof_term_match_none (b, found);
+  flag = iterate_state_role_sends (bind_this_role_send, &bs);
+
+  proof_term_match_none (b, bs.found);
   return flag;
 }
 
