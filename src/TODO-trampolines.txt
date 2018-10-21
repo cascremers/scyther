@@ -1,0 +1,8 @@
+2  iterateTermOther 		arachne.c +1010 ; system.c +1139
+1  subtermUnify 		arachne.c +961
+1  term_iterate_open_leaves 	dotout.c +1790 		// Could be replaced by term_iterate_leaves
+1  term_iterate_deVar 		heuristic.c +224
+3  unify 			mgu.c +233 ; mgu.c +247 ; mgu.c +281
+1  iterateLocalToOther 		prune_theorems.c +54
+1  term_iterate_leaves 		term.c +1145
+1  term_iterate_deVar 		term.c +1544 
