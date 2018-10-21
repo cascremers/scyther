@@ -639,6 +639,50 @@ iterate_role_events (int (*func) ())
 
 //! Iterate over all send types in the roles (including the intruder ones)
 /**
+ * Input:
+ *   func:
+ *   state: void pointer to whatever that is passed on to func as well.
+ *
+ * Function is called with (protocol pointer, role pointer, roledef pointer, index, state)
+ * and returns an integer. If it is false, iteration aborts.
+ */
+int
+iterate_state_role_sends (int (*func) (), void *state)
+{
+  Protocol p;
+
+  p = sys->protocols;
+  while (p != NULL)
+    {
+      Role r;
+
+      r = p->roles;
+      while (r != NULL)
+	{
+	  Roledef rd;
+	  int index;
+
+	  rd = r->roledef;
+	  index = 0;
+	  while (rd != NULL)
+	    {
+	      if (rd->type == SEND)
+		{
+		  if (!func (p, r, rd, index, state))
+		    return false;
+		}
+	      index++;
+	      rd = rd->next;
+	    }
+	  r = r->next;
+	}
+      p = p->next;
+    }
+  return true;
+}
+
+//! Iterate over all send types in the roles (including the intruder ones)
+/**
  * Function is called with (protocol pointer, role pointer, roledef pointer, index)
  * and returns an integer. If it is false, iteration aborts.
  */
@@ -1489,7 +1533,8 @@ bind_goal_regular_run (const Binding b)
   /*
    * This is a local function so we have access to goal
    */
-  int bind_this_role_send (Protocol p, Role r, Roledef rd, int index)
+  int bind_this_role_send (Protocol p, Role r, Roledef rd, int index,
+			   void *state)
   {
     if (p == INTRUDER)
       {
@@ -1516,7 +1561,7 @@ bind_goal_regular_run (const Binding b)
 
   // Bind to all possible sends of regular runs
   found = 0;
-  flag = iterate_role_sends (bind_this_role_send);
+  flag = iterate_state_role_sends (bind_this_role_send, NULL);
 
   proof_term_match_none (b, found);
   return flag;
