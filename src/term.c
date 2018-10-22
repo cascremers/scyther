@@ -1179,6 +1179,37 @@ term_iterate_state_deVar (Term term, int (*leaf) (Term t, void (*st)),
   return true;
 }
 
+//! Iterate over the leaves in a term, stateful
+/**
+ * Note that this function iterates over real leaves; thus closed variables can occur as
+ * well. It is up to func to decide wether or not to recurse.
+ */
+int
+term_iterate_state_leaves (const Term term, int (*func) (Term t, void (*st)),
+			   void (*state))
+{
+  if (term != NULL)
+    {
+      if (realTermLeaf (term))
+	{
+	  if (!func (term, state))
+	    return 0;
+	}
+      else
+	{
+	  if (realTermTuple (term))
+	    return (term_iterate_state_leaves (TermOp1 (term), func, state)
+		    && term_iterate_state_leaves (TermOp2 (term), func,
+						  state));
+	  else
+	    return (term_iterate_state_leaves (TermOp (term), func, state)
+		    && term_iterate_state_leaves (TermKey (term), func,
+						  state));
+	}
+    }
+  return 1;
+}
+
 //! Iterate over the leaves in a term
 /**
  * Note that this function iterates over real leaves; thus closed variables can occur as

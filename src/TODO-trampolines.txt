@@ -9,3 +9,7 @@
 
 term_iterate_deVar
   term_iterate_state_deVar
+
+term_iterate_leaves
+  term_iterate_state_leaves
+
