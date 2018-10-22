@@ -1112,10 +1112,9 @@ term_iterate_deVar (Term term, int (*leaf) (Term t), int (*nodel) (Term t),
 
 //! Generic term iteration with state
 int
-term_iterate_state_deVar (Term term, int (*leaf) (Term t, void (*st)),
-			  int (*nodel) (Term t, void (*st)),
-			  int (*nodem) (Term t, void (*st)),
-			  int (*noder) (Term t, void (*st)), void (*state))
+term_iterate_state_deVar (Term term, int (*leaf) (),
+			  int (*nodel) (),
+			  int (*nodem) (), int (*noder) (), void (*state))
 {
   term = deVar (term);
   if (term != NULL)
@@ -1185,8 +1184,7 @@ term_iterate_state_deVar (Term term, int (*leaf) (Term t, void (*st)),
  * well. It is up to func to decide wether or not to recurse.
  */
 int
-term_iterate_state_leaves (const Term term, int (*func) (Term t, void (*st)),
-			   void (*state))
+term_iterate_state_leaves (const Term term, int (*func) (), void (*state))
 {
   if (term != NULL)
     {
