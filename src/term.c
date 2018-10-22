@@ -1113,7 +1113,7 @@ term_iterate_deVar (Term term, int (*leaf) (Term t), int (*nodel) (Term t),
 //! Generic term iteration with state
 int
 term_iterate_state_deVar (Term term, int (*leaf) (Term t, void (*st)),
-			  int (*nodel) (Term t, void (*state)),
+			  int (*nodel) (Term t, void (*st)),
 			  int (*nodem) (Term t, void (*st)),
 			  int (*noder) (Term t, void (*st)), void (*state))
 {
