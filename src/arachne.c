@@ -61,12 +61,6 @@
 #include "heuristic.h"
 #include "tempfile.h"
 
-struct brsstate
-{
-  Binding binding;
-  int found;
-};
-
 extern int *graph;
 extern int nodes;
 extern int graph_uordblks;
@@ -1526,10 +1520,17 @@ process_good_candidate (const Protocol p, const Role r, const Roledef rd,
   return sflag;
 }
 
+//! Helper struct to maintain state (continuation) during iteration
+struct state_brs
+{
+  Binding binding;
+  int found;
+};
+
 //! Helper for the next function bind_regular_goal
 int
 bind_this_role_send (Protocol p, Role r, Roledef rd, int index,
-		     struct brsstate *bs)
+		     struct state_brs *bs)
 {
   if (p == INTRUDER)
     {
@@ -1562,7 +1563,7 @@ int
 bind_goal_regular_run (const Binding b)
 {
   int flag;
-  struct brsstate bs;
+  struct state_brs bs;
 
   // Bind to all possible sends of regular runs
   bs.found = 0;
