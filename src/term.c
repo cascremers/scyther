@@ -1110,6 +1110,75 @@ term_iterate_deVar (Term term, int (*leaf) (Term t), int (*nodel) (Term t),
   return true;
 }
 
+//! Generic term iteration with state
+int
+term_iterate_state_deVar (Term term, int (*leaf) (Term t, void (*st)),
+			  int (*nodel) (Term t, void (*state)),
+			  int (*nodem) (Term t, void (*st)),
+			  int (*noder) (Term t, void (*st)), void (*state))
+{
+  term = deVar (term);
+  if (term != NULL)
+    {
+      if (realTermLeaf (term))
+	{
+	  // Leaf
+	  if (leaf != NULL)
+	    {
+	      return leaf (term, state);
+	    }
+	  else
+	    {
+	      return true;
+	    }
+	}
+      else
+	{
+	  int flag;
+
+	  flag = true;
+
+	  if (nodel != NULL)
+	    flag = flag && nodel (term, state);
+
+	  // Left part
+	  if (realTermTuple (term))
+	    flag = flag
+	      &&
+	      (term_iterate_state_deVar
+	       (TermOp1 (term), leaf, nodel, nodem, noder, state));
+	  else
+	    flag = flag
+	      &&
+	      (term_iterate_state_deVar
+	       (TermOp (term), leaf, nodel, nodem, noder, state));
+
+	  // Center
+
+	  if (nodem != NULL)
+	    flag = flag && nodem (term, state);
+
+	  // right part
+	  if (realTermTuple (term))
+	    flag = flag
+	      &&
+	      (term_iterate_state_deVar
+	       (TermOp2 (term), leaf, nodel, nodem, noder, state));
+	  else
+	    flag = flag
+	      &&
+	      (term_iterate_state_deVar
+	       (TermKey (term), leaf, nodel, nodem, noder, state));
+
+	  if (noder != NULL)
+	    flag = flag && noder (term, state);
+
+	  return flag;
+	}
+    }
+  return true;
+}
+
 //! Iterate over the leaves in a term
 /**
  * Note that this function iterates over real leaves; thus closed variables can occur as

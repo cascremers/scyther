@@ -197,6 +197,11 @@ int term_iterate (const Term term, int (*leaf) (Term t),
 int term_iterate_deVar (Term term, int (*leaf) (Term t),
 			int (*nodel) (Term t), int (*nodem) (Term t),
 			int (*noder) (Term t));
+int term_iterate_state_deVar (Term term, int (*leaf) (Term t, void (*st)),
+			      int (*nodel) (Term t, void (*state)),
+			      int (*nodem) (Term t, void (*st)),
+			      int (*noder) (Term t, void (*st)),
+			      void (*state));
 int term_iterate_leaves (const Term t, int (*func) (Term t));
 int term_iterate_open_leaves (const Term term, int (*func) (Term t));
 void term_rolelocals_are_variables ();
