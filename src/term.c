@@ -1044,72 +1044,6 @@ term_iterate (const Term term, int (*leaf) (Term t), int (*nodel) (Term t),
   return 1;
 }
 
-//! Generic term iteration
-int
-term_iterate_deVar (Term term, int (*leaf) (Term t), int (*nodel) (Term t),
-		    int (*nodem) (Term t), int (*noder) (Term t))
-{
-  term = deVar (term);
-  if (term != NULL)
-    {
-      if (realTermLeaf (term))
-	{
-	  // Leaf
-	  if (leaf != NULL)
-	    {
-	      return leaf (term);
-	    }
-	  else
-	    {
-	      return true;
-	    }
-	}
-      else
-	{
-	  int flag;
-
-	  flag = true;
-
-	  if (nodel != NULL)
-	    flag = flag && nodel (term);
-
-	  // Left part
-	  if (realTermTuple (term))
-	    flag = flag
-	      &&
-	      (term_iterate_deVar
-	       (TermOp1 (term), leaf, nodel, nodem, noder));
-	  else
-	    flag = flag
-	      &&
-	      (term_iterate_deVar (TermOp (term), leaf, nodel, nodem, noder));
-
-	  // Center
-
-	  if (nodem != NULL)
-	    flag = flag && nodem (term);
-
-	  // right part
-	  if (realTermTuple (term))
-	    flag = flag
-	      &&
-	      (term_iterate_deVar
-	       (TermOp2 (term), leaf, nodel, nodem, noder));
-	  else
-	    flag = flag
-	      &&
-	      (term_iterate_deVar
-	       (TermKey (term), leaf, nodel, nodem, noder));
-
-	  if (noder != NULL)
-	    flag = flag && noder (term);
-
-	  return flag;
-	}
-    }
-  return true;
-}
-
 //! Generic term iteration with state
 int
 term_iterate_state_deVar (Term term, int (*leaf) (),
@@ -1639,7 +1573,7 @@ termSubstPrint (Term t)
 int
 iterateTermOther (const int myrun, Term t, int (*callback) (Term t))
 {
-  int testOther (Term t)
+  int testOther (Term t, int *state)
   {
     int run;
 
@@ -1650,5 +1584,5 @@ iterateTermOther (const int myrun, Term t, int (*callback) (Term t))
       }
     return true;
   }
-  return term_iterate_deVar (t, testOther, NULL, NULL, NULL);
+  return term_iterate_state_deVar (t, testOther, NULL, NULL, NULL, NULL);
 }

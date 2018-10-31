@@ -194,9 +194,6 @@ int termOrder (Term t1, Term t2);
 int term_iterate (const Term term, int (*leaf) (Term t),
 		  int (*nodel) (Term t), int (*nodem) (Term t),
 		  int (*noder) (Term t));
-int term_iterate_deVar (Term term, int (*leaf) (Term t),
-			int (*nodel) (Term t), int (*nodem) (Term t),
-			int (*noder) (Term t));
 int term_iterate_state_deVar (Term term, int (*leaf) (),
 			      int (*nodel) (),
 			      int (*nodem) (),

@@ -4,14 +4,9 @@
 3  unify 			mgu.c +233 ; mgu.c +247 ; mgu.c +281
 1  iterateLocalToOther 		prune_theorems.c +108
 1  term_iterate_leaves 		term.c +1145
-1  term_iterate_deVar 		term.c +1544 
-
-term_iterate_deVar
-  term_iterate_state_deVar
 
 term_iterate_leaves
   term_iterate_state_leaves
-
 
 dependencies:
 
@@ -21,5 +16,4 @@ term_iterate_open_leaves is called using addsubterms
 unify is called using unify_combine_enc and unify_combined_tup, and a callback using the keys list? (which propagates back to subtermunify data)
 iterateLocalToOther is called using checkTerm
 term_iterate_leaves is called using testleaf
-term_iterate_deVar is not called?
 
