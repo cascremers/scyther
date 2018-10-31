@@ -1148,45 +1148,32 @@ term_iterate_state_leaves (const Term term, int (*func) (), void (*state))
  * well. It is up to func to decide wether or not to recurse.
  */
 int
-term_iterate_leaves (const Term term, int (*func) (Term t))
+term_iterate_open_leaves (const Term term, int (*func) (Term t))
 {
   if (term != NULL)
     {
       if (realTermLeaf (term))
 	{
-	  if (!func (term))
-	    return 0;
+	  if (substVar (term))
+	    {
+	      return term_iterate_open_leaves (term->subst, func);
+	    }
+	  else
+	    {
+	      return func (term);
+	    }
 	}
       else
 	{
 	  if (realTermTuple (term))
-	    return (term_iterate_leaves (TermOp1 (term), func)
-		    && term_iterate_leaves (TermOp2 (term), func));
+	    return (term_iterate_open_leaves (TermOp1 (term), func)
+		    && term_iterate_open_leaves (TermOp2 (term), func));
 	  else
-	    return (term_iterate_leaves (TermOp (term), func)
-		    && term_iterate_leaves (TermKey (term), func));
+	    return (term_iterate_open_leaves (TermOp (term), func)
+		    && term_iterate_open_leaves (TermKey (term), func));
 	}
     }
   return 1;
-}
-
-//! Iterate over open leaves (i.e. respect variable closure)
-int
-term_iterate_open_leaves (const Term term, int (*func) (Term t))
-{
-  int testleaf (const Term t)
-  {
-    if (substVar (t))
-      {
-	return term_iterate_open_leaves (t->subst, func);
-      }
-    else
-      {
-	return func (t);
-      }
-  }
-
-  return term_iterate_leaves (term, testleaf);
 }
 
 //! Turn all rolelocals into variables

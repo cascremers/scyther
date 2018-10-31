@@ -198,7 +198,6 @@ int term_iterate_state_deVar (Term term, int (*leaf) (),
 			      int (*nodel) (),
 			      int (*nodem) (),
 			      int (*noder) (), void (*state));
-int term_iterate_leaves (const Term t, int (*func) (Term t));
 int term_iterate_state_leaves (const Term term,
 			       int (*func) (), void (*state));
 int term_iterate_open_leaves (const Term term, int (*func) (Term t));
