@@ -1129,9 +1129,14 @@ iterateEventsType (const System sys, const int run, const int evtype,
 }
 
 // Iterate over all 'others': local variables of a run that are instantiated and contain some term of another run.
+/**
+ * Now incorporates "checkterm" required argument of myrun to the callback:
+ *
+ * It's now callback(conts Term,const int);
+ */
 int
 iterateLocalToOther (const System sys, const int myrun,
-		     int (*callback) (Term tlocal))
+		     int (*callback) (const System, const Term, const int))
 {
   Termlist tlo, tls;
   int flag;
@@ -1158,7 +1163,7 @@ iterateLocalToOther (const System sys, const int myrun,
   // now iterate over all of them
   for (tls = tlo; flag && (tls != NULL); tls = tls->next)
     {
-      if (!callback (tls->term))
+      if (!callback (sys, tls->term, myrun))
 	{
 	  flag = false;
 	}
