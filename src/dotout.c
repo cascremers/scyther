@@ -1669,6 +1669,11 @@ drawIntruderRuns (const System sys)
     }
 }
 
+struct state_dss
+{
+  Termlist found;
+};
+
 //! Display the current semistate using dot output format.
 /**
  * This is not as nice as we would like it. Furthermore, the function is too big.
@@ -1777,9 +1782,10 @@ dotSemiState (const System mysys)
      */
     Termlist found;
     List bl;
+    struct state_dss Sdss;
 
     // collect the intruder-generated constants
-    found = NULL;
+    Sdss.found = NULL;
     for (bl = sys->bindings; bl != NULL; bl = bl->next)
       {
 	Binding b;
@@ -1787,21 +1793,21 @@ dotSemiState (const System mysys)
 	b = (Binding) bl->data;
 	if (!b->blocked)
 	  {
-	    int addsubterms (Term t)
+	    int addsubterms (Term t, struct state_dss *sdss)
 	    {
 	      if (isIntruderChoice (t))
 		{
-		  found = termlistAddNew (found, t);
+		  sdss->found = termlistAddNew (sdss->found, t);
 		}
 	      return true;
 	    }
 
-	    term_iterate_open_leaves (b->term, addsubterms);
+	    term_iterate_state_open_leaves (b->term, addsubterms, &Sdss);
 	  }
       }
 
     // now maybe we draw the node
-    if ((from_intruder_count > 0) || (found != NULL))
+    if ((from_intruder_count > 0) || (Sdss.found != NULL))
       {
 	eprintf ("\tintruder [\n");
 	eprintf ("\t\tlabel=\"");
@@ -1810,14 +1816,14 @@ dotSemiState (const System mysys)
 	  {
 	    eprintf ("\\n");
 	    eprintf ("The intruder generates: ");
-	    termlistPrintRemap (found, ", ");
+	    termlistPrintRemap (Sdss.found, ", ");
 	  }
 	eprintf ("\",\n");
 	eprintf ("\t\tstyle=filled,fillcolor=\"");
 	printColor (INTRUDERCOLORH, INTRUDERCOLORL, INTRUDERCOLORS);
 	eprintf ("\"\n\t];\n");
       }
-    termlistDelete (found);
+    termlistDelete (Sdss.found);
   }
 
   // eprintf ("\t};\n");

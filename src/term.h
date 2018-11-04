@@ -196,11 +196,10 @@ int term_iterate (const Term term, int (*leaf) (Term t),
 		  int (*noder) (Term t));
 int term_iterate_state_deVar (Term term, int (*leaf) (),
 			      int (*nodel) (),
-			      int (*nodem) (),
-			      int (*noder) (), void (*state));
-int term_iterate_state_leaves (const Term term,
-			       int (*func) (), void (*state));
-int term_iterate_open_leaves (const Term term, int (*func) (Term t));
+			      int (*nodem) (), int (*noder) (), void *state);
+int term_iterate_state_leaves (const Term term, int (*func) (), void *state);
+int term_iterate_state_open_leaves (const Term term, int (*func) (),
+				    void *state);
 void term_rolelocals_are_variables ();
 int term_encryption_level (const Term term);
 float term_constrain_level (const Term term);

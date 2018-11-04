@@ -1148,7 +1148,7 @@ term_iterate_state_leaves (const Term term, int (*func) (), void (*state))
  * well. It is up to func to decide wether or not to recurse.
  */
 int
-term_iterate_open_leaves (const Term term, int (*func) (Term t))
+term_iterate_state_open_leaves (const Term term, int (*func) (), void *state)
 {
   if (term != NULL)
     {
@@ -1156,21 +1156,26 @@ term_iterate_open_leaves (const Term term, int (*func) (Term t))
 	{
 	  if (substVar (term))
 	    {
-	      return term_iterate_open_leaves (term->subst, func);
+	      return term_iterate_state_open_leaves (term->subst, func,
+						     state);
 	    }
 	  else
 	    {
-	      return func (term);
+	      return func (term, state);
 	    }
 	}
       else
 	{
 	  if (realTermTuple (term))
-	    return (term_iterate_open_leaves (TermOp1 (term), func)
-		    && term_iterate_open_leaves (TermOp2 (term), func));
+	    return (term_iterate_state_open_leaves
+		    (TermOp1 (term), func, state)
+		    && term_iterate_state_open_leaves (TermOp2 (term), func,
+						       state));
 	  else
-	    return (term_iterate_open_leaves (TermOp (term), func)
-		    && term_iterate_open_leaves (TermKey (term), func));
+	    return (term_iterate_state_open_leaves
+		    (TermOp (term), func, state)
+		    && term_iterate_state_open_leaves (TermKey (term), func,
+						       state));
 	}
     }
   return 1;
