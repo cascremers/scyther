@@ -1128,6 +1128,19 @@ iterateEventsType (const System sys, const int run, const int evtype,
   return true;
 }
 
+struct ao_state
+{
+  Termlist tlo;
+};
+
+//! Helper for next
+int
+addOther (Term t, struct ao_state *state)
+{
+  state->tlo = termlistAddNew (state->tlo, t);
+  return true;
+}
+
 // Iterate over all 'others': local variables of a run that are instantiated and contain some term of another run.
 /**
  * Now incorporates "checkterm" required argument of myrun to the callback:
@@ -1140,15 +1153,10 @@ iterateLocalToOther (const System sys, const int myrun,
 {
   Termlist tlo, tls;
   int flag;
-
-  int addOther (Term t)
-  {
-    tlo = termlistAddNew (tlo, t);
-    return true;
-  }
+  struct ao_state State;
 
   flag = true;
-  tlo = NULL;
+  State.tlo = NULL;
   // construct all others occuring in the recvs
   for (tls = sys->runs[myrun].sigma; tls != NULL; tls = tls->next)
     {
@@ -1157,11 +1165,11 @@ iterateLocalToOther (const System sys, const int myrun,
       tt = tls->term;
       if (realTermVariable (tt) && tt->subst != NULL);
       {
-	iterateTermOther (myrun, tt->subst, addOther);
+	iterateTermOther (myrun, tt->subst, addOther, &State);
       }
     }
   // now iterate over all of them
-  for (tls = tlo; flag && (tls != NULL); tls = tls->next)
+  for (tls = State.tlo; flag && (tls != NULL); tls = tls->next)
     {
       if (!callback (sys, tls->term, myrun))
 	{
@@ -1170,7 +1178,7 @@ iterateLocalToOther (const System sys, const int myrun,
     }
 
   // clean up
-  termlistDelete (tlo);
+  termlistDelete (State.tlo);
   return flag;
 }
 

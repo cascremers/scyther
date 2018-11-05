@@ -935,6 +935,66 @@ createDecryptionChain (const Binding b, const int run, const int index,
     }
 }
 
+struct md_state
+{
+  int neworders;
+  int allgood;
+  Term tvar;
+  Termlist sl;
+};
+
+//! makeDepend for next function
+	    /** the idea is, that a substitution in run x with
+	    * something containing should be wrapped; this
+   * occurs for all subterms of other runs.
+   */
+int
+makeDepend (Term tsmall, struct md_state *state)
+{
+  Term tsubst;
+
+  tsubst = deVar (tsmall);
+  if (!realTermVariable (tsubst))
+    {
+      // Only for non-variables (i.e. local constants)
+      int r1, e1;
+
+      r1 = TermRunid (tsubst);
+      e1 = firstOccurrence (sys, r1, tsubst, SEND);
+      if (e1 >= 0)
+	{
+	  int r2, e2;
+
+	  r2 = TermRunid (state->tvar);
+	  e2 = firstOccurrence (sys, r2, tsubst, RECV);
+	  if (e2 >= 0)
+	    {
+
+	      if (dependPushEvent (r1, e1, r2, e2))
+		{
+		  state->neworders++;
+		  return true;
+		}
+	      else
+		{
+		  state->allgood = false;
+		  if (switches.output == PROOF)
+		    {
+		      indentPrint ();
+		      eprintf ("Substitution for ");
+		      termSubstPrint (state->sl->term);
+		      eprintf (" (subterm ");
+		      termPrint (tsmall);
+		      eprintf (") could not be safely bound.\n");
+		    }
+		  return false;
+		}
+	    }
+	}
+    }
+  return true;
+}
+
 
 //! Try to bind a specific existing run to a goal.
 /**
@@ -994,70 +1054,23 @@ bind_existing_to_goal (const Binding b, const int run, const int index,
 	  }
 	else
 	  {
-	    int neworders;
-	    int allgood;
-	    Term tvar;
+	    struct md_state State;
 
-	    // the idea is, that a substitution in run x with
-	    // something containing should be wrapped; this
-	    // occurs for all subterms of other runs.
-	    int makeDepend (Term tsmall)
-	    {
-	      Term tsubst;
 
-	      tsubst = deVar (tsmall);
-	      if (!realTermVariable (tsubst))
-		{
-		  // Only for non-variables (i.e. local constants)
-		  int r1, e1;
+	    // TODO CONTEXT for makeDepend in State
 
-		  r1 = TermRunid (tsubst);
-		  e1 = firstOccurrence (sys, r1, tsubst, SEND);
-		  if (e1 >= 0)
-		    {
-		      int r2, e2;
-
-		      r2 = TermRunid (tvar);
-		      e2 = firstOccurrence (sys, r2, tsubst, RECV);
-		      if (e2 >= 0)
-			{
-
-			  if (dependPushEvent (r1, e1, r2, e2))
-			    {
-			      neworders++;
-			      return true;
-			    }
-			  else
-			    {
-			      allgood = false;
-			      if (switches.output == PROOF)
-				{
-				  indentPrint ();
-				  eprintf ("Substitution for ");
-				  termSubstPrint (sl->term);
-				  eprintf (" (subterm ");
-				  termPrint (tsmall);
-				  eprintf (") could not be safely bound.\n");
-				}
-			      return false;
-			    }
-			}
-		    }
-		}
-	      return true;
-	    }
-
-	    neworders = 0;
-	    allgood = true;
-	    tvar = sl->term;
-	    iterateTermOther (run, tvar, makeDepend);
-	    if (allgood)
+	    State.neworders = 0;
+	    State.sl = sl;
+	    State.tvar = sl->term;
+	    State.allgood = true;
+	    iterateTermOther (run, State.tvar, makeDepend, &State);
+	    if (State.allgood)
 	      {
 		wrapSubst (sl->next);
 	      }
-	    while (neworders > 0)
+	    while (State.neworders > 0)
 	      {
-		neworders--;
+		State.neworders--;
 		dependPopEvent ();
 	      }
 	  }

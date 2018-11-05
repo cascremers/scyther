@@ -1560,21 +1560,39 @@ termSubstPrint (Term t)
     }
 }
 
+typedef int (*CallBack) ();
+
+struct ito_contain
+{
+  int myrun;
+  CallBack callback;
+  void *ito_state;
+};
+
+int
+testOther (Term t, struct ito_contain *state)
+{
+  int run;
+
+  run = TermRunid (t);
+  if (run >= 0 && run != state->myrun)
+    {
+      return state->callback (t, state->ito_state);
+    }
+  return true;
+}
+
 // Iterate over subterm constants of other runs in a term
 // Callback should return true to progress. This is reported in the final thing.
 int
-iterateTermOther (const int myrun, Term t, int (*callback) (Term t))
+iterateTermOther (const int myrun, Term t, int (*callback) (),
+		  void *ito_state)
 {
-  int testOther (Term t, int *state)
-  {
-    int run;
+  struct ito_contain State;
 
-    run = TermRunid (t);
-    if (run >= 0 && run != myrun)
-      {
-	return callback (t);
-      }
-    return true;
-  }
-  return term_iterate_state_deVar (t, testOther, NULL, NULL, NULL, NULL);
+  State.myrun = myrun;
+  State.callback = callback;
+  State.ito_state = ito_state;
+
+  return term_iterate_state_deVar (t, testOther, NULL, NULL, NULL, &State);
 }
