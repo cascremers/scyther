@@ -125,6 +125,8 @@ termlistSubstReset (Termlist tl)
 /**
  * Try to determine the most general unifier of two terms, if so calls function.
  *
+ * int callback(Termlist, *state)
+ *
  * The callback receives a list of variables, that were previously open, but are now closed
  * in such a way that the two terms unify. 
  *
@@ -132,7 +134,7 @@ termlistSubstReset (Termlist tl)
  * The return value shows this: it is false if the scan was aborted, and true if not.
  */
 int
-unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
+unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state)
 {
   int callsubst (Termlist tl, Term t, Term tsubst)
   {
@@ -143,7 +145,7 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
     showSubst (t);
 #endif
     tl = termlistAdd (tl, t);
-    proceed = callback (tl);
+    proceed = callback (tl, state);
     tl = termlistDelTerm (tl);
     t->subst = NULL;
     return proceed;
@@ -163,7 +165,7 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
       if (isTermEqual (t1, t2))
 	{
 	  // Equal!
-	  return callback (tl);
+	  return callback (tl, state);
 	}
       else
 	{
@@ -230,27 +232,29 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
   /* encryption first */
   if (realTermEncrypt (t1))
     {
-      int unify_combined_enc (Termlist tl)
+      int unify_combined_enc (Termlist tl, void *state)
       {
 	// now the keys are unified (subst in this tl)
 	// and we try the inner terms
-	return unify (TermOp (t1), TermOp (t2), tl, callback);
+	return unify (TermOp (t1), TermOp (t2), tl, callback, state);
       }
 
-      return unify (TermKey (t1), TermKey (t2), tl, unify_combined_enc);
+      return unify (TermKey (t1), TermKey (t2), tl, unify_combined_enc,
+		    state);
     }
 
   /* tupling second
      non-associative version ! TODO other version */
   if (isTermTuple (t1))
     {
-      int unify_combined_tup (Termlist tl)
+      int unify_combined_tup (Termlist tl, void *state)
       {
 	// now the keys are unified (subst in this tl)
 	// and we try the inner terms
-	return unify (TermOp2 (t1), TermOp2 (t2), tl, callback);
+	return unify (TermOp2 (t1), TermOp2 (t2), tl, callback, state);
       }
-      return unify (TermOp1 (t1), TermOp1 (t2), tl, unify_combined_tup);
+      return unify (TermOp1 (t1), TermOp1 (t2), tl, unify_combined_tup,
+		    state);
     }
 
   return true;
@@ -291,7 +295,7 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
 
   // Three options:
   // 1. simple unification
-  proceed = proceed && unify (tbig, tsmall, tl, keycallback);
+  proceed = proceed && unify (tbig, tsmall, tl, keycallback, NULL);
 
   // [2/3]: complex
   if (switches.intruder)
