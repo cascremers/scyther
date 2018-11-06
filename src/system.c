@@ -1163,7 +1163,7 @@ iterateLocalToOther (const System sys, const int myrun,
       Term tt;
 
       tt = tls->term;
-      if (realTermVariable (tt) && tt->subst != NULL);
+      if (realTermVariable (tt) && tt->subst != NULL)
       {
 	iterateTermOther (myrun, tt->subst, addOther, &State);
       }
