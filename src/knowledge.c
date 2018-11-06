@@ -358,7 +358,7 @@ knowledgePrintShort (const Knowledge know)
   if (know->basic != NULL)
     {
       termlistPrint (know->basic);
-      if (know->encrypt != NULL);
+      if (know->encrypt != NULL)
       {
 	eprintf (", ");
       }
