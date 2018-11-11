@@ -91,7 +91,8 @@ switchesInit (int argc, char **argv)
   // Adversary type
   switches.LKRothers = true;	//!< default is anybody outside the group
   switches.LKRactor = false;	//!< default is no KCI
-  switches.LKRafter = false;	//!< default is no perfect forward secrecy
+  switches.LKRafter = false;	//!< default is no perfect forward secrecy (any key)
+  switches.LKRafterours = false;	//!< default is no perfect forward secrecy (actor or peer)
   switches.LKRaftercorrect = false;	//!< default is no weak perfect forward secrecy
   switches.SKR = false;		//!< default is no session-key reveal
   switches.SSR = false;		//!< default is no SSR 
@@ -685,6 +686,14 @@ switcher (const int process, int index, int commandline)
       if (process)
 	{
 	  switches.LKRafter = integer_argument ();
+	  return index;
+	}
+    }
+  if (detect (' ', "LKRafterours", 1))
+    {
+      if (process)
+	{
+	  switches.LKRafterours = integer_argument ();
 	  return index;
 	}
     }

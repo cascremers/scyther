@@ -67,7 +67,8 @@ struct switchdata
   // Adversary type
   int LKRothers;		//!< anybody outside the group
   int LKRactor;			//!< KCI
-  int LKRafter;			//!< perfect forward secrecy
+  int LKRafter;			//!< perfect forward secrecy (any key)
+  int LKRafterours;		//!< perfect forward secrecy (actor or peer)
   int LKRaftercorrect;		//!< weak perfect forward secrecy
   int SKR;			//!< session-key reveal (for others)
   int SSR;			//!< SSR others 

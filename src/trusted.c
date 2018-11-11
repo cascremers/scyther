@@ -80,7 +80,18 @@ isCompromiseAllowed (const System sys, int *partners, Binding b, Term a)
 	    }
 	}
     }
-  if (switches.LKRafter || switches.LKRaftercorrect)
+
+
+  {
+    // Is any of the agents outside the group of main actors?
+    if (!inTermlist (sys->runs[0].rho, a))
+      {
+	return true;
+      }
+  }
+
+  // This block has to be the last since it can return both false and true directly
+  if (switches.LKRafter || switches.LKRafterours || switches.LKRaftercorrect)
     {
       // After the claim?
       //
@@ -90,6 +101,17 @@ isCompromiseAllowed (const System sys, int *partners, Binding b, Term a)
       // 
       // Bindings always have a 'to' destination
       int r1, e1, r2, e2;
+
+      // Check first if we must require it is one of ours
+      if (switches.LKRafterours
+	  && !(switches.LKRafter || switches.LKRaftercorrect))
+	{
+	  // Yes: agent must be one of the insiders for this to be a good justification
+	  if (!inTermlist (sys->runs[0].rho, a))
+	    {
+	      return false;
+	    }
+	}
 
       // Where is the key used?
       r1 = b->run_to;
