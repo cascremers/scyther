@@ -270,14 +270,15 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state)
      non-associative version ! TODO other version */
   if (isTermTuple (t1))
     {
-      int unify_combined_tup (Termlist tl, void *state)
-      {
-	// now the keys are unified (subst in this tl)
-	// and we try the inner terms
-	return unify (TermOp2 (t1), TermOp2 (t2), tl, callback, state);
-      }
-      return unify (TermOp1 (t1), TermOp1 (t2), tl, unify_combined_tup,
-		    state);
+      struct state_mgu_tmp tmpstate;
+
+      tmpstate.oldstate = state;
+      tmpstate.oldcallback = callback;
+      tmpstate.unifyt1 = TermOp2 (t1);
+      tmpstate.unifyt2 = TermOp2 (t2);
+
+      return unify (TermOp1 (t1), TermOp1 (t2), tl, unify_callback_wrapper,
+		    &tmpstate);
     }
 
   return true;
