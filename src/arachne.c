@@ -30,6 +30,7 @@
 #include <limits.h>
 #include <float.h>
 #include <string.h>
+#include <assert.h>
 
 #include "mymalloc.h"
 #include "term.h"
@@ -995,6 +996,95 @@ makeDepend (Term tsmall, struct md_state *state)
   return true;
 }
 
+struct betg_state
+{
+  Binding b;
+  int run;
+  int index;
+  int newdecr;
+};
+
+int
+unifiesWithKeys (Termlist substlist, Termlist keylist,
+		 struct betg_state *ptr_betgState)
+{
+  int old_length;
+  int newgoals;
+
+  assert (ptr_betgState != NULL);
+
+  // TODO this is a hack: in this case we really should not use subterm
+  // unification but interm instead. However, this effectively does the same
+  // by avoiding branches that get immediately pruned anyway.
+  if (!ptr_betgState->newdecr && keylist != NULL)
+    {
+      return true;
+    }
+
+  // We need some adapting because the height would increase; we therefore
+  // have to add recv goals before we know whether it unifies.
+  old_length = sys->runs[ptr_betgState->run].height;
+  newgoals =
+    add_recv_goals (ptr_betgState->run, old_length, ptr_betgState->index + 1);
+
+  {
+    // wrap substitution lists
+
+    void wrapSubst (Termlist sl)
+    {
+      if (sl == NULL)
+	{
+	  if (switches.output == PROOF)
+	    {
+	      Roledef rd;
+
+	      indentPrint ();
+	      eprintf ("Suppose ");
+	      termPrint ((ptr_betgState->b)->term);
+	      eprintf (" originates first at run %i, event %i, as part of ",
+		       ptr_betgState->run, ptr_betgState->index);
+	      rd =
+		roledef_shift (sys->runs[ptr_betgState->run].start,
+			       ptr_betgState->index);
+	      termPrint (rd->message);
+	      eprintf ("\n");
+	    }
+	  // new create key goals, bind etc.
+	  createDecryptionChain (ptr_betgState->b, ptr_betgState->run,
+				 ptr_betgState->index, keylist, iterate);
+	}
+      else
+	{
+	  struct md_state State;
+
+	  // TODO CONTEXT for makeDepend in State
+
+	  State.neworders = 0;
+	  State.sl = sl;
+	  State.tvar = sl->term;
+	  State.allgood = true;
+	  iterateTermOther (ptr_betgState->run, State.tvar, makeDepend,
+			    &State);
+	  if (State.allgood)
+	    {
+	      wrapSubst (sl->next);
+	    }
+	  while (State.neworders > 0)
+	    {
+	      State.neworders--;
+	      dependPopEvent ();
+	    }
+	}
+    }
+
+    wrapSubst (substlist);
+  }
+
+  // undo
+  goal_remove_last (newgoals);
+  sys->runs[ptr_betgState->run].height = old_length;
+  return true;
+}
 
 //! Try to bind a specific existing run to a goal.
 /**
@@ -1011,82 +1101,15 @@ bind_existing_to_goal (const Binding b, const int run, const int index,
 		       int newdecr)
 {
   Term bigterm;
+  struct betg_state betgState;
 
-  int unifiesWithKeys (Termlist substlist, Termlist keylist, void *state)
-  {
-    int old_length;
-    int newgoals;
-
-    // TODO this is a hack: in this case we really should not use subterm
-    // unification but interm instead. However, this effectively does the same
-    // by avoiding branches that get immediately pruned anyway.
-    if (!newdecr && keylist != NULL)
-      {
-	return true;
-      }
-    // We need some adapting because the height would increase; we therefore
-    // have to add recv goals before we know whether it unifies.
-    old_length = sys->runs[run].height;
-    newgoals = add_recv_goals (run, old_length, index + 1);
-
-    {
-      // wrap substitution lists
-
-      void wrapSubst (Termlist sl)
-      {
-	if (sl == NULL)
-	  {
-	    if (switches.output == PROOF)
-	      {
-		Roledef rd;
-
-		indentPrint ();
-		eprintf ("Suppose ");
-		termPrint (b->term);
-		eprintf (" originates first at run %i, event %i, as part of ",
-			 run, index);
-		rd = roledef_shift (sys->runs[run].start, index);
-		termPrint (rd->message);
-		eprintf ("\n");
-	      }
-	    // new create key goals, bind etc.
-	    createDecryptionChain (b, run, index, keylist, iterate);
-	  }
-	else
-	  {
-	    struct md_state State;
-
-
-	    // TODO CONTEXT for makeDepend in State
-
-	    State.neworders = 0;
-	    State.sl = sl;
-	    State.tvar = sl->term;
-	    State.allgood = true;
-	    iterateTermOther (run, State.tvar, makeDepend, &State);
-	    if (State.allgood)
-	      {
-		wrapSubst (sl->next);
-	      }
-	    while (State.neworders > 0)
-	      {
-		State.neworders--;
-		dependPopEvent ();
-	      }
-	  }
-      }
-
-      wrapSubst (substlist);
-    }
-
-    // undo
-    goal_remove_last (newgoals);
-    sys->runs[run].height = old_length;
-    return true;
-  }
+  betgState.b = b;
+  betgState.run = run;
+  betgState.index = index;
+  betgState.newdecr = newdecr;
 
   bigterm = roledef_shift (sys->runs[run].start, index)->message;
-  subtermUnify (bigterm, b->term, NULL, NULL, unifiesWithKeys, NULL);
+  subtermUnify (bigterm, b->term, NULL, NULL, unifiesWithKeys, &betgState);
 }
 
 

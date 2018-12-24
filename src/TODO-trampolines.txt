@@ -1,8 +1,0 @@
-1  subtermUnify 		arachne.c +961
-3  unify 			mgu.c +233 ; mgu.c +247 ; mgu.c +281
-
-dependencies:
-
-subtermUnify is called using unifiesWithKeys
-unify is called using unify_combine_enc and unify_combined_tup, and a callback using the keys list? (which propagates back to subtermunify data)
-

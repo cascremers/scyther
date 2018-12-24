@@ -322,7 +322,7 @@ keycallback (Termlist tl, struct su_kcb_state *ptr_kcb_state)
  */
 int
 subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
-	      int (*callback) (Termlist, Termlist, void *), void *state)
+	      int (*callback) (), void *state)
 {
   int proceed;
   struct su_kcb_state kcb_state;

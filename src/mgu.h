@@ -39,6 +39,6 @@ int checkRoletermMatch (const Term t1, const Term t2, const Termlist tl);
 int unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state);
 int
 subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
-	      int (*callback) (Termlist, Termlist, void *), void *state);
+	      int (*callback) (), void *state);
 
 #endif
