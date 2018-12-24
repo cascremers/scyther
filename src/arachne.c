@@ -2718,6 +2718,20 @@ determine_encrypt_max (Protocol p, Role r, Roledef rd, int index)
   return 1;
 }
 
+//! Print send information
+int
+print_send (Protocol p, Role r, Roledef rd, int index)
+{
+  eprintf ("IRS: ");
+  termPrint (p->nameterm);
+  eprintf (", ");
+  termPrint (r->nameterm);
+  eprintf (", %i, ", index);
+  roledefPrint (rd);
+  eprintf ("\n");
+  return 1;
+}
+
 
 //! Main code for Arachne
 /**
@@ -2732,18 +2746,6 @@ arachne ()
 {
   Claimlist cl;
   int count;
-
-  int print_send (Protocol p, Role r, Roledef rd, int index)
-  {
-    eprintf ("IRS: ");
-    termPrint (p->nameterm);
-    eprintf (", ");
-    termPrint (r->nameterm);
-    eprintf (", %i, ", index);
-    roledefPrint (rd);
-    eprintf ("\n");
-    return 1;
-  }
 
   /*
    * set up claim role(s)
