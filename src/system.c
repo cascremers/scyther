@@ -1164,9 +1164,9 @@ iterateLocalToOther (const System sys, const int myrun,
 
       tt = tls->term;
       if (realTermVariable (tt) && tt->subst != NULL)
-      {
-	iterateTermOther (myrun, tt->subst, addOther, &State);
-      }
+	{
+	  iterateTermOther (myrun, tt->subst, addOther, &State);
+	}
     }
   // now iterate over all of them
   for (tls = State.tlo; flag && (tls != NULL); tls = tls->next)
