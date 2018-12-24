@@ -2537,6 +2537,19 @@ iterate_buffer_attacks (void)
     }
 }
 
+//! Helper for the next code.
+int
+realStart (void)
+{
+#ifdef DEBUG
+  if (DEBUGL (5))
+    {
+      printSemiState ();
+    }
+#endif
+  return iterate_buffer_attacks ();
+}
+
 //! Arachne single claim test
 void
 arachneClaimTest (Claimlist cl)
@@ -2572,17 +2585,6 @@ arachneClaimTest (Claimlist cl)
   newruns++;
   {
     int newgoals;
-
-    int realStart (void)
-    {
-#ifdef DEBUG
-      if (DEBUGL (5))
-	{
-	  printSemiState ();
-	}
-#endif
-      return iterate_buffer_attacks ();
-    }
 
     proof_suppose_run (run, 0, cl->ev + 1);
     newgoals = add_recv_goals (run, 0, cl->ev + 1);
