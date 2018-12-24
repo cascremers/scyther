@@ -235,21 +235,23 @@ iterate_interesting (const System sys, const Term goalterm, int (*func) ())
   return true;
 }
 
+//! Simple check for next function
+int
+possible (unsigned int l, unsigned int lmin, unsigned int lprot,
+	  unsigned int lknow)
+{
+  if (l < lmin)
+    {
+      // impossible, abort!
+      return false;
+    }
+  return true;
+}
+
 //! Determine whether a goal is impossible to satisfy because of the hidelevel lemma.
 int
 hidelevelImpossible (const System sys, const Term goalterm)
 {
-  int possible (unsigned int l, unsigned int lmin, unsigned int lprot,
-		unsigned int lknow)
-  {
-    if (l < lmin)
-      {
-	// impossible, abort!
-	return false;
-      }
-    return true;
-  }
-
   return !iterate_interesting (sys, goalterm, possible);
 }
 
