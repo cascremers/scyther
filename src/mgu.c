@@ -121,6 +121,14 @@ termlistSubstReset (Termlist tl)
     }
 }
 
+struct state_mgu_tmp
+{
+  void *oldstate;
+  int (*oldcallback) ();
+  Term unifyt1;
+  Term unifyt2;
+};
+
 //! Most general unifier iteration
 /**
  * Try to determine the most general unifier of two terms, if so calls function.
@@ -232,15 +240,23 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state)
   /* encryption first */
   if (realTermEncrypt (t1))
     {
-      int unify_combined_enc (Termlist tl, void *state)
+      struct state_mgu_tmp tmpstate;
+
+      tmpstate.oldstate = state;
+      tmpstate.oldcallback = callback;
+      tmpstate.unifyt1 = TermOp (t1);
+      tmpstate.unifyt2 = TermOp (t2);
+
+      int unify_combined_enc (Termlist tl, struct state_mgu_tmp *ptr_tmpstate)
       {
 	// now the keys are unified (subst in this tl)
 	// and we try the inner terms
-	return unify (TermOp (t1), TermOp (t2), tl, callback, state);
+	return unify (ptr_tmpstate->unifyt1, ptr_tmpstate->unifyt2, tl,
+		      ptr_tmpstate->oldcallback, ptr_tmpstate->oldstate);
       }
 
       return unify (TermKey (t1), TermKey (t2), tl, unify_combined_enc,
-		    state);
+		    &tmpstate);
     }
 
   /* tupling second
