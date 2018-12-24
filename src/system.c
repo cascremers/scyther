@@ -1151,7 +1151,7 @@ int
 iterateLocalToOther (const System sys, const int myrun,
 		     int (*callback) (const System, const Term, const int))
 {
-  Termlist tlo, tls;
+  Termlist tls;
   int flag;
   struct ao_state State;
 
