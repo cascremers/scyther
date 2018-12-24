@@ -287,6 +287,22 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state)
 }
 
 
+/**
+ * State for subterm unification call into keycallback
+ */
+struct su_kcb_state
+{
+  int (*callback) (Termlist, Termlist);
+  Termlist keylist;
+};
+
+int
+keycallback (Termlist tl, struct su_kcb_state *ptr_kcb_state)
+{
+  assert (ptr_kcb_state != NULL);
+  return ptr_kcb_state->callback (tl, ptr_kcb_state->keylist);
+}
+
 //! Subterm unification
 /**
  * Try to unify (a subterm of) tbig with tsmall.
@@ -307,11 +323,10 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
 	      int (*callback) (Termlist, Termlist))
 {
   int proceed;
+  struct su_kcb_state kcb_state;
 
-  int keycallback (Termlist tl)
-  {
-    return callback (tl, keylist);
-  }
+  kcb_state.callback = callback;
+  kcb_state.keylist = keylist;
 
   proceed = true;
 
@@ -321,7 +336,7 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
 
   // Three options:
   // 1. simple unification
-  proceed = proceed && unify (tbig, tsmall, tl, keycallback, NULL);
+  proceed = proceed && unify (tbig, tsmall, tl, keycallback, &kcb_state);
 
   // [2/3]: complex
   if (switches.intruder)
