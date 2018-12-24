@@ -121,6 +121,12 @@ termlistSubstReset (Termlist tl)
     }
 }
 
+/**
+ * Helper structure and function for unify
+ *
+ * These help to allow recursive calls within unify while still passing through the "outer" callback and state pointers.
+ */
+
 struct state_mgu_tmp
 {
   void *oldstate;
@@ -128,6 +134,15 @@ struct state_mgu_tmp
   Term unifyt1;
   Term unifyt2;
 };
+
+int
+unify_callback_wrapper (Termlist tl, struct state_mgu_tmp *ptr_tmpstate)
+{
+  // now the keys are unified (subst in this tl)
+  // and we try the inner terms
+  return unify (ptr_tmpstate->unifyt1, ptr_tmpstate->unifyt2, tl,
+		ptr_tmpstate->oldcallback, ptr_tmpstate->oldstate);
+}
 
 //! Most general unifier iteration
 /**
@@ -247,15 +262,7 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state)
       tmpstate.unifyt1 = TermOp (t1);
       tmpstate.unifyt2 = TermOp (t2);
 
-      int unify_combined_enc (Termlist tl, struct state_mgu_tmp *ptr_tmpstate)
-      {
-	// now the keys are unified (subst in this tl)
-	// and we try the inner terms
-	return unify (ptr_tmpstate->unifyt1, ptr_tmpstate->unifyt2, tl,
-		      ptr_tmpstate->oldcallback, ptr_tmpstate->oldstate);
-      }
-
-      return unify (TermKey (t1), TermKey (t2), tl, unify_combined_enc,
+      return unify (TermKey (t1), TermKey (t2), tl, unify_callback_wrapper,
 		    &tmpstate);
     }
 
