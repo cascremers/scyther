@@ -2694,6 +2694,26 @@ arachneClaim ()
   return false;
 }
 
+//! Helper for arachne
+int
+determine_encrypt_max (Protocol p, Role r, Roledef rd, int index)
+{
+  int tlevel;
+
+  tlevel = term_encryption_level (rd->message);
+#ifdef DEBUG
+  if (DEBUGL (3))
+    {
+      eprintf ("Encryption level %i found for term ", tlevel);
+      termPrint (rd->message);
+      eprintf ("\n");
+    }
+#endif
+  if (tlevel > max_encryption_level)
+    max_encryption_level = tlevel;
+  return 1;
+}
+
 
 //! Main code for Arachne
 /**
@@ -2718,24 +2738,6 @@ arachne ()
     eprintf (", %i, ", index);
     roledefPrint (rd);
     eprintf ("\n");
-    return 1;
-  }
-
-  int determine_encrypt_max (Protocol p, Role r, Roledef rd, int index)
-  {
-    int tlevel;
-
-    tlevel = term_encryption_level (rd->message);
-#ifdef DEBUG
-    if (DEBUGL (3))
-      {
-	eprintf ("Encryption level %i found for term ", tlevel);
-	termPrint (rd->message);
-	eprintf ("\n");
-      }
-#endif
-    if (tlevel > max_encryption_level)
-      max_encryption_level = tlevel;
     return 1;
   }
 
