@@ -156,7 +156,7 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state)
   t2 = deVar (t2);
   if (t1 == t2)
     {
-      return callback (tl);
+      return callback (tl, state);
     }
 
   if (!(hasTermVariable (t1) || hasTermVariable (t2)))
