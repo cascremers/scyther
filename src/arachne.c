@@ -1230,18 +1230,20 @@ proof_go_up (void)
   return;
 }
 
+//! Print the state of a binding (with indent)
+int
+binding_state_print (void *dt)
+{
+  binding_indent_print ((Binding) dt, 1);
+  return 1;
+}
+
 //! Print the current semistate
 void
 printSemiState ()
 {
   int run;
   int open;
-
-  int binding_state_print (void *dt)
-  {
-    binding_indent_print ((Binding) dt, 1);
-    return 1;
-  }
 
   indentPrint ();
   eprintf ("!! --=[ Semistate ]=--\n");
