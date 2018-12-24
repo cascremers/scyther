@@ -92,16 +92,19 @@ bindingInit (const System mysys)
   dependInit (sys);
 }
 
+//! Destroy a binding and return true for iterator
+int
+binding_destroy_rtrue (Binding b)
+{
+  binding_destroy (b);
+  return true;
+}
+
 //! Close up
 void
 bindingDone ()
 {
-  int delete (Binding b)
-  {
-    binding_destroy (b);
-    return true;
-  }
-  list_iterate (sys->bindings, delete);
+  list_iterate (sys->bindings, binding_destroy_rtrue);
   list_destroy (sys->bindings);
 
   dependDone (sys);
