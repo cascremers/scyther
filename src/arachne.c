@@ -1012,7 +1012,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index,
 {
   Term bigterm;
 
-  int unifiesWithKeys (Termlist substlist, Termlist keylist)
+  int unifiesWithKeys (Termlist substlist, Termlist keylist, void *state)
   {
     int old_length;
     int newgoals;
@@ -1086,7 +1086,7 @@ bind_existing_to_goal (const Binding b, const int run, const int index,
   }
 
   bigterm = roledef_shift (sys->runs[run].start, index)->message;
-  subtermUnify (bigterm, b->term, NULL, NULL, unifiesWithKeys);
+  subtermUnify (bigterm, b->term, NULL, NULL, unifiesWithKeys, NULL);
 }
 
 
@@ -1451,7 +1451,7 @@ debug_send_candidate (const Protocol p, const Role r, const Roledef rd,
 
 //! Dummy helper function for iterator; abort if sub-unification found
 int
-test_sub_unification (Termlist substlist, Termlist keylist)
+test_sub_unification (Termlist substlist, Termlist keylist, void *state)
 {
   // A unification exists; return the signal
   return false;
@@ -1555,7 +1555,8 @@ bind_this_role_send (Protocol p, Role r, Roledef rd, int index,
   debug_send_candidate (p, r, rd, index);
 
   if (!subtermUnify
-      (rd->message, (bs->binding)->term, NULL, NULL, test_sub_unification))
+      (rd->message, (bs->binding)->term, NULL, NULL, test_sub_unification,
+       NULL))
     {
       // A good candidate
       bs->found++;

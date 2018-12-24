@@ -292,7 +292,8 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state)
  */
 struct su_kcb_state
 {
-  int (*callback) (Termlist, Termlist);
+  void *oldstate;
+  int (*callback) (Termlist, Termlist, void *);
   Termlist keylist;
 };
 
@@ -300,7 +301,8 @@ int
 keycallback (Termlist tl, struct su_kcb_state *ptr_kcb_state)
 {
   assert (ptr_kcb_state != NULL);
-  return ptr_kcb_state->callback (tl, ptr_kcb_state->keylist);
+  return ptr_kcb_state->callback (tl, ptr_kcb_state->keylist,
+				  ptr_kcb_state->oldstate);
 }
 
 //! Subterm unification
@@ -320,11 +322,12 @@ keycallback (Termlist tl, struct su_kcb_state *ptr_kcb_state)
  */
 int
 subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
-	      int (*callback) (Termlist, Termlist))
+	      int (*callback) (Termlist, Termlist, void *), void *state)
 {
   int proceed;
   struct su_kcb_state kcb_state;
 
+  kcb_state.oldstate = state;
   kcb_state.callback = callback;
   kcb_state.keylist = keylist;
 
@@ -346,9 +349,11 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
       if (realTermTuple (tbig))
 	{
 	  proceed = proceed
-	    && subtermUnify (TermOp1 (tbig), tsmall, tl, keylist, callback);
+	    && subtermUnify (TermOp1 (tbig), tsmall, tl, keylist, callback,
+			     state);
 	  proceed = proceed
-	    && subtermUnify (TermOp2 (tbig), tsmall, tl, keylist, callback);
+	    && subtermUnify (TermOp2 (tbig), tsmall, tl, keylist, callback,
+			     state);
 	}
 
       // 3. unification with encryption needed
@@ -357,7 +362,8 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
 	  // extend the keylist
 	  keylist = termlistAdd (keylist, tbig);
 	  proceed = proceed
-	    && subtermUnify (TermOp (tbig), tsmall, tl, keylist, callback);
+	    && subtermUnify (TermOp (tbig), tsmall, tl, keylist, callback,
+			     state);
 	  // remove last item again
 	  keylist = termlistDelTerm (keylist);
 	}
