@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 #include "term.h"
 #include "termlist.h"
 #include "mgu.h"
@@ -140,6 +141,7 @@ unify_callback_wrapper (Termlist tl, struct state_mgu_tmp *ptr_tmpstate)
 {
   // now the keys are unified (subst in this tl)
   // and we try the inner terms
+  assert (ptr_tmpstate != NULL);
   return unify (ptr_tmpstate->unifyt1, ptr_tmpstate->unifyt2, tl,
 		ptr_tmpstate->oldcallback, ptr_tmpstate->oldstate);
 }
