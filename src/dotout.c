@@ -1674,6 +1674,16 @@ struct state_dss
   Termlist found;
 };
 
+int
+addsubterms (Term t, struct state_dss *sdss)
+{
+  if (isIntruderChoice (t))
+    {
+      sdss->found = termlistAddNew (sdss->found, t);
+    }
+  return true;
+}
+
 //! Display the current semistate using dot output format.
 /**
  * This is not as nice as we would like it. Furthermore, the function is too big.
@@ -1780,7 +1790,6 @@ dotSemiState (const System mysys)
      * Stupid brute analysis, can probably be done much more efficient, but
      * this is not a timing critical bit, so we just do it like this.
      */
-    Termlist found;
     List bl;
     struct state_dss Sdss;
 
@@ -1793,15 +1802,6 @@ dotSemiState (const System mysys)
 	b = (Binding) bl->data;
 	if (!b->blocked)
 	  {
-	    int addsubterms (Term t, struct state_dss *sdss)
-	    {
-	      if (isIntruderChoice (t))
-		{
-		  sdss->found = termlistAddNew (sdss->found, t);
-		}
-	      return true;
-	    }
-
 	    term_iterate_state_open_leaves (b->term, addsubterms, &Sdss);
 	  }
       }
@@ -1812,7 +1812,7 @@ dotSemiState (const System mysys)
 	eprintf ("\tintruder [\n");
 	eprintf ("\t\tlabel=\"");
 	eprintf ("Initial intruder knowledge");
-	if (found != NULL)
+	if (Sdss.found != NULL)
 	  {
 	    eprintf ("\\n");
 	    eprintf ("The intruder generates: ");
