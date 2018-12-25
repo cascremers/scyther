@@ -196,11 +196,12 @@ int termOrder (Term t1, Term t2);
 int term_iterate (const Term term, int (*leaf) (Term t),
 		  int (*nodel) (Term t), int (*nodem) (Term t),
 		  int (*noder) (Term t));
-int term_iterate_deVar (Term term, int (*leaf) (Term t),
-			int (*nodel) (Term t), int (*nodem) (Term t),
-			int (*noder) (Term t));
-int term_iterate_leaves (const Term t, int (*func) (Term t));
-int term_iterate_open_leaves (const Term term, int (*func) (Term t));
+int term_iterate_state_deVar (Term term, int (*leaf) (),
+			      int (*nodel) (),
+			      int (*nodem) (), int (*noder) (), void *state);
+int term_iterate_state_leaves (const Term term, int (*func) (), void *state);
+int term_iterate_state_open_leaves (const Term term, int (*func) (),
+				    void *state);
 void term_rolelocals_are_variables ();
 int term_encryption_level (const Term term);
 float term_constrain_level (const Term term);
@@ -213,7 +214,7 @@ Term getTermFunction (Term t);
 unsigned int termHidelevel (const Term tsmall, Term tbig);
 void termSubstPrint (Term t);
 
-int iterateTermOther (const int myrun, Term t, int (*callback) (Term t));
+int iterateTermOther (const int myrun, Term t, int (*callback) (), void *s);
 
 extern char *RUNSEP;		// by default, set to "#"
 

@@ -206,7 +206,8 @@ int iterateAllEvents (const System sys,
 int iterateEventsType (const System sys, const int run, const int evtype,
 		       int (*callback) (Roledef rd, int ev));
 int iterateLocalToOther (const System sys, const int myrun,
-			 int (*callback) (Term t));
+			 int (*callback) (const System sys, const Term t,
+					  const int myrun));
 int iterateRoles (const System sys, int (*callback) (Protocol p, Role r));
 int iterateInvolvedRuns (int (*callback) (Termmap runs));
 

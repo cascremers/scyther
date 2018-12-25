@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 #include "term.h"
 #include "termlist.h"
 #include "mgu.h"
@@ -121,9 +122,35 @@ termlistSubstReset (Termlist tl)
     }
 }
 
+/**
+ * Helper structure and function for unify
+ *
+ * These help to allow recursive calls within unify while still passing through the "outer" callback and state pointers.
+ */
+
+struct state_mgu_tmp
+{
+  void *oldstate;
+  int (*oldcallback) ();
+  Term unifyt1;
+  Term unifyt2;
+};
+
+int
+unify_callback_wrapper (Termlist tl, struct state_mgu_tmp *ptr_tmpstate)
+{
+  // now the keys are unified (subst in this tl)
+  // and we try the inner terms
+  assert (ptr_tmpstate != NULL);
+  return unify (ptr_tmpstate->unifyt1, ptr_tmpstate->unifyt2, tl,
+		ptr_tmpstate->oldcallback, ptr_tmpstate->oldstate);
+}
+
 //! Most general unifier iteration
 /**
  * Try to determine the most general unifier of two terms, if so calls function.
+ *
+ * int callback(Termlist, *state)
  *
  * The callback receives a list of variables, that were previously open, but are now closed
  * in such a way that the two terms unify. 
@@ -132,7 +159,7 @@ termlistSubstReset (Termlist tl)
  * The return value shows this: it is false if the scan was aborted, and true if not.
  */
 int
-unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
+unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state)
 {
   int callsubst (Termlist tl, Term t, Term tsubst)
   {
@@ -143,7 +170,7 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
     showSubst (t);
 #endif
     tl = termlistAdd (tl, t);
-    proceed = callback (tl);
+    proceed = callback (tl, state);
     tl = termlistDelTerm (tl);
     t->subst = NULL;
     return proceed;
@@ -154,7 +181,7 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
   t2 = deVar (t2);
   if (t1 == t2)
     {
-      return callback (tl);
+      return callback (tl, state);
     }
 
   if (!(hasTermVariable (t1) || hasTermVariable (t2)))
@@ -163,7 +190,7 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
       if (isTermEqual (t1, t2))
 	{
 	  // Equal!
-	  return callback (tl);
+	  return callback (tl, state);
 	}
       else
 	{
@@ -230,32 +257,53 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
   /* encryption first */
   if (realTermEncrypt (t1))
     {
-      int unify_combined_enc (Termlist tl)
-      {
-	// now the keys are unified (subst in this tl)
-	// and we try the inner terms
-	return unify (TermOp (t1), TermOp (t2), tl, callback);
-      }
+      struct state_mgu_tmp tmpstate;
 
-      return unify (TermKey (t1), TermKey (t2), tl, unify_combined_enc);
+      tmpstate.oldstate = state;
+      tmpstate.oldcallback = callback;
+      tmpstate.unifyt1 = TermOp (t1);
+      tmpstate.unifyt2 = TermOp (t2);
+
+      return unify (TermKey (t1), TermKey (t2), tl, unify_callback_wrapper,
+		    &tmpstate);
     }
 
   /* tupling second
      non-associative version ! TODO other version */
   if (isTermTuple (t1))
     {
-      int unify_combined_tup (Termlist tl)
-      {
-	// now the keys are unified (subst in this tl)
-	// and we try the inner terms
-	return unify (TermOp2 (t1), TermOp2 (t2), tl, callback);
-      }
-      return unify (TermOp1 (t1), TermOp1 (t2), tl, unify_combined_tup);
+      struct state_mgu_tmp tmpstate;
+
+      tmpstate.oldstate = state;
+      tmpstate.oldcallback = callback;
+      tmpstate.unifyt1 = TermOp2 (t1);
+      tmpstate.unifyt2 = TermOp2 (t2);
+
+      return unify (TermOp1 (t1), TermOp1 (t2), tl, unify_callback_wrapper,
+		    &tmpstate);
     }
 
   return true;
 }
 
+
+/**
+ * State for subterm unification call into keycallback
+ */
+struct su_kcb_state
+{
+  void *oldstate;
+  int (*callback) (Termlist, Termlist, void *);
+  Termlist keylist;
+};
+
+int
+keycallback (Termlist tl, struct su_kcb_state *ptr_kcb_state)
+{
+  assert (ptr_kcb_state != NULL);
+  return ptr_kcb_state->callback (tl, ptr_kcb_state->keylist,
+				  ptr_kcb_state->oldstate);
+}
 
 //! Subterm unification
 /**
@@ -274,14 +322,14 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (Termlist))
  */
 int
 subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
-	      int (*callback) (Termlist, Termlist))
+	      int (*callback) (), void *state)
 {
   int proceed;
+  struct su_kcb_state kcb_state;
 
-  int keycallback (Termlist tl)
-  {
-    return callback (tl, keylist);
-  }
+  kcb_state.oldstate = state;
+  kcb_state.callback = callback;
+  kcb_state.keylist = keylist;
 
   proceed = true;
 
@@ -291,7 +339,7 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
 
   // Three options:
   // 1. simple unification
-  proceed = proceed && unify (tbig, tsmall, tl, keycallback);
+  proceed = proceed && unify (tbig, tsmall, tl, keycallback, &kcb_state);
 
   // [2/3]: complex
   if (switches.intruder)
@@ -301,9 +349,11 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
       if (realTermTuple (tbig))
 	{
 	  proceed = proceed
-	    && subtermUnify (TermOp1 (tbig), tsmall, tl, keylist, callback);
+	    && subtermUnify (TermOp1 (tbig), tsmall, tl, keylist, callback,
+			     state);
 	  proceed = proceed
-	    && subtermUnify (TermOp2 (tbig), tsmall, tl, keylist, callback);
+	    && subtermUnify (TermOp2 (tbig), tsmall, tl, keylist, callback,
+			     state);
 	}
 
       // 3. unification with encryption needed
@@ -312,7 +362,8 @@ subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
 	  // extend the keylist
 	  keylist = termlistAdd (keylist, tbig);
 	  proceed = proceed
-	    && subtermUnify (TermOp (tbig), tsmall, tl, keylist, callback);
+	    && subtermUnify (TermOp (tbig), tsmall, tl, keylist, callback,
+			     state);
 	  // remove last item again
 	  keylist = termlistDelTerm (keylist);
 	}

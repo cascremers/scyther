@@ -465,11 +465,14 @@ run_localize (const System sys, const int rid, Termlist fromlist,
       Term t;
 
       t = substlist->term;
-      if (t->subst != NULL)
+      if (t != NULL)
 	{
-	  t->subst = termLocal (t->subst, fromlist, tolist);
-	  sys->runs[rid].substitutions =
-	    termlistAdd (sys->runs[rid].substitutions, t);
+	  if (t->subst != NULL)
+	    {
+	      t->subst = termLocal (t->subst, fromlist, tolist);
+	      sys->runs[rid].substitutions =
+		termlistAdd (sys->runs[rid].substitutions, t);
+	    }
 	}
       substlist = substlist->next;
     }
@@ -1082,16 +1085,19 @@ iterateRuns (const System sys, int (*callback) (int r))
 int
 iterateRegularRuns (const System sys, int (*callback) (int r))
 {
-  int regular (int r)
-  {
-    if (sys->runs[r].protocol != INTRUDER)
-      {
-	return callback (r);
-      }
-    return true;
-  }
+  int r;
 
-  return iterateRuns (sys, regular);
+  for (r = 0; r < sys->maxruns; r++)
+    {
+      if (sys->runs[r].protocol != INTRUDER)
+	{
+	  if (!callback (r))
+	    {
+	      return false;
+	    }
+	}
+    }
+  return true;
 }
 
 // Iterate over events in a certain run (increasing through role)
@@ -1124,16 +1130,19 @@ iterateAllEvents (const System sys,
 {
   int run;
 
-  int callwrapper (Roledef rd, int ev)
-  {
-    return callback (run, rd, ev);
-  }
-
   for (run = 0; run < sys->maxruns; run++)
     {
-      if (!iterateEvents (sys, run, callwrapper))
+      int e;
+      Roledef rd;
+
+      rd = sys->runs[run].start;
+      for (e = 0; e < sys->runs[run].step; e++)
 	{
-	  return false;
+	  if (!callback (run, rd, e))
+	    {
+	      return false;
+	    }
+	  rd = rd->next;
 	}
     }
   return true;
@@ -1147,34 +1156,53 @@ int
 iterateEventsType (const System sys, const int run, const int evtype,
 		   int (*callback) (Roledef rd, int ev))
 {
-  int selectEvent (Roledef rd, int e)
-  {
-    if (evtype == ANYEVENT || rd->type == evtype)
-      {
-	return callback (rd, e);
-      }
-    return true;
-  }
+  int e;
+  Roledef rd;
 
-  return iterateEvents (sys, run, selectEvent);
+  rd = sys->runs[run].start;
+  for (e = 0; e < sys->runs[run].step; e++)
+    {
+      if (evtype == ANYEVENT || rd->type == evtype)
+	{
+	  if (!callback (rd, e))
+	    {
+	      return false;
+	    }
+	}
+      rd = rd->next;
+    }
+  return true;
+}
+
+struct ao_state
+{
+  Termlist tlo;
+};
+
+//! Helper for next
+int
+addOther (Term t, struct ao_state *state)
+{
+  state->tlo = termlistAddNew (state->tlo, t);
+  return true;
 }
 
 // Iterate over all 'others': local variables of a run that are instantiated and contain some term of another run.
+/**
+ * Now incorporates "checkterm" required argument of myrun to the callback:
+ *
+ * It's now callback(conts Term,const int);
+ */
 int
 iterateLocalToOther (const System sys, const int myrun,
-		     int (*callback) (Term tlocal))
+		     int (*callback) (const System, const Term, const int))
 {
-  Termlist tlo, tls;
+  Termlist tls;
   int flag;
-
-  int addOther (Term t)
-  {
-    tlo = termlistAddNew (tlo, t);
-    return true;
-  }
+  struct ao_state State;
 
   flag = true;
-  tlo = NULL;
+  State.tlo = NULL;
   // construct all others occuring in the recvs
   for (tls = sys->runs[myrun].sigma; tls != NULL; tls = tls->next)
     {
@@ -1182,21 +1210,21 @@ iterateLocalToOther (const System sys, const int myrun,
 
       tt = tls->term;
       if (realTermVariable (tt) && tt->subst != NULL)
-      {
-	iterateTermOther (myrun, tt->subst, addOther);
-      }
+	{
+	  iterateTermOther (myrun, tt->subst, addOther, &State);
+	}
     }
   // now iterate over all of them
-  for (tls = tlo; flag && (tls != NULL); tls = tls->next)
+  for (tls = State.tlo; flag && (tls != NULL); tls = tls->next)
     {
-      if (!callback (tls->term))
+      if (!callback (sys, tls->term, myrun))
 	{
 	  flag = false;
 	}
     }
 
   // clean up
-  termlistDelete (tlo);
+  termlistDelete (State.tlo);
   return flag;
 }
 
@@ -1258,41 +1286,43 @@ iterateInvolvedRuns (int (*callback) (Termmap runs))
 }
 
 //! Get first recv/send occurrence (event index) of term t in run r
+/**
+ * ..or -1 if it does not occor
+ */
 int
 firstOccurrence (const System sys, const int r, Term t, int evtype)
 {
-  int firste;
+  int e;
+  Roledef rd;
 
-  int checkOccurs (Roledef rd, int e)
-  {
-    if (termSubTerm (rd->message, t) || termSubTerm (rd->from, t)
-	|| termSubTerm (rd->to, t))
-      {
-	firste = e;
-	return false;
-      }
-    return true;
-  }
+  rd = sys->runs[r].start;
+  for (e = 0; e < sys->runs[r].step; e++)
+    {
+      if (evtype == ANYEVENT || rd->type == evtype)
+	{
+	  if (termSubTerm (rd->message, t) || termSubTerm (rd->from, t)
+	      || termSubTerm (rd->to, t))
+	    {
+	      return e;
+	    }
+	}
+      rd = rd->next;
+    }
 
-  firste = -1;
-  iterateEventsType (sys, r, evtype, checkOccurs);
 #ifdef DEBUG
   if (DEBUGL (3))
     {
-      if (firste == -1)
-	{
-	  globalError++;
-	  eprintf ("Warning: Desired term ");
-	  termPrint (t);
-	  eprintf (" does not occur");
-	  eprintf (" in run %i in event type %i.\n", r, evtype);
-	  runPrint (sys->runs[r].start);
-	  eprintf ("\n");
-	  globalError--;
-	}
+      globalError++;
+      eprintf ("Warning: Desired term ");
+      termPrint (t);
+      eprintf (" does not occur");
+      eprintf (" in run %i in event type %i.\n", r, evtype);
+      runPrint (sys->runs[r].start);
+      eprintf ("\n");
+      globalError--;
     }
 #endif
-  return firste;
+  return -1;
 }
 
 //! Get the roledef of an event

@@ -1086,10 +1086,11 @@ term_iterate (const Term term, int (*leaf) (Term t), int (*nodel) (Term t),
   return 1;
 }
 
-//! Generic term iteration
+//! Generic term iteration with state
 int
-term_iterate_deVar (Term term, int (*leaf) (Term t), int (*nodel) (Term t),
-		    int (*nodem) (Term t), int (*noder) (Term t))
+term_iterate_state_deVar (Term term, int (*leaf) (),
+			  int (*nodel) (),
+			  int (*nodem) (), int (*noder) (), void (*state))
 {
   term = deVar (term);
   if (term != NULL)
@@ -1099,7 +1100,7 @@ term_iterate_deVar (Term term, int (*leaf) (Term t), int (*nodel) (Term t),
 	  // Leaf
 	  if (leaf != NULL)
 	    {
-	      return leaf (term);
+	      return leaf (term, state);
 	    }
 	  else
 	    {
@@ -1113,43 +1114,74 @@ term_iterate_deVar (Term term, int (*leaf) (Term t), int (*nodel) (Term t),
 	  flag = true;
 
 	  if (nodel != NULL)
-	    flag = flag && nodel (term);
+	    flag = flag && nodel (term, state);
 
 	  // Left part
 	  if (realTermTuple (term))
 	    flag = flag
 	      &&
-	      (term_iterate_deVar
-	       (TermOp1 (term), leaf, nodel, nodem, noder));
+	      (term_iterate_state_deVar
+	       (TermOp1 (term), leaf, nodel, nodem, noder, state));
 	  else
 	    flag = flag
 	      &&
-	      (term_iterate_deVar (TermOp (term), leaf, nodel, nodem, noder));
+	      (term_iterate_state_deVar
+	       (TermOp (term), leaf, nodel, nodem, noder, state));
 
 	  // Center
 
 	  if (nodem != NULL)
-	    flag = flag && nodem (term);
+	    flag = flag && nodem (term, state);
 
 	  // right part
 	  if (realTermTuple (term))
 	    flag = flag
 	      &&
-	      (term_iterate_deVar
-	       (TermOp2 (term), leaf, nodel, nodem, noder));
+	      (term_iterate_state_deVar
+	       (TermOp2 (term), leaf, nodel, nodem, noder, state));
 	  else
 	    flag = flag
 	      &&
-	      (term_iterate_deVar
-	       (TermKey (term), leaf, nodel, nodem, noder));
+	      (term_iterate_state_deVar
+	       (TermKey (term), leaf, nodel, nodem, noder, state));
 
 	  if (noder != NULL)
-	    flag = flag && noder (term);
+	    flag = flag && noder (term, state);
 
 	  return flag;
 	}
     }
   return true;
+}
+
+//! Iterate over the leaves in a term, stateful
+/**
+ * Note that this function iterates over real leaves; thus closed variables can occur as
+ * well. It is up to func to decide wether or not to recurse.
+ */
+int
+term_iterate_state_leaves (const Term term, int (*func) (), void (*state))
+{
+  if (term != NULL)
+    {
+      if (realTermLeaf (term))
+	{
+	  if (!func (term, state))
+	    return 0;
+	}
+      else
+	{
+	  if (realTermTuple (term))
+	    return (term_iterate_state_leaves (TermOp1 (term), func, state)
+		    && term_iterate_state_leaves (TermOp2 (term), func,
+						  state));
+	  else
+	    return (term_iterate_state_leaves (TermOp (term), func, state)
+		    && term_iterate_state_leaves (TermKey (term), func,
+						  state));
+	}
+    }
+  return 1;
 }
 
 //! Iterate over the leaves in a term
@@ -1158,45 +1190,37 @@ term_iterate_deVar (Term term, int (*leaf) (Term t), int (*nodel) (Term t),
  * well. It is up to func to decide wether or not to recurse.
  */
 int
-term_iterate_leaves (const Term term, int (*func) (Term t))
+term_iterate_state_open_leaves (const Term term, int (*func) (), void *state)
 {
   if (term != NULL)
     {
       if (realTermLeaf (term))
 	{
-	  if (!func (term))
-	    return 0;
+	  if (substVar (term))
+	    {
+	      return term_iterate_state_open_leaves (term->subst, func,
+						     state);
+	    }
+	  else
+	    {
+	      return func (term, state);
+	    }
 	}
       else
 	{
 	  if (realTermTuple (term))
-	    return (term_iterate_leaves (TermOp1 (term), func)
-		    && term_iterate_leaves (TermOp2 (term), func));
+	    return (term_iterate_state_open_leaves
+		    (TermOp1 (term), func, state)
+		    && term_iterate_state_open_leaves (TermOp2 (term), func,
+						       state));
 	  else
-	    return (term_iterate_leaves (TermOp (term), func)
-		    && term_iterate_leaves (TermKey (term), func));
+	    return (term_iterate_state_open_leaves
+		    (TermOp (term), func, state)
+		    && term_iterate_state_open_leaves (TermKey (term), func,
+						       state));
 	}
     }
   return 1;
-}
-
-//! Iterate over open leaves (i.e. respect variable closure)
-int
-term_iterate_open_leaves (const Term term, int (*func) (Term t))
-{
-  int testleaf (const Term t)
-  {
-    if (substVar (t))
-      {
-	return term_iterate_open_leaves (t->subst, func);
-      }
-    else
-      {
-	return func (t);
-      }
-  }
-
-  return term_iterate_leaves (term, testleaf);
 }
 
 //! Turn all rolelocals into variables
@@ -1562,21 +1586,39 @@ termSubstPrint (Term t)
     }
 }
 
+typedef int (*CallBack) ();
+
+struct ito_contain
+{
+  int myrun;
+  CallBack callback;
+  void *ito_state;
+};
+
+int
+testOther (Term t, struct ito_contain *state)
+{
+  int run;
+
+  run = TermRunid (t);
+  if (run >= 0 && run != state->myrun)
+    {
+      return state->callback (t, state->ito_state);
+    }
+  return true;
+}
+
 // Iterate over subterm constants of other runs in a term
 // Callback should return true to progress. This is reported in the final thing.
 int
-iterateTermOther (const int myrun, Term t, int (*callback) (Term t))
+iterateTermOther (const int myrun, Term t, int (*callback) (),
+		  void *ito_state)
 {
-  int testOther (Term t)
-  {
-    int run;
+  struct ito_contain State;
 
-    run = TermRunid (t);
-    if (run >= 0 && run != myrun)
-      {
-	return callback (t);
-      }
-    return true;
-  }
-  return term_iterate_deVar (t, testOther, NULL, NULL, NULL);
+  State.myrun = myrun;
+  State.callback = callback;
+  State.ito_state = ito_state;
+
+  return term_iterate_state_deVar (t, testOther, NULL, NULL, NULL, &State);
 }

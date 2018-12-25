@@ -31,15 +31,15 @@
 
 extern Term TERM_Hidden;
 
-//! hide level within protocol
+//! Helper for HideLevel
 unsigned int
-protocolHidelevel (const System sys, const Term t)
+minlevel_itsends (const Protocol p, const Role r, const Term t)
 {
+  Roledef rd;
   unsigned int minlevel;
 
-  int itsends (const Protocol p, const Role r)
-  {
-    int sends (Roledef rd)
+  minlevel = UINT_MAX;
+  for (rd = r->roledef; rd != NULL; rd = rd->next)
     {
       if (rd->type == SEND)
 	{
@@ -55,15 +55,33 @@ protocolHidelevel (const System sys, const Term t)
 	  if (l < minlevel)
 	    minlevel = l;
 	}
-      return true;
     }
+  return minlevel;
+}
 
-    roledef_iterate_events (r->roledef, sends);
-    return true;
-  }
+//! hide level within protocol
+unsigned int
+protocolHidelevel (const System sys, const Term t)
+{
+  unsigned int minlevel;
+  Protocol p;
 
-  minlevel = INT_MAX;
-  iterateRoles (sys, itsends);
+  minlevel = UINT_MAX;
+  for (p = sys->protocols; p != NULL; p = p->next)
+    {
+      Role r;
+
+      for (r = p->roles; r != NULL; r = r->next)
+	{
+	  unsigned int ml;
+
+	  ml = minlevel_itsends (p, r, t);
+	  if (ml < minlevel)
+	    {
+	      minlevel = ml;
+	    }
+	}
+    }
 
   return minlevel;
 }
@@ -217,21 +235,23 @@ iterate_interesting (const System sys, const Term goalterm, int (*func) ())
   return true;
 }
 
+//! Simple check for next function
+int
+possible (unsigned int l, unsigned int lmin, unsigned int lprot,
+	  unsigned int lknow)
+{
+  if (l < lmin)
+    {
+      // impossible, abort!
+      return false;
+    }
+  return true;
+}
+
 //! Determine whether a goal is impossible to satisfy because of the hidelevel lemma.
 int
 hidelevelImpossible (const System sys, const Term goalterm)
 {
-  int possible (unsigned int l, unsigned int lmin, unsigned int lprot,
-		unsigned int lknow)
-  {
-    if (l < lmin)
-      {
-	// impossible, abort!
-	return false;
-      }
-    return true;
-  }
-
   return !iterate_interesting (sys, goalterm, possible);
 }
 
@@ -240,23 +260,30 @@ unsigned int
 hidelevelFlag (const System sys, const Term goalterm)
 {
   unsigned int flag;
-
-  int getflag (unsigned int l, unsigned int lmin, unsigned int lprot,
-	       unsigned int lknow)
-  {
-    // Determine new flag
-    flag = flag | hidelevelParamFlag (l, lmin, lprot, lknow);
-
-    // Should we proceed?
-    if (flag == HLFLAG_NONE)
-      {
-	// abort iteration: it cannot get worse
-	return false;
-      }
-    return true;
-  }
+  Hiddenterm ht;
 
   flag = HLFLAG_BOTH;
-  iterate_interesting (sys, goalterm, getflag);
+
+  for (ht = sys->hidden; ht != NULL; ht = ht->next)
+    {
+      unsigned int l;
+      // Test the goalterm for occurrences of this
+
+      l = termHidelevel (ht->term, goalterm);
+      if (l < INT_MAX)
+	{
+	  flag =
+	    flag | hidelevelParamFlag (l, ht->hideminimum, ht->hideprotocol,
+				       ht->hideknowledge);
+
+	  // Should we proceed?
+	  if (flag == HLFLAG_NONE)
+	    {
+	      // abort iteration: it cannot get worse
+	      return flag;
+	    }
+	}
+    }
+
   return flag;
 }

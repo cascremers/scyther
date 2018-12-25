@@ -95,16 +95,19 @@ bindingInit (const System mysys)
   dependInit (sys);
 }
 
+//! Destroy a binding and return true for iterator
+int
+binding_destroy_rtrue (Binding b)
+{
+  binding_destroy (b);
+  return true;
+}
+
 //! Close up
 void
 bindingDone ()
 {
-  int delete (Binding b)
-  {
-    binding_destroy (b);
-    return true;
-  }
-  list_iterate (sys->bindings, delete);
+  list_iterate (sys->bindings, binding_destroy_rtrue);
   list_destroy (sys->bindings);
 
   dependDone (sys);
@@ -190,6 +193,29 @@ goal_unbind (const Binding b)
     }
 }
 
+//! Check if term,run,ev already occurs in binding
+int
+is_new_binding (const Term term, const int run, const int ev)
+{
+  List bl = sys->bindings;
+
+  while (bl != NULL)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (isTermEqual (b->term, term))
+	{
+	  if (run == b->run_to && ev == b->ev_to)
+	    {
+	      return false;
+	    }
+	}
+      bl = bl->next;
+    }
+  return true;
+}
+
 //! Add a goal
 /**
  * The int parameter 'level' is just to store additional info. Here, it stores priorities for a goal.
@@ -226,28 +252,7 @@ goal_add (Term term, const int run, const int ev, const int level)
   else
     {
       // Determine whether we already had it
-      int createnew;
-
-      int testSame (void *data)
-      {
-	Binding b;
-
-	b = (Binding) data;
-	if (isTermEqual (b->term, term))
-	  {
-	    // binding of same term
-	    if (run == b->run_to && ev == b->ev_to)
-	      {
-		// identical binding 
-		createnew = false;
-	      }
-	  }
-	return true;
-      }
-
-      createnew = true;
-      list_iterate (sys->bindings, testSame);
-      if (createnew)
+      if (is_new_binding (term, run, ev))
 	{
 	  // Add a new binding
 	  Binding b;
@@ -442,16 +447,22 @@ int
 iterate_preceding_bindings (const int run, const int ev,
 			    int (*func) (Binding b))
 {
-  int precs (Binding b)
-  {
-    if (isDependEvent (b->run_to, b->ev_to, run, ev))
-      {
-	return func (b);
-      }
-    return true;
-  }
+  List bl;
 
-  return iterate_bindings (precs);
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (isDependEvent (b->run_to, b->ev_to, run, ev))
+	{
+	  if (!func (b))
+	    {
+	      return false;
+	    }
+	}
+    }
+  return true;
 }
 
 
@@ -753,17 +764,18 @@ int
 countBindingsDone ()
 {
   int count;
-
-  int countDone (Binding b)
-  {
-    if (b->done)
-      {
-	count++;
-      }
-    return true;
-  }
+  List bl;
 
   count = 0;
-  iterate_bindings (countDone);
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (b->done)
+	{
+	  count++;
+	}
+    }
   return count;
 }

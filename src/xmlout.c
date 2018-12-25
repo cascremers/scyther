@@ -545,6 +545,49 @@ isEventInteresting (const System sys, const Roledef rd)
     }
 }
 
+//! Refactoring code from below
+void
+xmlRunIndex (char *desc, const int run, const int index)
+{
+  xmlPrint ("<%s run=\"%i\" index=\"%i\" />", desc, run, index);
+}
+
+//! Refactoring code from below
+void
+xmlShowThisBinding (const Binding b)
+{
+  if (isTermVariable (b->term) && !b->done)
+    {
+      // Generate from m0
+      xmlPrint ("<choose>");
+
+      xmlindent++;
+      xmlIndentPrint ();
+      xmlTermPrint (b->term);
+      eprintf ("\n");
+      xmlindent--;
+
+      xmlPrint ("</choose>");
+    }
+  else
+    {
+      // Normal binding
+      xmlPrint ("<follows>");
+
+      xmlindent++;
+      if (b->done)
+	xmlRunIndex ("after", b->run_from, b->ev_from);
+      else
+	xmlPrint ("<unbound />");
+      xmlIndentPrint ();
+      xmlTermPrint (b->term);
+      eprintf ("\n");
+      xmlindent--;
+
+      xmlPrint ("</follows>");
+    }
+}
+
 //! Show a single event from a run
 /**
  * run and index will only be output if they are nonnegative.
@@ -618,57 +661,22 @@ xmlOutEvent (const System sys, Roledef rd, const int run, const int index)
 
   // Display any incoming bindings
   {
-    int xmlBindingState (void *dt)
-    {
-      Binding b;
-
-      void xmlRunIndex (char *desc, const int run, const int index)
-      {
-	xmlPrint ("<%s run=\"%i\" index=\"%i\" />", desc, run, index);
-      }
-
-      b = (Binding) dt;
-      if (b->run_to == run && b->ev_to == index)
-	{
-	  if (isTermVariable (b->term) && !b->done)
-	    {
-	      // Generate from m0
-	      xmlPrint ("<choose>");
-
-	      xmlindent++;
-	      xmlIndentPrint ();
-	      xmlTermPrint (b->term);
-	      eprintf ("\n");
-	      xmlindent--;
-
-	      xmlPrint ("</choose>");
-	    }
-	  else
-	    {
-	      // Normal binding
-	      xmlPrint ("<follows>");
-
-	      xmlindent++;
-	      xmlIndentPrint ();
-	      xmlTermPrint (b->term);
-	      eprintf ("\n");
-	      if (b->done)
-		xmlRunIndex ("after", b->run_from, b->ev_from);
-	      else
-		xmlPrint ("<unbound />");
-	      xmlindent--;
-
-	      xmlPrint ("</follows>");
-	    }
-	}
-      return 1;
-    }
-
     xmlindent++;
     // Only if real run, and not a roledef
-    if (run >= 0 && sys->bindings != NULL)
+    if (run >= 0)
       {
-	list_iterate (sys->bindings, xmlBindingState);
+	List bl;
+
+	for (bl = sys->bindings; bl != NULL; bl = bl->next)
+	  {
+	    Binding b;
+
+	    b = (Binding) bl->data;
+	    if (b->run_to == run && b->ev_to == index)
+	      {
+		xmlShowThisBinding (b);
+	      }
+	  }
       }
     xmlindent--;
   }

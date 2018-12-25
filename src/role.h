@@ -205,7 +205,7 @@ Role roleDuplicate (Role source);
 void rolePrint (Role r);
 void rolesPrint (Role r);
 int roledef_iterate_events (Roledef rd, int (*func) ());
-int roledef_length (const Roledef rd);
+int roledef_length (Roledef rd);
 Roledef roledef_shift (Roledef rd, int i);
 int roledefSubTerm (Roledef rd, Term tsub);
 Roledef firstEventWithTerm (Roledef rd, Term t);

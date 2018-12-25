@@ -214,36 +214,44 @@ newkeylevel (const int level)
     return 1;
 }
 
+struct state_tcc
+{
+  int leaves;
+  int nonvariables;
+};
+
+//! Simple helper for below
+int
+countMe (Term t, struct state_tcc *stcc)
+{
+  if (TermRunid (t) >= 0)
+    {
+      (stcc->leaves)++;
+      if (!isTermVariable (t))
+	{
+	  (stcc->nonvariables)++;
+	}
+    }
+  return 1;
+}
+
 //! count local constants
 float
 term_constcount (const System sys, Term t)
 {
-  int n, total;
   float ratio;
+  struct state_tcc Stcc;
 
-  int countMe (Term t)
-  {
-    if (TermRunid (t) >= 0)
-      {
-	total++;
-	if (!isTermVariable (t))
-	  {
-	    n++;
-	  }
-      }
-    return 1;
-  }
-
-  n = 0;
-  total = 0;
-  term_iterate_deVar (t, countMe, NULL, NULL, NULL);
-  if (total == 0)
+  Stcc.nonvariables = 0;
+  Stcc.leaves = 0;
+  term_iterate_state_deVar (t, countMe, NULL, NULL, NULL, &Stcc);
+  if (Stcc.leaves == 0)
     {
       ratio = 1;
     }
   else
     {
-      ratio = ((total - n) / total);
+      ratio = ((Stcc.leaves - Stcc.nonvariables) / Stcc.leaves);
     }
   return ratio;
 }
@@ -423,7 +431,7 @@ select_goal_masked (const System sys)
 
       b = (Binding) bl->data;
 
-      // Only if not done and not blocked
+      // Only if not done 
       if (is_goal_selectable (sys, b))
 	{
 	  float w;

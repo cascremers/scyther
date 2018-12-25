@@ -35,6 +35,7 @@
 #include <limits.h>
 #include <float.h>
 #include <string.h>
+#include <assert.h>
 
 #include "mymalloc.h"
 #include "term.h"
@@ -657,26 +658,88 @@ iterate_role_events (int (*func) ())
 
 //! Iterate over all send types in the roles (including the intruder ones)
 /**
+ * Input:
+ *   func:
+ *   state: void pointer to whatever that is passed on to func as well.
+ *
+ * Function is called with (protocol pointer, role pointer, roledef pointer, index, state)
+ * and returns an integer. If it is false, iteration aborts.
+ */
+int
+iterate_state_role_sends (int (*func) (), void *state)
+{
+  Protocol p;
+
+  p = sys->protocols;
+  while (p != NULL)
+    {
+      Role r;
+
+      r = p->roles;
+      while (r != NULL)
+	{
+	  Roledef rd;
+	  int index;
+
+	  rd = r->roledef;
+	  index = 0;
+	  while (rd != NULL)
+	    {
+	      if (rd->type == SEND)
+		{
+		  if (!func (p, r, rd, index, state))
+		    return false;
+		}
+	      index++;
+	      rd = rd->next;
+	    }
+	  r = r->next;
+	}
+      p = p->next;
+    }
+  return true;
+}
+
+//! Iterate over all send types in the roles (including the intruder ones)
+/**
  * Function is called with (protocol pointer, role pointer, roledef pointer, index)
  * and returns an integer. If it is false, iteration aborts.
  */
 int
 iterate_role_sends (int (*func) ())
 {
-  int send_wrapper (Protocol p, Role r, Roledef rd, int i)
-  {
-    if (rd->type == SEND)
-      {
-	return func (p, r, rd, i);
-      }
-    else
-      {
-	return 1;
-      }
-  }
+  Protocol p;
 
-  return iterate_role_events (send_wrapper);
+  p = sys->protocols;
+  while (p != NULL)
+    {
+      Role r;
+
+      r = p->roles;
+      while (r != NULL)
+	{
+	  Roledef rd;
+	  int index;
+
+	  rd = r->roledef;
+	  index = 0;
+	  while (rd != NULL)
+	    {
+	      if (rd->type == SEND)
+		{
+		  if (!func (p, r, rd, index))
+		    return 0;
+		}
+	      index++;
+	      rd = rd->next;
+	    }
+	  r = r->next;
+	}
+      p = p->next;
+    }
+  return 1;
 }
+
 
 //! Create decryption role instance
 /**
@@ -896,6 +959,155 @@ createDecryptionChain (const Binding b, const int run, const int index,
     }
 }
 
+struct md_state
+{
+  int neworders;
+  int allgood;
+  Term tvar;
+  Termlist sl;
+};
+
+//! makeDepend for next function
+	    /** the idea is, that a substitution in run x with
+	    * something containing should be wrapped; this
+   * occurs for all subterms of other runs.
+   */
+int
+makeDepend (Term tsmall, struct md_state *state)
+{
+  Term tsubst;
+
+  tsubst = deVar (tsmall);
+  if (!realTermVariable (tsubst))
+    {
+      // Only for non-variables (i.e. local constants)
+      int r1, e1;
+
+      r1 = TermRunid (tsubst);
+      e1 = firstOccurrence (sys, r1, tsubst, SEND);
+      if (e1 >= 0)
+	{
+	  int r2, e2;
+
+	  r2 = TermRunid (state->tvar);
+	  e2 = firstOccurrence (sys, r2, tsubst, RECV);
+	  if (e2 >= 0)
+	    {
+
+	      if (dependPushEvent (r1, e1, r2, e2))
+		{
+		  state->neworders++;
+		  return true;
+		}
+	      else
+		{
+		  state->allgood = false;
+		  if (switches.output == PROOF)
+		    {
+		      indentPrint ();
+		      eprintf ("Substitution for ");
+		      termSubstPrint (state->sl->term);
+		      eprintf (" (subterm ");
+		      termPrint (tsmall);
+		      eprintf (") could not be safely bound.\n");
+		    }
+		  return false;
+		}
+	    }
+	}
+    }
+  return true;
+}
+
+struct betg_state
+{
+  Binding b;
+  int run;
+  int index;
+  int newdecr;
+};
+
+int
+unifiesWithKeys (Termlist substlist, Termlist keylist,
+		 struct betg_state *ptr_betgState)
+{
+  int old_length;
+  int newgoals;
+
+  assert (ptr_betgState != NULL);
+
+  // TODO this is a hack: in this case we really should not use subterm
+  // unification but interm instead. However, this effectively does the same
+  // by avoiding branches that get immediately pruned anyway.
+  if (!ptr_betgState->newdecr && keylist != NULL)
+    {
+      return true;
+    }
+
+  // We need some adapting because the height would increase; we therefore
+  // have to add recv goals before we know whether it unifies.
+  old_length = sys->runs[ptr_betgState->run].height;
+  newgoals =
+    add_recv_goals (ptr_betgState->run, old_length, ptr_betgState->index + 1);
+
+  {
+    // wrap substitution lists
+
+    void wrapSubst (Termlist sl)
+    {
+      if (sl == NULL)
+	{
+	  if (switches.output == PROOF)
+	    {
+	      Roledef rd;
+
+	      indentPrint ();
+	      eprintf ("Suppose ");
+	      termPrint ((ptr_betgState->b)->term);
+	      eprintf (" originates first at run %i, event %i, as part of ",
+		       ptr_betgState->run, ptr_betgState->index);
+	      rd =
+		roledef_shift (sys->runs[ptr_betgState->run].start,
+			       ptr_betgState->index);
+	      termPrint (rd->message);
+	      eprintf ("\n");
+	    }
+	  // new create key goals, bind etc.
+	  createDecryptionChain (ptr_betgState->b, ptr_betgState->run,
+				 ptr_betgState->index, keylist, iterate);
+	}
+      else
+	{
+	  struct md_state State;
+
+	  // TODO CONTEXT for makeDepend in State
+
+	  State.neworders = 0;
+	  State.sl = sl;
+	  State.tvar = sl->term;
+	  State.allgood = true;
+	  iterateTermOther (ptr_betgState->run, State.tvar, makeDepend,
+			    &State);
+	  if (State.allgood)
+	    {
+	      wrapSubst (sl->next);
+	    }
+	  while (State.neworders > 0)
+	    {
+	      State.neworders--;
+	      dependPopEvent ();
+	    }
+	}
+    }
+
+    wrapSubst (substlist);
+  }
+
+  // undo
+  goal_remove_last (newgoals);
+  sys->runs[ptr_betgState->run].height = old_length;
+  return true;
+}
 
 //! Try to bind a specific existing run to a goal.
 /**
@@ -912,129 +1124,15 @@ bind_existing_to_goal (const Binding b, const int run, const int index,
 		       int newdecr)
 {
   Term bigterm;
+  struct betg_state betgState;
 
-  int unifiesWithKeys (Termlist substlist, Termlist keylist)
-  {
-    int old_length;
-    int newgoals;
-
-    // TODO this is a hack: in this case we really should not use subterm
-    // unification but interm instead. However, this effectively does the same
-    // by avoiding branches that get immediately pruned anyway.
-    if (!newdecr && keylist != NULL)
-      {
-	return true;
-      }
-    // We need some adapting because the height would increase; we therefore
-    // have to add recv goals before we know whether it unifies.
-    old_length = sys->runs[run].height;
-    newgoals = add_recv_goals (run, old_length, index + 1);
-
-    {
-      // wrap substitution lists
-
-      void wrapSubst (Termlist sl)
-      {
-	if (sl == NULL)
-	  {
-	    if (switches.output == PROOF)
-	      {
-		Roledef rd;
-
-		indentPrint ();
-		eprintf ("Suppose ");
-		termPrint (b->term);
-		eprintf (" originates first at run %i, event %i, as part of ",
-			 run, index);
-		rd = roledef_shift (sys->runs[run].start, index);
-		termPrint (rd->message);
-		eprintf ("\n");
-	      }
-	    // new create key goals, bind etc.
-	    createDecryptionChain (b, run, index, keylist, iterate);
-	  }
-	else
-	  {
-	    int neworders;
-	    int allgood;
-	    Term tvar;
-
-	    // the idea is, that a substitution in run x with
-	    // something containing should be wrapped; this
-	    // occurs for all subterms of other runs.
-	    int makeDepend (Term tsmall)
-	    {
-	      Term tsubst;
-
-	      tsubst = deVar (tsmall);
-	      if (!realTermVariable (tsubst))
-		{
-		  // Only for non-variables (i.e. local constants)
-		  int r1, e1;
-
-		  r1 = TermRunid (tsubst);
-		  e1 = firstOccurrence (sys, r1, tsubst, SEND);
-		  if (e1 >= 0)
-		    {
-		      int r2, e2;
-
-		      r2 = TermRunid (tvar);
-		      e2 = firstOccurrence (sys, r2, tsubst, RECV);
-		      if (e2 >= 0)
-			{
-
-			  if (dependPushEvent (r1, e1, r2, e2))
-			    {
-			      neworders++;
-			      return true;
-			    }
-			  else
-			    {
-			      allgood = false;
-			      if (switches.output == PROOF)
-				{
-				  indentPrint ();
-				  eprintf ("Substitution for ");
-				  termSubstPrint (sl->term);
-				  eprintf (" (subterm ");
-				  termPrint (tsmall);
-				  eprintf (") could not be safely bound.\n");
-				}
-			      return false;
-			    }
-			}
-		    }
-		}
-	      return true;
-	    }
-
-	    neworders = 0;
-	    allgood = true;
-	    tvar = sl->term;
-	    iterateTermOther (run, tvar, makeDepend);
-	    if (allgood)
-	      {
-		wrapSubst (sl->next);
-	      }
-	    while (neworders > 0)
-	      {
-		neworders--;
-		dependPopEvent ();
-	      }
-	  }
-      }
-
-      wrapSubst (substlist);
-    }
-
-    // undo
-    goal_remove_last (newgoals);
-    sys->runs[run].height = old_length;
-    return true;
-  }
+  betgState.b = b;
+  betgState.run = run;
+  betgState.index = index;
+  betgState.newdecr = newdecr;
 
   bigterm = roledef_shift (sys->runs[run].start, index)->message;
-  subtermUnify (bigterm, b->term, NULL, NULL, unifiesWithKeys);
+  subtermUnify (bigterm, b->term, NULL, NULL, unifiesWithKeys, &betgState);
 }
 
 
@@ -1108,18 +1206,67 @@ bind_new_run (const Binding b, const Protocol p, const Role r,
   return true;
 }
 
+//! Proof markers
+void
+proof_go_down (const Term label, const Term t)
+{
+  Termlist l;
+  int depth;
+  int len;
+
+  if (switches.output != PROOF)
+    return;
+  // Prepend the terms (the list is in reverse)
+  TERMLISTPREPEND (sys->proofstate, label);
+  TERMLISTPREPEND (sys->proofstate, t);
+  len = termlistLength (sys->proofstate) / 2;
+  // Display state
+  eprintf ("Proof state: branch at level %i\n", len);
+  l = termlistForward (sys->proofstate);
+  depth = 0;
+  while (l != NULL)
+    {
+      int i;
+      eprintf ("Proof state: ");
+
+      for (i = 0; i < depth; i++)
+	{
+	  eprintf ("  ");
+	}
+      termPrint (l->prev->term);
+      eprintf ("(");
+      termPrint (l->term);
+      eprintf ("); ");
+      l = l->prev->prev;
+      eprintf ("\n");
+      depth++;
+    }
+}
+
+void
+proof_go_up (void)
+{
+  if (switches.output != PROOF)
+    return;
+  sys->proofstate = termlistDelTerm (sys->proofstate);
+  sys->proofstate = termlistDelTerm (sys->proofstate);
+  return;
+}
+
+//! Print the state of a binding (with indent)
+int
+binding_state_print (void *dt)
+{
+  binding_indent_print ((Binding) dt, 1);
+  return 1;
+}
+
 //! Print the current semistate
 void
 printSemiState ()
 {
   int run;
   int open;
-
-  int binding_state_print (void *dt)
-  {
-    binding_indent_print ((Binding) dt, 1);
-    return 1;
-  }
 
   indentPrint ();
   eprintf ("!! --=[ Semistate ]=--\n");
@@ -1333,99 +1480,66 @@ bind_goal_new_intruder_run (const Binding b)
   return flag;
 }
 
-//! Bind a regular goal
-/**
- * Problem child. Valgrind does not like it.
- */
-int
-bind_goal_regular_run (const Binding b)
+//! Debug information?
+void
+debug_send_candidate (const Protocol p, const Role r, const Roledef rd,
+		      const int index)
 {
-  int flag;
-  int found;
+#ifdef DEBUG
+  indentPrint ();
+  eprintf ("Checking send candidate with message ");
+  termPrint (rd->message);
+  eprintf (" from ");
+  termPrint (p->nameterm);
+  eprintf (", ");
+  termPrint (r->nameterm);
+  eprintf (", index %i\n", index);
+#endif
+}
 
-  /*
-   * This is a local function so we have access to goal
-   */
-  int bind_this_role_send (Protocol p, Role r, Roledef rd, int index)
-  {
-    int test_sub_unification (Termlist substlist, Termlist keylist)
+//! Dummy helper function for iterator; abort if sub-unification found
+int
+test_sub_unification (Termlist substlist, Termlist keylist, void *state)
+{
+  // A unification exists; return the signal
+  return false;
+}
+
+//! Proof output for first match
+void
+proof_term_match_first (const int found, const Binding b)
+{
+  if (switches.output == PROOF && found == 1)
     {
-      // A unification exists; return the signal
-      return false;
+      indentPrint ();
+      eprintf ("The term ", found);
+      termPrint (b->term);
+      eprintf (" matches patterns from the role definitions. Investigate.\n");
     }
+}
 
-    if (p == INTRUDER)
-      {
-	// No intruder roles here
-	return true;
-      }
+//! Proof output for any match
+void
+proof_term_match (const Protocol p, const Role r, const Roledef rd,
+		  const int index, const int found)
+{
+  if (switches.output == PROOF)
+    {
+      indentPrint ();
+      eprintf ("%i. It matches the pattern ", found);
+      termPrint (rd->message);
+      eprintf (" from ");
+      termPrint (p->nameterm);
+      eprintf (", ");
+      termPrint (r->nameterm);
+      eprintf (", at %i\n", index);
+    }
+}
 
-    // Test for interm unification
-#ifdef DEBUG
-    if (DEBUGL (5))
-      {
-	indentPrint ();
-	eprintf ("Checking send candidate with message ");
-	termPrint (rd->message);
-	eprintf (" from ");
-	termPrint (p->nameterm);
-	eprintf (", ");
-	termPrint (r->nameterm);
-	eprintf (", index %i\n", index);
-      }
-#endif
-    if (!subtermUnify
-	(rd->message, b->term, NULL, NULL, test_sub_unification))
-      {
-	int sflag;
-
-	// A good candidate
-	found++;
-	if (switches.output == PROOF && found == 1)
-	  {
-	    indentPrint ();
-	    eprintf ("The term ", found);
-	    termPrint (b->term);
-	    eprintf
-	      (" matches patterns from the role definitions. Investigate.\n");
-	  }
-	if (switches.output == PROOF)
-	  {
-	    indentPrint ();
-	    eprintf ("%i. It matches the pattern ", found);
-	    termPrint (rd->message);
-	    eprintf (" from ");
-	    termPrint (p->nameterm);
-	    eprintf (", ");
-	    termPrint (r->nameterm);
-	    eprintf (", at %i\n", index);
-	  }
-	indentDepth++;
-
-	// Bind to existing run
-#ifdef DEBUG
-	debug (5, "Trying to bind to existing run.");
-#endif
-	sflag = bind_existing_run (b, p, r, index);
-	// bind to new run
-#ifdef DEBUG
-	debug (5, "Trying to bind to new run.");
-#endif
-	sflag = sflag && bind_new_run (b, p, r, index);
-
-	indentDepth--;
-	return sflag;
-      }
-    else
-      {
-	return true;
-      }
-  }
-
-
-  // Bind to all possible sends of regular runs
-  found = 0;
-  flag = iterate_role_sends (bind_this_role_send);
+//! Proof output for no match
+void
+proof_term_match_none (const Binding b, const int found)
+{
   if (switches.output == PROOF && found == 0)
     {
       indentPrint ();
@@ -1433,6 +1547,93 @@ bind_goal_regular_run (const Binding b)
       termPrint (b->term);
       eprintf (" does not match any pattern from the role definitions.\n");
     }
+}
+
+//! Process good candidate
+int
+process_good_candidate (const Protocol p, const Role r, const Roledef rd,
+			const int index, const Binding b, const int found)
+{
+  int sflag;
+
+  // A good candidate
+  proof_term_match_first (found, b);
+  proof_term_match (p, r, rd, index, found);
+
+  indentDepth++;
+
+  // Bind to existing run
+#ifdef DEBUG
+  debug (5, "Trying to bind to existing run.");
+#endif
+  proof_go_down (TERM_DeEx, b->term);
+  sflag = bind_existing_run (b, p, r, index);
+  proof_go_up ();
+  // bind to new run
+#ifdef DEBUG
+  debug (5, "Trying to bind to new run.");
+#endif
+  proof_go_down (TERM_DeNew, b->term);
+  sflag = sflag && bind_new_run (b, p, r, index);
+  proof_go_up ();
+
+  indentDepth--;
+  return sflag;
+}
+
+//! Helper struct to maintain state (continuation) during iteration
+struct state_brs
+{
+  Binding binding;
+  int found;
+};
+
+//! Helper for the next function bind_regular_goal
+int
+bind_this_role_send (Protocol p, Role r, Roledef rd, int index,
+		     struct state_brs *bs)
+{
+  if (p == INTRUDER)
+    {
+      // No intruder roles here
+      return true;
+    }
+
+  // Test for interm unification
+  debug_send_candidate (p, r, rd, index);
+
+  if (!subtermUnify
+      (rd->message, (bs->binding)->term, NULL, NULL, test_sub_unification,
+       NULL))
+    {
+      // A good candidate
+      bs->found++;
+      return process_good_candidate (p, r, rd, index, bs->binding, bs->found);
+    }
+  else
+    {
+      return true;
+    }
+}
+
+//! Bind a regular goal
+/**
+ * Problem child. Valgrind did not like it. 
+ * TODO maybe better since last rewrite; need to check again.
+ */
+int
+bind_goal_regular_run (const Binding b)
+{
+  int flag;
+  struct state_brs bs;
+
+  // Bind to all possible sends of regular runs
+  bs.found = 0;
+  bs.binding = b;
+
+  flag = iterate_state_role_sends (bind_this_role_send, &bs);
+
+  proof_term_match_none (b, bs.found);
   return flag;
 }
 
@@ -2310,7 +2511,20 @@ getClaimIndex (int run, Claimlist cl)
   return -1;
 }
 
-//! Create a run run for the claim
+//! Helper for the next code.
+int
+realStart (void)
+{
+#ifdef DEBUG
+  if (DEBUGL (5))
+    {
+      printSemiState ();
+    }
+#endif
+  return fork_iteration_matchingsessions ();
+}
+
+//! Arachne single claim test
 void
 wrap_iteration_createclaimrun (Claimlist cl, Protocol p, Role r)
 {
@@ -2324,17 +2538,6 @@ wrap_iteration_createclaimrun (Claimlist cl, Protocol p, Role r)
   newruns++;
   {
     int newgoals;
-
-    int realStart (void)
-    {
-#ifdef DEBUG
-      if (DEBUGL (5))
-	{
-	  printSemiState ();
-	}
-#endif
-      return fork_iteration_matchingsessions ();
-    }
 
     // Because of compromised runs, claim event index may shift.
     cl->ev = getClaimIndex (run, cl);
@@ -2526,6 +2729,40 @@ arachneClaim ()
   return false;
 }
 
+//! Helper for arachne
+int
+determine_encrypt_max (Protocol p, Role r, Roledef rd, int index)
+{
+  int tlevel;
+
+  tlevel = term_encryption_level (rd->message);
+#ifdef DEBUG
+  if (DEBUGL (3))
+    {
+      eprintf ("Encryption level %i found for term ", tlevel);
+      termPrint (rd->message);
+      eprintf ("\n");
+    }
+#endif
+  if (tlevel > max_encryption_level)
+    max_encryption_level = tlevel;
+  return 1;
+}
+
+//! Print send information
+int
+print_send (Protocol p, Role r, Roledef rd, int index)
+{
+  eprintf ("IRS: ");
+  termPrint (p->nameterm);
+  eprintf (", ");
+  termPrint (r->nameterm);
+  eprintf (", %i, ", index);
+  roledefPrint (rd);
+  eprintf ("\n");
+  return 1;
+}
+
 
 //! Main code for Arachne
 /**
@@ -2540,24 +2777,6 @@ arachne ()
 {
   Claimlist cl;
   int count;
-
-  int determine_encrypt_max (Protocol p, Role r, Roledef rd, int index)
-  {
-    int tlevel;
-
-    tlevel = term_encryption_level (rd->message);
-#ifdef DEBUG
-    if (DEBUGL (3))
-      {
-	eprintf ("Encryption level %i found for term ", tlevel);
-	termPrint (rd->message);
-	eprintf ("\n");
-      }
-#endif
-    if (tlevel > max_encryption_level)
-      max_encryption_level = tlevel;
-    return 1;
-  }
 
   /*
    * set up claim role(s)

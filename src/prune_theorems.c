@@ -45,51 +45,39 @@ extern Protocol INTRUDER;
 extern int proofDepth;
 extern int max_encryption_level;
 
-
-//! Check locals occurrence
-/*
- * Returns true if the order is correct
- */
+//! checkTerm is a helper for the next function
 int
-correctLocalOrder (const System sys)
+checkTerm (const System sys, const Term t, const int r1)
 {
-  int flag;
-
-  int checkRun (int r1)
-  {
-    int checkTerm (Term t)
+  if (!isTermVariable (t))
     {
-      if (!isTermVariable (t))
-	{
-	  int r2;
-	  int e1, e2;
+      int r2;
+      int e1, e2;
 
-	  // t is a term from r2 that occurs in r1
-	  r2 = TermRunid (t);
-	  e1 = firstOccurrence (sys, r1, t, ANYEVENT);
-	  if (e1 >= 0)
+      // t is a term from r2 that occurs in r1
+      r2 = TermRunid (t);
+      e1 = firstOccurrence (sys, r1, t, ANYEVENT);
+      if (e1 >= 0)
+	{
+	  if (roledef_shift (sys->runs[r1].start, e1)->type == RECV)
 	    {
-	      if (roledef_shift (sys->runs[r1].start, e1)->type == RECV)
+	      e2 = firstOccurrence (sys, r2, t, SEND);
+	      if (e2 >= 0)
 		{
-		  e2 = firstOccurrence (sys, r2, t, SEND);
-		  if (e2 >= 0)
+		  // thus, it should not be the case that e1 occurs before e2
+		  if (isDependEvent (r1, e1, r2, e2))
 		    {
-		      // thus, it should not be the case that e1 occurs before e2
-		      if (isDependEvent (r1, e1, r2, e2))
+		      // That's not good!
+		      if (switches.output == PROOF)
 			{
-			  // That's not good!
-			  if (switches.output == PROOF)
-			    {
-			      indentPrint ();
-			      eprintf ("Pruned because ordering for term ");
-			      termSubstPrint (t);
-			      eprintf
-				(" cannot be correct: the first send r%ii%i occurs after the recv r%ii%i.\n",
-				 r2, e2, r1, e1);
-			    }
-			  flag = false;
-			  return false;
+			  indentPrint ();
+			  eprintf ("Pruned because ordering for term ");
+			  termSubstPrint (t);
+			  eprintf
+			    (" cannot be correct: the first send r%ii%i occurs after the receive r%ii%i.\n",
+			     r2, e2, r1, e1);
 			}
+		      return false;
 		    }
 		  else
 		    {
@@ -126,28 +114,43 @@ correctLocalOrder (const System sys)
 		  error ("Abort");
 		}
 	    }
-	  else
+	}
+      else
+	{
+	  globalError++;
+	  eprintf ("error: term ");
+	  termSubstPrint (t);
+	  eprintf
+	    (" from run %i should occur in run %i, but it doesn't.\n", r2,
+	     r1);
+	  globalError--;
+	  error ("Abort");
+	}
+    }
+  return true;
+}
+
+
+//! Check locals occurrence
+/*
+ * Returns true if the order is correct
+ */
+int
+correctLocalOrder (const System sys)
+{
+  int r1;
+
+  for (r1 = 0; r1 < sys->maxruns; r1++)
+    {
+      if (sys->runs[r1].protocol != INTRUDER)
+	{
+	  if (!iterateLocalToOther (sys, r1, checkTerm))
 	    {
-	      globalError++;
-	      eprintf ("error: term ");
-	      termSubstPrint (t);
-	      eprintf
-		(" from run %i should occur in run %i, but it doesn't.\n", r2,
-		 r1);
-	      globalError--;
-	      error ("Abort");
+	      return false;
 	    }
 	}
-      return true;
     }
-
-    return iterateLocalToOther (sys, r1, checkTerm);
-  }
-
-  flag = true;
-  iterateRegularRuns (sys, checkRun);
-
-  return flag;
+  return true;
 }
 
 //! Check initiator roles

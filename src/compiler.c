@@ -125,21 +125,20 @@ compilerDone (void)
 Termlist
 compute_recv_variables (const Role r)
 {
-  Termlist tl;
+  Termlist tl = NULL;
+  Roledef rd;
 
-  int process_event (Roledef rd)
-  {
-    if (rd->type == RECV)
-      {
-	tl = termlistAddVariables (tl, rd->from);
-	tl = termlistAddVariables (tl, rd->to);
-	tl = termlistAddVariables (tl, rd->message);
-      }
-    return 1;
-  }
-
-  tl = NULL;
-  roledef_iterate_events (r->roledef, process_event);
+  rd = r->roledef;
+  while (rd != NULL)
+    {
+      if (rd->type == RECV)
+	{
+	  tl = termlistAddVariables (tl, rd->from);
+	  tl = termlistAddVariables (tl, rd->to);
+	  tl = termlistAddVariables (tl, rd->message);
+	}
+      rd = rd->next;
+    }
   return tl;
 }
 
@@ -1668,17 +1667,16 @@ compute_role_variables (const System sys, Protocol p, Role r)
     {
       // Not computed before, for some reason
       Termlist tl;
+      Roledef rd;
 
-      int process_event (Roledef rd)
-      {
-	tl = termlistAddVariables (tl, rd->from);
-	tl = termlistAddVariables (tl, rd->to);
-	tl = termlistAddVariables (tl, rd->message);
-	return 1;
-      }
 
       tl = NULL;
-      roledef_iterate_events (r->roledef, process_event);
+      for (rd = r->roledef; rd != NULL; rd = rd->next)
+	{
+	  tl = termlistAddVariables (tl, rd->from);
+	  tl = termlistAddVariables (tl, rd->to);
+	  tl = termlistAddVariables (tl, rd->message);
+	}
       r->variables = tl;
 
       /*
@@ -1755,47 +1753,7 @@ order_label_roles (const Claimlist cl)
   distance = 0;
   while (roles_remaining != NULL)
     {
-      int scan_label (void *data)
-      {
-	Labelinfo linfo;
-	Termlist tl;
-
-	linfo = (Labelinfo) data;
-	if (linfo == NULL)
-	  return 1;
-	tl = cl->prec;
-	if (inTermlist (tl, linfo->label))
-	  {
-	    if (linfo->protocol == cl->protocol)
-	      {
-		// If it's not the same protocol, the labels can't match
-
-		// This function checks whether the newrole can connect to the connectedrole, and whether they fulfil their requirements.
-		void roles_test (const Term connectedrole, const Term newrole)
-		{
-		  if (inTermlist (roles_ordered, connectedrole) &&
-		      inTermlist (roles_remaining, newrole))
-		    {
-#ifdef DEBUG
-		      if (DEBUGL (4))
-			{
-			  eprintf (" ");
-			  termPrint (newrole);
-			}
-#endif
-		      roles_ordered = termlistAppend (roles_ordered, newrole);
-		      roles_remaining =
-			termlistDelTerm (termlistFind
-					 (roles_remaining, newrole));
-		    }
-		}
-
-		roles_test (linfo->sendrole, linfo->recvrole);
-		roles_test (linfo->recvrole, linfo->sendrole);
-	      }
-	  }
-	return 1;
-      }
+      List ll;
 
       distance++;
 #ifdef DEBUG
@@ -1804,7 +1762,51 @@ order_label_roles (const Claimlist cl)
 	  eprintf (" %i:", distance);
 	}
 #endif
-      list_iterate (sys->labellist, scan_label);
+      for (ll = sys->labellist; ll != NULL; ll = ll->next)
+	{
+	  Labelinfo linfo;
+
+	  linfo = (Labelinfo) ll->data;
+	  if (linfo != NULL)
+	    {
+	      Termlist tl;
+
+	      tl = cl->prec;
+	      if (inTermlist (tl, linfo->label))
+		{
+		  if (linfo->protocol == cl->protocol)
+		    {
+		      // If it's not the same protocol, the labels can't match
+
+		      // This function checks whether the newrole can connect to the connectedrole, and whether they fulfil their requirements.
+		      void roles_test (const Term connectedrole,
+				       const Term newrole)
+		      {
+			if (inTermlist (roles_ordered, connectedrole) &&
+			    inTermlist (roles_remaining, newrole))
+			  {
+#ifdef DEBUG
+			    if (DEBUGL (4))
+			      {
+				eprintf (" ");
+				termPrint (newrole);
+			      }
+#endif
+			    roles_ordered =
+			      termlistAppend (roles_ordered, newrole);
+			    roles_remaining =
+			      termlistDelTerm (termlistFind
+					       (roles_remaining, newrole));
+			  }
+		      }
+
+		      roles_test (linfo->sendrole, linfo->recvrole);
+		      roles_test (linfo->recvrole, linfo->sendrole);
+		    }
+		}
+	    }
+	}
+
     }
   cl->roles = roles_ordered;
 #ifdef DEBUG
@@ -2247,21 +2249,19 @@ checkRoleVariables (const System sys, const Protocol p, const Role r)
 {
   Termlist vars;
   Termlist declared;
-
-  int process_event (Roledef rd)
-  {
-    if (rd->type == RECV)
-      {
-	vars = termlistAddVariables (vars, rd->from);
-	vars = termlistAddVariables (vars, rd->to);
-	vars = termlistAddVariables (vars, rd->message);
-      }
-    return 1;
-  }
+  Roledef rd;
 
   /* Gather all variables occurring in the recvs */
   vars = NULL;
-  roledef_iterate_events (r->roledef, process_event);
+  for (rd = r->roledef; rd != NULL; rd = rd->next)
+    {
+      if (rd->type == RECV)
+	{
+	  vars = termlistAddVariables (vars, rd->from);
+	  vars = termlistAddVariables (vars, rd->to);
+	  vars = termlistAddVariables (vars, rd->message);
+	}
+    }
 
   /* Now, all variables for this role should be in the recvs */
   declared = r->declaredvars;
@@ -2365,16 +2365,19 @@ void
 checkWellFormed (const System sys)
 {
   int allOkay;
+  Protocol p;
 
   allOkay = true;
+  for (p = sys->protocols; p != NULL; p = p->next)
+    {
+      Role r;
 
-  int thisRole (Protocol p, Role r)
-  {
-    allOkay = allOkay && WellFormedRole (sys, p, r);
-    return true;
-  }
+      for (r = p->roles; r != NULL; r = r->next)
+	{
+	  allOkay = allOkay && WellFormedRole (sys, p, r);
+	}
+    }
 
-  iterateRoles (sys, thisRole);
   if (allOkay == false)
     {
       error

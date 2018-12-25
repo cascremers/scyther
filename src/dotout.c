@@ -882,6 +882,65 @@ isApplicationM0 (const System sys, const int run)
   return false;
 }
 
+//! Helper for graph_ranks
+/**
+ * Name & documentation might be off; TODO later.
+ * This is for now just a refactoring to get rid of trampolines.
+ */
+int
+preceventPossible (const System sys, const int rank, const int run,
+		   const int rank2, const int run2, const int ev2)
+{
+  // regular preceding event
+
+  if (rank2 > rank)
+    {
+      // higher rank, this cannot be done
+      return false;
+    }
+  if (rank2 == rank)
+    {
+      // equal rank: only if different run
+      if ((sys->runs[run].protocol != INTRUDER) && (run2 == run))
+	{
+	  return false;
+	}
+    }
+  return true;
+}
+
+//! Helper for graph_ranks
+/**
+ * Name & documentation might be off; TODO later.
+ * This is for now just a refactoring to get rid of trampolines.
+ */
+int
+iteratePrecedingRole (const System sys, const int *ranks, const int run,
+		      const int ev, const int rank)
+{
+  int run2;
+
+  for (run2 = 0; run2 < sys->maxruns; run2++)
+    {
+      int ev2;
+
+      for (ev2 = 0; ev2 < sys->runs[run2].step; ev2++)
+	{
+	  if (isDependEvent (run2, ev2, run, ev))
+	    {
+	      int rank2;
+
+	      rank2 = ranks[eventNode (run2, ev2)];
+	      if (!preceventPossible (sys, rank, run, rank2, run2, ev2))
+		{
+		  return false;
+		}
+	    }
+	}
+    }
+  return true;
+}
+
 //! Determine ranks for all nodes
 /**
  * Some crude algorithm I sketched on the blackboard.
@@ -892,16 +951,7 @@ graph_ranks (int *ranks, int nodes)
   int done;
   int rank;
   int changes;
-
-  int getrank (int run, int ev)
-  {
-    return ranks[eventNode (run, ev)];
-  }
-
-  void setrank (int run, int ev, int rank)
-  {
-    ranks[eventNode (run, ev)] = rank;
-  }
+  int i;
 
 #ifdef DEBUG
   if (hasCycle ())
@@ -910,68 +960,17 @@ graph_ranks (int *ranks, int nodes)
     }
 #endif
 
-  {
-    int i;
-
-    for (i = 0; i < nodes; i++)
-      {
-	ranks[i] = INT_MAX;
-      }
-  }
+  for (i = 0; i < nodes; i++)
+    {
+      ranks[i] = INT_MAX;
+    }
 
   rank = 0;
   done = false;
   changes = true;
   while (!done)
     {
-      int checkCanEventHappenNow (int run, Roledef rd, int ev)
-      {
-	//if (sys->runs[run].protocol != INTRUDER)
-	{
-	  if (getrank (run, ev) == INT_MAX)
-	    {
-	      // Allright, this regular event is not assigned yet
-	      int precevent (int run2, int ev2)
-	      {
-		//if (sys->runs[run2].protocol != INTRUDER)
-		{
-		  // regular preceding event
-		  int rank2;
-
-		  rank2 = getrank (run2, ev2);
-		  if (rank2 > rank)
-		    {
-		      // higher rank, this cannot be done
-		      return false;
-		    }
-		  if (rank2 == rank)
-		    {
-		      // equal rank: only if different run
-		      if ((sys->runs[run].protocol != INTRUDER)
-			  && (run2 == run))
-			{
-			  return false;
-			}
-		    }
-		}
-		return true;
-	      }
-
-	      if (iteratePrecedingEvents (sys, precevent, run, ev))
-		{
-		  // we can do it!
-		  changes = true;
-		  setrank (run, ev, rank);
-		}
-	      else
-		{
-		  done = false;
-		}
-	    }
-	}
-	return true;
-      }
-
+      int run;
 
       if (!changes)
 	{
@@ -985,7 +984,35 @@ graph_ranks (int *ranks, int nodes)
 	}
       done = true;
       changes = false;
-      iterateAllEvents (sys, checkCanEventHappenNow);
+
+      for (run = 0; run < sys->maxruns; run++)
+	{
+	  Roledef rd;
+	  int ev;
+
+	  rd = sys->runs[run].start;
+	  for (ev = 0; ev < sys->runs[run].step; ev++)
+	    {
+	      if (rd != NULL)	// Shouldn't be needed (step should maintain invariant) but good to be safe
+		{
+		  if (ranks[eventNode (run, ev)] == INT_MAX)
+		    {
+		      if (iteratePrecedingRole (sys, ranks, run, ev, rank))
+			{
+			  // we can do it!
+			  changes = true;
+			  ranks[eventNode (run, ev)] = rank;
+			}
+		      else
+			{
+			  done = false;
+			}
+		    }
+		  rd = rd->next;
+		}
+	    }
+	}
+
     }
   return rank;
 }
@@ -1064,6 +1091,32 @@ termOccursInRun (Term t, int run)
   return false;
 }
 
+
+//! Iterate over preceding bindings and check if term occurs there.
+int
+occurs_in_previous_binding (const System sys, const int run, const int ev,
+			    const Term t)
+{
+  List bl;
+
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if (isDependEvent (b->run_to, b->ev_to, run, ev))
+	{
+	  if (isTermEqual (b->term, t))
+	    {
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
+
+
 //! Draw a class choice
 /**
  * \rho classes are already dealt with in the headers, so we should ignore them.
@@ -1072,12 +1125,6 @@ void
 drawClass (const System sys, Binding b)
 {
   Term varterm;
-
-  // now check in previous things whether we saw that term already
-  int notSameTerm (Binding b2)
-  {
-    return (!isTermEqual (varterm, b2->term));
-  }
 
   varterm = deVar (b->term);
 
@@ -1102,14 +1149,11 @@ drawClass (const System sys, Binding b)
   }
 
   // Seen before?
-  if (!iterate_preceding_bindings (b->run_to, b->ev_to, notSameTerm))
+  if (occurs_in_previous_binding (sys, b->run_to, b->ev_to, varterm))
     {
       // We saw the same term before. Exit.
       return;
     }
-
-
-
 
   // not seen before: choose class
   eprintf ("\t");
@@ -1292,15 +1336,9 @@ drawBinding (const System sys, Binding b)
        */
       if (1 == 1 || sys->runs[b->run_from].role == I_M)
 	{
-	  // now check in previous things whether we saw that term already
-	  int notSameTerm (Binding b2)
-	  {
-	    return (!isTermEqual (b->term, b2->term));
-	  }
-
-	  if (!iterate_preceding_bindings (b->run_to, b->ev_to, notSameTerm))
+	  // now check in previous things whether we saw that term already, if so exit
+	  if (occurs_in_previous_binding (sys, b->run_to, b->ev_to, b->term))
 	    {
-	      // We saw the same term before. Exit.
 	      return;
 	    }
 	}
@@ -1987,6 +2025,21 @@ drawIntruderRuns (const System sys)
     }
 }
 
+struct state_dss
+{
+  Termlist found;
+};
+
+int
+addsubterms (Term t, struct state_dss *sdss)
+{
+  if (isIntruderChoice (t))
+    {
+      sdss->found = termlistAddNew (sdss->found, t);
+    }
+  return true;
+}
+
 //! Display the current semistate using dot output format.
 /**
  * This is not as nice as we would like it. Furthermore, the function is too big.
@@ -2093,46 +2146,37 @@ dotSemiState (const System mysys)
      * Stupid brute analysis, can probably be done much more efficient, but
      * this is not a timing critical bit, so we just do it like this.
      */
-    Termlist found;
     List bl;
+    struct state_dss Sdss;
 
     // collect the intruder-generated constants
-    found = NULL;
+    Sdss.found = NULL;
     for (bl = sys->bindings; bl != NULL; bl = bl->next)
       {
 	Binding b;
 
-	int addsubterms (Term t)
-	{
-	  if (isIntruderChoice (t))
-	    {
-	      found = termlistAddNew (found, t);
-	    }
-	  return true;
-	}
-
 	b = (Binding) bl->data;
-	term_iterate_open_leaves (b->term, addsubterms);
+	term_iterate_state_open_leaves (b->term, addsubterms, &Sdss);
       }
 
     // now maybe we draw the node
-    if ((from_intruder_count > 0) || (found != NULL))
+    if ((from_intruder_count > 0) || (Sdss.found != NULL))
       {
 	eprintf ("\tintruder [\n");
 	eprintf ("\t\tlabel=\"");
 	eprintf ("Initial intruder knowledge");
-	if (found != NULL)
+	if (Sdss.found != NULL)
 	  {
 	    eprintf ("\\n");
 	    eprintf ("The intruder generates: ");
-	    termlistPrintRemap (found, ", ");
+	    termlistPrintRemap (Sdss.found, ", ");
 	  }
 	eprintf ("\",\n");
 	eprintf ("\t\tstyle=filled,fillcolor=\"");
 	printColor (INTRUDERCOLORH, INTRUDERCOLORL, INTRUDERCOLORS);
 	eprintf ("\"\n\t];\n");
       }
-    termlistDelete (found);
+    termlistDelete (Sdss.found);
   }
 
   // eprintf ("\t};\n");
