@@ -38,7 +38,8 @@ int checkRoletermMatch (const Term t1, const Term t2, const Termlist tl);
 // The new iteration methods
 int unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state);
 int
-subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist, int (*callback) (), void *state);
+subtermUnify (Term tbig, Term tsmall, Termlist tl, Termlist keylist,
+	      int (*callback) (), void *state);
 Termlist termMguTerm (Term t1, Term t2);
 
 #endif
