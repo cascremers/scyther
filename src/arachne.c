@@ -2541,18 +2541,6 @@ arachne ()
   Claimlist cl;
   int count;
 
-  int print_send (Protocol p, Role r, Roledef rd, int index)
-  {
-    eprintf ("IRS: ");
-    termPrint (p->nameterm);
-    eprintf (", ");
-    termPrint (r->nameterm);
-    eprintf (", %i, ", index);
-    roledefPrint (rd);
-    eprintf ("\n");
-    return 1;
-  }
-
   int determine_encrypt_max (Protocol p, Role r, Roledef rd, int index)
   {
     int tlevel;

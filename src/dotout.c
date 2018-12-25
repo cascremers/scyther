@@ -1858,7 +1858,6 @@ drawRegularRuns (const System sys)
 			    {
 			      // index == firstReal
 			      Roledef rd;
-			      int send_before_recv;
 			      int done;
 
 			      // Determine if it is an active role or note
@@ -1869,7 +1868,6 @@ drawRegularRuns (const System sys)
 				roledef_shift (sys->runs[run].start,
 					       sys->runs[run].firstReal);
 			      done = 0;
-			      send_before_recv = 0;
 			      while (!done && rd != NULL)
 				{
 				  if (rd->type == RECV)
@@ -1879,7 +1877,6 @@ drawRegularRuns (const System sys)
 				  if (rd->type == SEND)
 				    {
 				      done = 1;
-				      send_before_recv = 1;
 				    }
 				  rd = rd->next;
 				}
