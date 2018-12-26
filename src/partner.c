@@ -269,21 +269,22 @@ doHistoriesMatch (Termmap runs_involved)
 }
 
 //! helper for matchingHistories
-int checkHistories (Termmap runs_involved, int *partners)
+int
+checkHistories (Termmap runs_involved, int *partners)
 {
   if (doHistoriesMatch (runs_involved))
     {
       Termmap tmi;
 
       for (tmi = runs_involved; tmi != NULL; tmi = tmi->next)
-        {
-          if (tmi->result >= 0)
-            {
-      	partners[tmi->result] = true;
-            }
-        }
+	{
+	  if (tmi->result >= 0)
+	    {
+	      partners[tmi->result] = true;
+	    }
+	}
     }
-  return true;		// always proceed
+  return true;			// always proceed
 }
 
 //! Mark everybody as true with the same history
@@ -480,12 +481,14 @@ areRolesCorrect (const Termmap runs_involved)
 
 //! Helpers for isCompromisePartnerStd
 
-struct cp_state {
-    int targetrun;
-    int targetev;
+struct cp_state
+{
+  int targetrun;
+  int targetev;
 };
 
-int checkPartner (Termmap runs_involved, struct cp_state *ptr_state)
+int
+checkPartner (Termmap runs_involved, struct cp_state *ptr_state)
 {
 
   if (!inTermmapRange (runs_involved, ptr_state->targetrun))
@@ -499,7 +502,8 @@ int checkPartner (Termmap runs_involved, struct cp_state *ptr_state)
       // Not within spec for this, skip to next case
       return true;
     }
-  if (isCompromisePartnerStdTermmap (ptr_state->targetrun, ptr_state->targetev, runs_involved))
+  if (isCompromisePartnerStdTermmap
+      (ptr_state->targetrun, ptr_state->targetev, runs_involved))
     {
       // targetev is a partner for this map, so abort (== flag)
       return false;

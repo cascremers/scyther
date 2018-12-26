@@ -258,7 +258,8 @@ pruneTrusted (const System sys, int *partners)
 }
 
 //! Helper for splitLKRactorCandidate
-int calliter (Termlist tl)
+int
+calliter (Termlist tl)
 {
   iterate ();
   return true;
@@ -300,7 +301,7 @@ splitLKRactorCandidate (const System sys)
 	      b->LKRactor = 1;	// Mark that we are considering this as the actor now
 	      for (tls = tl2; tls != NULL; tls = tls->next)
 		{
-		  unify (tls->term, actor, NULL, calliter,NULL);
+		  unify (tls->term, actor, NULL, calliter, NULL);
 		}
 	      // Branch 2: LKRactor did not cause this LKR reveal
 	      b->LKRactor = 2;	// Mark that we are considering this as a non-actor

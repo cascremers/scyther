@@ -356,7 +356,8 @@ makeNewName (const Term oldname)
 }
 
 //! Helper for containsLocal
-int checkT (Term t, Termlist locals)
+int
+checkT (Term t, Termlist locals)
 {
   if (inTermlist (locals, t))
     {
