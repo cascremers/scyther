@@ -210,7 +210,7 @@ int iterateLocalToOther (const System sys, const int myrun,
 			 int (*callback) (const System sys, const Term t,
 					  const int myrun));
 int iterateRoles (const System sys, int (*callback) (Protocol p, Role r));
-int iterateInvolvedRuns (int (*callback) (Termmap runs));
+int iterateInvolvedRuns (int (*callback) (), void *state);
 
 int firstOccurrence (const System sys, const int r, Term t, int evtype);
 Roledef eventRoledef (const System sys, const int run, const int ev);

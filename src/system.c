@@ -1194,7 +1194,7 @@ addOther (Term t, struct ao_state *state)
 /**
  * Now incorporates "checkterm" required argument of myrun to the callback:
  *
- * It's now callback(conts Term,const int);
+ * It's now callback(const System,const Term,const int myrun);
  */
 int
 iterateLocalToOther (const System sys, const int myrun,
@@ -1262,7 +1262,7 @@ iterateRoles (const System sys, int (*callback) (Protocol p, Role r))
  * Iterates as 'lazy logical and' evaluation
  */
 int
-iterateInvolvedRuns (int (*callback) (Termmap runs))
+iterateInvolvedRuns (int (*callback) (), void *state)
 {
   int flag;
   Termmap runs;
@@ -1281,7 +1281,7 @@ iterateInvolvedRuns (int (*callback) (Termmap runs))
        runs = termmapIterNext (runs, -1, sys->maxruns - 1))
     {
       runs = termmapSet (runs, claimrole, 0);
-      flag = callback (runs);
+      flag = callback (runs, state);
       runs = termmapRemove (runs, claimrole);
     }
   termlistDelete (otherroles);

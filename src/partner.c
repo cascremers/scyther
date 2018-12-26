@@ -268,6 +268,24 @@ doHistoriesMatch (Termmap runs_involved)
   return arachne_runs_hist_match (sys, sys->current_claim, runs_involved);
 }
 
+//! helper for matchingHistories
+int checkHistories (Termmap runs_involved, int *partners)
+{
+  if (doHistoriesMatch (runs_involved))
+    {
+      Termmap tmi;
+
+      for (tmi = runs_involved; tmi != NULL; tmi = tmi->next)
+        {
+          if (tmi->result >= 0)
+            {
+      	partners[tmi->result] = true;
+            }
+        }
+    }
+  return true;		// always proceed
+}
+
 //! Mark everybody as true with the same history
 /**
  * This is actually a weird definition but hey, that's what we get.
@@ -275,23 +293,7 @@ doHistoriesMatch (Termmap runs_involved)
 void
 matchingHistories (int *partners)
 {
-  int checkHistories (Termmap runs_involved)
-  {
-    if (doHistoriesMatch (runs_involved))
-      {
-	Termmap tmi;
-
-	for (tmi = runs_involved; tmi != NULL; tmi = tmi->next)
-	  {
-	    if (tmi->result >= 0)
-	      {
-		partners[tmi->result] = true;
-	      }
-	  }
-      }
-    return true;		// always proceed
-  }
-  iterateInvolvedRuns (checkHistories);
+  iterateInvolvedRuns (checkHistories, partners);
 }
 
 // Propagate the overlaps (true entries) over overlapping entries
@@ -476,6 +478,35 @@ areRolesCorrect (const Termmap runs_involved)
   return true;
 }
 
+//! Helpers for isCompromisePartnerStd
+
+struct cp_state {
+    int targetrun;
+    int targetev;
+};
+
+int checkPartner (Termmap runs_involved, struct cp_state *ptr_state)
+{
+
+  if (!inTermmapRange (runs_involved, ptr_state->targetrun))
+    {
+      // target not involved, so irrelevant
+      return true;
+    }
+
+  if (!areRolesCorrect (runs_involved))
+    {
+      // Not within spec for this, skip to next case
+      return true;
+    }
+  if (isCompromisePartnerStdTermmap (ptr_state->targetrun, ptr_state->targetev, runs_involved))
+    {
+      // targetev is a partner for this map, so abort (== flag)
+      return false;
+    }
+  return true;
+}
+
 //! Partnering for compromise, standard protocols.
 /**
  * Maybe needs some buffering later, as now we recompute in all cases.
@@ -489,29 +520,13 @@ areRolesCorrect (const Termmap runs_involved)
 int
 isCompromisePartnerStd (const int targetrun, const int targetev)
 {
-  int checkPartner (Termmap runs_involved)
-  {
+  struct cp_state State;
 
-    if (!inTermmapRange (runs_involved, targetrun))
-      {
-	// target not involved, so irrelevant
-	return true;
-      }
+  State.targetrun = targetrun;
+  State.targetev = targetev;
 
-    if (!areRolesCorrect (runs_involved))
-      {
-	// Not within spec for this, skip to next case
-	return true;
-      }
-    if (isCompromisePartnerStdTermmap (targetrun, targetev, runs_involved))
-      {
-	// targetev is a partner for this map, so abort (== flag)
-	return false;
-      }
-    return true;
-  }
   // @TODO: The below can be optimized (for protocols with many roles) by checking correct roles during iteration construction
-  if (iterateInvolvedRuns (checkPartner))
+  if (iterateInvolvedRuns (checkPartner, &State))
     {
       // Terminate without finding a partner map
       return false;
