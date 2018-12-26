@@ -211,7 +211,7 @@ int iterateLocalToOther (const System sys, const int myrun,
 					  const int myrun));
 int
 iterateStateLocalToOther (const System sys, const int myrun,
-		     int (*callback) (), void *extstate);
+			  int (*callback) (), void *extstate);
 int iterateRoles (const System sys, int (*callback) (Protocol p, Role r));
 int iterateInvolvedRuns (int (*callback) (), void *state);
 

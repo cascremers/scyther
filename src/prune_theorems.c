@@ -46,12 +46,14 @@ extern int proofDepth;
 extern int max_encryption_level;
 
 //! Helper for correctLocalOrder
-struct clo_state {
-    int flag;
+struct clo_state
+{
+  int flag;
 };
 
 int
-checkTerm (const System sys, const Term t, const int r1, struct clo_state *ptr_clo_state)
+checkTerm (const System sys, const Term t, const int r1,
+	   struct clo_state *ptr_clo_state)
 {
   if (!isTermVariable (t))
     {

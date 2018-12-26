@@ -1239,7 +1239,7 @@ iterateLocalToOther (const System sys, const int myrun,
  */
 int
 iterateStateLocalToOther (const System sys, const int myrun,
-		     int (*callback) (), void *extstate)
+			  int (*callback) (), void *extstate)
 {
   Termlist tls;
   int flag;

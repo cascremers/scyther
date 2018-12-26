@@ -434,11 +434,13 @@ unfold (Termlist single)
 }
 
 //! Helpers for termMguTerm
-struct tmt_state {
-    Termlist results;
+struct tmt_state
+{
+  Termlist results;
 };
 
-int tmt_found (Termlist tl, struct tmt_state *ptr_tmt_state)
+int
+tmt_found (Termlist tl, struct tmt_state *ptr_tmt_state)
 {
   // Given that we only do this once, the condition should be false anyway,
   // but it's here for extensions to multiple unifiers.

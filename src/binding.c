@@ -394,9 +394,9 @@ hasOutgoingBinding (const int run, const int ev)
 
       b = (Binding) bl->data;
       if ((b->run_from == run) && (b->ev_from == ev))
-        {
+	{
 	  return true;
-        }
+	}
     }
   return false;
 }
@@ -413,9 +413,9 @@ hasIncomingBinding (const int run, const int ev)
 
       b = (Binding) bl->data;
       if ((b->run_to == run) && (b->ev_to == ev))
-        {
+	{
 	  return true;
-        }
+	}
     }
   return false;
 }
