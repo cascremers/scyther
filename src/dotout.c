@@ -284,31 +284,27 @@ redirNode (const System sys, Binding b)
   node (sys, b->run_to, b->ev_to);
 }
 
-
+//! Check if (run,ev) pair already bound by binding
 int
 isAlreadyBound (const System sys, const int run1, const int ev1,
 		const int run2, const int ev2)
 {
-  int checkBind (const Binding b)
-  {
-    if ((b->run_from == run1) && (b->ev_from == ev1))
-      {
-	if ((b->run_to == run2) && (b->ev_to == ev2))
-	  {
-	    return false;
-	  }
-      }
-    return true;
-  }
+  List bl;
 
-  if (iterate_bindings (checkBind))
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
     {
-      return false;
+      Binding b;
+
+      b = (Binding) bl->data;
+      if ((b->run_from == run1) && (b->ev_from == ev1))
+	{
+	  if ((b->run_to == run2) && (b->ev_to == ev2))
+	    {
+	      return true;
+	    }
+	}
     }
-  else
-    {
-      return true;
-    }
+  return false;
 }
 
 int
