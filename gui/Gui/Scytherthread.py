@@ -470,7 +470,7 @@ class ScytherRun(object):
             Error.ShowAndExit(text)
         
         # start the thread
-        self.verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
+        self.verifywin.SetCursor(wx.Cursor(wx.CURSOR_WAIT))
         self.verifywin.Bind(wx.EVT_CLOSE, self.closer)
         self.verifywin.Bind(wx.EVT_WINDOW_DESTROY, self.closer)
         self.verifywin.Bind(wx.EVT_BUTTON, self.closer, id=wx.ID_CANCEL)
@@ -520,12 +520,12 @@ class ScytherRun(object):
 
         def allDone():
             if resultwin:
-                resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+                resultwin.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
                 resultwin.SetStatusText("Done.")
 
         resultwin.Center()
         resultwin.Show(True)
-        resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROWWAIT))
+        resultwin.SetCursor(wx.Cursor(wx.CURSOR_ARROWWAIT))
 
         wx.Yield()
 
