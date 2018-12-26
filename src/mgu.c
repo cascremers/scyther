@@ -433,6 +433,23 @@ unfold (Termlist single)
   return tl;
 }
 
+//! Helpers for termMguTerm
+struct tmt_state {
+    Termlist results;
+};
+
+int tmt_found (Termlist tl, struct tmt_state *ptr_tmt_state)
+{
+  // Given that we only do this once, the condition should be false anyway,
+  // but it's here for extensions to multiple unifiers.
+  if (ptr_tmt_state->results != MGUFAIL)
+    {
+      termlistDelete (ptr_tmt_state->results);
+    }
+  ptr_tmt_state->results = unfold (tl);
+  return false;
+}
+
 //! Most general unifier.
 /**
  * Try to determine the most general unifier of two terms.
@@ -447,26 +464,14 @@ unfold (Termlist single)
 Termlist
 termMguTerm (Term t1, Term t2)
 {
-  Termlist results;
+  struct tmt_state mystate;
 
-  results = MGUFAIL;
+  mystate.results = MGUFAIL;
 
-  int tmt_found (Termlist tl)
-  {
-    // Given that we only do this once, the condition should be false anyway,
-    // but it's here for extensions to multiple unifiers.
-    if (results != MGUFAIL)
-      {
-	termlistDelete (results);
-      }
-    results = unfold (tl);
-    return false;
-  }
-
-  unify (t1, t2, NULL, tmt_found, NULL);
-  if (results == MGUFAIL)
+  unify (t1, t2, NULL, tmt_found, &mystate);
+  if (mystate.results == MGUFAIL)
     {
-      return results;
+      return mystate.results;
     }
   else
     {
@@ -476,8 +481,8 @@ termMguTerm (Term t1, Term t2)
       //termlistPrint(results);
       //eprintf("\n");
 
-      tlnew = fold (results);
-      termlistDelete (results);
+      tlnew = fold (mystate.results);
+      termlistDelete (mystate.results);
       return tlnew;
     }
 }
