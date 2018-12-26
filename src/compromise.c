@@ -355,25 +355,26 @@ makeNewName (const Term oldname)
   return newname;
 }
 
+//! Helper for containsLocal
+int checkT (Term t, Termlist locals)
+{
+  if (inTermlist (locals, t))
+    {
+      return 0;
+    }
+  else
+    {
+      return 1;
+    }
+}
+
 //! Check for locals
 int
 containsLocal (Role r, Term t)
 {
   int res;
 
-  int checkT (Term t)
-  {
-    if (inTermlist (r->locals, t))
-      {
-	return 0;
-      }
-    else
-      {
-	return 1;
-      }
-  }
-
-  res = term_iterate_state_open_leaves (t, checkT, NULL);
+  res = term_iterate_state_open_leaves (t, checkT, r->locals);
   if (res == 0)
     {
       return true;
