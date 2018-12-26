@@ -1231,6 +1231,47 @@ iterateLocalToOther (const System sys, const int myrun,
   return flag;
 }
 
+// Iterate over all 'others': local variables of a run that are instantiated and contain some term of another run.
+/**
+ * Now incorporates "checkterm" required argument of myrun and state pointer to the callback:
+ *
+ * It's now callback(const System,const Term,const int myrun,void *state);
+ */
+int
+iterateStateLocalToOther (const System sys, const int myrun,
+		     int (*callback) (), void *extstate)
+{
+  Termlist tls;
+  int flag;
+  struct ao_state State;
+
+  flag = true;
+  State.tlo = NULL;
+  // construct all others occuring in the recvs
+  for (tls = sys->runs[myrun].sigma; tls != NULL; tls = tls->next)
+    {
+      Term tt;
+
+      tt = tls->term;
+      if (realTermVariable (tt) && tt->subst != NULL)
+	{
+	  iterateTermOther (myrun, tt->subst, addOther, &State);
+	}
+    }
+  // now iterate over all of them
+  for (tls = State.tlo; flag && (tls != NULL); tls = tls->next)
+    {
+      if (!callback (sys, tls->term, myrun, extstate))
+	{
+	  flag = false;
+	}
+    }
+
+  // clean up
+  termlistDelete (State.tlo);
+  return flag;
+}
+
 //! Iterate over all roles
 int
 iterateRoles (const System sys, int (*callback) (Protocol p, Role r))

@@ -45,6 +45,95 @@ extern Protocol INTRUDER;
 extern int proofDepth;
 extern int max_encryption_level;
 
+//! Helper for correctLocalOrder
+struct clo_state {
+    int flag;
+};
+
+int
+checkTerm (const System sys, const Term t, const int r1, struct clo_state *ptr_clo_state)
+{
+  if (!isTermVariable (t))
+    {
+      int r2;
+      int e1, e2;
+
+      // t is a term from r2 that occurs in r1
+      r2 = TermRunid (t);
+      e1 = firstOccurrence (sys, r1, t, ANYEVENT);
+      if (e1 >= 0)
+	{
+	  if (roledef_shift (sys->runs[r1].start, e1)->type == RECV)
+	    {
+	      e2 = firstOccurrence (sys, r2, t, SEND);
+	      if (e2 >= 0)
+		{
+		  // thus, it should not be the case that e1 occurs before e2
+		  if (isDependEvent (r1, e1, r2, e2))
+		    {
+		      // That's not good!
+		      if (switches.output == PROOF)
+			{
+			  indentPrint ();
+			  eprintf ("Pruned because ordering for term ");
+			  termSubstPrint (t);
+			  eprintf
+			    (" cannot be correct: the first send r%ii%i occurs after the recv r%ii%i.\n",
+			     r2, e2, r1, e1);
+			}
+		      ptr_clo_state->flag = false;
+		      return false;
+		    }
+		}
+	      else
+		{
+		  globalError++;
+		  eprintf ("error: ");
+		  termPrint (sys->runs[r2].protocol->nameterm);
+		  eprintf (",");
+		  termPrint (sys->runs[r2].role->nameterm);
+		  eprintf (": term ");
+		  termSubstPrint (t);
+		  eprintf
+		    (" from run %i should occur in run %i, but it doesn't.\n",
+		     r2, r2);
+		  globalError--;
+		  error ("Abort");
+		}
+	    }
+	  else
+	    {
+	      // not a recv first? That's definitely impossible (can be caused by choices 
+	      globalError++;
+	      eprintf ("error: term ");
+	      termSubstPrint (t);
+	      eprintf
+		(" from run %i should occur in run %i first in a RECV event, but it occurs first in event %i.\n",
+		 r2, r1, e1);
+	      eprintf ("It occurs first in ");
+	      roledefPrint (eventRoledef (sys, r1, e1));
+	      eprintf ("\n");
+	      eprintf ("which starts with ");
+	      roledefPrint (eventRoledef (sys, r1, 0));
+	      eprintf ("\n");
+	      globalError--;
+	      error ("Abort");
+	    }
+	}
+      else
+	{
+	  globalError++;
+	  eprintf ("error: term ");
+	  termSubstPrint (t);
+	  eprintf
+	    (" from run %i should occur in run %i, but it doesn't.\n", r2,
+	     r1);
+	  globalError--;
+	  error ("Abort");
+	}
+    }
+  return true;
+}
 
 //! Check locals occurrence
 /*
@@ -53,101 +142,23 @@ extern int max_encryption_level;
 int
 correctLocalOrder (const System sys)
 {
-  int flag;
+  int r;
+  struct clo_state mystate;
 
-  int checkRun (int r1)
-  {
-    int checkTerm (const System sys, const Term t, const int r1)
+  mystate.flag = true;
+
+  for (r = 0; r < sys->maxruns; r++)
     {
-      if (!isTermVariable (t))
+      if (sys->runs[r].protocol != INTRUDER)
 	{
-	  int r2;
-	  int e1, e2;
-
-	  // t is a term from r2 that occurs in r1
-	  r2 = TermRunid (t);
-	  e1 = firstOccurrence (sys, r1, t, ANYEVENT);
-	  if (e1 >= 0)
+	  if (!iterateStateLocalToOther (sys, r, checkTerm, &mystate))
 	    {
-	      if (roledef_shift (sys->runs[r1].start, e1)->type == RECV)
-		{
-		  e2 = firstOccurrence (sys, r2, t, SEND);
-		  if (e2 >= 0)
-		    {
-		      // thus, it should not be the case that e1 occurs before e2
-		      if (isDependEvent (r1, e1, r2, e2))
-			{
-			  // That's not good!
-			  if (switches.output == PROOF)
-			    {
-			      indentPrint ();
-			      eprintf ("Pruned because ordering for term ");
-			      termSubstPrint (t);
-			      eprintf
-				(" cannot be correct: the first send r%ii%i occurs after the recv r%ii%i.\n",
-				 r2, e2, r1, e1);
-			    }
-			  flag = false;
-			  return false;
-			}
-		    }
-		  else
-		    {
-		      globalError++;
-		      eprintf ("error: ");
-		      termPrint (sys->runs[r2].protocol->nameterm);
-		      eprintf (",");
-		      termPrint (sys->runs[r2].role->nameterm);
-		      eprintf (": term ");
-		      termSubstPrint (t);
-		      eprintf
-			(" from run %i should occur in run %i, but it doesn't.\n",
-			 r2, r2);
-		      globalError--;
-		      error ("Abort");
-		    }
-		}
-	      else
-		{
-		  // not a recv first? That's definitely impossible (can be caused by choices 
-		  globalError++;
-		  eprintf ("error: term ");
-		  termSubstPrint (t);
-		  eprintf
-		    (" from run %i should occur in run %i first in a RECV event, but it occurs first in event %i.\n",
-		     r2, r1, e1);
-		  eprintf ("It occurs first in ");
-		  roledefPrint (eventRoledef (sys, r1, e1));
-		  eprintf ("\n");
-		  eprintf ("which starts with ");
-		  roledefPrint (eventRoledef (sys, r1, 0));
-		  eprintf ("\n");
-		  globalError--;
-		  error ("Abort");
-		}
-	    }
-	  else
-	    {
-	      globalError++;
-	      eprintf ("error: term ");
-	      termSubstPrint (t);
-	      eprintf
-		(" from run %i should occur in run %i, but it doesn't.\n", r2,
-		 r1);
-	      globalError--;
-	      error ("Abort");
+	      return false;
 	    }
 	}
-      return true;
     }
-
-    return iterateLocalToOther (sys, r1, checkTerm);
-  }
-
-  flag = true;
-  iterateRegularRuns (sys, checkRun);
-
-  return flag;
+  // return true
+  return mystate.flag;
 }
 
 //! Check initiator roles

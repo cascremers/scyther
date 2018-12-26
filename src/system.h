@@ -209,6 +209,9 @@ int iterateEventsType (const System sys, const int run, const int evtype,
 int iterateLocalToOther (const System sys, const int myrun,
 			 int (*callback) (const System sys, const Term t,
 					  const int myrun));
+int
+iterateStateLocalToOther (const System sys, const int myrun,
+		     int (*callback) (), void *extstate);
 int iterateRoles (const System sys, int (*callback) (Protocol p, Role r));
 int iterateInvolvedRuns (int (*callback) (), void *state);
 
