@@ -37,6 +37,10 @@
 Term TERM_Agent;
 Term TERM_Function;
 Term TERM_Hidden;
+Term TERM_CoOld;
+Term TERM_CoNew;
+Term TERM_DeEx;
+Term TERM_DeNew;
 Term TERM_Type;
 Term TERM_Nonce;
 Term TERM_Ticket;
@@ -87,6 +91,10 @@ specialTermInit (const System sys)
   langhide (TERM_Hidden, "Hidden");
   langhide (TERM_Claim, "Claim");
   langhide (TERM_Marker, "Marker");
+  langhide (TERM_CoOld, "Co(Old)");
+  langhide (TERM_CoNew, "Co(New)");
+  langhide (TERM_DeEx, "DeEx");
+  langhide (TERM_DeNew, "DeNew");
 
   langcons (TERM_Agent, "Agent", TERM_Type);
   langcons (TERM_Function, "Function", TERM_Type);

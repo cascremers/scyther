@@ -451,7 +451,7 @@ termMguTerm (Term t1, Term t2)
 
   results = MGUFAIL;
 
-  int found (Termlist tl)
+  int tmt_found (Termlist tl)
   {
     // Given that we only do this once, the condition should be false anyway,
     // but it's here for extensions to multiple unifiers.
@@ -463,7 +463,7 @@ termMguTerm (Term t1, Term t2)
     return false;
   }
 
-  unify (t1, t2, NULL, found);
+  unify (t1, t2, NULL, tmt_found, NULL);
   if (results == MGUFAIL)
     {
       return results;

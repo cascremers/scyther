@@ -31,6 +31,11 @@
 extern Term TERM_Agent;
 extern Term TERM_Function;
 extern Term TERM_Hidden;
+extern Term TERM_CoOld;
+extern Term TERM_CoNew;
+extern Term TERM_DeEx;
+extern Term TERM_DeNew;
+
 extern Term TERM_Type;
 extern Term TERM_Nonce;
 extern Term TERM_Ticket;

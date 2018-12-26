@@ -159,6 +159,7 @@ struct system
   Claimlist current_claim;	//!< The claim under current investigation
   Termlist trustedRoles;	//!< Roles that should be trusted for this claim (the default, NULL, means all)
   int m0run;			//!< Run containing M0 initial knowledge send.
+  Termlist proofstate;		//!< State of the proof markers
 };
 
 typedef struct system *System;
