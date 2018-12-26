@@ -621,24 +621,21 @@ getPrivateKeyAgents (Binding b, Termlist tlold)
 Termlist
 getAllPrivateKeyAgents (int run, int ev)
 {
+  List bl;
   Termlist tl;
 
-  int scan (Binding b)
-  {
-    if (run >= 0)
-      {
-	if (!isDependEvent (b->run_to, b->ev_to, run, ev))
-	  {
-	    // If the binding target is not before the target we don't consider it.
-	    return true;
-	  }
-      }
-    tl = getPrivateKeyAgents (b, tl);
-    return true;
-  }
-
   tl = NULL;
-  list_iterate (sys->bindings, scan);
+  for (bl = sys->bindings; bl != NULL; bl = bl->next)
+    {
+      Binding b;
+
+      b = (Binding) bl->data;
+      if ((run == 0) || (isDependEvent (b->run_to, b->ev_to, run, ev)))
+	{
+	  // If the binding target is not before the target we don't consider it.
+	  tl = getPrivateKeyAgents (b, tl);
+	}
+    }
   return tl;
 }
 
