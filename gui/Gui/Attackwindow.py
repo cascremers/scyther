@@ -93,7 +93,9 @@ class AttackDisplay(wx.ScrolledWindow):
         # This is needed, don't ask me why.
         self.SetScrollbars(0,0,0,0,0,0)
 
-        (framewidth,frameheight) = self.GetClientSizeTuple()
+        size = self.GetClientSize()
+        framewidth  = size.width
+        frameheight = size.height
         (virtualwidth,virtualheight) = (framewidth,frameheight)
 
         def makefit(width,height):
