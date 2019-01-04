@@ -94,31 +94,33 @@ int iterate ();
  * Program code
  */
 
+//! Two simple helpers for arachneInit
+Roledef
+add_event (Roledef rd, int event, Term message)
+{
+  return roledefAdd (rd, event, NULL, NULL, NULL, message, NULL);
+}
+
+Role
+add_role (Roledef rd, const char *rolenamestring)
+{
+  Role r;
+  Term rolename;
+
+  rolename = makeGlobalConstant (rolenamestring);
+  r = roleCreate (rolename);
+  r->roledef = rd;
+  r->next = INTRUDER->roles;
+  INTRUDER->roles = r;
+  // compute_role_variables (sys, INTRUDER, r);
+  return r;
+}
+
 //! Init Arachne engine
 void
 arachneInit (const System mysys)
 {
   Roledef rd;
-
-  void add_event (int event, Term message)
-  {
-    rd = roledefAdd (rd, event, NULL, NULL, NULL, message, NULL);
-  }
-
-  Role add_role (const char *rolenamestring)
-  {
-    Role r;
-    Term rolename;
-
-    rolename = makeGlobalConstant (rolenamestring);
-    r = roleCreate (rolename);
-    r->roledef = rd;
-    rd = NULL;
-    r->next = INTRUDER->roles;
-    INTRUDER->roles = r;
-    // compute_role_variables (sys, INTRUDER, r);
-    return r;
-  }
 
   sys = mysys;			// make sys available for this module as a global
 
@@ -133,21 +135,21 @@ arachneInit (const System mysys)
 
   INTRUDER = protocolCreate (makeGlobalConstant (" INTRUDER "));
 
-  // Initially empty roledef
   rd = NULL;
+  rd = add_event (rd, SEND, NULL);
+  I_M = add_role (rd, "I_M: Atomic message");
 
-  add_event (SEND, NULL);
-  I_M = add_role ("I_M: Atomic message");
+  rd = NULL;
+  rd = add_event (rd, RECV, NULL);
+  rd = add_event (rd, RECV, NULL);
+  rd = add_event (rd, SEND, NULL);
+  I_RRS = add_role (rd, "I_E: Encrypt");
 
-  add_event (RECV, NULL);
-  add_event (RECV, NULL);
-  add_event (SEND, NULL);
-  I_RRS = add_role ("I_E: Encrypt");
-
-  add_event (RECV, NULL);
-  add_event (RECV, NULL);
-  add_event (SEND, NULL);
-  I_RRSD = add_role ("I_D: Decrypt");
+  rd = NULL;
+  rd = add_event (rd, RECV, NULL);
+  rd = add_event (rd, RECV, NULL);
+  rd = add_event (rd, SEND, NULL);
+  I_RRSD = add_role (rd, "I_D: Decrypt");
 
   sys->num_regular_runs = 0;
   sys->num_intruder_runs = 0;
@@ -178,31 +180,33 @@ arachneDone ()
 //! is this roledef already bound?
 #define isBound(rd)	(rd->bound)
 
+//! print current counter
+void
+counterPrint (const int annotate)
+{
+  statesFormat (sys->current_claim->states);
+  eprintf ("\t");
+  eprintf ("%i", annotate);
+  eprintf ("\t");
+}
+
 //! Indent prefix print
 void
 indentPrefixPrint (const int annotate, const int jumps)
 {
-  void counterPrint ()
-  {
-    statesFormat (sys->current_claim->states);
-    eprintf ("\t");
-    eprintf ("%i", annotate);
-    eprintf ("\t");
-  }
-
   if (switches.output == ATTACK && globalError == 0)
     {
       // Arachne, attack, not an error
       // We assume that means DOT output
       eprintf ("// ");
-      counterPrint ();
+      counterPrint (annotate);
     }
   else
     {
       // If it is not to stdout, or it is not an attack...
       int i;
 
-      counterPrint ();
+      counterPrint (annotate);
       for (i = 0; i < jumps; i++)
 	{
 	  if (i % 3 == 0)
