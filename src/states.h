@@ -31,7 +31,7 @@
 typedef unsigned long int states_t;
 #define STATES0 0
 
-__inline__ states_t statesIncrease (const states_t states);
-__inline__ void statesFormat (const states_t states);
+states_t statesIncrease (const states_t states);
+void statesFormat (const states_t states);
 
 #endif

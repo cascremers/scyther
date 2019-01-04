@@ -103,7 +103,7 @@ Term makeTermEncrypt (Term t1, Term t2);
 Term makeTermFcall (Term t1, Term t2);
 Term makeTermTuple (Term t1, Term t2);
 Term makeTermType (const int type, const Symbol symb, const int runid);
-__inline__ Term deVarScan (Term t);
+Term deVarScan (Term t);
 #define realTermLeaf(t)		(t != NULL && t->type <= LEAF)
 #define realTermTuple(t)	(t != NULL && t->type == TUPLE)
 #define realTermEncrypt(t)	(t != NULL && t->type == ENCRYPT)

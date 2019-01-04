@@ -25,7 +25,7 @@
  * Note that these are also used for encountered claims and such.
  */
 
-__inline__ states_t
+states_t
 statesIncrease (const states_t states)
 {
   return states + 1;
@@ -35,7 +35,7 @@ statesIncrease (const states_t states)
 /**
  * Acts like a modified form of %g
  */
-__inline__ void
+void
 statesFormat (const states_t states)
 {
   eprintf ("%lu", states);

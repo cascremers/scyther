@@ -95,7 +95,7 @@ indact ()
  * Roledef based.
  *@returns MATCH_NONE or MATCH_CONTENT
  */
-__inline__ int
+int
 events_match_rd (const Roledef rdi, const Roledef rdj)
 {
   if (isTermEqual (rdi->message, rdj->message) &&
@@ -117,7 +117,7 @@ events_match_rd (const Roledef rdi, const Roledef rdj)
 /**
  *@returns any of the MATCH_ signals
  */
-__inline__ int
+int
 events_match (const System sys, const int i, const int j)
 {
   Roledef rdi, rdj;
@@ -150,7 +150,7 @@ events_match (const System sys, const int i, const int j)
 
 
 //! Check nisynch from label_to_index.
-__inline__ int
+int
 oki_nisynch_full (const System sys, const Termmap label_to_index)
 {
   // Are all labels well linked?
@@ -177,7 +177,7 @@ oki_nisynch_full (const System sys, const Termmap label_to_index)
 }
 
 //! Evaluate claims or internal recvs (chooses)
-__inline__ int
+int
 oki_nisynch_other (const System sys, const int trace_index,
 		   const Termmap role_to_run, const Termmap label_to_index)
 {
@@ -198,7 +198,7 @@ oki_nisynch_other (const System sys, const int trace_index,
 }
 
 //! Evaluate recvs
-__inline__ int
+int
 oki_nisynch_recv (const System sys, const int trace_index,
 		  const Termmap role_to_run, const Termmap label_to_index)
 {
@@ -261,7 +261,7 @@ oki_nisynch_recv (const System sys, const int trace_index,
 
 
 //! Evaluate sends
-__inline__ int
+int
 oki_nisynch_send (const System sys, const int trace_index,
 		  const Termmap role_to_run, const Termmap label_to_index)
 {

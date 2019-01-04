@@ -93,7 +93,7 @@ preferSubstitutionOrder (Term ta, Term tb)
 }
 
 //! See if a substitution is valid
-__inline__ int
+int
 goodsubst (Term tvar, Term tsubst)
 {
   Term tbuf;

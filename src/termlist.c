@@ -159,7 +159,7 @@ termlistDestroy (Termlist tl)
  *
  *@return True iff the term is an element of the termlist.
  */
-__inline__ int
+int
 inTermlist (Termlist tl, const Term term)
 {
   if (term == NULL)
@@ -178,7 +178,7 @@ inTermlist (Termlist tl, const Term term)
 }
 
 //! Determine whether a term is an element of a termlist: yield pointer
-__inline__ Termlist
+Termlist
 termlistFind (Termlist tl, const Term term)
 {
 #ifdef DEBUG
