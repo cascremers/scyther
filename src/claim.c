@@ -623,6 +623,82 @@ arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs)
   return flag;
 }
 
+// Result structure
+struct flag_and_termmap
+{
+  int flag;
+  Termmap termmap;
+};
+
+struct flag_and_termmap
+fill_roles (const System sys, const Claimlist cl, const Termmap runs_involved,
+	    const int require_order, Termlist roles_tofill)
+{
+  struct flag_and_termmap ftres;
+
+  ftres.flag = true;
+  ftres.termmap = runs_involved;
+
+  if (roles_tofill == NULL)
+    {
+      // All roles have been chosen
+      if (arachne_runs_agree (sys, cl, runs_involved))
+	{
+	  // niagree holds
+	  if (require_order)
+	    {
+	      // Stronger claim: nisynch. Test for ordering as well.
+	      ftres.flag = labels_ordered (runs_involved, cl->prec);
+	    }
+	  return ftres;
+	}
+      else
+	{
+	  // niagree does not hold
+	  ftres.flag = false;
+	  return ftres;
+	}
+    }
+  else
+    {
+      // Choose a run for this role, if possible
+      // Note that any will do
+      int run;
+
+      ftres.flag = false;
+      for (run = 0; run < sys->maxruns; run++)
+	{
+	  // Has to be from the right protocol
+	  if (sys->runs[run].protocol == cl->protocol)
+	    {
+	      // Has to be the right name
+	      if (isTermEqual
+		  (sys->runs[run].role->nameterm, roles_tofill->term))
+		{
+		  // Choose, iterate
+		  // Mimic lazy evaluation of earlier code
+		  ftres.termmap =
+		    termmapSet (ftres.termmap, roles_tofill->term, run);
+
+		  if (!ftres.flag)
+		    {
+		      struct flag_and_termmap ftres2;
+		      ftres2 =
+			fill_roles (sys, cl, ftres.termmap,
+				    require_order, roles_tofill->next);
+		      if (ftres2.flag)
+			{
+			  ftres.flag = ftres2.flag;
+			  ftres.termmap = ftres2.termmap;
+			}
+		    }
+		}
+	    }
+	}
+    }
+  return ftres;
+}
+
 //! Check arachne authentications claim
 /**
  * Per default, occurs in run 0, but for generality we have left the run parameter in.
@@ -635,60 +711,7 @@ arachne_claim_authentications (const System sys, const int claim_run,
   Claimlist cl;
   Roledef rd;
   Termmap runs_involved;
-  int flag;
-
-  int fill_roles (Termlist roles_tofill)
-  {
-    if (roles_tofill == NULL)
-      {
-	// All roles have been chosen
-	if (arachne_runs_agree (sys, cl, runs_involved))
-	  {
-	    // niagree holds
-	    if (!require_order)
-	      {
-		return 1;
-	      }
-	    else
-	      {
-		// Stronger claim: nisynch. Test for ordering as well.
-		return labels_ordered (runs_involved, cl->prec);
-	      }
-	  }
-	else
-	  {
-	    // niagree does not hold
-	    return 0;
-	  }
-      }
-    else
-      {
-	// Choose a run for this role, if possible
-	// Note that any will do
-	int run, flag;
-
-	run = 0;
-	flag = 0;
-	while (run < sys->maxruns)
-	  {
-	    // Has to be from the right protocol
-	    if (sys->runs[run].protocol == cl->protocol)
-	      {
-		// Has to be the right name
-		if (isTermEqual
-		    (sys->runs[run].role->nameterm, roles_tofill->term))
-		  {
-		    // Choose, iterate
-		    runs_involved =
-		      termmapSet (runs_involved, roles_tofill->term, run);
-		    flag = flag || fill_roles (roles_tofill->next);
-		  }
-	      }
-	    run++;
-	  }
-	return flag;
-      }
-  }
+  struct flag_and_termmap ftres;
 
 #ifdef DEBUG
   if (DEBUGL (5))
@@ -705,10 +728,10 @@ arachne_claim_authentications (const System sys, const int claim_run,
   cl = rd->claiminfo;
 
   runs_involved = termmapSet (NULL, cl->roles->term, claim_run);
-  flag = fill_roles (cl->roles->next);
+  ftres = fill_roles (sys, cl, runs_involved, require_order, cl->roles->next);
 
-  termmapDelete (runs_involved);
-  return flag;
+  termmapDelete (ftres.termmap);
+  return ftres.flag;
 }
 
 //! Test niagree
