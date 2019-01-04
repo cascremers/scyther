@@ -129,6 +129,91 @@ switchesDone (void)
     free (lastfoundprefix);
 }
 
+FILE *
+try (const char *separators, const char *filename, FILE * reopener,
+     const char *prefix)
+{
+  char *buffer = NULL;
+  int result = false;
+  int buflen = 0;
+  int prefixlen = 0;
+  int namelen = 0;
+  int addslash = false;
+  int nameindex = 0;
+
+  prefixlen = (int) strcspn (prefix, separators);
+  namelen = strlen (filename);
+  nameindex = prefixlen;
+
+  buflen = prefixlen + namelen + 1;
+
+  // Does the prefix end with a slash? (it should)
+  if (prefixlen > 0 && prefix[prefixlen - 1] != '/')
+    {
+      addslash = true;
+      buflen++;
+      nameindex++;
+    }
+
+  buffer = (char *) malloc (buflen);
+  memcpy (buffer, prefix, prefixlen);
+  memcpy (buffer + nameindex, filename, namelen);
+  buffer[buflen - 1] = '\0';
+
+  // Add the slash in the center
+  if (addslash)
+    buffer[nameindex - 1] = '/';
+
+  // Now try to open it
+  if (reopener != NULL)
+    {
+      if (freopen (buffer, "r", reopener) != NULL)
+	result = true;
+    }
+  else
+    {
+      reopener = fopen (buffer, "r");
+      if (reopener != NULL)
+	result = true;
+    }
+
+  if (result)
+    {
+      // There is a result. Does it have a prefix?
+      char *ls;
+
+      // Non-standard location, maybe we should warn for that
+      if (switches.expert)
+	{
+	  globalError++;
+	  eprintf ("Recving file %s.\n", buffer);
+	  globalError--;
+	}
+
+      // Compute the prefix (simply scan for the last slash, if any)
+      ls = strrchr (buffer, '/');
+      if (ls != NULL)
+	{
+	  // Store it for any next includes or something like that
+	  // Clear the old one
+	  if (lastfoundprefix != NULL)
+	    free (lastfoundprefix);
+	  ls[0] = '\0';
+	  lastfoundprefix = buffer;
+	  return reopener;
+	}
+    }
+  free (buffer);
+  if (result)
+    {
+      return reopener;
+    }
+  else
+    {
+      return NULL;
+    }
+}
+
 //! Open a (protocol) file.
 /**
  * Uses the environment variable SCYTHERDIR to also search for files
@@ -145,100 +230,30 @@ openFileSearch (char *filename, FILE * reopener)
 {
   const char *separators = ":;\n";
   char *dirs;
+  FILE *fres;
 
   //! try a filename and a prefix.
   /**
    * Prefixes don't have to end with "/"; this will be added automatically.
    */
-  int try (char *prefix)
-  {
-    char *buffer = NULL;
-    int result = false;
-    int buflen = 0;
-    int prefixlen = 0;
-    int namelen = 0;
-    int addslash = false;
-    int nameindex = 0;
-
-    prefixlen = (int) strcspn (prefix, separators);
-    namelen = strlen (filename);
-    nameindex = prefixlen;
-
-    buflen = prefixlen + namelen + 1;
-
-    // Does the prefix end with a slash? (it should)
-    if (prefixlen > 0 && prefix[prefixlen - 1] != '/')
-      {
-	addslash = true;
-	buflen++;
-	nameindex++;
-      }
-
-    buffer = (char *) malloc (buflen);
-    memcpy (buffer, prefix, prefixlen);
-    memcpy (buffer + nameindex, filename, namelen);
-    buffer[buflen - 1] = '\0';
-
-    // Add the slash in the center
-    if (addslash)
-      buffer[nameindex - 1] = '/';
-
-    // Now try to open it
-    if (reopener != NULL)
-      {
-	if (freopen (buffer, "r", reopener) != NULL)
-	  result = true;
-      }
-    else
-      {
-	reopener = fopen (buffer, "r");
-	if (reopener != NULL)
-	  result = true;
-      }
-
-    if (result)
-      {
-	// There is a result. Does it have a prefix?
-	char *ls;
-
-	// Non-standard location, maybe we should warn for that
-	if (switches.expert)
-	  {
-	    globalError++;
-	    eprintf ("Recving file %s.\n", buffer);
-	    globalError--;
-	  }
-
-	// Compute the prefix (simply scan for the last slash, if any)
-	ls = strrchr (buffer, '/');
-	if (ls != NULL)
-	  {
-	    // Store it for any next includes or something like that
-	    // Clear the old one
-	    if (lastfoundprefix != NULL)
-	      free (lastfoundprefix);
-	    ls[0] = '\0';
-	    lastfoundprefix = buffer;
-	    return true;
-	  }
-      }
-    free (buffer);
-    return result;
-  }
-
   // main code.
 
   // Try last file prefix (if it exists!)
   if (lastfoundprefix != NULL)
     {
-      if (try (lastfoundprefix))
-	return reopener;
+      fres = try (separators, filename, reopener, lastfoundprefix);
+      if (fres != NULL)
+	{
+	  return fres;
+	}
     }
 
   // Try current directory
-
-  if (try (""))
-    return reopener;
+  fres = try (separators, filename, reopener, "");
+  if (fres != NULL)
+    {
+      return fres;
+    }
 
   // Now try the environment variable
   dirs = getenv ("SCYTHERDIR");
@@ -247,8 +262,11 @@ openFileSearch (char *filename, FILE * reopener)
       if (strlen (dirs) > 0)
 	{
 	  // try this one
-	  if (try (dirs))
-	    return reopener;
+	  fres = try (separators, filename, reopener, dirs);
+	  if (fres != NULL)
+	    {
+	      return fres;
+	    }
 	  // skip to next
 	  dirs = strpbrk (dirs, separators);
 	  if (dirs != NULL)
@@ -281,6 +299,135 @@ openFileStdin (char *filename)
     }
 }
 
+  //! Check whether there are still n options left
+int
+enough_arguments_left (const int index, const int argc, const int n,
+		       char shortopt, char *longopt)
+{
+  if (index + n > argc)
+    {
+      error ("Option %c [%s] needs at least %i arguments.", shortopt,
+	     longopt, n);
+    }
+  return 1;
+}
+
+  // Skip over (processed) argument
+#define arg_next \
+    index++; \
+    arg_pointer = argv[index]
+
+  //! Parse an argument into an integer
+int
+integer_argument (const char *arg_pointer)
+{
+  int result;
+
+  if (arg_pointer == NULL)
+    {
+      error ("(Integer) argument expected.");
+    }
+  result = 0;
+  if (sscanf (arg_pointer, "%i", &result) != 1)
+    {
+      error ("Could not parse expected integer argument.");
+    }
+  return result;
+}
+
+  //! Align columns
+void
+helptext (const char *left, const char *right)
+{
+  printf ("  %-25s %s\n", left, right);
+}
+
+  //! Detect whether this confirms to this option.
+  /**
+   * set arg_pointer and index
+   */
+int
+detect (const int this_arg_length, char *this_arg, char **argv,
+	const int argc, const int process, char **arg_pp, int *index_p,
+	char shortopt, char *longopt, int args)
+{
+  *arg_pp = NULL;
+
+  if (!process)
+    {
+      // If we are not processing, we always yield true.
+      return true;
+    }
+  // Is it this option anyway?
+  if (this_arg_length < 2 || this_arg[0] != '-')
+    {
+      // No option
+      return false;
+    }
+  // Compare
+  if (this_arg[1] == '-')
+    {
+      int optlength;
+
+      // This seems to be a long switch, so we handle it accordingly
+
+      optlength = strlen (longopt);
+      if (strncmp (this_arg + 2, longopt, optlength))
+	return false;
+      if (optlength + 2 < this_arg_length)
+	{
+	  // This has an additional thing!
+	  if (args > 0 && this_arg[2 + optlength] == '=')
+	    {
+	      // It's the right thing
+	      if (optlength + 3 < this_arg_length)
+		{
+		  *arg_pp = this_arg + 2 + optlength + 1;
+		}
+	      else
+		{
+		  // arg = next
+		  (*index_p)++;
+		  *arg_pp = argv[*index_p];
+		}
+	    }
+	  else
+	    {
+	      // It's not this option
+	      return false;
+	    }
+	}
+      else
+	{
+	  // arg = next
+	  (*index_p)++;
+	  *arg_pp = argv[*index_p];
+	}
+    }
+  else
+    {
+      // Short variant
+      if (this_arg_length < 2 || this_arg[1] != shortopt)
+	return 0;
+      if (args > 0 && this_arg_length > 2)
+	{
+	  // This has an additional thing!
+	  // We assume the argument follows immediately (no appended '=')
+	  *arg_pp = this_arg + 2;
+	}
+      else
+	{
+	  // arg = next
+	  (*index_p)++;
+	  *arg_pp = argv[*index_p];
+	}
+    }
+  // Alright, this is the right option
+  // Enough arguments left?
+  return enough_arguments_left (*index_p, argc, args, shortopt, longopt);
+}
+
+
 //! Process a single switch or generate help text
 /**
  * When process is false, we just generate the help text.
@@ -301,144 +448,6 @@ switcher (const int process, int index, int commandline)
 
   char *arg_pointer;
 
-  //! Check whether there are still n options left
-  int enough_arguments_left (const int n, char shortopt, char *longopt)
-  {
-    if (index + n > argc)
-      {
-	error ("Option %c [%s] needs at least %i arguments.", shortopt,
-	       longopt, n);
-      }
-    return 1;
-  }
-
-  // Skip over (processed) argument
-  void arg_next (void)
-  {
-    index++;
-    arg_pointer = argv[index];
-  }
-
-  //! Retrieve a (string) argument
-  char *string_argument (void)
-  {
-    char *result;
-
-    if (arg_pointer == NULL)
-      {
-	error ("Argument expected.");
-      }
-    result = arg_pointer;
-    arg_next ();
-    return result;
-  }
-
-  //! Parse an argument into an integer
-  int integer_argument (void)
-  {
-    int result;
-
-    if (arg_pointer == NULL)
-      {
-	error ("(Integer) argument expected.");
-      }
-    result = 0;
-    if (sscanf (arg_pointer, "%i", &result) != 1)
-      {
-	error ("Could not parse expected integer argument.");
-      }
-    arg_next ();
-    return result;
-  }
-
-  //! Detect whether this confirms to this option.
-  /**
-   * set arg_pointer and index
-   */
-  int detect (char shortopt, char *longopt, int args)
-  {
-    arg_pointer = NULL;
-
-    if (!process)
-      {
-	// If we are not processing, we always yield true.
-	return 1;
-      }
-    // Is it this option anyway?
-    if (this_arg_length < 2 || this_arg[0] != '-')
-      {
-	// No option
-	return 0;
-      }
-    // Compare
-    if (this_arg[1] == '-')
-      {
-	int optlength;
-
-	// This seems to be a long switch, so we handle it accordingly
-
-	optlength = strlen (longopt);
-	if (strncmp (this_arg + 2, longopt, optlength))
-	  return 0;
-	if (optlength + 2 < this_arg_length)
-	  {
-	    // This has an additional thing!
-	    if (args > 0 && this_arg[2 + optlength] == '=')
-	      {
-		// It's the right thing
-		if (optlength + 3 < this_arg_length)
-		  {
-		    arg_pointer = this_arg + 2 + optlength + 1;
-		  }
-		else
-		  {
-		    // arg = next
-		    index++;
-		    arg_pointer = argv[index];
-		  }
-	      }
-	    else
-	      {
-		// It's not this option
-		return 0;
-	      }
-	  }
-	else
-	  {
-	    // arg = next
-	    index++;
-	    arg_pointer = argv[index];
-	  }
-      }
-    else
-      {
-	// Short variant
-	if (this_arg_length < 2 || this_arg[1] != shortopt)
-	  return 0;
-	if (args > 0 && this_arg_length > 2)
-	  {
-	    // This has an additional thing!
-	    // We assume the argument follows immediately (no appended '=')
-	    arg_pointer = this_arg + 2;
-	  }
-	else
-	  {
-	    // arg = next
-	    index++;
-	    arg_pointer = argv[index];
-	  }
-      }
-    // Alright, this is the right option
-    // Enough arguments left?
-    return enough_arguments_left (args, shortopt, longopt);
-  }
-
-  //! Align columns
-  void helptext (const char *left, const char *right)
-  {
-    printf ("  %-25s %s\n", left, right);
-  }
-
   if (process)
     {
       argc = switches.argc;
@@ -458,6 +467,9 @@ switcher (const int process, int index, int commandline)
       // Just doing help
       this_arg = NULL;
       this_arg_length = 0;
+      argv = NULL;
+      argc = 0;
+
     }
 
   /*
@@ -469,7 +481,9 @@ switcher (const int process, int index, int commandline)
   /* ==================
    *  Generic options
    */
-  if (detect ('d', "dot-output", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'd', "dot-output", 0))
     {
       if (!process)
 	{
@@ -483,7 +497,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('x', "xml-output", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'x', "xml-output", 0))
     {
       if (!process)
 	{
@@ -497,7 +513,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "proof", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "proof", 0))
     {
       if (!process)
 	{
@@ -514,7 +532,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "filter", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "filter", 1))
     {
       if (!process)
 	{
@@ -525,7 +545,14 @@ switcher (const int process, int index, int commandline)
 	{
 	  char *second;
 
-	  switches.filterProtocol = string_argument ();
+	  //! Retrieve a (string) argument
+	  if (arg_pointer == NULL)
+	    {
+	      error ("Argument expected.");
+	    }
+	  switches.filterProtocol = arg_pointer;
+	  arg_next;
+
 	  second = strchr (switches.filterProtocol, ',');
 	  if (second != NULL)
 	    {
@@ -538,7 +565,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "remove-claims", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "remove-claims", 0))
     {
       if (!process)
 	{
@@ -554,7 +583,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('C', "check", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'C', "check", 0))
     {
       if (!process)
 	{
@@ -573,7 +604,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('a', "auto-claims", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'a', "auto-claims", 0))
     {
       if (!process)
 	{
@@ -588,7 +621,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('C', "class", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'C', "class", 0))
     {
       if (!process)
 	{
@@ -605,7 +640,11 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('c', "characterize", 0) || detect ('s', "state-space", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'c', "characterize", 0)
+      || detect (this_arg_length, this_arg, argv, argc, process, &arg_pointer,
+		 &index, 's', "state-space", 0))
     {
       /*
        * TODO maybe this switch should also filter out the intruder.
@@ -628,7 +667,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "concrete", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "concrete", 0))
     {
       if (!process)
 	{
@@ -649,7 +690,9 @@ switcher (const int process, int index, int commandline)
       printf ("Switches that affect the state space:\n");
     }
 
-  if (detect ('m', "match", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'm', "match", 1))
     {
       if (!process)
 	{
@@ -661,12 +704,15 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  switches.match = integer_argument ();
+	  switches.match = integer_argument (arg_pointer);
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect ('u', "untyped", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'u', "untyped", 0))
     {
       if (!process)
 	{
@@ -682,7 +728,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('T', "timer", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'T', "timer", 1))
     {
       if (!process)
 	{
@@ -692,12 +740,15 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  set_time_limit (integer_argument ());
+	  set_time_limit (integer_argument (arg_pointer));
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect ('r', "max-runs", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'r', "max-runs", 1))
     {
       if (!process)
 	{
@@ -706,7 +757,8 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  int arg = integer_argument ();
+	  int arg = integer_argument (arg_pointer);
+	  arg_next;
 	  if (arg == 0)
 	    {
 	      switches.runs = INT_MAX;
@@ -719,7 +771,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "unbounded", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "unbounded", 0))
     {
       if (!process)
 	{
@@ -733,7 +787,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('l', "max-length", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'l', "max-length", 1))
     {
       if (!process)
 	{
@@ -744,12 +800,15 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  switches.maxtracelength = integer_argument ();
+	  switches.maxtracelength = integer_argument (arg_pointer);
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect (' ', "scan-claims", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "scan-claims", 0))
     {
       if (!process)
 	{
@@ -764,7 +823,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('A', "all-attacks", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'A', "all-attacks", 0))
     {
       if (!process)
 	{
@@ -778,7 +839,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "max-attacks", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "max-attacks", 1))
     {
       if (!process)
 	{
@@ -794,12 +857,15 @@ switcher (const int process, int index, int commandline)
 	   * still report 'at least X attacks' with X>N, but it will only
 	   * output N attacks.
 	   */
-	  switches.maxAttacks = integer_argument ();
+	  switches.maxAttacks = integer_argument (arg_pointer);
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect (' ', "prune", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "prune", 1))
     {
       if (!process)
 	{
@@ -816,12 +882,15 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  switches.prune = integer_argument ();
+	  switches.prune = integer_argument (arg_pointer);
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect ('H', "human-readable", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'H', "human-readable", 0))
     {
       if (!process)
 	{
@@ -840,7 +909,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "ra-tupling", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "ra-tupling", 0))
     {
       if (!process)
 	{
@@ -855,7 +926,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "la-tupling", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "la-tupling", 0))
     {
       if (!process)
 	{
@@ -870,7 +943,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "tupling", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "tupling", 1))
     {
       if (!process)
 	{
@@ -880,12 +955,15 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  switches.tupling = integer_argument ();
+	  switches.tupling = integer_argument (arg_pointer);
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect (' ', "abstraction-method", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "abstraction-method", 1))
     {
       if (!process)
 	{
@@ -899,12 +977,15 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  switches.abstractionMethod = integer_argument ();
+	  switches.abstractionMethod = integer_argument (arg_pointer);
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect (' ', "no-exitcodes", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "no-exitcodes", 0))
     {
       if (!process)
 	{
@@ -933,7 +1014,7 @@ switcher (const int process, int index, int commandline)
 
   /* obsolete, worked for modelchecker
    *
-   if (detect (' ', "state-space", 0))
+   if (detect (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index, ' ', "state-space", 0))
    {
    if (!process)
    {
@@ -958,7 +1039,9 @@ switcher (const int process, int index, int commandline)
      }
    */
 
-  if (detect (' ', "heuristic", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "heuristic", 1))
     {
       if (!process)
 	{
@@ -969,12 +1052,15 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  switches.heuristic = integer_argument ();
+	  switches.heuristic = integer_argument (arg_pointer);
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect (' ', "agent-unfold", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "agent-unfold", 1))
     {
       if (!process)
 	{
@@ -983,12 +1069,15 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  switches.agentUnfold = integer_argument ();
+	  switches.agentUnfold = integer_argument (arg_pointer);
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect (' ', "extend-nonrecvs", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "extend-nonrecvs", 0))
     {
       if (!process)
 	{
@@ -1002,7 +1091,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "disable-intruder", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "disable-intruder", 0))
     {
       if (!process)
 	{
@@ -1018,7 +1109,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "extravert", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "extravert", 0))
     {
       if (!process)
 	{
@@ -1035,7 +1128,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "init-unique", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "init-unique", 0))
     {
       if (!process)
 	{
@@ -1051,7 +1146,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "resp-unique", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "resp-unique", 0))
     {
       if (!process)
 	{
@@ -1067,7 +1164,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "role-unique", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "role-unique", 0))
     {
       if (!process)
 	{
@@ -1083,7 +1182,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "chosen-name", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "chosen-name", 0))
     {
       if (!process)
 	{
@@ -1099,7 +1200,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "extend-trivial", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "extend-trivial", 0))
     {
       if (!process)
 	{
@@ -1113,7 +1216,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "monochrome", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "monochrome", 0))
     {
       if (!process)
 	{
@@ -1127,7 +1232,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "lightness", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "lightness", 1))
     {
       if (!process)
 	{
@@ -1136,7 +1243,8 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  switches.lightness = integer_argument ();
+	  switches.lightness = integer_argument (arg_pointer);
+	  arg_next;
 	  if ((switches.lightness < 0) || (switches.lightness > 100))
 	    {
 	      error
@@ -1146,7 +1254,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "clusters", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "clusters", 0))
     {
       if (!process)
 	{
@@ -1160,7 +1270,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "intruder-actions", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "intruder-actions", 1))
     {
       if (!process)
 	{
@@ -1168,12 +1280,15 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  switches.maxIntruderActions = integer_argument ();
+	  switches.maxIntruderActions = integer_argument (arg_pointer);
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect (' ', "disable-agenttypecheck", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "disable-agenttypecheck", 0))
     {
       if (!process)
 	{
@@ -1194,7 +1309,9 @@ switcher (const int process, int index, int commandline)
 
   if (switches.expert)
     {
-      if (detect (' ', "experimental", 1))
+      if (detect
+	  (this_arg_length, this_arg, argv, argc, process, &arg_pointer,
+	   &index, ' ', "experimental", 1))
 	{
 	  if (!process)
 	    {
@@ -1202,13 +1319,16 @@ switcher (const int process, int index, int commandline)
 	    }
 	  else
 	    {
-	      switches.experimental = integer_argument ();
+	      switches.experimental = integer_argument (arg_pointer);
+	      arg_next;
 	      return index;
 	    }
 	}
     }
 
-  if (detect (' ', "max-of-role", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "max-of-role", 1))
     {
       if (!process)
 	{
@@ -1220,7 +1340,8 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  int arg = integer_argument ();
+	  int arg = integer_argument (arg_pointer);
+	  arg_next;
 	  if (arg == 0)
 	    {
 	      switches.maxOfRole = 0;
@@ -1233,7 +1354,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "one-role-per-agent", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "one-role-per-agent", 0))
     {
       if (!process)
 	{
@@ -1259,7 +1382,9 @@ switcher (const int process, int index, int commandline)
     printf ("Misc. switches:\n");
 
 
-  if (detect ('E', "expert", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'E', "expert", 0))
     {
       if (!process)
 	{
@@ -1275,7 +1400,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "count-states", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "count-states", 0))
     {
       if (!process)
 	{
@@ -1291,7 +1418,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "echo", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "echo", 0))
     {
       if (!process)
 	{
@@ -1309,7 +1438,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('e', "empty", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'e', "empty", 0))
     {
       if (!process)
 	{
@@ -1324,7 +1455,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('v', "version", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'v', "version", 0))
     {
       if (!process)
 	{
@@ -1352,7 +1485,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "license", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "license", 0))
     {
       if (!process)
 	{
@@ -1390,7 +1525,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect ('h', "help", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'h', "help", 0))
     {
       if (!process)
 	{
@@ -1408,7 +1545,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "long-help", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "long-help", 0))
     {
       if (!process)
 	{
@@ -1427,7 +1566,9 @@ switcher (const int process, int index, int commandline)
 	}
     }
 
-  if (detect (' ', "plain", 0))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "plain", 0))
     {
       if (!process)
 	{
@@ -1444,7 +1585,9 @@ switcher (const int process, int index, int commandline)
     }
 
 #ifdef DEBUG
-  if (detect ('D', "debug", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'D', "debug", 1))
     {
       if (!process)
 	{
@@ -1456,13 +1599,16 @@ switcher (const int process, int index, int commandline)
 	}
       else
 	{
-	  debugSet (integer_argument ());
+	  debugSet (integer_argument (arg_pointer));
+	  arg_next;
 	  return index;
 	}
     }
 #endif
 
-  if (detect ('o', "output", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       'o', "output", 1))
     {
       if (!process)
 	{
@@ -1478,12 +1624,14 @@ switcher (const int process, int index, int commandline)
 			    arg_pointer);
 	      exit (1);
 	    }
-	  arg_next ();
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect (' ', "append-output", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "append-output", 1))
     {
       if (!process)
 	{
@@ -1500,12 +1648,14 @@ switcher (const int process, int index, int commandline)
 			    arg_pointer);
 	      exit (1);
 	    }
-	  arg_next ();
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect (' ', "errors", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "errors", 1))
     {
       if (!process)
 	{
@@ -1525,12 +1675,14 @@ switcher (const int process, int index, int commandline)
 			    arg_pointer);
 	      exit (1);
 	    }
-	  arg_next ();
+	  arg_next;
 	  return index;
 	}
     }
 
-  if (detect (' ', "append-errors", 1))
+  if (detect
+      (this_arg_length, this_arg, argv, argc, process, &arg_pointer, &index,
+       ' ', "append-errors", 1))
     {
       if (!process)
 	{
@@ -1550,7 +1702,7 @@ switcher (const int process, int index, int commandline)
 			    arg_pointer);
 	      exit (1);
 	    }
-	  arg_next ();
+	  arg_next;
 	  return index;
 	}
     }
