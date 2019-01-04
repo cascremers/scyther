@@ -1008,6 +1008,55 @@ struct betg_state
   int newdecr;
 };
 
+void
+wrapSubst (const Termlist sl, const struct betg_state *ptr_betgState,
+	   const Termlist keylist)
+{
+  if (sl == NULL)
+    {
+      if (switches.output == PROOF)
+	{
+	  Roledef rd;
+
+	  indentPrint ();
+	  eprintf ("Suppose ");
+	  termPrint ((ptr_betgState->b)->term);
+	  eprintf (" originates first at run %i, event %i, as part of ",
+		   ptr_betgState->run, ptr_betgState->index);
+	  rd =
+	    roledef_shift (sys->runs[ptr_betgState->run].start,
+			   ptr_betgState->index);
+	  termPrint (rd->message);
+	  eprintf ("\n");
+	}
+      // new create key goals, bind etc.
+      createDecryptionChain (ptr_betgState->b, ptr_betgState->run,
+			     ptr_betgState->index, keylist, iterate);
+    }
+  else
+    {
+      struct md_state State;
+
+      // TODO CONTEXT for makeDepend in State
+
+      State.neworders = 0;
+      State.sl = sl;
+      State.tvar = sl->term;
+      State.allgood = true;
+      iterateTermOther (ptr_betgState->run, State.tvar, makeDepend, &State);
+      if (State.allgood)
+	{
+	  // Recursive call
+	  wrapSubst (sl->next, ptr_betgState, keylist);
+	}
+      while (State.neworders > 0)
+	{
+	  State.neworders--;
+	  dependPopEvent ();
+	}
+    }
+}
+
 int
 unifiesWithKeys (Termlist substlist, Termlist keylist,
 		 struct betg_state *ptr_betgState)
@@ -1031,58 +1080,8 @@ unifiesWithKeys (Termlist substlist, Termlist keylist,
   newgoals =
     add_recv_goals (ptr_betgState->run, old_length, ptr_betgState->index + 1);
 
-  {
-    // wrap substitution lists
-
-    void wrapSubst (Termlist sl)
-    {
-      if (sl == NULL)
-	{
-	  if (switches.output == PROOF)
-	    {
-	      Roledef rd;
-
-	      indentPrint ();
-	      eprintf ("Suppose ");
-	      termPrint ((ptr_betgState->b)->term);
-	      eprintf (" originates first at run %i, event %i, as part of ",
-		       ptr_betgState->run, ptr_betgState->index);
-	      rd =
-		roledef_shift (sys->runs[ptr_betgState->run].start,
-			       ptr_betgState->index);
-	      termPrint (rd->message);
-	      eprintf ("\n");
-	    }
-	  // new create key goals, bind etc.
-	  createDecryptionChain (ptr_betgState->b, ptr_betgState->run,
-				 ptr_betgState->index, keylist, iterate);
-	}
-      else
-	{
-	  struct md_state State;
-
-	  // TODO CONTEXT for makeDepend in State
-
-	  State.neworders = 0;
-	  State.sl = sl;
-	  State.tvar = sl->term;
-	  State.allgood = true;
-	  iterateTermOther (ptr_betgState->run, State.tvar, makeDepend,
-			    &State);
-	  if (State.allgood)
-	    {
-	      wrapSubst (sl->next);
-	    }
-	  while (State.neworders > 0)
-	    {
-	      State.neworders--;
-	      dependPopEvent ();
-	    }
-	}
-    }
-
-    wrapSubst (substlist);
-  }
+  // wrap substitution lists
+  wrapSubst (substlist, ptr_betgState, keylist);
 
   // undo
   goal_remove_last (newgoals);
