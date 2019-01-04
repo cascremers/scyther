@@ -37,6 +37,14 @@
 #include "error.h"
 #include "knowledge.h"
 
+#define erode(deltaw) { \
+    if (smode & 1) \
+      { \
+      	w = w + (deltaw); \
+      } \
+    smode = smode / 2; \
+   }
+
 //! Trivial goal detection
 /**
  * Detect goals that we do not need to solve because they can be trivially solved.
@@ -351,15 +359,6 @@ computeGoalWeight (const System sys, const Binding b)
   float w;
   int smode;
   Term t;
-
-  void erode (const float deltaw)
-  {
-    if (smode & 1)
-      {
-	w = w + deltaw;
-      }
-    smode = smode / 2;
-  }
 
   // Total weight
   w = 0;
