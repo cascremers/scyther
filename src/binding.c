@@ -300,6 +300,28 @@ goal_remove_last (int n)
     }
 }
 
+//! Get index of run
+int
+get_index (const int run, const Term label)
+{
+  Roledef rd;
+  int i;
+
+  i = 0;
+  rd = sys->runs[run].start;
+  while (rd != NULL && !isTermEqual (rd->label, label))
+    {
+      rd = rd->next;
+      i++;
+    }
+#ifdef DEBUG
+  if (rd == NULL)
+    error
+      ("Could not locate send or recv for label, after niagree holds, to test for order.");
+#endif
+  return i;
+}
+
 //! Determine whether some label set is ordered w.r.t. send/recv order.
 /**
  * Assumes all these labels exist in the system, within length etc, and that the run mappings are valid.
@@ -312,34 +334,16 @@ labels_ordered (Termmap runs, Termlist labels)
       // Given this label, and the mapping of runs, we want to know if the order is okay. Thus, we need to know sendrole and recvrole
       Labelinfo linfo;
       int send_run, send_ev, recv_run, recv_ev;
+      Term label;
 
-      int get_index (const int run)
-      {
-	Roledef rd;
-	int i;
-
-	i = 0;
-	rd = sys->runs[run].start;
-	while (rd != NULL && !isTermEqual (rd->label, labels->term))
-	  {
-	    rd = rd->next;
-	    i++;
-	  }
-#ifdef DEBUG
-	if (rd == NULL)
-	  error
-	    ("Could not locate send or recv for label, after niagree holds, to test for order.");
-#endif
-	return i;
-      }
-
-      linfo = label_find (sys->labellist, labels->term);
+      label = labels->term;
+      linfo = label_find (sys->labellist, label);
       if (!linfo->ignore)
 	{
 	  send_run = termmapGet (runs, linfo->sendrole);
 	  recv_run = termmapGet (runs, linfo->recvrole);
-	  send_ev = get_index (send_run);
-	  recv_ev = get_index (recv_run);
+	  send_ev = get_index (send_run, label);
+	  recv_ev = get_index (recv_run, label);
 	  if (!isDependEvent (send_run, send_ev, recv_run, recv_ev))
 	    {
 	      // Not ordered; false

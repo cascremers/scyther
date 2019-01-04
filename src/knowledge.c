@@ -430,6 +430,14 @@ isKnowledgePublicFunction (const Knowledge know, const Term f)
   return inTermlist (know->publicfunctions, f);
 }
 
+Term
+funKey (Term orig, Term f)
+{
+  /* in: f'{op}, f
+   * out: f{op'} */
+  return makeTermFcall (termDuplicate (TermOp (orig)), termDuplicate (f));
+}
+
 //! Give the inverse key term of a term.
 /**
  * Gives a duplicate of the inverse Key of some term (which is used to encrypt something), as is defined
@@ -451,14 +459,6 @@ inverseKey (Knowledge know, Term key)
   if (f != NULL)
     {
       Termlist tl;
-
-      Term funKey (Term orig, Term f)
-      {
-	/* in: f'{op}, f
-	 * out: f{op'} */
-	return makeTermFcall (termDuplicate (TermOp (orig)),
-			      termDuplicate (f));
-      }
 
       tl = know->inversekeyfunctions;
       while (tl != NULL && tl->next != NULL)

@@ -263,30 +263,31 @@ redirNode (const System sys, Binding b)
   node (sys, b->run_to, b->ev_to);
 }
 
+void
+optlabel (const Roledef rd)
+{
+  Term label;
+
+  label = rd->label;
+  if (label != NULL)
+    {
+      if (realTermTuple (label))
+	{
+	  label = TermOp2 (label);
+	}
+      eprintf ("_");
+      termPrintRemap (label);
+    }
+}
+
 //! Roledef draw
 void
 roledefDraw (Roledef rd)
 {
-  void optlabel (void)
-  {
-    Term label;
-
-    label = rd->label;
-    if (label != NULL)
-      {
-	if (realTermTuple (label))
-	  {
-	    label = TermOp2 (label);
-	  }
-	eprintf ("_");
-	termPrintRemap (label);
-      }
-  }
-
   if (rd->type == RECV)
     {
       eprintf ("recv");
-      optlabel ();
+      optlabel (rd);
       eprintf (" from ");
       termPrintRemap (rd->from);
       eprintf ("\\n");
@@ -295,7 +296,7 @@ roledefDraw (Roledef rd)
   if (rd->type == SEND)
     {
       eprintf ("send");
-      optlabel ();
+      optlabel (rd);
       eprintf (" to ");
       termPrintRemap (rd->to);
       eprintf ("\\n");
@@ -304,7 +305,7 @@ roledefDraw (Roledef rd)
   if (rd->type == CLAIM)
     {
       eprintf ("claim");
-      optlabel ();
+      optlabel (rd);
       eprintf ("\\n");
       termPrintRemap (rd->to);
       if (rd->message != NULL)
@@ -348,24 +349,25 @@ hlsValue (double n1, double n2, double hue)
     return n1;
 }
 
+int
+bytedouble (double d)
+{
+  double x;
+
+  x = 255.0 * d;
+  if (x <= 0)
+    return 0;
+  else if (x >= 255.0)
+    return 255;
+  else
+    return (int) x;
+}
+
 //! hls to rgb conversion
 void
 hlsrgbreal (int *r, int *g, int *b, double h, double l, double s)
 {
   double m1, m2;
-
-  int bytedouble (double d)
-  {
-    double x;
-
-    x = 255.0 * d;
-    if (x <= 0)
-      return 0;
-    else if (x >= 255.0)
-      return 255;
-    else
-      return (int) x;
-  }
 
   while (h >= 360.0)
     h -= 360.0;
@@ -385,6 +387,12 @@ hlsrgbreal (int *r, int *g, int *b, double h, double l, double s)
     }
 }
 
+double
+closer (double l, double factor)
+{
+  return l + ((1.0 - l) * factor);
+}
+
 //! hls to rgb conversion
 /**
  * Secretly takes the monochrome switch into account
@@ -392,11 +400,6 @@ hlsrgbreal (int *r, int *g, int *b, double h, double l, double s)
 void
 hlsrgb (int *r, int *g, int *b, double h, double l, double s)
 {
-  double closer (double l, double factor)
-  {
-    return l + ((1.0 - l) * factor);
-  }
-
   if (switches.monochrome)
     {
       // No colors
@@ -432,6 +435,14 @@ printColor (double h, double l, double s)
   eprintf ("#%02x%02x%02x", r, g, b);
 }
 
+  // help function: contract roleoffset, roledelta with a factor (<= 1.0)
+void
+contract (double roledelta, double roleoffset, double factor)
+{
+  roledelta = roledelta * factor;
+  roleoffset = (roleoffset * factor) + ((1.0 - factor) / 2.0);
+}
+
 
 //! Set local buffer with the correct color for this run.
 /**
@@ -452,13 +463,6 @@ setRunColorBuf (const System sys, int run, char *colorbuf)
   double color;
   double h, l, s;
   int r, g, b;
-
-  // help function: contract roleoffset, roledelta with a factor (<= 1.0)
-  void contract (double factor)
-  {
-    roledelta = roledelta * factor;
-    roleoffset = (roleoffset * factor) + ((1.0 - factor) / 2.0);
-  }
 
   // determine #protocol, resulting in two colors
   {
@@ -547,12 +551,13 @@ setRunColorBuf (const System sys, int run, char *colorbuf)
       // Now this can result in a delta that is too high (depending on protocolrange)
       if (protrange * roledelta > RUNCOLORDELTA)
 	{
-	  contract (RUNCOLORDELTA / (protrange * roledelta));
+	  contract (roledelta, roleoffset,
+		    RUNCOLORDELTA / (protrange * roledelta));
 	}
     }
 
   // We slightly contract the colors (taking them away from protocol edges)
-  contract (RUNCOLORCONTRACT);
+  contract (roledelta, roleoffset, RUNCOLORCONTRACT);
 
   // Now we can convert this to a color
   color = protoffset + (protrange * roleoffset);
@@ -1061,27 +1066,29 @@ regularModifiedLabel (Binding b)
     }
 }
 
+void
+myarrow (const System sys, const int m0_from, const Binding b)
+{
+  if (m0_from)
+    {
+      eprintf ("\t");
+      intruderNodeM0 ();
+      eprintf (" -> ");
+      node (sys, b->run_to, b->ev_to);
+    }
+  else
+    {
+      arrow (sys, b);
+    }
+
+}
+
 //! Draw a single binding
 void
 drawBinding (const System sys, Binding b)
 {
   int intr_to, intr_from, m0_from;
 
-  void myarrow (const Binding b)
-  {
-    if (m0_from)
-      {
-	eprintf ("\t");
-	intruderNodeM0 ();
-	eprintf (" -> ");
-	node (sys, b->run_to, b->ev_to);
-      }
-    else
-      {
-	arrow (sys, b);
-      }
-
-  }
 
   intr_from = (sys->runs[b->run_from].protocol == INTRUDER);
   intr_to = (sys->runs[b->run_to].protocol == INTRUDER);
@@ -1121,7 +1128,7 @@ drawBinding (const System sys, Binding b)
 	{
 	  // intr->intr
 	  eprintf ("\t");
-	  myarrow (b);
+	  myarrow (sys, m0_from, b);
 	  eprintf (" [label=\"");
 	  termPrintRemap (b->term);
 	  eprintf ("\"");
@@ -1136,7 +1143,7 @@ drawBinding (const System sys, Binding b)
 	{
 	  // intr->regular
 	  eprintf ("\t");
-	  myarrow (b);
+	  myarrow (sys, m0_from, b);
 	  if (m0_from)
 	    {
 	      eprintf ("[weight=\"0.5\"]");
@@ -1151,7 +1158,7 @@ drawBinding (const System sys, Binding b)
 	{
 	  // regular->intr
 	  eprintf ("\t");
-	  myarrow (b);
+	  myarrow (sys, m0_from, b);
 	  eprintf (";\n");
 	}
       else
@@ -1163,7 +1170,7 @@ drawBinding (const System sys, Binding b)
 	  if (isCommunicationExact (sys, b))
 	    {
 	      eprintf ("\t");
-	      myarrow (b);
+	      myarrow (sys, m0_from, b);
 	      eprintf (" [style=bold,color=\"%s\"]", GOODCOMMCOLOR);
 	      eprintf (";\n");
 	    }

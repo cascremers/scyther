@@ -514,7 +514,59 @@ check_claim_niagree (const System sys, const int i)
   return result;
 }
 
+//! Get label event
+Roledef
+get_label_event (const System sys, const Labelinfo linfo, const Term role,
+		 const Term label, const Termmap runs)
+{
+  Roledef rd, rd_res;
+  int i;
+  int run;
 
+  run = termmapGet (runs, role);
+  if (run != -1)
+    {
+#ifdef DEBUG
+      if (run < 0 || run >= sys->maxruns)
+	{
+	  globalError++;
+	  eprintf ("Run mapping %i out of bounds for role ", run);
+	  termPrint (role);
+	  eprintf (" and label ");
+	  termPrint (label);
+	  eprintf ("\n");
+	  eprintf ("This label has sendrole ");
+	  termPrint (linfo->sendrole);
+	  eprintf (" and recvrole ");
+	  termPrint (linfo->recvrole);
+	  eprintf ("\n");
+	  globalError--;
+	  error ("Run mapping is out of bounds.");
+	}
+#endif
+      rd = sys->runs[run].start;
+      rd_res = NULL;
+      i = 0;
+      while (i < sys->runs[run].step && rd != NULL)
+	{
+	  if (isTermEqual (rd->label, label))
+	    {
+	      rd_res = rd;
+	      rd = NULL;
+	    }
+	  else
+	    {
+	      rd = rd->next;
+	    }
+	  i++;
+	}
+      return rd_res;
+    }
+  else
+    {
+      return NULL;
+    }
+}
 
 //! Check generic agree claim for a given set of runs, arachne style
 int
@@ -541,63 +593,14 @@ arachne_runs_agree (const System sys, const Claimlist cl, const Termmap runs)
       Roledef rd_send, rd_recv;
       Labelinfo linfo;
 
-      Roledef get_label_event (const Term role, const Term label)
-      {
-	Roledef rd, rd_res;
-	int i;
-	int run;
-
-	run = termmapGet (runs, role);
-	if (run != -1)
-	  {
-#ifdef DEBUG
-	    if (run < 0 || run >= sys->maxruns)
-	      {
-		globalError++;
-		eprintf ("Run mapping %i out of bounds for role ", run);
-		termPrint (role);
-		eprintf (" and label ");
-		termPrint (label);
-		eprintf ("\n");
-		eprintf ("This label has sendrole ");
-		termPrint (linfo->sendrole);
-		eprintf (" and recvrole ");
-		termPrint (linfo->recvrole);
-		eprintf ("\n");
-		globalError--;
-		error ("Run mapping is out of bounds.");
-	      }
-#endif
-	    rd = sys->runs[run].start;
-	    rd_res = NULL;
-	    i = 0;
-	    while (i < sys->runs[run].step && rd != NULL)
-	      {
-		if (isTermEqual (rd->label, label))
-		  {
-		    rd_res = rd;
-		    rd = NULL;
-		  }
-		else
-		  {
-		    rd = rd->next;
-		  }
-		i++;
-	      }
-	    return rd_res;
-	  }
-	else
-	  {
-	    return NULL;
-	  }
-      }
-
       // Main
       linfo = label_find (sys->labellist, labels->term);
       if (!linfo->ignore)
 	{
-	  rd_send = get_label_event (linfo->sendrole, labels->term);
-	  rd_recv = get_label_event (linfo->recvrole, labels->term);
+	  rd_send =
+	    get_label_event (sys, linfo, linfo->sendrole, labels->term, runs);
+	  rd_recv =
+	    get_label_event (sys, linfo, linfo->recvrole, labels->term, runs);
 
 	  if (rd_send == NULL || rd_recv == NULL)
 	    {

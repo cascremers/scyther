@@ -146,6 +146,22 @@ unify_callback_wrapper (Termlist tl, struct state_mgu_tmp *ptr_tmpstate)
 		ptr_tmpstate->oldcallback, ptr_tmpstate->oldstate);
 }
 
+int
+callsubst (int (*callback) (), void *state, Termlist tl, Term t, Term tsubst)
+{
+  int proceed;
+
+  t->subst = tsubst;
+#ifdef DEBUG
+  showSubst (t);
+#endif
+  tl = termlistAdd (tl, t);
+  proceed = callback (tl, state);
+  tl = termlistDelTerm (tl);
+  t->subst = NULL;
+  return proceed;
+}
+
 //! Most general unifier iteration
 /**
  * Try to determine the most general unifier of two terms, if so calls function.
@@ -161,21 +177,6 @@ unify_callback_wrapper (Termlist tl, struct state_mgu_tmp *ptr_tmpstate)
 int
 unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state)
 {
-  int callsubst (Termlist tl, Term t, Term tsubst)
-  {
-    int proceed;
-
-    t->subst = tsubst;
-#ifdef DEBUG
-    showSubst (t);
-#endif
-    tl = termlistAdd (tl, t);
-    proceed = callback (tl, state);
-    tl = termlistDelTerm (tl);
-    t->subst = NULL;
-    return proceed;
-  }
-
   /* added for speed */
   t1 = deVar (t1);
   t2 = deVar (t2);
@@ -223,7 +224,7 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state)
 	  t1 = t2;
 	  t2 = t3;
 	}
-      return callsubst (tl, t1, t2);
+      return callsubst (callback, state, tl, t1, t2);
     }
 
   /* symmetrical tests for single variable.
@@ -235,7 +236,7 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state)
 	return true;
       else
 	{
-	  return callsubst (tl, t2, t1);
+	  return callsubst (callback, state, tl, t2, t1);
 	}
     }
   if (realTermVariable (t1))
@@ -244,7 +245,7 @@ unify (Term t1, Term t2, Termlist tl, int (*callback) (), void *state)
 	return true;
       else
 	{
-	  return callsubst (tl, t1, t2);
+	  return callsubst (callback, state, tl, t1, t2);
 	}
     }
 

@@ -1188,6 +1188,53 @@ term_rolelocals_are_variables ()
   rolelocal_variable = 1;
 }
 
+//! Helper for counting encryption level of a term
+int
+iter_maxencrypt (Term baseterm, Term t)
+{
+  if (isTicketTerm (t))
+    {
+      return 0;
+    }
+  t = deVar (t);
+  if (t == NULL)
+    {
+#ifdef DEBUG
+      if (DEBUGL (2))
+	{
+	  eprintf ("Warning: Term encryption level finds a NULL for term ");
+	  termPrint (baseterm);
+	  eprintf ("\n");
+	}
+#endif
+      return 0;
+    }
+  if (realTermLeaf (t))
+    {
+      return 0;
+    }
+  else
+    {
+      int l, r;
+
+      if (realTermTuple (t))
+	{
+	  l = iter_maxencrypt (baseterm, TermOp1 (t));
+	  r = iter_maxencrypt (baseterm, TermOp2 (t));
+	}
+      else
+	{
+	  // encrypt
+	  l = 1 + iter_maxencrypt (baseterm, TermOp (t));
+	  r = iter_maxencrypt (baseterm, TermKey (t));
+	}
+      if (l > r)
+	return l;
+      else
+	return r;
+    }
+}
+
 //! Count the encryption level of a term
 /**
  * Note that this stops at any variable that is of ticket type.
@@ -1195,52 +1242,38 @@ term_rolelocals_are_variables ()
 int
 term_encryption_level (const Term term)
 {
-  int iter_maxencrypt (Term t)
-  {
-    if (isTicketTerm (t))
-      {
-	return 0;
-      }
-    t = deVar (t);
-    if (t == NULL)
-      {
-#ifdef DEBUG
-	if (DEBUGL (2))
-	  {
-	    eprintf ("Warning: Term encryption level finds a NULL for term ");
-	    termPrint (term);
-	    eprintf ("\n");
-	  }
-#endif
-	return 0;
-      }
-    if (realTermLeaf (t))
-      {
-	return 0;
-      }
-    else
-      {
-	int l, r;
+  return iter_maxencrypt (term, term);
+}
 
-	if (realTermTuple (t))
-	  {
-	    l = iter_maxencrypt (TermOp1 (t));
-	    r = iter_maxencrypt (TermOp2 (t));
-	  }
-	else
-	  {
-	    // encrypt
-	    l = 1 + iter_maxencrypt (TermOp (t));
-	    r = iter_maxencrypt (TermKey (t));
-	  }
-	if (l > r)
-	  return l;
-	else
-	  return r;
-      }
-  }
+struct ti_data
+{
+  int vars;
+  int structure;
+};
 
-  return iter_maxencrypt (term);
+void
+tcl_iterate (struct ti_data *p_data, Term t)
+{
+  t = deVar (t);
+  (p_data->structure)++;
+  if (realTermLeaf (t))
+    {
+      if (realTermVariable (t))
+	(p_data->vars)++;
+    }
+  else
+    {
+      if (realTermTuple (t))
+	{
+	  tcl_iterate (p_data, TermOp1 (t));
+	  tcl_iterate (p_data, TermOp2 (t));
+	}
+      else
+	{
+	  tcl_iterate (p_data, TermOp (t));
+	  tcl_iterate (p_data, TermKey (t));
+	}
+    }
 }
 
 //! Determine 'constrained factor' of a term
@@ -1252,40 +1285,61 @@ term_encryption_level (const Term term)
 float
 term_constrain_level (const Term term)
 {
-  int vars;
-  int structure;
-
-  void tcl_iterate (Term t)
-  {
-    t = deVar (t);
-    structure++;
-    if (realTermLeaf (t))
-      {
-	if (realTermVariable (t))
-	  vars++;
-      }
-    else
-      {
-	if (realTermTuple (t))
-	  {
-	    tcl_iterate (TermOp1 (t));
-	    tcl_iterate (TermOp2 (t));
-	  }
-	else
-	  {
-	    tcl_iterate (TermOp (t));
-	    tcl_iterate (TermKey (t));
-	  }
-      }
-  }
+  struct ti_data data;
 
   if (term == NULL)
     error ("Cannot determine constrain level of empty term.");
 
-  vars = 0;
-  structure = 0;
-  tcl_iterate (term);
-  return ((float) vars / (float) structure);
+  data.vars = 0;
+  data.structure = 0;
+  tcl_iterate (&data, term);
+  return ((float) data.vars / (float) data.structure);
+}
+
+void
+scan_levels (int level, Term t)
+{
+#ifdef DEBUG
+  if (DEBUGL (5))
+    {
+      int c;
+
+      c = 0;
+      while (c < level)
+	{
+	  eprintf ("  ");
+	  c++;
+	}
+      eprintf ("Scanning keylevel %i for term ", level);
+      termPrint (t);
+      eprintf ("\n");
+    }
+#endif
+  if (realTermLeaf (t))
+    {
+      Symbol sym;
+
+      // So, it occurs at 'level' as key. If that is less than known, store.
+      sym = TermSymb (t);
+      if (level < sym->keylevel)
+	{
+	  // New minimum level
+	  sym->keylevel = level;
+	}
+    }
+  else
+    {
+      if (realTermTuple (t))
+	{
+	  scan_levels (level, TermOp1 (t));
+	  scan_levels (level, TermOp2 (t));
+	}
+      else
+	{
+	  scan_levels (level, TermOp (t));
+	  scan_levels ((level + 1), TermKey (t));
+	}
+    }
 }
 
 //! Adjust the keylevels of the symbols in a term.
@@ -1295,52 +1349,20 @@ term_constrain_level (const Term term)
 void
 term_set_keylevels (const Term term)
 {
-  void scan_levels (int level, Term t)
-  {
-#ifdef DEBUG
-    if (DEBUGL (5))
-      {
-	int c;
-
-	c = 0;
-	while (c < level)
-	  {
-	    eprintf ("  ");
-	    c++;
-	  }
-	eprintf ("Scanning keylevel %i for term ", level);
-	termPrint (t);
-	eprintf ("\n");
-      }
-#endif
-    if (realTermLeaf (t))
-      {
-	Symbol sym;
-
-	// So, it occurs at 'level' as key. If that is less than known, store.
-	sym = TermSymb (t);
-	if (level < sym->keylevel)
-	  {
-	    // New minimum level
-	    sym->keylevel = level;
-	  }
-      }
-    else
-      {
-	if (realTermTuple (t))
-	  {
-	    scan_levels (level, TermOp1 (t));
-	    scan_levels (level, TermOp2 (t));
-	  }
-	else
-	  {
-	    scan_levels (level, TermOp (t));
-	    scan_levels ((level + 1), TermKey (t));
-	  }
-      }
-  }
-
   scan_levels (0, term);
+}
+
+void
+termFromTo (Term t1, Term t2)
+{
+  t1 = deVar (t1);
+  t2 = deVar (t2);
+
+  eprintf (" [");
+  termPrint (t1);
+  eprintf ("]->[");
+  termPrint (t2);
+  eprintf ("] ");
 }
 
 //! Print the term diff of two terms
@@ -1350,18 +1372,6 @@ term_set_keylevels (const Term term)
 void
 termPrintDiff (Term t1, Term t2)
 {
-  void termFromTo (Term t1, Term t2)
-  {
-    t1 = deVar (t1);
-    t2 = deVar (t2);
-
-    eprintf (" [");
-    termPrint (t1);
-    eprintf ("]->[");
-    termPrint (t2);
-    eprintf ("] ");
-  }
-
   t1 = deVar (t1);
   t2 = deVar (t2);
 

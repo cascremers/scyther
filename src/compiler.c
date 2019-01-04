@@ -1183,31 +1183,33 @@ normalDeclaration (Tac tc)
   return 1;
 }
 
+  /* first: secrecy claims for all locally declared things */
+void
+addSecrecyList (const System sys, const Protocol protocol, const Role role,
+		Termlist tl)
+{
+  while (tl != NULL)
+    {
+      Term t;
+
+      t = deVar (tl->term);
+      if (realTermLeaf (t))
+	{
+	  // Add a secrecy claim
+	  claimCreate (sys, protocol, role, CLAIM_Secret, NULL, t, -1);
+	}
+      tl = tl->next;
+    }
+}
+
 //! Add all sorts of claims to this role
 void
 claimAddAll (const System sys, const Protocol protocol, const Role role)
 {
-  /* first: secrecy claims for all locally declared things */
-  void addSecrecyList (Termlist tl)
-  {
-    while (tl != NULL)
-      {
-	Term t;
-
-	t = deVar (tl->term);
-	if (realTermLeaf (t))
-	  {
-	    // Add a secrecy claim
-	    claimCreate (sys, protocol, role, CLAIM_Secret, NULL, t, -1);
-	  }
-	tl = tl->next;
-      }
-  }
-
   if (!isHelperProtocol (protocol))
     {
-      addSecrecyList (role->declaredconsts);
-      addSecrecyList (role->declaredvars);
+      addSecrecyList (sys, protocol, role, role->declaredconsts);
+      addSecrecyList (sys, protocol, role, role->declaredvars);
 
       /* full non-injective agreement and ni-synch */
       claimCreate (sys, protocol, role, CLAIM_Alive, NULL, NULL, -1);
@@ -1699,6 +1701,26 @@ compute_label_roles (Termlist labels)
   return roles;
 }
 
+		      // This function checks whether the newrole can connect to the connectedrole, and whether they fulfil their requirements.
+int
+roles_test (const Termlist roles_ordered, const Termlist roles_remaining,
+	    const Term connectedrole, const Term newrole)
+{
+  if (inTermlist (roles_ordered, connectedrole) &&
+      inTermlist (roles_remaining, newrole))
+    {
+#ifdef DEBUG
+      if (DEBUGL (4))
+	{
+	  eprintf (" ");
+	  termPrint (newrole);
+	}
+#endif
+      return true;
+    }
+  return false;
+}
+
 //! Order the label roles for a given claim
 void
 order_label_roles (const Claimlist cl)
@@ -1749,30 +1771,28 @@ order_label_roles (const Claimlist cl)
 		    {
 		      // If it's not the same protocol, the labels can't match
 
-		      // This function checks whether the newrole can connect to the connectedrole, and whether they fulfil their requirements.
-		      void roles_test (const Term connectedrole,
-				       const Term newrole)
-		      {
-			if (inTermlist (roles_ordered, connectedrole) &&
-			    inTermlist (roles_remaining, newrole))
-			  {
-#ifdef DEBUG
-			    if (DEBUGL (4))
-			      {
-				eprintf (" ");
-				termPrint (newrole);
-			      }
-#endif
-			    roles_ordered =
-			      termlistAppend (roles_ordered, newrole);
-			    roles_remaining =
-			      termlistDelTerm (termlistFind
-					       (roles_remaining, newrole));
-			  }
-		      }
-
-		      roles_test (linfo->sendrole, linfo->recvrole);
-		      roles_test (linfo->recvrole, linfo->sendrole);
+		      if (roles_test
+			  (roles_ordered, roles_remaining, linfo->sendrole,
+			   linfo->recvrole))
+			{
+			  roles_ordered =
+			    termlistAppend (roles_ordered, linfo->recvrole);
+			  roles_remaining =
+			    termlistDelTerm (termlistFind
+					     (roles_remaining,
+					      linfo->recvrole));
+			}
+		      if (roles_test
+			  (roles_ordered, roles_remaining, linfo->recvrole,
+			   linfo->sendrole))
+			{
+			  roles_ordered =
+			    termlistAppend (roles_ordered, linfo->sendrole);
+			  roles_remaining =
+			    termlistDelTerm (termlistFind
+					     (roles_remaining,
+					      linfo->sendrole));
+			}
 		    }
 		}
 	    }
@@ -1786,6 +1806,84 @@ order_label_roles (const Claimlist cl)
       eprintf ("\n");
     }
 #endif
+}
+
+  // Assist: compute m_index from role, lev
+int
+m_index (const System sys, const int r, const int lev)
+{
+  return r * sys->roleeventmax + lev;
+}
+
+  // Assist: yield roledef from r, lev
+Roledef
+roledef_re (const System sys, int r, int lev)
+{
+  Protocol pr;
+  Role ro;
+  Roledef rd;
+
+  pr = sys->protocols;
+  ro = pr->roles;
+  while (r > 0 && ro != NULL)
+    {
+      ro = ro->next;
+      if (ro == NULL)
+	{
+	  pr = pr->next;
+	  if (pr != NULL)
+	    {
+	      ro = pr->roles;
+	    }
+	  else
+	    {
+	      ro = NULL;
+	    }
+	}
+      r--;
+    }
+  if (ro != NULL)
+    {
+      rd = ro->roledef;
+      while (lev > 0 && rd != NULL)
+	{
+	  rd = rd->next;
+	  lev--;
+	}
+      return rd;
+    }
+  else
+    {
+      return NULL;
+    }
+}
+
+  //! Assist: print matrix
+void
+show_matrix (const System sys, const int rowsize, const unsigned int *prec)
+{
+  int r1, r2, ev1, ev2;
+
+  for (r1 = 0; r1 < sys->rolecount; r1++)
+    {
+      for (ev1 = 0; ev1 < sys->roleeventmax; ev1++)
+	{
+	  eprintf ("prec %i,%i:  ", r1, ev1);
+	  for (r2 = 0; r2 < sys->rolecount; r2++)
+	    {
+	      for (ev2 = 0; ev2 < sys->roleeventmax; ev2++)
+		{
+		  eprintf ("%i ",
+			   BIT (prec + rowsize * m_index (sys, r2, ev2),
+				m_index (sys, r1, ev1)));
+		}
+	      eprintf (" ");
+	    }
+	  eprintf ("\n");
+	}
+      eprintf ("\n");
+    }
+  eprintf ("\n");
 }
 
 //! Compute prec() sets for each claim.
@@ -1808,89 +1906,6 @@ compute_prec_sets (const System sys)
   int r1, r2, ev1, ev2;		// some counters
   Claimlist cl;
 
-  // Assist: compute index from role, lev
-  int index (int r, int lev)
-  {
-    return r * sys->roleeventmax + lev;
-  }
-
-  // Assist: yield roledef from r, lev
-  Roledef roledef_re (int r, int lev)
-  {
-    Protocol pr;
-    Role ro;
-    Roledef rd;
-
-    pr = sys->protocols;
-    ro = pr->roles;
-    while (r > 0 && ro != NULL)
-      {
-	ro = ro->next;
-	if (ro == NULL)
-	  {
-	    pr = pr->next;
-	    if (pr != NULL)
-	      {
-		ro = pr->roles;
-	      }
-	    else
-	      {
-		ro = NULL;
-	      }
-	  }
-	r--;
-      }
-    if (ro != NULL)
-      {
-	rd = ro->roledef;
-	while (lev > 0 && rd != NULL)
-	  {
-	    rd = rd->next;
-	    lev--;
-	  }
-	return rd;
-      }
-    else
-      {
-	return NULL;
-      }
-  }
-
-  // Assist: print matrix
-  void show_matrix (void)
-  {
-    int r1, r2, ev1, ev2;
-
-    r1 = 0;
-    while (r1 < sys->rolecount)
-      {
-	ev1 = 0;
-	while (ev1 < sys->roleeventmax)
-	  {
-	    eprintf ("prec %i,%i:  ", r1, ev1);
-	    r2 = 0;
-	    while (r2 < sys->rolecount)
-	      {
-		ev2 = 0;
-		while (ev2 < sys->roleeventmax)
-		  {
-		    eprintf ("%i ",
-			     BIT (prec + rowsize * index (r2, ev2),
-				  index (r1, ev1)));
-		    ev2++;
-		  }
-		eprintf (" ");
-		r2++;
-	      }
-	    eprintf ("\n");
-	    ev1++;
-	  }
-	eprintf ("\n");
-	r1++;
-      }
-    eprintf ("\n");
-  }
-
   /*
    * Phase 1: Allocate structures and map to labels
    */
@@ -1907,10 +1922,10 @@ compute_prec_sets (const System sys)
       Roledef rd;
 
       ev1 = 0;
-      rd = roledef_re (r1, ev1);
+      rd = roledef_re (sys, r1, ev1);
       while (rd != NULL)
 	{
-	  eventlabels[index (r1, ev1)] = rd->label;
+	  eventlabels[m_index (sys, r1, ev1)] = rd->label;
 	  //termPrint (rd->label);
 	  //eprintf ("\t");
 	  ev1++;
@@ -1918,7 +1933,7 @@ compute_prec_sets (const System sys)
 	}
       while (ev1 < sys->roleeventmax)
 	{
-	  eventlabels[index (r1, ev1)] = NULL;
+	  eventlabels[m_index (sys, r1, ev1)] = NULL;
 	  ev1++;
 	}
       //eprintf ("\n");
@@ -1931,7 +1946,8 @@ compute_prec_sets (const System sys)
       ev1 = 1;
       while (ev1 < (sys->roleeventmax))
 	{
-	  SETBIT (prec + rowsize * index (r1, ev1 - 1), index (r1, ev1));
+	  SETBIT (prec + rowsize * m_index (sys, r1, ev1 - 1),
+		  m_index (sys, r1, ev1));
 	  ev1++;
 	}
       r1++;
@@ -1945,7 +1961,7 @@ compute_prec_sets (const System sys)
 	{
 	  Roledef rd1;
 
-	  rd1 = roledef_re (r1, ev1);
+	  rd1 = roledef_re (sys, r1, ev1);
 	  if (rd1 != NULL && rd1->type == SEND)
 	    {
 	      r2 = 0;
@@ -1956,12 +1972,12 @@ compute_prec_sets (const System sys)
 		    {
 		      Roledef rd2;
 
-		      rd2 = roledef_re (r2, ev2);
+		      rd2 = roledef_re (sys, r2, ev2);
 		      if (rd2 != NULL && rd2->type == RECV
 			  && isTermEqual (rd1->label, rd2->label))
 			{
-			  SETBIT (prec + rowsize * index (r1, ev1),
-				  index (r2, ev2));
+			  SETBIT (prec + rowsize * m_index (sys, r1, ev1),
+				  m_index (sys, r2, ev2));
 			}
 		      ev2++;
 		    }
@@ -1976,7 +1992,7 @@ compute_prec_sets (const System sys)
 #ifdef DEBUG
   if (DEBUGL (5))
     {
-      show_matrix ();
+      show_matrix (sys, rowsize, prec);
     }
 #endif
 
@@ -1988,7 +2004,7 @@ compute_prec_sets (const System sys)
 #ifdef DEBUG
   if (DEBUGL (5))
     {
-      show_matrix ();
+      show_matrix (sys, rowsize, prec);
     }
 #endif
 
@@ -2016,14 +2032,14 @@ compute_prec_sets (const System sys)
 	    }
 	}
       while (r1 < sys->rolecount
-	     && !isTermEqual (label, eventlabels[index (r1, ev1)]));
+	     && !isTermEqual (label, eventlabels[m_index (sys, r1, ev1)]));
 
       if (r1 == sys->rolecount)
 	{
 	  error
 	    ("Prec() setup: Could not find the event corresponding to a claim label.");
 	}
-      rd = roledef_re (r1, ev1);
+      rd = roledef_re (sys, r1, ev1);
       if (rd->type != CLAIM)
 	{
 	  error
@@ -2039,15 +2055,15 @@ compute_prec_sets (const System sys)
        * Now we compute the preceding label set
        */
       cl->prec = NULL;		// clear first
-      claim_index = index (r1, ev1);
+      claim_index = m_index (sys, r1, ev1);
       r2 = 0;
       while (r2 < sys->rolecount)
 	{
 	  ev2 = 0;
-	  rd = roledef_re (r2, ev2);
+	  rd = roledef_re (sys, r2, ev2);
 	  while (rd != NULL)
 	    {
-	      if (BIT (prec + rowsize * index (r2, ev2), claim_index))
+	      if (BIT (prec + rowsize * m_index (sys, r2, ev2), claim_index))
 		{
 		  // This event precedes the claim
 
@@ -2118,12 +2134,12 @@ compute_prec_sets (const System sys)
 		    {
 		      // if this event preceds the claim, replace the label term
 		      if (BIT
-			  (prec + rowsize * index (r_scan, ev_scan),
+			  (prec + rowsize * m_index (sys, r_scan, ev_scan),
 			   claim_index))
 			{
 			  Roledef rd;
 
-			  rd = roledef_re (r_scan, ev_scan);
+			  rd = roledef_re (sys, r_scan, ev_scan);
 			  if (rd->label != NULL)
 			    {
 			      t_buf = rd->label;

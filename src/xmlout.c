@@ -843,6 +843,71 @@ xmlRunInfo (const System sys, const int run)
   xmlRunVariables (sys, run);
 }
 
+//! Test whether to display this event
+/**
+ * Could be integrated into a single line on the while loop,
+ * but that makes it rather hard to understand.
+ */
+int
+showthis (const System sys, const int run, const Roledef rd, const int index)
+{
+  if (rd != NULL)
+    {
+      if (index < sys->runs[run].step)
+	{
+	  return true;
+	}
+      else
+	{
+	  if (switches.extendTrivial || switches.extendNonRecvs)
+	    {
+	      if (rd->type != RECV)
+		{
+		  return true;
+		}
+	      else
+		{
+		  if (switches.extendTrivial)
+		    {
+		      /* This is a recv, and we don't know whether to
+		       * include it. Default behaviour would be to jump
+		       * out of the conditions, and return false.
+		       * Instead, we check whether it can be trivially
+		       * satisfied by the knowledge from the preceding
+		       * events.
+		       */
+		      if (isTriviallyKnownAtArachne (sys,
+						     rd->message, run, index))
+			{
+			  return true;
+			}
+		      else
+			{
+			  /* We cannot extend it trivially, based on
+			   * the preceding events, but maybe we can
+			   * base it on another (*all*) event. That
+			   * would in fact introduce another implicit
+			   * binding. Currently, we do not explicitly
+			   * introduce this binding, but just allow
+			   * displaying the event.
+			   *
+			   * TODO consider what it means to leave out
+			   * this binding.
+			   */
+			  if (isTriviallyKnownAfterArachne
+			      (sys, rd->message, run, index))
+			    {
+			      return true;
+			    }
+			}
+		    }
+		}
+	    }
+	}
+    }
+  return false;
+}
+
 //! Display runs
 void
 xmlOutRuns (const System sys)
@@ -862,74 +927,9 @@ xmlOutRuns (const System sys)
 	Roledef rd;
 	int index;
 
-	//! Test whether to display this event
-	/**
-	 * Could be integrated into a single line on the while loop,
-	 * but that makes it rather hard to understand.
-	 */
-	int showthis (void)
-	{
-	  if (rd != NULL)
-	    {
-	      if (index < sys->runs[run].step)
-		{
-		  return true;
-		}
-	      else
-		{
-		  if (switches.extendTrivial || switches.extendNonRecvs)
-		    {
-		      if (rd->type != RECV)
-			{
-			  return true;
-			}
-		      else
-			{
-			  if (switches.extendTrivial)
-			    {
-			      /* This is a recv, and we don't know whether to
-			       * include it. Default behaviour would be to jump
-			       * out of the conditions, and return false.
-			       * Instead, we check whether it can be trivially
-			       * satisfied by the knowledge from the preceding
-			       * events.
-			       */
-			      if (isTriviallyKnownAtArachne (sys,
-							     rd->message,
-							     run, index))
-				{
-				  return true;
-				}
-			      else
-				{
-				  /* We cannot extend it trivially, based on
-				   * the preceding events, but maybe we can
-				   * base it on another (*all*) event. That
-				   * would in fact introduce another implicit
-				   * binding. Currently, we do not explicitly
-				   * introduce this binding, but just allow
-				   * displaying the event.
-				   *
-				   * TODO consider what it means to leave out
-				   * this binding.
-				   */
-				  if (isTriviallyKnownAfterArachne
-				      (sys, rd->message, run, index))
-				    {
-				      return true;
-				    }
-				}
-			    }
-			}
-		    }
-		}
-	    }
-	  return false;
-	}
-
 	index = 0;
 	rd = sys->runs[run].start;
-	while (showthis ())
+	while (showthis (sys, run, rd, index))
 	  {
 	    xmlOutEvent (sys, rd, run, index);
 	    index++;

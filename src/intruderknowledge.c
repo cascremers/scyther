@@ -56,36 +56,25 @@ addEnumTerm (const System sys, Term t, Term actor, Termlist todo,
     {
       if (termSubTerm (t, todo->term))
 	{
-	  // Occurs, we have to iterate
-	  void iterateThis (Term to)
-	  {
-	    tolist = termlistPrepend (tolist, to);
-
-	    addEnumTerm (sys, t, actor, todo->next, fromlist, tolist);
-
-	    tolist = termlistDelTerm (tolist);
-	  }
+	  Termlist tl;
 
 	  fromlist = termlistPrepend (fromlist, todo->term);
 	  if (isTermEqual (todo->term, actor))
 	    {
 	      // Untrusted agents only
-	      Termlist tl;
-
-	      for (tl = sys->untrusted; tl != NULL; tl = tl->next)
-		{
-		  iterateThis (tl->term);
-		}
+	      tl = sys->untrusted;
 	    }
 	  else
 	    {
 	      // any agents
-	      Termlist tl;
-
-	      for (tl = sys->agentnames; tl != NULL; tl = tl->next)
-		{
-		  iterateThis (tl->term);
-		}
+	      tl = sys->agentnames;
+	    }
+	  while (tl != NULL)
+	    {
+	      tolist = termlistPrepend (tolist, tl->term);
+	      addEnumTerm (sys, t, actor, todo->next, fromlist, tolist);
+	      tolist = termlistDelTerm (tolist);
+	      tl = tl->next;
 	    }
 	  fromlist = termlistDelTerm (fromlist);
 	}
