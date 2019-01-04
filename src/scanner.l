@@ -18,6 +18,7 @@
  */
 
 %option yylineno
+%option never-interactive
 
 %{
 /* scanner for security protocols language */
