@@ -9,7 +9,7 @@
 message (STATUS "Building Linux version")
 
 # Static where possible (i.e. only not on the APPLE)
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -m32 -std=c11 -Wtrampolines")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
 
 set (scythername "scyther-linux")
 add_executable (${scythername} ${Scyther_sources})
