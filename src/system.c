@@ -466,6 +466,100 @@ run_localize (const System sys, const int rid, Termlist fromlist,
     }
 }
 
+struct cl_struct
+{
+  Termlist fromlist;
+  Termlist tolist;
+  Term extterm;
+  Role role;
+  Roledef rd;
+};
+
+void
+createLocal (const System sys, struct cl_struct *p_data, Term oldt,
+	     int isvariable, int isrole, const int rid)
+{
+  Term newt;
+
+  // Create new term with the same symbol
+  if (isvariable)
+    {
+      // Force variable
+      newt = makeTermType (VARIABLE, TermSymb (oldt), rid);
+    }
+  else
+    {
+      // Force local (weirdly enough called global)
+      newt = makeTermType (GLOBAL, TermSymb (oldt), rid);
+    }
+  newt->stype = oldt->stype;	// copy list of types
+  newt->helper.roleVar = isrole;	// set role status
+
+  // Add to copy list
+  TERMLISTADD ((p_data->fromlist), oldt);
+  TERMLISTADD ((p_data->tolist), newt);
+
+  // Add to registration lists
+  // Everything to destructor list
+  TERMLISTADD ((sys->runs[rid].artefacts), newt);
+  // Variable / Constant?
+  if (isvariable)
+    {
+      TERMLISTADD (sys->variables, newt);
+      if (isrole)
+	{
+	  // role variable
+	  /*
+	   * We use append to make sure the order is
+	   * consistent with the role names list.
+	   */
+	  TERMLISTAPPEND ((sys->runs[rid]).rho, newt);
+	  if (!((p_data->role)->initiator))
+	    {
+	      // For non-initiators, we prepend the recving of the role names
+
+	      // XXX disabled for now TODO [x] [cc]
+	      if (0 == 1 && not_recv_first (p_data->rd, oldt))
+		{
+		  /* this term is forced as a choose, or it does not occur in the (first) recv event */
+		  if (p_data->extterm == NULL)
+		    {
+		      p_data->extterm = newt;
+		    }
+		  else
+		    {
+		      p_data->extterm = makeTermTuple (newt, p_data->extterm);
+		      // NOTE: don't these get double deleted? By roledefdestroy?
+		      TERMLISTAPPEND ((sys->runs[rid].artefacts),
+				      p_data->extterm);
+		    }
+		}
+	    }
+	}
+      else
+	{
+	  // normal variable
+	  TERMLISTAPPEND ((sys->runs[rid].sigma), newt);
+	}
+    }
+  else
+    {
+      // local constant
+      TERMLISTADD ((sys->runs[rid].constants), newt);
+    }
+}
+
+  //! The next function makes locals for all in the list. Flags denote whether it is a variable or role.
+void
+createLocals (const System sys, struct cl_struct *p_data, Termlist list,
+	      int isvariable, int isrole, const int rid)
+{
+  while (list != NULL)
+    {
+      createLocal (sys, p_data, list->term, isvariable, isrole, rid);
+      list = list->next;
+    }
+}
 
 //! Instantiate a role by making a new run for Arachne
 /**
@@ -480,110 +574,29 @@ roleInstanceArachne (const System sys, const Protocol protocol,
 		     Termlist substlist)
 {
   int rid;
-  Run runs;
-  Roledef rd;
-  Termlist fromlist = NULL;	// deleted at the end
-  Termlist tolist = NULL;	// -> .locals
-  Term extterm = NULL;		// construction thing (will go to artefacts)
+  struct cl_struct data;
 
-  void createLocal (Term oldt, int isvariable, int isrole)
-  {
-    Term newt;
-
-    // Create new term with the same symbol
-    if (isvariable)
-      {
-	// Force variable
-	newt = makeTermType (VARIABLE, TermSymb (oldt), rid);
-      }
-    else
-      {
-	// Force local (weirdly enough called global)
-	newt = makeTermType (GLOBAL, TermSymb (oldt), rid);
-      }
-    newt->stype = oldt->stype;	// copy list of types
-    newt->helper.roleVar = isrole;	// set role status
-
-    // Add to copy list
-    TERMLISTADD (fromlist, oldt);
-    TERMLISTADD (tolist, newt);
-
-    // Add to registration lists
-    // Everything to destructor list
-    TERMLISTADD (runs[rid].artefacts, newt);
-    // Variable / Constant?
-    if (isvariable)
-      {
-	TERMLISTADD (sys->variables, newt);
-	if (isrole)
-	  {
-	    // role variable
-	    /*
-	     * We use append to make sure the order is
-	     * consistent with the role names list.
-	     */
-	    TERMLISTAPPEND (runs[rid].rho, newt);
-	    if (!role->initiator)
-	      {
-		// For non-initiators, we prepend the recving of the role names
-
-		// XXX disabled for now TODO [x] [cc]
-		if (0 == 1 && not_recv_first (rd, oldt))
-		  {
-		    /* this term is forced as a choose, or it does not occur in the (first) recv event */
-		    if (extterm == NULL)
-		      {
-			extterm = newt;
-		      }
-		    else
-		      {
-			extterm = makeTermTuple (newt, extterm);
-			// NOTE: don't these get double deleted? By roledefdestroy?
-			TERMLISTAPPEND (runs[rid].artefacts, extterm);
-		      }
-		  }
-	      }
-	  }
-	else
-	  {
-	    // normal variable
-	    TERMLISTAPPEND (runs[rid].sigma, newt);
-	  }
-      }
-    else
-      {
-	// local constant
-	TERMLISTADD (runs[rid].constants, newt);
-      }
-  }
-
-  //! The next function makes locals for all in the list. Flags denote whether it is a variable or role.
-  void createLocals (Termlist list, int isvariable, int isrole)
-  {
-    while (list != NULL)
-      {
-	createLocal (list->term, isvariable, isrole);
-	list = list->next;
-      }
-  }
+  data.fromlist = NULL;		// deleted at the end
+  data.tolist = NULL;		// -> .locals
+  data.extterm = NULL;		// construction thing (will go to artefacts)
+  data.role = role;
 
   /* claim runid, allocate space */
   rid = sys->maxruns;
   ensureValidRun (sys, rid);	// creates a new block
-  runs = sys->runs;		// simple structure pointer transfer (shortcut)
 
   /* duplicate roledef in buffer rd */
   /* Notice that it is not stored (yet) in the run structure,
    * and that termDuplicate is used internally
    */
-  rd = roledefDuplicate (role->roledef);
+  data.rd = roledefDuplicate (role->roledef);
 
   /* set parameters */
   /* generic setup of inherited stuff */
-  runs[rid].protocol = protocol;
-  runs[rid].role = role;
-  runs[rid].step = 0;
-  runs[rid].firstReal = 0;
+  sys->runs[rid].protocol = protocol;
+  sys->runs[rid].role = role;
+  sys->runs[rid].step = 0;
+  sys->runs[rid].firstReal = 0;
 
   /* Now we need to create local terms corresponding to rho, sigma, and any local constants.
    *
@@ -591,35 +604,35 @@ roleInstanceArachne (const System sys, const Protocol protocol,
    */
 
   // Create rho, sigma, constants
-  createLocals (protocol->rolenames, true, true);
-  createLocals (role->declaredvars, true, false);
-  createLocals (role->declaredconsts, false, false);
+  createLocals (sys, &data, protocol->rolenames, true, true, rid);
+  createLocals (sys, &data, role->declaredvars, true, false, rid);
+  createLocals (sys, &data, role->declaredconsts, false, false, rid);
 
   /* Now we prefix the recv before rd, if extterm is not NULL.  Even if
    * extterm is NULL, rd is still set as the start and the index pointer of
    * the run.
    */
-  run_prefix_recv (sys, rid, rd, extterm);
+  run_prefix_recv (sys, rid, data.rd, data.extterm);
 
   /* TODO this is not what we want yet, also local knowledge. The local
    * knowledge (list?) also needs to be substituted on invocation. */
-  runs[rid].know = NULL;
+  sys->runs[rid].know = NULL;
 
   /* now adjust the local run copy */
-  run_localize (sys, rid, fromlist, tolist, substlist);
+  run_localize (sys, rid, data.fromlist, data.tolist, substlist);
 
-  termlistDelete (fromlist);
-  runs[rid].locals = tolist;
+  termlistDelete (data.fromlist);
+  sys->runs[rid].locals = data.tolist;
 
   /* erase any substitutions in the role definition, as they are now copied */
   termlistSubstReset (role->variables);
 
   /* length */
-  runs[rid].rolelength = roledef_length (runs[rid].start);
+  sys->runs[rid].rolelength = roledef_length (sys->runs[rid].start);
   /* [[[ Hack ]]] this length is minimally 3 (to help the construction of the encryptors/decryptors from bare roledefs */
-  if (runs[rid].rolelength < 3)
+  if (sys->runs[rid].rolelength < 3)
     {
-      runs[rid].rolelength = 3;
+      sys->runs[rid].rolelength = 3;
     }
 
   /* new graph to create */
