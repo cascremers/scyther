@@ -15,8 +15,10 @@ echo "Built the Linux binary"
 cp scyther-linux ../gui/Scyther/
 
 # bonus...
-cp scyther-linux ~/bin
+if [ -d ~/bin ] ; then
+  cp scyther-linux ~/bin/
+fi
 
-echo Copied the file to the gui/Scyther directory and \~/bin
+echo "Copied the file to the gui/Scyther directory and ~/bin (if present)"
 echo "---------------------------------------------------------"
 
