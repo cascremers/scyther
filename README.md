@@ -17,7 +17,7 @@ instructions are written from a Linux/Ubuntu perspective, and probably
 need modifications for other platforms.
 
 Scyther is written partly in Python 2 (for the GUI, using wxPython) and
-partly in C (for the backend). 
+partly in C (for the backend).
 
 In order to run the tool from a repository checkout, it is required to
 compile the C sources into a working binary for the backend.  The
@@ -27,6 +27,8 @@ the native platform. Thus, in the Linux case, it should produce
 `./src/scyther-linux`. This file is automatically copied to the related
 directory under `./gui`, and if successful you can attempt to run
 `./gui/scyther-gui.py` to use the graphical user interface.
+
+To use the export feature you must have [Graphviz](https://www.graphviz.org/)  installed and set in your environment variable.
 
 The build process depends on the following
 (Debian/Ubuntu) packages:
