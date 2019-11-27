@@ -22,7 +22,7 @@
 #---------------------------------------------------------------------------
 # Try to get wxPython
 try:
-    import wx
+    import wx.adv
 except ImportError,err:
     from Scyther import Misc
 
@@ -139,7 +139,7 @@ def parseArgs():
 
 #---------------------------------------------------------------------------
 
-class MySplashScreen(wx.SplashScreen):
+class MySplashScreen(wx.adv.SplashScreen):
     def __init__(self,basedir):
         path = os.path.join(basedir,"Images")
         image = os.path.join(path,"scyther-splash.png")
@@ -222,6 +222,7 @@ class ScytherApp(wx.App):
         return True
 
     def OnExit(self):
+        return 0
         """ Tear down """
 
 
