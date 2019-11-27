@@ -41,7 +41,7 @@ class NoAttackError(Exception):
 
 def ShowAndReturn(text):
     title = "Error"
-    dlg = wx.MessageDialog(None, text, title, wx.OK | wx.ICON_ERROR)
+    dlg = wx.MessageDialog(None, text, title, wx.ID_OK | wx.ICON_ERROR)
     result = dlg.ShowModal()
     dlg.Destroy()
 

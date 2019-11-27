@@ -295,10 +295,9 @@ class XMLReader(object):
             elif event.tag == 'system':
                 attack.match = int(event.find('match').text)
                 for term in event.find('commandline'):
-                    if term.text != None:
-                        if attack.commandline != '':
-                            attack.commandline += ' ' 
-                        attack.commandline += term.text 
+                    if attack.commandline != '':
+                        attack.commandline += ' ' 
+                    attack.commandline += term.text 
                 for term in event.find('untrusted').find('termlist'):
                     attack.untrusted.append(str(self.readTerm(term)))
                 for term in event.find('initialknowledge').find('termlist'):
