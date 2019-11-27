@@ -86,5 +86,11 @@ def cmdpushwrite(cmd,data,fname):
     fp.flush()
     fp.close()
 
+def createDotFile(scytherDot, filename): 
+    fp = open("%s.dot" % filename,'w')
+    
+    fp.write(scytherDot)
+    fp.flush()
+    fp.close()
 #---------------------------------------------------------------------------
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:

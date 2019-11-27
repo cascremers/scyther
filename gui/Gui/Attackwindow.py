@@ -54,7 +54,7 @@ class AttackDisplay(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(self,parent,id=-1)
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.Image = wx.StaticBitmap(self, -1, wx.EmptyBitmap(1,1))
+        self.Image = wx.StaticBitmap(self, -1, wx.Bitmap(1,1))
         self.box = wx.BoxSizer(wx.VERTICAL)
         self.box.Add(self.Image,1,wx.ALIGN_CENTER)
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -65,7 +65,7 @@ class AttackDisplay(wx.ScrolledWindow):
 
         filename = attack.file
         if attack.filetype == "png":
-            self.original = wx.Image(filename,wx.BITMAP_TYPE_PNG)
+            self.original = wx.Image(filename,wx.BITMAP_TYPE_ANY)
         elif attack.filetype == "ps":
             # depends on PIL lib
             try:
@@ -93,9 +93,7 @@ class AttackDisplay(wx.ScrolledWindow):
         # This is needed, don't ask me why.
         self.SetScrollbars(0,0,0,0,0,0)
 
-        size = self.GetClientSize()
-        framewidth  = size.width
-        frameheight = size.height
+        (framewidth,frameheight) = self.GetClientSize()
         (virtualwidth,virtualheight) = (framewidth,frameheight)
 
         def makefit(width,height):
@@ -120,14 +118,14 @@ class AttackDisplay(wx.ScrolledWindow):
 
         if self.attack.filetype == "png":
             bmp = self.original
-            if not bmp.Ok():
+            if not bmp.IsOk():
                 bmp = wx.EmptyImage(1,1)
             else:
                 (originalwidth,originalheight) = (bmp.GetWidth(), bmp.GetHeight())
                 if self.win.fit:
                     (factor, virtualwidth, virtualheight) = makefit(originalwidth,originalheight)
                     bmp = self.original.Scale(virtualwidth,virtualheight)
-            self.Image.SetBitmap(wx.BitmapFromImage(bmp))
+            self.Image.SetBitmap(wx.Bitmap(bmp))
 
         elif self.attack.filetype == "ps":
             pil = self.original.copy()
@@ -200,7 +198,7 @@ class AttackDisplay(wx.ScrolledWindow):
         (p,r,l) = self.win.claim.triplet()
         prefix = "pattern-%s_%s_%s-%s" % (p,r,l,self.attack.id)
         suggested = "%s.%s" % (prefix,ext)
-        res = self.askUserForFilename(style=wx.SAVE, wildcard="*.%s" % (ext), defaultFile = "%s" % (suggested))
+        res = self.askUserForFilename(style=wx.FD_SAVE, wildcard="*.%s" % (ext), defaultFile = "%s" % (suggested))
         return res
 
     def exportImage(self, type,ext=None):
@@ -208,8 +206,9 @@ class AttackDisplay(wx.ScrolledWindow):
             ext = type
         res = self.saveFileName(ext)
         if res != None:
-            cmd = "dot -T%s" % (type)
-            cmdpushwrite(cmd,self.attack.scytherDot,res)
+            createDotFile(self.attack.scytherDot, 'tmp')
+            cmd = "dot -T{0} tmp.dot > {1}".format((type), res)
+            os.system(cmd)
 
     def OnExportPng(self, event):
         self.exportImage("png")
