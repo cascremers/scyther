@@ -288,7 +288,7 @@ class MainWindow(wx.Frame):
 
     def OnOpen(self, event):
         if self.ConfirmLoss("Open"):
-            if self.askUserForFilename(style=wx.OPEN,
+            if self.askUserForFilename(style=wx.FD_OPEN,
                                        **self.defaultFileDialogOptions()):
                 textfile = open(os.path.join(self.dirname, self.filename), 'r')
                 self.editor.SetText(textfile.read())
@@ -298,7 +298,7 @@ class MainWindow(wx.Frame):
         return False
 
     def OnSaveAs(self, event):
-        if self.askUserForFilename(defaultFile=self.filename, style=wx.SAVE,
+        if self.askUserForFilename(defaultFile=self.filename, style=wx.FD_SAVE,
                                    **self.defaultFileDialogOptions()):
             self.OnSave(event)
             os.chdir(self.dirname)
