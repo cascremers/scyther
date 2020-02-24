@@ -7,5 +7,5 @@
 message (STATUS "Building Apple Mac Intel version")
 set (scythername "scyther-mac")
 add_executable (${scythername} ${Scyther_sources})
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch i386 -mmacosx-version-min=10.6")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.6")
 
