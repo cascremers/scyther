@@ -198,7 +198,7 @@ class AttackDisplay(wx.ScrolledWindow):
         (p,r,l) = self.win.claim.triplet()
         prefix = "pattern-%s_%s_%s-%s" % (p,r,l,self.attack.id)
         suggested = "%s.%s" % (prefix,ext)
-        res = self.askUserForFilename(style=wx.SAVE, wildcard="*.%s" % (ext), defaultFile = "%s" % (suggested))
+        res = self.askUserForFilename(style=wx.FD_SAVE, wildcard="*.%s" % (ext), defaultFile = "%s" % (suggested))
         return res
 
     def exportImage(self, type,ext=None):
