@@ -53,7 +53,7 @@ def writeGraph(attackthread,txt,fp):
     ALL = 3
 
     def graphLine(txt):
-        fp.write(("\t%s;\n" % (txt)).encode('utf-8'))
+        fp.write("\t%s;\n" % (txt))
 
     def setAttr(atxt,EdgeNodeDefAll=ALL):
         if EdgeNodeDefAll == ALL:
@@ -81,7 +81,7 @@ def writeGraph(attackthread,txt,fp):
 
     # write all graph lines but add layout modifiers
     for l in txt.splitlines():
-        fp.write(l.encode('utf-8'))
+        fp.write(l)
         if l.startswith("digraph"):
             # Write additional stuff for this graph
             #
