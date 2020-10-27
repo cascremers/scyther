@@ -118,42 +118,32 @@ def makeImageDot(dotdata,attackthread=None):
     if Preference.usePIL():
         # If we have the PIL library, we can do postscript! great
         # stuff.
-        type = "ps"
+        imgtype = "ps"
         ext = ".ps"
     else:
         # Ye olde pnge file
-        type = "png"
+        imgtype = "png"
         ext = ".png"
 
-    # Retrieve dot command path
-    dotcommand = FindDot.findDot()
-
-    # command to write to temporary file
-    (fd2,fpname2) = Temporary.tempcleaned(ext)
-    f = os.fdopen(fd2,'w')
-
+    # Write dot source file into temporary file to simplify dealing with graphviz invocation across platforms 
+    (fd_in,fpname_in) = Temporary.tempcleaned(ext)
+    f_in = os.fdopen(fd_in,'w')
+    if attackthread:
+        writeGraph(attackthread,dotdata,f_in)
+    else:
+        f_in.write(dotdata)
+    f_in.close()
+    
     # Set up command
-    cmd = "%s -T%s" % (dotcommand,type)
+    dotcommand = FindDot.findDot()
+    cmd = [dotcommand, "-T" + imgtype, fpname_in]
 
     # execute command
-    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE)
+    (fd_out,fpname_out) = Temporary.tempcleaned(ext)
+    p = Popen(cmd, stdout=fd_out)
+    p.wait()
 
-
-    if attackthread:
-        writeGraph(attackthread,dotdata,p.stdin)
-    else:
-        p.stdin.write(dotdata)
-
-    p.stdin.close()
-
-    for l in p.stdout.read():
-        f.write(str(l))
-
-    p.stdout.close()
-    f.flush()
-    f.close()
-
-    return (fpname2, type)
+    return (fpname_out, imgtype)
 
 
 def makeImage(attack,attackthread=None):
@@ -161,10 +151,10 @@ def makeImage(attack,attackthread=None):
 
     """ This should clearly be a method of 'attack' """
 
-    (name,type) = makeImageDot(attack.scytherDot,attackthread)
+    (name,imgtype) = makeImageDot(attack.scytherDot,attackthread)
     # if this is done, store and report
     attack.file = name
-    attack.filetype = type
+    attack.filetype = imgtype
 
 
 def testImage():

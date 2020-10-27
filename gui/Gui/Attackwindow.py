@@ -201,13 +201,12 @@ class AttackDisplay(wx.ScrolledWindow):
         res = self.askUserForFilename(style=wx.FD_SAVE, wildcard="*.%s" % (ext), defaultFile = "%s" % (suggested))
         return res
 
-    def exportImage(self, type,ext=None):
+    def exportImage(self, imgtype, ext=None):
         if ext == None:
-            ext = type
+            ext = imgtype
         res = self.saveFileName(ext)
         if res != None:
-            cmd = "dot -T%s" % (type)
-            cmdpushwrite(cmd,self.attack.scytherDot,res)
+            dotOutputWrite(self.attack.scytherDot,res,["-T" + imgtype])
 
     def OnExportPng(self, event):
         self.exportImage("png")

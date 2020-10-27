@@ -25,7 +25,14 @@
 
 """ Import externals """
 import os.path
-from subprocess import Popen,PIPE
+from subprocess import Popen,PIPE,run
+from shlex import quote
+
+""" Import scyther components """
+from Scyther import FindDot
+
+""" Import scyther-gui components """
+from . import Temporary
 
 #---------------------------------------------------------------------------
 
@@ -67,24 +74,36 @@ def mypath(file):
     basedir = os.path.split(cmd_file)[0]
     return os.path.join(basedir,file)
 
-# commands: push data in, get fp.write out
-def cmdpushwrite(cmd,data,fname):
+# Write string to tempfile, return (filedescriptor,name)
+def stringToTempfile(data,ext="tmp"):
     """
-    Feed stdin data to cmd, write the output to a freshly created file
-    'fname'. The file is flushed and closed at the end.
+    Take data (a string) and write it to a safe temporary file.
+    Return the resulting filedescriptor and name as a pair.
     """
-    fp = open(fname,'w')
-    # execute command
-    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE)
-    (cin,cout) = (p.stdin, p.stdout)
+    (fd,fpname) = Temporary.tempcleaned(ext)
+    f = os.fdopen(fd,'w')
+    f.write(data)
+    f.close()
 
-    cin.write(data)
-    cin.close()
-    for l in cout.read():
-        fp.write(l)
-    cout.close()
-    fp.flush()
-    fp.close()
+    return (fd, fpname)
+
+
+# commands: push data in as file named argument to dot, get fp.write out
+def dotOutputWrite(data,fname,cmd=[]):
+    """
+    Feed stdin data to cmd array, write the output to a freshly
+    created file 'fname'. The file is flushed and closed at the end.
+
+    TODO: In reality, this particular dot data was already written to another temp file when rendering the attack graph. We should be reusing that file instead of writing a new one.
+    """
+    (fd_in,fpname_in) = stringToTempfile(data,ext="dot")
+
+    dotcommand = FindDot.findDot()
+    execcmd = [dotcommand] + cmd + ["-o" + quote(fname), quote(fpname_in)]
+    print (execcmd)
+
+    # execute command
+    run(execcmd)
 
 #---------------------------------------------------------------------------
 # vim: set ts=4 sw=4 et list lcs=tab\:>-:
