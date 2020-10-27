@@ -217,7 +217,7 @@ class ErrorWindow(wx.Dialog):
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+        sizer.Add(line, 0, wx.GROW|wx.RIGHT|wx.TOP, 5)
 
         etxt = ""
         prefix = "error: "
@@ -230,7 +230,7 @@ class ErrorWindow(wx.Dialog):
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+        sizer.Add(line, 0, wx.GROW|wx.RIGHT|wx.TOP, 5)
 
         btnsizer = wx.StdDialogButtonSizer()
         

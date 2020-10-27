@@ -176,7 +176,7 @@ class EditorStc(Editor):
                 line = line - 1     # Start at 0 in stc, but on screen count is 1
                 pos = self.control.GetLineIndentPosition(line)
                 last = self.control.GetLineEndPosition(line)
-                self.control.StartStyling(pos,31)
+                self.control.StartStyling(pos)
                 self.control.SetStyling(last-pos,self.errorstyle)
 
     def ClearErrors(self):
