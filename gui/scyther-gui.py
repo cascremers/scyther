@@ -94,6 +94,19 @@ The exact error was:
 
 
 #---------------------------------------------------------------------------
+global WXPYTHON4
+global WXPYTHONINFREQ
+WXPYTHON4 = False
+WXPYTHONINFREQ = wx
+
+try:
+    import wx.adv
+
+    WXPYTHON4 = True
+    WXPYTHONINFREQ = wx.adv
+except ImportError:
+    pass
+
 """ import externals """
 import sys
 import os
@@ -139,7 +152,7 @@ def parseArgs():
 
 #---------------------------------------------------------------------------
 
-class MySplashScreen(wx.adv.SplashScreen):
+class MySplashScreen(WXPYTHONINFREQ.SplashScreen):
     def __init__(self,basedir):
         path = os.path.join(basedir,"Images")
         image = os.path.join(path,"scyther-splash.png")
