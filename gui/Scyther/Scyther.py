@@ -294,14 +294,18 @@ class Scyther(object):
 
         # Apparently we are supporsed to be able to use the cache
         m = hashlib.sha256()
+        
+        def muppet(m, s):
+            m.update(s.encode('utf-8'))
+
         if spdl == None:
-            m.update("[spdl:None]")
+            muppet(m, "[spdl:None]")
         else:
-            m.update(spdl)
+            muppet(m, spdl)
         if args == None:
-            m.update("[args:None]")
+            muppet(m, "[args:None]")
         else:
-            m.update(args)
+            muppet(m, args)
 
         uid = m.hexdigest()
 
@@ -399,7 +403,7 @@ class Scyther(object):
             (fdi,fni) = tempfile.mkstemp()  # input
 
             # Write (input) file
-            fhi = os.fdopen(fdi,'w+b')
+            fhi = os.fdopen(fdi,'w+')
             fhi.write(spdl)
             fhi.close()
 
@@ -495,7 +499,7 @@ class Scyther(object):
                     # whoohee, xml
                     self.validxml = True
 
-                    xmlfile = StringIO.StringIO(output)
+                    xmlfile = io.StringIO(output)
                     reader = XMLReader.XMLReader()
                     self.claims = reader.readXML(xmlfile)
 
@@ -595,10 +599,10 @@ def FindProtocols(path="",filterProtocol=None):
     Note: Unix only! Will not work under windows.
     """
 
-    import commands
+    import subprocess
 
     cmd = "find %s -iname '*.spdl'" % (path)
-    plist = commands.getoutput(cmd).splitlines()
+    plist = subprocess.getoutput(cmd).splitlines()
     nlist = []
     for prot in plist:
         if filterProtocol != None:

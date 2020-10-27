@@ -53,7 +53,7 @@ def writeGraph(attackthread,txt,fp):
     ALL = 3
 
     def graphLine(txt):
-        fp.write("\t%s;\n" % (txt))
+        fp.write(("\t%s;\n" % (txt)).encode('utf-8'))
 
     def setAttr(atxt,EdgeNodeDefAll=ALL):
         if EdgeNodeDefAll == ALL:
@@ -81,7 +81,7 @@ def writeGraph(attackthread,txt,fp):
 
     # write all graph lines but add layout modifiers
     for l in txt.splitlines():
-        fp.write(l)
+        fp.write(l.encode('utf-8'))
         if l.startswith("digraph"):
             # Write additional stuff for this graph
             #
@@ -147,7 +147,7 @@ def makeImageDot(dotdata,attackthread=None):
     p.stdin.close()
 
     for l in p.stdout.read():
-        f.write(l)
+        f.write(str(l))
 
     p.stdout.close()
     f.flush()

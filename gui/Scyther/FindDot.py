@@ -41,8 +41,9 @@ def testDot(fpath):
     try:
         cmd = "%s -V" % (fpath)
         (sts,sout,serr) = Misc.safeCommandOutput(cmd)
+
         if sts != -1:
-            if "version" in sout + serr:
+            if "version" in str(sout) + str(serr):
                 return True
     except:
         pass
