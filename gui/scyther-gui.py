@@ -234,8 +234,9 @@ class ScytherApp(wx.App):
 
         return True
 
-    def OnExit(self):
-        """ Tear down """
+    #def OnExit(self):
+    #    """ Tear down """
+    #    # Currently unused, but ought to return the same integer as the base class if overridden.
 
 
 #---------------------------------------------------------------------------
