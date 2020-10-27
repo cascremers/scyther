@@ -34,8 +34,8 @@ def stripRowEnd(l):
     # Assume ends with \\, split by dtl
     endstr = "\\\\"
     if not l.endswith(endstr):
-        print "Error: some line does not end with \\\\"
-        print ">>%s<<" % (l)
+        print("Error: some line does not end with \\\\")
+        print(">>%s<<" % (l))
         sys.exit(-1)
 
     return l[:-len(endstr)]
@@ -63,7 +63,7 @@ def scanAttackFile(fn):
     prot = None
     role = None
     claim = None
-    for rawline in fp.xreadlines():
+    for rawline in fp:
 
         l = rawline.strip()
 
@@ -94,7 +94,7 @@ def scanAttackFile(fn):
             attl[i] = x[1:-1]
 
         ak = (prot,role,claim)
-        if ak not in attackmap.keys():
+        if ak not in list(attackmap.keys()):
             attackmap[ak] = set()
         attackmap[ak].add(tuple(attl))
 
@@ -136,7 +136,7 @@ def mpaTable(attackmap):
     s += "\\begin{longtable}{|l|lll|l|}\n" 
     s += "\\hline\n"
     for kk in sorted(ALLCLAIMS):
-        if kk not in attackmap.keys():
+        if kk not in list(attackmap.keys()):
             continue
         (prot,role,claim) = kk
 
@@ -174,7 +174,7 @@ def mpaTable2(attackmap,tabtype="tabular",options=""):
 
     # To find the number of columns, we first need to find all protocols involved in two-protocol attacks
     involved = set()
-    for kk in attackmap.keys():
+    for kk in list(attackmap.keys()):
         for atl in attackmap[kk]:
             # convert tuple back to list
             att = list(atl)
@@ -210,7 +210,7 @@ def mpaTable2(attackmap,tabtype="tabular",options=""):
     s += "\\hline\n"
     last = None
     for kk in sorted(ALLCLAIMS):
-        if kk not in attackmap.keys():
+        if kk not in list(attackmap.keys()):
             continue
         (prot,role,claim) = kk
         
@@ -256,7 +256,7 @@ def mpaTable3(attackmaps,tabtype="tabular",options=""):
     involved = set()
     allkeys = set()
     for (attackmap,symbs) in attackmaps:
-        for kk in attackmap.keys():
+        for kk in list(attackmap.keys()):
             allkeys.add(kk)
             for atl in attackmap[kk]:
                 # convert tuple back to list
@@ -298,7 +298,7 @@ def mpaTable3(attackmaps,tabtype="tabular",options=""):
     s += "\\hline\n"
     last = None
     for kk in sorted(ALLCLAIMS):
-        if kk not in attackmap.keys():
+        if kk not in list(attackmap.keys()):
             continue
         (prot,role,claim) = kk
         
@@ -313,7 +313,7 @@ def mpaTable3(attackmaps,tabtype="tabular",options=""):
             se = tuple([ch])
             sl += "& "
             for (attackmap,symb) in attackmaps:
-                if kk in attackmap.keys():
+                if kk in list(attackmap.keys()):
                     if se in attackmap[kk]:
                         sl += symb
                         break
@@ -341,7 +341,7 @@ def scanClaimList(fn):
     fp = open("gen-%s-claims.txt" % (fn),"r")
 
     claimmap = {}
-    for rawline in fp.xreadlines():
+    for rawline in fp:
 
         l = rawline.strip()
 
@@ -380,7 +380,7 @@ def scanClaimFile(fn):
     fp = open("gen-%s-correctclaims.tex" % (fn),"r")
 
     claimmap = {}
-    for rawline in fp.xreadlines():
+    for rawline in fp:
 
         l = rawline.strip()
 
@@ -396,7 +396,7 @@ def scanClaimFile(fn):
             if not FFUNC(prot):
                 continue
 
-        if prot not in claimmap.keys():
+        if prot not in list(claimmap.keys()):
             claimmap[prot] = {}
 
         cll = splitStrip(dtl[1],";")
@@ -404,7 +404,7 @@ def scanClaimFile(fn):
         for dt in cll:
             (role,claim) = roleClaim(dt)
 
-            if role not in claimmap[prot].keys():
+            if role not in list(claimmap[prot].keys()):
                 claimmap[prot][role] = set()
 
             claimmap[prot][role].add(claim)
@@ -420,7 +420,7 @@ def scanClaimFile(fn):
 def getRoleClaims(rcmap):
 
     rc = set()
-    for role in rcmap.keys():
+    for role in list(rcmap.keys()):
         for claim in rcmap[role]:
             rc.add((role,claim))
 
@@ -459,8 +459,8 @@ def typeScanMatrix(cml,onlyChanged = False):
         alltrue = True
         for (txt,cm) in cml:
             verdict = badverdict
-            if prot in cm.keys():
-                if role in cm[prot].keys():
+            if prot in list(cm.keys()):
+                if role in list(cm[prot].keys()):
                     if claim in cm[prot][role]:
                         verdict = goodverdict
             if verdict == badverdict:
@@ -518,8 +518,8 @@ def typeScanMatrix2(cml,onlyChanged = False,additive = False):
         res = ""
         for (txt,cm) in cml:
             verdict = badverdict
-            if prot in cm.keys():
-                if role in cm[prot].keys():
+            if prot in list(cm.keys()):
+                if role in list(cm[prot].keys()):
                     if claim in cm[prot][role]:
                         verdict = goodverdict
             if verdict == badverdict:
@@ -582,8 +582,8 @@ def typeScanMatrix3(hd1,hd2,cml,f,onlyChanged = False,tabletype="longtable"):
         resl = []
         for cm in cml:
             verdict = badverdict
-            if prot in cm.keys():
-                if role in cm[prot].keys():
+            if prot in list(cm.keys()):
+                if role in list(cm[prot].keys()):
                     if claim in cm[prot][role]:
                         verdict = goodverdict
             if verdict == badverdict:
@@ -660,11 +660,11 @@ def docWrite(fn,tex,author=None,title=None):
 
 def docMake(fn,tex,author=None,title=None):
 
-    import commands
+    import subprocess
 
     docWrite(fn,tex,author,title)
     cmd = "pdflatex %s" % (fn)
-    commands.getoutput(cmd)
+    subprocess.getoutput(cmd)
 
 def f1(resl):
     txtl = []

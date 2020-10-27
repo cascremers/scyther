@@ -49,7 +49,7 @@ from time import localtime,strftime
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
-import Makeimage
+from . import Makeimage
 
 #---------------------------------------------------------------------------
 
@@ -127,7 +127,7 @@ class Preferences(dict):
         """
         Copy dict into self.
         """
-        for x in d.keys():
+        for x in list(d.keys()):
             self[x] = d[x]
 
     def parse(self,line):
@@ -164,13 +164,13 @@ class Preferences(dict):
                 fp.close()
 
     def show(self):
-        print "Preferences:"
-        for k in self.keys():
-            print "%s=%s" % (k, self[k])
+        print("Preferences:")
+        for k in list(self.keys()):
+            print("%s=%s" % (k, self[k]))
 
     def save(self):
 
-        print "Saving preferences"
+        print("Saving preferences")
         prefpath = preflocs[-1]
         if not os.access(prefpath,os.W_OK):
             os.makedirs(prefpath)
@@ -215,7 +215,7 @@ def init():
 def get(key,alt=None):
     global prefs
 
-    if key in prefs.keys():
+    if key in list(prefs.keys()):
         return prefs[key]
     else:
         return alt
@@ -223,7 +223,7 @@ def get(key,alt=None):
 def getkeys():
     global prefs
 
-    return prefs.keys()
+    return list(prefs.keys())
 
 def set(key,value):
     global prefs

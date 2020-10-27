@@ -30,7 +30,7 @@
 # Note 2: this code assumes that both scyther-linux and dot can be found in the
 # environment (i.e. PATH variable)
 #
-import os,sys,commands
+import os,sys,subprocess
 import os.path
 
 tempcount = 0
@@ -59,7 +59,7 @@ def scyther_to_dotfile():
     tmpdotfile = generateTemp('dot')
 
     command = "%s --plain --dot-output %s > %s" % (scythername, args, tmpdotfile)
-    output = commands.getoutput(command)
+    output = subprocess.getoutput(command)
     return (output,tmpdotfile)
 
 def dotfile_to_pdffile(dotfile,outfile=None):
@@ -72,10 +72,10 @@ def dotfile_to_pdffile(dotfile,outfile=None):
     # it fit to a landscape page
     dotdata = open(dotfile, "r")
     f = None
-    for line in dotdata.xreadlines():
+    for line in dotdata:
         if (line.find('digraph') == 0):
             f = os.popen("dot -Gsize='11.0,8.0' -Gratio=fill -Tps >>%s" % (tmp),'w')
-        print >>f, line
+        print(line, file=f)
     dotdata.close()
 
     if not f:
@@ -96,18 +96,18 @@ def dotfile_to_pdffile(dotfile,outfile=None):
 
 def main():
     (output,dotfile) = scyther_to_dotfile()
-    print output
+    print(output)
     pdffile = dotfile_to_pdffile(dotfile)
     os.unlink(dotfile)
     if pdffile:
-        commands.getoutput("kpdf %s" % pdffile)
+        subprocess.getoutput("kpdf %s" % pdffile)
         os.unlink(pdffile)
     else:
-        print "No graphs generated."
+        print("No graphs generated.")
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         main()
     else:
-        print "Please provide the name of an input file."
+        print("Please provide the name of an input file.")
 

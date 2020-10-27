@@ -50,8 +50,8 @@ def simpleRun(args):
 if __name__ == '__main__':
     pars = sys.argv[1:]
     if len(pars) == 0:
-        print usage()
+        print(usage())
     else:
-        print simpleRun(" ".join(pars))
+        print(simpleRun(" ".join(pars)))
 
 

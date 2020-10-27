@@ -48,7 +48,7 @@ TEST2 = "--max-runs=4"
 #---------------------------------------------------------------------------
 
 """ Import externals """
-import commands
+import subprocess
 
 #---------------------------------------------------------------------------
 
@@ -128,7 +128,7 @@ def findProtocols():
     """
 
     cmd = "find -iname '*.spdl'"
-    plist = commands.getoutput(cmd).splitlines()
+    plist = subprocess.getoutput(cmd).splitlines()
     nlist = []
     for prot in plist:
         if filterProtocol(prot):
@@ -143,35 +143,35 @@ def main():
     global TEST0,TEST1,TEST2
 
     list = findProtocols()
-    print "Performing delta analysis"
-    print 
-    print "String 0 (used for both): '%s'" % TEST0
-    print "String 1: '%s'" % TEST1
-    print "String 2: '%s'" % TEST2
-    print
-    print "After filtering, we are left with the following protocols:", list
-    print
+    print("Performing delta analysis")
+    print() 
+    print("String 0 (used for both): '%s'" % TEST0)
+    print("String 1: '%s'" % TEST1)
+    print("String 2: '%s'" % TEST2)
+    print()
+    print("After filtering, we are left with the following protocols:", list)
+    print()
     maxcount = len(list)
     count = 1
     delta = 0
     for prot in list:
         perc = (100 * count) / maxcount
-        print "[%i%%] %s: " % (perc,prot),
+        print("[%i%%] %s: " % (perc,prot), end=' ')
         res = ScytherDiff(prot)
         if res != None:
-            print
-            print "-" * 72
-            print prot
-            print "-" * 72
-            print res
+            print()
+            print("-" * 72)
+            print(prot)
+            print("-" * 72)
+            print(res)
             delta = delta + 1
         else:
-            print "No interesting delta found."
+            print("No interesting delta found.")
         count = count + 1
 
-    print
-    print "Analysis complete."
-    print "%i out of %i protocols differed [%i%%]." % (delta,maxcount,(100 * delta)/maxcount)
+    print()
+    print("Analysis complete.")
+    print("%i out of %i protocols differed [%i%%]." % (delta,maxcount,(100 * delta)/maxcount))
 
 
 if __name__ == '__main__':

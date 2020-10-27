@@ -28,7 +28,7 @@ import sys
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
-import Preference
+from . import Preference
 import Scyther.Claim as Claim
 
 #---------------------------------------------------------------------------

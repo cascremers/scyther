@@ -40,15 +40,15 @@ You need at least Python 2.4 to use this program.
 def confirm(question):
     answer = ''
     while answer not in ('y','n'):
-        print question,
-        answer = raw_input().lower()
+        print(question, end=' ')
+        answer = input().lower()
     return answer == 'y'
 
 def exists(func,list):
-    return len(filter(func,list)) > 0    
+    return len(list(filter(func,list))) > 0    
 
 def forall(func,list):
-    return len(filter(func,list)) == len(list)    
+    return len(list(filter(func,list))) == len(list)    
 
 def uniq(li):
     result = []
@@ -123,12 +123,12 @@ def safeCommand(cmd, storePopen=None):
         if storePopen != None:
             storePopen(p)
         sts = p.wait()
-    except KeyboardInterrupt, EnvironmentError:
+    except KeyboardInterrupt as EnvironmentError:
         raise
     except:
-        print "Wile processing [%s] we had an" % (cmd)
-        print "unexpected error:", sys.exc_info()[0]
-        print
+        print("Wile processing [%s] we had an" % (cmd))
+        print("unexpected error:", sys.exc_info()[0])
+        print()
         sts = -1
         raise   # For now still raise
 
@@ -142,15 +142,15 @@ def panic(text):
     """
 
     try:
-        import Tkinter
+        import tkinter
     except:
-        print text
+        print(text)
         sys.exit(-1)
     
-    print text
+    print(text)
 
-    root = Tkinter.Tk()
-    w = Tkinter.Label(root, justify=Tkinter.LEFT, padx = 10, text=text)
+    root = tkinter.Tk()
+    w = tkinter.Label(root, justify=tkinter.LEFT, padx = 10, text=text)
     w.pack()
     root.mainloop()
 

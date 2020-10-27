@@ -22,7 +22,7 @@
 #
 #   Set prefix for __all__
 #
-import Scyther
+from . import Scyther
 
 #   Provide scope
 __all__ = ["Scyther"]

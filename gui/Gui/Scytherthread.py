@@ -33,11 +33,11 @@ import Scyther.Error
 from Scyther.Misc import *
 
 """ Import scyther-gui components """
-import Preference
-import Attackwindow
-import Icon
-import Error
-import Makeimage
+from . import Preference
+from . import Attackwindow
+from . import Icon
+from . import Error
+from . import Makeimage
 
 #---------------------------------------------------------------------------
 if Preference.havePIL:
@@ -114,7 +114,7 @@ class ScytherThread(threading.Thread):
         # verification start
         try:
             claims = scyther.verify(storePopen=self.storePopen)
-        except Scyther.Error.ScytherError, el:
+        except Scyther.Error.ScytherError as el:
             claims = None
             pass
 
@@ -464,7 +464,7 @@ class ScytherRun(object):
         # which makes error reporting somewhat easier
         try:
             Scyther.Scyther.Check()
-        except Scyther.Error.BinaryError, e:
+        except Scyther.Error.BinaryError as e:
             # e.file is the supposed location of the binary
             text = "Could not find Scyther binary at\n%s" % (e.file)
             Error.ShowAndExit(text)

@@ -22,8 +22,8 @@
 #---------------------------------------------------------------------------
 # Try to get wxPython
 try:
-    import wx.adv
-except ImportError,err:
+    import wx
+except ImportError as err:
     from Scyther import Misc
 
     errmsg = "Problem with importing the required [wxPython] package."

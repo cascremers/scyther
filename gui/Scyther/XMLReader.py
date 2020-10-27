@@ -48,7 +48,7 @@ except:
         try:
             from elementtree import ElementTree
         except ImportError:
-            print """
+            print("""
 ERROR:
 
 Could not locate either the [elementtree] or the [cElementTree] package.
@@ -56,7 +56,7 @@ Please install one of them in order to work with the Scyther python interface.
 The [cElementTree] packages can be found at http://effbot.org/zone/celementtree.htm
 
 Note that you can still use the Scyther binaries in the 'Bin' directory.
-        """
+        """)
             sys.exit(1)
 
 ## Simply pick cElementTree
@@ -65,10 +65,10 @@ Note that you can still use the Scyther binaries in the 'Bin' directory.
 #useiter = False 
 #from elementtree import ElementTree
 
-import Term
-import Attack
-import Trace
-import Claim
+from . import Term
+from . import Attack
+from . import Trace
+from . import Claim
         
 class XMLReader(object):
     
@@ -148,7 +148,7 @@ class XMLReader(object):
             # value
             return Term.TermVariable(name,None)
         else:
-            raise Term.InvalidTerm, "Invalid term type in XML: %s" % tag.tag
+            raise Term.InvalidTerm("Invalid term type in XML: %s" % tag.tag)
     
     def readEvent(self,xml):
         label = self.readTerm(xml.find('label'))
@@ -188,7 +188,7 @@ class XMLReader(object):
                 pass
             return Trace.EventClaim(index,label,followlist,role,etype,argument)
         else:
-            raise Trace.InvalidAction, "Invalid action in XML: %s" % (xml.get('type'))
+            raise Trace.InvalidAction("Invalid action in XML: %s" % (xml.get('type')))
 
     def readRun(self,xml):
         assert(xml.tag == 'run')
@@ -276,7 +276,7 @@ class XMLReader(object):
             elif event.tag == 'timebound':
                 claim.timebound = True
             else:
-                print >>sys.stderr,"Warning unknown tag in claim: %s" % claim.tag
+                print("Warning unknown tag in claim: %s" % claim.tag, file=sys.stderr)
 
         claim.analyze()
         return claim
@@ -353,6 +353,6 @@ class XMLReader(object):
                 # this list
                 self.varlist = attack.variables
             else:
-                print >>sys.stderr,"Warning unknown tag in attack: %s" % event.tag
+                print("Warning unknown tag in attack: %s" % event.tag, file=sys.stderr)
         return attack
 

@@ -50,7 +50,7 @@ def setBaseDir(mybasedir):
 class AboutScyther(wx.Dialog):
     def __init__(self,parent,mybasedir=None):
 
-        from Version import SCYTHER_GUI_VERSION
+        from .Version import SCYTHER_GUI_VERSION
         global basedir
 
         self.text = '''

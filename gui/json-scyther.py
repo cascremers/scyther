@@ -48,9 +48,9 @@ def fileandline(fn,linenos):
     ln = 1
     done = 0
     sz = len(linenos)
-    for l in fp.xreadlines():
+    for l in fp:
         if str(ln) in linenos:
-            print l
+            print(l)
             scyther_json(l)
             done = done + 1
             if done >= sz:

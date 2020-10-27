@@ -34,8 +34,8 @@ from Scyther import Misc as MiscScyther
 from Scyther import FindDot
 
 """ Import scyther-gui components """
-import Temporary
-import Preference
+from . import Temporary
+from . import Preference
 
 #---------------------------------------------------------------------------
 try:

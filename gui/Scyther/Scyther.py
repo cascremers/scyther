@@ -28,7 +28,7 @@
 import os
 import os.path
 import sys
-import StringIO
+import io
 import tempfile
 try:
     import hashlib
@@ -40,10 +40,10 @@ except ImportError:
 #---------------------------------------------------------------------------
 
 """ Import scyther components """
-import XMLReader
-import Error
-import Claim
-from Misc import *
+from . import XMLReader
+from . import Error
+from . import Claim
+from .Misc import *
 
 #---------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ def getCacheDir():
 
     # Check if user chose the path
     cachedirkey = "SCYTHERCACHEDIR"
-    if cachedirkey in os.environ.keys():
+    if cachedirkey in list(os.environ.keys()):
         tmpdir = os.environ[cachedirkey]
         if tmpdir == "":
             # Special value: if the variable is present, but equals the empty string, we disable caching.
@@ -126,7 +126,7 @@ def CheckSanity(program):
     """
 
     if not os.path.isfile(program):
-        raise Error.BinaryError, program
+        raise Error.BinaryError(program)
 
 #---------------------------------------------------------------------------
 
@@ -149,7 +149,7 @@ def EnsureString(x,sep=" "):
         return sep.join(newlist)
 
     else:
-        raise Error.StringListError, x
+        raise Error.StringListError(x)
 
 
 #---------------------------------------------------------------------------
@@ -177,7 +177,7 @@ def getScytherBackend():
     else:
 
         """ Unsupported"""
-        raise Error.UnknownPlatformError, sys.platform
+        raise Error.UnknownPlatformError(sys.platform)
 
     program = os.path.join(getBinDir(),scythername)
     return program

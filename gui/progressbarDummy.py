@@ -36,13 +36,13 @@ class ProgressBar(object):
     def start(self):
         if self.widgets:
             if len(self.widgets) > 0:
-                print self.widgets[0],
+                print(self.widgets[0], end=' ')
 
     def update(self,count):
         pass
 
     def finish(self):
-        print " Done."
+        print(" Done.")
 
 
 def SimpleProgress():

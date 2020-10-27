@@ -20,8 +20,8 @@
 #
 # Term
 #
-import Trace
-from Misc import *
+from . import Trace
+from .Misc import *
 
 class InvalidTerm(TypeError):
     "Exception used to indicate that a given term is invalid"

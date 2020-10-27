@@ -21,7 +21,7 @@
 # Claim
 #
 
-import Term
+from . import Term
 
 def stateDescription(okay,n=1,caps=False):
     if okay:

@@ -21,10 +21,10 @@
 # Attack
 #
 
-import Trace
-import Term
+from . import Trace
+from . import Term
 #import Classification
-from Misc import *
+from .Misc import *
 
 class Attack(object):
     def __init__(self):
@@ -47,7 +47,7 @@ class Attack(object):
     def getInvolvedAgents(self):
         result = []
         for run in self.semiTrace.runs:
-            for agent in run.roleAgents.values():
+            for agent in list(run.roleAgents.values()):
                 result.append(agent)
         return uniq(result)
 

@@ -28,12 +28,12 @@ import os.path
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
-import Settingswindow
-import Scytherthread
-import Icon
-import About
-import Editor
-import Preference
+from . import Settingswindow
+from . import Scytherthread
+from . import Icon
+from . import About
+from . import Editor
+from . import Preference
 
 #---------------------------------------------------------------------------
 
