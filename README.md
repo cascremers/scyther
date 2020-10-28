@@ -6,7 +6,7 @@ tool for security protocol analysis. Its intended audience are
 interested users and future developers of the Scyther tool, as well as
 protocol modelers. For installation and usage instructions of the
 Scyther tool see:
-<http://www.cs.ox.ac.uk/people/cas.cremers/scyther/index.html>.
+<https://people.cispa.io/cas.cremers/scyther/>.
 
 Installing from source
 ----------------------
