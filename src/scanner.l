@@ -49,6 +49,7 @@ struct stringlist {
 typedef struct stringlist* Stringlist;
 
 static Stringlist allocatedStrings = NULL;
+static int MAXNAMELENGTH = 4096;
 
 
 int mylineno = 0;
@@ -226,6 +227,7 @@ Symbol mkstring(char *name)
 	char* s;
 	Stringlist sl;
 	int len;
+	int buflen;
 
 	if (( t = lookup(name)) != NULL)
 	{
@@ -233,9 +235,15 @@ Symbol mkstring(char *name)
 	}
 	// make new name
 	len = strlen(name);
-	s = (char *)malloc(len+1);
+	if (len >= MAXNAMELENGTH)
+	{
+		// The buffer length MAXNAMELENGTH is somewhat arbitrary, and feel free to change the constant, but it prevents oddly large memory allocations.
+		error ("The maximum name length is %i, but found %i characters for [%s]", MAXNAMELENGTH, len, name );
+	}
+	buflen = len;
+	s = (char *)malloc(buflen+1);
 	sl = (Stringlist) malloc(sizeof(struct stringlist));
-	strncpy(s,name,len);
+	strncpy(s,name,buflen);
 	sl->next = allocatedStrings;
 	allocatedStrings = sl;
 	sl->string = s;
