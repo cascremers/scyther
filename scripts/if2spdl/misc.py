@@ -5,15 +5,15 @@
 def confirm(question):
     answer = ''
     while answer not in ('y','n'):
-        print question,
-        answer = raw_input().lower()
+        print(question, end=' ')
+        answer = input().lower()
     return answer == 'y'
 
 def exists(func,list):
-    return len(filter(func,list)) > 0    
+    return len(list(filter(func,list))) > 0    
 
 def forall(func,list):
-    return len(filter(func,list)) == len(list)    
+    return len(list(filter(func,list))) == len(list)    
 
 def uniq(li):
     result = []

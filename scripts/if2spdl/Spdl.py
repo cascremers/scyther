@@ -199,7 +199,7 @@ def sanitizeRole(protocol, role):
 				msgto = knowbefore[i]
 				if msgfrom != msgto:
 					### TEST
-					print "Substituting %s by %s" % (str(msgfrom), str(msgto))
+					print("Substituting %s by %s" % (str(msgfrom), str(msgto)))
 					# In all subsequent terms... TODO or
 					# just the next one?
 					for j in range(n+1, len(rules)):
@@ -237,7 +237,7 @@ def sanitizeRole(protocol, role):
 				replacelist.append( (t,msg) )
 				role.constants.append(msg)
 				### TEST
-				print "Substituting %s by %s" % (str(t), str(msg))
+				print("Substituting %s by %s" % (str(t), str(msg)))
 	# Apply replacelist
 	if len(replacelist) > 0:
 		for ev in role.events:
@@ -280,7 +280,7 @@ def extractRoles(protocol):
 		# hrule has been picked. Work back from here
 		# first make up a name
 		if len(hrule.getActors()) != 1:
-			print "Warning: weird actor list for hrule:", hrule.getActors()
+			print("Warning: weird actor list for hrule:", hrule.getActors())
 			name = "X"
 			actor = None
 		else:
@@ -316,7 +316,7 @@ def extractRoles(protocol):
 					# Loop detection
 					if rule in role.rules:
 						# This is a loop TODO
-						print "Warning: loop detected for role", role.name
+						print("Warning: loop detected for role", role.name)
 						scan = False	# Current setting: stop scan
 					else:
 						# No loop, prepend

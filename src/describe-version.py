@@ -48,6 +48,6 @@ def getDescription():
 if __name__ == '__main__':
     tag = getDescription()
     writeTag(tag)
-    print tag
+    print(tag)
 
 

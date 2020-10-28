@@ -88,7 +88,7 @@ protocol ffgg%i(A,B)
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        print ffgg(int(sys.argv[1]))
+        print(ffgg(int(sys.argv[1])))
     else:
-        print "Please provide a number n to generate ffgg_n"
+        print("Please provide a number n to generate ffgg_n")
 

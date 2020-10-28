@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Scyther : An automatic verifier for security protocols.
 Copyright (C) 2007-2013 Cas Cremers
@@ -99,7 +99,7 @@ def runTests(fn,destdir="."):
     fp = open(fn,'r')
     tests = []
     clen = 0
-    for l in fp.xreadlines():
+    for l in fp:
         if l.startswith("#") or l.startswith("%"):
             continue
         d = l.strip()
@@ -110,8 +110,8 @@ def runTests(fn,destdir="."):
                 clen = clen + 1
     fp.close()
 
-    print "Running %i tests." % (clen)
-    print "Destination: %s" % (destdir)
+    print(("Running %i tests." % (clen)))
+    print(("Destination: %s" % (destdir)))
     cnt = 1
     setting = ""
     for l in tests:
@@ -121,10 +121,10 @@ def runTests(fn,destdir="."):
             if len(setting.strip()) == 0:
                 setting = ""
 
-            print "Changing global setting to \"%s\"" % (setting)
+            print(("Changing global setting to \"%s\"" % (setting)))
 
         else:
-            print "%i/%i: Evaluating %s" % (cnt,clen,l+setting)
+            print(("%i/%i: Evaluating %s" % (cnt,clen,l+setting)))
             runTest(l+setting,destdir)
             cnt = cnt + 1
 

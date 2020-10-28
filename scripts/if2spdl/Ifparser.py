@@ -275,14 +275,14 @@ def typeSwitch(line):
 	elif res[3] == "typed":
 		typeversion = True
 	else:
-		print "Cannot determine whether typed or untyped."
+		print("Cannot determine whether typed or untyped.")
 		raise ParseException
 	
 	str = "Detected "
 	if not typedversion:
 		str += "un"
 	str += "typed version."
-	print str
+	print(str)
 
 # Parse a number of lines, including the first line with the type switch
 def linesParse(lines):
@@ -303,9 +303,9 @@ def fileParse(filename):
 
 # Main code
 def main():
-	print "Testing Ifparser module"
-	print
-	print fileParse("NSPK_LOWE.if")
+	print("Testing Ifparser module")
+	print()
+	print(fileParse("NSPK_LOWE.if"))
 
 if __name__ == '__main__':
 	main()
