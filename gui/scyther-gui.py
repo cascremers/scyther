@@ -104,7 +104,13 @@ try:
     WXPYTHON4 = True
     WXPYTHONINFREQ = wx.adv
 except ImportError:
-    pass
+    Misc.panic("""
+ERROR:
+
+Found wxPython libraries, but they seem to be too old (pre-4.0 wxPython). This means you cannot use the graphical user interface. To fix this, please ensure that you have at least wxPython 4.0 installed such that it is loaded by the wx import of python3.
+
+Note that you can currently still use the Scyther binaries in the 'Scyther' directory.
+""")
 
 """ import externals """
 import sys
