@@ -24,8 +24,7 @@ from the command line) then you need only the first.
 
   	http://www.python.org/download/
 
-  Scyther does not support Python 3. You are therefore recommended to
-  choose the latest production release of Python 2, e.g., Python 2.7.
+  Scyther requires **Python 3** now, and no longer supports Python 2. 
 
   *	**Mac OS X**
   

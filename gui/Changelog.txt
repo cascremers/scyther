@@ -1,6 +1,17 @@
 Scyther changelog
 ===============================
 
+Scyther 1.2
+-------------------------------
+
+This release mostly serves to modernize the dependencies and simplify install
+on modern versions of the three supported platforms.
+
+ * Updated python code to use Python 3, dropping the Python 2 requirement.
+ * [Gui] Updated to support (and require) wxPython 4.0 or later.
+ * Updated install instructions.
+ * Updated copyright notices.
+
 Scyther 1.1.2
 -------------------------------
 

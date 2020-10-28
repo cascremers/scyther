@@ -45,10 +45,14 @@ availabe from
 Manual
 ------
 
-We are currently rewriting the manual. The current (incomplete)
+The manual is lagging behind. The current (incomplete)
 distribution version of the manual can be found here:
 
   * [./scyther-manual.pdf](scyther-manual.pdf)
+
+However, have a look at the book if you are interested:
+
+  * [https://doi.org/10.1007/978-3-540-70545-1_38](Our book on security protocols and the theory behind Scyther)
 
 
 Protocol Models
