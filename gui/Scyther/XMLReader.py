@@ -37,7 +37,7 @@ import sys
 # Check for cElementTree presence. Otherwise use ElementTree.
 useiter = True
 try:
-    # python 2.5 has cElementTree in the core
+    # cElementTree is in Python since version 2.5
     import xml.etree.cElementTree as cElementTree
 except:
     # try the old way

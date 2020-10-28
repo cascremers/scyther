@@ -396,7 +396,6 @@ class Scyther(object):
         self.guessFileNames(spdl=spdl)
 
         # Generate temporary files for the output.
-        # Requires Python 2.3 though.
         (fde,fne) = tempfile.mkstemp()  # errors
         (fdo,fno) = tempfile.mkstemp()  # output
         if spdl:

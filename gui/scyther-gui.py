@@ -35,7 +35,7 @@ interface of Scyther.
 The [wxPython] packages can be found at http://www.wxpython.org/
 
 Ubuntu users: the wxPython packages are called 'python-wxgtk' followed by the
-version number."""
+version number. This version of Scyther requires at least wxPython version 4.0."""
     elif ('32-bit mode' in str(err)) or ('no matching architecture' in str(err)):
         import os
 
@@ -90,7 +90,6 @@ The exact error was:
 %s
 --------------------------------------------------------------------------------
     """ % (errmsg,err))
-
 
 
 #---------------------------------------------------------------------------

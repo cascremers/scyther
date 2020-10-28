@@ -16,7 +16,7 @@ Windows and MAC OS X should be equally feasible. Note that the below
 instructions are written from a Linux/Ubuntu perspective, and probably
 need modifications for other platforms.
 
-Scyther is written partly in Python 2 (for the GUI, using wxPython) and
+Scyther is written partly in Python 3 (for the GUI, using wxPython) and
 partly in C (for the backend). 
 
 In order to run the tool from a repository checkout, it is required to

@@ -41,35 +41,20 @@ from the command line) then you need only the first.
 3. ### wxPython libraries ###
 
   The GUI user interface uses the wxPython libraries.
+  The recommended way of installing is through `pip` and described this page:
 
-	http://www.wxpython.org/download.php
+	https://www.wxpython.org/download.php
 
-  There are many different wxPython packages. You should choose a 32-bit
-  package that matches your Python version (e.g., 2.7). It is
-  recommended to select the unicode version from the stable releases.
+  This version of Scyther requires at least **wxPython 4.0**. Note that older versions of Scyther did not work with wxPython 4.
 
-  As of writing (May 2013) the following links lead to the appropriate
-  wxPython packages for Python 2.7:
+  For Ubuntu users, it is important to add an additional parameter, e.g., for Ubuntu 20.04, the recommended pip install is:
 
-  *	**Windows**
-  
-   	http://downloads.sourceforge.net/wxpython/wxPython2.8-win32-unicode-2.8.12.1-py27.exe
-
-  *	**Mac OS X**
-  
-   	http://downloads.sourceforge.net/wxpython/wxPython2.8-osx-unicode-2.8.12.1-universal-py2.7.dmg
-
-   	Note that this package is in an old format and you will probably
-   	get a warning "Package is damaged". This can be resolved by:
-   	
-   	```
-   	 $ sudo installer -pkg /Volume/.../wxPython2.8-osx-unicode-universal-py2.7.pkg/ -target /
-   	```
-
-  *	**Ubuntu/Debian Linux**
-  
-   	http://wiki.wxpython.org/InstallingOnUbuntuOrDebian
-
+  ```
+   $ sudo apt install python-pip
+   $ pip install -U \
+    -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04 \
+    wxPython
+  ```
 
 Running Scyther
 ---------------
@@ -78,13 +63,13 @@ Extract the Scyther archive and navigate to the extracted directory.
 
 Start Scyther by executing the file
 
-  	scyther-gui.py
+  	`scyther-gui.py`
 
 in the main directory of the extracted archive.
 
   *	**Mac OS X**
   
-  	Right-click the file 'scyther-gui.py' and select "Open with" and
+  	Right-click the file `scyther-gui.py` and select "Open with" and
   	then "Python Launcher".
 
 
