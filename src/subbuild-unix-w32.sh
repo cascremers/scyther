@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e 
+
 # Default flags
 CMFLAGS="-D CMAKE_BUILD_TYPE:STRING=Release"
 
