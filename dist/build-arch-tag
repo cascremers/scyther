@@ -106,9 +106,8 @@ then
 
 elif [ $ARCH = "mac" ]
 then
-	# Make for ppc and intel, and combine into universal binary
+	# Make for intel
 	BIN="scyther-mac"
-	cmake $CMFLAGS -D TARGETOS=MacPPC   . && make
 	cmake $CMFLAGS -D TARGETOS=MacIntel . && make
 	cmake $CMFLAGS                      . && make scyther-mac
 fi
