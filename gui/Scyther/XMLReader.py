@@ -20,17 +20,6 @@
 #
 # XMLReader
 #
-# Note:
-# This requires python elementtree to work
-# See: http://effbot.org/zone/element-index.htm
-#
-# On Fedora Core you can install this by installing the python-elementtree rpm
-# Things will be a lot faster and consume less memory if you install the
-# cElementTree module
-#
-# In python 2.5 cElementTree is in the core, so you don't need to install
-# extra packages
-#
 
 import sys
 
@@ -69,7 +58,13 @@ from . import Term
 from . import Attack
 from . import Trace
 from . import Claim
-        
+
+def getchildren(xml):
+    """
+    (c)elementree xml objects used to have a getchildren() method, but this has been deprecated. This function provides similar functionality. The only catch is that the list/iter replacements also contain the object itself, so we need to filter this.
+    """
+    return [ x for x in list(xml) if x != xml ]
+
 class XMLReader(object):
     
     def __init__ (self):
@@ -123,8 +118,8 @@ class XMLReader(object):
         # If this is a term variable read it directly
         if (xml.tag in ('tuple','const','apply','encrypt','var')):
             return self.readSubTerm(xml)
-        # Otherwise read from it's first child
-        children = xml.getchildren()
+        # Otherwise read from its first child
+        children = getchildren(xml)
         assert(len(children) == 1)
         return self.readSubTerm(children[0])
 
@@ -249,7 +244,7 @@ class XMLReader(object):
         
     def readClaim(self, xml):
         claim = Claim.Claim()
-        for event in xml.getchildren():
+        for event in getchildren(xml):
             if event.tag == 'claimtype':
                 claim.claimtype = self.readTerm(event)
             elif event.tag == 'label':
@@ -288,7 +283,7 @@ class XMLReader(object):
         # A state contains 4 direct child nodes:
         # broken, system, variables and semitrace
         # optionally a fifth: dot
-        for event in xml.getchildren():
+        for event in getchildren(xml):
             if event.tag == 'broken':
                 attack.broken.append((self.readTerm(event.find('claim')),
                     self.readTerm(event.find('label'))))
