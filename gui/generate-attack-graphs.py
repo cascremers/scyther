@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -109,7 +109,7 @@ def render_best_attack(fn,cid):
             render_dot(dotfile,"png")
             render_dot(dotfile,"pdf")
 
-        print "%s; %s" % (fn,cl)
+        print("%s; %s" % (fn,cl))
 
 def main():
 

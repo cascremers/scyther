@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@
 # Try to get wxPython
 try:
     import wx
-except ImportError,err:
+except ImportError as err:
     from Scyther import Misc
 
     errmsg = "Problem with importing the required [wxPython] package."
@@ -35,7 +35,7 @@ interface of Scyther.
 The [wxPython] packages can be found at http://www.wxpython.org/
 
 Ubuntu users: the wxPython packages are called 'python-wxgtk' followed by the
-version number."""
+version number. This version of Scyther requires at least wxPython version 4.0."""
     elif ('32-bit mode' in str(err)) or ('no matching architecture' in str(err)):
         import os
 
@@ -92,8 +92,26 @@ The exact error was:
     """ % (errmsg,err))
 
 
-
 #---------------------------------------------------------------------------
+global WXPYTHON4
+global WXPYTHONINFREQ
+WXPYTHON4 = False
+WXPYTHONINFREQ = wx
+
+try:
+    import wx.adv
+
+    WXPYTHON4 = True
+    WXPYTHONINFREQ = wx.adv
+except ImportError:
+    Misc.panic("""
+ERROR:
+
+Found wxPython libraries, but they seem to be too old (pre-4.0 wxPython). This means you cannot use the graphical user interface. To fix this, please ensure that you have at least wxPython 4.0 installed such that it is loaded by the wx import of python3.
+
+Note that you can currently still use the Scyther binaries in the 'Scyther' directory.
+""")
+
 """ import externals """
 import sys
 import os
@@ -139,7 +157,7 @@ def parseArgs():
 
 #---------------------------------------------------------------------------
 
-class MySplashScreen(wx.SplashScreen):
+class MySplashScreen(WXPYTHONINFREQ.SplashScreen):
     def __init__(self,basedir):
         path = os.path.join(basedir,"Images")
         image = os.path.join(path,"scyther-splash.png")
@@ -193,7 +211,7 @@ class ScytherApp(wx.App):
 
         # License option may abort here
         if opts.license:
-            print Scyther.GetLicense()
+            print(Scyther.GetLicense())
             sys.exit(0)
 
         # Load preferences file
@@ -221,8 +239,9 @@ class ScytherApp(wx.App):
 
         return True
 
-    def OnExit(self):
-        """ Tear down """
+    #def OnExit(self):
+    #    """ Tear down """
+    #    # Currently unused, but ought to return the same integer as the base class if overridden.
 
 
 #---------------------------------------------------------------------------

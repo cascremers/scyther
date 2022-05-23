@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -28,12 +28,12 @@ import os.path
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
-import Settingswindow
-import Scytherthread
-import Icon
-import About
-import Editor
-import Preference
+from . import Settingswindow
+from . import Scytherthread
+from . import Icon
+from . import About
+from . import Editor
+from . import Preference
 
 #---------------------------------------------------------------------------
 
@@ -288,7 +288,7 @@ class MainWindow(wx.Frame):
 
     def OnOpen(self, event):
         if self.ConfirmLoss("Open"):
-            if self.askUserForFilename(style=wx.OPEN,
+            if self.askUserForFilename(style=wx.FD_OPEN,
                                        **self.defaultFileDialogOptions()):
                 textfile = open(os.path.join(self.dirname, self.filename), 'r')
                 self.editor.SetText(textfile.read())
@@ -298,7 +298,7 @@ class MainWindow(wx.Frame):
         return False
 
     def OnSaveAs(self, event):
-        if self.askUserForFilename(defaultFile=self.filename, style=wx.SAVE,
+        if self.askUserForFilename(defaultFile=self.filename, style=wx.FD_SAVE,
                                    **self.defaultFileDialogOptions()):
             self.OnSave(event)
             os.chdir(self.dirname)

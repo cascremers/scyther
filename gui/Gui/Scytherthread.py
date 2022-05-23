@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -33,11 +33,11 @@ import Scyther.Error
 from Scyther.Misc import *
 
 """ Import scyther-gui components """
-import Preference
-import Attackwindow
-import Icon
-import Error
-import Makeimage
+from . import Preference
+from . import Attackwindow
+from . import Icon
+from . import Error
+from . import Makeimage
 
 #---------------------------------------------------------------------------
 if Preference.havePIL:
@@ -114,7 +114,7 @@ class ScytherThread(threading.Thread):
         # verification start
         try:
             claims = scyther.verify(storePopen=self.storePopen)
-        except Scyther.Error.ScytherError, el:
+        except Scyther.Error.ScytherError as el:
             claims = None
             pass
 
@@ -185,7 +185,7 @@ class VerificationWindow(wx.Dialog):
         sizer.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+        sizer.Add(line, 0, wx.GROW|wx.RIGHT|wx.TOP, 5)
 
         btnsizer = wx.StdDialogButtonSizer()
         
@@ -217,7 +217,7 @@ class ErrorWindow(wx.Dialog):
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+        sizer.Add(line, 0, wx.GROW|wx.RIGHT|wx.TOP, 5)
 
         etxt = ""
         prefix = "error: "
@@ -230,7 +230,7 @@ class ErrorWindow(wx.Dialog):
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+        sizer.Add(line, 0, wx.GROW|wx.RIGHT|wx.TOP, 5)
 
         btnsizer = wx.StdDialogButtonSizer()
         
@@ -464,13 +464,13 @@ class ScytherRun(object):
         # which makes error reporting somewhat easier
         try:
             Scyther.Scyther.Check()
-        except Scyther.Error.BinaryError, e:
+        except Scyther.Error.BinaryError as e:
             # e.file is the supposed location of the binary
             text = "Could not find Scyther binary at\n%s" % (e.file)
             Error.ShowAndExit(text)
         
         # start the thread
-        self.verifywin.SetCursor(wx.StockCursor(wx.CURSOR_WAIT))
+        self.verifywin.SetCursor(wx.Cursor(wx.CURSOR_WAIT))
         self.verifywin.Bind(wx.EVT_CLOSE, self.closer)
         self.verifywin.Bind(wx.EVT_WINDOW_DESTROY, self.closer)
         self.verifywin.Bind(wx.EVT_BUTTON, self.closer, id=wx.ID_CANCEL)
@@ -520,12 +520,12 @@ class ScytherRun(object):
 
         def allDone():
             if resultwin:
-                resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+                resultwin.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
                 resultwin.SetStatusText("Done.")
 
         resultwin.Center()
         resultwin.Show(True)
-        resultwin.SetCursor(wx.StockCursor(wx.CURSOR_ARROWWAIT))
+        resultwin.SetCursor(wx.Cursor(wx.CURSOR_ARROWWAIT))
 
         wx.Yield()
 

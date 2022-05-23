@@ -32,7 +32,7 @@ def parseArgs():
         parser.print_help()
         sys.exit(0)
     if opts.protocol not in ["nsl","bke","nsl-priv-noprop","nsl-pub-nap","bke-nap"]:
-        print "I don't know the %s protocol." % (opts.protocol)
+        print("I don't know the %s protocol." % (opts.protocol))
         sys.exit(0)
     return (opts,args)
 
@@ -158,7 +158,7 @@ def message1 (label,inrole):
 
         return msg
     else:
-        print "Hmm, I don't know how to create the first message for protocol %s" % (opts.protocol)
+        print("Hmm, I don't know how to create the first message for protocol %s" % (opts.protocol))
 
 def message2 (label,inrole):
     global P,variant,opts
@@ -205,7 +205,7 @@ def message2 (label,inrole):
 
         return msg
     else:
-        print "Hmm, I don't know how to create the final message for protocol %s" % (opts.protocol)
+        print("Hmm, I don't know how to create the final message for protocol %s" % (opts.protocol))
 
 def message (label,inrole):
     global P,opts
@@ -338,7 +338,7 @@ def main():
     global opts
 
     (opts,args) = parseArgs()
-    print protocol(args)
+    print(protocol(args))
 
 # Only if main stuff
 if __name__ == '__main__':

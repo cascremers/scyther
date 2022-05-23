@@ -1,6 +1,6 @@
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -40,15 +40,15 @@ You need at least Python 2.4 to use this program.
 def confirm(question):
     answer = ''
     while answer not in ('y','n'):
-        print question,
-        answer = raw_input().lower()
+        print(question, end=' ')
+        answer = input().lower()
     return answer == 'y'
 
 def exists(func,list):
-    return len(filter(func,list)) > 0    
+    return len(list(filter(func,list))) > 0    
 
 def forall(func,list):
-    return len(filter(func,list)) == len(list)    
+    return len(list(filter(func,list))) == len(list)    
 
 def uniq(li):
     result = []
@@ -93,21 +93,19 @@ def getShell():
     """
     Determine if we want a shell for Popen
     """
-    if sys.platform.startswith("win"):
-        shell=False
-    else:
-        # Needed to handle the string input correctly (as opposed to a sequence where the first element is the executable)
-        # This is not needed on Windows, where it has a different effect altogether.
-        # See http://docs.python.org/library/subprocess.html?highlight=subprocess#module-subprocess
-        shell=True
-    return shell
+    return False
 
 def safeCommandOutput(cmd, storePopen=None):
     """ Execute a command and return (sts,sout,serr).
     Meant for short outputs, as output is stored in memory and
     not written to a file.
     """
-    p = Popen(cmd, shell=getShell(), stdout=PIPE, stderr=PIPE)
+
+    if isinstance(cmd, str):
+        import shlex
+        cmd = shlex.split(cmd)
+
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
     if storePopen != None:
         storePopen(p)
     (sout,serr) = p.communicate()
@@ -119,16 +117,20 @@ def safeCommand(cmd, storePopen=None):
     version, I hope. """
 
     try:
-        p = Popen(cmd, shell=getShell())
+        if isinstance(cmd, str):
+            import shlex
+            cmd = shlex.split(cmd)
+
+        p = Popen(cmd)
         if storePopen != None:
             storePopen(p)
         sts = p.wait()
-    except KeyboardInterrupt, EnvironmentError:
+    except KeyboardInterrupt as EnvironmentError:
         raise
     except:
-        print "Wile processing [%s] we had an" % (cmd)
-        print "unexpected error:", sys.exc_info()[0]
-        print
+        print("Wile processing [%s] we had an" % (cmd))
+        print("unexpected error:", sys.exc_info()[0])
+        print()
         sts = -1
         raise   # For now still raise
 
@@ -142,15 +144,15 @@ def panic(text):
     """
 
     try:
-        import Tkinter
+        import tkinter
     except:
-        print text
+        print(text)
         sys.exit(-1)
     
-    print text
+    print(text)
 
-    root = Tkinter.Tk()
-    w = Tkinter.Label(root, justify=Tkinter.LEFT, padx = 10, text=text)
+    root = tkinter.Tk()
+    w = tkinter.Label(root, justify=tkinter.LEFT, padx = 10, text=text)
     w.pack()
     root.mainloop()
 

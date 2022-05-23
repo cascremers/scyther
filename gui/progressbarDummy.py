@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -36,13 +36,13 @@ class ProgressBar(object):
     def start(self):
         if self.widgets:
             if len(self.widgets) > 0:
-                print self.widgets[0],
+                print(self.widgets[0], end=' ')
 
     def update(self,count):
         pass
 
     def finish(self):
-        print " Done."
+        print(" Done.")
 
 
 def SimpleProgress():

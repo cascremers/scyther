@@ -19,7 +19,7 @@ def scanThis(fn,f,rewritelist,cnt):
         mapping.append((lhs,rhs))
 
     fp = open(fn,"r")
-    for rl in fp.xreadlines():
+    for rl in fp:
         l = rl
         if f != None:
             l = f(l)
@@ -34,7 +34,7 @@ def convertEm(f=None,path=".",rewritelist=[],newdir=".",oldext="",newext=None):
     cnt = 1
     for fn in fl:
         ffn = os.path.join(path,fn)
-        print "Processing",ffn
+        print("Processing",ffn)
         s = scanThis(ffn,f,rewritelist,cnt)
         if newext == None:
             fn2 = fn
@@ -44,7 +44,7 @@ def convertEm(f=None,path=".",rewritelist=[],newdir=".",oldext="",newext=None):
         fp = open(ffn2,"w")
         fp.write(s)
         fp.close()
-        print "Produced",ffn2
+        print("Produced",ffn2)
         cnt = cnt+1
 
 def preprocess(s):
@@ -55,7 +55,7 @@ def preprocess(s):
 
 def main():
     convertEm(f=preprocess,rewritelist=["@OracleA","@executability","@OracleB"],path=".",newdir="mpa",oldext=".spdl")
-    print "Done."
+    print("Done.")
 
 if __name__ == '__main__':
     main()

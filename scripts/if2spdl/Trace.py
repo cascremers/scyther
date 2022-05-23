@@ -60,7 +60,7 @@ class SemiTrace(object):
     def getPrecedingEvents(self,event,previous=[]):
         # If it is cached return cached version
         if event.preceding != None:
-            return filter(lambda x: x not in previous,event.preceding)
+            return [x for x in event.preceding if x not in previous]
         preceding = []
         for prec in event.getBefore():
             preceding.append(prec)
@@ -71,7 +71,7 @@ class SemiTrace(object):
             preceding.extend(self.getPrecedingEvents(fol))
         preceding = uniq(preceding)
         event.preceding = preceding
-        preceding = filter(lambda x: x not in previous,preceding)
+        preceding = [x for x in preceding if x not in previous]
         return preceding
     
     # Returns -1 if the first event has to be before the second one
@@ -150,7 +150,7 @@ class ProtocolDescription(object):
 
     # Find event by label
     def findEvent(self,eventlabel,eventType=None):
-        for (role,descr) in self.roledescr.items():
+        for (role,descr) in list(self.roledescr.items()):
             for event in descr:
                 if event.label == eventlabel:
                     if eventType == None or isinstance(event,eventType):
@@ -181,7 +181,7 @@ class ProtocolDescription(object):
     # that are in the precedingEvents of a certain event
     def getPrecedingLabelSet(self,eventlabel):
         events = self.getPrecedingEvents(eventlabel)
-        events = filter(lambda x: isinstance(x,EventRead),events)
+        events = [x for x in events if isinstance(x,EventRead)]
         return [x.label for x in events]
 
     # Calculate the roles in preceding labelset that is all roles that
@@ -194,7 +194,7 @@ class ProtocolDescription(object):
 
     def __str__(self):
         s = ''
-        for x in self.roledescr.values():
+        for x in list(self.roledescr.values()):
             for e in x:
                 s += str(e) + "\n"
         return s
@@ -279,7 +279,7 @@ class EventClaim(Event):
     # agents
     def ignore(self):
         for untrusted in self.run.attack.untrusted:
-            if untrusted in self.run.roleAgents.values():
+            if untrusted in list(self.run.roleAgents.values()):
                 return True
         return False
         

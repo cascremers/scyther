@@ -2,7 +2,7 @@
 
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -52,7 +52,7 @@ def evaluate(fn,prefix=""):
     fstderr.seek(0)
 
     res = ""
-    for l in fstdout.xreadlines():
+    for l in fstdout:
         res += prefix + l.strip() + "\n"
     #for l in fstderr.xreadlines():
     #    print l
@@ -72,7 +72,7 @@ def main():
     cnt = 1
     tres = ""
     for (prefix,fn) in sorted(fl):
-        print "Evaluating %s (%i/%i)" % (fn,cnt,len(fl))
+        print("Evaluating %s (%i/%i)" % (fn,cnt,len(fl)))
         res = evaluate(prefix+fn, "%s\t" % (fn))
         fp.write(res)
         tres += res
@@ -83,7 +83,7 @@ def main():
     fp.write(tres)
     fp.close()
 
-    print res
+    print(res)
 
 
 

@@ -318,8 +318,8 @@ class MessageRule(Rule):
 				self.after = fact
 
 		if self.before == None or self.after == None:
-			print "Warning: rule does not have both principal facts."
-			print self
+			print("Warning: rule does not have both principal facts.")
+			print(self)
 
 	def __str__(self):
 		return "Message " + Rule.__str__(self)

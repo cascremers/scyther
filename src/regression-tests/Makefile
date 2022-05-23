@@ -1,5 +1,5 @@
 
 results:
-	./regression-test.py
+	python3 ./regression-test.py
 
 .PHONY:	results

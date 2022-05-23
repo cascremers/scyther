@@ -7,11 +7,11 @@
 #	and sincerely hope on gives a complete proof.
 #	we slowly refine the tests.
 #
-import commands
+import subprocess
 
 def startset():
 	mainlist = [11, 15]
-	print "Starting with", mainlist
+	print("Starting with", mainlist)
 	return mainlist
 
 def tuplingchoice(heur,variant,P,runs,latupling):
@@ -37,15 +37,15 @@ def tuplingchoice(heur,variant,P,runs,latupling):
 	#s += " | scyther -a -r%i --summary" % runs
 
 	# Show what we're doing
-	print s
+	print(s)
 
 	#s += " | grep \"complete\""
-	out = commands.getoutput(s)
+	out = subprocess.getoutput(s)
 	if out == "":
 		#print "Okay"
 		return False
 	else:
-		print out
+		print(out)
 		return True
 
 def testvariant(h,v,p,r):
@@ -55,11 +55,11 @@ def testvariant(h,v,p,r):
 		return tuplingchoice (h,v,p,r, True)
 
 def scan(testlist, P, runs):
-	print "Testing using P %i and %i runs." % (P,runs)
+	print("Testing using P %i and %i runs." % (P,runs))
 	for i in testlist:
-		print "Testing protocol %i." % (i)
+		print("Testing protocol %i." % (i))
 		for h in range (0,32):
-			print "Heuristic %i:" % (h)
+			print("Heuristic %i:" % (h))
 			testvariant (h,i,P,runs)
 
 def main():

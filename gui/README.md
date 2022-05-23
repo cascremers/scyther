@@ -3,7 +3,7 @@ The Scyther tool
 
 Scyther is a tool for the symbolic analysis of security protocols. It is
 developed by Cas Cremers, and is available from
-<http://www.cs.ox.ac.uk/people/cas.cremers/scyther/index.html>.
+<https://people.cispa.io/cas.cremers/scyther/index.html>.
 
 The below instructions apply only to the *distribution version* of
 the Scyther tool. If you are working from the source files, some paths may be
@@ -45,10 +45,14 @@ availabe from
 Manual
 ------
 
-We are currently rewriting the manual. The current (incomplete)
+The manual is lagging behind. The current (incomplete)
 distribution version of the manual can be found here:
 
   * [./scyther-manual.pdf](scyther-manual.pdf)
+
+However, have a look at the book if you are interested:
+
+  * [https://doi.org/10.1007/978-3-540-70545-1_38](Our book on security protocols and the theory behind Scyther)
 
 
 Protocol Models

@@ -18,7 +18,7 @@ Arguments:
 def countlines(fn):
 	count = 0
 	fh = open(fn,'r')
-	for l in fh.xreadlines():
+	for l in fh:
 		count = count + 1
 	fh.close()
 	return count
@@ -26,7 +26,7 @@ def countlines(fn):
 def marker(jobcount,todo):
 	left = todo - jobcount
 	dperc = int((100 * jobcount) / todo)
-	print "echo \"Sent %i out of %i jobs, hence %i left. %i%% done.\"" % (jobcount,todo,left,dperc)
+	print("echo \"Sent %i out of %i jobs, hence %i left. %i%% done.\"" % (jobcount,todo,left,dperc))
 
 def main(fn,step,optlist):
 
@@ -39,7 +39,7 @@ def main(fn,step,optlist):
 	jobcount = 0
 	done = 0
 
-	for l in fh.xreadlines():
+	for l in fh:
 		if buf == 0:
 			s =  "bsub %s ./json-scyther.py %s" % (" ".join(optlist),fn)
 		s += " %i" % (ln)

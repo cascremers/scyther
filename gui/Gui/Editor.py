@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -176,7 +176,7 @@ class EditorStc(Editor):
                 line = line - 1     # Start at 0 in stc, but on screen count is 1
                 pos = self.control.GetLineIndentPosition(line)
                 last = self.control.GetLineEndPosition(line)
-                self.control.StartStyling(pos,31)
+                self.control.StartStyling(pos)
                 self.control.SetStyling(last-pos,self.errorstyle)
 
     def ClearErrors(self):

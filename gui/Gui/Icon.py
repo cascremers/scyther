@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@ import sys
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
-import Misc
+from . import Misc
 
 #---------------------------------------------------------------------------
 

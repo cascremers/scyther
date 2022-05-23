@@ -1,8 +1,8 @@
 #!/usr/bin/python
-from __future__ import division # 2.2+-only
+ # 2.2+-only
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -25,14 +25,14 @@ from __future__ import division # 2.2+-only
 """ Import externals """
 import wx
 import os
-from Misc import *
+from .Misc import *
 
 #---------------------------------------------------------------------------
 
 """ Import scyther-gui components """
-import Icon
-import Preference
-import Error
+from . import Icon
+from . import Preference
+from . import Error
 
 #---------------------------------------------------------------------------
 try:
@@ -54,7 +54,7 @@ class AttackDisplay(wx.ScrolledWindow):
         wx.ScrolledWindow.__init__(self,parent,id=-1)
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.Image = wx.StaticBitmap(self, -1, wx.EmptyBitmap(1,1))
+        self.Image = wx.StaticBitmap(self, -1, wx.Bitmap(1,1))
         self.box = wx.BoxSizer(wx.VERTICAL)
         self.box.Add(self.Image,1,wx.ALIGN_CENTER)
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -74,7 +74,7 @@ class AttackDisplay(wx.ScrolledWindow):
                 Preference.doNotUsePIL()
                 raise Error.PILError
         else:
-            print "Unknown file type %s." % (self.filetype)
+            print("Unknown file type %s." % (self.filetype))
 
         # TODO self.Bind(wxSizeEvent
         self.update(True)
@@ -93,9 +93,7 @@ class AttackDisplay(wx.ScrolledWindow):
         # This is needed, don't ask me why.
         self.SetScrollbars(0,0,0,0,0,0)
 
-        size = self.GetClientSize()
-        framewidth  = size.width
-        frameheight = size.height
+        (framewidth,frameheight) = self.GetClientSize()
         (virtualwidth,virtualheight) = (framewidth,frameheight)
 
         def makefit(width,height):
@@ -120,14 +118,14 @@ class AttackDisplay(wx.ScrolledWindow):
 
         if self.attack.filetype == "png":
             bmp = self.original
-            if not bmp.Ok():
-                bmp = wx.EmptyImage(1,1)
+            if not bmp.IsOk():
+                bmp = wx.Image(1,1)
             else:
                 (originalwidth,originalheight) = (bmp.GetWidth(), bmp.GetHeight())
                 if self.win.fit:
                     (factor, virtualwidth, virtualheight) = makefit(originalwidth,originalheight)
                     bmp = self.original.Scale(virtualwidth,virtualheight)
-            self.Image.SetBitmap(wx.BitmapFromImage(bmp))
+            self.Image.SetBitmap(wx.Bitmap(bmp))
 
         elif self.attack.filetype == "ps":
             pil = self.original.copy()
@@ -144,7 +142,7 @@ class AttackDisplay(wx.ScrolledWindow):
             self.Image.SetBitmap(image.ConvertToBitmap())
 
         else:
-            print "Unknown file type %s." % (self.attack.filetype)
+            print("Unknown file type %s." % (self.attack.filetype))
 
         self.SetVirtualSize((virtualwidth,virtualheight))
 
@@ -200,16 +198,15 @@ class AttackDisplay(wx.ScrolledWindow):
         (p,r,l) = self.win.claim.triplet()
         prefix = "pattern-%s_%s_%s-%s" % (p,r,l,self.attack.id)
         suggested = "%s.%s" % (prefix,ext)
-        res = self.askUserForFilename(style=wx.SAVE, wildcard="*.%s" % (ext), defaultFile = "%s" % (suggested))
+        res = self.askUserForFilename(style=wx.FD_SAVE, wildcard="*.%s" % (ext), defaultFile = "%s" % (suggested))
         return res
 
-    def exportImage(self, type,ext=None):
+    def exportImage(self, imgtype, ext=None):
         if ext == None:
-            ext = type
+            ext = imgtype
         res = self.saveFileName(ext)
         if res != None:
-            cmd = "dot -T%s" % (type)
-            cmdpushwrite(cmd,self.attack.scytherDot,res)
+            dotOutputWrite(self.attack.scytherDot,res,["-T" + imgtype])
 
     def OnExportPng(self, event):
         self.exportImage("png")

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import commands
+import subprocess
 import sys
 
 class Tag(object):
@@ -70,11 +70,11 @@ def tagoccurs(problems,tag,filter=[]):
     """
 
     cmd = "grep \"\\<%s\\>\" *.[chly]" % tag
-    (reslist,count) = outToRes(commands.getoutput(cmd),[tag.filename])
+    (reslist,count) = outToRes(subprocess.getoutput(cmd),[tag.filename])
     if (len(reslist) == 0) and (count < 2):
         if tag.filename not in filter:
             # this might be a problem, store it
-            if tag.filename not in problems.keys():
+            if tag.filename not in list(problems.keys()):
                 problems[tag.filename] = {}
             problems[tag.filename][tag.id] = count
 
@@ -82,36 +82,36 @@ def tagoccurs(problems,tag,filter=[]):
 
 
 def tagreport(problems):
-    for fn in problems.keys():
-        print "file: %s" % fn
-        for t in problems[fn].keys():
-            print "\t%i\t%s" % (problems[fn][t],t)
+    for fn in list(problems.keys()):
+        print("file: %s" % fn)
+        for t in list(problems[fn].keys()):
+            print("\t%i\t%s" % (problems[fn][t],t))
 
 
 def main():
     # Generate tags
-    print "Generating tags using 'ctags'"
+    print("Generating tags using 'ctags'")
     cmd = "ctags *.c *.h *.l *.y"
-    commands.getoutput(cmd)
+    subprocess.getoutput(cmd)
 
     # Analyze results
-    print "Analyzing results"
+    print("Analyzing results")
     filter = ["scanner.c","parser.c"]
     tags = gettags()
     problems = {}
     total = len(tags)
     count = 0
     steps = 20
-    print "_ " * (steps)
+    print("_ " * (steps))
 
     for t in tags:
         problems = tagoccurs(problems,t,filter)
         count = count + 1
         if count % (total / steps) == 0:
-            print "^",
+            print("^", end=' ')
             sys.stdout.flush()
-    print
-    print
+    print()
+    print()
 
     tagreport (problems)
 

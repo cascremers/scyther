@@ -1,6 +1,6 @@
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -20,8 +20,8 @@
 #
 # Term
 #
-import Trace
-from Misc import *
+from . import Trace
+from .Misc import *
 
 class InvalidTerm(TypeError):
     "Exception used to indicate that a given term is invalid"

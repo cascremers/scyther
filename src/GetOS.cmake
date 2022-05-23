@@ -8,7 +8,6 @@
 #
 # Win32
 # Unix
-# MacPPC
 # MacIntel
 
 # First we find out the current operating system
@@ -20,7 +19,7 @@ else (WIN32)
 	# Not windows, is it a mac?
 	if (APPLE)
 		# TODO: A mac, but what architecture?
-		# For now we assume intel (Christoph Sprenger's machine)
+		# For now we assume intel 
 		set (Source_OS "MacIntel")
 	else (APPLE)
 		# Not a mac, not windows

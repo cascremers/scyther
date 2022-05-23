@@ -205,13 +205,13 @@ def ifParser():
 
 	def labeledruleAction(s,l,t):
 		if t[0][3] == "Protocol_Rules":
-			print "-----------------"
-			print "- Detected rule -"
-			print "-----------------"
+			print("-----------------")
+			print("- Detected rule -")
+			print("-----------------")
 
-			print t[0]
-			print t[1]
-			print
+			print(t[0])
+			print(t[1])
+			print()
 
 	labeledrule.setParseAction(labeledruleAction)
 
@@ -233,17 +233,17 @@ def typeSwitch(line):
 		elif res[3] == "typed":
 			typeversion = True
 		else:
-			print "Cannot determine whether typed or untyped."
+			print("Cannot determine whether typed or untyped.")
 			raise ParseException
 	
 	except:
-		print "Unexpected error while determining (un)typedness of the line", line
+		print("Unexpected error while determining (un)typedness of the line", line)
 
 	str = "Detected "
 	if not typedversion:
 		str += "un"
 	str += "typed version."
-	print str
+	print(str)
 
 # Parse an entire file, including the first one
 def linesParse(lines):

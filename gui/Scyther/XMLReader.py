@@ -1,6 +1,6 @@
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -20,24 +20,13 @@
 #
 # XMLReader
 #
-# Note:
-# This requires python elementtree to work
-# See: http://effbot.org/zone/element-index.htm
-#
-# On Fedora Core you can install this by installing the python-elementtree rpm
-# Things will be a lot faster and consume less memory if you install the
-# cElementTree module
-#
-# In python 2.5 cElementTree is in the core, so you don't need to install
-# extra packages
-#
 
 import sys
 
 # Check for cElementTree presence. Otherwise use ElementTree.
 useiter = True
 try:
-    # python 2.5 has cElementTree in the core
+    # cElementTree is in Python since version 2.5
     import xml.etree.cElementTree as cElementTree
 except:
     # try the old way
@@ -48,7 +37,7 @@ except:
         try:
             from elementtree import ElementTree
         except ImportError:
-            print """
+            print("""
 ERROR:
 
 Could not locate either the [elementtree] or the [cElementTree] package.
@@ -56,7 +45,7 @@ Please install one of them in order to work with the Scyther python interface.
 The [cElementTree] packages can be found at http://effbot.org/zone/celementtree.htm
 
 Note that you can still use the Scyther binaries in the 'Bin' directory.
-        """
+        """)
             sys.exit(1)
 
 ## Simply pick cElementTree
@@ -65,11 +54,17 @@ Note that you can still use the Scyther binaries in the 'Bin' directory.
 #useiter = False 
 #from elementtree import ElementTree
 
-import Term
-import Attack
-import Trace
-import Claim
-        
+from . import Term
+from . import Attack
+from . import Trace
+from . import Claim
+
+def getchildren(xml):
+    """
+    (c)elementree xml objects used to have a getchildren() method, but this has been deprecated. This function provides similar functionality. The only catch is that the list/iter replacements also contain the object itself, so we need to filter this.
+    """
+    return [ x for x in list(xml) if x != xml ]
+
 class XMLReader(object):
     
     def __init__ (self):
@@ -123,8 +118,8 @@ class XMLReader(object):
         # If this is a term variable read it directly
         if (xml.tag in ('tuple','const','apply','encrypt','var')):
             return self.readSubTerm(xml)
-        # Otherwise read from it's first child
-        children = xml.getchildren()
+        # Otherwise read from its first child
+        children = getchildren(xml)
         assert(len(children) == 1)
         return self.readSubTerm(children[0])
 
@@ -148,7 +143,7 @@ class XMLReader(object):
             # value
             return Term.TermVariable(name,None)
         else:
-            raise Term.InvalidTerm, "Invalid term type in XML: %s" % tag.tag
+            raise Term.InvalidTerm("Invalid term type in XML: %s" % tag.tag)
     
     def readEvent(self,xml):
         label = self.readTerm(xml.find('label'))
@@ -188,7 +183,7 @@ class XMLReader(object):
                 pass
             return Trace.EventClaim(index,label,followlist,role,etype,argument)
         else:
-            raise Trace.InvalidAction, "Invalid action in XML: %s" % (xml.get('type'))
+            raise Trace.InvalidAction("Invalid action in XML: %s" % (xml.get('type')))
 
     def readRun(self,xml):
         assert(xml.tag == 'run')
@@ -249,7 +244,7 @@ class XMLReader(object):
         
     def readClaim(self, xml):
         claim = Claim.Claim()
-        for event in xml.getchildren():
+        for event in getchildren(xml):
             if event.tag == 'claimtype':
                 claim.claimtype = self.readTerm(event)
             elif event.tag == 'label':
@@ -276,7 +271,7 @@ class XMLReader(object):
             elif event.tag == 'timebound':
                 claim.timebound = True
             else:
-                print >>sys.stderr,"Warning unknown tag in claim: %s" % claim.tag
+                print("Warning unknown tag in claim: %s" % claim.tag, file=sys.stderr)
 
         claim.analyze()
         return claim
@@ -288,7 +283,7 @@ class XMLReader(object):
         # A state contains 4 direct child nodes:
         # broken, system, variables and semitrace
         # optionally a fifth: dot
-        for event in xml.getchildren():
+        for event in getchildren(xml):
             if event.tag == 'broken':
                 attack.broken.append((self.readTerm(event.find('claim')),
                     self.readTerm(event.find('label'))))
@@ -353,6 +348,6 @@ class XMLReader(object):
                 # this list
                 self.varlist = attack.variables
             else:
-                print >>sys.stderr,"Warning unknown tag in attack: %s" % event.tag
+                print("Warning unknown tag in attack: %s" % event.tag, file=sys.stderr)
         return attack
 

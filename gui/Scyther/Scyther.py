@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@
 import os
 import os.path
 import sys
-import StringIO
+import io
 import tempfile
 try:
     import hashlib
@@ -40,10 +40,10 @@ except ImportError:
 #---------------------------------------------------------------------------
 
 """ Import scyther components """
-import XMLReader
-import Error
-import Claim
-from Misc import *
+from . import XMLReader
+from . import Error
+from . import Claim
+from .Misc import *
 
 #---------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ def getCacheDir():
 
     # Check if user chose the path
     cachedirkey = "SCYTHERCACHEDIR"
-    if cachedirkey in os.environ.keys():
+    if cachedirkey in list(os.environ.keys()):
         tmpdir = os.environ[cachedirkey]
         if tmpdir == "":
             # Special value: if the variable is present, but equals the empty string, we disable caching.
@@ -126,7 +126,7 @@ def CheckSanity(program):
     """
 
     if not os.path.isfile(program):
-        raise Error.BinaryError, program
+        raise Error.BinaryError(program)
 
 #---------------------------------------------------------------------------
 
@@ -149,7 +149,7 @@ def EnsureString(x,sep=" "):
         return sep.join(newlist)
 
     else:
-        raise Error.StringListError, x
+        raise Error.StringListError(x)
 
 
 #---------------------------------------------------------------------------
@@ -177,7 +177,7 @@ def getScytherBackend():
     else:
 
         """ Unsupported"""
-        raise Error.UnknownPlatformError, sys.platform
+        raise Error.UnknownPlatformError(sys.platform)
 
     program = os.path.join(getBinDir(),scythername)
     return program
@@ -294,14 +294,18 @@ class Scyther(object):
 
         # Apparently we are supporsed to be able to use the cache
         m = hashlib.sha256()
+        
+        def muppet(m, s):
+            m.update(s.encode('utf-8'))
+
         if spdl == None:
-            m.update("[spdl:None]")
+            muppet(m, "[spdl:None]")
         else:
-            m.update(spdl)
+            muppet(m, spdl)
         if args == None:
-            m.update("[args:None]")
+            muppet(m, "[args:None]")
         else:
-            m.update(args)
+            muppet(m, args)
 
         uid = m.hexdigest()
 
@@ -392,14 +396,13 @@ class Scyther(object):
         self.guessFileNames(spdl=spdl)
 
         # Generate temporary files for the output.
-        # Requires Python 2.3 though.
         (fde,fne) = tempfile.mkstemp()  # errors
         (fdo,fno) = tempfile.mkstemp()  # output
         if spdl:
             (fdi,fni) = tempfile.mkstemp()  # input
 
             # Write (input) file
-            fhi = os.fdopen(fdi,'w+b')
+            fhi = os.fdopen(fdi,'w+')
             fhi.write(spdl)
             fhi.close()
 
@@ -495,7 +498,7 @@ class Scyther(object):
                     # whoohee, xml
                     self.validxml = True
 
-                    xmlfile = StringIO.StringIO(output)
+                    xmlfile = io.StringIO(output)
                     reader = XMLReader.XMLReader()
                     self.claims = reader.readXML(xmlfile)
 
@@ -595,10 +598,10 @@ def FindProtocols(path="",filterProtocol=None):
     Note: Unix only! Will not work under windows.
     """
 
-    import commands
+    import subprocess
 
     cmd = "find %s -iname '*.spdl'" % (path)
-    plist = commands.getoutput(cmd).splitlines()
+    plist = subprocess.getoutput(cmd).splitlines()
     nlist = []
     for prot in plist:
         if filterProtocol != None:

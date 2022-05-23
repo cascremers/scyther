@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -44,14 +44,14 @@ try:
 except ImportError:
     from progressbarDummy import *
     PROGRESSBAR = False
-    print """
+    print("""
 Missing the progressbar library.
 
 It can be downloaded from:
 
 http://code.google.com/p/python-progressbar/
 
-"""
+""")
 
 FOUND = []
 ALLMPA = []
@@ -227,7 +227,7 @@ def MyScyther(protocollist,filt=None,options=[],checkpickle=True):
     # arguments to call
     s.options = (" ".join(sorted(uniq(opts)))).strip()
     if OPTS.debug:
-        print s.options
+        print(s.options)
 
     for protocol in sorted(protocollist):
         s.addFile(protocol)
@@ -356,7 +356,7 @@ def verifyMPAlist(mpalist,claimid,options=[]):
     global OPTS, ARGS
 
     if OPTS.debug:
-        print time.asctime(), mpalist, claimid, options
+        print(time.asctime(), mpalist, claimid, options)
 
     if not verifyMPAattack(mpalist,claimid,options):
         global FOUND
@@ -367,7 +367,7 @@ def verifyMPAlist(mpalist,claimid,options=[]):
 
         # This is an MPA attack!
         if OPTS.debug:
-            print "I've found a multi-protocol attack on claim %s in the context %s." % (claimid,str(mpalist))
+            print("I've found a multi-protocol attack on claim %s in the context %s." % (claimid,str(mpalist)))
         
         att = Attack(claim,mpalist)
         FOUND.append(att)
@@ -442,9 +442,9 @@ def foundToDicts(attacklist = []):
         pn = str(att.protocol())
         cl = att.claimid()
 
-        if pn not in res.keys():
+        if pn not in list(res.keys()):
             res[pn] = {}
-        if cl not in res[pn].keys():
+        if cl not in list(res[pn].keys()):
             res[pn][cl] = set()
         res[pn][cl].add(att)
     return res
@@ -464,13 +464,13 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
 
     # Find all correct claims in each protocol
     (protocolset,correct,cpcount) = getCorrectIsolatedClaims(protocolset,options)
-    print "Investigating %i correct claims in %i protocols." % (len(correct), cpcount)
+    print("Investigating %i correct claims in %i protocols." % (len(correct), cpcount))
 
     mpaprots = []
     res = []
 
     if len(correct) == 0:
-        print "Nothing to do."
+        print("Nothing to do.")
         return res
 
     if OPTS.verbose:
@@ -479,27 +479,27 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
         """
         pmapclaims = {}
         for (protocol,claimid) in correct:
-            if protocol not in pmapclaims.keys():
+            if protocol not in list(pmapclaims.keys()):
                 pmapclaims[protocol] = set()
             pmapclaims[protocol].add(claimid)
-        print "Protocols with correct claims:"
-        if len(pmapclaims.keys()) == 0:
-            print "  None."
+        print("Protocols with correct claims:")
+        if len(list(pmapclaims.keys())) == 0:
+            print("  None.")
         else:
-            for pk in pmapclaims.keys():
-                print "  %s, %s" % (pk, pmapclaims[pk])
-        print
+            for pk in list(pmapclaims.keys()):
+                print("  %s, %s" % (pk, pmapclaims[pk]))
+        print()
         left = set()
         for p in protocolset:
-            if p not in pmapclaims.keys():
+            if p not in list(pmapclaims.keys()):
                 left.add(p)
-        print "Protocols with no correct claims:"
+        print("Protocols with no correct claims:")
         if len(left) == 0:
-            print "  None."
+            print("  None.")
         else:
             for p in left:
-                print "  %s" % (p)
-        print
+                print("  %s" % (p))
+        print()
 
     # output of all claims (only if latex required)
     
@@ -528,7 +528,7 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
     if OPTS.latex:
         pmapclaims = {}
         for (protocol,claimid) in correct:
-            if protocol not in pmapclaims.keys():
+            if protocol not in list(pmapclaims.keys()):
                 pmapclaims[protocol] = set()
             pmapclaims[protocol].add(claimid)
 
@@ -640,19 +640,19 @@ def findAllMPA(protocolset,options=[],mpaoptions=[]):
         fp.write("\\end{tabular}\n")
         fp.close()
 
-    print "-" * 70
-    print "Summary:"
-    print
-    print "We scanned %i protocols with options [%s]." % (len(protocolset),options)
-    print "We found %i correct claims." % (len(correct))
-    print "We then scanned combinations of at most %i protocols with options [%s]." % (OPTS.maxprotocols,alloptions)
+    print("-" * 70)
+    print("Summary:")
+    print()
+    print("We scanned %i protocols with options [%s]." % (len(protocolset),options))
+    print("We found %i correct claims." % (len(correct)))
+    print("We then scanned combinations of at most %i protocols with options [%s]." % (OPTS.maxprotocols,alloptions))
     if OPTS.pickle:
-        print "However, just precomputing now, hence we are not drawing any conclusions."
+        print("However, just precomputing now, hence we are not drawing any conclusions.")
     else:
-        print "We found %i MPA attacks." % (len(FOUND))
-        print "The attacks involve the claims of %i protocols." % (len(mpaprots))
-    print "-" * 70
-    print
+        print("We found %i MPA attacks." % (len(FOUND)))
+        print("The attacks involve the claims of %i protocols." % (len(mpaprots)))
+    print("-" * 70)
+    print()
 
     return res
 
@@ -674,37 +674,37 @@ def showDiff(reslist):
     Show difference between (opts,mpaopts,attacklist) tuples in list
     """
     if len(reslist) == 0:
-        print "Comparison list is empty"
+        print("Comparison list is empty")
         return
 
     (opt1,mpaopt1,al1) = reslist[0]
-    print "-" * 70
-    print "Base case: attacks for \n  [%s]:" % (opt1 + mpaopt1)
-    print
-    print len(al1)
+    print("-" * 70)
+    print("Base case: attacks for \n  [%s]:" % (opt1 + mpaopt1))
+    print()
+    print(len(al1))
     for a in al1:
-        print "Base attack: %s" % (a)
+        print("Base attack: %s" % (a))
 
-    print "-" * 70
-    print
+    print("-" * 70)
+    print()
 
     for i in range(0,len(reslist)-1):
         (opt1,mpaopt1,al1) = reslist[i]
         (opt2,mpaopt2,al2) = reslist[i+1]
 
-        print "-" * 70
-        print "Comparing the attacks for \n  [%s] with\n  [%s]:" % (opt1 + mpaopt1, opt2 + mpaopt2)
-        print
-        print len(al1), len(al2)
+        print("-" * 70)
+        print("Comparing the attacks for \n  [%s] with\n  [%s]:" % (opt1 + mpaopt1, opt2 + mpaopt2))
+        print()
+        print(len(al1), len(al2))
         for a in al2:
             if a not in al1:
-                print "Added attack: %s" % (a)
+                print("Added attack: %s" % (a))
         for a in al1:
             if a not in al2:
-                print "Removed attack: %s" % (a)
+                print("Removed attack: %s" % (a))
 
-        print "-" * 70
-        print
+        print("-" * 70)
+        print()
 
 
 
@@ -758,7 +758,7 @@ def exploreTree( i, choices , l, options = [], mpaoptions = []):
     res = []
     for (txt,arg) in cl:
 
-        print "For choice %i, selecting options %s" % (i,txt)
+        print("For choice %i, selecting options %s" % (i,txt))
         if mpaonly:
             o1 = []
             o2 = arg
@@ -811,23 +811,23 @@ def fullScan(l, options = [], mpaoptions = []):
         invprots.add(str(prot))
 
     if not OPTS.pickle:
-        print "The bottom line: we found %i protocols with multi-protocol attacks from a set of %i protocols." % (len(attprots),len(allprots))
-        print
+        print("The bottom line: we found %i protocols with multi-protocol attacks from a set of %i protocols." % (len(attprots),len(allprots)))
+        print()
 
-        print "Multi-protocol attacks were found on:"
+        print("Multi-protocol attacks were found on:")
         for prot in sorted(list(allprots & attprots)):
-            print "  %s" % (prot)
-        print
+            print("  %s" % (prot))
+        print()
 
-        print "No multi-protocol attacks were found on these protocols, but they caused MPA attacks:"
+        print("No multi-protocol attacks were found on these protocols, but they caused MPA attacks:")
         for prot in sorted(list((allprots - attprots) & invprots)):
-            print "  %s" % (prot)
-        print
+            print("  %s" % (prot))
+        print()
 
-        print "These protocols were not involved in any MPA attacks:"
+        print("These protocols were not involved in any MPA attacks:")
         for prot in sorted(list((allprots - attprots) - invprots)):
-            print "  %s\t[%s]" % (prot,PROTNAMETOFILE[prot])
-        print
+            print("  %s\t[%s]" % (prot,PROTNAMETOFILE[prot]))
+        print()
 
 
 
@@ -864,7 +864,7 @@ def bigTest():
         nl = l
 
     # Report list
-    print "Performing multi-protocol analysis for the following protocols:", nl
+    print("Performing multi-protocol analysis for the following protocols:", nl)
 
     fullScan(l)
 

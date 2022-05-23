@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 	Scyther : An automatic verifier for security protocols.
-	Copyright (C) 2007-2013 Cas Cremers
+	Copyright (C) 2007-2020 Cas Cremers
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -50,7 +50,7 @@ def setBaseDir(mybasedir):
 class AboutScyther(wx.Dialog):
     def __init__(self,parent,mybasedir=None):
 
-        from Version import SCYTHER_GUI_VERSION
+        from .Version import SCYTHER_GUI_VERSION
         global basedir
 
         self.text = '''
@@ -65,13 +65,13 @@ class AboutScyther(wx.Dialog):
     </p>
     <p>
         For news and updates visit the Scyther pages at 
-        <a target="_blank" href="http://www.cs.ox.ac.uk/people/cas.cremers/scyther/index.html">
-        http://www.cs.ox.ac.uk/people/cas.cremers/scyther/index.html</a>
+        <a target="_blank" href="https://people.cispa.io/cas.cremers/scyther/index.html">
+        https://people.cispa.io/cas.cremers/scyther/index.html</a>
     </p>
     <h5>License</h5>
     <p>
         Scyther : An automatic verifier for security protocols.<br>
-        Copyright (C) 2007-2013 Cas Cremers
+        Copyright (C) 2007-2020 Cas Cremers
     </p>
     <p>
         This program is free software; you can redistribute it and/or

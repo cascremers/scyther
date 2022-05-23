@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import commands
+import subprocess
 import sys
 
 
@@ -33,26 +33,26 @@ def main():
 
     """ Force indent """
     cmd = "indent *.c *.h"
-    output = commands.getoutput(cmd)
+    output = subprocess.getoutput(cmd)
 
     """ Force ctags """
     cmd = "ctags *.c *.h"
-    output = commands.getoutput(cmd)
+    output = subprocess.getoutput(cmd)
 
     excludes = ['scanner.c','scanner.h','parser.c','parser.h']
     fnames = findfunctions(excludes)
-    for fname in fnames.keys():
+    for fname in list(fnames.keys()):
         """
         The ..* construct makes sure that function definitions are
         skipped (based on the indent settings
         """
         cmd = "grep '..*%s' *.c" % (fname)
         #print cmd
-        output = commands.getoutput(cmd).splitlines()
+        output = subprocess.getoutput(cmd).splitlines()
         if len(output) <= mincount:
-            print "%s\t%s" % (fnames[fname],fname)
+            print("%s\t%s" % (fnames[fname],fname))
             if len(output) > 0:
-                print output
+                print(output)
 
 if __name__ == '__main__':
     main()
