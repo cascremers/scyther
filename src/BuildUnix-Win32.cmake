@@ -8,8 +8,8 @@ message (STATUS "Building W32 version")
 
 # This should work on win32 platform, but also when the compiler
 # is available anyway under linux
-set (CMAKE_C_COMPILER "i586-mingw32msvc-gcc")
-set (CMAKE_CXX_COMPILER "i586-mingw32msvc-g++")
+set (CMAKE_C_COMPILER "i686-w64-mingw32-gcc")
+set (CMAKE_CXX_COMPILER "i686-w64-mingw32-g++")
 set (CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)	# to get rid of -rdynamic
 # Signal for windows
 set (CMAKE_C_FLAGS "-DFORWINDOWS")
