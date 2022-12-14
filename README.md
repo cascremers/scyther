@@ -45,7 +45,7 @@ If you are using Ubuntu, installing these may be as simple as running
 In case you also want to be able to compile Windows binaries from Linux,
 you also need:
 
-  * `mingw32`
+  * `i686-w64-mingw32`
 
 Note that welcome all contributions, e.g., further protocol models. Just send
 us a pull request.
