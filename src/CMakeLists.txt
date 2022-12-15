@@ -7,7 +7,7 @@
 # Scyther project
 project (Scyther)
 # I need 2.4 for flex/etc although it does not run yet
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.18)
 
 # Try clang
 #set (CMAKE_C_COMPILER "clang")

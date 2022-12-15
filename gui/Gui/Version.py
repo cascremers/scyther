@@ -17,4 +17,4 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-SCYTHER_GUI_VERSION = "Unknown"
+SCYTHER_GUI_VERSION = "SJAB-v1.2"

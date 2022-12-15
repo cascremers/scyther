@@ -5,10 +5,18 @@
 
 # Different choice if on Darwin
 PLATFORM=`uname`
-echo $PLATFORM
+echo "Platform: $PLATFORM"
 if [ "$PLATFORM" = "Darwin" ]
 then
-	./subbuild-mac-intel.sh
+    ARCH=`arch`
+    echo "Architecture: $ARCH"
+
+    if [ "$ARCH" = "arm64" ]
+    then
+        ./subbuild-mac-arm.sh
+    else
+	    ./subbuild-mac-intel.sh
+    fi
 else
 	if [ "$PLATFORM" = "Linux" ]
 	then
