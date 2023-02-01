@@ -89,6 +89,9 @@ def getCacheDir():
     # If not none, append special name
     if tmpdir != None:
         tmpdir = os.path.join(tmpdir,"Scyther-cache")
+    
+    # Normalize the tmpdir path.
+    tmpdir = os.path.normpath(tmpdir)
 
     return tmpdir
 
@@ -398,8 +401,14 @@ class Scyther(object):
         # Generate temporary files for the output.
         (fde,fne) = tempfile.mkstemp()  # errors
         (fdo,fno) = tempfile.mkstemp()  # output
+        
+        # Normalize the temporary paths.
+        fne = os.path.normpath(fne)
+        fno = os.path.normpath(fno)
+        
         if spdl:
             (fdi,fni) = tempfile.mkstemp()  # input
+            fni = os.path.normpath(fni)
 
             # Write (input) file
             fhi = os.fdopen(fdi,'w+')
@@ -409,14 +418,14 @@ class Scyther(object):
         # Generate command line for the Scyther process
         self.cmd = ""
         self.cmd += "\"%s\"" % self.program
-        self.cmd += " --append-errors=%s" % fne
-        self.cmd += " --append-output=%s" % fno
+        self.cmd += " --append-errors=\"%s\"" % fne
+        self.cmd += " --append-output=\"%s\"" % fno
         self.cmd += " %s" % args
         if spdl:
-            self.cmd += " %s" % fni
+            self.cmd += " \"%s\"" % fni
 
         # Only for debugging, really
-        ##print self.cmd
+        # print( self.cmd )
 
         # Start the process
         safeCommand(self.cmd, storePopen=storePopen)
