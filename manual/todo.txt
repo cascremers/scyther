@@ -1,5 +1,0 @@
-- Add running/commit/agreement explanation with where to put the
-  signals.
-
-- Relevant environment variables
-- Switches
