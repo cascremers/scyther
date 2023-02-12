@@ -4,9 +4,9 @@ The Scyther tool repository
 This README describes the organization of the repository of the Scyther
 tool for security protocol analysis. Its intended audience are
 interested users and future developers of the Scyther tool, as well as
-protocol modelers. For installation and usage instructions of the
+protocol modelers. For installation, usage instructions, and pre-built binaries of the
 Scyther tool see:
-<https://people.cispa.io/cas.cremers/scyther/>.
+<https://cispa.saarland/group/cremers/scyther/index.html>.
 
 Installing from source
 ----------------------
