@@ -23,6 +23,8 @@ scyther-manual.pdf:	scyther-manual.tex biblio.bib $(IMG) $(DEPS) $(MSC)
 	bibtex scyther-manual
 	pdflatex scyther-manual.tex
 	pdflatex scyther-manual.tex
+	# Copy to expected location
+	cp scyther-manual.pdf ../gui/
 
 SDRAFT= --jobname=scyther-manual-draft "\def\draftversion{yes}\input{scyther-manual}"
 scyther-manual-draft.pdf:	scyther-manual.tex biblio.bib $(IMG) $(DEPS) $(MSC)
@@ -44,6 +46,7 @@ clean:
 realclean:	clean
 	\rm -f $(IMG)
 	\rm -f $(MSC)
+	\rm -f scyther-manual-draft.pdf
 	\rm -f scyther-manual.pdf
 
 
