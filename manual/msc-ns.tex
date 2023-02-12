@@ -1,0 +1,47 @@
+% Resizing and relocating MSC diagrams
+\newcommand{\msccenter}[1]{\centering{\scalebox{1.0}{#1}}}
+
+\setmscvalues{normal}	
+\normalsize           %the MSC command 'setmscvalues normal' is broken.
+\setlength{\instwidth}{1.8cm}
+\setlength{\instdist}{4cm}
+\setlength{\markdist}{0.4cm}
+\setlength{\actionwidth}{\instwidth}
+\setlength{\labeldist}{0.2cm}
+\setlength{\conditionoverlap}{0.8cm}
+%
+  \msccenter{
+    \begin{msc}{Needham-Schroeder Public Key}
+
+      \declinst{I}{$\pkR,\pkIinv$}{$I$}
+      \declinst{R}{$\pkI,\pkRinv$}{$R$}
+      
+      \action{$\z{nonce~} \nI$}{I}
+      \nextlevel[2.7]
+      \mscmark[tl]{1}{I}
+      \mess{$\{ I , \nI \}_{\pkR}$}{I}{R}
+
+      \nextlevel[0.5]
+
+      \action{$\z{nonce~} \nR$}{R}
+      \nextlevel[2.7]
+
+      \mess{$\{ R , \nI , \nR \}_{\pkI}$}{R}{I}
+      \mscmark[tr]{2}{R}
+      
+      \nextlevel[1.25]
+
+      \mscmark[tl]{3}{I}
+      \mess{$\{ \nR \}_{\pkR}$}{I}{R}
+
+      \nextlevel[1.5]
+
+      \mscmark[tl]{i1}{I}
+      \condition{$\secret(\nI)$}{I}
+      \mscmark[tr]{r1}{R}
+      \condition{$\secret(\nI)$}{R}
+
+      \nextlevel[1.0]
+    \end{msc}
+    }
+
