@@ -1,0 +1,24 @@
+digraph scytherflow {
+
+  subgraph normal {
+
+    spdl [label="protocol description",shape=box,];
+    scyther [shape=box,label="Scyther",style=bold,fontsize=18];
+    summary [label="text summary\nof the results",shape=box];
+    spdl -> scyther [style=bold,weight=10.0];
+    scyther -> summary [style=bold,weight=10.0];
+
+  }
+
+  environment [label="environment\nvariables"];
+  commandline [label="command-line\nswitches"];
+  switches [label="switches"];
+  graphical [label="graphical representation of\nattacks for human inspection\n(dot format)"];
+  xml [label="state representation\nfor further processing\n(xml format)"];
+
+  commandline -> switches [style=dotted];
+  environment -> switches [style=dotted];
+  switches -> scyther;
+  scyther -> xml [style=dotted,label="--xml-output"];
+  scyther -> graphical [style=dotted,label="--dot-output"];
+}

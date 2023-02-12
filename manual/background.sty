@@ -1,0 +1,48 @@
+%% background.sty                                   04 Nov 99
+%%-----------------------------------------------------------
+%%
+%%
+%% Take care: because we have to insert a pdf comment starting with
+%% the letter '%' the catcode of '%' will be changed temporarily.
+
+%% leave, if not creating pdf, but provide the undefined commands
+\ifx\pdfoutput\undefined
+  \ifx\pagecolor\undefined
+  % a dummy definition
+  \newcommand\pagecolor[1]{}%
+  \message{Warning, pagecolor definitions ignored for non pdf processing}%
+  \fi
+  \def\bg@hpagecolorTwo[#1]#2{}%
+  \def\bg@vpagecolorTwo[#1]#2{}%
+  \def\bg@hpagecolor#1{}%
+  \def\bg@vpagecolor#1{}%
+  \def\hpagecolor{\@ifnextchar [{\bg@hpagecolorTwo}{\bg@hpagecolor}}%
+  \def\vpagecolor{\@ifnextchar [{\bg@vpagecolorTwo}{\bg@vpagecolor}}%
+  \expandafter\endinput
+\fi
+{\catcode`\%=11\catcode`\!=14 !make '!' the comment character for now
+\gdef\pagecolor#1{\@ifundefined{\string\color @#1}!
+  {\message{pagecolor: color #1 is undefined}}!
+  {\pdfliteral{%mbackground \csname\string\color@#1\endcsname}}!
+      }!
+\gdef\bg@vpagecolorTwo[#1]#2{\@ifundefined{\string\color @#1}!
+  {\message{vpagestripes: color #1 is undefined}}!
+  {\@ifundefined{\string\color @#2}!
+  {\message{vpagestripes: color #2 is undefined}}!
+  {\pdfliteral{%gradbackground vt \csname\string\color@#1\endcsname/\csname\string\color@#2\endcsname}}}!
+      }!
+\gdef\bg@hpagecolorTwo[#1]#2{\@ifundefined{\string\color @#1}!
+  {\message{pagestripes: color #1 is undefined}}!
+  {\@ifundefined{\string\color @#2}!
+  {\message{pagestripes: color #2 is undefined}}!
+  {\pdfliteral{%gradbackground ht \csname\string\color@#1\endcsname/\csname\string\color@#2\endcsname}}}!
+      }!
+\gdef\bg@hpagecolor#1{\@ifundefined{\string\color @#1}!
+  {\message{hpagecolor: color #1 is undefined}}!
+  {\pdfliteral{%gradbackground ho \csname\string\color@#1\endcsname}}}!
+\gdef\bg@vpagecolor#1{\@ifundefined{\string\color @#1}!
+  {\message{vpagecolor: color #1 is undefined}}!
+  {\pdfliteral{%gradbackground vo \csname\string\color@#1\endcsname}}}!
+\gdef\hpagecolor{\@ifnextchar [{\bg@hpagecolorTwo}{\bg@hpagecolor}}!
+\gdef\vpagecolor{\@ifnextchar [{\bg@vpagecolorTwo}{\bg@vpagecolor}}!
+}%
