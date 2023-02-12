@@ -73,7 +73,7 @@ Major new features:
 
 Additional protocol models:
 
-See <https://people.cispa.io/cas.cremers/tools/protocols.html> for a
+See <https://cispa.saarland/group/cremers/tools/protocols.html> for a
 more high-level overview of selected protocol models.
 
  * IEEE 802.16e/WIMAX: PKMv2rsa and variants

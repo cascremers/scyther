@@ -1856,7 +1856,7 @@ process_switches (int commandline)
 	  printf ("Try '%s --help' for more information, or visit:\n",
 		  progname);
 	  printf
-	    (" https://people.cispa.io/cas.cremers/scyther/\n");
+	    (" https://cispa.saarland/group/cremers/scyther/index.html\n");
 	  exit (0);
 	}
       else

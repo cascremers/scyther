@@ -65,13 +65,12 @@ class AboutScyther(wx.Dialog):
     </p>
     <p>
         For news and updates visit the Scyther pages at 
-        <a target="_blank" href="https://people.cispa.io/cas.cremers/scyther/index.html">
-        https://people.cispa.io/cas.cremers/scyther/index.html</a>
+        <a target="_blank" href="https://cispa.saarland/group/cremers/scyther/index.html">https://cispa.saarland/group/cremers/scyther/index.html</a>
     </p>
     <h5>License</h5>
     <p>
         Scyther : An automatic verifier for security protocols.<br>
-        Copyright (C) 2007-2020 Cas Cremers
+        Copyright (C) 2007-2023 Cas Cremers
     </p>
     <p>
         This program is free software; you can redistribute it and/or
