@@ -4,7 +4,7 @@
 
 ### Build process
 
- - Ensure manual build is triggered from root directory Makefile, ideally after checking for the dependencies.
+ - Ensure manual build is triggered from root directory Makefile, ideally after checking for the dependencies. (Partially done: `make manual` from root dir works now.)
 
 ### To document
 
