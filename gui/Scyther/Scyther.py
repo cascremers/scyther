@@ -175,7 +175,7 @@ def getScytherBackend():
         # Check if there is an ARM version available at scyther-mac-arm
         # Otherwise, just fallback to the default scyther-mac which is the
         # Intel version for backwards-compatibility reasons.
-        if platform.processor().startswith("arm"):
+        if platform.processor().startswith("arm") and os.path.exists(getBinDir(),"scyther-mac-arm"):
             scythername = "scyther-mac-arm"
         else:
             scythername = "scyther-mac"
