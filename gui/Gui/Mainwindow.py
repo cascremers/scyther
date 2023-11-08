@@ -188,7 +188,10 @@ class MainWindow(wx.Frame):
     def SetTitle(self):
         # MainWindow.SetTitle overrides wx.Frame.SetTitle, so we have to
         # call it using super:
-        super(MainWindow, self).SetTitle('Scyther: %s'%self.filename)
+        if self.filename:
+            super(MainWindow, self).SetTitle('Scyther: %s'%self.filename)
+        else:
+            super(MainWindow, self).SetTitle('Scyther: Unsaved File...')
 
     # Helper methods:
 
@@ -214,8 +217,7 @@ class MainWindow(wx.Frame):
         return userProvidedFilename
 
     # Are we dropping a changed file?
-    
-    def ConfirmLoss(self,text=None):
+    def ConfirmLoss(self):
         """
         Try to drop the current file. If it was changed, try to save
         (as)
@@ -226,16 +228,18 @@ class MainWindow(wx.Frame):
         if self.editor.GetChanged():
             # File changed, we need to confirm this
             title = "Unsaved changes"
-            if text:
-                title = "%s - " + title
-            txt = "The protocol file '%s' has been modified.\n\n" % (self.filename)
+            if self.filename:
+                title = ("%s - " + title) % (self.filename)
+                txt = "The protocol file '%s' has been modified.\n\n" % (self.filename)
+            else:
+                txt = "You have unsaved changes.\n\n"
             txt = txt + "Do you want to"
             txt = txt + " save your changes (Yes)"
             txt = txt + " or"
             txt = txt + " discard them (No)"
             txt = txt + "?"
             dialog = wx.MessageDialog(self,txt,title,wx.YES_NO | wx.CANCEL | wx.ICON_EXCLAMATION)
-            result = dialog.ShowModal()            
+            result = dialog.ShowModal()
             dialog.Destroy()
             if result == wx.ID_NO:
                 # Drop changes
@@ -263,16 +267,17 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
 
     def OnExit(self, event):
-        if self.ConfirmLoss("Exit"):
+        if self.ConfirmLoss():
             self.Close()  # Close the main window.
             return True
         return False
 
     def OnNew(self, event):
-        if self.ConfirmLoss("Open"):
+        if self.ConfirmLoss():
             self.editor.SetText('')
             self.filename = ''
             self.editor.SetOpened()
+            self.SetTitle()
             return True
         return False
 
@@ -287,7 +292,7 @@ class MainWindow(wx.Frame):
             return True
 
     def OnOpen(self, event):
-        if self.ConfirmLoss("Open"):
+        if self.ConfirmLoss():
             if self.askUserForFilename(style=wx.FD_OPEN,
                                        **self.defaultFileDialogOptions()):
                 textfile = open(os.path.join(self.dirname, self.filename), 'r')
