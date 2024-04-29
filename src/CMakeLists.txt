@@ -4,9 +4,10 @@
 # Author:	Cas Cremers
 ################################################################
 
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+
 # Scyther project
 project (Scyther)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.18)
 
 # Try clang
 #set (CMAKE_C_COMPILER "clang")
@@ -24,11 +25,9 @@ set (Scyther_sources
   )
 
 # If we are in a debug mode we want to be strict
-set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -DDEBUG")
+set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -DDEBUG -std=c11")
 
-# c11 standard has different inline semantics, yields warning.
-# Since c11 is the default for gcc 5, we explicitly include the switch.
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu89")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-non-prototype -std=c11")
 
 # Make scanner and parser
 include (ScannerParser.cmake)
