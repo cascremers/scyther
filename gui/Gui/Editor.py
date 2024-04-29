@@ -152,6 +152,12 @@ class EditorStc(Editor):
         self.errorstyle = 5
         self.control.StyleSetSpec(self.errorstyle, "fore:#FFFF0000,back:#FF0000")
 
+        try:
+            if wx.SystemSettings.GetAppearance().IsDark():
+                self.control.StyleSetSpec(STC_STYLE_LINENUMBER, "fore:#FFFFFF")
+        except:
+            pass
+
     def GetText(self):
         return self.control.GetText()
 

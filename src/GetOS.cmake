@@ -18,9 +18,13 @@ if (WIN32)
 else (WIN32)
 	# Not windows, is it a mac?
 	if (APPLE)
-		# TODO: A mac, but what architecture?
-		# For now we assume intel 
-		set (Source_OS "MacIntel")
+        if(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "arm64" AND NOT DEFINED ENV{ARCH})
+			# If Apple and Arm64, set Source_OS to MacArm
+			set(Source_OS "MacArm")
+		else(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "arm64" AND NOT DEFINED ENV{ARCH})
+			# If not arm64, assume Intel for legacy reasons.
+			set(Source_OS "MacIntel")
+		endif(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "arm64" AND NOT DEFINED ENV{ARCH})
 	else (APPLE)
 		# Not a mac, not windows
 		if (UNIX)
