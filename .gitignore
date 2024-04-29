@@ -9,3 +9,4 @@ manual/msc-file.dvi
 manual/msc-ns.eps
 manual/msc-ns.pdf
 gui/.venv
+dist/scyther-*
