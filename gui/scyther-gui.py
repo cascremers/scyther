@@ -25,7 +25,25 @@ try:
     import wx
 except ImportError as err:
     from Scyther import Misc
+    import sys
 
+    # Check if we are running in a virtual environment. If not, we can try to run inside it and install wxpython locally there.
+    if sys.prefix == sys.base_prefix:
+        # If these are the same, we are not in a venv.
+        # Run wrapper script to call Scyther again, but now with venv wrapper.
+        import os
+        import os.path
+        import pathlib
+
+        scriptname = 'scyther-gui-venv.sh'
+        try:
+            mypath = pathlib.Path(__file__).parent.resolve()
+            venvscript = mypath / scriptname
+        except:
+            venvscript = scriptname
+
+        os.execv(venvscript,sys.argv)
+    
     errmsg = "Problem with importing the required [wxPython] package."
 
     if 'No module' in str(err):
