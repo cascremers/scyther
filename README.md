@@ -40,7 +40,7 @@ The build process depends on the following
 
 If you are using Ubuntu, installing these may be as simple as running
 
-`sudo apt-get install cmake build-essential flex bison gcc-multilib python-minimal`
+`sudo apt-get install cmake build-essential flex bison gcc-multilib python3-minimal`
 
 In case you also want to be able to compile Windows binaries from Linux,
 you also need:
