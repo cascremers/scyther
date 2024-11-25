@@ -6,9 +6,9 @@ Ubuntu 24.04.1 ([scyther/README.md at master · cascremers/scyther](https://gith
 
 2. Install git using the following command
    
-    “sudo apt install git”
+    “sudo apt-get install git”
 
-3. Move to the directory where you want to clone scyther into. I’ve chosen ‘Desktop’, and clone scyther there
+3. Move to the directory where you want to clone scyther into. I’ve chosen ‘Desktop’, and cloned scyther there
 
     “cd Desktop”
 
@@ -26,13 +26,15 @@ Ubuntu 24.04.1 ([scyther/README.md at master · cascremers/scyther](https://gith
 
     “sudo apt-get install graphviz”
 
-7. After sycther has been built successfully, we move to the gui folder “cd../gui” and run the following command to run scyther,
+7. After scyther has been built successfully, we move to the gui folder “cd../gui” and run the following command to run scyther,
  
      “python3 scyther-gui.py”
 8. To check the verification of protocols from the terminal itself, use the command,
 
-    “./scyther-linux -A [protocol file name.spdl]” the protocol file name is to be replaced by the file to be checked, for ex ns3.spdl
+    “./scyther-linux -A [protocol file name.spdl]” the protocol file name is to be replaced by the file to be checked, for example ns3.spdl
 
-9. Can also use the following command for more info
+9. Can also use the following command for more information
 
      “./scyther-linux –help” or “./scyther-linux –long-help”
+
+For more , check [this](https://cispa.saarland/group/cremers/scyther/install-generic.html)
