@@ -1,17 +1,16 @@
 1. Open the Terminal
-2. Install Homebrew, the  macOS package manager, by running the following command:
+2. Install [Homebrew](https://brew.sh/), the  macOS package manager, by running the following command:
    
     “/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)””
 
 3. Add it to the PATH by using the following commands,
 
-    “echo >> /Users/kashishgaur/.zprofile”,
+    “echo >> ~/.zprofile”,
 
-    “echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/machinename/.zprofile”,
+    “echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile”,
 
     “eval "$(/opt/homebrew/bin/brew shellenv)””
 
-    Replace “manchinename” with your respective machine name
     You can also find these steps when the installation of Homebrew is completed, under the “Next Steps”
 
 4. To check if Homebrew is working as intended or not, we can run the following command,
