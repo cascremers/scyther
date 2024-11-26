@@ -42,6 +42,10 @@ If you are using Ubuntu, installing these may be as simple as running
 
 `sudo apt-get install cmake build-essential flex bison gcc-multilib python3-minimal`
 
+In older versions, running the following command works,
+
+`sudo apt-get install cmake build-essential flex bison gcc-multilib python-minimal`
+
 In case you also want to be able to compile Windows binaries from Linux,
 you also need:
 
