@@ -2,11 +2,11 @@ Ubuntu 24.04.1 ([scyther/README.md at master · cascremers/scyther](https://gith
 
 1. Open the terminal and run the following command to download the dependencies
    
-    `sudo apt-get install cmake build-essential flex bison gcc-multilib python3-minimal`
+    `sudo apt install cmake build-essential flex bison gcc-multilib python3-minimal`
 
 2. Install git using the following command
    
-    `sudo apt-get install git`
+    `sudo apt install git`
 
 3. Move to the directory where you want to clone scyther into. I’ve chosen ‘Desktop’, and cloned scyther there
 
@@ -24,7 +24,7 @@ Ubuntu 24.04.1 ([scyther/README.md at master · cascremers/scyther](https://gith
 
 6. We install graphviz using,
 
-   `“sudo apt-get install graphviz`
+   `“sudo apt install graphviz`
 
 7. After scyther has been built successfully, we move to the gui folder `cd../gui` and run the following command to run scyther,
  
@@ -37,4 +37,4 @@ Ubuntu 24.04.1 ([scyther/README.md at master · cascremers/scyther](https://gith
 
      `./scyther-linux –help` or `./scyther-linux –long-help`
 
-For more , check [this](https://cispa.saarland/group/cremers/scyther/install-generic.html), [and this](https://people.cispa.io/cas.cremers/scyther/install-generic.html)
+For more , check [the general overview](https://cispa.saarland/group/cremers/scyther/install-generic.html)
