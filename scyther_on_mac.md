@@ -49,4 +49,4 @@
 
     `./scyther-mac -A [filename].spdl`, replace filename with the one that you want to check for.
 
-    For further information, check [the following link](https://people.cispa.io/cas.cremers/scyther/install-generic.html)
+    For further information, check [generic installation](https://people.cispa.io/cas.cremers/scyther/install-generic.html)
