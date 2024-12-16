@@ -35,18 +35,14 @@
 
     `brew install graphviz`
 
-10. Move to the src directory, and run the following command to build scyther on the machine,
+10. Type in `make` to compile the files.
 
-    `cmake -G "Unix Makefiles" `
-
-11. Type in `make` to compile the files.
-
-12. The following command, will give us an overview of how to use scyther through the terminal,
+11. The following command, will give us an overview of how to use scyther through the terminal,
 
     `./scyther-mac --help`
 
-13. Use the following command to run a protocol and check its security claims,
+12. Use the following command to run a protocol and check its security claims,
 
-    `./scyther-mac -A [filename].spdl`, replace filename with the one that you want to check for.
+    `./scyther-mac -A [filename].spdl`, replace the filename with the one that you want to check for.
 
     For further information, check [generic installation](https://people.cispa.io/cas.cremers/scyther/install-generic.html)
