@@ -16,9 +16,9 @@ Ubuntu 24.04.1 ([scyther/README.md at master · cascremers/scyther](https://gith
 
 4. After the cloning is complete, move to the scyther directory
 
-    `cd scyther`, and then `cd src`
+    `cd scyther`
 
-5. Run the following command to build the files in the `Desktop/scyther/src` directory,
+5. Run the following command to build the files in the `Desktop/scyther` directory,
 
    `./build.sh`
 
