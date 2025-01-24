@@ -15,13 +15,15 @@ if [ "$PLATFORM" = "Darwin" ]; then
         ./subbuild-mac-arm.sh
     else
 	    ./subbuild-mac-intel.sh
-    fi
+	fi 
+elif [ "$PLATFORM" = "Linux" ]; then
+	# Build linux version
+	./subbuild-unix-unix.sh
+	
+elif echo "$PLATFORM" | grep -q "MINGW64_NT"; then
+   	# Build for mingW platforms
+     echo "Building for MingW platform"
+     ./subbuild-mingw-w64.sh
 else
-	if [ "$PLATFORM" = "Linux" ]; then
-		# Build linux version
-		./subbuild-unix-unix.sh
-	else
-		echo "I don't know platform $PLATFORM, so I won't do anything"
-	fi
+	echo "I don't know platform $PLATFORM, so I won't do anything"
 fi
-
