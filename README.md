@@ -50,11 +50,6 @@ you also need:
 Note that welcome all contributions, e.g., further protocol models. Just send
 us a pull request.
 
-Problems with wxpython library?
--------------------------------
-
-If you have trouble installing `wxpython`, or `scyther-gui.py` claims it cannot find the `wx` library, you can try to run `./gui/scyther-gui-venv.sh` instead.
-
 Manual
 ------
 
