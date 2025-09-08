@@ -17,15 +17,6 @@ from the command line) then you need only the first.
 
   Download the latest stable release and install it.
 
-
-2. ### Python ###
-
-  Stable releases of the Python interpreter are available from:
-
-  	http://www.python.org/download/
-
-  Scyther requires **Python 3** now, and no longer supports Python 2. 
-
   *	**Mac OS X**
   
   	If the package yields an error when you try to install it,
@@ -36,6 +27,13 @@ from the command line) then you need only the first.
   	 $ sudo installer -pkg graphviz-2.34.0.pkg -target /
   	```
 
+2. ### Python ###
+
+  Stable releases of the Python interpreter are available from:
+
+  	http://www.python.org/download/
+
+  Scyther requires at least **Python 3** now, and no longer supports Python 2. 
 
 3. ### wxPython libraries ###
 
