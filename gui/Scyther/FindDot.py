@@ -80,8 +80,8 @@ def scanPrefix(pf,name):
 def scanLocations():
     if sys.platform.startswith("win"):
         prefixes = ["", \
-                    "C:\Program Files\Graphviz*", \
-                    "C:\Program Files (x86)\Graphviz*" ]
+                    "C:\\Program Files\\Graphviz*", \
+                    "C:\\Program Files (x86)\\Graphviz*" ]
         name = "dot.exe"
     else:
         prefixes = [""]
