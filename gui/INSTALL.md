@@ -44,15 +44,6 @@ from the command line) then you need only the first.
 
   This version of Scyther requires at least **wxPython 4.0**. Note that older versions of Scyther did not work with wxPython 4.
 
-  For Ubuntu users, it is important to add an additional parameter, e.g., for Ubuntu 20.04, the recommended pip install is:
-
-  ```
-   $ sudo apt install python-pip
-   $ pip install -U \
-    -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04 \
-    wxPython
-  ```
-
 Running Scyther
 ---------------
 
