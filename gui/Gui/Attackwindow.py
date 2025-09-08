@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
  # 2.2+-only
 """
 	Scyther : An automatic verifier for security protocols.

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 # Generate Multi-party NSL protocol description for n parties
 #
