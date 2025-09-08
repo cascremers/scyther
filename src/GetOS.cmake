@@ -9,6 +9,7 @@
 # Win32
 # Unix
 # MacIntel
+# MacArm
 
 # First we find out the current operating system
 set (Source_OS)
