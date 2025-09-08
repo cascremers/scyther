@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
   Scyther : An automatic verifier for security protocols.
-  Copyright (C) 2007-2020 Cas Cremers
+  Copyright (C) 2007-2025 Cas Cremers
   
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License
