@@ -1,0 +1,5 @@
+# Python GUI requirements for Scyther
+# Install with: pip3 install -r requirements.txt
+
+# wxPython 4.0+ is required for the GUI
+wxpython>=4.0.0
