@@ -122,6 +122,35 @@ python3 gui/scyther-gui.py
 and set up a virtual environment with all required dependencies. This is handled
 transparently on first run.
 
+### System-wide Installation
+
+To install Scyther system-wide (typically to `/usr/local`):
+
+```bash
+make                    # Build as regular user first
+sudo make install       # Then install as root
+```
+
+**Important:** Always build as a regular user before running `sudo make install`.
+Running `make` with sudo will create root-owned files in the source tree, preventing
+future builds as a regular user.
+
+The install target will:
+- Install the `scyther` binary to `$(PREFIX)/bin/`
+- Install the GUI launcher `scyther-gui` to `$(PREFIX)/bin/`
+- Install protocol models, Python modules, and images to `$(PREFIX)/share/scyther/`
+- Create a user-local virtual environment for wxPython if needed (in `~/.local/share/scyther/venv`)
+
+To customize the installation location:
+```bash
+make install PREFIX=/opt/scyther
+```
+
+To uninstall:
+```bash
+sudo make uninstall
+```
+
 ### Testing
 
 To verify your build works correctly, run:
