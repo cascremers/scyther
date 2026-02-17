@@ -1,7 +1,3 @@
-IMG= flow.epsi flow-simple.epsi
-DEPS= preamble.tex macros.tex
-MSC= msc-ns.pdf
-
 # There are two main targets:
 #
 #  scyther-manual.pdf
@@ -15,20 +11,7 @@ MSC= msc-ns.pdf
 #
 all:	scyther-manual.pdf scyther-manual-draft.pdf
 
-%.epsi:	%.dot
-	dot -Tps $< >$(addsuffix '.ps',$(basename $@))
-	ps2epsi $(addsuffix '.ps',$(basename $@))
-
-msc-%.pdf:	msc-%.tex $(DEPS)
-	latex -jobname msc-file "\input{mscstart.tex}\input{$<}\input{mscend.tex}"
-	dvips -t a3 msc-file.dvi -o
-	ps2eps -f msc-file.ps 
-	\rm -f msc-file.ps
-	epstopdf msc-file.eps
-	mv msc-file.pdf `basename $< tex`pdf
-	mv msc-file.eps `basename $< tex`eps
-
-scyther-manual.pdf:	scyther-manual.tex biblio.bib $(IMG) $(DEPS) $(MSC)
+scyther-manual.pdf:	scyther-manual.tex biblio.bib 
 	pdflatex scyther-manual.tex
 	makeindex scyther-manual
 	bibtex scyther-manual
@@ -37,7 +20,7 @@ scyther-manual.pdf:	scyther-manual.tex biblio.bib $(IMG) $(DEPS) $(MSC)
 	cp scyther-manual.pdf ../gui/
 
 SDRAFT= --jobname=scyther-manual-draft "\def\draftversion{yes}\input{scyther-manual}"
-scyther-manual-draft.pdf:	scyther-manual.tex biblio.bib $(IMG) $(DEPS) $(MSC)
+scyther-manual-draft.pdf:	scyther-manual.tex biblio.bib
 	pdflatex $(SDRAFT)
 	makeindex scyther-manual
 	bibtex scyther-manual
@@ -51,11 +34,8 @@ clean:
 	\rm -f *.bbl
 	\rm -f *.blg
 	\rm -f *.ind
-	\rm -f $(addsuffix '.ps',$(basename $(IMG)))
 
 realclean:	clean
-	\rm -f $(IMG)
-	\rm -f $(MSC)
 	\rm -f scyther-manual-draft.pdf
 	\rm -f scyther-manual.pdf
 

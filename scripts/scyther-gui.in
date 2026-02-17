@@ -1,0 +1,24 @@
+#!/bin/sh
+# Wrapper script for Scyther GUI
+# Handles wxPython dependency via user-local venv if needed
+
+SCYTHER_DATA="@DATADIR@"
+export PYTHONPATH="$SCYTHER_DATA:$PYTHONPATH"
+
+# Try system Python first
+if python3 -c "import wx" 2>/dev/null; then
+    exec python3 "$SCYTHER_DATA/scyther-gui.py" "$@"
+fi
+
+# Create user-local venv if needed
+VENV_DIR="$HOME/.local/share/scyther/venv"
+if [ ! -d "$VENV_DIR" ]; then
+    echo "Creating user-local virtual environment for wxPython..."
+    mkdir -p "$HOME/.local/share/scyther"
+    python3 -m venv "$VENV_DIR" || exit 1
+    "$VENV_DIR/bin/pip" install -q -r "$SCYTHER_DATA/requirements.txt" || exit 1
+    echo "Virtual environment created successfully."
+fi
+
+# Run with venv Python
+exec "$VENV_DIR/bin/python3" "$SCYTHER_DATA/scyther-gui.py" "$@"
