@@ -1,7 +1,6 @@
 \documentclass{book}
 \providecommand{\draftversion}{no}
 %----------------------------------------------------------------------------
-\input{preamble}
 %----------------------------------------------------------------------------
 \usepackage[paper=a4paper]{geometry}
 \usepackage{microtype}
@@ -9,11 +8,28 @@
 \usepackage{makeidx}
 \usepackage{watermark}
 \usepackage{ifthen}
+
+\usepackage{fancybox}
+\usepackage{fancyvrb}
+\usepackage{syntax}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{xspace}
+
 \usepackage{tikz}
-\usepackage{environ}
-\usepackage{listings}
 \usetikzlibrary{fadings}
 \usetikzlibrary{calc}
+
+\usepackage{environ}
+\usepackage{listings}
+
+\usepackage{msc}
+\setmscvalues{normal}	
+\normalsize           %the MSC command 'setmscvalues normal' is broken.
+\setlength{\instdist}{40mm}
+\setlength{\markdist}{12mm}
+
 %----------------------------------------------------------------------------
 %\usepackage{showidx}	%%% NOTE: Only for DRAFT!
 %----------------------------------------------------------------------------
@@ -22,7 +38,39 @@
 
 %----------------------------------------------------------------------------
 \begin{document}
-\input{macros}
+
+% Assist
+\newcommand{\z}[1]{\mathit{#1}}                    %text in math mode, keep size using amstext
+
+% For the MSC
+\newcommand{\synch}{\z{ni\text{-}synch}}           %synchronization claim
+\newcommand{\isynch}{\z{i\text{-}synch}}           %synchronization claim
+\newcommand{\agree}{\z{ni\text{-}agree}}           %full agreement claim
+\newcommand{\iagree}{\z{i\text{-}agree}}           %injective full agreement claim
+\newcommand{\secret}{\z{secret}}           %secrecy claim
+\newcommand{\enc}[2]{\{{#1}\}_{#2}}      %Encryption
+\newcommand{\nI}{ni}
+\newcommand{\nR}{nr}
+\newcommand{\nS}{ns}
+\newcommand{\nb}{nb}
+\newcommand{\pkIinv}{sk(I)}
+\newcommand{\pkRinv}{sk(R)}
+\newcommand{\pkSinv}{sk(S)}
+\newcommand{\pkbinv}{sk(b)}
+\newcommand{\pkI}{pk(I)}
+\newcommand{\pkR}{pk(R)}
+\newcommand{\pkS}{pk(S)}
+
+%%% Abbreviation macros
+\newcommand{\ie}{i.\@\,e.\@\xspace}
+\newcommand{\eg}{e.\@\,g.\@\xspace}
+\newcommand{\wrt}{w.\@\,r.\@\,t.\@\xspace}
+\newcommand{\st}{s.\@\,t.\@\xspace}
+\newcommand{\etc}{etc.\@\xspace}
+\newcommand{\etal}{et~al.\@\xspace}
+
+
+
 \newcommand{\spdindex}[1]{\index{#1@\spd{#1}}}
 %----------------------------------------------------------------------------
 %
@@ -148,70 +196,6 @@
 \end{tikzpicture}
 %----------------------------------------------------------------------------
 %
-% Headers
-%
-\newcommand{\mygheaderA}{
-  % Define coordinates
-  \node (a) at ($ (current page.north west) + (0mm,-25mm) $) {};
-  \node (b) at ($ (current page.north east) + (0mm,-25mm) $) {};
-  \node (c) at ($ (a) + (0mm,-5mm) $) {};
-  \node (d) at ($ (b) + (0mm,-5mm) $) {};
-  \node (e) at ($ (c) + (0mm,-7mm) $) {};
-  \node (f) at ($ (d) + (0mm,-7mm) $) {};
-  % Orange upper
-  \draw[draw=none] 
-    [fill=gorange]
-    (a) rectangle ($ (d) + (0mm,-1mm) $);
-  \draw[draw=none] 
-    [postaction={path fading=north,fill=sorange}]
-    (a) rectangle ($ (d) + (0mm,-1mm) $);
-  % Bottom blue
-%  \draw[draw=none] 
-%    [fill=gblue]
-%    (c) rectangle (f);
-  \draw[draw=none] 
-    [postaction={path fading=south,fill=sblue}]
-    (c) rectangle (f);
-  % Yellow highlight
-  \tikzfading[name=fade out,
-    inner color=transparent!0,
-    outer color=transparent!100]
-}
-\newcommand{\mygheaderB}{
-  \draw[draw=none] 
-    [postaction={path fading=north,fill=white}]
-    (c) rectangle (f);
-}
-\newsavebox{\myheaderL}
-\newsavebox{\myheaderR}
-\savebox{\myheaderL}{
-\begin{tikzpicture}[remember picture,overlay,
-    titletext/.style={text=white,inner sep=0pt,anchor=south west,font=\sf,align=left}
-  ]
-  \mygheaderA
-  \begin{scope}
-    \draw[draw=none,clip]
-      (c) rectangle (f);
-    \fill [syellow,path fading=fade out]
-      ($ (d) + -1.0*(30mm,90mm) $) rectangle ($ (d) + (30mm,90mm) $);
-  \end{scope}
-  \mygheaderB
-\end{tikzpicture}
-}
-\savebox{\myheaderR}{
-\begin{tikzpicture}[remember picture,overlay,
-    titletext/.style={text=white,inner sep=0pt,anchor=south west,font=\sf,align=left}
-  ]
-  \mygheaderA
-  \begin{scope}
-    \draw[draw=none,clip]
-      (c) rectangle (f);
-    \fill [syellow,path fading=fade out]
-      ($ (c) + -1.0*(30mm,90mm) $) rectangle ($ (c) + (30mm,90mm) $);
-  \end{scope}
-  \mygheaderB
-\end{tikzpicture}
-}
 %\leftwatermark{\usebox{\myheaderL}}
 %\rightwatermark{\usebox{\myheaderR}}
 
@@ -1192,8 +1176,39 @@ name ``ns3.I''. This is used to make role names globally unique.
 %----------------------------------------------------------------------------
 
 \begin{figure}[!htb]
-	\centering
-  \includegraphics{msc-ns}
+  \centering
+    \begin{msc}{Needham-Schroeder Public Key}
+
+      \declinst{I}{$\pkR,\pkIinv$}{$I$}
+      \declinst{R}{$\pkI,\pkRinv$}{$R$}
+      
+      \action*{$\z{nonce~} \nI$}{I}
+      \nextlevel[2.7]
+      \mscmark[tl]{1}{I}
+      \mess{$\{ I , \nI \}_{\pkR}$}{I}{R}
+
+      \nextlevel[0.5]
+
+      \action*{$\z{nonce~} \nR$}{R}
+      \nextlevel[2.7]
+
+      \mess{$\{ R , \nI , \nR \}_{\pkI}$}{R}{I}
+      \mscmark[tr]{2}{R}
+      
+      \nextlevel[1.25]
+
+      \mscmark[tl]{3}{I}
+      \mess{$\{ \nR \}_{\pkR}$}{I}{R}
+
+      \nextlevel[1.5]
+
+      \mscmark[tl]{i1}{I}
+      \condition*{$\secret(\nI)$}{I}
+      \mscmark[tr]{r1}{R}
+      \condition*{$\secret(\nI)$}{R}
+
+      \nextlevel[1.0]
+    \end{msc}
   \caption{A message sequence chart description}
   \label{msc:ns3}
 \end{figure}
