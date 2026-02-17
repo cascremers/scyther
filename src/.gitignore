@@ -4,9 +4,12 @@ CMakeFiles
 CMakeCache.txt
 Makefile
 cmake_install.cmake
+CTestTestfile.cmake
 parser.c
 parser.h
 scanner.c
 scyther-linux
 scyther-mac
+scyther-mac-arm
 scyther-w32.exe
+*.a
