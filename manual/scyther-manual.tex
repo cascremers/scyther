@@ -209,17 +209,6 @@
 %\rightwatermark{\usebox{\myheaderR}}
 
 
-% NOTE for use of the 'supported' macro for denoting new features.
-%
-% \subsection[RealTitle]{RealTitle\supported{MyVersion and YourVersion}}
-%
-% The square-bracket version is needed, otherwise the 'new' bar shows up
-% in the table of contents.
-\newcommand{\supported}[1]{ 
-	\hfill
-	\colorbox{lgrey}{{\text{\small New in version #1}}
-}}
-
 %----------------------------------------------------------------------------
 \tableofcontents
 %----------------------------------------------------------------------------
@@ -815,7 +804,7 @@ There are several predefined claim types.
 We extend the basic set of events from~\cite{opsembook} with two events that can be used to
 model internal computations.
 
-\subsubsection[Match event]{Match event\supported{v1.1 and Compromise-0.8}}
+\subsubsection[Match event]{Match event}
 \index{match event}
 \index{event!match}
 
@@ -844,7 +833,7 @@ In the above example, we could have replaced \spd{Y} by
 \spd{hash(X,I,R)} throughout the specification, but this version avoid
 replication.
 
-\subsubsection[Not match event]{Not match event\supported{v1.1 and Compromise-0.8}}
+\subsubsection[Not match event]{Not match event}
 \index{not match event}
 \index{event!not match}
 
@@ -979,7 +968,7 @@ protocol hello(I,R)
 %............................................................................
 \section{Miscellaneous}
 
-\subsection[Macro]{Macro\supported{v1.1 and Compromise-0.8}}
+\subsection[Macro]{Macro}
 \spdindex{macro}
 \index{abbreviate}
 \index{define macro}
@@ -1051,7 +1040,7 @@ definitions between files. Typically this will include definitions for
 the key structures, and (untrusted) agent names. Nested use of this
 command is possible.
 
-\subsection[one-role-per-agent]{one-role-per-agent\supported{v1.1 and Compromise-0.8}}
+\subsection[one-role-per-agent]{one-role-per-agent}
 \spdindex{one-role-per-agent}
 \index{one role per agent}
 \index{multiple roles per agent}
@@ -1468,10 +1457,10 @@ following results as in Figure~\ref{resultwindowbig}.
 
 \begin{figure}[!htb]
   \begin{center}
-    \includegraphics[width=\linewidth]{resultwindow}
+    \includegraphics[width=0.7\linewidth]{resultwindow}
   \end{center}
   \label{resultwindowbig}
-  \caption{Scyther results for the Needham-Schroeder protocol}
+  \caption{Example Scyther results for a version of the Needham-Schroeder protocol. Some models of the same protocol may include different claim events, leading to a slightly different output.}
 \end{figure}
 
 The interpretation is as follows: all the claims of the initiator role
