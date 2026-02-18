@@ -366,9 +366,9 @@ Go to the file$\rightarrow$open dialog, and open the file
 \scr{ns3.spdl} in the Scyther directory (or launch the GUI with \scr{python3 scyther-gui.py ns3.spdl} to load it directly). Your main window should look
 like the one in Figure~\ref{protocolwindow}.
 
-\begin{figure}[!htb]
+\begin{figure}[ht]
   \begin{center}
-    \includegraphics[height=0.90\textheight]{protocolwindow}
+    \includegraphics[height=0.80\textheight]{protocolwindow}
   \end{center}
   \label{protocolwindow}
   \caption{Scyther main window with the file ns3.spdl opened}
@@ -385,7 +385,7 @@ verification is completed, the window will be
 replaced by the result window, as shown in
 Figure~\ref{resultwindow}.
 
-\begin{figure}[!htb]
+\begin{figure}[ht]
   \begin{center}
     \includegraphics[scale=0.5]{resultwindow}
   \end{center}
@@ -402,9 +402,9 @@ attack on the protocol. A button is shown next to the claim: press this
 button to view the attacks on the claim, as in
 Figure~\ref{attackwindow}.
 
-\begin{figure}[!htb]
+\begin{figure}[ht]
   \begin{center}
-    \includegraphics[height=0.90\textheight]{attackwindow}
+    \includegraphics[height=0.80\textheight]{attackwindow}
   \end{center}
   \label{attackwindow}
   \caption{Scyther attack window}
@@ -732,17 +732,17 @@ There are several predefined claim types.
   	This claim requires a parameter term. Secrecy of this term is
 	claimed as defined in~\cite{opsembook}.
 
-  \item[\spd{SKR }]
+  % \item[\spd{SKR }]
 
-	  \spdindex{SKR}
-	  The verification condition for this claim is equivalent to the \spd{Secret} claim. 
+	%   \spdindex{SKR}
+	%   The verification condition for this claim is equivalent to the \spd{Secret} claim. 
 
-	  The purpose of this claim is to additionally mark the parameter term as a session-key.
-	  The consequence is that using the \emph{session-key reveal}
-	  adversary rule will now reveal the parameter term.
+	%   The purpose of this claim is to additionally mark the parameter term as a session-key.
+	%   The consequence is that using the \emph{session-key reveal}
+	%   adversary rule will now reveal the parameter term.
 
-	  If the \emph{session-key reveal} rule is not enabled, this
-	  claim is identical to the \spd{Secret} claim.
+	%   If the \emph{session-key reveal} rule is not enabled, this
+	%   claim is identical to the \spd{Secret} claim.
 
   \item[\spd{Alive }]
 
@@ -780,7 +780,7 @@ There are several predefined claim types.
 	  \spdindex{Nisynch}
 	  \index{synchronisaton}
 	  \index{non-injective synchronisation}
-  	Non-injective synchronisation as defined in~\cite{opsembook}.
+  	Non-injective synchronisation as defined in~\cite{synchronisation,opsembook}.
 
   \item[\spd{Niagree }]
 
@@ -1384,20 +1384,43 @@ protocol is given in Appendix~\ref{app:ns3}.
 \label{sec:properties}
 %----------------------------------------------------------------------------
 
+The Scyther framework supports a fixed set of security properties, which are specified by inserting claim events in the role specifications. The claim events are used to model the intended security properties of the protocol. 
+
+Recall that the default Scyther threat model is a network attacker that completely controls the network, and can compromise agents in various ways. The security properties that are supported by the Scyther framework are defined with respect to this threat model. For example, a secrecy claim is true if the term is not known to the adversary in any trace of the protocol execution, and false otherwise.
 %\remark{CC}{This should synch up explicitly with the book chapter, and say
 %where we deviate.}
 
 \section{Specifying secrecy}
 
+The simplest security property is secrecy. To specify that a term, \eg, a nonce \spd{n}, is secret at some point, insert the following claim in the role specification:
+\begin{spdl}
+claim(Role, Secret, n);
+\end{spdl}
+This claim is true if the term \spd{n} is not known to the adversary in any trace of the protocol execution when this claim is reached, and false otherwise. It is important to note that the role and position of the claim matter: if the claim is reached in a trace, then the term must be secret at that point. If the claim is not reached in a trace, then the claim is vacuously true. Similarly, a nonce may be secret from the perspective of one role, but not from the perspective of another role. 
 
+For example, in the Needham-Schroeder protocol, the initiator nonce \spd{ni} is secret from the perspective of the initiator role \spd{I}, but not from the perspective of the responder role \spd{R}, because \spd{R} receives \spd{ni} in the second message.
 
 \section{Specifying authentication properties}
 
+Authentication properties are more complex than secrecy properties, and there are several different types of authentication properties that can be specified in the Scyther framework. The most basic type of authentication property is aliveness, which states that if a claim is reached in a trace, then the corresponding role must have been executed in that trace. More complex authentication properties include non-injective synchronisation, non-injective agreement, and agreement over data. To understand the subtle differences between these, we refer the reader to \cite{lowe97hierarchy,opsembook,synchronisation}.
+
 \subsection{Aliveness}
+
+\begin{spdl}
+claim(Role, Alive);
+\end{spdl}
 
 \subsection{Non-injective synchronisation}
 
+\begin{spdl}
+claim(Role, Nisynch );
+\end{spdl}
+
 \subsection{Non-injective agreement}
+
+\begin{spdl}
+claim(Role, Niagree);
+\end{spdl}
 
 \subsection{Agreement over data}
 \label{sec:agreement}
