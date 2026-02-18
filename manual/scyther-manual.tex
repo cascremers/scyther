@@ -1601,42 +1601,10 @@ communication events of a run, and claim events.
 This section provides a complete reference for understanding the visual elements in attack graphs.
 
 \subsubsection{Arrows and Message Flow}
-
-\index{arrow colors}
 \index{message flow}
-Arrows in attack graphs represent causality and message dependencies. The color and label of each arrow conveys important information about how the intruder manipulates messages:
+Arrows in attack graphs represent causality and message dependencies. 
 
-\begin{description}
-\item[\textcolor{green}{Green arrow (unlabeled)}]
-\index{green arrow}
-Represents \emph{normal communication}. The message is sent and received in exactly the same form, and both agents agree on who sent the message and who received it. This is ideal protocol behavior with no intruder interference.
-
-\textbf{Example:} Alice sends $\{N_a\}_{pk(Bob)}$ to Bob, and Bob receives exactly that message believing it came from Alice.
-
-\item[\textcolor{orange}{Yellow arrow (\gra{redirect})}]
-\index{yellow arrow}
-\index{redirect}
-Indicates \emph{message redirection}. The message is sent and received in exactly the same form, but the sender and/or receiver beliefs differ from reality. The intruder has redirected the message without modifying its contents.
-
-\textbf{Example:} Alice sends a message to Bob, but the intruder redirects it to Charlie. Charlie receives the exact message but may believe it came from someone else.
-
-\textbf{Why this matters:} Redirection attacks can cause agents to accept messages intended for others, potentially violating authentication properties.
-
-\item[\textcolor{red}{Red arrow (\gra{construct})}]
-\index{red arrow}
-\index{construct}
-Represents \emph{message construction by the intruder}. The received message differs from any sent message. The intruder has constructed a new message using knowledge gained from previous protocol steps.
-
-\textbf{Example:} Alice sends $N_a$, Bob sends $N_b$, and the intruder constructs $(N_a, N_b)$ to send to Charlie.
-
-\textbf{Why this matters:} This indicates active manipulation beyond simple redirection. The intruder is combining, encrypting, or transforming messages.
-
-\item[No incoming arrow]
-\index{messages from initial knowledge}
-Indicates the received message can be generated entirely from the intruder's \emph{initial knowledge} without waiting for any protocol messages. Common for messages containing only public information like agent names or constants.
-
-\textbf{Example:} A role receives an agent name that could be any value the intruder chooses.
-\end{description}
+Thick vertical downward arrows typically indicate the flow of time and the sequence of events within a protocol run. Horizontal and diagonal arrows represent message transmission between agents. 
 
 \subsubsection{Event Boxes}
 
@@ -1645,9 +1613,8 @@ Indicates the received message can be generated entirely from the intruder's \em
 Different types of events are represented by different box styles:
 
 \begin{description}
-\item[Diamond box (run header)]
+\item[Rectangular box (run header)]
 \index{run header}
-\index{diamond box}
 Marks the \emph{creation of a protocol run} (role instance). Contains:
 \begin{itemize}
 \item Run number (e.g., \gra{Run \#0}, \gra{Run \#1})
@@ -1681,10 +1648,20 @@ Represents a \emph{receive event}. Shows:
 
 \textbf{Reading tip:} Compare the received message with the sent message at the arrow's source to understand intruder manipulation.
 
+\item[Orange oval (intruder event)]
+\index{intruder event}
+\index{orange oval}
+Represents an \emph{intruder action}, for example:
+\begin{itemize}
+  \item Establishing the terms that the intruder initially knows, such as constants, agent names, and intruder-generated nonces (\gra{Initial intruder knowledge})
+  \item Constructing a new message, e.g., \gra{encrypt} or \gra{decrypt}
+  \item faking a message, e.g., \gra{fake sender Eve}
+\end{itemize}
+
 \item[Colored box (claim event)]
 \index{claim event}
 \index{failed claim}
-Represents a \emph{security claim}. Failed claims are typically highlighted (often in red or with special border). The claim box shows:
+Represents a \emph{security claim}. The claim box shows:
 \begin{itemize}
 \item Claim type (\gra{Secret}, \gra{Nisynch}, etc.)
 \item Claimed property and parameters
