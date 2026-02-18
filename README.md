@@ -168,8 +168,7 @@ us a pull request.
 Manual
 ------
 
-We are currently rewriting the manual. The current (incomplete) snapshot
-of the manual can be found in the following location:
+The Scyther user manual can be found here:
 
   * [./gui/scyther-manual.pdf](gui/scyther-manual.pdf)
 
