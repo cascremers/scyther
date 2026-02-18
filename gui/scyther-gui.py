@@ -18,6 +18,16 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
+#---------------------------------------------------------------------------
+# Ensure the script's directory is in sys.path so imports work from any location
+import sys
+import os
+import pathlib
+
+# Add the gui directory (where this script lives) to sys.path
+script_dir = pathlib.Path(__file__).parent.resolve()
+if str(script_dir) not in sys.path:
+    sys.path.insert(0, str(script_dir))
 
 #---------------------------------------------------------------------------
 # Try to get wxPython
@@ -25,15 +35,11 @@ try:
     import wx
 except ImportError as err:
     from Scyther import Misc
-    import sys
 
     # Check if we are running in a virtual environment. If not, we can try to run inside it and install wxpython locally there.
     if sys.prefix == sys.base_prefix:
         # If these are the same, we are not in a venv.
         # Run wrapper script to call Scyther again, but now with venv wrapper.
-        import os
-        import os.path
-        import pathlib
 
         scriptname = 'scyther-gui-venv.sh'
         try:
@@ -55,14 +61,11 @@ The [wxPython] packages can be found at http://www.wxpython.org/
 Ubuntu users: the wxPython packages are called 'python-wxgtk' followed by the
 version number. This version of Scyther requires at least wxPython version 4.0."""
     elif ('32-bit mode' in str(err)) or ('no matching architecture' in str(err)):
-        import os
-
         key = "VERSIONER_PYTHON_PREFER_32_BIT"
         data = "yes"
 
         keyfound = False
         try:
-            import sys
             if sys.environment[key] == data:
                 keyfound = True
         except:
@@ -72,7 +75,6 @@ version number. This version of Scyther requires at least wxPython version 4.0."
             """
             We already tried to set the environment variable, but it is still not working.
             """
-            import sys
             #print "Key found. good job. no success."
 
             errmsg = """Problem with importing the required [wxPython] package.
@@ -131,8 +133,6 @@ Note that you can currently still use the Scyther binaries in the 'Scyther' dire
 """)
 
 """ import externals """
-import sys
-import os
 from optparse import OptionParser, SUPPRESS_HELP
 from subprocess import *
 

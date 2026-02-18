@@ -1,0 +1,207 @@
+name: Build Scyther Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'test-*'
+  pull_request:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to build (leave empty for current commit)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    name: Build Linux & Windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for git describe
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential flex bison gcc-multilib mingw-w64 python3-minimal
+      
+      - name: Generate version info
+        run: cd src && python3 describe-version.py
+      
+      - name: Build Linux binary
+        run: |
+          cd src
+          ./build.sh --platform=linux
+          ls -lh scyther-linux
+      
+      - name: Build Windows binary (cross-compile)
+        run: |
+          cd src
+          ./build.sh --platform=windows
+          ls -lh scyther-w32.exe
+      
+      - name: Verify binaries exist in gui/Scyther
+        run: |
+          ls -lh gui/Scyther/scyther-linux
+          ls -lh gui/Scyther/scyther-w32.exe
+      
+      - name: Upload Linux binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: scyther-linux
+          path: gui/Scyther/scyther-linux
+          retention-days: 7
+      
+      - name: Upload Windows binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: scyther-windows
+          path: gui/Scyther/scyther-w32.exe
+          retention-days: 7
+
+  build-macos-intel:
+    name: Build macOS Intel
+    runs-on: macos-14  # ARM runner, cross-compile for Intel
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Install dependencies
+        run: |
+          brew install cmake flex bison
+          python3 --version
+      
+      - name: Generate version info
+        run: cd src && python3 describe-version.py
+      
+      - name: Build macOS Intel binary
+        run: |
+          cd src
+          ./build.sh --platform=macos-intel
+          ls -lh scyther-mac
+      
+      - name: Verify binary exists in gui/Scyther
+        run: ls -lh gui/Scyther/scyther-mac
+      
+      - name: Upload macOS Intel binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: scyther-macos-intel
+          path: gui/Scyther/scyther-mac
+          retention-days: 7
+
+  build-macos-arm:
+    name: Build macOS ARM
+    runs-on: macos-latest  # ARM (M1/M2) runner
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Install dependencies
+        run: |
+          brew install cmake flex bison
+          python3 --version
+      
+      - name: Generate version info
+        run: cd src && python3 describe-version.py
+      
+      - name: Build macOS ARM binary
+        run: |
+          cd src
+          ./build.sh --platform=macos-arm
+      
+      - name: Verify binary exists in gui/Scyther
+        run: ls -lh gui/Scyther/scyther-mac
+      
+      - name: Upload macOS ARM binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: scyther-macos-arm
+          path: gui/Scyther/scyther-mac
+          retention-days: 7
+
+  create-release:
+    name: Create Release Packages
+    needs: [build-linux, build-macos-intel, build-macos-arm]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Get version tag
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=$(git describe --tags --always)" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: Verify artifacts
+        run: |
+          find artifacts -type f
+          ls -lh artifacts/*/scyther-*
+      
+      - name: Install packaging dependencies
+        run: sudo apt-get install -y zip python3-minimal
+      
+      - name: Create release packages
+        run: |
+          chmod +x .github/scripts/package-release.sh
+          .github/scripts/package-release.sh "${{ steps.version.outputs.tag }}"
+      
+      - name: List release packages
+        run: ls -lh scyther-*.{tgz,zip} || true
+      
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            scyther-linux-${{ steps.version.outputs.tag }}.tgz
+            scyther-macos-intel-${{ steps.version.outputs.tag }}.tgz
+            scyther-macos-arm-${{ steps.version.outputs.tag }}.tgz
+            scyther-w32-${{ steps.version.outputs.tag }}.zip
+          draft: true
+          generate_release_notes: true
+          body: |
+            Scyther ${{ steps.version.outputs.tag }} - Automated multi-platform build
+            
+            ## Downloads
+            
+            - **Linux**: `scyther-linux-${{ steps.version.outputs.tag }}.tgz`
+            - **macOS Intel**: `scyther-macos-intel-${{ steps.version.outputs.tag }}.tgz`
+            - **macOS ARM (M1/M2)**: `scyther-macos-arm-${{ steps.version.outputs.tag }}.tgz`
+            - **Windows**: `scyther-w32-${{ steps.version.outputs.tag }}.zip`
+            
+            Extract the archive for your platform and run `scyther-gui.py` to start the GUI.
+      
+      - name: Upload release packages as artifacts (for manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-packages
+          path: scyther-*.*
+          retention-days: 30

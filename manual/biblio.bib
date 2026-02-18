@@ -40,7 +40,6 @@
   title =	 "Breaking and fixing the {N}eedham-{S}chroeder
                   public-key protocol using {FDR}",
   booktitle =	 "Proc.\ TACAS '96",
-  editor    =	 "T. Margaria and B. Steffen",
   publisher =	 "LNCS~1055",
   pages =	 "147--166",
   year =	 "1996"
@@ -58,7 +57,7 @@
 
 @inproceedings{CrMa04b,
   author = {C.J.F. Cremers and S. Mauw},
-  title = {Operational Semantics of Security Protocols},
+  title = {{Operational Semantics of Security Protocols}},
   booktitle = "Scenarios: Models, Transformations and Tools, International Workshop, Dagstuhl Castle, Germany, September 7-12, 2003, Revised Selected Papers",
   year = 2005,
   series = "LNCS",
@@ -82,13 +81,13 @@
 
 @Misc{wwwscyther,
   Author         = "C.J.F. Cremers",
-  Title          = "The Scyther tool: Automated verification of security protocols",
-  Note           = {\url{http://people.inf.ethz.ch/cremersc/scyther/index.html}}
+  Title          = {{The Scyther tool: Automated verification of security protocols}},
+  Note           = {\url{https://people.cispa.io/cas.cremers/scyther/}}
 }
 
 @phdthesis{scytherthesis,
   Author = {C.J.F. Cremers},
-  Title = {Scyther - Semantics and Verification of Security Protocols},
+  Title = {{Scyther - Semantics and Verification of Security Protocols}},
   School = {Eindhoven University of Technology},
   Publisher = {University Press Eindhoven},
   Year = {2006},
@@ -97,7 +96,7 @@
 
 @InProceedings{lowe97hierarchy,
   Author         = "G. Lowe",
-  Title          = "A Hierarchy of Authentication Specifications",
+  Title          = {{A Hierarchy of Authentication Specifications}},
   BookTitle      = csfw97,
   Pages          = "31--44",
   Publisher      = {IEEE},
@@ -106,16 +105,17 @@
 
 @book{opsembook,
   Author = {Cas Cremers and Sjouke Mauw},
-  Title = {Operational Semantics and Verification of Security
-	  Protocols},
+  Title = {{Operational Semantics and Verification of Security
+	  Protocols}},
   Year = {2012},
   Publisher = {Springer},
   Series = {Information Security and Cryptography},
+  note = {\url{https://doi.org/10.1007/978-3-540-78636-8}},
 }
 
 @InProceedings{Cr2006multiprotocol,
   Author         = {C.J.F. Cremers},
-  Title          = {Feasibility of Multi-Protocol Attacks},
+  Title          = {{Feasibility of Multi-Protocol Attacks}},
   BookTitle      = {Proc.\ of The First International Conference on
                    Availability, Reliability and Security ({ARES})},
   Address        = "Vienna, Austria",
@@ -142,3 +142,44 @@
   volume    = {1361},
 }
 
+@article{synchronisation,
+  author       = {Cas J. F. Cremers and
+                  Sjouke Mauw and
+                  Erik P. de Vink},
+  title        = {{Injective synchronisation: An extension of the authentication hierarchy}},
+  journal      = {Theor. Comput. Sci.},
+  volume       = {367},
+  number       = {1-2},
+  pages        = {139--161},
+  year         = {2006},
+  url          = {https://doi.org/10.1016/j.tcs.2006.08.034},
+  doi          = {10.1016/J.TCS.2006.08.034},
+  timestamp    = {Mon, 28 Aug 2023 21:31:25 +0200},
+  biburl       = {https://dblp.org/rec/journals/tcs/CremersMV06.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@misc{tamarinwebsite,
+  author = {Tamarin Prover Team},
+  title = {{Tamarin Prover}},
+  note = {\url{https://tamarin-prover.com/}},
+}
+
+@book{tamarinbook,
+  author       = {David A. Basin and
+                  Cas Cremers and
+                  Jannik Dreier and
+                  Ralf Sasse},
+  title        = {{Modeling and Analyzing Security Protocols with Tamarin - A Comprehensive
+                  Guide}},
+  series       = {Information Security and Cryptography},
+  publisher    = {Springer},
+  year         = {2026},
+  note = {\url{https://tamarin-prover.com/book/index.html}},
+}
+
+@misc{scythergithub,
+  author = {C.J.F. Cremers},
+  title = {{Scyther source code repository}},
+  note = {\url{https://github.com/cascremers/scyther/}},
+}

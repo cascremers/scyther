@@ -1,12 +1,74 @@
+# Build artifacts
+/build/
+src/*.o
+src/*.a
+src/scyther-linux
+src/scyther-mac
+src/scyther-mac-arm
+src/scyther-w32.exe
+
+# CMake generated files
+src/CMakeFiles/
+src/CMakeCache.txt
+src/cmake_install.cmake
+src/Makefile
+src/CTestTestfile.cmake
+
+# Flex/Bison generated files
+src/parser.c
+src/parser.h
+src/scanner.c
+
+# Python artifacts
+*.pyc
+*.pyo
+__pycache__/
+gui/.venv/
+*.egg-info/
+.pytest_cache/
+
+# Manual build artifacts
 manual/msc-file.dvi
-manual/scyther-manual-draft.idx
-manual/scyther-manual-draft.pdf
+manual/msc-file.aux
+manual/msc-file.log
+manual/msc-file.ps
+manual/msc-file.eps
 manual/scyther-manual.idx
 manual/scyther-manual.pdf
+manual/version.tex
+manual/scyther-manual.aux
+manual/scyther-manual.log
+manual/scyther-manual.toc
+manual/scyther-manual.bbl
+manual/scyther-manual.blg
+manual/scyther-manual.ilg
+manual/scyther-manual.ind
 manual/flow-simple.epsi
+manual/flow-simple.ps
 manual/flow.epsi
-manual/msc-file.dvi
+manual/flow.ps
 manual/msc-ns.eps
 manual/msc-ns.pdf
-gui/.venv
+
+# Distribution artifacts
 dist/scyther-*
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test outputs
+*.dot
+*.ps
+*.eps
+!manual/*.eps
+!manual/*.ps
+
+# Temporary files
+*.tmp
+*.bak
+.*.swp

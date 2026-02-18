@@ -1,1 +1,1 @@
-#define TAGVERSION "b'v1.2-27-g9315549-dirty'"
+#define TAGVERSION "b'test-autobuilds-5-2-g1c0fc44-dirty'"
