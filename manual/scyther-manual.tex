@@ -2309,6 +2309,7 @@ The easiest way to check for multi-protocol attacks in Scyther is to combine two
 
 
 %----------------------------------------------------------------------------
+<<<<<<< HEAD
 \chapter{Troubleshooting and FAQ}
 \label{sec:troubleshooting}
 %----------------------------------------------------------------------------
@@ -2550,6 +2551,250 @@ Example protocols are in the \scr{Protocols/} directory:
 Study these examples to learn modeling patterns and best practices.
 
 %----------------------------------------------------------------------------
+||||||| 1c0fc44
+=======
+\chapter{Troubleshooting and FAQ}
+\label{sec:troubleshooting}
+%----------------------------------------------------------------------------
+
+\index{troubleshooting}
+\index{FAQ}
+\index{frequently asked questions}
+This chapter addresses common issues, questions, and best practices for using Scyther effectively.
+
+%............................................................................
+\section{Installation and Setup Issues}
+\label{sec:trouble-install}
+
+\subsection{macOS: "Binary cannot be opened because the developer cannot be verified"}
+
+\index{macOS!Gatekeeper}
+\index{security warnings}
+When downloading the Scyther binary on macOS, the system may block execution due to Gatekeeper security features. 
+
+\textbf{Solution:} Remove the quarantine attribute from the binary:
+\begin{screen}
+xattr -d com.apple.quarantine Scyther/scyther-mac
+\end{screen}
+
+Alternatively, right-click (or Control-click) the binary in Finder and select ``Open'' the first time you run it.
+
+\subsection{GUI fails to start or shows blank windows}
+
+\index{GUI!startup problems}
+\index{wxPython}
+The Scyther GUI requires wxPython 4.0 or later.
+
+\textbf{Check your Python version and wxPython installation:}
+\begin{screen}
+python3 --version
+python3 -c "import wx; print(wx.version())"
+\end{screen}
+
+\textbf{Install or update wxPython:}
+\begin{screen}
+pip3 install --upgrade wxPython
+\end{screen}
+
+On some systems, you may need to use a virtual environment or install additional system dependencies. See the \scr{INSTALL.md} file in the \scr{gui/} directory for platform-specific instructions.
+
+\subsection{Command not found or Python errors}
+
+\index{Python!version requirements}
+Scyther requires Python 3. If you see "command not found" or syntax errors:
+
+\begin{itemize}
+\item Ensure Python 3 is installed: \scr{python3 --version}
+\item Use \scr{python3} instead of \scr{python} to run scripts
+\item Check that all dependencies are installed: \scr{pip3 install -r requirements.txt}
+\end{itemize}
+
+%............................................................................
+\section{Understanding Verification Results}
+\label{sec:trouble-results}
+
+\subsection{What's the difference between ``No attacks within bounds'' and ``No attacks''?}
+
+\index{no attacks within bounds}
+\index{bounded vs unbounded verification}
+
+\begin{description}
+\item[\scr{No attacks within bounds}]
+Scyther explored the state space up to the configured limits (e.g., maximum 5 runs, maximum depth 20) and found no attacks, but also no proof. Hence, attacks involving more runs or longer traces might still exist.
+
+\textbf{Action:} Gradually increase the maximum number of runs in the settings. Try 6, 7, or 8 runs. If still no attacks are found and the result remains ``within bounds,'' your protocol likely meets the property for practical scenarios.
+
+\item[\scr{No attacks}]
+Scyther has proven that no attacks exist on the property in the model, even for unbounded numbers of runs. This is a complete verification result.
+
+\textbf{Meaning:} Your protocol is secure for the specified claims under the Dolev-Yao attacker model and Scyther's semantics.
+\end{description}
+
+\subsection{Verification is taking too long}
+
+\index{performance issues}
+\index{verification!slow}
+
+If verification doesn't complete in reasonable time:
+
+\begin{enumerate}
+\item \textbf{Reduce maximum runs:} Try 3 or 4 instead of 5+. Most attacks are found with few runs.
+
+\item \textbf{Limit attack search:} Set maximum attacks to 1 (stop after finding first attack).
+
+\item \textbf{Check protocol complexity:} Protocols with many roles, long message sequences, or complex terms take longer to verify.
+
+\item \textbf{Try automatic claims first:} If you have many explicit claims, try verifying with automatic claims to get quick feedback.
+\end{enumerate}
+
+\subsection{Why did Scyther find an attack I don't think is realistic?}
+
+\index{unrealistic attacks}
+\index{Dolev-Yao model}
+
+Scyther uses the Dolev-Yao attacker model, which makes certain assumptions:
+
+\begin{itemize}
+\item \textbf{Perfect cryptography:} Encryption cannot be broken without the key
+\item \textbf{Attacker controls the network:} The attacker can intercept, modify, and inject messages
+\item \textbf{Nonces are perfectly random:} Cannot be guessed by the attacker
+\end{itemize}
+
+If an attack seems unrealistic:
+
+\begin{enumerate}
+\item Check if it relies on assumptions not in your threat model
+\item Consider if additional checks or type distinctions should be added to the protocol
+\item Verify that your protocol specification matches the intended implementation
+\item Remember: Even ``unrealistic'' attacks may reveal design weaknesses worth addressing
+\end{enumerate}
+
+%............................................................................
+\section{Protocol Modeling Issues}
+\label{sec:trouble-modeling}
+
+\subsection{No attacks found but I expected one}
+
+\index{modeling errors}
+\index{false negatives}
+
+Common causes:
+
+\begin{enumerate}
+\item \textbf{Modeling errors:} Review your protocol specification for syntax errors, incorrect term construction, or missing messages. Try automatic claims and in particular reachability claims: if a reachability claim is not satisfied, there is likely a modeling error.
+
+\item \textbf{Insufficient runs:} The attack requires more protocol instances than your bound. Increase maximum runs to 6-8.
+
+\item \textbf{Wrong claim type:} Make sure you're using the right claim type (e.g., \spd{Secret} vs \spd{Nisynch}).
+
+\item \textbf{Over-constrained roles:} Check that role variables aren't unnecessarily constrained. The attacker should be able to execute roles with different agents.
+
+\end{enumerate}
+
+\subsection{Parse errors and syntax issues}
+
+\index{syntax errors}
+\index{parse errors}
+
+Common syntax mistakes:
+
+\begin{itemize}
+\item Missing semicolons after statements
+\item Mismatched braces \{ \} or parentheses ( )
+\item Undefined variables (all variables must be declared as \spd{var} or \spd{fresh})
+\item Wrong term construction (check encryption syntax: \spd{\{term\}key})
+\item Case sensitivity (Scyther is case-sensitive)
+\item Comments not properly closed (\spd{/* ... */})
+\end{itemize}
+
+\textbf{Tip:} Look at example protocols in the \scr{Protocols/} directory for correct syntax patterns.
+
+\subsection{Unexpected variable bindings}
+
+\index{variable binding}
+\index{role matching}
+
+Variables in roles can be bound in ways you might not expect:
+
+\begin{itemize}
+\item A role can run with any agent, including the intruder
+\item Variables are bound when a message is received
+\item The same agent can play multiple roles (including communicating with themselves)
+\end{itemize}
+
+To constrain role execution, use match statements or add inequalities in global declarations.
+
+%............................................................................
+\section{Common Questions}
+\label{sec:faq-common}
+
+\subsection{Should I use automatic claims or write my own?}
+
+\index{automatic claims vs explicit claims}
+
+\textbf{Use automatic claims when:}
+\begin{itemize}
+\item Getting started with a new protocol
+\item Doing quick security assessment
+\item You want standard authentication and secrecy properties
+\end{itemize}
+
+\textbf{Write explicit claims when:}
+\begin{itemize}
+\item You need specific, non-standard properties
+\item You want fine-grained control over what's verified
+\item You're analyzing a variant and want to compare specific claims
+\item Writing formal proofs that reference specific claims
+\end{itemize}
+
+\textbf{Best practice:} Use automatic claims first to understand the protocol, then add explicit claims for specific properties you care about.
+
+\subsection{Can Scyther verify protocols with Diffie-Hellman or other cryptographic operations?}
+
+\index{Diffie-Hellman}
+\index{cryptographic operations}
+\index{equational theories}
+
+Scyther supports standard Dolev-Yao operations (encryption, hashing, pairing). For advanced cryptographic operations like Diffie-Hellman, XOR, or exclusive-or more advanced tools like the Tamarin prover are more appropriate. 
+
+However, you can approximate some of these operations in Scyther using helper protocols (see Section~\ref{sec:advanced}).
+
+\subsection{How do I verify a protocol with more than two roles?}
+
+\index{multi-role protocols}
+\index{three-party protocols}
+
+Scyther handles protocols with any number of roles. Simply define all roles within the same protocol:
+
+\begin{spdl}
+protocol ThreeParty(Alice,Bob,Server)
+{
+  role Alice { ... }
+  role Bob { ... }
+  role Server { ... }
+}
+\end{spdl}
+
+Each role can have its own claims. Scyther will consider all possible interleavings of the roles.
+
+
+\subsection{Where can I find more example protocols?}
+
+\index{example protocols}
+\index{protocol library}
+
+Example protocols are in the \scr{Protocols/} directory:
+
+\begin{itemize}
+\item \scr{Protocols/} - Standard protocols (Needham-Schroeder, Kerberos, TLS, etc.)
+\item \scr{gui/Protocols/} - Additional protocol examples
+\item The examples cover various patterns: challenge-response, key exchange, authenticated key establishment
+\end{itemize}
+
+Study these examples to learn modeling patterns and best practices.
+
+%----------------------------------------------------------------------------
+>>>>>>> 76889e260472118153085be9368645fc5b79d1cd
 \chapter{Further reading}
 \label{sec:further}
 %----------------------------------------------------------------------------
