@@ -14,6 +14,7 @@
 
 \usepackage{fancybox}
 \usepackage{fancyvrb}
+\usepackage{fancyhdr}
 \usepackage{syntax}
 \usepackage{url}
 \usepackage{xurl}
@@ -40,6 +41,23 @@
 %----------------------------------------------------------------------------
 \makeindex 
 %----------------------------------------------------------------------------
+\title{Scyther User Manual}
+\author{Cas Cremers}
+
+\makeatletter
+\let\Title\@title
+\let\Author\@author
+\makeatother
+
+% Configure fancyhdr
+\pagestyle{fancy}
+\fancyhf{} % Clear all header/footer fields
+\fancyhead[LE,RO]{\thepage} % Page number on Left Even / Right Odd
+\fancyhead[RE]{\Author} % AUTHOR ON EVEN PAGES (Right side)
+\fancyhead[LO]{\Title} % TITLE ON ODD PAGES (Left side)
+
+% Optional: Customize the header line
+\renewcommand{\headrulewidth}{0.4pt}
 
 %----------------------------------------------------------------------------
 \begin{document}
@@ -115,7 +133,6 @@
 
 %----------------------------------------------------------------------------
 
-\pagestyle{headings}
 
 %----------------------------------------------------------------------------
 %
@@ -2659,7 +2676,7 @@ To constrain role execution, use match statements or add inequalities in global 
 \index{cryptographic operations}
 \index{equational theories}
 
-Scyther supports standard Dolev-Yao operations (encryption, hashing, pairing). For advanced cryptographic operations like Diffie-Hellman, XOR, or exclusive-or more advanced tools like the Tamarin prover \cite{tamarinwebsite,tamarinbook} are more appropriate. 
+Scyther supports standard Dolev-Yao operations (encryption, hashing, pairing). For advanced cryptographic operations like Diffie-Hellman, XOR, or exclusive-or more advanced tools like the Tamarin prover~\cite{tamarinwebsite,tamarinbook} are more appropriate. 
 
 However, you can approximate some of these operations in Scyther using helper protocols (see Section~\ref{sec:advanced}).
 
