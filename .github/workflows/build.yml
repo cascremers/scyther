@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'v*'
+      - 'test-*'
+  pull_request:
+    branches:
+      - master
+      - main
   workflow_dispatch:
     inputs:
       tag:
