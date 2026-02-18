@@ -12,7 +12,6 @@ scyther-manual.pdf:	scyther-manual.tex biblio.bib
 	bibtex scyther-manual
 	pdflatex scyther-manual.tex
 	pdflatex scyther-manual.tex
-	cp scyther-manual.pdf ../gui/
 
 
 clean:
