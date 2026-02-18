@@ -196,25 +196,20 @@
 \chapter{Introduction}
 %----------------------------------------------------------------------------
 
-\noindent
 This is the user manual for the Scyther security protocol verification
-tool.
-
-Constructive feedback on this manual is best provided as a pull request at the official GitHub page of Scyther: \url{https://github.com/cascremers/scyther}.
-
-\medskip
+tool, and complements the website~\cite{wwwscyther} and the accompanying book~\cite{opsembook}.
 
 The purpose of this manual is to explain the
 details of the Scyther input language, explain how to model basic
 protocols, and how to effectively use the Scyther tool.
 This manual does not detail the protocol execution model nor
 the adversary model used by the tool. It is therefore highly recommended to read the
-accompanying book~\cite{opsembook}. The book includes a detailed
+book~\cite{opsembook}. The book includes a detailed
 description of Scyther's
 underlying protocol model, security property specifications, and the
 algorithm.
 
-We proceed in the following way. Some background is given in
+We proceed in the following way. We give some background in
 Chapter~\ref{sec:background}. 
 Chapter~\ref{sec:install} explains how to install the Scyther tool on
 various platforms. In Chapter~\ref{sec:tutorial} we give a brief
@@ -231,7 +226,7 @@ in Section~\ref{sec:advanced}.
 
 \section*{Online information}
 
-More help can be found online on the Scyther website \cite{wwwscyther} and the github source repository \cite{scythergithub}.
+More help can be found online on the Scyther website~\cite{wwwscyther} and the github source repository~\cite{scythergithub}.
 \index{Scyther website}
 \index{website|see{Scyther website}}
 
@@ -2715,12 +2710,10 @@ Example protocols are in the \scr{Protocols/} directory:
 Study these examples to learn modeling patterns and best practices.
 
 %----------------------------------------------------------------------------
-\chapter{Further reading}
-\label{sec:further}
+% \chapter{Further reading}
+% \label{sec:further}
 %----------------------------------------------------------------------------
 
-% Note: this chapter should contain further reading that is purely tool
-% related, such as protocol overviews, etc.
 
 
 %==========================================================================
@@ -2732,7 +2725,7 @@ Study these examples to learn modeling patterns and best practices.
 
 
 %----------------------------------------------------------------------------
-\chapter{Full specification for Needham-Schroeder public key}
+\chapter{Full example specification for Needham-Schroeder public key}
 \label{app:ns3}
 %----------------------------------------------------------------------------
 
@@ -2787,13 +2780,13 @@ protocol ns3(I,R)
 \end{spdl}
 
 %==================================================
-\chapter{Obsolete constructions}
+% \chapter{Obsolete constructions}
 
-\section{Read event}
-\spdindex{read}%
-Note that in some protocol description files one may find the \spd{read}
-keyword: this is obsolete syntax and can safely be substituted by
-\spd{recv}.
+% \section{Read event}
+% \spdindex{read}%
+% Note that in some protocol description files one may find the \spd{read}
+% keyword: this is obsolete syntax and can safely be substituted by
+% \spd{recv}.
 
 
 
