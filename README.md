@@ -170,7 +170,7 @@ Manual
 
 The Scyther user manual can be found here:
 
-  * [./gui/scyther-manual.pdf](gui/scyther-manual.pdf)
+  * [./manual/scyther-manual.pdf](manual/scyther-manual.pdf)
 
 
 Protocol Models
