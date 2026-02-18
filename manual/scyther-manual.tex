@@ -1700,6 +1700,153 @@ the intruder can generate the term from his initial knowledge.
 
 \subsection{Claims}
 
+%............................................................................
+\section{GUI Settings and Configuration}
+\label{sec:gui-settings}
+
+\index{GUI!settings}
+\index{settings dialog}
+The Scyther GUI provides extensive configuration options through the \scr{Settings} dialog, accessible from the main window. These settings impact the effectiveness and reliability of protocol verification.
+
+\subsection{Verification Parameters}
+
+\index{verification parameters}
+The following parameters control how Scyther explores the protocol state space:
+
+\begin{description}
+\item[\scr{Maximum number of runs}] 
+\index{maximum runs}
+Controls how many protocol sessions (runs) Scyther will consider. Default is typically 4-5 runs. 
+
+If a claim is analyzed and the result is ``verified'' or ``falsified'', increasing the maximum number of runs will not change the result, as the claim is provably true, or there exists a counterexample. However, if the result for a claim is ``no attacks within bounds'', then increasing the maximum number of runs may yield different results:
+\begin{itemize}
+\item May find attacks that require more protocol instances
+\item Significantly increases verification time (typically exponentially)
+\end{itemize}
+Recommended values: 3-4 for quick checks, 5-7 for thorough analysis. However, until ``verified'' or ``falsified'' is reached, results are not conclusive.
+
+\item[\scr{Maximum search depth}] 
+\index{maximum search depth}
+\index{max-length}
+Limits the length of attack traces (number of events). Default is around 20-30. Increase if you suspect attacks with many steps. Very large values can cause memory issues.
+
+\item[\scr{Pruning}]
+\index{pruning}
+Pruning controls the branch-and-bound search strategy that aims to show the user the ``simplest'' attack, instead of the first attack that it finds. Note that this applies per-claim. Possible values are:
+\begin{itemize}
+\item 0 = find all attacks
+\item 1 = find first attack
+\item 2 = find best attack (continues search after finding an attack to see if it can find a simpler one)
+\end{itemize}
+Default value is 2.
+
+\item[\scr{Maximum number of attacks}]
+\index{maximum attacks}
+How many attacks to find before stopping. Default is 1 (stop after first attack). Set to higher values or 0 (unlimited) to find all attacks, useful for understanding attack patterns.
+\end{description}
+
+\subsection{Verification Modes}
+
+\index{verification modes}
+Different verification modes are available through the settings:
+
+\begin{description}
+\item[\scr{Standard verification}] Verifies all claims in the protocol file.
+
+\item[\scr{Automatic claims}] Generates and verifies standard security claims automatically for all roles, even if no explicit claims are specified. Note that while this is a quick way to get an overview of potential weaknesses, it may not capture all relevant security properties for a given protocol.
+
+\item[\scr{Characterization}] Generates the complete state-space characterization, showing all possible protocol behaviors within bounds. Users can then manually expect these to investigate if they match expectations.
+\end{description}
+
+\subsection{Performance Tuning}
+
+\index{performance tuning}
+For slow verifications:
+\begin{itemize}
+\item Reduce maximum runs (try 3-4 instead of 5+)
+\item Set maximum attacks to 1 (stop after finding first attack)
+\item Reduce maximum search depth if appropriate
+\end{itemize}
+
+For thorough analysis:
+\begin{itemize}
+\item Increase maximum runs gradually (5, 6, 7...)
+\item Set maximum attacks to 0 (find all)
+\item Monitor memory usage for large protocols
+\end{itemize}
+
+%............................................................................
+\section{GUI Menu Reference}
+\label{sec:gui-menu}
+
+\index{GUI!menu reference}
+This section provides a complete reference for all menu options and GUI features.
+
+\subsection{File Menu}
+
+\index{File menu}
+\begin{description}
+\item[\scr{New}] Create a new empty protocol file.
+
+\item[\scr{Open}] Open an existing \scr{.spdl} protocol file. Keyboard shortcut: Ctrl+O (Cmd+O on macOS).
+
+\item[\scr{Save}] Save the current file. Keyboard shortcut: Ctrl+S (Cmd+S on macOS).
+
+\item[\scr{Save As}] Save the current file with a new name.
+
+\item[\scr{Exit}] Close the application.
+\end{description}
+
+\subsection{Verify Menu}
+
+\index{Verify menu}
+\begin{description}
+\item[\scr{Verify claims}] 
+Verifies all explicit claim statements in the protocol. This is the most common verification mode. The tool will analyze each claim and report whether it is correct or if attacks exist.
+
+\item[\scr{Automatic claims}]
+\index{automatic claims}
+Automatically generates and verifies standard security properties for all roles in the protocol, even if no explicit claims are specified. Useful for quick security assessment of a protocol.
+
+\item[\scr{Characterize}]
+\index{characterization}
+Generates a complete state-space characterization showing all possible protocol executions within the specified bounds. This provides a comprehensive view of protocol behavior but can be computationally expensive.
+\end{description}
+
+\subsection{Working with Multiple Protocols}
+
+\index{multi-protocol analysis}
+To analyze multiple protocols simultaneously:
+
+\begin{enumerate}
+\item Create a new \scr{.spdl} file
+\item Use \scr{\#include} directives or paste multiple protocol definitions into the same file
+\item Run verification on the combined file
+\end{enumerate}
+
+This allows detection of multi-protocol attacks where an attacker exploits interactions between different protocols running in the same environment.
+
+\subsection{Exporting Results}
+
+\index{exporting results}
+\index{attack graphs!export}
+Attack graphs can be saved for inclusion in papers or presentations:
+
+\begin{itemize}
+\item Use the system's screenshot functionality to capture attack windows
+\item For programmatic access, use the \scr{--dot-output} command-line option (see Section~\ref{sec:cli})
+\item The generated \scr{.dot} files can be converted to PDF, PNG, or SVG using Graphviz
+\end{itemize}
+
+\subsection{Tips for Effective Use}
+
+\index{GUI!tips}
+\begin{itemize}
+\item Use command-line options like the \scr{--no-splash/-N} and \scr{--verify} flags for repeated testing to skip the splash screen, and directly provide input files for verification
+\item Save custom settings by modifying the preferences file
+\item Use automatic claims first for quick assessment, then add specific claims
+\end{itemize}
+
 %----------------------------------------------------------------------------
 \chapter{Using the Scyther command-line tools}
 \label{sec:cli}
@@ -2160,6 +2307,247 @@ Scyther can be used to check for so-called \emph{multi-protocol attacks} (closel
 
 The easiest way to check for multi-protocol attacks in Scyther is to combine two protocol descriptions into a single file, i.e., create a new \scr{.spdl} file and paste into this file two other \scr{.spdl} files. The resulting file models an environment in which both protocols are running. Use Scyther to evaluate the claims in the combined file. 
 
+
+%----------------------------------------------------------------------------
+\chapter{Troubleshooting and FAQ}
+\label{sec:troubleshooting}
+%----------------------------------------------------------------------------
+
+\index{troubleshooting}
+\index{FAQ}
+\index{frequently asked questions}
+This chapter addresses common issues, questions, and best practices for using Scyther effectively.
+
+%............................................................................
+\section{Installation and Setup Issues}
+\label{sec:trouble-install}
+
+\subsection{macOS: ``Binary cannot be opened because the developer cannot be verified''}
+
+\index{macOS!Gatekeeper}
+\index{security warnings}
+When downloading the Scyther binary on macOS, the system may block execution due to Gatekeeper security features. 
+
+\textbf{Solution:} Remove the quarantine attribute from the binary:
+\begin{screen}
+xattr -d com.apple.quarantine Scyther/scyther-mac
+\end{screen}
+
+Alternatively, right-click (or Control-click) the binary in Finder and select ``Open'' the first time you run it.
+
+\subsection{GUI fails to start or shows blank windows}
+
+\index{GUI!startup problems}
+\index{wxPython}
+The Scyther GUI requires wxPython 4.0 or later.
+
+\textbf{Check your Python version and wxPython installation:}
+\begin{screen}
+python3 --version
+python3 -c "import wx; print(wx.version())"
+\end{screen}
+
+\textbf{Install or update wxPython:}
+\begin{screen}
+pip3 install --upgrade wxPython
+\end{screen}
+
+On some systems, you may need to use a virtual environment or install additional system dependencies. See the \scr{INSTALL.md} file in the \scr{gui/} directory for platform-specific instructions.
+
+\subsection{Command not found or Python errors}
+
+\index{Python!version requirements}
+Scyther requires Python 3. If you see ``command not found'' or syntax errors:
+
+\begin{itemize}
+\item Ensure Python 3 is installed: \scr{python3 --version}
+\item Use \scr{python3} instead of \scr{python} to run scripts
+\item Check that all dependencies are installed: \scr{pip3 install -r requirements.txt}
+\end{itemize}
+
+%............................................................................
+\section{Understanding Verification Results}
+\label{sec:trouble-results}
+
+\subsection{What's the difference between ``No attacks within bounds'' and ``No attacks''?}
+
+\index{no attacks within bounds}
+\index{bounded vs unbounded verification}
+
+\begin{description}
+\item[\scr{No attacks within bounds}]
+Scyther explored the state space up to the configured limits (e.g., maximum 5 runs, maximum depth 20) and found no attacks, but also no proof. Hence, attacks involving more runs or longer traces might still exist.
+
+\textbf{Action:} Gradually increase the maximum number of runs in the settings. Try 6, 7, or 8 runs. If still no attacks are found and the result remains ``within bounds,'' your protocol likely meets the property for practical scenarios.
+
+\item[\scr{No attacks}]
+Scyther has proven that no attacks exist on the property in the model, even for unbounded numbers of runs. This is a complete verification result.
+
+\textbf{Meaning:} Your protocol is secure for the specified claims under the Dolev-Yao attacker model and Scyther's semantics.
+\end{description}
+
+\subsection{Verification is taking too long}
+
+\index{performance issues}
+\index{verification!slow}
+
+If verification doesn't complete in reasonable time:
+
+\begin{enumerate}
+\item \textbf{Reduce maximum runs:} Try 3 or 4 instead of 5+. Most attacks are found with few runs.
+
+\item \textbf{Limit attack search:} Set maximum attacks to 1 (stop after finding first attack).
+
+\item \textbf{Check protocol complexity:} Protocols with many roles, long message sequences, or complex terms take longer to verify.
+
+\item \textbf{Try automatic claims first:} If you have many explicit claims, try verifying with automatic claims to get quick feedback.
+\end{enumerate}
+
+\subsection{Why did Scyther find an attack I don't think is realistic?}
+
+\index{unrealistic attacks}
+\index{Dolev-Yao model}
+
+Scyther uses the Dolev-Yao attacker model, which makes certain assumptions:
+
+\begin{itemize}
+\item \textbf{Perfect cryptography:} Encryption cannot be broken without the key
+\item \textbf{Attacker controls the network:} The attacker can intercept, modify, and inject messages
+\item \textbf{Nonces are perfectly random:} Cannot be guessed by the attacker
+\end{itemize}
+
+If an attack seems unrealistic:
+
+\begin{enumerate}
+\item Check if it relies on assumptions not in your threat model
+\item Consider if additional checks or type distinctions should be added to the protocol
+\item Verify that your protocol specification matches the intended implementation
+\item Remember: Even ``unrealistic'' attacks may reveal design weaknesses worth addressing
+\end{enumerate}
+
+%............................................................................
+\section{Protocol Modeling Issues}
+\label{sec:trouble-modeling}
+
+\subsection{No attacks found but I expected one}
+
+\index{modeling errors}
+\index{false negatives}
+
+Common causes:
+
+\begin{enumerate}
+\item \textbf{Modeling errors:} Review your protocol specification for syntax errors, incorrect term construction, or missing messages. Try automatic claims and in particular reachability claims: if a reachability claim is not satisfied, there is likely a modeling error.
+
+\item \textbf{Insufficient runs:} The attack requires more protocol instances than your bound. Increase maximum runs to 6-8.
+
+\item \textbf{Wrong claim type:} Make sure you're using the right claim type (e.g., \spd{Secret} vs \spd{Nisynch}).
+
+\item \textbf{Over-constrained roles:} Check that role variables aren't unnecessarily constrained. The attacker should be able to execute roles with different agents.
+
+\end{enumerate}
+
+\subsection{Parse errors and syntax issues}
+
+\index{syntax errors}
+\index{parse errors}
+
+Common syntax mistakes:
+
+\begin{itemize}
+\item Missing semicolons after statements
+\item Mismatched braces \{ \} or parentheses ( )
+\item Undefined variables (all variables must be declared as \spd{var} or \spd{fresh})
+\item Wrong term construction (check encryption syntax: \spd{\{term\}key})
+\item Case sensitivity (Scyther is case-sensitive)
+\item Comments not properly closed (\spd{/* ... */})
+\end{itemize}
+
+\textbf{Tip:} Look at example protocols in the \scr{Protocols/} directory for correct syntax patterns.
+
+\subsection{Unexpected variable bindings}
+
+\index{variable binding}
+\index{role matching}
+
+Variables in roles can be bound in ways you might not expect:
+
+\begin{itemize}
+\item A role can run with any agent, including the intruder
+\item Variables are bound when a message is received
+\item The same agent can play multiple roles (including communicating with themselves)
+\end{itemize}
+
+To constrain role execution, use match statements or add inequalities in global declarations.
+
+%............................................................................
+\section{Common Questions}
+\label{sec:faq-common}
+
+\subsection{Should I use automatic claims or write my own?}
+
+\index{automatic claims vs explicit claims}
+
+\textbf{Use automatic claims when:}
+\begin{itemize}
+\item Getting started with a new protocol
+\item Doing quick security assessment
+\item You want standard authentication and secrecy properties
+\end{itemize}
+
+\textbf{Write explicit claims when:}
+\begin{itemize}
+\item You need specific, non-standard properties
+\item You want fine-grained control over what's verified
+\item You're analyzing a variant and want to compare specific claims
+\item Writing formal proofs that reference specific claims
+\end{itemize}
+
+\textbf{Best practice:} Use automatic claims first to understand the protocol, then add explicit claims for specific properties you care about.
+
+\subsection{Can Scyther verify protocols with Diffie-Hellman or other cryptographic operations?}
+
+\index{Diffie-Hellman}
+\index{cryptographic operations}
+\index{equational theories}
+
+Scyther supports standard Dolev-Yao operations (encryption, hashing, pairing). For advanced cryptographic operations like Diffie-Hellman, XOR, or exclusive-or more advanced tools like the Tamarin prover are more appropriate. 
+
+However, you can approximate some of these operations in Scyther using helper protocols (see Section~\ref{sec:advanced}).
+
+\subsection{How do I verify a protocol with more than two roles?}
+
+\index{multi-role protocols}
+\index{three-party protocols}
+
+Scyther handles protocols with any number of roles. Simply define all roles within the same protocol:
+
+\begin{spdl}
+protocol ThreeParty(Alice,Bob,Server)
+{
+  role Alice { ... }
+  role Bob { ... }
+  role Server { ... }
+}
+\end{spdl}
+
+Each role can have its own claims. Scyther will consider all possible interleavings of the roles.
+
+
+\subsection{Where can I find more example protocols?}
+
+\index{example protocols}
+\index{protocol library}
+
+Example protocols are in the \scr{Protocols/} directory:
+
+\begin{itemize}
+\item \scr{Protocols/} - Standard protocols (Needham-Schroeder, Kerberos, TLS, etc.)
+\item \scr{gui/Protocols/} - Additional protocol examples
+\item The examples cover various patterns: challenge-response, key exchange, authenticated key establishment
+\end{itemize}
+
+Study these examples to learn modeling patterns and best practices.
 
 %----------------------------------------------------------------------------
 \chapter{Further reading}
