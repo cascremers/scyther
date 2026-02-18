@@ -61,6 +61,11 @@ Requirements:
 - Python 3
 - wxPython 4.0+ (will be auto-installed if missing)
 
+macOS Security Note:
+If macOS blocks the binary, you can remove the quarantine attribute:
+  xattr -d com.apple.quarantine scyther-gui.py
+  xattr -dr com.apple.quarantine Scyther/
+
 For more information, see:
 https://github.com/cascremers/scyther
 
