@@ -1,4 +1,4 @@
-# Scyther Manual Draft
+# Scyther Manual
 
 ## TODO
 
