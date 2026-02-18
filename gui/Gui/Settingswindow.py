@@ -174,7 +174,7 @@ class SettingsWindow(wx.Panel):
         # Matching type
         tstr += "--match=%s " % (str(self.match))
         # Prune (has to go BEFORE max attacks)
-        tstr += "--prune=%s" % (str(self.prune))
+        tstr += "--prune=%s " % (str(self.prune))
         # Max attacks/classes
         if self.maxattacks != 0:
             tstr += "--max-attacks=%s " % (str(self.maxattacks))
