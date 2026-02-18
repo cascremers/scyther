@@ -256,7 +256,7 @@ build_for_platform() {
             exit 1
         }
     else
-        make 2>&1 | grep -E "error:|warning:" || make > /dev/null || {
+        make > /dev/null 2>&1 || {
             print_error "Build failed (run with --verbose for details)"
             exit 1
         }

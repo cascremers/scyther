@@ -70,7 +70,7 @@ jobs:
 
   build-macos-intel:
     name: Build macOS Intel
-    runs-on: macos-13  # Intel runner
+    runs-on: macos-14  # ARM runner, cross-compile for Intel
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
