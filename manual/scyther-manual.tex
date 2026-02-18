@@ -201,9 +201,6 @@ tool, and complements the website~\cite{wwwscyther}, github repository~\cite{scy
 
 The target audience of Scyther is anyone interested in learning about the formal analysis of security protocols, including researchers, students, and practitioners. The tool is designed to be easy to use for beginners. However, it does not offer state-of-the-art features, and its analysis is relative coarse for modern standards. Thus, while it can be extremely useful for teaching purposes or finding basic attacks, it is not recommended to use Scyther for the analysis of complex protocols or for showing the absence of subtle attacks. For such more advanced analysis and to obtain substantially higher assurance guarantees, we suggest researchers and advanced students to use the Tamarin Prover~\cite{tamarinbook,tamarinwebsite} instead, which is a far more powerful tool.
 
-
-
-
 The purpose of this manual is to explain the
 details of the Scyther input language, explain how to model basic
 protocols, and how to effectively use the Scyther tool.
@@ -213,6 +210,11 @@ book~\cite{opsembook}. The book includes a detailed
 description of Scyther's
 underlying protocol model, security property specifications, and the
 algorithm.
+
+A short historical note on Scyther's origins and current status:
+Scyther's development started in 2002, and the tool has been used in many research papers since then. Since about 2012, the tool is still being maintained, but no major new features are planned. The goal is to maintain the tool to support educators and existing users, but for new research projects we strongly recommend to use the Tamarin Prover instead.
+
+\section*{Outline}
 
 We proceed in the following way. We give some background in
 Chapter~\ref{sec:background}. 
@@ -228,12 +230,6 @@ is then explained in more detail in Section~\ref{sec:gui}. The
 underlying command-line tool is described in Section~\ref{sec:cli}.
 Advanced topics are discussed
 in Section~\ref{sec:advanced}.
-
-\section*{Online information}
-
-More help can be found online on the Scyther website~\cite{wwwscyther} and the github source repository~\cite{scythergithub}.
-\index{Scyther website}
-\index{website|see{Scyther website}}
 
 
 %----------------------------------------------------------------------------
