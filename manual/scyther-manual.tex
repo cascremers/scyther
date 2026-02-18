@@ -13,6 +13,8 @@
 \usepackage{fancyvrb}
 \usepackage{syntax}
 \usepackage{url}
+\usepackage{xurl}
+\usepackage{hyperref}
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{xspace}
@@ -1602,9 +1604,26 @@ This section provides a complete reference for understanding the visual elements
 
 \subsubsection{Arrows and Message Flow}
 \index{message flow}
-Arrows in attack graphs represent causality and message dependencies. 
+\index{arrow colors}
+Arrows in attack graphs represent causality and message dependencies:
 
-Thick vertical downward arrows typically indicate the flow of time and the sequence of events within a protocol run. Horizontal and diagonal arrows represent message transmission between agents. 
+\begin{description}
+\item[Bold green arrows]
+\index{green arrows}
+Indicate \emph{exact communication} where a message is sent and received exactly as specified in the protocol, without intruder interference or modification. These are drawn in bold with color \gra{forestgreen}.
+
+\item[Black arrows]
+\index{black arrows}
+All other arrows (default style). This includes:
+\begin{itemize}
+\item Messages intercepted by the intruder
+\item Messages from the intruder to agents
+\item Messages between intruder operations
+\item Dependencies between events
+\end{itemize}
+\end{description}
+
+Thick vertical downward arrows typically indicate the flow of time and the sequence of events within a protocol run. Horizontal and diagonal arrows represent message transmission or dependencies. When a message path goes through an orange node (see below), the message has been modified or redirected by the intruder. 
 
 \subsubsection{Event Boxes}
 
@@ -1648,14 +1667,21 @@ Represents a \emph{receive event}. Shows:
 
 \textbf{Reading tip:} Compare the received message with the sent message at the arrow's source to understand intruder manipulation.
 
-\item[Orange oval (intruder event)]
+\item[Orange node (intruder operation or redirect)]
 \index{intruder event}
-\index{orange oval}
-Represents an \emph{intruder action}, for example:
+\index{orange node}
+\index{redirect node}
+Represents an \emph{intruder action}. These nodes are filled with an orange color. They include:
 \begin{itemize}
-  \item Establishing the terms that the intruder initially knows, such as constants, agent names, and intruder-generated nonces (\gra{Initial intruder knowledge})
-  \item Constructing a new message, e.g., \gra{encrypt} or \gra{decrypt}
-  \item faking a message, e.g., \gra{fake sender Eve}
+  \item \textbf{Initial knowledge:} Shown as \gra{M} or similar, representing terms the intruder knows from the start (agent names, constants, compromised keys)
+  \item \textbf{Construction operations:} Labeled \gra{encrypt}, \gra{decrypt}, or \gra{apply}, showing cryptographic operations the intruder performs
+  \item \textbf{Redirect nodes:} When a message is modified between send and receive, an intermediate orange node appears with labels like:
+  \begin{itemize}
+    \item \gra{select} -- extracting a subterm from a message
+    \item \gra{redirect to} -- changing the intended recipient
+    \item \gra{fake sender} -- changing the apparent sender
+    \item \gra{combine} -- other modifications
+  \end{itemize}
 \end{itemize}
 
 \item[Colored box (claim event)]
@@ -1709,11 +1735,11 @@ To effectively understand an attack graph:
 
 \item \textbf{Trace backwards from the failed claim:} Follow arrows backwards to see what events led to the security violation.
 
-\item \textbf{Examine arrow colors:}
+\item \textbf{Examine arrows and nodes:}
    \begin{itemize}
    \item Many green arrows? The attack may exploit protocol logic rather than message manipulation.
-   \item Red arrows? The intruder is actively constructing messages.
-   \item Yellow arrows? The attack relies on message redirection.
+   \item Black arrows through orange nodes? The intruder is modifying or redirecting messages.
+   \item Orange \gra{encrypt}/\gra{decrypt} nodes? The intruder is actively constructing new messages.
    \end{itemize}
 
 \item \textbf{Check agent beliefs:} In run headers, compare who the agent thinks they're talking to versus who is actually in other runs.
@@ -1722,8 +1748,8 @@ To effectively understand an attack graph:
 
 \item \textbf{Identify the attack step:} Look for the critical point where:
    \begin{itemize}
-   \item A message is redirected to the wrong agent (yellow arrow)
-   \item The intruder constructs a new message (red arrow)  
+   \item A message is redirected or modified (orange redirect node in the arrow path)
+   \item The intruder constructs a new message (orange \gra{encrypt}/\gra{decrypt} node)  
    \item An agent accepts a message with wrong beliefs
    \end{itemize}
 \end{enumerate}
@@ -1737,7 +1763,7 @@ Recognizing these patterns helps quickly understand attack graphs:
 \begin{description}
 \item[Man-in-the-middle]
 \index{man-in-the-middle attack}
-Two runs where each agent thinks they're talking to the other, but messages pass through the intruder. Look for: two runs with swapped beliefs, mismatches in the data they should be agreeing on, or multiple red/yellow arrows.
+Two runs where each agent thinks they're talking to the other, but messages pass through the intruder. Look for: two runs with swapped beliefs, mismatches in the data they should be agreeing on, or multiple orange redirect nodes.
 
 \item[Reflection attack]
 \index{reflection attack}
