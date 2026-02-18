@@ -104,8 +104,8 @@ else
 fi
 
 # Package macOS ARM
-if [ -f "$ARTIFACTS_DIR/scyther-macos-arm/scyther-mac-arm" ]; then
-    create_package "macos-arm" "scyther-mac-arm" "$ARTIFACTS_DIR/scyther-macos-arm" "tgz"
+if [ -f "$ARTIFACTS_DIR/scyther-macos-arm/scyther-mac" ]; then
+    create_package "macos-arm" "scyther-mac" "$ARTIFACTS_DIR/scyther-macos-arm" "tgz"
 else
     echo "Warning: macOS ARM binary not found, skipping"
 fi
