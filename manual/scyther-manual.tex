@@ -347,11 +347,21 @@ Scyther directory. The program will launch two windows: the main window,
 in which files are edited, and the \scr{about} window, which shows some
 information about the tool. 
 
+\index{loading files from command line}
+Alternatively, you can load a protocol file directly when launching the GUI:
+\begin{screen}
+python3 scyther-gui.py protocol.spdl
+\end{screen}
+This will open the specified file immediately in the main window. You can also suppress the splash screen for faster startup:
+\begin{screen}
+python3 scyther-gui.py --no-splash protocol.spdl
+\end{screen}
+
 As an introductory example, we will verify the Needham-Schroeder
 protocol, and investigate an attack on it. 
 
 Go to the file$\rightarrow$open dialog, and open the file
-\scr{ns3.spdl} in the Scyther directory. Your main window should look
+\scr{ns3.spdl} in the Scyther directory (or launch the GUI with \scr{python3 scyther-gui.py ns3.spdl} to load it directly). Your main window should look
 like the one in Figure~\ref{protocolwindow}.
 
 \begin{figure}[!htb]
@@ -1728,6 +1738,111 @@ To get a more complete list of command-line options, run the executable with the
 \begin{screen}
 scyther-linux --expert --help
 \end{screen}
+
+\section{Python wrapper scripts}
+\label{sec:python-wrappers}
+
+\index{Python!wrapper scripts}
+The Scyther distribution includes several Python wrapper scripts that provide alternative interfaces to the backend tool. These scripts are located in the main Scyther directory.
+
+\subsection{scyther.py: Simple command-line wrapper}
+\label{sec:scyther-py}
+
+\index{scyther.py}
+The \scr{scyther.py} script provides a simple Python-based command-line interface to the Scyther backend. It accepts the same arguments as the native backend executables.
+
+To use \scr{scyther.py}, run:
+\begin{screen}
+python3 scyther.py [options] [protocol.spdl]
+\end{screen}
+
+For example, to analyze a protocol with specific bounds:
+\begin{screen}
+python3 scyther.py --max-runs=3 --max-length=10 ns3.spdl
+\end{screen}
+
+Running \scr{scyther.py} without arguments displays the help information:
+\begin{screen}
+python3 scyther.py
+\end{screen}
+
+The script automatically detects the appropriate backend binary for your platform (Linux, Windows, or macOS) and forwards all arguments to it. This wrapper is useful for scripting and automation tasks where a consistent interface across platforms is desired.
+
+\subsection{scyther-gui.py: GUI with command-line options}
+\label{sec:scyther-gui-cli}
+
+\index{scyther-gui.py!command-line options}
+While \scr{scyther-gui.py} is primarily used to launch the graphical interface, it also supports several command-line options for automation and batch processing:
+
+\begin{description}
+\item[\scr{-V, --verify}] Immediately verify all claims in the protocol without showing the GUI. Requires an input file.
+\begin{screen}
+python3 scyther-gui.py --verify protocol.spdl
+\end{screen}
+
+\item[\scr{-s, --state-space}] Immediately generate the complete state-space characterization of the protocol without showing the GUI. Requires an input file.
+\begin{screen}
+python3 scyther-gui.py --state-space protocol.spdl
+\end{screen}
+
+\item[\scr{-a, --auto-claims}] Immediately verify the protocol using automatically generated default claims without showing the GUI. Requires an input file.
+\begin{screen}
+python3 scyther-gui.py --auto-claims protocol.spdl
+\end{screen}
+
+\item[\scr{-N, --no-splash}] Suppress the splash screen when launching the GUI. Useful for repeated testing or when the GUI is launched programmatically.
+\begin{screen}
+python3 scyther-gui.py --no-splash
+\end{screen}
+
+\item[\scr{-l, --license}] Display the license information and exit.
+\begin{screen}
+python3 scyther-gui.py --license
+\end{screen}
+\end{description}
+
+These options allow \scr{scyther-gui.py} to be used in automated testing scripts while still benefiting from the GUI's result formatting and display capabilities. When used with verification options (\scr{--verify}, \scr{--state-space}, or \scr{--auto-claims}), the results window will appear automatically with the analysis results.
+
+\subsection{json-scyther.py: Batch processing interface}
+\label{sec:json-scyther}
+
+\index{json-scyther.py}
+\index{batch processing}
+The \scr{json-scyther.py} script provides a JSON-based batch processing interface to Scyther. This is particularly useful for running multiple protocol analyses with different configurations or for integrating Scyther into larger automated verification pipelines.
+
+The script reads JSON-formatted input from a file, where each line contains a tuple of:
+\begin{enumerate}
+\item A list of protocol file paths
+\item Scyther options as a string
+\item A filter string (typically a claim identifier)
+\end{enumerate}
+
+Input format example:
+\begin{screen}
+[["protocol1.spdl", "protocol2.spdl"], "--max-runs=4", "claim_id"]
+\end{screen}
+
+To use \scr{json-scyther.py}:
+\begin{screen}
+python3 json-scyther.py input.json [line_numbers...]
+\end{screen}
+
+If line numbers are specified, only those lines from the input file will be processed. Otherwise, all lines are processed sequentially.
+
+Example usage:
+\begin{screen}
+python3 json-scyther.py batch-tests.json 1 5 10
+\end{screen}
+
+This processes only lines 1, 5, and 10 from \scr{batch-tests.json}.
+
+The JSON interface can be used for:
+\begin{itemize}
+\item Running systematic parameter sweeps over multiple protocols
+\item Integrating Scyther into continuous integration pipelines
+\item Automating multi-protocol attack analysis
+\item Reproducing research experiments with documented configurations
+\end{itemize}
 
 %----------------------------------------------------------------------------
 \chapter{Advanced topics}
