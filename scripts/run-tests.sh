@@ -45,8 +45,6 @@ find_scyther_binary() {
     # Check for various platform binaries in gui/Scyther
     if [ -f "$PROJECT_ROOT/gui/Scyther/scyther-linux" ]; then
         binary="$PROJECT_ROOT/gui/Scyther/scyther-linux"
-    elif [ -f "$PROJECT_ROOT/gui/Scyther/scyther-mac-arm" ]; then
-        binary="$PROJECT_ROOT/gui/Scyther/scyther-mac-arm"
     elif [ -f "$PROJECT_ROOT/gui/Scyther/scyther-mac" ]; then
         binary="$PROJECT_ROOT/gui/Scyther/scyther-mac"
     elif [ -f "$PROJECT_ROOT/src/scyther-linux" ]; then

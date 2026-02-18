@@ -9,7 +9,7 @@ MANDIR ?= $(PREFIX)/share/doc/scyther
 INSTALL_DIRS := $(DESTDIR)$(BINDIR) $(DESTDIR)$(DATADIR)/Protocols $(DESTDIR)$(DATADIR)/Images $(DESTDIR)$(MANDIR)
 
 # Auto-detect platform binary
-SCYTHER_BINARY := $(firstword $(wildcard gui/Scyther/scyther-linux gui/Scyther/scyther-mac-arm gui/Scyther/scyther-mac))
+SCYTHER_BINARY := $(firstword $(wildcard gui/Scyther/scyther-linux gui/Scyther/scyther-mac))
 
 .PHONY: default all build clean manual test install uninstall help
 
