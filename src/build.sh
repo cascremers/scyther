@@ -28,19 +28,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # =============================================================================
 
 print_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    printf "${BLUE}[INFO]${NC} %s\n" "$1"
 }
 
 print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    printf "${GREEN}[SUCCESS]${NC} %s\n" "$1"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
+    printf "${YELLOW}[WARNING]${NC} %s\n" "$1"
 }
 
 print_error() {
-    echo -e "${RED}[ERROR]${NC} $1" >&2
+    printf "${RED}[ERROR]${NC} %s\n" "$1" >&2
 }
 
 print_usage() {
@@ -207,7 +207,7 @@ build_for_platform() {
         macos-arm)
             target_os="MacArm"
             binary_name="scyther-mac"
-            output_name="scyther-mac-arm"
+            output_name="scyther-mac"
             ;;
         macos-intel)
             target_os="MacIntel"
@@ -262,6 +262,14 @@ build_for_platform() {
         }
     fi
     print_success "Build complete: $binary_name"
+    
+    # Verify binary was created
+    if [ ! -f "$binary_name" ]; then
+        print_error "Binary '$binary_name' was not created by make"
+        print_info "Available files in directory:"
+        ls -lh scyther* 2>/dev/null || echo "  No scyther* files found"
+        exit 1
+    fi
     
     # Copy to GUI directory
     local gui_dir="$SCRIPT_DIR/../gui/Scyther"
@@ -353,6 +361,8 @@ main() {
     
     # Build
     build_for_platform
+    
+    exit 0
 }
 
 # Run main function

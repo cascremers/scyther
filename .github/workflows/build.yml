@@ -122,16 +122,15 @@ jobs:
         run: |
           cd src
           ./build.sh --platform=macos-arm
-          ls -lh scyther-mac-arm
       
       - name: Verify binary exists in gui/Scyther
-        run: ls -lh gui/Scyther/scyther-mac-arm
+        run: ls -lh gui/Scyther/scyther-mac
       
       - name: Upload macOS ARM binary
         uses: actions/upload-artifact@v4
         with:
           name: scyther-macos-arm
-          path: gui/Scyther/scyther-mac-arm
+          path: gui/Scyther/scyther-mac
           retention-days: 7
 
   create-release:

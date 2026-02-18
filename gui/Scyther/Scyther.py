@@ -172,15 +172,9 @@ def getScytherBackend():
     elif "darwin" in sys.platform:
 
         """ OS X """
-        # Check if there is an ARM version available at scyther-mac-arm
-        # Otherwise, just fallback to the default scyther-mac which is the
-        # Intel version for backwards-compatibility reasons.
-        has_arm_build = os.path.exists(os.path.join(getBinDir(),"scyther-mac-arm"))
-
-        if platform.processor().startswith("arm") and has_arm_build:
-            scythername = "scyther-mac-arm"
-        else:
-            scythername = "scyther-mac"
+        # Both ARM and Intel builds use the same binary name
+        # Users download the appropriate architecture-specific package
+        scythername = "scyther-mac"
 
     elif sys.platform.startswith('win'):
 
