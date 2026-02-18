@@ -14,7 +14,7 @@ echo "---------------------------------------------------------"
 echo "Built the Mac ARM binary"
 
 # Copy to the correct locations
-cp scyther-mac ../gui/Scyther/scyther-mac-arm
+cp scyther-mac ../gui/Scyther/scyther-mac
 
 echo Copied the files to their respective locations
 echo "---------------------------------------------------------"
