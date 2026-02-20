@@ -22,37 +22,7 @@
 #
 
 import sys
-
-# Check for cElementTree presence. Otherwise use ElementTree.
-useiter = True
-try:
-    # cElementTree is in Python since version 2.5
-    import xml.etree.cElementTree as cElementTree
-except:
-    # try the old way
-    try:
-        import cElementTree
-    except ImportError:
-        useiter = False 
-        try:
-            from elementtree import ElementTree
-        except ImportError:
-            print("""
-ERROR:
-
-Could not locate either the [elementtree] or the [cElementTree] package.
-Please install one of them in order to work with the Scyther python interface.
-The [cElementTree] packages can be found at http://effbot.org/zone/celementtree.htm
-
-Note that you can still use the Scyther binaries in the 'Bin' directory.
-        """)
-            sys.exit(1)
-
-## Simply pick cElementTree
-#import cElementTree
-## Simply pick ElementTree
-#useiter = False 
-#from elementtree import ElementTree
+import xml.etree.ElementTree as ET
 
 from . import Term
 from . import Attack
@@ -72,28 +42,18 @@ class XMLReader(object):
         pass
 
     def readXML(self, input):
-        # Use iter parse when possble so we can clear the attack after reading 
-        # it in order to preserve memory (this requires cElementTree)
+        # Use iterparse to clear each element after reading it,
+        # preserving memory for large outputs.
 
         attackbuffer = []
         claims = []
         
-        if useiter:
-            parser = cElementTree.iterparse(input)
-        else:
-            parser = ElementTree.parse(input).findall('*')
-
-        for elem in parser:
-            # The iter parser receives the input in tuples (event and element)
-            # we only need the event
-            if useiter:
-                elem = elem[1]
+        for _, elem in ET.iterparse(input):
 
             if elem.tag == 'state':
                 attack = self.readAttack(elem)
                 attackbuffer.append(attack)
-                if useiter:
-                    elem.clear()
+                elem.clear()
 
             if elem.tag == 'claimstatus':
                 claim = self.readClaim(elem)
@@ -105,8 +65,7 @@ class XMLReader(object):
                     attack.claim = claim
 
                 attackbuffer = []
-                if useiter:
-                    elem.clear()
+                elem.clear()
 
         return claims
 
