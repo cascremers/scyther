@@ -33,7 +33,7 @@ Author: Cas Cremers
 
 from Scyther import Scyther
 
-from optparse import OptionParser, OptionGroup, SUPPRESS_HELP
+from argparse import ArgumentParser
 import time
 import os.path
 import json
@@ -67,57 +67,58 @@ PICKLEDATA = set()
 #---------------------------------------------------------------------------
 
 def parseArgs():
-    usage = "usage: %prog [options] [inputfile]" 
+    usage = "%(prog)s [options] [inputfile]"
     description = "test-mpa.py is a test script to help with multi-protocol analysis."
-    parser = OptionParser(usage=usage,description=description, version="%prog 2.0")
+    parser = ArgumentParser(usage=usage, description=description)
+    parser.add_argument("--version", action="version", version="%(prog)s 2.0")
 
-    group = OptionGroup(parser, "Bounding the search space")
-    group.add_option("-m","--max-protocols",type="int",dest="maxprotocols",default=3,
+    group = parser.add_argument_group("Bounding the search space")
+    group.add_argument("-m", "--max-protocols", type=int, dest="maxprotocols", default=3,
             help="Define maximum number of protocols in a multi-protocol attack [3].")
-
-    group.add_option("-r","--max-runs",type="int",dest="maxruns",default=4,
+    group.add_argument("-r", "--max-runs", type=int, dest="maxruns", default=4,
             help="Define maximum number of runs in the analysis [4].")
-
-    group.add_option("-T","--timeout",type="int",dest="timeout",default=600,
+    group.add_argument("-T", "--timeout", type=int, dest="timeout", default=600,
             help="Timeout in seconds for each analysis [600].")
-
-    group.add_option("-L","--limit",type="int",dest="limit",default=0,
+    group.add_argument("-L", "--limit", type=int, dest="limit", default=0,
             help="Limit the length of the list of protocols [None].")
-    parser.add_option_group(group)
 
-    group = OptionGroup(parser, "Matching type options")
-    group.add_option("-t","--typed",dest="defoptarray",default=[],action="append_const",const="--match=0",
+    group = parser.add_argument_group("Matching type options")
+    group.add_argument("-t", "--typed", dest="defoptarray", default=[], action="append_const", const="--match=0",
             help="Verify protocols with respect to a typed model (-m 0) [default]")
-    group.add_option("-b","--basic-types",dest="defoptarray",default=[],action="append_const",const="--match=1",
+    group.add_argument("-b", "--basic-types", dest="defoptarray", default=[], action="append_const", const="--match=1",
             help="Verify protocols with respect to basic type flaws only (-m 1)")
-    group.add_option("-u","--untyped",dest="defoptarray",default=[],action="append_const",const="--match=2",
+    group.add_argument("-u", "--untyped", dest="defoptarray", default=[], action="append_const", const="--match=2",
             help="Verify protocols with respect to an untyped model (-m 2)")
-    group.add_option("-A","--all-types",dest="alltypes",default=False,action="store_true",
+    group.add_argument("-A", "--all-types", dest="alltypes", default=False, action="store_true",
             help="Verify protocols with respect to all matching types")
-    parser.add_option_group(group)
 
-    group = OptionGroup(parser, "Restricting self-communication")
-    group.add_option("-U","--init-unique",dest="defoptarray",default=[],action="append_const",const="--init-unique",
+    group = parser.add_argument_group("Restricting self-communication")
+    group.add_argument("-U", "--init-unique", dest="defoptarray", default=[], action="append_const", const="--init-unique",
             help="Use Scythers --init-unique switch to filter out initiators talking to themselves.")
-    group.add_option("-E","--extravert",dest="defoptarray",default=[],action="append_const",const="--extravert",
+    group.add_argument("-E", "--extravert", dest="defoptarray", default=[], action="append_const", const="--extravert",
             help="Use Scythers --extravert switch to filter out agents talking to themselves.")
-    group.add_option("","--self-communication",dest="selfcommunication",default=False,action="store_true",
+    group.add_argument("--self-communication", dest="selfcommunication", default=False, action="store_true",
             help="Explore all self-communication restrictions (as MPA-only option).")
-    parser.add_option_group(group)
 
     # Misc
-    parser.add_option("","--pickle",dest="pickle",
-            help="Do not invoke Scyther but write intended calls to a file with the given name.")   # action="store" and type="string" are defaults
-    parser.add_option("-l","--latex",dest="latex",
-            help="Output latex files with the given prefix.")   # action="store" and type="string" are defaults
-    parser.add_option("-v","--verbose",dest="verbose",default=False,action="store_true",
+    parser.add_argument("--pickle", dest="pickle",
+            help="Do not invoke Scyther but write intended calls to a file with the given name.")
+    parser.add_argument("-l", "--latex", dest="latex",
+            help="Output latex files with the given prefix.")
+    parser.add_argument("-v", "--verbose", dest="verbose", default=False, action="store_true",
             help="Be more verbose.")
-    parser.add_option("-D","--debug",dest="debug",default=False,action="store_true",
+    parser.add_argument("-D", "--debug", dest="debug", default=False, action="store_true",
             help="Enable debugging features.")
-    parser.add_option("-p","--plain",dest="plain",default=False,action="store_true",
+    parser.add_argument("-p", "--plain", dest="plain", default=False, action="store_true",
             help="Ensure plain output, e.g., no progress bars.")
 
-    return parser.parse_args()
+    # Positional input files
+    parser.add_argument("inputfiles", nargs="*")
+
+    ns = parser.parse_args()
+    args = ns.inputfiles
+    del ns.inputfiles
+    return (ns, args)
 
 #---------------------------------------------------------------------------
 

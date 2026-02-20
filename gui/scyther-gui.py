@@ -96,7 +96,7 @@ Note that you can currently still use the Scyther binaries in the 'Scyther' dire
 """)
 
 """ import externals """
-from optparse import OptionParser, SUPPRESS_HELP
+from argparse import ArgumentParser, SUPPRESS
 from subprocess import *
 
 #---------------------------------------------------------------------------
@@ -108,33 +108,37 @@ from Gui import About,Preference,Mainwindow
 #---------------------------------------------------------------------------
 
 def parseArgs():
-    usage = "usage: %s [options] [inputfile]" % sys.argv[0]
+    usage = "%(prog)s [options] [inputfile]"
     description = "scyther-gui is a graphical user interface for the scyther protocol verification tool."
-    parser = OptionParser(usage=usage,description=description)
+    parser = ArgumentParser(usage=usage, description=description)
 
     # command
-    parser.add_option("-V","--verify",dest="command",default=None,action="store_const",const="verify",
+    parser.add_argument("-V", "--verify", dest="command", default=None, action="store_const", const="verify",
             help="Immediately verify the claims of the protocol (requires input file)")
-    parser.add_option("-s","--state-space",dest="command",default=None,action="store_const",const="statespace",
+    parser.add_argument("-s", "--state-space", dest="command", default=None, action="store_const", const="statespace",
             help="Immediately generate the complete characterization of the protocol (requires input file)")
-    parser.add_option("-a","--auto-claims",dest="command",default=None,action="store_const",const="autoverify",
+    parser.add_argument("-a", "--auto-claims", dest="command", default=None, action="store_const", const="autoverify",
             help="Immediately verified protocol using default claims (requires input file)")
-    #parser.add_option("-c","--check",dest="command",default=None,action="store_const",const="check",
-    #        help="Immediately check protocol (requires input file)")
 
     # License
-    parser.add_option("-l","--license",dest="license",default=False,action="store_const",const=True,
+    parser.add_argument("-l", "--license", dest="license", default=False, action="store_const", const=True,
             help="Show license")
 
     # no-splash
-    parser.add_option("-N","--no-splash",dest="splashscreen",default=True,action="store_const",const=False,
+    parser.add_argument("-N", "--no-splash", dest="splashscreen", default=True, action="store_const", const=False,
             help="Do not show the splash screen")
 
     # misc debug etc (not shown in the --help output)
-    parser.add_option("","--test",dest="test",default=False,action="store_true",
-            help=SUPPRESS_HELP)
+    parser.add_argument("--test", dest="test", default=False, action="store_true",
+            help=SUPPRESS)
 
-    return parser.parse_args()
+    # Positional input files
+    parser.add_argument("inputfiles", nargs="*")
+
+    ns = parser.parse_args()
+    args = ns.inputfiles
+    del ns.inputfiles
+    return (ns, args)
 
 #---------------------------------------------------------------------------
 
