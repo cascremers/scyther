@@ -43,11 +43,11 @@ def confirm(question):
         answer = input().lower()
     return answer == 'y'
 
-def exists(func,list):
-    return len(list(filter(func,list))) > 0    
+def exists(func, seq):
+    return len(list(filter(func, seq))) > 0
 
-def forall(func,list):
-    return len(list(filter(func,list))) == len(list)    
+def forall(func, seq):
+    return len(list(filter(func, seq))) == len(seq)
 
 def uniq(li):
     result = []
@@ -56,11 +56,6 @@ def uniq(li):
             result.append(elem)
     return result
 
-# Return a sorted copy of a list
-def sorted(li):
-    result = li[:]
-    result.sort()
-    return result
 
 
 # path
