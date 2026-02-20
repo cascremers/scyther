@@ -583,7 +583,7 @@ def GetClaims(filelist, filterlist=None):
     Filterlist may be None or a list of claim names (Secret, SKR, Niagree etc).
     """
 
-    dict = {}
+    claims_dict = {}
     for fname in filelist:
         try:
             sc = Scyther()
@@ -597,10 +597,10 @@ def GetClaims(filelist, filterlist=None):
                     else:
                         if claim.claimtype in filterlist:
                             cl.append(claim.id)
-                dict[fname] = cl
+                claims_dict[fname] = cl
         except:
             pass
-    return dict
+    return claims_dict
 
 #---------------------------------------------------------------------------
 
